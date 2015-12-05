@@ -12,7 +12,7 @@ PV .= "+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 DEPENDS_append_aarch64 = " lib32-gcc-cross-arm lib32-gcc-runtime lib32-binutils-cross-arm"
 CROSS32TC = ""
-CROSS32TC_aarch64 = "${TUNE_ARCH_32}${TARGET_VENDOR}-${TARGET_OS}-gnu${ABIEXTENSION_32}"
+CROSS32TC_aarch64 = "${TUNE_ARCH_32}${TARGET_VENDOR_virtclass-multilib-lib32}-${TARGET_OS}-gnu${ABIEXTENSION_32}"
 PATH_prepend_aarch64 = "${STAGING_BINDIR_NATIVE}/${CROSS32TC}:"
 EXTRA_OEMAKE_append_aarch64 = ' CROSS32CC="${CROSS32TC}-gcc -march=armv7-a -mfloat-abi=hard" CROSS32LD="${CROSS32TC}-ld.bfd"'
 EXTRA_OEMAKE += 'LIBGCC=""'
