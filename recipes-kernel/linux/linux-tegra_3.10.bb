@@ -20,9 +20,10 @@ EXTRA_OEMAKE += 'LIBGCC=""'
 L4T_VERSION = "l4t-r23.1"
 LOCALVERSION = "-${L4T_VERSION}"
 
-SRCBRANCH = "l4t/${L4T_VERSION}"
-SRCREV = "cdddc523aafea574cd2d83d6f3455ae403b27354"
-SRC_URI = "git://nv-tegra.nvidia.com/linux-3.10.git;branch=${SRCBRANCH} \
+SRCBRANCH = "patches-${L4T_VERSION}"
+SRCREV = "7b27278e4f6ad170024a12b76e477082deb74f7e"
+KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
+SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 	   file://defconfig \
 "
 S = "${WORKDIR}/git"
