@@ -33,4 +33,21 @@ do_configure_prepend() {
     echo "+g${SRCREV}" | cut -c -9 | tee ${S}/.scmversion > ${B}/.scmversion
 }
 
+do_install_append() {
+    install -d ${D}/${KERNEL_IMAGEDEST}/extlinux
+    rm -f ${D}/${KERNEL_IMAGEDEST}/extlinux/extlinux.conf
+    cat >${D}/${KERNEL_IMAGEDEST}/extlinux/extlinux.conf << EOF
+DEFAULT primary
+TIMEOUT 30
+MENU TITLE Boot Options
+LABEL primary
+      MENU LABEL primary ${KERNEL_IMAGETYPE}-${KERNEL_VERSION}
+      LINUX /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}-${KERNEL_VERSION}
+      FDT /${KERNEL_IMAGEDEST}/devicetree-${KERNEL_IMAGETYPE}-${KERNEL_DEVICETREE}
+      APPEND console=ttyS0,115200n8 ddr_die=2048M@2048M ddr_die=2048M@4096M section=256M memtype=0 vpr_resize usb_port_owner_info=0 lane_owner_info=0 emc_max_dvfs=0 touch_id=0@63 video=tegrafb no_console_suspend=1 debug_uartport=lsport,0 earlyprintk=uart8250-32bit,0x70006000 maxcpus=4 usbcore.old_scheme_first=1 lp0_vec=0x1000@0xff2bf000 nvdumper_reserved=0xff23f000 core_edp_mv=1125 core_edp_ma=4000 gpt root=/dev/mmcblk1p1 ro rootwait
+EOF
+}
+
+FILES_kernel-image += "/${KERNEL_IMAGEDEST}/extlinux"
+
 COMPATIBLE_MACHINE = "(jetson-tx1)"
