@@ -4,7 +4,7 @@ require tegra-shared-binaries.inc
 COMPATIBLE_HOST = "(arm.*)"
 
 do_configure() {
-    tar -C ${B} -x -f ${S}/nv_sample_apps/nvgstapps.tbz2
+    tar -C ${B} -x -f ${S}/nv_tegra/nv_sample_apps/nvgstapps.tbz2
 }
 
 do_compile[noexec] = "1"
@@ -29,6 +29,9 @@ FILES_nvgstcapture = "${bindir}/nvgstcapture-1.0"
 RDEPENDS_nvcapture = "${PN}"
 FILES_nvgstplayer = "${bindir}/nvgstplayer-1.0"
 RDEPENDS_nvgstplayer = "${PN}"
+FILES_${PN} = "${libdir}"
 
-INSANE_SKIP_${PN} = "dev-so"
+INHIBIT_PACKAGE_STRIP = "1"
+INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
+INSANE_SKIP_${PN} = "dev-so ldflags"
 RDEPENDS_${PN} = "gstreamer1.0 gstreamer1.0-plugins-good-jpeg"
