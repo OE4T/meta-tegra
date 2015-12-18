@@ -21,7 +21,7 @@ L4T_VERSION = "l4t-r23.1"
 LOCALVERSION = "-${L4T_VERSION}"
 
 SRCBRANCH = "patches-${L4T_VERSION}"
-SRCREV = "7b27278e4f6ad170024a12b76e477082deb74f7e"
+SRCREV = "982e072ab333c64b99560828b428711f0fa4b1f9"
 KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 	   file://defconfig \
@@ -30,7 +30,8 @@ S = "${WORKDIR}/git"
 
 do_configure_prepend() {
     sed -e's,^CONFIG_LOCALVERSION=.*$,CONFIG_LOCALVERSION="${LOCALVERSION}",' < ${WORKDIR}/defconfig > ${B}/.config
-    echo "+g${SRCREV}" | cut -c -9 | tee ${S}/.scmversion > ${B}/.scmversion
+    head=`git --git-dir=${S}/.git rev-parse --verify --short HEAD 2> /dev/null`
+    printf "%s%s" "+g" $head > ${S}/.scmversion
 }
 
 do_install_append() {
