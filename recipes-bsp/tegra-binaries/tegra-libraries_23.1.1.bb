@@ -2,6 +2,7 @@ require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
 COMPATIBLE_HOST = "(arm.*)"
+COMPATIBLE_MACHINE = "(jetson-tx1)"
 
 DEPENDS = "mesa"
 

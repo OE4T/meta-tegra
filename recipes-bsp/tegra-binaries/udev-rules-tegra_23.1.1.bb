@@ -1,6 +1,8 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
+COMPATIBLE_MACHINE = "(jetson-tx1)"
+
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/config.tbz2
 }
