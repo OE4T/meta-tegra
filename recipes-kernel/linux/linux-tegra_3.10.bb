@@ -17,11 +17,11 @@ PATH_prepend_aarch64 = "${STAGING_BINDIR_NATIVE}/${CROSS32TC}:"
 EXTRA_OEMAKE_append_aarch64 = ' CROSS32CC="${CROSS32TC}-gcc -march=armv7-a -mfloat-abi=hard" CROSS32LD="${CROSS32TC}-ld.bfd"'
 EXTRA_OEMAKE += 'LIBGCC=""'
 
-L4T_VERSION = "l4t-r23.1"
+L4T_VERSION = "l4t-r23.2"
 LOCALVERSION = "-${L4T_VERSION}"
 
 SRCBRANCH = "patches-${L4T_VERSION}"
-SRCREV = "982e072ab333c64b99560828b428711f0fa4b1f9"
+SRCREV = "2b1dd623e8bf0a5b42c94704ddec0fe142283092"
 KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 	   file://defconfig \
