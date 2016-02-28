@@ -15,6 +15,11 @@ S = "${WORKDIR}/gstegl_src/gst-egl"
 
 inherit gettext
 
+do_configure_append() {
+    rm -f ${S}/po/POTFILES.in
+    echo "" > ${S}/po/POTFILES.in
+}
+
 do_install_append() {
     sed -i -e's,${STAGING_INCDIR},${includedir},g' ${D}${libdir}/pkgconfig/gstreamer-egl-1.0.pc
 }
