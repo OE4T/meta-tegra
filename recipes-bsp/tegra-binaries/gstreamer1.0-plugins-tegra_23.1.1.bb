@@ -31,6 +31,8 @@ do_install() {
     for f in ${LIBROOT}/gstreamer-1.0/lib*; do
         install -m 0644 $f ${D}${libdir}/gstreamer-1.0/
     done
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstnveglglessink.so*
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstomx.so*
 }
 
 PACKAGES = "nvgstcapture ${NVGSTPLAYER} ${PN}"

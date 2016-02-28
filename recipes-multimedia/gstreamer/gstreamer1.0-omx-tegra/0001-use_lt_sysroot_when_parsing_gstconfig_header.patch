@@ -1,0 +1,21 @@
+Index: gst-omx1/configure.ac
+===================================================================
+--- gst-omx1.orig/configure.ac
++++ gst-omx1/configure.ac
+@@ -5,7 +5,7 @@ dnl please read gstreamer/docs/random/au
+ dnl initialize autoconf
+ dnl releases only do -Wall, git and prerelease does -Werror too
+ dnl use a three digit version number for releases, and four for git/prerelease
+-AC_INIT(GStreamer OpenMAX Plug-ins, 1.0.0.1,
++AC_INIT(GStreamer OpenMAX Plug-ins, 1.0.0,
+     http://bugzilla.gnome.org/enter_bug.cgi?product=GStreamer,
+     gst-omx)
+ 
+@@ -300,6 +300,7 @@ AG_GST_CHECK_PLUGIN(omx)
+ dnl check for gstreamer core features (subsystems)
+ dnl FIXME: this assumes srcdir == builddir for uninstalled setups
+ GST_CONFIGPATH=`$PKG_CONFIG --variable=includedir gstreamer-$GST_API_VERSION`"/gst/gstconfig.h"
++GST_CONFIGPATH=$lt_sysroot$GST_CONFIGPATH
+ AG_GST_PARSE_SUBSYSTEM_DISABLES($GST_CONFIGPATH)
+ dnl AM_CONDITIONAL(USE_FOO, test $GST_DISABLE_FOO != "1")
+ 
