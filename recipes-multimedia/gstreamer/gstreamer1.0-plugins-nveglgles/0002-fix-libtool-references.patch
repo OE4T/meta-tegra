@@ -1,0 +1,13 @@
+Index: gst-egl/gst-libs/gst/egl/Makefile.am
+===================================================================
+--- gst-egl.orig/gst-libs/gst/egl/Makefile.am
++++ gst-egl/gst-libs/gst/egl/Makefile.am
+@@ -47,7 +47,7 @@ GstEGL-@GST_API_VERSION@.gir: $(INTROSPE
+ 		--add-include-path=`PKG_CONFIG_PATH="$(GST_PKG_CONFIG_PATH)" $(PKG_CONFIG) --variable=girdir gstreamer-video-@GST_API_VERSION@` \
+ 		--library=libgstegl-@GST_API_VERSION@.la \
+ 		--include=Gst-@GST_API_VERSION@ \
+-		--libtool="$(top_builddir)/libtool" \
++		--libtool="$(LIBTOOL)" \
+ 		--pkg gstreamer-@GST_API_VERSION@ \
+ 		--pkg gstreamer-video-@GST_API_VERSION@ \
+ 		--pkg-export gstreamer-egl-@GST_API_VERSION@ \
