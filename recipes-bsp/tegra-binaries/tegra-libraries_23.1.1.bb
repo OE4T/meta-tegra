@@ -7,7 +7,7 @@ COMPATIBLE_MACHINE = "(jetson-tx1)"
 DEPENDS = "mesa"
 
 do_configure() {
-    tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib
+    tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib usr/sbin
 }
 
 do_compile[noexec] = "1"
@@ -27,12 +27,17 @@ do_install() {
     ln -sf libEGL.so.1 ${D}${libdir}/libEGL.so
     ln -sf libGLESv1_CM.so.1 ${D}${libdir}/libGLESv1_CM.so
     ln -sf libGLESv2.so.2 ${D}${libdir}/libGLESv2.so
+    # nvcamera_daemon only looks in this special subdir, so symlink it
+    install -d ${D}${libdir}/arm-linux-gnueabihf
+    ln -snf ${libdir} ${D}${libdir}/arm-linux-gnueabihf/tegra-egl
+    install -d ${D}${sbindir}
+    install -m755 ${B}${sbindir}/nvcamera-daemon ${D}${sbindir}/
 }
 
 PACKAGES = "${PN}"
 PROVIDES += "virtual/libgl virtual/libgles1 virtual/libgles2 virtual/egl"
 
-FILES_${PN} = "${libdir}"
+FILES_${PN} = "${libdir} ${sbindir}"
 
 INSANE_SKIP_${PN} = "dev-so textrel ldflags build-deps"
 INHIBIT_PACKAGE_STRIP = "1"
