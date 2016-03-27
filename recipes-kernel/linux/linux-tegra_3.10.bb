@@ -21,9 +21,10 @@ L4T_VERSION = "l4t-r23.2"
 LOCALVERSION = "-${L4T_VERSION}"
 
 SRCBRANCH = "patches-${L4T_VERSION}"
-SRCREV = "2b1dd623e8bf0a5b42c94704ddec0fe142283092"
+SRCREV = "f6882c47d0071fb28f35a14726d37f9278c32914"
 KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
+           ${@['', '0001-ARM64-adding-OV5693-V4L2-on-E3326-jetson_cv.patch'][(d.getVar('JETSON_V4L2', True) or '') == '1']} \
 	   file://defconfig \
 "
 S = "${WORKDIR}/git"
