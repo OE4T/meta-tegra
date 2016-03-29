@@ -38,6 +38,7 @@ PACKAGES = "${PN}"
 PROVIDES += "virtual/libgl virtual/libgles1 virtual/libgles2 virtual/egl"
 
 FILES_${PN} = "${libdir} ${sbindir}"
+RDEPENDS_${PN} = "alsa-lib"
 
 INSANE_SKIP_${PN} = "dev-so textrel ldflags build-deps"
 INHIBIT_PACKAGE_STRIP = "1"
