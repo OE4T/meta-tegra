@@ -23,4 +23,4 @@ FILES_${PN} = "${prefix}/local/cuda-7.0/lib/*.so*"
 FILES_${PN}-dev = "${prefix}/local/cuda-7.0/include ${prefix}/local/cuda-7.0/lib/*.a ${prefix}/local/cuda-7.0/lib/stubs ${libdir}"
 
 INSANE_SKIP_${PN} += "dev-so"
-INSANE_SKIP_${PN}-dev = "ldflags staticdev libdir"
+INSANE_SKIP_${PN}-dev = "ldflags staticdev libdir dev-elf"
