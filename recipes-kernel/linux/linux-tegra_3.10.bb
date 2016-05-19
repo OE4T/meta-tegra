@@ -17,14 +17,13 @@ PATH_prepend_aarch64 = "${STAGING_BINDIR_NATIVE}/${CROSS32TC}:"
 EXTRA_OEMAKE_append_aarch64 = ' CROSS32CC="${CROSS32TC}-gcc -march=armv7-a -mfloat-abi=hard" CROSS32LD="${CROSS32TC}-ld.bfd"'
 EXTRA_OEMAKE += 'LIBGCC=""'
 
-L4T_VERSION = "l4t-r23.2"
+L4T_VERSION = "l4t-r24.1"
 LOCALVERSION = "-${L4T_VERSION}"
 
 SRCBRANCH = "patches-${L4T_VERSION}"
-SRCREV = "f6882c47d0071fb28f35a14726d37f9278c32914"
+SRCREV = "34ac32e0e19e677ec7404f02a582c818b40812cd"
 KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
-           ${@['', '0001-ARM64-adding-OV5693-V4L2-on-E3326-jetson_cv.patch'][(d.getVar('JETSON_V4L2', True) or '') == '1']} \
 	   file://defconfig \
 "
 S = "${WORKDIR}/git"
@@ -46,7 +45,7 @@ LABEL primary
       MENU LABEL primary ${KERNEL_IMAGETYPE}-${KERNEL_VERSION}
       LINUX /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}-${KERNEL_VERSION}
       FDT /${KERNEL_IMAGEDEST}/devicetree-${KERNEL_IMAGETYPE}-${KERNEL_DEVICETREE}
-      APPEND console=ttyS0,115200n8 ddr_die=2048M@2048M ddr_die=2048M@4096M section=256M memtype=0 vpr_resize usb_port_owner_info=0 lane_owner_info=0 emc_max_dvfs=0 touch_id=0@63 video=tegrafb no_console_suspend=1 debug_uartport=lsport,0 earlyprintk=uart8250-32bit,0x70006000 maxcpus=4 usbcore.old_scheme_first=1 lp0_vec=0x1000@0xff2bf000 nvdumper_reserved=0xff23f000 core_edp_mv=1125 core_edp_ma=4000 gpt root=/dev/mmcblk1p1 ro rootwait
+      APPEND console=ttyS0,115200n8 ddr_die=2048M@2048M ddr_die=2048M@4096M section=256M memtype=0 vpr_resize usb_port_owner_info=0 lane_owner_info=0 emc_max_dvfs=0 touch_id=0@63 video=tegrafb no_console_suspend=1 debug_uartport=lsport,0 earlyprintk=uart8250-32bit,0x70006000 maxcpus=4 usbcore.old_scheme_first=1 lp0_vec=\${lp0_vec} nvdumper_reserved=\${nvdumper_reserved} core_edp_mv=1125 core_edp_ma=4000 gpt root=/dev/mmcblk1p1 ro rootwait
 EOF
 }
 

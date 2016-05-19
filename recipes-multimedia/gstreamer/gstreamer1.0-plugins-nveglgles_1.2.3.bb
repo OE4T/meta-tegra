@@ -5,15 +5,15 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=73a5855a8119deb017f5f13cf327095d \
                     file://COPYING.LIB;md5=21682e4e8fea52413fd26c60acb907e5 \
                     file://ext/eglgles/gstegladaptation.c;beginline=9;endline=25;md5=51eafe984c428127773b6a95eb959d0b"
 
-SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r23_Release_v1.0/source/gstegl_src.tbz2 \
+SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r24_Release_v1.0/24.1_64bit/source/gstegl_src.tbz2;downloadfilename=gstegl_src_r24.1.tbz2 \
 	   file://0001-introspection-pkgconfig.patch \
 	   file://0002-fix-libtool-references.patch \
 	   file://0003-fix-pkg-config-path-in-makefiles.patch \
 "
 # The following is _appended by the .inc file
 SRC_URI_remove = "file://0001-introspection.m4-prefix-pkgconfig-paths-with-PKG_CON.patch"
-SRC_URI[md5sum] = "7503a58cf2f8b923b8c7e8468624dce8"
-SRC_URI[sha256sum] = "be237a274f710a21623bacbc933682cbf67e31dc61ee5369083cd474fdbee6db"
+SRC_URI[md5sum] = "fa4fd49e2ebc63d29f1487cf2e1faedd"
+SRC_URI[sha256sum] = "5289e3cfd0b4cbe00b233d47b9ded0ca1ed884481ad6cc03627a0bf1f8fedcca"
 
 DEPENDS += "gstreamer1.0-plugins-base virtual/egl virtual/libgles2 libx11 libxext"
 

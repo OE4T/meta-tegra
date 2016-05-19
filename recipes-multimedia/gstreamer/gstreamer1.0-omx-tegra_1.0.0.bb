@@ -3,27 +3,29 @@ SECTION = "multimedia"
 LICENSE = "LGPLv2.1"
 LICENSE_FLAGS = "commercial"
 HOMEPAGE = "http://www.gstreamer.net/"
-DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad gstreamer1.0-plugins-nveglgles libdrm"
+DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad gstreamer1.0-plugins-nveglgles libdrm gstreamer1.0-plugins-tegra"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r23_Release_v1.0/source/gstomx1_src.tbz2 \
+SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r24_Release_v1.0/24.1_64bit/source/gstomx1_src.tbz2;downloadfilename=gstomx1_src-r24.1.tbz2 \
 	   file://0001-use_lt_sysroot_when_parsing_gstconfig_header.patch \
 	   file://0002-add-missing-h265-support.patch \
+	   file://0003-add-missing-nviva-lib.patch \
 "
 
-SRC_URI[md5sum] = "7521a0b5db182cffd7ac0be17a347806"
-SRC_URI[sha256sum] = "38b01308350bfa8d79c46ece7cd3339b21b75509ed17836c90838eaac96bda55"
+SRC_URI[md5sum] = "395a52eb7ba9b213f30e96550d5e90cc"
+SRC_URI[sha256sum] = "faeb6a4bfc8743688a0721abbefa963f5abe2393f95a0e4d63aa0c096492a8fe"
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=4fbd65380cdd255951079008b364516c \
-                    file://omx/gstomx.h;beginline=1;endline=22;md5=e9a396be2d7b4026e48886c39b5fe35d"
+                    file://omx/gstomx.h;beginline=1;endline=22;md5=e8f9fc01813eb08967e8c62e652e57ef"
 
 S = "${WORKDIR}/gstomx1_src/gst-omx1"
 
 inherit autotools pkgconfig gettext
 
 do_configure_append() {
-    sed -i -e's,/usr/lib/arm-linux-gnueabihf/tegra/,${libdir}/,g' ${S}/gstomx_config.c
+    sed -i -e's,/usr/lib/.*/tegra/,${libdir}/,g' ${S}/gstomx_config.c
+    touch ${S}/omx/gstnvivameta_api.h
 }
 
 acpaths = "-I ${S}/common/m4 -I ${S}/m4"
