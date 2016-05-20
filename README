@@ -12,7 +12,7 @@ This is a work in progress.
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
-branches: jethro, master
+branch: krogoth
 
 Contributing
 ------------
