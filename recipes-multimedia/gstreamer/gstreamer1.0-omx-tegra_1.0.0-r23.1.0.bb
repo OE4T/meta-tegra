@@ -7,7 +7,7 @@ DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad gstre
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r23_Release_v1.0/source/gstomx1_src.tbz2 \
+SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r23_Release_v1.0/source/gstomx1_src.tbz2;downloadfilename=${BPN}-${PV}.tbz2 \
 	   file://0001-use_lt_sysroot_when_parsing_gstconfig_header.patch \
 	   file://0002-add-missing-h265-support.patch \
 "
