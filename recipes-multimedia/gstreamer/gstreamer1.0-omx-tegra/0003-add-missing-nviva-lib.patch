@@ -1,0 +1,12 @@
+Index: gst-omx1/omx/Makefile.am
+===================================================================
+--- gst-omx1.orig/omx/Makefile.am	2016-05-19 13:18:14.795349973 -0700
++++ gst-omx1/omx/Makefile.am	2016-05-19 13:29:47.800214106 -0700
+@@ -94,6 +94,7 @@
+ 	-lgstaudio-@GST_API_VERSION@ \
+ 	-lgstpbutils-@GST_API_VERSION@ \
+ 	-lgstvideo-@GST_API_VERSION@ \
++	-lgstnvivameta \
+ 	$(GST_BASE_LIBS) \
+ 	$(GST_LIBS)
+ libgstomx_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
