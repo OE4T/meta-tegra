@@ -30,8 +30,8 @@ do_install() {
     ln -sf libGLESv1_CM.so.1 ${D}${libdir}/libGLESv1_CM.so
     ln -sf libGLESv2.so.2 ${D}${libdir}/libGLESv2.so
     # nvcamera_daemon only looks in this special subdir, so symlink it
-    install -d ${D}${libdir}/aarch64-linux-gnu
-    ln -snf ${libdir} ${D}${libdir}/aarch64-linux-gnu/tegra-egl
+    install -d ${D}${nonarch_libdir}/aarch64-linux-gnu
+    ln -snf ${libdir} ${D}${nonarch_libdir}/aarch64-linux-gnu/tegra-egl
     install -d ${D}${sbindir}
     install -m755 ${B}${sbindir}/nvcamera-daemon ${D}${sbindir}/
 }
@@ -39,7 +39,7 @@ do_install() {
 PACKAGES = "${PN}"
 PROVIDES += "virtual/libgl virtual/libgles1 virtual/libgles2 virtual/egl"
 
-FILES_${PN} = "${libdir} ${sbindir}"
+FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir}"
 RDEPENDS_${PN} = "alsa-lib"
 
 INSANE_SKIP_${PN} = "dev-so textrel ldflags build-deps"
