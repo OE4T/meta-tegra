@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=73a5855a8119deb017f5f13cf327095d \
                     file://COPYING.LIB;md5=21682e4e8fea52413fd26c60acb907e5 \
                     file://ext/eglgles/gstegladaptation.c;beginline=9;endline=25;md5=51eafe984c428127773b6a95eb959d0b"
 
-SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r23_Release_v1.0/source/gstegl_src.tbz2 \
+SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r23_Release_v1.0/source/gstegl_src.tbz2;downloadfilename=${BPN}-${PV}.tbz2 \
 	   file://0001-introspection-pkgconfig.patch \
 	   file://0002-fix-libtool-references.patch \
 	   file://0003-fix-pkg-config-path-in-makefiles.patch \
