@@ -1,0 +1,30 @@
+#! /bin/sh
+DAEMON=/usr/sbin/nvcamera-daemon
+DESC=nvcamera-daemon
+test -x $DAEMON || exit 0
+
+case "$1" in
+  start)
+      echo -n "Starting $DESC: "
+      $DAEMON < /dev/null > /dev/null 2>&1 &
+      echo "[OK]"
+      ;;
+  stop)
+      echo -n "Stopping $DESC: "
+      killall nvcamera-daemon 2>/dev/null
+      echo "[OK]"
+      ;;
+  restart)
+      echo -n "Restarting $DESC: "
+      killall nvcamera-daemon 2>/dev/null
+      $DAEMON < /dev/null > /dev/null 2>&1 &
+      echo "[OK]"
+      ;;
+  *)
+      N=/etc/init.d/nvcamera-daemon
+      echo "Usage: $N {start|stop|restart}" >&2
+      exit 1
+      ;;
+esac
+
+exit 0

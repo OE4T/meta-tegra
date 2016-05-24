@@ -1,0 +1,13 @@
+[Unit]
+Description=NVIDIA camera daemon
+After=local-fs.target network.target
+
+[Service]
+Type=forking
+PIDFile=/run/nvcamera-daemon.pid
+ExecStart=/sbin/start-stop-daemon --start --quiet --pidfile /run/nvcamera-daemon.pid --make-pidfile --background --exec /usr/sbin/nvcamera-daemon
+ExecStop=/sbin/start-stop-daemon --stop --quiet --pidfile /run/nvcamera-daemon.pid --retry 3
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
