@@ -15,7 +15,9 @@ do_compile() {
     dpkg-deb --extract ${S}/var/visionworks-repo/libvisionworks_${PV}_arm64.deb ${B}
     dpkg-deb --extract ${S}/var/visionworks-repo/libvisionworks-dev_${PV}_all.deb ${B}
     cd ${B}/usr
-    mv ./lib ./${baselib}
+    if [ "${baselib}" != "lib" ]; then
+        mv ./lib ./${baselib}
+    fi
 }
 
 do_install() {
