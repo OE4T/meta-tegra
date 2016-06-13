@@ -9,6 +9,8 @@ do_compile() {
     for f in ${B}/usr/lib/pkgconfig/*; do
         sed -i -re's,^(libdir=.*/)lib[^/]*$,\1${baselib},' $f
         sed -i -re's,^(libdir=.*/)lib[^/]*(/.*)$,\1${baselib}\2,' $f
+        sed -i -re's!^(Libs:.*)!\1 -Wl,-rpath=$!' $f
+        sed -i -re's,^(Libs:.*),\1{libdir},' $f
     done
 }
 
