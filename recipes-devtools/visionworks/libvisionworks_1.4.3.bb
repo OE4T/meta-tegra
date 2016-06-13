@@ -9,7 +9,9 @@ SRC_URI[sha256sum] = "acef8608fbd7d35dc296369a31391481c1c4ebd3d2a09ad04c74f09df9
 S = "${WORKDIR}"
 B = "${WORKDIR}/build"
 
-DEPENDS = "dpkg-native cuda-cudart"
+CUDAPATH ?= "/usr/local/cuda-7.0"
+
+DEPENDS = "dpkg-native cuda-cudart chrpath-native"
 
 do_compile() {
     dpkg-deb --extract ${S}/var/visionworks-repo/libvisionworks_${PV}_arm64.deb ${B}
@@ -18,6 +20,7 @@ do_compile() {
     if [ "${baselib}" != "lib" ]; then
         mv ./lib ./${baselib}
     fi
+    chrpath -r "${CUDAPATH}/${baselib}" ./${baselib}/libvisionworks.so.1.4.3
 }
 
 do_install() {
