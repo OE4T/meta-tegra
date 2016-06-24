@@ -5,8 +5,8 @@ Boards supported:
 * Jetson-TX1 development kit
 
 Supports:
-* 64-bit NVIDIA Linux4Tegra kernel
-* 32-bit and 64-bit userland packages
+* 64-bit NVIDIA Linux4Tegra R24.1 kernel and userland binaries
+* 64-bit userland packages
 
 This is a work in progress.
 
