@@ -16,7 +16,7 @@ L4T_VERSION = "l4t-r24.1"
 LOCALVERSION = "-${L4T_VERSION}"
 
 SRCBRANCH = "patches-${L4T_VERSION}"
-SRCREV = "46bcc1d2968509a93385004e0ad02f4e61c13c4c"
+SRCREV = "ede73def3829e3d69dc6fd8581ec82ab2cab17a4"
 KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 	   file://defconfig \
