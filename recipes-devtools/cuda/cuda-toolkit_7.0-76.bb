@@ -18,6 +18,7 @@ CUDA_PKGS = " \
 "
 
 DEPENDS = "cuda-cudart"
+RDEPENDS_${PN} = "tegra-libraries"
 
 do_compile() {
     for pkg in ${CUDA_PKGS}; do
