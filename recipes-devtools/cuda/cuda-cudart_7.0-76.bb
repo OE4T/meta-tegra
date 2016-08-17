@@ -1,11 +1,19 @@
 require cuda-shared-binaries.inc
 
+CUDA_CUDART_PKGS = " \
+    cudart \
+    cudart-dev \
+    driver-dev \
+    misc-headers \
+"
 do_compile() {
-    dpkg-deb --extract ${S}/var/cuda-repo-7-0-local/cuda-cudart-7-0_${PV}_arm64.deb ${B}
-    dpkg-deb --extract ${S}/var/cuda-repo-7-0-local/cuda-cudart-dev-7-0_${PV}_arm64.deb ${B}
-    dpkg-deb --extract ${S}/var/cuda-repo-7-0-local/cuda-driver-dev-7-0_${PV}_arm64.deb ${B}
-    dpkg-deb --extract ${S}/var/cuda-repo-7-0-local/cuda-misc-headers-7-0_${PV}_arm64.deb ${B}
+
+    for pkg in ${CUDA_CUDART_PKGS}; do
+        dpkg-deb --extract ${S}/var/cuda-repo-7-0-local/cuda-${pkg}-7-0_${PV}_arm64.deb ${B}
+    done
+
     rm -rf ${B}/usr/share
+
     for f in ${B}/usr/lib/pkgconfig/*; do
         sed -i -re's,^(libdir=.*/)lib[^/]*$,\1${baselib},' $f
         sed -i -re's,^(libdir=.*/)lib[^/]*(/.*)$,\1${baselib}\2,' $f

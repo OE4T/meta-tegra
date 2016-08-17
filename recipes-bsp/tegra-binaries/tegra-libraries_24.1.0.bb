@@ -3,8 +3,9 @@ require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(jetson-tx1)"
 
-DEPENDS = "mesa"
-
+DEPENDS = " \
+	${@bb.utils.contains("DISTRO_FEATURES", "x11", "mesa", "", d)} \
+"
 inherit update-rc.d systemd
 
 do_configure() {
