@@ -38,8 +38,9 @@ do_install() {
     done
 }
 
-FILES_${PN} = "${prefix}/local/cuda-7.0/lib/*.so*"
-FILES_${PN}-dev = "${prefix}/local/cuda-7.0/include ${prefix}/local/cuda-7.0/lib/*.a ${prefix}/local/cuda-7.0/lib/stubs ${libdir}"
+FILES_${PN} = "${prefix}/local/cuda-7.0/lib/*${SOLIBS} ${prefix}/local/cuda-7.0/lib/stubs"
+FILES_${PN}-staticdev = "${prefix}/local/cuda-7.0/lib/*.a"
+FILES_${PN}-dev = "${prefix}/local/cuda-7.0/include ${libdir} ${prefix}/local/cuda-7.0/lib/*.so"
 
 INSANE_SKIP_${PN} += "dev-so dev-deps"
 INSANE_SKIP_${PN}-dev = "ldflags staticdev libdir dev-elf"
