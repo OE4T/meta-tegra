@@ -6,7 +6,22 @@ DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', True).split()[0])}
 
 FLASHARGS = ''
 
-create_flash_config() {
+# Override this function if you need to add
+# customization after the default files are
+# copied/symlinked into the working directory
+# and before processing begins.
+tegraflash_custom_pre() {
+    :
+}
+
+# Override this function if you need to add
+# customization after other processing is done
+# but before the zip package is created.
+tegraflash_custom_post() {
+    :
+}
+
+tegraflash_create_flash_config() {
     local destdir="$1"
     local gptsize="$2"
     cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
@@ -52,7 +67,7 @@ create_tegraflash_pkg() {
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${DEPLOY_DIR_IMAGE}/u-boot-${MACHINE}.${UBOOT_SUFFIX}" .
     ln -s "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTBFILE}" ./${DTBFILE}
-    ln -s "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.cfg" .
+    ln -s "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
     ln -s "${STAGING_DATADIR}/tegraflash/cboot.bin" .
     ln -s "${STAGING_DATADIR}/tegraflash/nvtboot_recovery.bin" .
     ln -s "${STAGING_DATADIR}/tegraflash/nvtboot.bin" .
@@ -60,16 +75,18 @@ create_tegraflash_pkg() {
     ln -s "${STAGING_DATADIR}/tegraflash/warmboot.bin" .
     ln -s "${STAGING_DATADIR}/tegraflash/bpmp.bin" .
     ln -s "${STAGING_DATADIR}/tegraflash/tos.img" .
+    tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}.ext3" ${IMAGE_BASENAME}.img
-    create_flash_config "${WORKDIR}/tegraflash" $gptsize
+    tegraflash_create_flash_config "${WORKDIR}/tegraflash" $gptsize
     mkgpt -c flash.xml -P ppt.img -t ${EMMC_SIZE} -b ${BOOTPART_SIZE} -s 4KiB -a GPT -v GP1 -V
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
 tegraflash.py --bl cboot.bin --bct ${MACHINE}.cfg --odmdata ${ODMDATA} --bldtb ${DTBFILE} --applet nvtboot_recovery.bin \
-              --boardconfig board_config_${MACHINE}.cfg --cmd "flash;reboot" --cfg flash.xml --chip ${NVIDIA_CHIP}
+              --boardconfig board_config_${MACHINE}.xml --cmd "flash;reboot" --cfg flash.xml --chip ${NVIDIA_CHIP}
 END
     chmod +x doflash.sh
+    tegraflash_custom_post
     rm -f ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.tegraflash.zip
     zip -r ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.tegraflash.zip .
     ln -sf ${IMAGE_NAME}.tegraflash.zip ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}.tegraflash.zip
