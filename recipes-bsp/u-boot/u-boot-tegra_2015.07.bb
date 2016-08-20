@@ -25,19 +25,19 @@ do_compile_append() {
            for type in ${UBOOT_CONFIG}; do
                j=`expr $j + 1`
                if [ $j -eq $i ]; then
-                   uboot_entry=`elf-get-entry.py "${S}/${config}/u-boot-${type}"`
-                   mv "${S}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}" "${S}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}.tmp"
-                   gen-tboot-img.py "${S}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}.tmp" ${uboot_entry} "${S}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}"
-                   rm "${S}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}.tmp"
+                   uboot_entry=`elf-get-entry.py "${B}/${config}/u-boot-${type}"`
+                   mv "${B}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}" "${B}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}.tmp"
+                   gen-tboot-img.py "${B}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}.tmp" ${uboot_entry} "${B}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}"
+                   rm "${B}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}.tmp"
                fi
            done
            unset j
        done
        unset i
     else
-        uboot_entry=`elf-get-entry.py "${S}/u-boot"`
-        mv "${S}/${UBOOT_BINARY}" "${S}/${UBOOT_BINARY}.tmp"
-        gen-tboot-img.py "${S}/${UBOOT_BINARY}.tmp" ${uboot_entry} "${S}/${UBOOT_BINARY}"
-        rm "${S}/${UBOOT_BINARY}.tmp"
+        uboot_entry=`elf-get-entry.py "${B}/u-boot"`
+        mv "${B}/${UBOOT_BINARY}" "${B}/${UBOOT_BINARY}.tmp"
+        gen-tboot-img.py "${B}/${UBOOT_BINARY}.tmp" ${uboot_entry} "${B}/${UBOOT_BINARY}"
+        rm "${B}/${UBOOT_BINARY}.tmp"
     fi
 }
