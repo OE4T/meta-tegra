@@ -2,6 +2,7 @@ require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(jetson-tx1)"
+INHIBIT_DEFAULT_DEPS = "1"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BOARD_CFG ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${NVIDIA_BOARD_CFG}"
@@ -25,3 +26,4 @@ do_install() {
 PACKAGES = "${PN}-dev"
 FILES_${PN}-dev = "${datadir}"
 RDEPENDS_${PN}-dev = ""
+PACKAGE_ARCH = "${MACHINE_ARCH}"
