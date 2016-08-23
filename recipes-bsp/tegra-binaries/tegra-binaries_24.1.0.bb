@@ -5,7 +5,7 @@ SECTION = "base"
 require tegra-binaries-${PV}.inc
 
 WORKDIR = "${TMPDIR}/work-shared/tegra-binaries-${PV}-${PR}"
-SSTATE_SWSPEC = "sstate::tegra-binaries::${PV}:${PR}::${SSTATE_VERSION}:"
+SSTATE_SWSPEC = "sstate:tegra-binaries::${PV}:${PR}::${SSTATE_VERSION}:"
 STAMP = "${STAMPS_DIR}/work-shared/tegra-binaries-${PV}-${PR}"
 STAMPCLEAN = "${STAMPS_DIR}/work-shared/tegra-binaries-${PV}-*"
 
