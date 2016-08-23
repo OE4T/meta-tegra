@@ -3,6 +3,7 @@ require tegra-shared-binaries.inc
 
 inherit native
 
+INHIBIT_DEFAULT_DEPS = "1"
 do_compile[noexec] = "1"
 
 do_install() {
