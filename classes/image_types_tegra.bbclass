@@ -76,7 +76,7 @@ create_tegraflash_pkg() {
     ln -s "${STAGING_DATADIR}/tegraflash/bpmp.bin" .
     ln -s "${STAGING_DATADIR}/tegraflash/tos.img" .
     tegraflash_custom_pre
-    mksparse -v --fillpattern=0 "${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}.ext3" ${IMAGE_BASENAME}.img
+    mksparse -v --fillpattern=0 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.ext3" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" $gptsize
     mkgpt -c flash.xml -P ppt.img -t ${EMMC_SIZE} -b ${BOOTPART_SIZE} -s 4KiB -a GPT -v GP1 -V
     rm -f doflash.sh
@@ -87,9 +87,9 @@ tegraflash.py --bl cboot.bin --bct ${MACHINE}.cfg --odmdata ${ODMDATA} --bldtb $
 END
     chmod +x doflash.sh
     tegraflash_custom_post
-    rm -f ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.tegraflash.zip
-    zip -r ${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.tegraflash.zip .
-    ln -sf ${IMAGE_NAME}.tegraflash.zip ${DEPLOY_DIR_IMAGE}/${IMAGE_LINK_NAME}.tegraflash.zip
+    rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip
+    zip -r ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip .
+    ln -sf ${IMAGE_NAME}.tegraflash.zip ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.tegraflash.zip
     cd $oldwd
 }
 create_tegraflash_pkg[vardepsexclude] += "DATETIME"
