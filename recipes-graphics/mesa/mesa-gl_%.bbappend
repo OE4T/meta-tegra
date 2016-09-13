@@ -1,2 +1,2 @@
-COMPATIBLE_MACHINE_jetson-tx1  = "(-)"
+COMPATIBLE_MACHINE_tegra210  = "(-)"
 
