@@ -1,1 +1,1 @@
-PACKAGECONFIG_append_jetson-tx1 = " egl glesv2"
+PACKAGECONFIG_append_tegra210 = " egl glesv2"
