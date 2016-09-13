@@ -1,8 +1,6 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(jetson-tx1)"
-
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib/xorg
 }
