@@ -26,7 +26,7 @@ deltask do_packagedata
 deltask do_rm_work
 
 do_preconfigure() {
-    dpkg-deb --extract ${S}/var/cuda-repo-7-0-local/cuda-license-7-0_${PV}_amd64.deb ${S}
+    dpkg-deb --extract ${S}/var/cuda-repo-8-0-local/cuda-license-8-0_${PV}_amd64.deb ${S}
 }
 do_preconfigure[depends] += "dpkg-native:do_populate_sysroot"
 addtask preconfigure after do_patch
