@@ -1,6 +1,8 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
+COMPATIBLE_MACHINE = ""
+
 inherit native
 
 INHIBIT_DEFAULT_DEPS = "1"

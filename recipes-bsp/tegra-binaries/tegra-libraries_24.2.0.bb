@@ -1,8 +1,6 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(jetson-tx1)"
-
 DEPENDS = " \
 	${@bb.utils.contains("DISTRO_FEATURES", "x11", "mesa", "", d)} \
 "

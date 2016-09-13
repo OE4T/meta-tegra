@@ -1,7 +1,7 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(jetson-tx1)"
+COMPATIBLE_MACHINE = "(tegra210)"
 INHIBIT_DEFAULT_DEPS = "1"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"

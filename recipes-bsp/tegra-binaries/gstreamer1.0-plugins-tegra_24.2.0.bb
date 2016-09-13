@@ -1,8 +1,6 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(jetson-tx1)"
-
 DEPENDS = "\
 	gstreamer1.0-plugins-base \
 	${@bb.utils.contains('DISTRO_FEATURES', ['x11', 'alsa'], 'virtual/libx11 alsa-lib', '', d)} \
@@ -28,7 +26,7 @@ do_install() {
     install -m 0644 ${LIBROOT}/libgstnvegl-1.0.so.0 ${D}${libdir}
     install -m 0644 ${LIBROOT}/libgstnvivameta.so ${D}${libdir}
     install -m 0644 ${LIBROOT}/libgstnvexifmeta.so ${D}${libdir}
-    install -m 0644 ${LIBROOT}/libsample_process.so ${D}${libdir}
+    install -m 0644 ${LIBROOT}/libnvsample_cudaprocess.so ${D}${libdir}
     for f in ${LIBROOT}/gstreamer-1.0/lib*; do
         install -m 0644 $f ${D}${libdir}/gstreamer-1.0/
     done
