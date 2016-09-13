@@ -54,4 +54,4 @@ do_install[postfuncs] += "generate_extlinux_conf"
 
 FILES_kernel-image += "/${KERNEL_IMAGEDEST}/extlinux"
 
-COMPATIBLE_MACHINE = "(jetson-tx1)"
+COMPATIBLE_MACHINE = "(tegra210)"
