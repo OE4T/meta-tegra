@@ -1,3 +1,3 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
-PACKAGE_ARCH_jetson-tx1 = "${MACHINE_ARCH}"
+PACKAGE_ARCH_tegra210 = "${MACHINE_ARCH}"
