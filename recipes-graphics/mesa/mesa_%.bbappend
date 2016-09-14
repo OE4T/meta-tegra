@@ -15,3 +15,5 @@ do_install_append_tegra210() {
     rm -f ${D}${libdir}/libGLES*
     rm -f ${D}${libdir}/libEGL.*
 }
+
+PACKAGE_ARCH_tegra210 = "${SOC_FAMILY_PKGARCH}"
