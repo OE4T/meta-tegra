@@ -5,10 +5,9 @@ Boards supported:
 * Jetson-TX1 development kit
 
 Supports:
-* 64-bit NVIDIA Linux4Tegra R24.1 kernel and userland binaries
+* 64-bit NVIDIA Linux4Tegra R24.2 kernel and userland binaries
 * 64-bit userland packages
 
-This is a work in progress.
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
