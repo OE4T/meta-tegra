@@ -14,12 +14,16 @@ do_compile[noexec] = "1"
 
 LIBROOT = "${B}/usr/lib/aarch64-linux-gnu"
 
+NVGSTCAPTURE = "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'nvgstcapture', '', d)}"
 NVGSTPLAYER = "${@bb.utils.contains('DISTRO_FEATURES', ['x11', 'alsa'], 'nvgstplayer', '', d)}"
 
 do_install() {
-    install -d ${D}${bindir}
-    install -m 0755 ${B}/usr/bin/nvgstcapture-1.0 ${D}${bindir}
+    if [ -n "${NVGSTCAPTURE}" ]; then
+        install -d ${D}${bindir}
+        install -m 0755 ${B}/usr/bin/nvgstcapture-1.0 ${D}${bindir}
+    fi
     if [ -n "${NVGSTPLAYER}" ]; then
+        install -d ${D}${bindir}
         install -m 0755 ${B}/usr/bin/nvgstplayer-1.0 ${D}${bindir}
     fi
     install -d ${D}${libdir}/gstreamer-1.0
@@ -34,7 +38,7 @@ do_install() {
     rm -f ${D}${libdir}/gstreamer-1.0/libgstomx.so*
 }
 
-PACKAGES = "nvgstcapture ${NVGSTPLAYER} ${PN}"
+PACKAGES = "${NVGSTCAPTURE} ${NVGSTPLAYER} ${PN}"
 FILES_nvgstcapture = "${bindir}/nvgstcapture-1.0"
 RDEPENDS_nvgstcapture = "${PN} libgstpbutils-1.0"
 FILES_nvgstplayer = "${bindir}/nvgstplayer-1.0"
@@ -47,6 +51,6 @@ INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INSANE_SKIP_${PN} = "dev-so ldflags build-deps"
 INSANE_SKIP_${PN}-dev = "ldflags build-deps"
-INSANE_SKIP_${MLPREFIX}nvgstcapture = "ldflags build-deps"
-INSANE_SKIP_${MLPREFIX}nvgstplayer = "ldflags build-deps"
+INSANE_SKIP_nvgstcapture = "ldflags build-deps"
+INSANE_SKIP_nvgstplayer = "ldflags build-deps"
 RDEPENDS_${PN} = "gstreamer1.0 gstreamer1.0-plugins-good-jpeg tegra-libraries"
