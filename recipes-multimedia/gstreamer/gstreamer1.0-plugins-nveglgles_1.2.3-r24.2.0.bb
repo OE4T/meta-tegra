@@ -11,11 +11,15 @@ require recipes-bsp/tegra-sources/tegra-sources-24.2.0.inc
 SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0002-fix-libtool-references.patch \
 	    file://0003-fix-pkg-config-path-in-makefiles.patch \
+	    file://0004-make-x11-optional.patch \
 "
 # The following is _appended by the .inc file
 SRC_URI_remove = "file://0001-introspection.m4-prefix-pkgconfig-paths-with-PKG_CON.patch"
 
-DEPENDS += "gstreamer1.0-plugins-base virtual/egl virtual/libgles2 libx11 libxext"
+DEPENDS += "gstreamer1.0-plugins-base virtual/egl virtual/libgles2"
+
+PACKAGECONFIG ??= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)}"
+PACKAGECONFIG[x11] = "--with-x11 --with-egl-window-system=x11,--without-x11 --with-egl-window-system=auto,libx11 libxext"
 
 S = "${WORKDIR}/gstegl_src/gst-egl"
 
