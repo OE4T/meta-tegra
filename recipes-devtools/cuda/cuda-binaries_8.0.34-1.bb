@@ -30,5 +30,6 @@ do_preconfigure() {
 }
 do_preconfigure[depends] += "dpkg-native:do_populate_sysroot"
 addtask preconfigure after do_patch
+do_populate_lic[depends] += "${PN}:do_preconfigure"
 
 COMPATIBLE_MACHINE = "(tegra210)"
