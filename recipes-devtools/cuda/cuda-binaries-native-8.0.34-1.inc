@@ -1,5 +1,5 @@
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/share/doc/cuda-repo-ubuntu1404-8-0-local/copyright;md5=e68945343dffbb690e4ee319f64bd25a"
+LIC_FILES_CHKSUM = "file://usr/share/doc/cuda-license-8-0/copyright;md5=0eeae78db8d839562622336047a1c99d"
 
 SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/006/linux-x64/cuda-repo-ubuntu1404-8-0-local_${PV}_amd64.deb"
 SRC_URI[md5sum] = "2752954461c8fbf0033064e4d7fb7362"
