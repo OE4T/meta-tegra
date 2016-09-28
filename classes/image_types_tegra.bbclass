@@ -25,7 +25,7 @@ tegraflash_create_flash_config() {
     local destdir="$1"
     local gptsize="$2"
     cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
-        -e"s,EBTFILE,u-boot-${MACHINE}.${UBOOT_SUFFIX}," \
+        -e"s,EBTFILE,${IMAGE_UBOOT}-${MACHINE}.${UBOOT_SUFFIX}," \
         -e"/LNXFILE/d" \
         -e"/NCTFILE/d" -e"s,NCTTYPE,data," \
         -e"/SOSFILE/d" \
@@ -65,7 +65,7 @@ create_tegraflash_pkg() {
     oldwd=`pwd`
     cd "${WORKDIR}/tegraflash"
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
-    ln -s "${DEPLOY_DIR_IMAGE}/u-boot-${MACHINE}.${UBOOT_SUFFIX}" .
+    ln -s "${DEPLOY_DIR_IMAGE}/${IMAGE_UBOOT}-${MACHINE}.${UBOOT_SUFFIX}" .
     ln -s "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTBFILE}" ./${DTBFILE}
     ln -s "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
     ln -s "${STAGING_DATADIR}/tegraflash/cboot.bin" .
@@ -96,5 +96,5 @@ create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
 IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
 IMAGE_DEPENDS_tegraflash = "zip-native:do_populate_sysroot tegra-flashtools-native:do_populate_sysroot \
-                            tegra-bootfiles:do_populate_sysroot u-boot-tegra:do_deploy"
+                            tegra-bootfiles:do_populate_sysroot ${IMAGE_UBOOT}:do_deploy"
 IMAGE_TYPEDEP_tegraflash += "ext3"
