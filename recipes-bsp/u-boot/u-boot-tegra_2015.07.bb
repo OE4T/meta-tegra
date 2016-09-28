@@ -17,6 +17,7 @@ PV .= "+git${SRCPV}"
 
 # Add the TBOOT header so it can be flashed
 do_compile_append() {
+    uboot_entry=`elf-get-entry.py "${B}/${config}/u-boot"`
     if [ -n "${UBOOT_CONFIG}" ]; then
        unset i
        for config in ${UBOOT_MACHINE}; do
@@ -25,17 +26,15 @@ do_compile_append() {
            for type in ${UBOOT_CONFIG}; do
                j=`expr $j + 1`
                if [ $j -eq $i ]; then
-                   uboot_entry=`elf-get-entry.py "${B}/${config}/u-boot-${type}"`
-                   mv "${B}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}" "${B}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}.tmp"
-                   gen-tboot-img.py "${B}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}.tmp" ${uboot_entry} "${B}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}"
-                   rm "${B}/${config}/u-boot-dtb-${type}.${UBOOT_SUFFIX}.tmp"
+                   mv "${B}/${config}/u-boot-${type}.${UBOOT_SUFFIX}" "${B}/${config}/u-boot-${type}.${UBOOT_SUFFIX}.tmp"
+                   gen-tboot-img.py "${B}/${config}/u-boot-${type}.${UBOOT_SUFFIX}.tmp" ${uboot_entry} "${B}/${config}/u-boot-${type}.${UBOOT_SUFFIX}"
+                   rm "${B}/${config}/u-boot-${type}.${UBOOT_SUFFIX}.tmp"
                fi
            done
            unset j
        done
        unset i
     else
-        uboot_entry=`elf-get-entry.py "${B}/u-boot"`
         mv "${B}/${UBOOT_BINARY}" "${B}/${UBOOT_BINARY}.tmp"
         gen-tboot-img.py "${B}/${UBOOT_BINARY}.tmp" ${uboot_entry} "${B}/${UBOOT_BINARY}"
         rm "${B}/${UBOOT_BINARY}.tmp"
