@@ -9,6 +9,8 @@ SRC_URI += "\
     file://xorg.conf \
     file://nvcamera-daemon.init \
     file://nvcamera-daemon.service \
+    file://argus-daemon.init \
+    file://argus-daemon.service \
 "
 
 S = "${TMPDIR}/work-shared/tegra-binaries-${PV}-${PR}/Linux_for_Tegra"

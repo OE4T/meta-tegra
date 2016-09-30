@@ -26,6 +26,6 @@ deltask do_packagedata
 deltask do_rm_work
 
 do_preconfigure() {
-    cp ${WORKDIR}/xorg.conf ${WORKDIR}/nvcamera-daemon.* ${S}
+    cp ${WORKDIR}/xorg.conf ${WORKDIR}/*-daemon.* ${S}
 }
 addtask preconfigure after do_patch
