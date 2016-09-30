@@ -1,0 +1,142 @@
+Index: tegra_multimedia_api/argus/samples/utils/CMakeLists.txt
+===================================================================
+--- tegra_multimedia_api.orig/argus/samples/utils/CMakeLists.txt	2016-09-08 13:59:47.000000000 -0700
++++ tegra_multimedia_api/argus/samples/utils/CMakeLists.txt	2016-09-30 11:14:12.864852326 -0700
+@@ -33,11 +33,15 @@
+ find_package(Argus REQUIRED)
+ find_package(OpenGLES REQUIRED)
+ find_package(EGL REQUIRED)
+-find_package(X11 REQUIRED)
++if(WITH_X11)
++    find_package(X11 REQUIRED)
++endif(WITH_X11)
+ find_package(CUDA)
+ 
+ find_package(PkgConfig REQUIRED)
+-pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
++if(WITH_X11)
++    pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
++endif(WITH_X11)
+ 
+ set(SOURCES
+     EGLGlobal.cpp
+@@ -47,10 +51,19 @@
+     PreviewConsumer.cpp
+     Thread.cpp
+     WindowBase.cpp
+-    gtk/GuiElement.cpp
+-    gtk/Window.cpp
+     )
+ 
++if(WITH_X11)
++    set(SOURCES
++        ${SOURCES}
++        gtk/GuiElement.cpp
++        gtk/Window.cpp
++       )
++else(WITH_X11)
++    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOWINDOWS")
++    set(SOURCES ${SOURCES} WindowNoGui.cpp)
++endif(WITH_X11)
++
+ if(CUDA_FOUND)
+     set(SOURCES
+         ${SOURCES}
+Index: tegra_multimedia_api/argus/samples/utils/EGLGlobal.cpp
+===================================================================
+--- tegra_multimedia_api.orig/argus/samples/utils/EGLGlobal.cpp	2016-09-08 13:59:47.000000000 -0700
++++ tegra_multimedia_api/argus/samples/utils/EGLGlobal.cpp	2016-09-30 11:11:10.052264190 -0700
+@@ -127,6 +127,7 @@
+ 
+ bool EGLDisplayHolder::cleanup()
+ {
++#ifndef NOWINDOWS
+     if (m_display != EGL_NO_DISPLAY)
+     {
+         // inform the window that the display is gone
+@@ -137,7 +138,7 @@
+             REPORT_ERROR("eglTerminate failed (error 0x%04x)", eglGetError());
+         m_display = EGL_NO_DISPLAY;
+     }
+-
++#endif
+     return true;
+ }
+ 
+Index: tegra_multimedia_api/argus/samples/utils/Window.h
+===================================================================
+--- tegra_multimedia_api.orig/argus/samples/utils/Window.h	2016-09-08 13:59:47.000000000 -0700
++++ tegra_multimedia_api/argus/samples/utils/Window.h	2016-09-30 11:13:56.500800747 -0700
+@@ -30,6 +30,35 @@
+ #include "android/Window.h"
+ #elif defined(SAMPLE_USE_GLX)
+ #include "glx/Window.h"
++#elif defined(NOWINDOWS)
++#include "WindowBase.h"
++#ifndef WINDOW_H_NOWINDOWS__
++#define WINDOW_H_NOWINDOWS__
++#define WINDOW_GUI_SUPPORT WINDOW_GUI_NONE
++namespace ArgusSamples
++{
++    class Window : public WindowBase
++    {
++    public:
++	    static Window &getInstance();
++	    virtual bool shutdown() { return true; }
++	    virtual bool pollEvents() {return true; }
++	    virtual bool eventLoop() {return true; }
++	    virtual bool requestExit() {return true; }
++	    virtual EGLNativeDisplayType getEGLNativeDisplay() const {return NULL;}
++	    virtual EGLNativeWindowType getEGLNativeWindow() const {return 0;}
++	    virtual uint32_t getWidth() const {return 0;}
++	    virtual uint32_t getHeight() const {return 0;}
++	    virtual bool setWindowRect(uint32_t x, uint32_t y, uint32_t w, uint32_t h) {return true;}
++	    virtual bool setWindowGui(IGuiContainer *iGuiContainer = NULL,
++				      IGuiElement *iGuiElementWindow = NULL, IGuiElement *iGuiElementView = NULL) {return true;}
++    private:
++	    Window() {}
++	    virtual ~Window() {}
++	    virtual bool initialize() {return true;}
++    };
++};
++#endif /* WINDOW_H_NOWINDOWS__ */
+ #else
+ #include "gtk/Window.h"
+ #endif
+Index: tegra_multimedia_api/argus/CMakeLists.txt
+===================================================================
+--- tegra_multimedia_api.orig/argus/CMakeLists.txt	2016-09-08 13:59:47.000000000 -0700
++++ tegra_multimedia_api/argus/CMakeLists.txt	2016-09-30 11:11:10.052264190 -0700
+@@ -26,7 +26,9 @@
+ 
+ cmake_minimum_required (VERSION 2.6)
+ 
+-add_subdirectory(apps/camera)
++if(WITH_X11)
++    add_subdirectory(apps/camera)
++endif(WITH_X11)
+ add_subdirectory(samples/cudaHistogram)
+ add_subdirectory(samples/facedetect)
+ add_subdirectory(samples/gstVideoEncode)
+Index: tegra_multimedia_api/argus/samples/utils/WindowNoGui.cpp
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ tegra_multimedia_api/argus/samples/utils/WindowNoGui.cpp	2016-09-30 11:13:31.872722757 -0700
+@@ -0,0 +1,17 @@
++#include "Window.h"
++
++namespace ArgusSamples
++{
++
++/*static*/ Window &Window::getInstance()
++{
++    static Window instance;
++    return instance;
++}
++
++bool Window::IGuiElement::createLabel(const char *labelText, IGuiElement **element)
++{
++    return true;
++}
++
++}; // namespace ArgusSamples
