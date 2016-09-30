@@ -2,6 +2,8 @@ inherit image_types
 
 IMAGE_TYPES += "tegraflash"
 
+IMAGE_UBOOT ??= "u-boot"
+
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', True).split()[0])}"
 
 FLASHARGS = ''
