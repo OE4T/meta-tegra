@@ -31,10 +31,13 @@ do_install() {
         install -m 0644 $f ${D}${libdir}
     done
     ln -sf libcuda.so.1.1 ${D}${libdir}/libcuda.so
+    ln -sf libcuda.so.1.1 ${D}${libdir}/libcuda.so.1
     ln -sf libGL.so.1 ${D}${libdir}/libGL.so
     ln -sf libEGL.so.1 ${D}${libdir}/libEGL.so
     ln -sf libGLESv1_CM.so.1 ${D}${libdir}/libGLESv1_CM.so
     ln -sf libGLESv2.so.2 ${D}${libdir}/libGLESv2.so
+    ln -sf libnvbuf_utils.so.1.0.0 ${D}${libdir}/libnvbuf_utils.so.1
+    ln -sf libnvbuf_utils.so.1.0.0 ${D}${libdir}/libnvbuf_utils.so
     # nvcamera_daemon only looks in this special subdir, so symlink it
     install -d ${D}${nonarch_libdir}/aarch64-linux-gnu
     ln -snf ${libdir} ${D}${nonarch_libdir}/aarch64-linux-gnu/tegra-egl
