@@ -35,6 +35,7 @@ do_install() {
 
 FILES_${PN} = "${prefix}/local/cuda-8.0/${baselib}/*.so*"
 FILES_${PN}-dev = "${prefix}/local/cuda-8.0/include ${prefix}/local/cuda-8.0/${baselib}/*.a ${prefix}/local/cuda-8.0/${baselib}/stubs ${libdir}"
+PRIVATE_LIBS = "libcuda.so.1"
 
 INSANE_SKIP_${PN} += "dev-so"
 INSANE_SKIP_${PN}-dev = "ldflags staticdev libdir dev-elf"
