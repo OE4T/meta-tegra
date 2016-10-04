@@ -35,3 +35,6 @@ MACHINE_GSTREAMER_1_0_PLUGIN = "gstreamer1.0-plugins-tegra"
 KERNEL_MODULE_AUTOLOAD = ""
 
 NVIDIA_CHIP = "0x21"
+
+CUDA_VERSION ?= "8.0"
+CUDA_NVCC_FLAGS ?= "--gpu-architecture=compute_53 --gpu=code=sm_53"
