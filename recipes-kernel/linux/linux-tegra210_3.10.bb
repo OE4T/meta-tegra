@@ -4,26 +4,18 @@ DESCRIPTION = "Linux kernel from sources provided by Nvidia for Tegra processors
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
-inherit kernel
-
-require recipes-kernel/linux/linux-dtb.inc
-
-PV .= "+git${SRCPV}"
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
-EXTRA_OEMAKE += 'LIBGCC=""'
+require linux-tegra.inc
 
 L4T_VERSION = "l4t-r24.2"
-LOCALVERSION = "-${L4T_VERSION}"
 
+PV .= "+git${SRCPV}"
 SRCBRANCH = "patches-${L4T_VERSION}"
 SRCREV = "271164dd7765d467af54293409fd9a3fb449942e"
 KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
-SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
-	   file://defconfig \
-"
-S = "${WORKDIR}/git"
+SRC_URI += "git://${KERNEL_REPO};branch=${SRCBRANCH}"
+SRC_URI += "file://defconfig"
 
-KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p1 ro rootwait"
+S = "${WORKDIR}/git"
 
 do_configure_prepend() {
     sed -e's,^CONFIG_LOCALVERSION=.*$,CONFIG_LOCALVERSION="${LOCALVERSION}",' < ${WORKDIR}/defconfig > ${B}/.config
@@ -51,9 +43,5 @@ EOF
         i=$(expr $i \+ 1)
     done
 }
-
-do_install[postfuncs] += "generate_extlinux_conf"
-
-FILES_kernel-image += "/${KERNEL_IMAGEDEST}/extlinux"
 
 COMPATIBLE_MACHINE = "(tegra210)"

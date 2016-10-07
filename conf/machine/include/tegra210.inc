@@ -9,7 +9,7 @@ SOC_FAMILY_PKGARCH = "${ARMPKGARCH}${ARMPKGSFX_DSP}${ARMPKGSFX_EABI}${ARMPKGSFX_
 
 PACKAGE_EXTRA_ARCHS_append = " ${SOC_FAMILY_PKGARCH}"
 
-PREFERRED_PROVIDER_virtual/kernel ?= "linux-tegra"
+PREFERRED_PROVIDER_virtual/kernel ?= "linux-tegra210"
 PREFERRED_PROVIDER_u-boot ?= "u-boot-tegra"
 PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-tegra"
 
@@ -40,5 +40,12 @@ KERNEL_MODULE_AUTOLOAD = ""
 
 NVIDIA_CHIP = "0x21"
 
+DEB_PKG_EXTENSION = "arm64"
+
 CUDA_VERSION ?= "8.0"
 CUDA_NVCC_FLAGS ?= "--gpu-architecture=compute_53 --gpu=code=sm_53"
+
+PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
+PREFERRED_VERSION_cuda-shared-binaries-native = "${CUDA_VERSION}%"
+PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
+PREFERRED_VERSION_cuda-tools-native = "${CUDA_VERSION}%"
