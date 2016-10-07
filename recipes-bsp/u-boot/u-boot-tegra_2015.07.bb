@@ -17,10 +17,10 @@ PV .= "+git${SRCPV}"
 
 # Add the TBOOT header so it can be flashed
 do_compile_append() {
-    uboot_entry=`elf-get-entry.py "${B}/${config}/u-boot"`
     if [ -n "${UBOOT_CONFIG}" ]; then
        unset i
        for config in ${UBOOT_MACHINE}; do
+           uboot_entry=`elf-get-entry.py "${B}/${config}/u-boot"`
            i=`expr $i + 1`
            unset j
            for type in ${UBOOT_CONFIG}; do
@@ -35,6 +35,7 @@ do_compile_append() {
        done
        unset i
     else
+        uboot_entry=`elf-get-entry.py "${B}/u-boot"`
         mv "${B}/${UBOOT_BINARY}" "${B}/${UBOOT_BINARY}.tmp"
         gen-tboot-img.py "${B}/${UBOOT_BINARY}.tmp" ${uboot_entry} "${B}/${UBOOT_BINARY}"
         rm "${B}/${UBOOT_BINARY}.tmp"
