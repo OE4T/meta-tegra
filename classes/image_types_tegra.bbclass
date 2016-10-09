@@ -2,6 +2,8 @@ inherit image_types
 
 IMAGE_TYPES += "tegraflash"
 
+IMAGE_ROOTFS_ALIGNMENT ?= "4096"
+
 IMAGE_UBOOT ??= "u-boot"
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', True).split()[0])}"
@@ -27,7 +29,7 @@ tegraflash_create_flash_config() {
     local destdir="$1"
     local gptsize="$2"
     cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
-        -e"s,EBTFILE,${IMAGE_UBOOT}-${MACHINE}.${UBOOT_SUFFIX}," \
+        -e"s,EBTFILE,${IMAGE_UBOOT}-${MACHINE}.bin," \
         -e"/LNXFILE/d" \
         -e"/NCTFILE/d" -e"s,NCTTYPE,data," \
         -e"/SOSFILE/d" \
@@ -67,7 +69,7 @@ create_tegraflash_pkg() {
     oldwd=`pwd`
     cd "${WORKDIR}/tegraflash"
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
-    ln -s "${DEPLOY_DIR_IMAGE}/${IMAGE_UBOOT}-${MACHINE}.${UBOOT_SUFFIX}" .
+    ln -s "${DEPLOY_DIR_IMAGE}/${IMAGE_UBOOT}-${MACHINE}.bin" .
     ln -s "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTBFILE}" ./${DTBFILE}
     ln -s "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
     ln -s "${STAGING_DATADIR}/tegraflash/cboot.bin" .
