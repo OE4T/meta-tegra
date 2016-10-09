@@ -30,7 +30,7 @@ PREFERRED_PROVIDER_virtual/libgles2 = "tegra-libraries"
 
 PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg"
 XSERVER = "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-module-libwfb"
-MACHINE_GSTREAMER_1_0_PLUGIN = "gstreamer1.0-plugins-tegra"
+MACHINE_HWCODECS = "gstreamer1.0-omx-tegra"
 
 KERNEL_MODULE_AUTOLOAD = ""
 
