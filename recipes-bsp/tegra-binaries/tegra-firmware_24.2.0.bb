@@ -12,6 +12,8 @@ do_install() {
     cp -R -f ${B}/lib/firmware ${D}/lib/
 }
 
-PACKAGES = "${PN}-brcm ${PN}"
+PACKAGES = "${PN}-brcm ${PN}-xusb ${PN}"
 FILES_${PN}-brcm = "/lib/firmware/brcm /lib/firmware/bcm4354.hcd"
-FILES_${PN} = "/lib/firmware/tegra21x*"
+FILES_${PN}-xusb = "/lib/firmware/tegra21x_xusb_firmware"
+FILES_${PN} = "/lib/firmware/tegra21x"
+RDEPENDS_${PN} = "${PN}-xusb"
