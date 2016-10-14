@@ -19,6 +19,9 @@ MACHINE_FEATURES = "alsa bluetooth usbhost pci wifi rtc cuda"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware"
 MACHINE_EXTRA_RRECOMMENDS += "kernel-devicetree tegra-firmware-brcm udev-rules-tegra kernel-module-bcmdhd"
 
+INITRAMFS_IMAGE ?= "tegra210-minimal-initramfs"
+INITRAMFS_TASK = "${@['', '${INITRAMFS_IMAGE}:do_image_complete'][(d.getVar('INITRAMFS_IMAGE', True) or '') != '']}"
+
 SERIAL_CONSOLE = "115200 ttyS0"
 
 OLDEST_KERNEL_aarch64 = "3.10"
