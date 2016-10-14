@@ -11,7 +11,7 @@ Supports:
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
-branch: master
+branch: morty
 
 Contributing
 ------------
