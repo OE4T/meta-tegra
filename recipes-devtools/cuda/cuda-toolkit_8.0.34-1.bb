@@ -32,11 +32,13 @@ do_compile() {
 do_install() {
     install -d ${D}${prefix}/local/cuda-8.0/include
     install -d ${D}${prefix}/local/cuda-8.0/lib
+    install -d ${D}${prefix}/local/cuda-8.0/nvvm
     install -d ${D}${prefix}/local/cuda-8.0/bin
     install -d ${D}${libdir}/pkgconfig
     cp -R --preserve=mode,timestamps ${B}/usr/local/cuda-8.0/targets/aarch64-linux/lib/* ${D}${prefix}/local/cuda-8.0/lib/
     cp -R --preserve=mode,timestamps ${B}/usr/local/cuda-8.0/targets/aarch64-linux/include/* ${D}${prefix}/local/cuda-8.0/include/
     cp -R --preserve=mode,timestamps ${B}/usr/local/cuda-8.0/bin/* ${D}${prefix}/local/cuda-8.0/bin
+    cp -R --preserve=mode,timestamps ${B}/usr/local/cuda-8.0/nvvm/* ${D}${prefix}/local/cuda-8.0/nvvm
     for f in ${B}/usr/lib/pkgconfig/*; do
         install -m0644 $f ${D}${libdir}/pkgconfig/
     done
@@ -44,7 +46,8 @@ do_install() {
 
 FILES_${PN} = "${prefix}/local/cuda-8.0/lib/*${SOLIBS} ${prefix}/local/cuda-8.0/lib/stubs"
 FILES_${PN}-staticdev = "${prefix}/local/cuda-8.0/lib/*.a"
-FILES_${PN}-dev = "${prefix}/local/cuda-8.0/include ${libdir} ${prefix}/local/cuda-8.0/lib/*.so ${prefix}/local/cuda-8.0/bin"
+FILES_${PN}-dev = "${prefix}/local/cuda-8.0/include ${libdir} ${prefix}/local/cuda-8.0/lib/*.so ${prefix}/local/cuda-8.0/bin \
+                   ${prefix}/local/cuda-8.0/nvvm"
 
 INSANE_SKIP_${PN} += "dev-so dev-deps"
 INSANE_SKIP_${PN}-dev = "ldflags libdir dev-elf"
