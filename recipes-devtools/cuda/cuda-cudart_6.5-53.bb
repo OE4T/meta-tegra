@@ -9,7 +9,7 @@ CUDA_CUDART_PKGS = " \
 do_compile() {
 
     for pkg in ${CUDA_CUDART_PKGS}; do
-        dpkg-deb --extract ${S}/var/cuda-repo-8-0-local/cuda-${pkg}-8-0_${PV}_arm64.deb ${B}
+        dpkg-deb --extract ${S}/var/cuda-repo-6-5-local/cuda-${pkg}-6-5_${PV}_armhf.deb ${B}
     done
 
     rm -rf ${B}/usr/share
@@ -23,19 +23,18 @@ do_compile() {
 }
 
 do_install() {
-    install -d ${D}${prefix}/local/cuda-8.0/include
-    install -d ${D}${prefix}/local/cuda-8.0/${baselib}
+    install -d ${D}${prefix}/local/cuda-6.5/include
+    install -d ${D}${prefix}/local/cuda-6.5/${baselib}
     install -d ${D}${libdir}/pkgconfig
-    cp -R --preserve=mode,timestamps ${B}/usr/local/cuda-8.0/targets/aarch64-linux/lib/* ${D}${prefix}/local/cuda-8.0/${baselib}/
-    cp -R --preserve=mode,timestamps ${B}/usr/local/cuda-8.0/targets/aarch64-linux/include/* ${D}${prefix}/local/cuda-8.0/include/
+    cp -R --preserve=mode,timestamps ${B}/usr/local/cuda-6.5/targets/armv7-linux-gnueabihf/lib/* ${D}${prefix}/local/cuda-6.5/${baselib}/
+    cp -R --preserve=mode,timestamps ${B}/usr/local/cuda-6.5/targets/armv7-linux-gnueabihf/include/* ${D}${prefix}/local/cuda-6.5/include/
     for f in ${B}/usr/lib/pkgconfig/*; do
         install -m0644 $f ${D}${libdir}/pkgconfig/
     done
 }
 
-FILES_${PN} = "${prefix}/local/cuda-8.0/${baselib}/*.so*"
-FILES_${PN}-dev = "${prefix}/local/cuda-8.0/include ${prefix}/local/cuda-8.0/${baselib}/*.a ${prefix}/local/cuda-8.0/${baselib}/stubs ${libdir}"
-PRIVATE_LIBS = "libcuda.so.1"
+FILES_${PN} = "${prefix}/local/cuda-6.5/${baselib}/*.so*"
+FILES_${PN}-dev = "${prefix}/local/cuda-6.5/include ${prefix}/local/cuda-6.5/${baselib}/*.a ${prefix}/local/cuda-6.5/${baselib}/stubs ${libdir}"
 
 INSANE_SKIP_${PN} += "dev-so"
 INSANE_SKIP_${PN}-dev = "ldflags staticdev libdir dev-elf"

@@ -1,4 +1,4 @@
-require cuda-shared-binaries.inc
+require cuda-shared-binaries-${PV}.inc
 
 CUDA_PKGS = " \
     nvrtc \
