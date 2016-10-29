@@ -14,6 +14,8 @@ do_compile() {
 
     rm -rf ${B}/usr/share
 
+    sed -i -e'/^#error -- unsupported GNU.*4\.9 and up/d' ${B}/usr/local/cuda-6.5/targets/armv7-linux-gnueabihf/include/host_config.h
+
     for f in ${B}/usr/lib/pkgconfig/*; do
         sed -i -re's,^(libdir=.*/)lib[^/]*$,\1${baselib},' $f
         sed -i -re's,^(libdir=.*/)lib[^/]*(/.*)$,\1${baselib}\2,' $f
