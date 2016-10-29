@@ -1,2 +1,3 @@
 COMPATIBLE_MACHINE_tegra210  = "(-)"
+COMPATIBLE_MACHINE_tegra124  = "(-)"
 
