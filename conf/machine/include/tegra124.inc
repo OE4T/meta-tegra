@@ -36,6 +36,9 @@ PREFERRED_PROVIDER_virtual/egl = "tegra-libraries"
 PREFERRED_PROVIDER_virtual/libgles1 = "tegra-libraries"
 PREFERRED_PROVIDER_virtual/libgles2 = "tegra-libraries"
 
+PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg"
+XSERVER = "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-module-libwfb"
+
 PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-shared-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
