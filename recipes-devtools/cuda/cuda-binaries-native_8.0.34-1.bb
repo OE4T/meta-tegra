@@ -1,33 +1,8 @@
-SUMMARY = "NVIDIA L4T CUDA cross-development binaries"
-DESCRIPTION = "Downloads NVIDIA L4T binary-only CUDA native packages for sharing with other recipes"
-SECTION = "dev"
+require cuda-binaries-native-common.inc
 
-require cuda-binaries-native-${PV}.inc
+LICENSE = "Proprietary"
+LIC_FILES_CHKSUM = "file://usr/local/cuda-8.0/doc/EULA.txt;md5=cb0e47ada0f0449372d730bff8036853"
 
-WORKDIR = "${TMPDIR}/work-shared/cuda-binaries-native-${PV}-${PR}"
-SSTATE_SWSPEC = "sstate::cuda-binaries-native::${PV}:${PR}::${SSTATE_VERSION}:"
-STAMP = "${STAMPS_DIR}/work-shared/cuda-binaries-native-${PV}-${PR}"
-STAMPCLEAN = "${STAMPS_DIR}/work-shared/cuda-binaries-native-${PV}-*"
-
-INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = ""
-PACKAGES = ""
-
-deltask do_configure
-deltask do_compile
-deltask do_package
-deltask do_package_write_rpm
-deltask do_package_write_ipk
-deltask do_package_write_deb
-deltask do_install
-deltask do_populate_sysroot
-deltask do_package_qa
-deltask do_packagedata
-deltask do_rm_work
-
-do_preconfigure() {
-    dpkg-deb --extract ${S}/var/cuda-repo-8-0-local/cuda-license-8-0_${PV}_amd64.deb ${S}
-}
-do_preconfigure[depends] += "dpkg-native:do_populate_sysroot"
-addtask preconfigure after do_patch
-do_populate_lic[depends] += "${PN}:do_preconfigure"
+SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/006/linux-x64/cuda-repo-ubuntu1404-8-0-local_${PV}_amd64.deb"
+SRC_URI[md5sum] = "2752954461c8fbf0033064e4d7fb7362"
+SRC_URI[sha256sum] = "78f2baaabae72708c1c082f52dc7740b7db69234a28efe593b60b98bfbce5ed7"
