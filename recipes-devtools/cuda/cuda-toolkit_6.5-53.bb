@@ -40,5 +40,5 @@ FILES_${PN} = "${prefix}/local/cuda-6.5/lib/*${SOLIBS} ${prefix}/local/cuda-6.5/
 FILES_${PN}-staticdev = "${prefix}/local/cuda-6.5/lib/*.a"
 FILES_${PN}-dev = "${prefix}/local/cuda-6.5/include ${libdir} ${prefix}/local/cuda-6.5/lib/*.so"
 
-INSANE_SKIP_${PN} += "dev-so dev-deps"
+INSANE_SKIP_${PN} += "dev-so dev-deps textrel"
 INSANE_SKIP_${PN}-dev = "ldflags libdir dev-elf"
