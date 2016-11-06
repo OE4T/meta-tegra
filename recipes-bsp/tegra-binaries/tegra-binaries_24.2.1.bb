@@ -27,5 +27,6 @@ deltask do_rm_work
 
 do_preconfigure() {
     cp ${WORKDIR}/xorg.conf ${WORKDIR}/*-daemon.* ${S}
+    cp ${WORKDIR}/redundant_boot_emmc_layout.xml ${S}/bootloader/t210ref/cfg/
 }
 addtask preconfigure after do_patch
