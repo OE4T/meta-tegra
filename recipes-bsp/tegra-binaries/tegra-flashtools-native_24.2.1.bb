@@ -25,4 +25,5 @@ do_install() {
 
     install -m 0755 ${S}/bootloader/mkgpt ${D}${bindir}
     install -m 0755 ${S}/bootloader/mksparse ${D}${bindir}
+    install -m 0755 ${S}/bootloader/mkbctpart ${D}${bindir}
 }
