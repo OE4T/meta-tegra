@@ -13,7 +13,7 @@ DEPENDS += "tegra-flashtools-native"
 UBOOT_TEGRA_REPO ?= "github.com/madisongh/u-boot-tegra.git"
 SRCBRANCH ?= "patches-l4t-r24.2"
 SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
-SRCREV = "1d3dd062ca2ade517d7feae9134031060d70dac9"
+SRCREV = "217c025a1b1656b811cea383edaddce69ff26f3e"
 PV .= "+git${SRCPV}"
 
 # Add the TBOOT header so it can be flashed
