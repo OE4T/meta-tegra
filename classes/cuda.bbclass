@@ -11,15 +11,10 @@ CUDA_COMMON_CMAKE = " \
 CUDA_COMMON_DEPENDS = " cuda-toolkit cuda-tools-native"
 CUDA_COMMON_RDEPENDS = " cuda-cudart"
 
-python __anonymous () {
+DEPENDS_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_DEPENDS}', '', d)}"
+LDFLAGS_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_LD_FLAGS}', '', d)}"
+EXTRA_OECMAKE_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_CMAKE}', '', d)}"
+RDEPENDS_${PN}_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_RDEPENDS}', '', d)}"
 
-  cuda_support = bb.utils.contains('MACHINE_FEATURES', 'cuda', 'True', 'False', d)
-
-  if cuda_support == "True":
-
-    d.setVar("PACKAGE_ARCH", "${SOC_FAMILY_PKGARCH}")
-    d.appendVar("DEPENDS", "${CUDA_COMMON_DEPENDS}")
-    d.appendVar("RDEPENDS_${PN}", "${CUDA_COMMON_RDEPENDS}")
-    d.appendVar("EXTRA_OECMAKE", "${CUDA_COMMON_CMAKE}")
-    d.appendVar("LDFLAGS","${CUDA_COMMON_LD_FLAGS}")
-}
+PACKAGE_ARCH_tegra210 = "${MACHINE_ARCH}"
+PACKAGE_ARCH_tegra124 = "${MACHINE_ARCH}"
