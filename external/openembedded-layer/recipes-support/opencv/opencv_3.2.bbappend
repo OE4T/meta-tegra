@@ -1,6 +1,3 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-3.1:"
-
-SRC_URI += "file://disable-graphcut-for-cuda-8.0.patch"
 
 inherit cuda
 
