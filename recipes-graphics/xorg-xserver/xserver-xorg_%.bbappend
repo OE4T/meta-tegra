@@ -1,10 +1,10 @@
-PACKAGECONFIG_append_tegra210 = " xinerama"
-PACKAGECONFIG_append_tegra124 = " xinerama"
+OPENGL_PKGCONFIGS_tegra210 = "dri glx xinerama"
+OPENGL_PKGCONFIGS_tegra124 = "dri glx xinerama"
 do_install_append_tegra210() {
-    rm -f ${D}${libdir}/xorg/modules/extensions/libglx.so
+    rm -rf ${D}${libdir}/xorg/modules/extensions
 }
 do_install_append_tegra124() {
-    rm -f ${D}${libdir}/xorg/modules/extensions/libglx.so
+    rm -rf ${D}${libdir}/xorg/modules/extensions
 }
 
 PACKAGE_ARCH_tegra210 = "${SOC_FAMILY_PKGARCH}"
