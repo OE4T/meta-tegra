@@ -8,7 +8,7 @@ COMPATIBLE_MACHINE = "(tegra210)"
 LIC_FILES_CHKSUM = "file://Licenses/README;md5=0507cd7da8e7ad6d6701926ec9b84c95"
 
 PROVIDES += "u-boot"
-DEPENDS += "tegra-flashtools-native"
+DEPENDS += "tegra-flashtools-native dtc-native"
 
 UBOOT_TEGRA_REPO ?= "github.com/madisongh/u-boot-tegra.git"
 SRCBRANCH ?= "patches-l4t-r24.2"
