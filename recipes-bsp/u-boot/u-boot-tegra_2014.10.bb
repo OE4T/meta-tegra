@@ -15,6 +15,7 @@ SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
 SRCREV = "8f61581fb26af13902b8662c2914b24544c4b676"
 PV .= "+git${SRCPV}"
 
+S = "${WORKDIR}/git"
 B = "${S}"
 
 do_compile () {
