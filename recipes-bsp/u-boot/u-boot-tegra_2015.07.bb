@@ -16,6 +16,8 @@ SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
 SRCREV = "217c025a1b1656b811cea383edaddce69ff26f3e"
 PV .= "+git${SRCPV}"
 
+S = "${WORKDIR}/git"
+
 # Add the TBOOT header so it can be flashed
 do_compile_append() {
     if [ -n "${UBOOT_CONFIG}" ]; then
