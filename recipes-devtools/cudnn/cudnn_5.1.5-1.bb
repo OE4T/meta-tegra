@@ -12,6 +12,8 @@ PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 S = "${WORKDIR}/cuDNN"
 B = "${WORKDIR}/build"
 
+DEPENDS = "dpkg-native"
+
 do_configure() {
     dpkg-deb --extract ${S}/libcudnn5_${PV}+cuda8.0_arm64.deb ${B}
     dpkg-deb --extract ${S}/libcudnn5-dev_${PV}+cuda8.0_arm64.deb ${B}
