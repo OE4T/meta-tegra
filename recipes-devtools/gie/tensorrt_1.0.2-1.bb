@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA TensorRT (GPU Inference Engine) for deep learning"
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
-DEPENDS = "cudnn"
+DEPENDS = "cudnn dpkg-native"
 
 SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/006/linux-x64/nv-gie-repo-ubuntu1604-6-rc-cuda8.0_${PV}_arm64.deb \
            file://tensorrt-eula.txt"
