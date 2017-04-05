@@ -7,6 +7,8 @@ DESCRIPTION = "U-Boot for Nvidia Tegra platforms, based on Nvidia sources"
 COMPATIBLE_MACHINE = "(tegra210)"
 LIC_FILES_CHKSUM = "file://Licenses/README;md5=0507cd7da8e7ad6d6701926ec9b84c95"
 
+inherit pythonnative
+
 PROVIDES += "u-boot"
 DEPENDS += "tegra-flashtools-native dtc-native"
 
