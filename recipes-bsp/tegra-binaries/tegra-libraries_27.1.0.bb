@@ -58,7 +58,7 @@ PROVIDES += "virtual/libgl virtual/libgles1 virtual/libgles2 virtual/egl"
 FILES_${PN}-libv4l-plugins = "${libdir}/libv4l"
 FILES_${PN}-argus = "${libdir}/libargus* ${sbindir}/argus_daemon"
 FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir}"
-RDEPENDS_${PN} = "alsa-lib"
+RDEPENDS_${PN} = "libasound"
 RDEPENDS_${PN}-argus = "${PN}"
 
 INITSCRIPT_PACKAGES = "${PN} ${PN}-argus"
