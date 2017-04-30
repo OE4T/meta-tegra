@@ -1,3 +1,4 @@
+SRC_URI_remove = "file://0002-Revert-check-FP16-build-condition-correctly.patch"
 
 inherit cuda
 
