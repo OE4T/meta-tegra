@@ -19,7 +19,7 @@ For Jetson-TX2, supports:
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
-branch: master
+branch: pyro
 
 Contributing
 ------------
