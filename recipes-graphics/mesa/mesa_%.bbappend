@@ -3,13 +3,12 @@ PROVIDES_remove_tegra124 = "virtual/libgl virtual/libgles1 virtual/libgles2 virt
 PROVIDES_remove_tegra186 = "virtual/libgl virtual/libgles1 virtual/libgles2 virtual/libopenvg virtual/egl"
 
 python () {
-    overrides = d.getVar("OVERRIDES", True).split(":")
+    overrides = d.getVar("OVERRIDES").split(":")
     if "tegra210" not in overrides and "tegra124" not in overrides and "tegra186" not in overrides:
         return
 
-    extra_oeconf = d.getVar("EXTRA_OECONF", True)
-    extra_oeconf = extra_oeconf.replace("--enable-glx-tls", "--enable-glx")
-    d.setVar("EXTRA_OECONF", extra_oeconf)
+    x11flag = d.getVarFlag("PACKAGECONFIG", "x11", False)
+    d.setVarFlag("PACKAGECONFIG", "x11", x11flag.replace("--enable-glx-tls", "--enable-glx"))
 }
 
 do_install_append_tegra210() {
