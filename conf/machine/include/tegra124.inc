@@ -18,14 +18,15 @@ PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-tegra"
 KERNEL_IMAGETYPE = "zImage"
 
 MACHINE_FEATURES = "alsa usbhost rtc cuda"
-MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware"
-MACHINE_EXTRA_RRECOMMENDS += "kernel-devicetree"
+MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree"
 
 SERIAL_CONSOLE = "115200 ttyS0"
 
 OLDEST_KERNEL = "3.10"
 
 KERNEL_MODULE_AUTOLOAD = ""
+
+IMAGE_ROOTFS_ALIGNMENT ?= "4096"
 
 CUDA_VERSION ?= "6.5"
 CUDA_NVCC_FLAGS ?= "--gpu-architecture=compute_32 --gpu-code=sm_32"
