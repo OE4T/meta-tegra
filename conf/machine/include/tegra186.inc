@@ -16,7 +16,7 @@ PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-tegra"
 KERNEL_IMAGETYPE = "Image"
 
 MACHINE_FEATURES = "alsa bluetooth usbhost pci wifi rtc cuda"
-MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree"
+MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image"
 MACHINE_EXTRA_RRECOMMENDS += "tegra-firmware-brcm udev-rules-tegra kernel-module-bcmdhd"
 
 INITRAMFS_IMAGE ?= "tegra186-minimal-initramfs"
