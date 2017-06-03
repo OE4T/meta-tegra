@@ -38,6 +38,8 @@ LICENSE_FLAGS_WHITELIST_append = " commercial_gstreamer1.0-omx-tegra"
 
 KERNEL_MODULE_AUTOLOAD = ""
 
+IMAGE_ROOTFS_ALIGNMENT ?= "4096"
+
 NVIDIA_CHIP = "0x21"
 
 DEB_PKG_EXTENSION = "arm64"

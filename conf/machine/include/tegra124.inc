@@ -26,6 +26,8 @@ OLDEST_KERNEL = "3.10"
 
 KERNEL_MODULE_AUTOLOAD = ""
 
+IMAGE_ROOTFS_ALIGNMENT ?= "4096"
+
 CUDA_VERSION ?= "6.5"
 CUDA_NVCC_FLAGS ?= "--gpu-architecture=compute_32 --gpu-code=sm_32"
 DEB_PKG_EXTENSION = "armhf"
