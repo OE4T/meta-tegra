@@ -18,8 +18,7 @@ PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-tegra"
 KERNEL_IMAGETYPE = "zImage"
 
 MACHINE_FEATURES = "alsa usbhost rtc cuda"
-MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware"
-MACHINE_EXTRA_RRECOMMENDS += "kernel-devicetree"
+MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image"
 
 SERIAL_CONSOLE = "115200 ttyS0"
 
