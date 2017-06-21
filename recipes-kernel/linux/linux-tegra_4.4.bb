@@ -23,7 +23,7 @@ SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 "
 S = "${WORKDIR}/git"
 
-KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p1 ro rootwait"
+KERNEL_ROOTSPEC ?= "root=/dev/mmcblk1p1 ro rootwait"
 
 do_configure_prepend() {
     sed -e's,^CONFIG_LOCALVERSION=.*$,CONFIG_LOCALVERSION="${LOCALVERSION}",' < ${WORKDIR}/defconfig > ${B}/.config
