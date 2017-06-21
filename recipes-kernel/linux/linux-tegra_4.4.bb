@@ -31,7 +31,7 @@ do_configure_prepend() {
     printf "%s%s" "+g" $head > ${S}/.scmversion
 }
 
-KERNEL_ARGS_tegra186 = "fbcon=map:0 console=tty0 console=ttyS0,115200n8 memtype=0 video=tegrafb no_console_suspend=1 earlycon=uart8250,mmio32,0x03100000 gpt tegraid=18.1.2.0.0 tegra_keep_boot_clocks maxcpus=6 vpr_resize"
+KERNEL_ARGS_tegra186 = "fbcon=map:0 console=tty0 console=ttyS0,115200n8 memtype=0 video=tegrafb no_console_suspend=1 earlycon=uart8250,mmio32,0x03100000 gpt tegraid=18.1.2.0.0 tegra_keep_boot_clocks maxcpus=6 vpr_resize devtmpfs.mount=1"
 
 generate_extlinux_conf() {
     install -d ${D}/${KERNEL_IMAGEDEST}/extlinux
