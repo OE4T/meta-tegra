@@ -11,6 +11,7 @@ SRC_URI += "\
     file://nvcamera-daemon.service \
     file://argus-daemon.init \
     file://argus-daemon.service \
+    file://tegra186-flash-helper.sh \
 "
 
 S = "${TMPDIR}/work-shared/tegra-binaries-${PV}-${PR}/Linux_for_Tegra"
