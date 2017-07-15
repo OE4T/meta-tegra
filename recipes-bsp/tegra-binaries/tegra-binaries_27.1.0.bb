@@ -27,5 +27,6 @@ deltask do_rm_work
 
 do_preconfigure() {
     cp ${WORKDIR}/xorg.conf ${WORKDIR}/*-daemon.* ${S}
+    cp ${WORKDIR}/tegra186-flash-helper.sh ${S}
 }
 addtask preconfigure after do_patch
