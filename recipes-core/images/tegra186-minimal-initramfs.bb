@@ -1,4 +1,4 @@
-DESCRIPTION = "Minimal initramfs image for Tegra210 platforms with xusb firmware"
+DESCRIPTION = "Minimal initramfs image for Tegra186 platforms"
 LICENSE = "MIT"
 
 PACKAGE_INSTALL = "\
