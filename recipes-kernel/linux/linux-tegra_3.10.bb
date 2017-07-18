@@ -17,7 +17,7 @@ L4T_VERSION_tegra124 = "l4t-r21.5"
 LOCALVERSION = "-${L4T_VERSION}"
 
 SRCBRANCH = "patches-${L4T_VERSION}"
-SRCREV_tegra210 = "37f0eb8532580ba836c653c6713b0e347164c8b6"
+SRCREV_tegra210 = "66249771b61f921ecd2fbb34b47a8fa63dfc15d9"
 SRCREV_tegra124 = "71cc3bfd7f05021654b3f75190410e556fbcd235"
 KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
