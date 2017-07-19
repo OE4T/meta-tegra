@@ -12,6 +12,7 @@ SRC_URI += "file://0001-use_lt_sysroot_when_parsing_gstconfig_header.patch \
 	    file://0002-add-missing-h265-support.patch \
 	    file://0003-add-missing-nviva-lib.patch \
 	    file://0004-work-around-missing-header-file.patch \
+	    file://0005-remove-trace-references.patch \
 "
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=4fbd65380cdd255951079008b364516c \
