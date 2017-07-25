@@ -24,8 +24,6 @@ INITRAMFS_TASK = "${@['', '${INITRAMFS_IMAGE}:do_image_complete'][(d.getVar('INI
 
 SERIAL_CONSOLE = "115200 ttyS0"
 
-OLDEST_KERNEL_aarch64 = "3.10"
-
 PREFERRED_PROVIDER_virtual/libgl = "tegra-libraries"
 PREFERRED_PROVIDER_virtual/egl = "tegra-libraries"
 PREFERRED_PROVIDER_virtual/libgles1 = "tegra-libraries"
@@ -51,4 +49,3 @@ PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-shared-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-tools-native = "${CUDA_VERSION}%"
-PREFERRED_VERSION_tegra-flashtools-native = "24.2.1"
