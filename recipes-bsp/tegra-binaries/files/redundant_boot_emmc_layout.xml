@@ -30,7 +30,7 @@
             <file_system_attribute> 0 </file_system_attribute>
             <allocation_attribute> 8 </allocation_attribute>
             <percent_reserved> 0 </percent_reserved>
-	    <filename> flash.bin </filename>
+	    <filename> flash.xml.bin </filename>
         </partition>
 
         <partition name="TBC" id="5" type="bootloader">
@@ -122,7 +122,7 @@
             <file_system_attribute> 0 </file_system_attribute>
             <allocation_attribute> 8 </allocation_attribute>
             <percent_reserved> 0 </percent_reserved>
-	    <filename> flash.bin </filename>
+	    <filename> flash.xml.bin </filename>
         </partition>
 
         <partition name="TBC-1" id="14" type="bootloader">
@@ -214,7 +214,7 @@
             <file_system_attribute> 0 </file_system_attribute>
             <allocation_attribute> 8 </allocation_attribute>
             <percent_reserved> 0 </percent_reserved>
-	    <filename> flash.bin </filename>
+	    <filename> flash.xml.bin </filename>
         </partition>
 
         <partition name="TBC-2" id="23" type="bootloader">
@@ -306,7 +306,7 @@
             <file_system_attribute> 0 </file_system_attribute>
             <allocation_attribute> 8 </allocation_attribute>
             <percent_reserved> 0 </percent_reserved>
-	    <filename> flash.bin </filename>
+	    <filename> flash.xml.bin </filename>
         </partition>
 
         <partition name="TBC-3" id="32" type="bootloader">
@@ -400,7 +400,35 @@
             <filename> APPFILE </filename>
         </partition>
 
-        <partition name="UDA" id="41" type="data">
+        <partition name="LNX" id="41" type="data">
+            <allocation_policy> sequential </allocation_policy>
+            <filesystem_type> basic </filesystem_type>
+            <size> LNXSIZE </size>
+            <file_system_attribute> 0 </file_system_attribute>
+            <allocation_attribute> 0x8 </allocation_attribute>
+            <percent_reserved> 0 </percent_reserved>
+            <filename> LNXFILE </filename>
+        </partition>
+
+        <partition name="SOS" id="42" type="data">
+            <allocation_policy> sequential </allocation_policy>
+            <filesystem_type> basic </filesystem_type>
+            <size> 20971520 </size>
+            <file_system_attribute> 0 </file_system_attribute>
+            <allocation_attribute> 0x8 </allocation_attribute>
+            <filename> SOSFILE </filename>
+        </partition>
+
+        <partition name="USP" id="43" type="data">
+            <allocation_policy> sequential </allocation_policy>
+            <filesystem_type> basic </filesystem_type>
+            <size> 2097152 </size>
+            <file_system_attribute> 0 </file_system_attribute>
+            <allocation_attribute> 0x8 </allocation_attribute>
+            <percent_reserved> 0 </percent_reserved>
+        </partition>
+
+        <partition name="UDA" id="44" type="data">
             <allocation_policy> sequential </allocation_policy>
             <filesystem_type> basic </filesystem_type>
             <size> 2097152 </size>
@@ -409,7 +437,7 @@
             <percent_reserved> 0 </percent_reserved>
         </partition>
 
-        <partition name="GPT" id="42" type="GPT">
+        <partition name="GPT" id="45" type="GPT">
             <allocation_policy> sequential </allocation_policy>
             <filesystem_type> basic </filesystem_type>
             <size> 0xFFFFFFFFFFFFFFFF </size>
