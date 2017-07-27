@@ -43,7 +43,7 @@ tegraflash_create_flash_config() {
 tegraflash_create_flash_config_tegra210() {
     local destdir="$1"
     local gptsize="$2"
-    local ebtsize=$(tegraflash_roundup_size ${IMAGE_UBOOT}-${MACHINE}.bin)
+    local ebtsize=$(tegraflash_roundup_size cboot.bin)
     local nvcsize=$(tegraflash_roundup_size nvtboot.bin)
     local tbcsize=$(tegraflash_roundup_size nvtboot_cpu.bin)
     local dtbsize=$(tegraflash_roundup_size ${DTBFILE})
@@ -65,8 +65,8 @@ tegraflash_create_flash_config_tegra210() {
     # the redundant-boot layout, some apply only to the non-redundant layout.
     # Note that these are for Tegra210 based systems only.
     cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
-        -e"s,EBTFILE,${IMAGE_UBOOT}-${MACHINE}.bin," -e"s,EBTSIZE,$ebtsize," \
-        -e"/LNXFILE/d" \
+        -e"s,EBTFILE,cboot.bin," -e"s,EBTSIZE,$ebtsize," \
+        -e"s,LNXFILE,${IMAGE_UBOOT}-${MACHINE}.bin," \
         -e"/NCTFILE/d" -e"s,NCTTYPE,data," \
         -e"/SOSFILE/d" \
         -e"s,NXC,NVC," -e"s,NVCTYPE,bootloader," -e"s,NVCFILE,nvtboot.bin," -e "s,NVCSIZE,$nvcsize," \
@@ -104,6 +104,7 @@ create_tegraflash_pkg() {
 
 create_tegraflash_pkg_tegra210() {
     local gptsize
+    PATH="${STAGING_BINDIR_NATIVE}/tegra210-flash:${PATH}"
     if [ "${TEGRA210_REDUNDANT_BOOT}" != "1" ]; then
         if [ `expr ${BOOTPART_LIMIT} % ${EMMC_DEVSECT_SIZE}` -ne 0 ]; then
             bberror "Boot partition limit must be an even multiple of the device sector size"
@@ -236,7 +237,7 @@ create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
 IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
 do_image_tegraflash[depends] += "zip-native:do_populate_sysroot \
-                                 tegra-flashtools-native:do_populate_sysroot \
+                                 ${SOC_FAMILY}-flashtools-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot \
                                  ${IMAGE_UBOOT}:do_deploy"
 IMAGE_TYPEDEP_tegraflash += "ext4"
