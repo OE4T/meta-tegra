@@ -8,8 +8,7 @@ COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 LIC_FILES_CHKSUM = "file://Licenses/README;md5=a2c678cfd4a4d97135585cad908541c6"
 
 PROVIDES += "u-boot"
-DEPENDS += "dtc-native"
-DEPENDS_append_tegra186 = " ${SOC_FAMILY}-flashtools-native"
+DEPENDS += "dtc-native ${SOC_FAMILY}-flashtools-native"
 
 UBOOT_TEGRA_REPO ?= "github.com/madisongh/u-boot-tegra.git"
 SRCBRANCH ?= "patches-l4t-r28.1"
@@ -17,9 +16,11 @@ SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
 SRCREV = "0ce7ca286491e97a34d741bd92a57f2dcdc3033c"
 PV .= "+git${SRCPV}"
 
+UBOOT_BOOTIMG_BOARD ?= "/dev/mmcblk0p1"
+
 S = "${WORKDIR}/git"
 
-do_compile_append_tegra186() {
+uboot_make_bootimg() {
     rm -f ${B}/initrd
     touch ${B}/initrd
     if [ -n "${UBOOT_CONFIG}" ]; then
@@ -34,9 +35,9 @@ do_compile_append_tegra186() {
 		        if [ $k -eq $i ]; then
 		            f="${B}/${config}/u-boot-${type}.${UBOOT_SUFFIX}"
 		            rm -f $f
-			    ${STAGING_BINDIR_NATIVE}/tegra186-flash/mkbootimg \
+			    ${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash/mkbootimg \
 			        --kernel ${B}/${config}/${binary} --ramdisk ${B}/initrd --cmdline "" \
-			        --board "/dev/mmcblk0p1" --output $f
+			        --board "${UBOOT_BOOTIMG_BOARD}" --output $f
 			fi
 		    done
 		    unset k
@@ -47,8 +48,12 @@ do_compile_append_tegra186() {
 	unset i
     else
         mv ${UBOOT_BINARY} ${UBOOT_BINARY}.orig
-	${STAGING_BINDIR_NATIVE}/tegra186-flash/mkbootimg \
+	${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash/mkbootimg \
 	    --kernel ${UBOOT_BINARY}.orig --ramdisk ${B}/initrd --cmdline "" \
-	    --board "/dev/mmbclk0p12" --output ${UBOOT_BINARY}
+	    --board "${UBOOT_BOOTIMG_BOARD}" --output ${UBOOT_BINARY}
     fi
+}
+
+do_compile_append() {
+    uboot_make_bootimg
 }
