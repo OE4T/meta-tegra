@@ -18,8 +18,9 @@ LDFLAGS_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMM
 EXTRA_OECMAKE_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_CMAKE}', '', d)}"
 RDEPENDS_${PN}_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_RDEPENDS}', '', d)}"
 
-PACKAGE_ARCH_tegra210 = "${MACHINE_ARCH}"
-PACKAGE_ARCH_tegra124 = "${MACHINE_ARCH}"
+PACKAGE_ARCH_tegra210 = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_tegra124 = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_tegra186 = "${SOC_FAMILY_PKGARCH}"
 
 cmake_do_generate_toolchain_file_append() {
     cat >> ${WORKDIR}/toolchain.cmake <<EOF
