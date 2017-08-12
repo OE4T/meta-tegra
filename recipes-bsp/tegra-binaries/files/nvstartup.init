@@ -1,0 +1,34 @@
+#! /bin/sh
+DAEMON=/usr/sbin/nvstartup
+NAME=nvstartup
+DESC="NVIDIA-specific startup"
+
+test -f /etc/default/$NAME && . /etc/default/$NAME
+
+test -x $DAEMON || exit 0
+
+case "$1" in
+  start)
+      echo -n "Starting $DESC: "
+      $DAEMON $ARGS < /dev/null > /dev/null 2>&1 &
+      echo "[OK]"
+      ;;
+  stop)
+      echo -n "Stopping $DESC: "
+      killall $NAME 2>/dev/null
+      echo "[OK]"
+      ;;
+  restart)
+      echo -n "Restarting $DESC: "
+      killall $NAME 2>/dev/null
+      $DAEMON $ARGS < /dev/null > /dev/null 2>&1 &
+      echo "[OK]"
+      ;;
+  *)
+      N=/etc/init.d/$NAME
+      echo "Usage: $N {start|stop|restart}" >&2
+      exit 1
+      ;;
+esac
+
+exit 0
