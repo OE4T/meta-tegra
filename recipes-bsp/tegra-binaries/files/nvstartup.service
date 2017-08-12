@@ -1,0 +1,11 @@
+[Unit]
+Description=NVIDIA-specific startup
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/nvstartup
+
+[Install]
+WantedBy=basic.target

@@ -5,23 +5,29 @@ LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=60ad17cc726658e8cf73578bea47b85f
 SRC_URI = "http://developer2.download.nvidia.com/embedded/L4T/r28_Release_v1.0/BSP/${@d.getVar('SOC_FAMILY').title()}_Linux_R${PV}_aarch64.tbz2"
 
 SRC_URI += "\
-    file://xorg.conf \
     file://nvcamera-daemon.init \
     file://nvcamera-daemon.service \
     file://argus-daemon.init \
     file://argus-daemon.service \
+    file://nvstartup.init \
+    file://nvstartup.service \
 "
-SRC_URI_append_tegra186 = " file://tegra186-flash-helper.sh"
+SRC_URI_append_tegra186 = " \
+    file://tegra186-flash-helper.sh \
+    file://nvpmodel.init \
+    file://nvpmodel.service \
+"
 
 S = "${TMPDIR}/work-shared/L4T-${SOC_FAMILY}-${PV}-${PR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
 
 do_preconfigure() {
-    cp ${WORKDIR}/xorg.conf ${WORKDIR}/*-daemon.* ${S}
+    cp ${WORKDIR}/*-daemon.* ${WORKDIR}/nvstartup.** ${S}/
 }
 
 do_preconfigure_append_tegra186() {
-    cp ${WORKDIR}/tegra186-flash-helper.sh ${S}
+    cp ${WORKDIR}/tegra186-flash-helper.sh ${S}/
+    cp ${WORKDIR}/nvpmodel.* ${S}/
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
