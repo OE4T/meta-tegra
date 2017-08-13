@@ -2,7 +2,6 @@
 Description=NVIDIA power model daemon
 
 [Service]
-EnvironmentFile=/etc/default/nvpmodel
 Type=oneshot
 RemainAfterExit=yes
 ExecStart=/usr/sbin/nvpmodel -f /etc/nvpmodel.conf
