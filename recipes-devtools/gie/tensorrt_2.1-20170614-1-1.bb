@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA TensorRT (GPU Inference Engine) for deep learning"
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
-DEPENDS = "cuda-cudart cudnn dpkg-native patchelf-native"
+DEPENDS = "dpkg-native patchelf-native"
 
 SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/013/linux-x64/nv-gie-repo-ubuntu1604-ga-cuda8.0-trt2.1-20170614_1-1_arm64.deb"
 SRC_URI[md5sum] = "968729da55ada3393fa98c8403108528"
@@ -43,7 +43,7 @@ do_install() {
 PACKAGES =+ "${PN}-examples"
 FILES_${PN}-examples = "${prefix}/src"
 
-RDEPENDS_${PN} += "libstdc++"
+RDEPENDS_${PN} += "libstdc++ cudnn cuda-cublas cuda-cudart"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
