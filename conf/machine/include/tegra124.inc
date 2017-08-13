@@ -32,11 +32,6 @@ CUDA_VERSION ?= "6.5"
 CUDA_NVCC_FLAGS ?= "--gpu-architecture=compute_32 --gpu-code=sm_32"
 DEB_PKG_EXTENSION = "armhf"
 
-PREFERRED_PROVIDER_virtual/libgl = "tegra-libraries"
-PREFERRED_PROVIDER_virtual/egl = "tegra-libraries"
-PREFERRED_PROVIDER_virtual/libgles1 = "tegra-libraries"
-PREFERRED_PROVIDER_virtual/libgles2 = "tegra-libraries"
-
 PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg"
 XSERVER = "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-module-libwfb"
 

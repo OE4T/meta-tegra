@@ -1,8 +1,6 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-DEPENDS = "${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'mesa', '', d)}"
-
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib
 }
@@ -25,8 +23,6 @@ do_install() {
     ln -sf libGLESv1_CM.so.1 ${D}${libdir}/libGLESv1_CM.so
     ln -sf libGLESv2.so.2 ${D}${libdir}/libGLESv2.so
 }
-
-PROVIDES += "virtual/libgl virtual/libgles1 virtual/libgles2 virtual/egl"
 
 PACKAGES = "${PN}"
 FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir}"

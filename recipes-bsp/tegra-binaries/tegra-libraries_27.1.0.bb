@@ -1,7 +1,7 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-DEPENDS = "${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'mesa', '', d)}"
+DEPENDS = "patchelf-native"
 
 inherit update-rc.d systemd
 
@@ -24,9 +24,6 @@ do_install() {
     for f in ${DRVROOT}/tegra/lib*; do    
         install -m 0644 $f ${D}${libdir}
     done
-    # FIXME:
-    rm -f ${D}${libdir}/libdrm.so*
-    # :EMXIF
     for f in ${DRVROOT}/tegra-egl/lib*; do    
         install -m 0644 $f ${D}${libdir}
     done
@@ -38,6 +35,8 @@ do_install() {
     ln -sf libGLESv2.so.2 ${D}${libdir}/libGLESv2.so
     ln -sf libnvbuf_utils.so.1.0.0 ${D}${libdir}/libnvbuf_utils.so.1
     ln -sf libnvbuf_utils.so.1.0.0 ${D}${libdir}/libnvbuf_utils.so
+    patchelf --set-soname libdrm-tegra.so.2 ${D}${libdir}/libdrm-tegra.so.2
+    ln -sf libdrm-tegra.so.2 ${D}${libdir}/libdrm-tegra.so
     # nvcamera_daemon only looks in this special subdir, so symlink it
     install -d ${D}${nonarch_libdir}/aarch64-linux-gnu
     ln -snf ${libdir} ${D}${nonarch_libdir}/aarch64-linux-gnu/tegra-egl
@@ -52,11 +51,12 @@ do_install() {
     install -m644 ${S}/argus-daemon.service ${D}${systemd_system_unitdir}
 }
 
-PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}"
-PROVIDES += "virtual/libgl virtual/libgles1 virtual/libgles2 virtual/egl"
+PACKAGES = "${PN}-libv4l-plugins ${PN}-argus libdrm-tegra libdrm-tegra-dev ${PN}"
 
 FILES_${PN}-libv4l-plugins = "${libdir}/libv4l"
 FILES_${PN}-argus = "${libdir}/libargus* ${sbindir}/argus_daemon"
+FILES_libdrm-tegra = "${libdir}/libdrm${SOLIBS}"
+FILES_libdrm-tegra-dev = "${libdir}/libdrm${SOLIBSDEV}"
 FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir}"
 RDEPENDS_${PN} = "libasound"
 RDEPENDS_${PN}-argus = "${PN}"
@@ -72,6 +72,7 @@ SYSTEMD_SERVICE_${PN}-argus = "argus-daemon.service"
 INSANE_SKIP_${PN}-libv4l-plugins = "dev-so textrel ldflags build-deps"
 INSANE_SKIP_${PN} = "dev-so textrel ldflags build-deps"
 INSANE_SKIP_${PN}-argus = "dev-so ldflags"
+INSANE_SKIP_libdrm-tegra = "ldflags"
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"

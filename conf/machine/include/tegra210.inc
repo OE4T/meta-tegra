@@ -25,11 +25,6 @@ INITRAMFS_TASK = "${@['', '${INITRAMFS_IMAGE}:do_image_complete'][(d.getVar('INI
 
 SERIAL_CONSOLE = "115200 ttyS0"
 
-PREFERRED_PROVIDER_virtual/libgl = "tegra-libraries"
-PREFERRED_PROVIDER_virtual/egl = "tegra-libraries"
-PREFERRED_PROVIDER_virtual/libgles1 = "tegra-libraries"
-PREFERRED_PROVIDER_virtual/libgles2 = "tegra-libraries"
-
 PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg"
 XSERVER = "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-module-libwfb"
 MACHINE_HWCODECS = "gstreamer1.0-omx-tegra"
