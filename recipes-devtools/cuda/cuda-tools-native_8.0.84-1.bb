@@ -11,6 +11,7 @@ CUDA_PKGS = " \
     cusparse-dev \
     npp-dev \
     cudart-dev \
+    command-line-tools \
 "
 do_install() {
     install -d ${D}${STAGING_DIR_NATIVE}    
