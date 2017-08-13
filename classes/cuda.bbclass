@@ -11,12 +11,10 @@ CUDA_COMMON_CMAKE = " \
 "
 
 CUDA_COMMON_DEPENDS = " cuda-toolkit cuda-tools-native"
-CUDA_COMMON_RDEPENDS = " cuda-cudart"
 
 DEPENDS_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_DEPENDS}', '', d)}"
 LDFLAGS_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_LD_FLAGS}', '', d)}"
 EXTRA_OECMAKE_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_CMAKE}', '', d)}"
-RDEPENDS_${PN}_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_RDEPENDS}', '', d)}"
 
 PACKAGE_ARCH_tegra210 = "${SOC_FAMILY_PKGARCH}"
 PACKAGE_ARCH_tegra124 = "${SOC_FAMILY_PKGARCH}"
