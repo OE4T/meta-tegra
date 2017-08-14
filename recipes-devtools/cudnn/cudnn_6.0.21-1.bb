@@ -36,7 +36,7 @@ do_install() {
     install -d ${D}${includedir} ${D}${libdir} ${D}${datadir} ${D}${prefix}/src
     install -m 0644 ${S}/usr/include/aarch64-linux-gnu/*.h ${D}${includedir}
     install -m 0644 ${B}/usr/lib/aarch64-linux-gnu/libcudnn* ${D}${libdir}/
-    ln -s libcudnn.so.6.0.20 ${D}${libdir}/libcudnn.so    
+    ln -s libcudnn.so.6.0.21 ${D}${libdir}/libcudnn.so
     cp --preserve=mode,timestamps --recursive ${S}/usr/share/* ${D}${datadir}/
     rm -rf ${D}${datadir}/lintian
     cp --preserve=mode,timestamps --recursive ${S}/usr/src/* ${D}${prefix}/src/
