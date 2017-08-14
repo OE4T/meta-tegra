@@ -51,4 +51,5 @@ INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
-RDEPENDS_${PN} = "cuda-cudart"
+RDEPENDS_${PN}-examples = "cuda-cublas-dev cuda-cudart"
+INSANE_SKIP_${PN}-examples = "build-deps dev-deps ldflags staticdev"
