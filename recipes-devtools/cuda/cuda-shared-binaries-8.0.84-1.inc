@@ -1,4 +1,5 @@
 CUDA_PKG ?= "${BPN}"
+REPLACE_STUBS ?= "1"
 
 do_fetch() {
     :
@@ -46,11 +47,13 @@ do_compile() {
 	rmdir ${B}/usr/local/cuda-8.0/targets/aarch64-linux
 	rmdir ${B}/usr/local/cuda-8.0/targets
     fi
-    for f in ${B}/usr/local/cuda-8.0/lib/stubs/lib*.so; do
-	[ -f $f ] || continue
-	fname=`basename $f`
-	ln -sf ../${fname}.8.0 $f
-    done
+    if [ "${REPLACE_STUBS}" = "1" ]; then
+        for f in ${B}/usr/local/cuda-8.0/lib/stubs/lib*.so; do
+	    [ -f $f ] || continue
+	    fname=`basename $f`
+	    ln -sf ../${fname}.8.0 $f
+        done
+    fi
     if [ -d ${B}/usr/lib/pkgconfig ]; then
         for f in ${B}/usr/lib/pkgconfig/*; do
             sed -i -r -e's,^(libdir=.*/)lib[^/]*$,\1${baselib},' \
