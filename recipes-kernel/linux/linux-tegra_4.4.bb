@@ -36,7 +36,7 @@ do_configure_prepend() {
 	< ${WORKDIR}/defconfig > ${B}/.config
 }
 
-KERNEL_ARGS = "\${cbootargs}"
+KERNEL_ARGS ?= "\${cbootargs}"
 
 generate_extlinux_conf() {
     install -d ${D}/${KERNEL_IMAGEDEST}/extlinux
