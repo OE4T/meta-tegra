@@ -8,6 +8,7 @@ IMAGE_UBOOT ??= "u-boot"
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', True).split()[0])}"
 
+IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 
 # Override this function if you need to add
 # customization after the default files are
@@ -130,7 +131,7 @@ create_tegraflash_pkg_tegra210() {
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
     tegraflash_custom_pre
-    mksparse -v --fillpattern=0 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.ext4" ${IMAGE_BASENAME}.img
+    mksparse -v --fillpattern=0 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" $gptsize
     if [ "${TEGRA210_REDUNDANT_BOOT}" != "1" ]; then
         mkgpt -c flash.xml -P ppt.img -t ${EMMC_SIZE} -b ${BOOTPART_SIZE} -s 4KiB -a GPT -v GP1 -V
@@ -219,7 +220,7 @@ create_tegraflash_pkg_tegra186() {
     done
     install -m 0755 ${STAGING_BINDIR_NATIVE}/tegra186-flash/tegra186-flash-helper.sh ${WORKDIR}/tegraflash/
     tegraflash_custom_pre
-    mksparse -v --fillpattern=0 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.ext4" ${IMAGE_BASENAME}.img
+    mksparse -v --fillpattern=0 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash"
     rm -f doflash.sh
     cat > doflash.sh <<END
@@ -240,4 +241,4 @@ do_image_tegraflash[depends] += "zip-native:do_populate_sysroot \
                                  ${SOC_FAMILY}-flashtools-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot \
                                  ${IMAGE_UBOOT}:do_deploy"
-IMAGE_TYPEDEP_tegraflash += "ext4"
+IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
