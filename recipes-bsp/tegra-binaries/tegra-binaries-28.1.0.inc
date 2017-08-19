@@ -22,7 +22,7 @@ S = "${TMPDIR}/work-shared/L4T-${SOC_FAMILY}-${PV}-${PR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
 
 do_preconfigure() {
-    cp ${WORKDIR}/*-daemon.* ${WORKDIR}/nvstartup.** ${S}/
+    cp ${WORKDIR}/*-daemon.* ${WORKDIR}/nvstartup.* ${S}/
 }
 
 do_preconfigure_append_tegra186() {
