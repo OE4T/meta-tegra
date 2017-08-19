@@ -21,7 +21,7 @@ MACHINE_EXTRA_RDEPENDS = "tegra-tools-nvpmodel tegra-configs-nvstartup tegra-con
 MACHINE_EXTRA_RRECOMMENDS += "tegra-firmware-brcm kernel-module-bcmdhd"
 
 INITRAMFS_IMAGE ?= "tegra186-minimal-initramfs"
-INITRAMFS_TASK = "${@['', '${INITRAMFS_IMAGE}:do_image_complete'][(d.getVar('INITRAMFS_IMAGE', True) or '') != '']}"
+TEGRA_INITRAMFS_INITRD ?= "1"
 
 SERIAL_CONSOLE = "115200 ttyS0"
 
@@ -33,6 +33,7 @@ LICENSE_FLAGS_WHITELIST_append = " commercial_gstreamer1.0-omx-tegra"
 KERNEL_MODULE_AUTOLOAD = ""
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4096"
+EXTRA_IMAGECMD_ext4 ?= "-i 4096 -b 4096"
 
 NVIDIA_CHIP = "0x18"
 
