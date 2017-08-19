@@ -36,6 +36,13 @@ do_configure_prepend() {
 	< ${WORKDIR}/defconfig > ${B}/.config
 }
 
+do_install_append() {
+    if [ "${TEGRA_INITRAMFS_INITRD}" = "1" ]; then
+        install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz ${D}/${KERNEL_IMAGEDEST}/initrd
+    fi
+}
+do_install[depends] += "${@['', '${INITRAMFS_IMAGE}:do_image_complete'][(d.getVar('INITRAMFS_IMAGE', True) or '') != '' and (d.getVar('TEGRA_INITRAMFS_INITRD', True) or '') == "1"]}"
+
 KERNEL_ARGS ?= "\${cbootargs}"
 
 generate_extlinux_conf() {
@@ -50,10 +57,13 @@ LABEL primary
       LINUX /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}-${KERNEL_VERSION}
       APPEND ${KERNEL_ARGS} ${KERNEL_ROOTSPEC}
 EOF
+    if [ -n "${INITRAMFS_IMAGE}" -a "${TEGRA_INITRAMFS_INITRD}" = "1" ]; then
+        echo "      INITRD /${KERNEL_IMAGEDEST}/initrd" >> ${D}/${KERNEL_IMAGEDEST}/extlinux/extlinux.conf
+    fi
 }
 
 do_install[postfuncs] += "generate_extlinux_conf"
 
-FILES_kernel-image += "/${KERNEL_IMAGEDEST}/extlinux"
+FILES_kernel-image += "/${KERNEL_IMAGEDEST}/extlinux /${KERNEL_IMAGEDEST}/initrd"
 
 COMPATIBLE_MACHINE = "(tegra186|tegra210)"
