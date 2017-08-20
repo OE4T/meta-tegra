@@ -8,7 +8,7 @@ require conf/machine/include/tune-cortexa15.inc
 DEFAULTTUNE = "cortexa15hf-neon"
 
 SOC_FAMILY_PKGARCH = "${ARMPKGARCH}${ARMPKGSFX_DSP}${ARMPKGSFX_EABI}${ARMPKGSFX_ENDIAN}${ARMPKGSFX_FPU}_${SOC_FAMILY}"
-
+MACHINEOVERRIDES =. "cuda:"
 PACKAGE_EXTRA_ARCHS_append = " ${SOC_FAMILY_PKGARCH}"
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-tegra"
