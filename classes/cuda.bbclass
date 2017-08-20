@@ -1,24 +1,22 @@
-CUDA_COMMON_LD_FLAGS = " \
+CUDA_LDFLAGS = "\
   -Wl,-rpath-link,${STAGING_DIR_TARGET}/usr/local/cuda-${CUDA_VERSION}/lib \
   -Wl,-rpath,/usr/local/cuda-${CUDA_VERSION}/lib \
 "
 
-CUDA_COMMON_CMAKE = " \
+CUDA_EXTRA_OECMAKE = "\
   -DCUDA_TOOLKIT_TARGET_DIR=${STAGING_DIR_TARGET}/usr/local/cuda-${CUDA_VERSION} \
   -DCUDA_TOOLKIT_TARGET_DIR_INTERNAL=${STAGING_DIR_TARGET}/usr/local/cuda-${CUDA_VERSION} \
   -DCUDA_TOOLKIT_ROOT_DIR=${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION} \
   -DCUDA_TOOLKIT_ROOT_DIR_INTERNAL=${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION} \
 "
 
-CUDA_COMMON_DEPENDS = " cuda-toolkit cuda-tools-native"
+CUDA_DEPENDS = "cuda-toolkit cuda-tools-native"
 
-DEPENDS_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_DEPENDS}', '', d)}"
-LDFLAGS_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_LD_FLAGS}', '', d)}"
-EXTRA_OECMAKE_append = "${@bb.utils.contains('MACHINE_FEATURES', 'cuda', ' ${CUDA_COMMON_CMAKE}', '', d)}"
+DEPENDS_append_cuda = " ${CUDA_DEPENDS}"
+LDFLAGS_append_cuda = " ${CUDA_LDFLAGS}"
+EXTRA_OECMAKE_append_cuda = " ${CUDA_EXTRA_OECMAKE}"
 
-PACKAGE_ARCH_tegra210 = "${SOC_FAMILY_PKGARCH}"
-PACKAGE_ARCH_tegra124 = "${SOC_FAMILY_PKGARCH}"
-PACKAGE_ARCH_tegra186 = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_cuda = "${SOC_FAMILY_PKGARCH}"
 
 cmake_do_generate_toolchain_file_append() {
     cat >> ${WORKDIR}/toolchain.cmake <<EOF
