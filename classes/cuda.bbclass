@@ -1,3 +1,7 @@
+CUDA_NVCC_COMPAT_FLAGS ??= ""
+CUDA_NVCC_EXTRA_FLAGS ??= ""
+CUDA_NVCC_FLAGS ?= "${CUDA_NVCC_ARCH_FLAGS} ${CUDA_NVCC_COMPAT_FLAGS} ${CUDA_NVCC_EXTRA_FLAGS}"
+
 CUDA_LDFLAGS = "\
   -Wl,-rpath-link,${STAGING_DIR_TARGET}/usr/local/cuda-${CUDA_VERSION}/lib \
   -Wl,-rpath,/usr/local/cuda-${CUDA_VERSION}/lib \
