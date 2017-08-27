@@ -33,6 +33,7 @@ PACKAGES = "${PN}-tegrastats ${PN}-jetson-clocks ${NVPMODEL}"
 FILES_${PN}-tegrastats = "${sbindir}/tegrastats"
 INSANE_SKIP_${PN}-tegrastats = "ldflags"
 FILES_${PN}-jetson-clocks = "${sbindir}/jetson_clocks.sh"
+RDEPENDS_${PN}-jetson-clocks = "bash"
 FILES_${PN}-nvpmodel = "${sbindir}/nvpmodel ${sysconfdir}"
 INSANE_SKIP_${PN}-nvpmodel = "ldflags"
 
