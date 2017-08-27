@@ -8,7 +8,7 @@ deltask do_patch
 SRC_URI = ""
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/local/cuda-8.0/LICENSE;md5=82c8ccff06961d097a50123662b0a89b \
-	            file://usr/local/cuda-8.0/doc/EULA.txt;md5=cb0e47ada0f0449372d730bff8036853"
+	            file://usr/local/cuda-8.0/doc/EULA.txt;md5=731999c10c8433615a1e9a2b631051f1"
 do_configure[depends] += "cuda-binaries-native:do_preconfigure dpkg-native:do_populate_sysroot"
 do_populate_lic[depends] += "cuda-binaries-native:do_preconfigure"
 
