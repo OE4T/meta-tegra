@@ -8,6 +8,8 @@ do_compile_append() {
 
 PACKAGES =+ "${PN}-libcupti"
 FILES_${PN}-libcupti = "${prefix}/local/cuda-8.0/extras/CUPTI/${baselib}/*${SOLIBS}"
+INSANE_SKIP_${PN}-libcupti = "ldflags libdir"
 FILES_${PN} += "${prefix}/local/cuda-8.0/bin"
 FILES_${PN}-dev += "${prefix}/local/cuda-8.0/extras ${prefix}/local/cuda-8.0/share ${prefix}/local/cuda-8.0/tools"
 RDEPENDS_${PN}-dev += "python"
+INSANE_SKIP_${PN}-dev = "staticdev"
