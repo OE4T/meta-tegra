@@ -13,9 +13,15 @@ python () {
 
 move_libraries() {
     install -d ${D}${libdir}/mesa
-    mv ${D}${libdir}/libGL.* ${D}${libdir}/mesa/
-    mv ${D}${libdir}/libGLES* ${D}${libdir}/mesa/
-    mv ${D}${libdir}/libEGL.* ${D}${libdir}/mesa/
+    if [ -e ${D}${libdir}/libGL.so ]; then
+       mv ${D}${libdir}/libGL.* ${D}${libdir}/mesa/
+    fi
+    if [ -e ${D}${libdir}/libGLESv2.so ]; then
+        mv ${D}${libdir}/libGLES* ${D}${libdir}/mesa/
+    fi
+    if [ -e ${D}${libdir}/libEGL.so ]; then
+        mv ${D}${libdir}/libEGL.* ${D}${libdir}/mesa/
+    fi
 }
 do_install_append_tegra210() {
     move_libraries
