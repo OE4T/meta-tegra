@@ -19,7 +19,7 @@ do_install() {
     install -m 0644 ${S}/nvstartup.init ${D}${sysconfdir}/init.d/nvstartup
     install -m 0644 ${S}/nvstartup.service ${D}${systemd_system_unitdir}/
     install -d ${D}${sbindir}
-    sed -e's,\(sudo bash .*\),#\1,' -e'/^# Ensure libglx/,$d' ${B}/etc/systemd/nv.sh >${D}${sbindir}/nvstartup
+    sed -e's,\(sudo bash .*\),: #\1,' -e'/^# Ensure libglx/,$d' ${B}/etc/systemd/nv.sh >${D}${sbindir}/nvstartup
     chmod 0755 ${D}${sbindir}/nvstartup
     install -d ${D}/${sysconfdir}/udev/rules.d
     install -m 0644 ${B}/etc/udev/rules.d/99-tegra-devices.rules ${D}${sysconfdir}/udev/rules.d
