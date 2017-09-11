@@ -3,7 +3,7 @@ require tegra-shared-binaries.inc
 
 DEPENDS = "patchelf-native"
 
-inherit update-rc.d systemd
+inherit update-rc.d systemd update-alternatives
 
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib usr/sbin usr/share/egl var/nvidia
@@ -53,6 +53,14 @@ do_install() {
     install -d ${D}${datadir}/egl/egl_external_platform.d
     install -m644 ${B}/usr/share/egl/egl_external_platform.d/* ${D}${datadir}/egl/egl_external_platform.d/
 }
+
+# Allow switching between libdrm from freedesktop and libdrm from NVIDIA.
+# freedesktop is the default provider.
+ALTERNATIVE_libdrm-tegra = "libdrm.so.2 libdrm.so.2.4.0"
+ALTERNATIVE_LINK_NAME[libdrm.so.2] = "${libdir}/libdrm.so.2"
+ALTERNATIVE_LINK_NAME[libdrm.so.2.4.0] = "${libdir}/libdrm.so.2.4.0"
+ALTERNATIVE_TARGET = "${libdir}/libdrm-tegra.so.2"
+ALTERNATIVE_PRIORITY = "10"
 
 PACKAGES = "${PN}-libv4l-plugins ${PN}-argus libdrm-tegra libdrm-tegra-dev ${PN}"
 
