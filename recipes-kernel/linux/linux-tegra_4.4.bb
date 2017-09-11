@@ -36,7 +36,7 @@ do_configure_prepend() {
 
 do_install_append() {
     if [ "${TEGRA_INITRAMFS_INITRD}" = "1" ]; then
-        install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz ${D}/${KERNEL_IMAGEDEST}/initrd
+        install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE_NAME}.cpio.gz ${D}/${KERNEL_IMAGEDEST}/initrd
     fi
 }
 do_install[depends] += "${@['', '${INITRAMFS_IMAGE}:do_image_complete'][(d.getVar('INITRAMFS_IMAGE', True) or '') != '' and (d.getVar('TEGRA_INITRAMFS_INITRD', True) or '') == "1"]}"
