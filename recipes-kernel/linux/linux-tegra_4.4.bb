@@ -22,6 +22,9 @@ SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 "
 S = "${WORKDIR}/git"
 
+export KCFLAGS = ""
+KCFLAGS_append_tegra210 = "-Wno-error=format-truncation -Wno-error=duplicate-decl-specifier -Wno-error=int-in-bool-context"
+
 KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p1 rw rootwait"
 
 do_configure_prepend() {
