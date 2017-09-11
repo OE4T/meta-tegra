@@ -22,3 +22,7 @@ do_compile[noexec] = "1"
 do_install[noexec] = "1"
 
 inherit nopackages
+
+# Keep the same restriction as cuda-shared-binaries-8.0.84-1.inc
+# otherwise cuda-npp, cuda-cublas, cuda-nvrtc won't be available
+COMPATIBLE_MACHINE = "(tegra210|tegra186)"
