@@ -8,6 +8,8 @@ do_compile_append() {
     fi
 }
 
+DEPENDS = "expat"
+
 PACKAGES =+ "${PN}-libcupti ${PN}-libcupti-dev"
 FILES_${PN}-libcupti = "${prefix}/local/cuda-8.0/extras/CUPTI/${baselib}/*${SOLIBS}"
 FILES_${PN}-libcupti-dev = "${prefix}/local/cuda-8.0/extras/CUPTI"
