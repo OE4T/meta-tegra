@@ -4,7 +4,7 @@ require recipes-bsp/u-boot/u-boot.inc
 
 LICENSE = "GPLv2+"
 DESCRIPTION = "U-Boot for Nvidia Tegra platforms, based on Nvidia sources"
-COMPATIBLE_MACHINE = "(tegra124)"
+COMPATIBLE_MACHINE = "(jetsontk1)"
 LIC_FILES_CHKSUM = "file://Licenses/README;md5=025bf9f768cbcb1a165dbe1a110babfb"
 
 PROVIDES += "u-boot"

@@ -14,7 +14,7 @@ SRC_URI[dev.sha256sum] = "6a22969346a86cd1a09330d6baa15c071735564cecc5a517d30591
 SRC_URI[doc.md5sum] = "d0233c3bba7760130b48a79cec6b5f24"
 SRC_URI[doc.sha256sum] = "cb4c30331916da5917dec02d059ab63fe13dcd622b6e6fee2b9687ca8008fd16"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx2|jetsontx1)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 DEPENDS = "dpkg-native"

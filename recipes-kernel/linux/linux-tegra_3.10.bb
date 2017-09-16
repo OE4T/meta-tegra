@@ -63,4 +63,4 @@ do_install[postfuncs] += "generate_extlinux_conf"
 
 FILES_kernel-image += "/${KERNEL_IMAGEDEST}/extlinux"
 
-COMPATIBLE_MACHINE = "(tegra124)"
+COMPATIBLE_MACHINE = "(jetsontk1)"

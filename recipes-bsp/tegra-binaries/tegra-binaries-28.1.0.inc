@@ -33,7 +33,7 @@ do_preconfigure_append_tegra186() {
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx2|jetsontx1)"
 
 python __anonymous () {
     soc = d.getVar('SOC_FAMILY') or ""

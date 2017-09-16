@@ -5,7 +5,7 @@ LICENSE = "Proprietary & BSD"
 SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/013/linux-x64/Tegra_Multimedia_API_R${PV}_aarch64.tbz2"
 SRC_URI[md5sum] = "83ce648e92ccfc5424b24678805187cd"
 SRC_URI[sha256sum] = "2ab4f598edf305e37f4087d4a7afe5321d251d976c3299e865d59143c35363a5"
-COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx2|jetsontx1)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 DEPENDS = "tegra-libraries virtual/egl"
