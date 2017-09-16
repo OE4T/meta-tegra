@@ -3,7 +3,7 @@ LICENSE = "MIT"
 
 PACKAGE_INSTALL = "\
     tegra-firmware-xusb \
-    tegra210-minimal-init \
+    tegra-minimal-init \
 "
 
 IMAGE_FEATURES = ""
