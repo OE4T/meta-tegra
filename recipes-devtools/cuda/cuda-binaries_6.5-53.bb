@@ -7,4 +7,4 @@ SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack
 SRC_URI[md5sum] = "93b5c6592292565c389c46a16b4cbf5d"
 SRC_URI[sha256sum] = "4739c63e16b9a169f988c2b8f175c0182fa118833b49950fe72fe8c039ba1359"
 
-COMPATIBLE_MACHINE = "(tegra124)"
+COMPATIBLE_MACHINE = "(jetsontk1)"

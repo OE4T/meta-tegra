@@ -8,7 +8,7 @@ SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack
 SRC_URI[md5sum] = "2df905e46c8c2a5a1773659e717591c6"
 SRC_URI[sha256sum] = "4d74122a3e4a56083e236d2a3ea9d860c276de4a7037266a8fbabade9556523a"
 
-COMPATIBLE_MACHINE = "(tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx1)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 LIC_FILES_CHKSUM = "file://tensorrt-eula.txt;md5=6cc7c5300a41f51bf22094638b2721c9"

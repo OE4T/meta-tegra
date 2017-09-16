@@ -6,7 +6,7 @@ SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack
 SRC_URI[md5sum] = "a04036ea71e030be39950b297fbaa69b"
 SRC_URI[sha256sum] = "c57d6535f135261cc5ff9c48114381d65ad437d80fbf7ad0a22373f60c14d0f0"
 
-COMPATIBLE_MACHINE = "(tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx1)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 DEPENDS = "tegra-libraries"

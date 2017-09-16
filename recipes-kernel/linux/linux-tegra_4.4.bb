@@ -66,4 +66,4 @@ do_install[postfuncs] += "generate_extlinux_conf"
 
 FILES_kernel-image += "/${KERNEL_IMAGEDEST}/extlinux /${KERNEL_IMAGEDEST}/initrd"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx2|jetsontx1)"

@@ -1,7 +1,7 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx2|jetsontx1)"
 INHIBIT_DEFAULT_DEPS = "1"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
@@ -32,11 +32,11 @@ BOOTBINS_tegra210 = "\
     tos.img \
 "
 
-BOOTBINS_MACHINE_SPECIFIC_tegra186 = "\
+BOOTBINS_MACHINE_SPECIFIC_jetsontx2 = "\
     nvtboot.bin \
     warmboot.bin \
 "
-BOOTBINS_MACHINE_SPECIFIC_tegra210 = "\
+BOOTBINS_MACHINE_SPECIFIC_jetsontx1 = "\
     cboot.bin \
     nvtboot.bin \
     warmboot.bin \

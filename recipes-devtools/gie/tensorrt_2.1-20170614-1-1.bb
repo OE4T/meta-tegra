@@ -7,7 +7,7 @@ SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack
 SRC_URI[md5sum] = "968729da55ada3393fa98c8403108528"
 SRC_URI[sha256sum] = "f5c20ec08badea5e799c49d33696b5af5c71dfa87891d6f31dc47522eb12b32c"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx2|jetsontx1)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 LIC_FILES_CHKSUM = "file://NvInfer.h;endline=48;md5=c019325b2fa9ba0eb1b404d686a45685"

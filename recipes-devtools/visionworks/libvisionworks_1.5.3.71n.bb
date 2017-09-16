@@ -13,7 +13,7 @@ CUDAPATH ?= "/usr/local/cuda-8.0"
 
 DEPENDS = "dpkg-native cuda-cudart chrpath-native"
 
-COMPATIBLE_MACHINE = "(tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx1)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 do_compile() {
