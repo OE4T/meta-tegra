@@ -1,5 +1,7 @@
 require cuda-shared-binaries-${PV}.inc
 
+DEPENDS = "ncurses expat"
+
 do_compile_append() {
     if [ "${baselib}" != "lib64" ]; then
         mv ${B}/usr/local/cuda-8.0/extras/CUPTI/lib64 ${B}/usr/local/cuda-8.0/extras/CUPTI/${baselib}
