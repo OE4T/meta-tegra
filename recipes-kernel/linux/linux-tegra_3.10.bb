@@ -12,12 +12,12 @@ PV .= "+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 EXTRA_OEMAKE += 'LIBGCC=""'
 
-L4T_VERSION_tegra210 = "l4t-r24.2"
+L4T_VERSION_tegra210 = "l4t-r24.2.2"
 L4T_VERSION_tegra124 = "l4t-r21.5"
 LOCALVERSION = "-${L4T_VERSION}"
 
 SRCBRANCH = "patches-${L4T_VERSION}"
-SRCREV_tegra210 = "37f0eb8532580ba836c653c6713b0e347164c8b6"
+SRCREV_tegra210 = "53fc7ff14d00ab9b8e2d3ea0d1423bb3a6e5f895"
 SRCREV_tegra124 = "71cc3bfd7f05021654b3f75190410e556fbcd235"
 KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
