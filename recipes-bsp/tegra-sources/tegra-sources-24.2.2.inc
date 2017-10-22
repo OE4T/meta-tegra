@@ -1,4 +1,4 @@
-SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r24_Release_v2.2/BSP/r24.2.2-sources.tbz2;downloadfilename=tegra-sources-24.2.1.tbz2"
+SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r24_Release_v2.2/r24.2.2-sources.tbz2;downloadfilename=tegra-sources-24.2.2.tbz2"
 SRC_URI[md5sum] = "2fb26b5f7e30467223d50ca8e3b111e2"
 SRC_URI[sha256sum] = "9741d30a1d2002e4927784b32a29dbe261a82fd7a7d4f04868b1209cb592a46b"
 
