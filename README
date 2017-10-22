@@ -7,7 +7,7 @@ Boards supported:
 * Jetson-TX2 development kit (work in progress)
 
 For Jetson-TX1, supports:
-* 64-bit NVIDIA Linux4Tegra R24.2 kernel and userland binaries
+* 64-bit NVIDIA Linux4Tegra R24.2.2 kernel and userland binaries
 * 64-bit userland packages
 
 For Jetson-TK1, supports:
