@@ -53,3 +53,5 @@ PREFERRED_VERSION_cuda-shared-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-tools-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_tegra-flashtools-native = "24.2.2"
+
+PREFERRED_VERSION_xserver-xorg = "1.18.4"
