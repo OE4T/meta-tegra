@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA TensorRT (GPU Inference Engine) for deep learning"
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
-DEPENDS = "dpkg-native patchelf-native"
+DEPENDS = "dpkg-native"
 
 SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/013/linux-x64/nv-gie-repo-ubuntu1604-ga-cuda8.0-trt2.1-20170614_1-1_arm64.deb"
 SRC_URI[md5sum] = "968729da55ada3393fa98c8403108528"
@@ -26,9 +26,6 @@ do_configure() {
 do_populate_lic[depends] += "${PN}:do_configure"
 
 do_compile() {
-    patchelf --set-rpath "${CUDAPATH}/${baselib}" ${B}/usr/lib/aarch64-linux-gnu/libnvcaffe_parser.so.3.0.2
-    patchelf --set-rpath "${CUDAPATH}/${baselib}" ${B}/usr/lib/aarch64-linux-gnu/libnvinfer.so.3.0.2
-    patchelf --set-rpath "${CUDAPATH}/${baselib}" ${B}/usr/lib/aarch64-linux-gnu/libnvinfer_plugin.so.3.0.2
     mv ${B}/usr/include/aarch64-linux-gnu/NvUtils.h ${B}/usr/src/tensorrt/samples/sampleCharRNN/
 }
 
