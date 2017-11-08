@@ -23,8 +23,7 @@ S = "${WORKDIR}/git"
 
 export KCFLAGS = ""
 KCFLAGS_tegra124 = "-Wno-error=unused-const-variable -Wno-error=misleading-indentation \
-                    -Wno-error=switch-unreachable -Wno-error=parentheses -Wno-error=maybe-uninitialized \
-                    -Wno-error=format-truncation -Wno-error=format-overflow -Wno-error=int-in-bool-context"
+                    -Wno-error=parentheses -Wno-error=maybe-uninitialized"
 
 KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p1 ro rootwait"
 
@@ -61,4 +60,4 @@ do_install[postfuncs] += "generate_extlinux_conf"
 
 FILES_kernel-image += "/${KERNEL_IMAGEDEST}/extlinux"
 
-COMPATIBLE_MACHINE = "(tegra124)"
+COMPATIBLE_MACHINE = "(jetsontk1)"
