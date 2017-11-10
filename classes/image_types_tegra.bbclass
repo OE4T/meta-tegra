@@ -130,6 +130,7 @@ create_tegraflash_pkg_tegra210() {
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
+    ln -s "${STAGING_BINDIR_NATIVE}/tegra210-flash" .
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" $gptsize
@@ -139,7 +140,7 @@ create_tegraflash_pkg_tegra210() {
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-tegraflash.py --bl cboot.bin --bct ${MACHINE}.cfg --odmdata ${ODMDATA} --bldtb ${DTBFILE} --applet nvtboot_recovery.bin \
+./tegra210-flash/tegraflash.py --bl cboot.bin --bct ${MACHINE}.cfg --odmdata ${ODMDATA} --bldtb ${DTBFILE} --applet nvtboot_recovery.bin \
               --boardconfig board_config_${MACHINE}.xml --cmd "flash;reboot" --cfg flash.xml --chip ${NVIDIA_CHIP}
 END
     chmod +x doflash.sh
@@ -218,14 +219,15 @@ create_tegraflash_pkg_tegra186() {
     for f in ${STAGING_DATADIR}/tegraflash/tegra186-a02-bpmp*.dtb; do
 	ln -s $f .
     done
-    install -m 0755 ${STAGING_BINDIR_NATIVE}/tegra186-flash/tegra186-flash-helper.sh ${WORKDIR}/tegraflash/
+    ln -s ${STAGING_BINDIR_NATIVE}/tegra186-flash .
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash"
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-./tegra186-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA}
+PATH=\$PATH:tegra186-flash
+./tegra186-flash/tegra186-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA}
 END
     chmod +x doflash.sh
     tegraflash_custom_post
