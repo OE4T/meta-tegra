@@ -3,7 +3,7 @@ LICENSE = "MIT"
 
 PACKAGE_INSTALL = "\
     tegra-firmware-xusb \
-    tegra210-minimal-init \
+    tegra-minimal-init \
 "
 
 IMAGE_FEATURES = ""
@@ -13,7 +13,7 @@ IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
 COPY_LIC_MANIFEST = "0"
 COPY_LIC_DIRS = "0"
 
-COMPATIBLE_MACHINE = "(tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx1)"
 
 KERNELDEPMODDEPEND = ""
 

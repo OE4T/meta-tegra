@@ -23,5 +23,5 @@ python do_unpack() {
     bb.build.exec_func("unpack_tar_in_tar", d)
 }
 
-COMPATIBLE_MACHINE = "(tegra186)"
+COMPATIBLE_MACHINE = "(jetsontx2)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

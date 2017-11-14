@@ -25,5 +25,5 @@ sysroot_stage_dirs_append() {
     sysroot_stage_dir $from${prefix}/local/cuda-6.5 $to${prefix}/local/cuda-6.5
 }
 
-COMPATIBLE_MACHINE = "(tegra124)"
+COMPATIBLE_MACHINE = "(jetsontk1)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

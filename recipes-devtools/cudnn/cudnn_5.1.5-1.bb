@@ -6,7 +6,7 @@ SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack
 SRC_URI[md5sum] = "22421e0e8dae7c176bd84db3590bfb05"
 SRC_URI[sha256sum] = "33e0e1ff9037b703965945ba88d05b72d9c592d8fab7293a36c1ae5965309d7c"
 
-COMPATIBLE_MACHINE = "(tegra210)"
+COMPATIBLE_MACHINE = "(jetsontx1)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 S = "${WORKDIR}/cuDNN"
