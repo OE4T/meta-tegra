@@ -2,9 +2,9 @@ SUMMARY = "NVIDIA VisionWorks target tools"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-repo/copyright;md5=49db087d45a7fa00de462381f7bf9fd0"
 
-SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/013/linux-x64/libvisionworks-repo_${PV}_arm64_l4t-r26.deb"
-SRC_URI[md5sum] = "3021b38a3717917811961470fc1ce8ce"
-SRC_URI[sha256sum] = "e62bc999c46e1e1981a6432e5edbad3d3ca6f9951e902bddfca77c7318c9b67c"
+SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/013/linux-x64/libvisionworks-repo_${PV}_arm64_l4t-r24.deb"
+SRC_URI[md5sum] = "79ab82a174258098ebbb5cc7e882721b"
+SRC_URI[sha256sum] = "28a435a4fc806fc704e79691b5b9fbfbc730640d5fae8b9efd005cb9ae4748b2"
 
 S = "${WORKDIR}"
 B = "${WORKDIR}/build"
@@ -13,7 +13,7 @@ CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
 
 DEPENDS = "dpkg-native cuda-cudart chrpath-native"
 
-COMPATIBLE_MACHINE = "(tegra186)"
+COMPATIBLE_MACHINE = "(tegra210)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 do_compile() {
