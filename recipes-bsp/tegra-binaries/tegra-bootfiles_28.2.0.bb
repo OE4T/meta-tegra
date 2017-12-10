@@ -9,6 +9,7 @@ BOARD_CFG ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${NVIDIA_BOARD_CFG}"
 PARTITION_FILE ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${PARTITION_LAYOUT_TEMPLATE}"
 
 BOOTBINS_tegra186 = "\
+    bmp.blob \
     bpmp.bin \
     camera-rtcpu-sce.bin \
     cboot.bin \
@@ -20,6 +21,7 @@ BOOTBINS_tegra186 = "\
     nvtboot_recovery.bin \
     nvtboot_recovery_cpu.bin \
     preboot_d15_prod_cr.bin \
+    slot_metadata.bin \
     spe.bin \
     tos.img \
 "
