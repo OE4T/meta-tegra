@@ -1,6 +1,6 @@
 SUMMARY = "NVIDIA CUDA Deep Neural Network library"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v6.h;endline=48;md5=b48d68d7e5eb6b858c229fdb89171636"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v7.h;endline=48;md5=b48d68d7e5eb6b858c229fdb89171636"
 
 SRC_URI = "\
     http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2/pwv346/JetPackL4T_32_b157/libcudnn7_${PV}+cuda9.0_arm64.deb;name=lib;unpack=false \
