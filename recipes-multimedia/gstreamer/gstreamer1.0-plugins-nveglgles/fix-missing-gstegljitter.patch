@@ -1,0 +1,20 @@
+Index: gst-egl/ext/eglgles/Makefile.am
+===================================================================
+--- gst-egl.orig/ext/eglgles/Makefile.am
++++ gst-egl/ext/eglgles/Makefile.am
+@@ -1,6 +1,6 @@
+ plugin_LTLIBRARIES = libgstnveglglessink.la
+ 
+-DISTRO_SRC = gstegladaptation_egl.c video_platform_wrapper.c
++DISTRO_SRC = gstegljitter.c gstegladaptation_egl.c video_platform_wrapper.c
+ GST_EGL_LIBS = $(top_builddir)/gst-libs/gst/egl/libgstegl-$(GST_API_VERSION).la
+ 
+ libgstnveglglessink_la_SOURCES = gsteglglessink.c gstegladaptation.c $(DISTRO_SRC)
+@@ -26,6 +26,6 @@ libgstnveglglessink_la_LDFLAGS = $(GST_P
+ 
+ libgstnveglglessink_la_LIBTOOLFLAGS = --tag=CC $(GST_PLUGIN_LIBTOOLFLAGS)
+ 
+-noinst_HEADERS = gsteglglessink.h gstegladaptation.h video_platform_wrapper.h
++noinst_HEADERS = gstegljitter.h gsteglglessink.h gstegladaptation.h video_platform_wrapper.h
+ 
+ EXTRA_DIST = gsteglglessink.c gstegladaptation.c gstegladaptation_egl.c video_platform_wrapper.c gstegladaptation_eagl.m $(noinst_HEADERS)
