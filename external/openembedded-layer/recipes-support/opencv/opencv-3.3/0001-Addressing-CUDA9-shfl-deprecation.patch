@@ -1,0 +1,39 @@
+From dde04d5d3e896b90321ff4c80ac12bd65359f5fb Mon Sep 17 00:00:00 2001
+From: Boris Fomitchev <bfomitchev@nvidia.com>
+Date: Tue, 29 Aug 2017 13:27:21 -0700
+Subject: [PATCH] Addressing CUDA9 shfl deprecation
+
+---
+ modules/core/include/opencv2/core/cuda/warp_shuffle.hpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/modules/core/include/opencv2/core/cuda/warp_shuffle.hpp b/modules/core/include/opencv2/core/cuda/warp_shuffle.hpp
+index 14a9a4d..0da54ae 100644
+--- a/modules/core/include/opencv2/core/cuda/warp_shuffle.hpp
++++ b/modules/core/include/opencv2/core/cuda/warp_shuffle.hpp
+@@ -51,6 +51,11 @@
+ 
+ namespace cv { namespace cuda { namespace device
+ {
++#if __CUDACC_VER_MAJOR__ >= 9
++#  define __shfl(x, y, z) __shfl_sync(0xFFFFFFFFU, x, y, z)
++#  define __shfl_up(x, y, z) __shfl_up_sync(0xFFFFFFFFU, x, y, z)
++#  define __shfl_down(x, y, z) __shfl_down_sync(0xFFFFFFFFU, x, y, z)
++#endif
+     template <typename T>
+     __device__ __forceinline__ T shfl(T val, int srcLane, int width = warpSize)
+     {
+@@ -148,6 +153,10 @@ namespace cv { namespace cuda { namespace device
+     }
+ }}}
+ 
++#  undef __shfl
++#  undef __shfl_up
++#  undef __shfl_down
++
+ //! @endcond
+ 
+ #endif // OPENCV_CUDA_WARP_SHUFFLE_HPP
+-- 
+2.7.4
+

@@ -1,0 +1,204 @@
+From c48807c383094cd240a4a36b53317988f6beabc5 Mon Sep 17 00:00:00 2001
+From: Boris Fomitchev <borisfom@users.noreply.github.com>
+Date: Thu, 24 Aug 2017 00:11:44 -0700
+Subject: [PATCH] Merge pull request #9418 from borisfom:cuda9
+
+CUDA9 build fixed, added detection (#9418)
+
+* CUDA9 build fixed, added detection
+
+* Replacing deprecated __shfl_xxx with __shfl_sync, fixing bogus CUDA9 warnings
+---
+ CMakeLists.txt                                             |  4 ++--
+ cmake/FindCUDA.cmake                                       | 12 +++++++++++-
+ cmake/OpenCVDetectCUDA.cmake                               | 12 +++++++-----
+ modules/core/include/opencv2/core/private.cuda.hpp         |  8 ++++++++
+ modules/cudacodec/src/precomp.hpp                          |  2 +-
+ modules/cudev/include/opencv2/cudev/util/saturate_cast.hpp | 12 +++++++++++-
+ modules/cudev/include/opencv2/cudev/warp/shuffle.hpp       | 12 +++++++++++-
+ 7 files changed, 51 insertions(+), 11 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e32d248..0e4159b 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -195,8 +195,8 @@ OCV_OPTION(WITH_CPUFEATURES    "Use cpufeatures Android library"             ON
+ OCV_OPTION(WITH_VTK            "Include VTK library support (and build opencv_viz module eiher)"             ON  IF (NOT ANDROID AND NOT IOS AND NOT WINRT AND NOT CMAKE_CROSSCOMPILING) )
+ OCV_OPTION(WITH_CUDA           "Include NVidia Cuda Runtime support"                                         ON  IF (NOT IOS AND NOT WINRT) )
+ OCV_OPTION(WITH_CUFFT          "Include NVidia Cuda Fast Fourier Transform (FFT) library support"            ON  IF (NOT IOS AND NOT WINRT) )
+-OCV_OPTION(WITH_CUBLAS         "Include NVidia Cuda Basic Linear Algebra Subprograms (BLAS) library support" OFF IF (NOT IOS AND NOT WINRT) )
+-OCV_OPTION(WITH_NVCUVID        "Include NVidia Video Decoding library support"                               OFF IF (NOT IOS AND NOT APPLE) )
++OCV_OPTION(WITH_CUBLAS         "Include NVidia Cuda Basic Linear Algebra Subprograms (BLAS) library support" ON IF (NOT IOS AND NOT WINRT) )
++OCV_OPTION(WITH_NVCUVID        "Include NVidia Video Decoding library support"                               ON IF (NOT IOS AND NOT APPLE) )
+ OCV_OPTION(WITH_EIGEN          "Include Eigen2/Eigen3 support"               ON   IF (NOT WINRT) )
+ OCV_OPTION(WITH_VFW            "Include Video for Windows support"           ON   IF WIN32 )
+ OCV_OPTION(WITH_FFMPEG         "Include FFMPEG support"                      ON   IF (NOT ANDROID AND NOT IOS AND NOT WINRT) )
+diff --git a/cmake/FindCUDA.cmake b/cmake/FindCUDA.cmake
+index 207be6e..6e7ab90 100644
+--- a/cmake/FindCUDA.cmake
++++ b/cmake/FindCUDA.cmake
+@@ -790,8 +790,18 @@ endif()
+ if(CUDA_VERSION VERSION_GREATER "5.0")
+   # In CUDA 5.5 NPP was splitted onto 3 separate libraries.
+   find_cuda_helper_libs(nppc)
+-  find_cuda_helper_libs(nppi)
++  find_cuda_helper_libs(nppial)
++  find_cuda_helper_libs(nppicc)
++  find_cuda_helper_libs(nppicom)
++  find_cuda_helper_libs(nppidei)
++  find_cuda_helper_libs(nppif)
++  find_cuda_helper_libs(nppig)
++  find_cuda_helper_libs(nppim)
++  find_cuda_helper_libs(nppist)
++  find_cuda_helper_libs(nppisu)
++  find_cuda_helper_libs(nppitc)
+   find_cuda_helper_libs(npps)
++  set(CUDA_nppi_LIBRARY "${CUDA_nppial_LIBRARY};${CUDA_nppicc_LIBRARY};${CUDA_nppicom_LIBRARY};${CUDA_nppidei_LIBRARY};${CUDA_nppif_LIBRARY};${CUDA_nppig_LIBRARY};${CUDA_nppim_LIBRARY};${CUDA_nppist_LIBRARY};${CUDA_nppisu_LIBRARY};${CUDA_nppitc_LIBRARY}")
+   set(CUDA_npp_LIBRARY "${CUDA_nppc_LIBRARY};${CUDA_nppi_LIBRARY};${CUDA_npps_LIBRARY}")
+ elseif(NOT CUDA_VERSION VERSION_LESS "4.0")
+   find_cuda_helper_libs(npp)
+diff --git a/cmake/OpenCVDetectCUDA.cmake b/cmake/OpenCVDetectCUDA.cmake
+index 1b6dffd..0a7ff09 100644
+--- a/cmake/OpenCVDetectCUDA.cmake
++++ b/cmake/OpenCVDetectCUDA.cmake
+@@ -43,7 +43,7 @@ if(CUDA_FOUND)
+ 
+   message(STATUS "CUDA detected: " ${CUDA_VERSION})
+ 
+-  set(_generations "Fermi" "Kepler" "Maxwell" "Pascal")
++  set(_generations "Fermi" "Kepler" "Maxwell" "Pascal" "Volta")
+   if(NOT CMAKE_CROSSCOMPILING)
+     list(APPEND _generations "Auto")
+   endif()
+@@ -70,6 +70,8 @@ if(CUDA_FOUND)
+     set(__cuda_arch_bin "5.0 5.2")
+   elseif(CUDA_GENERATION STREQUAL "Pascal")
+     set(__cuda_arch_bin "6.0 6.1")
++  elseif(CUDA_GENERATION STREQUAL "Volta")
++    set(__cuda_arch_bin "7.0")
+   elseif(CUDA_GENERATION STREQUAL "Auto")
+     execute_process( COMMAND "${CUDA_NVCC_EXECUTABLE}" "${OpenCV_SOURCE_DIR}/cmake/checks/OpenCVDetectCudaArch.cu" "--run"
+                      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/"
+@@ -94,17 +96,17 @@ if(CUDA_FOUND)
+                        ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE)
+       if(NOT _nvcc_res EQUAL 0)
+         message(STATUS "Automatic detection of CUDA generation failed. Going to build for all known architectures.")
+-        set(__cuda_arch_bin "5.3 6.2")
++        set(__cuda_arch_bin "5.3 6.2 7.0")
+       else()
+         set(__cuda_arch_bin "${_nvcc_out}")
+         string(REPLACE "2.1" "2.1(2.0)" __cuda_arch_bin "${__cuda_arch_bin}")
+       endif()
+       set(__cuda_arch_ptx "")
+     else()
+-      if(${CUDA_VERSION} VERSION_LESS "8.0")
+-        set(__cuda_arch_bin "2.0 3.0 3.5 3.7 5.0 5.2")
+-      else()
++      if(${CUDA_VERSION} VERSION_LESS "9.0")
+         set(__cuda_arch_bin "2.0 3.0 3.5 3.7 5.0 5.2 6.0 6.1")
++      else()
++        set(__cuda_arch_bin "3.0 3.5 3.7 5.0 5.2 6.0 6.1 7.0")
+       endif()
+     endif()
+   endif()
+diff --git a/modules/core/include/opencv2/core/private.cuda.hpp b/modules/core/include/opencv2/core/private.cuda.hpp
+index 1214d70..1e8ea3d 100644
+--- a/modules/core/include/opencv2/core/private.cuda.hpp
++++ b/modules/core/include/opencv2/core/private.cuda.hpp
+@@ -58,6 +58,14 @@
+ #ifdef HAVE_CUDA
+ #  include <cuda.h>
+ #  include <cuda_runtime.h>
++#  if defined (__GNUC__)
++#   pragma GCC diagnostic push
++#   pragma GCC diagnostic ignored "-Wstrict-aliasing"
++#   include <cuda_fp16.h>
++#   pragma GCC diagnostic pop
++#  else
++#   include <cuda_fp16.h>
++#  endif /* __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6) */
+ #  include <npp.h>
+ #  include "opencv2/core/cuda_stream_accessor.hpp"
+ #  include "opencv2/core/cuda/common.hpp"
+diff --git a/modules/cudacodec/src/precomp.hpp b/modules/cudacodec/src/precomp.hpp
+index 906b13a..5a3da5f 100644
+--- a/modules/cudacodec/src/precomp.hpp
++++ b/modules/cudacodec/src/precomp.hpp
+@@ -56,7 +56,7 @@
+ #include "opencv2/core/private.cuda.hpp"
+ 
+ #ifdef HAVE_NVCUVID
+-    #include <nvcuvid.h>
++    #include <dynlink_nvcuvid.h>
+ 
+     #ifdef _WIN32
+         #define NOMINMAX
+diff --git a/modules/cudev/include/opencv2/cudev/util/saturate_cast.hpp b/modules/cudev/include/opencv2/cudev/util/saturate_cast.hpp
+index ec9804c..68a07a5 100644
+--- a/modules/cudev/include/opencv2/cudev/util/saturate_cast.hpp
++++ b/modules/cudev/include/opencv2/cudev/util/saturate_cast.hpp
+@@ -47,6 +47,7 @@
+ #define OPENCV_CUDEV_UTIL_SATURATE_CAST_HPP
+ 
+ #include "../common.hpp"
++#include "opencv2/core/private.cuda.hpp"
+ 
+ namespace cv { namespace cudev {
+ 
+@@ -274,12 +275,21 @@ template <typename T, typename D> __device__ __forceinline__ D cast_fp16(T v);
+ 
+ template <> __device__ __forceinline__ float cast_fp16<short, float>(short v)
+ {
++#if __CUDACC_VER_MAJOR__  >= 9
++  return float(*(__half*)&v);
++#else
+     return __half2float(v);
++#endif
+ }
+ 
+ template <> __device__ __forceinline__ short cast_fp16<float, short>(float v)
+ {
+-    return (short)__float2half_rn(v);
++#if __CUDACC_VER_MAJOR__  >= 9
++  __half h(v);
++  return *(short*)&v;
++#else
++  return (short)__float2half_rn(v);
++#endif
+ }
+ //! @}
+ 
+diff --git a/modules/cudev/include/opencv2/cudev/warp/shuffle.hpp b/modules/cudev/include/opencv2/cudev/warp/shuffle.hpp
+index 94e5879..e776dd6 100644
+--- a/modules/cudev/include/opencv2/cudev/warp/shuffle.hpp
++++ b/modules/cudev/include/opencv2/cudev/warp/shuffle.hpp
+@@ -56,8 +56,14 @@ namespace cv { namespace cudev {
+ 
+ #if CV_CUDEV_ARCH >= 300
+ 
+-// shfl
++#if __CUDACC_VER_MAJOR__ >= 9
++#  define __shfl(x, y, z) __shfl_sync(0xFFFFFFFFU, x, y, z)
++#  define __shfl_xor(x, y, z) __shfl_xor_sync(0xFFFFFFFFU, x, y, z)
++#  define __shfl_up(x, y, z) __shfl_up_sync(0xFFFFFFFFU, x, y, z)
++#  define __shfl_down(x, y, z) __shfl_down_sync(0xFFFFFFFFU, x, y, z)
++#endif
+ 
++// shfl
+ __device__ __forceinline__ uchar shfl(uchar val, int srcLane, int width = warpSize)
+ {
+     return (uchar) __shfl((int) val, srcLane, width);
+@@ -419,6 +425,10 @@ CV_CUDEV_SHFL_XOR_VEC_INST(float)
+ CV_CUDEV_SHFL_XOR_VEC_INST(double)
+ 
+ #undef CV_CUDEV_SHFL_XOR_VEC_INST
++#undef __shfl
++#undef __shfl_xor
++#undef __shfl_up
++#undef __shfl_down
+ 
+ #endif // CV_CUDEV_ARCH >= 300
+ 
+-- 
+2.7.4
+
