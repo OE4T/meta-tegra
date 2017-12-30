@@ -1,5 +1,7 @@
 require cuda-binaries-common.inc
 
+CUDA_VERSION ?= "8.0"
+
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/local/cuda-${CUDA_VERSION}/doc/EULA.txt;md5=731999c10c8433615a1e9a2b631051f1"
 

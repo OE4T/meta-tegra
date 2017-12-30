@@ -1,7 +1,9 @@
 require cuda-binaries-native-common.inc
 
+CUDA_VERSION ?= "8.0"
+
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/local/cuda-8.0/doc/EULA.txt;md5=731999c10c8433615a1e9a2b631051f1"
+LIC_FILES_CHKSUM = "file://usr/local/cuda-${CUDA_VERSION}/doc/EULA.txt;md5=731999c10c8433615a1e9a2b631051f1"
 
 SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/013/linux-x64/cuda-repo-ubuntu1404-8-0-local_${PV}_amd64.deb"
 SRC_URI[md5sum] = "c2e41f9d686e6a93ab562509ca566408"
