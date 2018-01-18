@@ -23,6 +23,14 @@ SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 "
 S = "${WORKDIR}/git"
 
+export KCFLAGS = ""
+# Use Wno-option instead of Wno-error=option because the latter breaks on older GCC such as 4.9 and 4.8
+KCFLAGS_tegra124 = "-Wno-unused-const-variable -Wno-misleading-indentation \
+                    -Wno-switch-unreachable -Wno-parentheses -Wno-maybe-uninitialized \
+                    -Wno-format-truncation -Wno-format-overflow -Wno-int-in-bool-context \
+                    "
+
+
 KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p1 ro rootwait"
 
 do_configure_prepend() {
