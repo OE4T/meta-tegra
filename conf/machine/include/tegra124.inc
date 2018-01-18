@@ -19,6 +19,7 @@ KERNEL_IMAGETYPE = "zImage"
 
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image"
+MACHINE_EXTRA_RDEPENDS = "tegra-configs-nvstartup tegra-configs-udev"
 
 SERIAL_CONSOLE = "115200 ttyS0"
 
