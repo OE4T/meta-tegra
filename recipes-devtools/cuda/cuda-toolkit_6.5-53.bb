@@ -42,3 +42,4 @@ FILES_${PN}-dev = "${prefix}/local/cuda-6.5/include ${libdir} ${prefix}/local/cu
 
 INSANE_SKIP_${PN} += "dev-so dev-deps textrel"
 INSANE_SKIP_${PN}-dev = "ldflags libdir dev-elf"
+COMPATIBLE_MACHINE = "(tegra124)"
