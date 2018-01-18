@@ -1,0 +1,13 @@
+#
+# Copyright (c) 2016, NVIDIA CORPORATION.  All rights reserved.
+#
+
+[Unit]
+Description=NVIDIA startup script
+
+[Service]
+Type=oneshot
+ExecStart=/etc/systemd/nvstartup.sh
+
+[Install]
+WantedBy=multi-user.target
