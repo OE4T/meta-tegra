@@ -1,0 +1,30 @@
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 20 Jan 2017 08:00:00 -0700
+Subject: [PATCH] gstreamer: disable gtk-doc builds
+
+The gtk-doc patch from OE-Core is for the makefiles that
+come with much more recent versions of the gstreamer plugin
+build system than the version on which the NVIDIA plugin is
+based, and it would be difficult to retrofit, so for now
+just disable gtk-doc builds.
+
+Upstream-Status: Inappropriate
+Signed-off-by: Matt Madison <matt@madison.systems>
+
+---
+ common/gtk-doc.mak | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+Index: gst-egl/common/gtk-doc.mak
+===================================================================
+--- gst-egl.orig/common/gtk-doc.mak
++++ gst-egl/common/gtk-doc.mak
+@@ -46,7 +46,7 @@ REPORT_FILES = \
+ 
+ CLEANFILES = $(SCANOBJ_FILES) $(REPORT_FILES) $(DOC_STAMPS) doc-registry.xml
+ 
+-if ENABLE_GTK_DOC
++if NEVER_ENABLE_GTK_DOC
+ all-local: html-build.stamp
+ 
+ #### setup ####
