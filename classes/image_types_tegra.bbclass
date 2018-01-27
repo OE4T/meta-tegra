@@ -241,6 +241,6 @@ create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
 do_image_tegraflash[depends] += "zip-native:do_populate_sysroot \
                                  ${SOC_FAMILY}-flashtools-native:do_populate_sysroot \
-                                 tegra-bootfiles:do_populate_sysroot \
-                                 ${IMAGE_UBOOT}:do_deploy"
+                                 tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
+                                 ${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
