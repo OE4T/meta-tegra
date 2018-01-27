@@ -62,6 +62,6 @@ EOF
 
 do_install[postfuncs] += "generate_extlinux_conf"
 
-FILES_kernel-image += "/${KERNEL_IMAGEDEST}/extlinux /${KERNEL_IMAGEDEST}/initrd"
+FILES_${KERNEL_PACKAGE_NAME}-image += "/${KERNEL_IMAGEDEST}/extlinux /${KERNEL_IMAGEDEST}/initrd"
 
 COMPATIBLE_MACHINE = "(tegra186|tegra210)"

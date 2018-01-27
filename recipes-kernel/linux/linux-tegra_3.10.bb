@@ -62,6 +62,6 @@ EOF
 
 do_install[postfuncs] += "generate_extlinux_conf"
 
-FILES_kernel-image += "/${KERNEL_IMAGEDEST}/extlinux"
+FILES_${KERNEL_PACKAGE_NAME}-image += "/${KERNEL_IMAGEDEST}/extlinux"
 
 COMPATIBLE_MACHINE = "(tegra124)"
