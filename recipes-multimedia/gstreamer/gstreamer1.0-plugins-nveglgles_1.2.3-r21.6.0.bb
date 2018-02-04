@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=73a5855a8119deb017f5f13cf327095d \
                     file://ext/eglgles/gstegladaptation.c;beginline=9;endline=25;md5=51eafe984c428127773b6a95eb959d0b"
 
 TEGRA_SRC_SUBARCHIVE = "gstegl_src.tbz2"
-TEGRA_DST = "${WORKDIR}"
+
 S = "${WORKDIR}/gstegl_src/gst-egl/"
 require recipes-bsp/tegra-sources/tegra-sources-21.6.0.inc
 
@@ -35,7 +35,3 @@ do_compile_prepend() {
 do_install_append() {
     sed -i -e's,${STAGING_INCDIR},${includedir},g' ${D}${libdir}/pkgconfig/gstreamer-egl-1.0.pc
 }
-
-COMPATIBLE_MACHINE = "(tegra124)"
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
-
