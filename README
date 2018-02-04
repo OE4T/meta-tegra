@@ -10,11 +10,6 @@ This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: rocko
 
-Known issues:
-
-* Tegra K1:
-
-   1. GUI is not working due to a mismatch in the X Server ABI
 
 Contributing
 ------------
