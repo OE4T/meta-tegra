@@ -1,10 +1,6 @@
 OPENGL_PKGCONFIGS_tegra210 = "dri glx xinerama"
-OPENGL_PKGCONFIGS_tegra124 = "dri glx xinerama"
 OPENGL_PKGCONFIGS_tegra186 = "dri glx xinerama"
 do_install_append_tegra210() {
-    rm -rf ${D}${libdir}/xorg/modules/extensions
-}
-do_install_append_tegra124() {
     rm -rf ${D}${libdir}/xorg/modules/extensions
 }
 do_install_append_tegra186() {
