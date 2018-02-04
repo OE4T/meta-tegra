@@ -35,6 +35,10 @@ DEB_PKG_EXTENSION = "armhf"
 
 PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg"
 XSERVER = "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-module-libwfb"
+PREFERRED_VERSION_xserver-xorg = "1.18.4"
+
+MACHINE_HWCODECS = "gstreamer1.0-omx-tegra"
+LICENSE_FLAGS_WHITELIST_append = " commercial_gstreamer1.0-omx-tegra"
 
 PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-shared-binaries-native = "${CUDA_VERSION}%"
