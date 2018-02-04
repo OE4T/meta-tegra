@@ -4,6 +4,10 @@ PACKAGE_ARCH_tegra210 = "${MACHINE_ARCH}"
 PACKAGE_ARCH_tegra186 = "${MACHINE_ARCH}"
 PACKAGE_ARCH_tegra124 = "${MACHINE_ARCH}"
 
+do_install_append_tegra124() {
+    rm ${D}${sysconfdir}/asound.conf
+}
+
 RCONFDEPS = ""
 RCONFDEPS_tegra210 = "tegra-configs-alsa"
 RCONFDEPS_tegra186 = "tegra-configs-alsa"

@@ -27,6 +27,6 @@ deltask do_rm_work
 
 do_preconfigure() {
   # Add code here to copy files got from file:// sources 
-  cp ${WORKDIR}/tegra124/nvstartup* ${S}
+  cp ${WORKDIR}/nvstartup.* ${S}/
 }
 addtask preconfigure after do_patch
