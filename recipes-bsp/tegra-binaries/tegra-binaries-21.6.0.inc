@@ -6,8 +6,9 @@ SRC_URI[md5sum] = "e82193b117171243ea21c908fbd347ed"
 SRC_URI[sha256sum] = "b9dfbdd0d21d6454e5e9668673a3494e7567698764673938d4c1ef83f42ee72d"
 
 SRC_URI += "\
-        file://tegra124/nvstartup.service       \
-        file://tegra124/nvstartup.sh            \
+        file://nvstartup.service       \
+        file://nvstartup.init          \
+        file://nvstartup.sh            \
 "
 
 
