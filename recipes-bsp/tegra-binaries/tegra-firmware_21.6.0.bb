@@ -8,9 +8,9 @@ do_configure() {
 do_compile[noexec] = "1"
 
 do_install() {
-    install -d ${D}/lib
-    cp -R -f ${B}/lib/firmware ${D}/lib/
+    install -d ${D}${nonarch_base_libdir}
+    cp -R -f ${B}/lib/firmware ${D}${nonarch_base_libdir}/
 }
 
 PACKAGES = "${PN}"
-FILES_${PN} = "/lib"
+FILES_${PN} = "${nonarch_base_libdir}"
