@@ -3,26 +3,26 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
 DEPENDS = "dpkg-native"
 
-SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2/pwv346/JetPackL4T_32_b157/nv-tensorrt-repo-ubuntu1604-pipecleaner-cuda9.0-trt3.0-20171116_1-1_arm64.deb"
-SRC_URI[md5sum] = "272b70470b7a8e066be9d5a78b8385a3"
-SRC_URI[sha256sum] = "9aeb088d4a9a1b0e1da4e7c381c2256751a47c0fff650f53a872076895e462ee"
+SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2GA/m892ki/JetPackL4T_32_b196/nv-tensorrt-repo-ubuntu1604-ga-cuda9.0-trt3.0.4-20180208_1-1_arm64.deb"
+SRC_URI[md5sum] = "5d625140e1a7c92706191b1f4cbc4cce"
+SRC_URI[sha256sum] = "a49b1d23acb4f18e587322907860a714781dc8a1cd0607a0122f9ddfab0106b3"
 
-COMPATIBLE_MACHINE = "(tegra186)"
+COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
-PR = "rc0"
+PR = "r0"
 
 LIC_FILES_CHKSUM = "file://NvInfer.h;endline=48;md5=85c72aa9eac0882b53808ab7daa49069"
 
 CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
 
-S = "${WORKDIR}/var/nv-tensorrt-repo-pipecleaner-cuda9.0-trt3.0-20171116"
+S = "${WORKDIR}/var/nv-tensorrt-repo-ubuntu1604-ga-cuda9.0-trt3.0.4-20180208"
 B = "${WORKDIR}/build"
 
 do_configure() {
-    dpkg-deb --extract ${S}/libnvinfer4_4.0.0-1+cuda9.0_arm64.deb ${B}
-    dpkg-deb --extract ${S}/libnvinfer-dev_4.0.0-1+cuda9.0_arm64.deb ${B}
-    dpkg-deb --extract ${S}/libnvinfer-samples_4.0.0-1+cuda9.0_arm64.deb ${B}
+    dpkg-deb --extract ${S}/libnvinfer4_4.0.4-1+cuda9.0_arm64.deb ${B}
+    dpkg-deb --extract ${S}/libnvinfer-dev_4.0.4-1+cuda9.0_arm64.deb ${B}
+    dpkg-deb --extract ${S}/libnvinfer-samples_4.0.4-1+cuda9.0_arm64.deb ${B}
     # for the LIC_FILES_CHKSUM check
     cp ${B}/usr/include/aarch64-linux-gnu/NvInfer.h ${S}/
 }
@@ -38,14 +38,14 @@ do_install() {
     install -d ${D}${libdir}
     for lib in libnvparsers libnvinfer libnvinfer_plugin; do
         install -m 0644 ${B}/usr/lib/aarch64-linux-gnu/$lib.a ${D}${libdir}
-        install -m 0644 ${B}/usr/lib/aarch64-linux-gnu/$lib.so.4.0.0 ${D}${libdir}
-	ln -s $lib.so.4.0.0 ${D}${libdir}/$lib.so.4
-	ln -s $lib.so.4.0.0 ${D}${libdir}/$lib.so
+        install -m 0644 ${B}/usr/lib/aarch64-linux-gnu/$lib.so.4.0.4 ${D}${libdir}
+	ln -s $lib.so.4.0.4 ${D}${libdir}/$lib.so.4
+	ln -s $lib.so.4.0.4 ${D}${libdir}/$lib.so
     done
     ln -s libnvparsers.a ${D}${libdir}/libnvcaffe_parser.a
-    ln -s libnvparsers.so.4.0.0 ${D}${libdir}/libnvcaffe_parser.so
-    ln -s libnvparsers.so.4.0.0 ${D}${libdir}/libnvcaffe_parser.so.4
-    ln -s libnvparsers.so.4.0.0 ${D}${libdir}/libnvcaffe_parser.so.4.0.0
+    ln -s libnvparsers.so.4.0.4 ${D}${libdir}/libnvcaffe_parser.so
+    ln -s libnvparsers.so.4.0.4 ${D}${libdir}/libnvcaffe_parser.so.4
+    ln -s libnvparsers.so.4.0.4 ${D}${libdir}/libnvcaffe_parser.so.4.0.4
     install -d ${D}${prefix}/src
     cp --preserve=mode,timestamps --recursive ${B}/usr/src/tensorrt ${D}${prefix}/src/
 }
