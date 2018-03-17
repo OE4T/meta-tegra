@@ -11,10 +11,9 @@ PROVIDES += "u-boot"
 DEPENDS += "dtc-native ${SOC_FAMILY}-flashtools-native"
 
 UBOOT_TEGRA_REPO ?= "github.com/madisongh/u-boot-tegra.git"
-SRCBRANCH ?= "patches-l4t-r28.2-rc"
+SRCBRANCH ?= "patches-l4t-r28.2"
 SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
-#SRCREV = "75663dd9bf063f82cd7b578e7c43f9c5d3b2a51b"
-SRCREV = "${AUTOREV}"
+SRCREV = "89f0003c0b4f6e0c2b839341a2be042d1f6f4a62"
 PV .= "+git${SRCPV}"
 
 UBOOT_BOOTIMG_BOARD ?= "/dev/mmcblk0p1"
