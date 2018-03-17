@@ -3,9 +3,9 @@ LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v7.h;endline=48;md5=b48d68d7e5eb6b858c229fdb89171636"
 
 SRC_URI = "\
-    http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2/pwv346/JetPackL4T_32_b157/libcudnn7_${PV}+cuda9.0_arm64.deb;name=lib;unpack=false \
-    http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2/pwv346/JetPackL4T_32_b157/libcudnn7-dev_${PV}+cuda9.0_arm64.deb;name=dev;unpack=false \
-    http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2/pwv346/JetPackL4T_32_b157/libcudnn7-doc_${PV}+cuda9.0_arm64.deb;name=doc;unpack=false \
+    http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2GA/m892ki/JetPackL4T_32_b196/libcudnn7_${PV}+cuda9.0_arm64.deb;name=lib;unpack=false \
+    http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2GA/m892ki/JetPackL4T_32_b196/libcudnn7-dev_${PV}+cuda9.0_arm64.deb;name=dev;unpack=false \
+    http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2GA/m892ki/JetPackL4T_32_b196/libcudnn7-doc_${PV}+cuda9.0_arm64.deb;name=doc;unpack=false \
 "
 SRC_URI[lib.md5sum] = "87f5520d4c8f36d98de4a567e6528538"
 SRC_URI[lib.sha256sum] = "a0a1cd124953ec9c64c942e1da2f55825fb6da2583a4900d248ad978b83a04ad"
@@ -14,10 +14,10 @@ SRC_URI[dev.sha256sum] = "c53783f6ebd01b510626c0709313425483d1bf6a929d80740ded66
 SRC_URI[doc.md5sum] = "fcab6c8c39183de830d49c4c277851ba"
 SRC_URI[doc.sha256sum] = "774c2b281be360f6177cc69787c97e02da5ba89940deded6f955e85e4d7a65f0"
 
-COMPATIBLE_MACHINE = "(tegra186)"
+COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
-PR = "rc0"
+PR = "r0"
 
 DEPENDS = "dpkg-native"
 
