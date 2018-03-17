@@ -1,8 +1,8 @@
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=60ad17cc726658e8cf73578bea47b85f \
+LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=2174e6214d83da8e19ab6510ffa71336 \
                     file://nv_tegra/LICENSE.brcm_patchram_plus;md5=38fb07f0dacf4830bc57f40a0fb7532e"
 
-SRC_URI = "http://developer2.download.nvidia.com/embedded/L4T/r28_Release_v2.0/BSP/${@d.getVar('SOC_FAMILY').title()}_Linux_R${PV}_aarch64.tbz2"
+SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r28_Release_v2.0/GA/BSP/${@d.getVar('SOC_FAMILY').title()}_Linux_R${PV}_aarch64.tbz2"
 
 SRC_URI += "\
     file://nvcamera-daemon.init \
@@ -33,16 +33,15 @@ do_preconfigure_append_tegra186() {
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
-COMPATIBLE_MACHINE = "(tegra186)"
+COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 
 python __anonymous () {
     soc = d.getVar('SOC_FAMILY') or ""
     if soc == "tegra186":
-        d.setVarFlag("SRC_URI", "md5sum", "4e1f5502d700873a8675fef2b15e98ca")
-        d.setVarFlag("SRC_URI", "sha256sum", "a303f0c57b009284fdfff7f0b4ea0963127c1d728c357981897afeb934e018f8")
+        d.setVarFlag("SRC_URI", "md5sum", "22bbd0002db06bb26bf5de2d17cea8eb")
+        d.setVarFlag("SRC_URI", "sha256sum", "62f57b4c03fedde1fe0a1635bd0828b334308eca71bd21f25ae5757f48fb3a76")
     elif soc == "tegra210":
-        d.setVarFlag("SRC_URI", "md5sum", "a2686c154006f8fdf232bf9f2e7d01e6")
-        d.setVarFlag("SRC_URI", "sha256sum", "0c0ab92bcba1f3be984b2c4311f9326c249a758247897af5792130de26a3fe8d")
+        d.setVarFlag("SRC_URI", "md5sum", "0b78d620654add9f9147f99b1bb317de")
+        d.setVarFlag("SRC_URI", "sha256sum", "d6a9be43401bbfd13201b3b96708ba7c3b0be0d40fa52236b7b0a5cd7d30aafd")
 }
 
-PR = "rc0"
