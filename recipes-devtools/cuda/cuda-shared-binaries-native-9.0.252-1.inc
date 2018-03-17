@@ -12,7 +12,7 @@ LIC_FILES_CHKSUM = "file://usr/local/cuda-9.0/LICENSE;md5=d87e5ceb8a41dd716b3205
 do_configure[depends] += "cuda-binaries-native:do_preconfigure dpkg-native:do_populate_sysroot"
 do_populate_lic[depends] += "cuda-binaries-native:do_preconfigure"
 
-PR = "rc0"
+PR = "r0"
 
 S = "${TMPDIR}/work-shared/cuda-binaries-native-${PV}-${PR}"
 B = "${WORKDIR}/build"
@@ -27,4 +27,4 @@ sysroot_stage_dirs_append() {
     sysroot_stage_dir $from${prefix}/local/cuda-9.0 $to${prefix}/local/cuda-9.0
 }
 
-PR = "rc0"
+PR = "r0"
