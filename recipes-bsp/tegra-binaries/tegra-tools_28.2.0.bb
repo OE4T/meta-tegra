@@ -30,7 +30,9 @@ inherit systemd
 
 NVPMODEL = ""
 NVPMODEL_tegra186 = "${PN}-nvpmodel"
-PACKAGES = "${PN}-tegrastats ${PN}-jetson-clocks ${NVPMODEL}"
+PACKAGES = "${PN}-tegrastats ${PN}-jetson-clocks ${NVPMODEL} ${PN}"
+ALLOW_EMPTY_${PN} = "1"
+RDEPENDS_${PN} = "${PN}-tegrastats ${PN}-jetson-clocks ${NVPMODEL}"
 FILES_${PN}-tegrastats = "${sbindir}/tegrastats"
 INSANE_SKIP_${PN}-tegrastats = "ldflags"
 FILES_${PN}-jetson-clocks = "${sbindir}/jetson_clocks.sh"

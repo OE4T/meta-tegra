@@ -14,6 +14,8 @@ do_install() {
     install -m 0755 ${B}/home/ubuntu/tegrastats ${D}${sbindir}/
 }
 
-PACKAGES = "${PN}"
-FILES_${PN} = "${sbindir}"
-INSANE_SKIP_${PN} = "ldflags"
+PACKAGES = "${PN}-tegrastats ${PN}"
+ALLOW_EMPTY_${PN} = "1"
+RDEPENDS_${PN} = "${PN}-tegrastats"
+FILES_${PN}-tegrastats = "${sbindir}/tegrastats"
+INSANE_SKIP_${PN}-tegrastats = "ldflags"
