@@ -39,7 +39,7 @@ NVIDIA_CHIP = "0x21"
 
 DEB_PKG_EXTENSION = "arm64"
 
-CUDA_VERSION ?= "8.0"
+CUDA_VERSION ?= "9.0"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_53 --gpu-code=sm_53"
 
 PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
