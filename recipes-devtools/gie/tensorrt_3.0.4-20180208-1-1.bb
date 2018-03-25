@@ -16,7 +16,7 @@ LIC_FILES_CHKSUM = "file://NvInfer.h;endline=48;md5=85c72aa9eac0882b53808ab7daa4
 
 CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
 
-S = "${WORKDIR}/var/nv-tensorrt-repo-ubuntu1604-ga-cuda9.0-trt3.0.4-20180208"
+S = "${WORKDIR}/var/nv-tensorrt-repo-ga-cuda9.0-trt3.0.4-20180208"
 B = "${WORKDIR}/build"
 
 do_configure() {
