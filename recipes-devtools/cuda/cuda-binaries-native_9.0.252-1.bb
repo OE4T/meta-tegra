@@ -1,3 +1,5 @@
+CUDA_VERSION ??= "9.0"
+
 require cuda-binaries-native-common.inc
 
 LICENSE = "Proprietary"
