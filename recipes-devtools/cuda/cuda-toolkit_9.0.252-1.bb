@@ -22,3 +22,5 @@ do_compile[noexec] = "1"
 do_install[noexec] = "1"
 
 inherit nopackages
+
+COMPATIBLE_MACHINE = "(tegra186|tegra210)"
