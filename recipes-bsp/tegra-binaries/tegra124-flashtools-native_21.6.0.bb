@@ -1,5 +1,12 @@
 require tegra-binaries-${PV}.inc
-require tegra-shared-binaries.inc
+
+WORKDIR = "${TMPDIR}/work-shared/L4T-native-${PV}-${PR}"
+SSTATE_SWSPEC = "sstate:tegra-binaries-native::${PV}:${PR}::${SSTATE_VERSION}:"
+STAMP = "${STAMPS_DIR}/work-shared/L4T-native--${PV}-${PR}"
+STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${PV}-*"
+
+S = "${WORKDIR}/Linux_for_Tegra"
+B = "${WORKDIR}/build"
 
 COMPATIBLE_MACHINE = ""
 

@@ -11,9 +11,10 @@ SRC_URI += "\
     file://argus-daemon.service \
     file://nvstartup.init \
     file://nvstartup.service \
-"
-SRC_URI_append_tegra186 = " \
     file://tegra186-flash-helper.sh \
+"
+
+SRC_URI_append_tegra186 = " \
     file://nvpmodel.init \
     file://nvpmodel.service \
 "
@@ -23,10 +24,10 @@ B = "${WORKDIR}/build"
 
 do_preconfigure() {
     cp ${WORKDIR}/*-daemon.* ${WORKDIR}/nvstartup.* ${S}/
+    cp ${WORKDIR}/tegra186-flash-helper.sh ${S}/
 }
 
 do_preconfigure_append_tegra186() {
-    cp ${WORKDIR}/tegra186-flash-helper.sh ${S}/
     cp ${WORKDIR}/nvpmodel.* ${S}/
 }
 

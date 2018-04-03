@@ -1,5 +1,14 @@
+SOC_FAMILY ?= "tegra210"
+
 require tegra-binaries-${PV}.inc
-require tegra-shared-binaries.inc
+
+WORKDIR = "${TMPDIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-${PR}"
+SSTATE_SWSPEC = "sstate:tegra-binaries-native::${PV}:${PR}::${SSTATE_VERSION}:"
+STAMP = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-${PR}"
+STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-*"
+
+S = "${WORKDIR}/Linux_for_Tegra"
+B = "${WORKDIR}/build"
 
 COMPATIBLE_MACHINE = ""
 
@@ -9,6 +18,8 @@ INHIBIT_DEFAULT_DEPS = "1"
 do_compile[noexec] = "1"
 
 BINDIR = "${bindir}/tegra210-flash"
+
+addtask preconfigure after do_patch before do_configure
 
 do_install() {
     install -d ${D}${BINDIR}

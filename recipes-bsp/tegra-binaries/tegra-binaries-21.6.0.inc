@@ -5,7 +5,7 @@ SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r21_Release_v6.0/Te
 SRC_URI[md5sum] = "e82193b117171243ea21c908fbd347ed"
 SRC_URI[sha256sum] = "b9dfbdd0d21d6454e5e9668673a3494e7567698764673938d4c1ef83f42ee72d"
 
-SRC_URI += "\
+SRC_URI_append_tegra124 = "\
         file://nvstartup.service       \
         file://nvstartup.init          \
         file://nvstartup.sh            \
