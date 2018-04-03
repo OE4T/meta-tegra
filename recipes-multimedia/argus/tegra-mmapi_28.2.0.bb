@@ -31,6 +31,7 @@ do_install() {
     cp -R --preserve=mode,timestamps ${S}/argus/include/Argus ${D}${includedir}
     cp -R --preserve=mode,timestamps ${S}/argus/include/EGLStream ${D}${includedir}
     install -m 0644 ${S}/include/nvbuf_utils.h ${D}${includedir}/
+    install -m 0644 ${S}/include/nvosd.h ${D}${includedir}/
 }
 
 PACKAGES = "${PN}-dev ${PN}"
