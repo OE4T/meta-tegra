@@ -52,14 +52,16 @@ do_install() {
     install -m644 ${S}/argus-daemon.service ${D}${systemd_system_unitdir}
 }
 
-PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}"
+PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-libnvosd ${PN}"
 PROVIDES += "virtual/libgl virtual/libgles1 virtual/libgles2 virtual/egl"
 
 FILES_${PN}-libv4l-plugins = "${libdir}/libv4l"
 FILES_${PN}-argus = "${libdir}/libargus* ${sbindir}/argus_daemon"
+FILES_${PN}-libnvosd = "${libdir}/libnvosd*"
 FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir}"
 RDEPENDS_${PN} = "alsa-lib"
 RDEPENDS_${PN}-argus = "${PN}"
+RDEPENDS_${PN}-libnvosd = "${PN} pango cairo glib-2.0"
 
 INITSCRIPT_PACKAGES = "${PN} ${PN}-argus"
 INITSCRIPT_NAME_${PN} = "nvcamera-daemon"
@@ -72,6 +74,7 @@ SYSTEMD_SERVICE_${PN}-argus = "argus-daemon.service"
 INSANE_SKIP_${PN}-libv4l-plugins = "dev-so textrel ldflags build-deps"
 INSANE_SKIP_${PN} = "dev-so textrel ldflags build-deps"
 INSANE_SKIP_${PN}-argus = "dev-so ldflags"
+INSANE_SKIP_${PN}-libnvosd = "dev-so ldflags"
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
