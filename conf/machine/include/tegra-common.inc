@@ -19,3 +19,9 @@ PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-shared-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-tools-native = "${CUDA_VERSION}%"
+
+ROOTFS_POSTPROCESS_COMMAND_append = " remove_mesa_stubs ; "
+
+remove_mesa_stubs() {
+	rm -rf ${IMAGE_ROOTFS}${@d.getVar('libdir', False)}/mesa
+}
