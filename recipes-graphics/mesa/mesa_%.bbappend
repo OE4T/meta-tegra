@@ -1,6 +1,4 @@
-DEPENDS_append_tegra124 = " tegra-libraries"
-DEPENDS_append_tegra186 = " tegra-libraries"
-DEPENDS_append_tegra210 = " tegra-libraries"
+DEPENDS_append_tegra = " tegra-libraries"
 
 python () {
     overrides = d.getVar("OVERRIDES").split(":")
@@ -23,28 +21,21 @@ move_libraries() {
         mv ${D}${libdir}/libEGL.* ${D}${libdir}/mesa/
     fi
 }
-do_install_append_tegra210() {
+do_install_append_tegra() {
     move_libraries
 }
 
-do_install_append_tegra124() {
-    move_libraries
-}
+PACKAGE_ARCH_tegra = "${SOC_FAMILY_PKGARCH}"
 
-do_install_append_tegra186() {
-    move_libraries
-}
-
-PACKAGE_ARCH_tegra210 = "${SOC_FAMILY_PKGARCH}"
-PACKAGE_ARCH_tegra124 = "${SOC_FAMILY_PKGARCH}"
-PACKAGE_ARCH_tegra186 = "${SOC_FAMILY_PKGARCH}"
-
-PACKAGES =+ "${PN}-stubs-dev"
-FILES_${PN}-stubs-dev = "${libdir}/mesa"
+PACKAGES =+ "${PN}-stubs-dev ${PN}-stubs"
+FILES_${PN}-stubs = "${libdir}/mesa/lib*${SOLIBS}"
+FILES_${PN}-stubs-dev = "${libdir}/mesa/lib*${SOLIBSDEV}"
+ALLOW_EMPTY_${PN}-stubs = "1"
 ALLOW_EMPTY_${PN}-stubs-dev = "1"
-PRIVATE_LIBS_${PN}-stubs-dev = "\
+PRIVATE_LIBS_${PN}-stubs = "\
     libEGL.so.1 \
     libGLESv1_CM.so.1 \
     libGLESv2.so.2 \
     libGL.so.1 \
 "
+RDEPENDS_${PN}-stubs_tegra = "${@bb.utils.contains('PACKAGECONFIG', 'dri', 'libdrm-stubs', '', d)}"
