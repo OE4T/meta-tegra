@@ -7,6 +7,4 @@ do_install_append_tegra186() {
     rm -rf ${D}${libdir}/xorg/modules/extensions
 }
 
-PACKAGE_ARCH_tegra210 = "${SOC_FAMILY_PKGARCH}"
-PACKAGE_ARCH_tegra124 = "${SOC_FAMILY_PKGARCH}"
-PACKAGE_ARCH_tegra186 = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_tegra = "${SOC_FAMILY_PKGARCH}"
