@@ -1,7 +1,7 @@
 DESCRIPTION = "Dummy recipe for bringing in CUDA tools and libraries"
 LICENSE = "MIT"
 
-DEPENDS = " \
+CUDA_COMPONENTS = " \
     cuda-nvrtc \
     cuda-cusolver \
     cuda-cublas \
@@ -13,6 +13,7 @@ DEPENDS = " \
     cuda-core \
     cuda-cudart \
 "
+DEPENDS = "${CUDA_COMPONENTS}"
 
 do_fetch[noexec] = "1"
 do_unpack[noexec] = "1"
@@ -21,6 +22,9 @@ do_configure[noexec] = "1"
 do_compile[noexec] = "1"
 do_install[noexec] = "1"
 
-inherit nopackages
-
 COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
+
+PACKAGES = "${PN}"
+ALLOW_EMPTY_${PN} = "1"
+RDEPENDS_${PN} = "${CUDA_COMPONENTS}"
