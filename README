@@ -8,7 +8,7 @@ Boards supported:
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
-branch: master
+branch: sumo
 
 Known Issues
 ------------
