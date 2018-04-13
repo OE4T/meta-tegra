@@ -17,4 +17,6 @@ COMPATIBLE_MACHINE = "(tegra186)"
 
 KERNELDEPMODDEPEND = ""
 
+IMAGE_ROOTFS_SIZE = "8192"
+
 inherit core-image
