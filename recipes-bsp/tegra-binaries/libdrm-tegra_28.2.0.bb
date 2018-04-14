@@ -13,9 +13,9 @@ DRVROOT = "${B}/usr/lib/aarch64-linux-gnu"
 
 do_install() {
     install -d ${D}${libdir}
-    install -m 0644 ${DRVROOT}/tegra/libdrm.so.2 ${D}${libdir}
-    mv ${D}${libdir}/libdrm.so.2 ${D}${libdir}/libdrm-tegra.so.2
+    install -m 0644 ${DRVROOT}/tegra/libdrm.so.2 ${D}${libdir}/libdrm-tegra.so.2
     ln -sf libdrm-tegra.so.2 ${D}${libdir}/libdrm-tegra.so
+    ln -sf libdrm-tegra.so.2 ${D}${libdir}/libdrm_nvdc.so
 }
 
 # Allow switching between libdrm from freedesktop and libdrm from NVIDIA.
