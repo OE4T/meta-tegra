@@ -33,6 +33,8 @@ do_install() {
     ln -sf libGLESv2.so.2 ${D}${libdir}/libGLESv2.so
     ln -sf libnvbuf_utils.so.1.0.0 ${D}${libdir}/libnvbuf_utils.so.1
     ln -sf libnvbuf_utils.so.1.0.0 ${D}${libdir}/libnvbuf_utils.so
+    ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so.1
+    ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so
     rm -f ${D}${libdir}/libdrm*
     # nvcamera_daemon only looks in this special subdir, so symlink it
     install -d ${D}${nonarch_libdir}/aarch64-linux-gnu
@@ -48,6 +50,8 @@ do_install() {
     install -m644 ${S}/argus-daemon.service ${D}${systemd_system_unitdir}
     install -d ${D}${datadir}/egl/egl_external_platform.d
     install -m644 ${B}/usr/share/egl/egl_external_platform.d/* ${D}${datadir}/egl/egl_external_platform.d/
+    install -d ${D}${sysconfdir}/vulkan/icd.d
+    install -m644 ${DRVROOT}/tegra/nvidia_icd.json ${D}${sysconfdir}/vulkan/icd.d/
 }
 
 PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-libnvosd ${PN}"
