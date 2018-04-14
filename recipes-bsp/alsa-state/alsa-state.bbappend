@@ -2,7 +2,7 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
 
 PACKAGE_ARCH_tegra = "${MACHINE_ARCH}"
 
-do_install_append_tegra124() {
+do_install_append_tegra() {
     rm ${D}${sysconfdir}/asound.conf
 }
 

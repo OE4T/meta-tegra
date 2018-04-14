@@ -28,17 +28,13 @@ do_install() {
 
     install -m 0644 ${B}/etc/enctune.conf ${D}${sysconfdir}
 
-    install -d ${D}${datadir}/alsa/cards
-    install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda.conf ${D}${datadir}/alsa/cards/
-
     install -d ${D}${sysconfdir}/pulse
     install -m 0644 ${B}/etc/pulse/default.pa.hdmi ${D}${sysconfdir}/pulse/default.pa    
 }
 
-PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-alsa ${PN}-pulseaudio ${PN}-nvstartup"
+PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-pulseaudio ${PN}-nvstartup"
 FILES_${PN}-udev = "${sysconfdir}/udev/rules.d"
 FILES_${PN}-xorg = "${sysconfdir}/X11"
-FILES_${PN}-alsa = "${datadir}/alsa"
 FILES_${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
 FILES_${PN}-pulseaudio = "${sysconfdir}/pulse"
 FILES_${PN}-nvstartup = "${sysconfdir}/init.d/nvstartup ${sbindir}"

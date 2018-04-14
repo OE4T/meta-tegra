@@ -15,6 +15,8 @@ MACHINE_EXTRA_RRECOMMENDS = "tegra-firmware-brcm kernel-module-bcmdhd"
 INITRAMFS_IMAGE ?= "tegra210-minimal-initramfs"
 TEGRA_INITRAMFS_INITRD ?= "1"
 
+TEGRA_AUDIO_DEVICE ?= "tegrahda"
+
 SERIAL_CONSOLE = "115200 ttyS0"
 
 KERNEL_MODULE_AUTOLOAD = ""
