@@ -7,9 +7,7 @@ inherit systemd
 
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/config.tbz2
-    if [ ! -f ${B}/usr/sbin/camera_device_detect -a -f ${B}/etc/udev/rules.d/99-tegra-devices.rules ]; then
-        sed -e'/camera_device_detect/d' ${B}/etc/udev/rules.d/99-tegra-devices.rules
-    fi
+    sed -e'/camera_device_detect/d' ${B}/etc/udev/rules.d/99-tegra-devices.rules
 }
 
 do_compile[noexec] = "1"
@@ -24,10 +22,6 @@ do_install() {
     install -d ${D}/${sysconfdir}/udev/rules.d
     install -m 0644 ${B}/etc/udev/rules.d/99-tegra-devices.rules ${D}${sysconfdir}/udev/rules.d
     install -m 0644 ${B}/etc/udev/rules.d/99-tegra-mmc-ra.rules ${D}${sysconfdir}/udev/rules.d
-    if [ -f ${B}/usr/sbin/camera_device_detect ]; then
-        install -d ${D}${sbindir}
-        install -m 0755 ${B}/usr/sbin/camera_device_detect ${D}${sbindir}/
-    fi
 
     install -d ${D}${sysconfdir}/X11
     install -m 0644 ${B}/etc/X11/xorg.conf.* ${D}${sysconfdir}/X11/xorg.conf
@@ -42,7 +36,7 @@ do_install() {
 }
 
 PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-alsa ${PN}-pulseaudio ${PN}-nvstartup"
-FILES_${PN}-udev = "${sysconfdir}/udev/rules.d ${sbindir}/camera_device_detect"
+FILES_${PN}-udev = "${sysconfdir}/udev/rules.d"
 FILES_${PN}-xorg = "${sysconfdir}/X11"
 FILES_${PN}-alsa = "${datadir}/alsa"
 FILES_${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
