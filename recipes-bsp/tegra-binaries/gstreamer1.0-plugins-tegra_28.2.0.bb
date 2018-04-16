@@ -38,19 +38,22 @@ do_install() {
     rm -f ${D}${libdir}/gstreamer-1.0/libgstomx.so*
 }
 
-PACKAGES = "${NVGSTCAPTURE} ${NVGSTPLAYER} ${PN}"
+PACKAGES = "${NVGSTCAPTURE} ${NVGSTPLAYER} ${PN}-nvcompositor ${PN}"
 FILES_nvgstcapture = "${bindir}/nvgstcapture-1.0"
-RDEPENDS_nvgstcapture = "${PN} libgstpbutils-1.0"
+RDEPENDS_nvgstcapture = "${PN} libgstapp-1.0"
 FILES_nvgstplayer = "${bindir}/nvgstplayer-1.0"
 RDEPENDS_nvgstplayer = "${PN}"
+FILES_${PN}-nvcompositor = "${libdir}/gstreamer-1.0/libgstnvcompositor.so"
 FILES_${PN} = "${libdir}"
 DEBIAN_NOAUTONAME_${PN} = "1"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
+INSANE_SKIP_${PN}-nvcompositor = "dev-so ldflags build-deps"
 INSANE_SKIP_${PN} = "dev-so ldflags build-deps"
 INSANE_SKIP_${PN}-dev = "ldflags build-deps"
 INSANE_SKIP_nvgstcapture = "ldflags build-deps"
 INSANE_SKIP_nvgstplayer = "ldflags build-deps"
-RDEPENDS_${PN} = "gstreamer1.0 gstreamer1.0-plugins-good-jpeg tegra-libraries"
+RDEPENDS_${PN} = "gstreamer1.0 libgstvideo-1.0 tegra-libraries"
+RDEPENDS_${PN}-nvcompositor = "gstreamer1.0 libgstbadbase-1.0 libgstbadvideo-1.0 libgstvideo-1.0 tegra-libraries"
