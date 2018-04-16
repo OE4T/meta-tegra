@@ -44,7 +44,19 @@ CC_FIRST = "${@d.getVar('CC').split()[0]}"
 CC_REST = "${@' '.join(d.getVar('CC').split()[1:])}"
 CFLAGS += "-I=${CUDA_PATH}/include"
 EXTRA_NVCCFLAGS = "-I${STAGING_DIR_HOST}${CUDA_PATH}/include"
-LINKFLAGS = "-L${STAGING_DIR_HOST}${CUDA_PATH}/lib ${TOOLCHAIN_OPTIONS} ${@' '.join([f[4:] if f.startswith('-Wl,') else f for f in d.getVar('LDFLAGS').split()])} -lstdc++"
+
+def filtered_ldflags(d):
+    newflags = []
+    for flag in d.getVar('LDFLAGS').split():
+        if flag.startswith('-f'):
+            continue
+        if flag.startswith('-Wl,'):
+            newflags.append(flag[4:])
+        else:
+            newflags.append(flag)
+    return ' '.join(newflags)
+
+LINKFLAGS = "-L${STAGING_DIR_HOST}${CUDA_PATH}/lib ${TOOLCHAIN_OPTIONS} ${@filtered_ldflags(d)} -lstdc++"
 
 EXTRA_OEMAKE = ' \
     GENCODE_FLAGS="${CUDA_NVCC_ARCH_FLAGS}" SMS="${@extract_sm(d)}" OPENMP=yes \
@@ -52,7 +64,7 @@ EXTRA_OEMAKE = ' \
     TARGET_ARCH="${TARGET_ARCH}" TARGET_OS="${TARGET_OS}" HOST_ARCH="${BUILD_ARCH}" \
 '
 
-do_compile() {
+do_configure() {
     oldwd="$PWD"
     for subdir in ${CUDA_SAMPLES}; do
         cd "$subdir"
