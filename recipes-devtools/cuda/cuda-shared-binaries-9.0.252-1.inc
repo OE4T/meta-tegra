@@ -82,6 +82,7 @@ FILES_${PN} += "${prefix}/local/cuda-9.0/${baselib}/*${SOLIBS}"
 FILES_${PN}-dev += "${prefix}/local/cuda-9.0/include ${prefix}/local/cuda-9.0/${baselib}/stubs ${prefix}/local/cuda-9.0/${baselib}/*${SOLIBSDEV}"
 FILES_${PN}-staticdev += "${prefix}/local/cuda-9.0/${baselib}/*.a"
 PRIVATE_LIBS = "libcuda.so.1"
+RDEPENDS_${PN} = "tegra-libraries"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
