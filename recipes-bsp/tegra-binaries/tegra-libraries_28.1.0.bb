@@ -55,7 +55,7 @@ PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}"
 FILES_${PN}-libv4l-plugins = "${libdir}/libv4l"
 FILES_${PN}-argus = "${libdir}/libargus* ${sbindir}/argus_daemon"
 FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir} ${datadir}/egl"
-RDEPENDS_${PN} = "libasound libdrm-tegra"
+RDEPENDS_${PN} = "libasound"
 RDEPENDS_${PN}-argus = "${PN}"
 
 INITSCRIPT_PACKAGES = "${PN} ${PN}-argus"
