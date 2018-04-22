@@ -3,7 +3,7 @@ SECTION = "multimedia"
 LICENSE = "LGPLv2.1"
 LICENSE_FLAGS = "commercial"
 HOMEPAGE = "http://www.gstreamer.net/"
-DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad gstreamer1.0-plugins-nveglgles libdrm gstreamer1.0-plugins-tegra"
+DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad gstreamer1.0-plugins-nveglgles gstreamer1.0-plugins-tegra"
 
 TEGRA_SRC_SUBARCHIVE = "public_release/gstomx1_src.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-28.2.0.inc
