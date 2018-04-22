@@ -38,4 +38,3 @@ PRIVATE_LIBS_${PN}-stubs = "\
     libGLESv2.so.2 \
     libGL.so.1 \
 "
-RDEPENDS_${PN}-stubs_tegra = "${@bb.utils.contains('PACKAGECONFIG', 'dri', 'libdrm-stubs', '', d)}"
