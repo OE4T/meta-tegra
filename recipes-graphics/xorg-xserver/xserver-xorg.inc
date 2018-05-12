@@ -28,7 +28,7 @@ inherit autotools pkgconfig
 inherit distro_features_check
 REQUIRED_DISTRO_FEATURES = "x11"
 
-PROTO_DEPS = "randrproto renderproto fixesproto damageproto xextproto xproto xf86dgaproto xf86miscproto xf86vidmodeproto compositeproto recordproto resourceproto videoproto scrnsaverproto  xineramaproto fontsproto kbproto inputproto bigreqsproto xcmiscproto presentproto"
+PROTO_DEPS = "xorgproto"
 LIB_DEPS = "pixman libxfont xtrans libxau libxext libxdmcp libdrm libxkbfile libpciaccess"
 DEPENDS = "${PROTO_DEPS} ${LIB_DEPS} font-util"
 
@@ -128,18 +128,18 @@ PACKAGECONFIG ??= "dri2 udev ${XORG_CRYPTO} \
 "
 
 PACKAGECONFIG[udev] = "--enable-config-udev,--disable-config-udev,udev"
-PACKAGECONFIG[dri] = "--enable-dri,--disable-dri,glproto virtual/mesa xf86driproto"
-PACKAGECONFIG[dri2] = "--enable-dri2,--disable-dri2,dri2proto"
+PACKAGECONFIG[dri] = "--enable-dri,--disable-dri,xorgproto virtual/mesa xorgproto"
+PACKAGECONFIG[dri2] = "--enable-dri2,--disable-dri2,xorgproto"
 # DRI3 requires xshmfence to also be enabled
-PACKAGECONFIG[dri3] = "--enable-dri3,--disable-dri3,dri3proto"
-PACKAGECONFIG[glx] = "--enable-glx,--disable-glx,glproto virtual/libgl virtual/libx11"
+PACKAGECONFIG[dri3] = "--enable-dri3,--disable-dri3,xorgproto"
+PACKAGECONFIG[glx] = "--enable-glx,--disable-glx,xorgproto virtual/libgl virtual/libx11"
 PACKAGECONFIG[glamor] = "--enable-glamor,--disable-glamor,libepoxy,libegl"
 PACKAGECONFIG[unwind] = "--enable-libunwind,--disable-libunwind,libunwind"
 PACKAGECONFIG[xshmfence] = "--enable-xshmfence,--disable-xshmfence,libxshmfence"
 PACKAGECONFIG[xmlto] = "--with-xmlto, --without-xmlto, xmlto-native docbook-xml-dtd4-native docbook-xsl-stylesheets-native"
 PACKAGECONFIG[systemd-logind] = "--enable-systemd-logind=yes,--enable-systemd-logind=no,dbus,"
 PACKAGECONFIG[systemd] = "--with-systemd-daemon,--without-systemd-daemon,systemd"
-PACKAGECONFIG[xinerama] = "--enable-xinerama,--disable-xinerama,xineramaproto"
+PACKAGECONFIG[xinerama] = "--enable-xinerama,--disable-xinerama,xorgproto"
 PACKAGECONFIG[xwayland] = "--enable-xwayland,--disable-xwayland,wayland libepoxy"
 
 # Xorg requires a SHA1 implementation, pick one
