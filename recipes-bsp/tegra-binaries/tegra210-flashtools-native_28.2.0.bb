@@ -1,4 +1,4 @@
-SOC_FAMILY ?= "tegra210"
+SOC_FAMILY = "tegra210"
 
 require tegra-binaries-${PV}.inc
 
