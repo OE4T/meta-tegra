@@ -20,7 +20,7 @@ do_install() {
     install -d ${D}${sbindir}
     install -d ${D}${sysconfdir}/nvpmodel
     install -m 0755 ${B}/usr/sbin/nvpmodel ${D}${sbindir}/
-    install -m 0644 ${B}/etc/nvpmodel/${NVPMODEL}.conf ${D}${sysconfdir}/nvpmodel/nvpmodel.conf
+    install -m 0644 ${B}/etc/nvpmodel/${NVPMODEL}.conf ${D}${sysconfdir}/nvpmodel.conf
     install -d ${D}${sysconfdir}/init.d
     install -m 0644 ${S}/nvpmodel.init ${D}${sysconfdir}/init.d/nvpmodel
     install -d ${D}${systemd_system_unitdir}
