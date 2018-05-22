@@ -3,10 +3,12 @@ require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 INHIBIT_DEFAULT_DEPS = "1"
+DEPENDS = "${SOC_FAMILY}-flashtools-native"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BOARD_CFG ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${NVIDIA_BOARD_CFG}"
 PARTITION_FILE ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${PARTITION_LAYOUT_TEMPLATE}"
+SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
 
 BOOTBINS_tegra186 = "\
     bmp.blob \
@@ -21,7 +23,6 @@ BOOTBINS_tegra186 = "\
     nvtboot_recovery.bin \
     nvtboot_recovery_cpu.bin \
     preboot_d15_prod_cr.bin \
-    slot_metadata.bin \
     spe.bin \
     tos.img \
 "
@@ -44,7 +45,13 @@ BOOTBINS_MACHINE_SPECIFIC_tegra210 = "\
     warmboot.bin \
 "
 
-do_compile[noexec] = "1"
+do_compile() {
+	:
+}
+
+do_compile_tegra186() {
+	${STAGING_BINDIR_NATIVE}/tegra186-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
+}
 
 do_install() {
     install -d ${D}${datadir}/tegraflash
@@ -59,6 +66,7 @@ do_install() {
 }
 
 do_install_append_tegra186() {
+    install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra186* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra186-a02-bpmp*dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/minimal_scr.cfg ${D}${datadir}/tegraflash/
