@@ -33,10 +33,12 @@ do_install() {
 
     install -m 0755 ${S}/bootloader/tegraflash.py ${D}${BINDIR}
     install -m 0644 ${S}/bootloader/tegraflash_internal.py ${D}${BINDIR}
+    install -m 0755 ${S}/bootloader/nv_smd_generator ${D}${BINDIR}
+    install -m 0644 ${S}/bootloader/BUP_generator.py ${D}${BINDIR}
+    install -m 0644 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}
 
     install -m 0755 ${S}/bootloader/mkgpt ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mksparse ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mkbootimg ${D}${BINDIR}
-    install -m 0755 ${S}/bootloader/mkbctpart ${D}${BINDIR}
     install -m 0755 ${S}/tegra186-flash-helper.sh ${D}${BINDIR}
 }
