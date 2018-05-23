@@ -7,8 +7,11 @@ IMAGE_ROOTFS_ALIGNMENT ?= "4"
 IMAGE_UBOOT ??= "u-boot"
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', True).split()[0])}"
+LNXFILE ?= "${IMAGE_UBOOT}-${MACHINE}.bin"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
+IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
+IMAGE_TEGRAFLASH_KERNEL ?= "${IMAGE_DEPLOY_DIR}/${LNXFILE}"
 
 # Override this function if you need to add
 # customization after the default files are
@@ -95,7 +98,7 @@ tegraflash_create_flash_config_tegra210() {
     # Note that these are for Tegra210 based systems only.
     cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
         -e"s,EBTFILE,cboot.bin," -e"s,EBTSIZE,$ebtsize," \
-        -e"s,LNXFILE,${IMAGE_UBOOT}-${MACHINE}.bin," \
+        -e"s,LNXFILE,${LNXFILE}," \
         -e"/NCTFILE/d" -e"s,NCTTYPE,data," \
         -e"/SOSFILE/d" \
         -e"s,NXC,NVC," -e"s,NVCTYPE,bootloader," -e"s,NVCFILE,nvtboot.bin," -e "s,NVCSIZE,$nvcsize," \
@@ -121,7 +124,7 @@ tegraflash_create_flash_config_tegra186() {
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra186-specific.
     cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
-        -e"s,LNXFILE,${IMAGE_UBOOT}-${MACHINE}.bin," \
+        -e"s,LNXFILE,${LNXFILE}," \
         -e"s,LNXSIZE,67108864," -e"s,LNXNAME,kernel," \
         -e"/SOSFILE/d" \
         -e"s,MB2TYPE,mb2_bootloader," -e"s,MB2FILE,nvtboot.bin," -e"s,MB2NAME,mb2," \
@@ -156,6 +159,7 @@ BOOTFILES_tegra210 = "\
     tos.img \
 "
 BOOTFILES_tegra186 = "\
+    bmp.blob \
     bpmp.bin \
     camera-rtcpu-sce.bin \
     cboot.bin \
@@ -167,6 +171,7 @@ BOOTFILES_tegra186 = "\
     nvtboot_recovery.bin \
     nvtboot_recovery_cpu.bin \
     preboot_d15_prod_cr.bin \
+    slot_metadata.bin \
     spe.bin \
     tos.img \
     nvtboot.bin \
@@ -174,7 +179,6 @@ BOOTFILES_tegra186 = "\
     minimal_scr.cfg \
     emmc.cfg \
 "
-
 
 create_tegraflash_pkg() {
     :
@@ -231,14 +235,14 @@ create_tegraflash_pkg_tegra210() {
     oldwd=`pwd`
     cd "${WORKDIR}/tegraflash"
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
-    ln -s "${DEPLOY_DIR_IMAGE}/${IMAGE_UBOOT}-${MACHINE}.bin" .
+    ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
     ln -s "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTBFILE}" ./${DTBFILE}
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
     ln -s "${STAGING_BINDIR_NATIVE}/tegra210-flash" .
     tegraflash_custom_pre
-    mksparse -v --fillpattern=0 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" ${IMAGE_BASENAME}.img
+    mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" $gptsize
     if [ "${TEGRA210_REDUNDANT_BOOT}" != "1" ]; then
         mkgpt -c flash.xml -P ppt.img -t ${EMMC_SIZE} -b ${BOOTPART_SIZE} -s 4KiB -a GPT -v GP1 -V
@@ -257,57 +261,6 @@ END
     cd $oldwd
 }
 
-tegraflash_create_flash_config_tegra186() {
-    local destdir="$1"
-
-    # The following sed expression are derived from xxx_TAG variables
-    # in the L4T flash.sh script.  Tegra186-specific.
-    cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
-        -e"s,LNXFILE,${IMAGE_UBOOT}-${MACHINE}.bin," \
-        -e"s,LNXSIZE,67108864," -e"s,LNXNAME,kernel," \
-        -e"/SOSFILE/d" \
-        -e"s,MB2TYPE,mb2_bootloader," -e"s,MB2FILE,nvtboot.bin," -e"s,MB2NAME,mb2," \
-        -e"s,MPBTYPE,mts_preboot," -e"s,MPBFILE,preboot_d15_prod_cr.bin," -e"s,MPBNAME,mts-preboot," \
-        -e"s,MBPTYPE,mts_bootpack," -e"s,MBPFILE,mce_mts_d15_prod_cr.bin," -e"s,MBPNAME,mts-bootpack," \
-        -e"s,MB1TYPE,mb1_bootloader," -e"s,MB1FILE,mb1_prod.bin," -e"s,MB1NAME,mb1," \
-        -e"s,BPFFILE,bpmp.bin," -e"s,BPFNAME,bpmp-fw," -e"s,BPFSIGN,true," \
-        -e"s,BPFDTB-NAME,bpmp-fw-dtb," -e"s,BPMPDTB-SIGN,true," \
-        -e"s,TBCFILE,cboot.bin," -e"s,TBCTYPE,bootloader," -e"s,TBCNAME,cpu-bootloader," \
-        -e"s,TBCDTB-NAME,bootloader-dtb," -e"s,TBCDTB-FILE,${DTBFILE}," \
-        -e"s,SCEFILE,camera-rtcpu-sce.bin," -e"s,SCENAME,sce-fw," -e"s,SCESIGN,true," \
-        -e"s,SPEFILE,spe.bin," -e"s,SPENAME,spe-fw," -e"s,SPETYPE,spe_fw," \
-        -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,SC7NAME,sc7," \
-        -e"s,TOSFILE,tos.img," -e"s,TOSNAME,secure-os," \
-        -e"s,EKSFILE,eks.img," \
-        -e"s,FBTYPE,data," -e"s,FBSIGN,false," -e"/FBFILE/d" \
-	-e"s,KERNELDTB-NAME,kernel-dtb," -e"s,KERNELDTB-FILE,${DTBFILE}," \
-	-e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
-	-e"s,PPTSIZE,2097152," \
-        > flash.xml.in
-}
-
-BOOTFILES_tegra186 = "\
-    bmp.blob \
-    bpmp.bin \
-    camera-rtcpu-sce.bin \
-    cboot.bin \
-    eks.img \
-    mb1_prod.bin \
-    mb1_recovery_prod.bin \
-    mce_mts_d15_prod_cr.bin \
-    nvtboot_cpu.bin \
-    nvtboot_recovery.bin \
-    nvtboot_recovery_cpu.bin \
-    preboot_d15_prod_cr.bin \
-    slot_metadata.bin \
-    spe.bin \
-    tos.img \
-    nvtboot.bin \
-    warmboot.bin \
-    minimal_scr.cfg \
-    emmc.cfg \
-"
-
 create_tegraflash_pkg_tegra186() {
     local f
     PATH="${STAGING_BINDIR_NATIVE}/tegra186-flash:${PATH}"
@@ -316,7 +269,7 @@ create_tegraflash_pkg_tegra186() {
     oldwd=`pwd`
     cd "${WORKDIR}/tegraflash"
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
-    ln -s "${DEPLOY_DIR_IMAGE}/${IMAGE_UBOOT}-${MACHINE}.bin" .
+    ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
     ln -s "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${DTBFILE}" ./${DTBFILE}
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
@@ -329,7 +282,7 @@ create_tegraflash_pkg_tegra186() {
     done
     ln -s ${STAGING_BINDIR_NATIVE}/tegra186-flash .
     tegraflash_custom_pre
-    mksparse -v --fillpattern=0 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" ${IMAGE_BASENAME}.img
+    mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash"
     rm -f doflash.sh
     cat > doflash.sh <<END
@@ -350,5 +303,5 @@ IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
 do_image_tegraflash[depends] += "zip-native:do_populate_sysroot \
                                  ${SOC_FAMILY}-flashtools-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
-                                 ${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic"
+                                 ${@d.expand('${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic') if d.getVar('IMAGE_UBOOT') != '' else  ''}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
