@@ -34,8 +34,10 @@ do_install() {
     install -m 0755 ${S}/bootloader/tegraflash.py ${D}${BINDIR}
     install -m 0644 ${S}/bootloader/tegraflash_internal.py ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/nv_smd_generator ${D}${BINDIR}
-    install -m 0644 ${S}/bootloader/BUP_generator.py ${D}${BINDIR}
-    install -m 0644 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}
+    install -m 0755 ${S}/bootloader/BUP_generator.py ${D}${BINDIR}
+    sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/BUP_generator.py
+    install -m 0755 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}
+    sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/rollback_parser.py
 
     install -m 0755 ${S}/bootloader/mkgpt ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mksparse ${D}${BINDIR}
