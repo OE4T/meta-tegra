@@ -4,6 +4,8 @@ require tegra-shared-binaries.inc
 COMPATIBLE_MACHINE = "(tegra186)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
+TNSPEC ?= "3310-B02-fuselevel_production"
+
 inherit systemd
 
 do_configure() {
@@ -21,7 +23,8 @@ do_install() {
 	install -m 0755 ${B}/usr/sbin/nv_bootloader_payload_updater ${D}${sbindir}
 	install -m 0755 ${B}/usr/sbin/nv_update_engine ${D}${sbindir}
 	install -d ${D}${sysconfdir}
-	install -m 0644 ${B}/etc/nv_boot_control.conf ${D}${sysconfdir}
+	sed -e 's,^TNSPEC.*$,TNSPEC ${TNSPEC},' ${B}/etc/nv_boot_control.conf >${D}${sysconfdir}/nv_boot_control.conf
+	chmod 0644 ${D}${sysconfdir}/nv_boot_control.conf
 	install -d ${D}${systemd_system_unitdir}
 	install -m 0644 ${B}/etc/systemd/system/nv_update_verifier.service ${D}${systemd_system_unitdir}
 	sed -i -e's,^After=nv\.service,After=nvstartup.service,' ${D}${systemd_system_unitdir}/nv_update_verifier.service
