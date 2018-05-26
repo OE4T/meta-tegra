@@ -177,6 +177,7 @@ BOOTFILES_tegra186 = "\
     nvtboot.bin \
     warmboot.bin \
     minimal_scr.cfg \
+    mobile_scr.cfg \
     emmc.cfg \
 "
 

@@ -73,6 +73,7 @@ tegraflash.py --chip 0x18 --bl nvtboot_recovery_cpu.bin \
 	      --pmc_config $PMC_CONFIG \
 	      --prod_config $PROD_CONFIG \
 	      --scr_config minimal_scr.cfg \
+	      --scr_cold_boot_config mobile_scr.cfg \
 	      --br_cmd_config $BOOTROM_CONFIG \
 	      --dev_params emmc.cfg \
 	      --bins "$BINS" || exit 1
