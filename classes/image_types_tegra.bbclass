@@ -8,6 +8,7 @@ IMAGE_UBOOT ??= "u-boot"
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', True).split()[0])}"
 LNXFILE ?= "${IMAGE_UBOOT}-${MACHINE}.bin"
+LNXSIZE ?= "67108864"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
@@ -125,7 +126,7 @@ tegraflash_create_flash_config_tegra186() {
     # in the L4T flash.sh script.  Tegra186-specific.
     cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
         -e"s,LNXFILE,${LNXFILE}," \
-        -e"s,LNXSIZE,67108864," -e"s,LNXNAME,kernel," \
+        -e"s,LNXSIZE,${LNXSIZE}," -e"s,LNXNAME,kernel," \
         -e"/SOSFILE/d" \
         -e"s,MB2TYPE,mb2_bootloader," -e"s,MB2FILE,nvtboot.bin," -e"s,MB2NAME,mb2," \
         -e"s,MPBTYPE,mts_preboot," -e"s,MPBFILE,preboot_d15_prod_cr.bin," -e"s,MPBNAME,mts-preboot," \
