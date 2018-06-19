@@ -7,8 +7,7 @@ DESC="Power model setup"
 test -x $DAEMON || exit 0
 
 case "$1" in
-  start)
-  restart)	
+  start|restart)
       echo -n "Running $DESC: "
       $DAEMON $ARGS < /dev/null > /dev/null 2>&1 &
       echo "[OK]"

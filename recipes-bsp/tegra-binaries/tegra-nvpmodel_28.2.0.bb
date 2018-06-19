@@ -22,13 +22,15 @@ do_install() {
     install -m 0755 ${B}/usr/sbin/nvpmodel ${D}${sbindir}/
     install -m 0644 ${B}/etc/nvpmodel/${NVPMODEL}.conf ${D}${sysconfdir}/nvpmodel.conf
     install -d ${D}${sysconfdir}/init.d
-    install -m 0644 ${S}/nvpmodel.init ${D}${sysconfdir}/init.d/nvpmodel
+    install -m 0755 ${S}/nvpmodel.init ${D}${sysconfdir}/init.d/nvpmodel
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${S}/nvpmodel.service ${D}${systemd_system_unitdir}
 }
 
-inherit systemd
+inherit systemd update-rc.d
 
+INITSCRIPT_NAME = "nvpmodel"
+INITSCRIPT_PARAMS = "defaults"
 SYSTEMD_SERVICE_${PN} = "nvpmodel.service"
 
 FILES_${PN} = "${sbindir}/nvpmodel ${sysconfdir}"
