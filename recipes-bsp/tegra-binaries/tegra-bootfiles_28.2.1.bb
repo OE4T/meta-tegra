@@ -1,7 +1,7 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+COMPATIBLE_MACHINE = "(tegra186)"
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS = "${SOC_FAMILY}-flashtools-native"
 
