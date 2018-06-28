@@ -3,7 +3,7 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
 DEPENDS = "dpkg-native"
 
-SRC_URI = "http://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2GA/m892ki/JetPackL4T_32_b196/nv-tensorrt-repo-ubuntu1604-ga-cuda9.0-trt3.0.4-20180208_1-1_arm64.deb"
+SRC_URI = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2.1/m8u2ki/JetPackL4T_321_b23/nv-tensorrt-repo-ubuntu1604-ga-cuda9.0-trt3.0.4-20180208_1-1_arm64.deb"
 SRC_URI[md5sum] = "5d625140e1a7c92706191b1f4cbc4cce"
 SRC_URI[sha256sum] = "a49b1d23acb4f18e587322907860a714781dc8a1cd0607a0122f9ddfab0106b3"
 
