@@ -14,7 +14,7 @@ DEPENDS = "dtc-native"
 UBOOT_TEGRA_REPO ?= "github.com/madisongh/u-boot-tegra.git"
 SRCBRANCH ?= "patches-l4t-r21.6"
 SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
-SRCREV = "6e04e5274568847c1cfe7fe7f7e13e7f3386e9dd"
+SRCREV = "fe9a963c484d94e5617aa56281b4b83d94591e87"
 PV .= "+git${SRCPV}"
 
 S = "${WORKDIR}/git"
