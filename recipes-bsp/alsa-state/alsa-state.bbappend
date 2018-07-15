@@ -4,6 +4,7 @@ PACKAGE_ARCH_tegra = "${MACHINE_ARCH}"
 
 do_install_append_tegra() {
     rm ${D}${sysconfdir}/asound.conf
+    rmdir ${D}${sysconfdir} 2>/dev/null || true
 }
 
 RCONFDEPS = ""
