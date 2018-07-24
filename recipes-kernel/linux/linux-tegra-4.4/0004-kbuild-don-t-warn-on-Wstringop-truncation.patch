@@ -1,0 +1,39 @@
+From f27c99ce6500c4224db93e017bdc0983bd9b3a2e Mon Sep 17 00:00:00 2001
+From: Martin Kelly <mkelly@xevo.com>
+Date: Tue, 24 Jul 2018 15:15:57 -0700
+Subject: [PATCH] kbuild: don't warn on -Wstringop-truncation
+
+Currently, -Wstringop-truncation causes a variety of warnings that are
+breaking the build. Such issues are getting sorted out across the
+subsystems one-by-one, but cherry-picking each patch individually would
+be a lot of work and invite merge conflicts. So for this release, just
+suppress the warning.
+
+Signed-off-by: Martin Kelly <mkelly@xevo.com>
+---
+ scripts/Makefile.extrawarn | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/scripts/Makefile.extrawarn b/scripts/Makefile.extrawarn
+index 8b43b42f49a1..2ec04d58abde 100644
+--- a/scripts/Makefile.extrawarn
++++ b/scripts/Makefile.extrawarn
+@@ -12,6 +12,7 @@
+
+ KBUILD_CFLAGS += $(call cc-disable-warning, packed-not-aligned)
+ KBUILD_CFLAGS += $(call cc-disable-warning, attribute-alias)
++KBUILD_CFLAGS += $(call cc-disable-warning, stringop-truncation)
+
+ ifeq ("$(origin W)", "command line")
+   export KBUILD_ENABLE_EXTRA_GCC_CHECKS := $(W)
+@@ -30,6 +31,7 @@ warning-1 += $(call cc-option, -Wunused-but-set-variable)
+ warning-1 += $(call cc-option, -Wunused-const-variable)
+ warning-1 += $(call cc-option, -Wpacked-not-aligned)
+ warning-1 += $(call cc-option, -Wattribute-alias)
++warning-1 += $(call cc-option, -Wstringop-truncation)
+ warning-1 += $(call cc-disable-warning, missing-field-initializers)
+
+ warning-2 := -Waggregate-return
+--
+2.11.0
+

@@ -18,8 +18,13 @@ SRCBRANCH = "patches-${L4T_VERSION}"
 SRCREV = "174510d4ad9b4d9b8f1c6e521d34a30ccb7ebab5"
 KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
-	   file://defconfig \
-"
+           file://defconfig \
+           file://0001-give-up-on-gcc-ilog2-constant-optimizations.patch \
+           file://0002-Kbuild-suppress-packed-not-aligned-warning-for-defau.patch \
+           file://0003-kbuild-don-t-warn-on-Wattribute-alias.patch \
+           file://0004-kbuild-don-t-warn-on-Wstringop-truncation.patch \
+           file://0005-kbuild-don-t-warn-on-Wstringop-overflow.patch \
+           "
 S = "${WORKDIR}/git"
 
 KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p1 rw rootwait"
