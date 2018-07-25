@@ -1,0 +1,41 @@
+From 2d7117629d7a06fb27b2d71681eebb256809bfaf Mon Sep 17 00:00:00 2001
+From: Martin Kelly <mkelly@xevo.com>
+Date: Tue, 24 Jul 2018 15:20:16 -0700
+Subject: [PATCH] kbuild: don't warn on -Wattribute-alias
+
+Currently, -Wattribute-alias causes a variety of warnings that are
+breaking the build. This is getting sorted out on LKML, but as far as I
+can tell, no patch for it has yet been merged. For more context, see
+https://lkml.org/lkml/2017/12/5/538.
+
+In the meantime, disable the warning. We should drop this patch when a
+proper fix has been merged into the kernel.
+
+Signed-off-by: Martin Kelly <mkelly@xevo.com>
+---
+ scripts/Makefile.extrawarn | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/scripts/Makefile.extrawarn b/scripts/Makefile.extrawarn
+index 74e7a808cf59..8b43b42f49a1 100644
+--- a/scripts/Makefile.extrawarn
++++ b/scripts/Makefile.extrawarn
+@@ -11,6 +11,7 @@
+ # ==========================================================================
+
+ KBUILD_CFLAGS += $(call cc-disable-warning, packed-not-aligned)
++KBUILD_CFLAGS += $(call cc-disable-warning, attribute-alias)
+
+ ifeq ("$(origin W)", "command line")
+   export KBUILD_ENABLE_EXTRA_GCC_CHECKS := $(W)
+@@ -28,6 +29,7 @@ warning-1 += $(call cc-option, -Wmissing-include-dirs)
+ warning-1 += $(call cc-option, -Wunused-but-set-variable)
+ warning-1 += $(call cc-option, -Wunused-const-variable)
+ warning-1 += $(call cc-option, -Wpacked-not-aligned)
++warning-1 += $(call cc-option, -Wattribute-alias)
+ warning-1 += $(call cc-disable-warning, missing-field-initializers)
+
+ warning-2 := -Waggregate-return
+--
+2.11.0
+
