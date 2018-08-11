@@ -10,3 +10,4 @@ do_install_append_tegra() {
 RCONFDEPS = ""
 RCONFDEPS_tegra = "tegra-configs-alsa"
 RDEPENDS_${PN} += "${RCONFDEPS}"
+ALLOW_EMPTY_${PN} = "1"
