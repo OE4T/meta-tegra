@@ -22,9 +22,6 @@ do_install() {
   # Encoder tuning
   install -m 0644 ${B}/etc/enctune.conf ${D}${sysconfdir}
 
-  # ALSA config (default set in machine configuration file)
-  install -m 0644 ${B}/etc/asound.conf.${ASOUND_CONF_DEFAULT} ${D}${sysconfdir}/asound.conf
-
   # Rule that sets permissions on some of the devices
   install -m 0644 ${B}/etc/udev/rules.d/99-tegra-devices.rules ${D}${sysconfdir}/udev/rules.d
 
@@ -52,13 +49,12 @@ do_install_append_jetson-tk1() {
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 # ${PN}-all is just a utility package
-PACKAGES = "${PN}-all ${PN}-omx-tegra ${PN}-xorg ${PN}-alsa ${PN}-udev ${PN}-nvstartup ${PN}-pulseaudio"
+PACKAGES = "${PN}-all ${PN}-omx-tegra ${PN}-xorg ${PN}-udev ${PN}-nvstartup ${PN}-pulseaudio"
 ALLOW_EMPTY_${PN}-all = "1"
-RDEPENDS_${PN}-all = "${PN}-omx-tegra ${PN}-xorg ${PN}-alsa ${PN}-udev ${PN}-nvstartup ${PN}-pulseaudio"
+RDEPENDS_${PN}-all = "${PN}-omx-tegra ${PN}-xorg ${PN}-udev ${PN}-nvstartup ${PN}-pulseaudio"
 
 FILES_${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
 FILES_${PN}-xorg = "${sysconfdir}/X11"
-FILES_${PN}-alsa = "${sysconfdir}/asound.conf"
 FILES_${PN}-udev = "${sysconfdir}/udev/rules.d/99-tegra-devices.rules ${sysconfdir}/udev/rules.d/99-tegra-mmc-ra.rules"
 FILES_${PN}-pulseaudio = "${sysconfdir}/pulse"
 FILES_${PN}-nvstartup = "${sysconfdir}/init.d/nvstartup ${sbindir}"
