@@ -53,7 +53,7 @@ EOF
 LABEL primary-$i
       MENU LABEL primary-$i ${KERNEL_IMAGETYPE}-${KERNEL_VERSION} $fdt
       LINUX /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}-${KERNEL_VERSION}
-      FDT /${KERNEL_IMAGEDEST}/devicetree-${KERNEL_IMAGETYPE}-$fdt
+      FDT /${KERNEL_IMAGEDEST}/$fdt
       APPEND ${KERNEL_ARGS} ${KERNEL_ROOTSPEC}
 EOF
         i=$(expr $i \+ 1)
