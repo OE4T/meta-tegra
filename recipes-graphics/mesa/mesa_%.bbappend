@@ -48,3 +48,11 @@ PRIVATE_LIBS_${PN}-stubs-dev = "\
     libGLESv2.so.2 \
     libGL.so.1 \
 "
+
+TOOLCHAIN_TARGET_TASK += " \
+    libgles1-mesa-dev \
+    libgles2-mesa-dev \
+    libgles3-mesa-dev \
+    libegl-mesa-dev \
+    libgl-mesa-dev \
+"
