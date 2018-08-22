@@ -54,15 +54,17 @@ do_install() {
     install -m644 ${DRVROOT}/tegra/nvidia_icd.json ${D}${sysconfdir}/vulkan/icd.d/
 }
 
-PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-libnvosd ${PN}"
+PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-libnvosd ${PN}-dev ${PN}"
 
 FILES_${PN}-libv4l-plugins = "${libdir}/libv4l"
 FILES_${PN}-argus = "${libdir}/libargus* ${sbindir}/argus_daemon"
 FILES_${PN}-libnvosd = "${libdir}/libnvosd*"
 FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir} ${datadir}/egl"
+FILES_${PN}-dev = "${libdir}/lib*GL*.so"
 RDEPENDS_${PN} = "libasound"
 RDEPENDS_${PN}-argus = "${PN}"
 RDEPENDS_${PN}-libnvosd = "${PN} pango cairo glib-2.0"
+RDEPENDS_${PN}-dev = "libegl-mesa-dev libgles1-mesa-dev libgles2-mesa-dev libgl-mesa-dev ${PN}"
 
 INITSCRIPT_PACKAGES = "${PN} ${PN}-argus"
 INITSCRIPT_NAME_${PN} = "nvcamera-daemon"
