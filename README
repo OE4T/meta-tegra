@@ -10,13 +10,6 @@ This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: rocko
 
-Known Issues
-------------
-
-* For TX1 systems, do not use gcc 7.3 (the default for
-  YP 2.4/OE-core rocko).  (Issue #65)
-
-
 Limitations
 -----------
 
