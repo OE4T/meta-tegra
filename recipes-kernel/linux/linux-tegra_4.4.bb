@@ -4,7 +4,10 @@ DESCRIPTION = "Linux kernel from sources provided by Nvidia for Tegra processors
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
+KERNEL_VERSION_SANITY_SKIP="1"
+
 inherit kernel
+require recipes-kernel/linux/linux-yocto.inc
 
 PV .= "+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
@@ -25,6 +28,7 @@ S = "${WORKDIR}/git"
 KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p1 rw rootwait"
 
 do_configure_prepend() {
+    mv -f ${B}/.config ${B}/.config.patched
     localversion="-${L4T_VERSION}"
     if [ "${SCMVERSION}" = "y" ]; then
 	head=`git --git-dir=${S}/.git rev-parse --verify --short HEAD 2> /dev/null`
@@ -32,6 +36,11 @@ do_configure_prepend() {
     fi
     sed -e"s,^CONFIG_LOCALVERSION=.*$,CONFIG_LOCALVERSION=\"${localversion}\"," \
 	< ${WORKDIR}/defconfig > ${B}/.config
+
+    # Keep this the last line
+    # Remove all modified configs and add the rest to .config
+    sed -e "${CONF_SED_SCRIPT}" < '${B}/.config.patched' >> '${B}/.config'
+    rm -f ${B}/.config.patched
 }
 
 do_install_append() {
