@@ -1,3 +1,5 @@
+EXTRA_OECONF_append_tegra124 = " --disable-memfd"
+
 do_install_append_tegra() {
     rm ${D}${sysconfdir}/pulse/default.pa
 }
