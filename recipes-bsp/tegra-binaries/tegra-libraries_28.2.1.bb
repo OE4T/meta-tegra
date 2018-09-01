@@ -36,9 +36,9 @@ do_install() {
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so.1
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so
     rm -f ${D}${libdir}/libdrm*
-    # nvcamera_daemon only looks in this special subdir, so symlink it
-    install -d ${D}${nonarch_libdir}/aarch64-linux-gnu
-    ln -snf ${libdir} ${D}${nonarch_libdir}/aarch64-linux-gnu/tegra-egl
+    # nvcamera_daemon and argus_daemon have hard-coded path for this
+    install -d ${D}${nonarch_libdir}/aarch64-linux-gnu/tegra-egl
+    ln -sf ${libdir}/libEGL.so.1 ${D}${nonarch_libdir}/aarch64-linux-gnu/tegra-egl/libEGL.so
     install -d ${D}${sbindir}
     install -m755 ${B}/usr/sbin/nvcamera-daemon ${D}${sbindir}/
     install -m755 ${B}/usr/sbin/argus_daemon ${D}${sbindir}/
