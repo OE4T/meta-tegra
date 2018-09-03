@@ -1,4 +1,5 @@
 DEPENDS_append_tegra = " tegra-libraries"
+EXTRA_OECONF_append_tegra = " --without-dri-drivers --disable-dri3"
 
 python () {
     overrides = d.getVar("OVERRIDES").split(":")
