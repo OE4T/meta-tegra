@@ -28,4 +28,7 @@ DEB_PKG_EXTENSION = "arm64"
 CUDA_VERSION ?= "9.0"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_62 --gpu-code=sm_62"
 
+PREFERRED_PROVIDER_libdrm = "libdrm-tegra-shim"
+PREFERRED_PROVIDER_drm = "libdrm-tegra-shim"
+
 require conf/machine/include/tegra-common.inc
