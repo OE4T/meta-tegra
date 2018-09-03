@@ -1,6 +1,5 @@
-DEPENDS_append_tegra124 = " tegra-libraries"
-DEPENDS_append_tegra186 = " tegra-libraries"
-DEPENDS_append_tegra210 = " tegra-libraries"
+DEPENDS_append_tegra = " tegra-libraries"
+EXTRA_OECONF_append_tegra = " --without-dri-drivers --disable-dri3"
 
 python () {
     overrides = d.getVar("OVERRIDES").split(":")
@@ -23,21 +22,11 @@ move_libraries() {
         mv ${D}${libdir}/libEGL.* ${D}${libdir}/mesa/
     fi
 }
-do_install_append_tegra210() {
+do_install_append_tegra() {
     move_libraries
 }
 
-do_install_append_tegra124() {
-    move_libraries
-}
-
-do_install_append_tegra186() {
-    move_libraries
-}
-
-PACKAGE_ARCH_tegra210 = "${SOC_FAMILY_PKGARCH}"
-PACKAGE_ARCH_tegra124 = "${SOC_FAMILY_PKGARCH}"
-PACKAGE_ARCH_tegra186 = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_tegra = "${SOC_FAMILY_PKGARCH}"
 
 PACKAGES =+ "${PN}-stubs-dev"
 FILES_${PN}-stubs-dev = "${libdir}/mesa"
