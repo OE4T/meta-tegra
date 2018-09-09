@@ -1,3 +1,9 @@
+FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
+
+SRC_URI += "file://egl-gles2-nv-extensions.patch"
+
+DEPENDS += "tegra-mmapi-glheaders"
+
 DEPENDS_append_tegra = " tegra-libraries"
 EXTRA_OECONF_append_tegra = " --without-dri-drivers --disable-dri3"
 

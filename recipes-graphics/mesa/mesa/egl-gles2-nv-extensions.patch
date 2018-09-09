@@ -1,0 +1,25 @@
+Index: mesa-17.3.8/include/EGL/eglext.h
+===================================================================
+--- mesa-17.3.8.orig/include/EGL/eglext.h
++++ mesa-17.3.8/include/EGL/eglext.h
+@@ -1236,6 +1236,7 @@ EGLAPI EGLuint64NV EGLAPIENTRY eglGetSys
+ 
+ #include <EGL/eglmesaext.h>
+ #include <EGL/eglextchromium.h>
++#include <EGL/eglext_nv.h>
+ 
+ #ifdef __cplusplus
+ }
+Index: mesa-17.3.8/include/GLES2/gl2ext.h
+===================================================================
+--- mesa-17.3.8.orig/include/GLES2/gl2ext.h
++++ mesa-17.3.8/include/GLES2/gl2ext.h
+@@ -3474,6 +3474,8 @@ GL_APICALL void GL_APIENTRY glEndTilingQ
+ #define GL_SHADER_BINARY_VIV              0x8FC4
+ #endif /* GL_VIV_shader_binary */
+ 
++#include <GLES2/gl2ext_nv.h>
++
+ #ifdef __cplusplus
+ }
+ #endif
