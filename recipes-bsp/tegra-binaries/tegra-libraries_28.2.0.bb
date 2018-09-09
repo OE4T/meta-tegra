@@ -4,7 +4,7 @@ require tegra-shared-binaries.inc
 inherit update-rc.d systemd
 
 do_configure() {
-    tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib usr/sbin usr/share/egl var/nvidia
+    tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib usr/sbin var/nvidia
 }
 
 do_compile[noexec] = "1"
@@ -48,10 +48,9 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
     install -m644 ${S}/nvcamera-daemon.service ${D}${systemd_system_unitdir}
     install -m644 ${S}/argus-daemon.service ${D}${systemd_system_unitdir}
-    install -d ${D}${datadir}/egl/egl_external_platform.d
-    install -m644 ${B}/usr/share/egl/egl_external_platform.d/* ${D}${datadir}/egl/egl_external_platform.d/
     install -d ${D}${sysconfdir}/vulkan/icd.d
     install -m644 ${DRVROOT}/tegra/nvidia_icd.json ${D}${sysconfdir}/vulkan/icd.d/
+    rm ${D}${libdir}/libnvidia-egl-wayland*
 }
 
 PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-libnvosd ${PN}-dev ${PN}"
@@ -59,7 +58,7 @@ PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-libnvosd ${PN}-dev ${PN}"
 FILES_${PN}-libv4l-plugins = "${libdir}/libv4l"
 FILES_${PN}-argus = "${libdir}/libargus* ${sbindir}/argus_daemon"
 FILES_${PN}-libnvosd = "${libdir}/libnvosd*"
-FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir} ${datadir}/egl"
+FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir}"
 FILES_${PN}-dev = "${libdir}/lib*GL*.so"
 RDEPENDS_${PN} = "libasound"
 RDEPENDS_${PN}-argus = "${PN}"

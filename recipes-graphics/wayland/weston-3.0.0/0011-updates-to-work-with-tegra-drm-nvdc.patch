@@ -1,0 +1,89 @@
+From 3bd19eafda9f791f81f19cf61385fab2c8f13d21 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 9 Sep 2018 08:30:19 -0700
+Subject: [PATCH 11/11] updates to work with tegra drm-nvdc
+
+---
+ libweston/compositor-drm.c | 14 +++++++++-----
+ shared/weston-egl-ext.h    |  4 ----
+ 2 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/libweston/compositor-drm.c b/libweston/compositor-drm.c
+index b7bd0d7d..15b77512 100644
+--- a/libweston/compositor-drm.c
++++ b/libweston/compositor-drm.c
+@@ -118,6 +118,7 @@ struct drm_backend {
+ 
+ 	int use_pixman;
+ 	int use_egldevice;
++	int is_nvdc;
+ 
+ 	struct udev_input input;
+ 
+@@ -485,8 +486,8 @@ drm_fb_create_dumb(struct drm_backend *b, int width, int height,
+ 	if (ret)
+ 		goto err_add_fb;
+ 
+-	if (!strcmp(b->drm.filename, "drm-nvdc")) {
+-		fb->map = map_arg.offset;
++	if (b->is_nvdc) {
++		fb->map = (void *) map_arg.offset;
+ 		fb->nounmap = true;
+ 	} else {
+ 		fb->map = mmap(NULL, fb->size, PROT_WRITE,
+@@ -898,8 +899,8 @@ drm_output_repaint(struct weston_output *output_base,
+ 		return -1;
+ 
+ 	mode = container_of(output->base.current_mode, struct drm_mode, base);
+-	if (output->state_invalid || !output->fb_current ||
+-	    output->fb_current->stride != output->fb_pending->stride) {
++	if (!backend->is_nvdc && (output->state_invalid || !output->fb_current ||
++			    output->fb_current->stride != output->fb_pending->stride)) {
+ 		ret = drmModeSetCrtc(backend->drm.fd, output->crtc_id,
+ 				     output->fb_pending->fb_id, 0, 0,
+ 				     &output->connector_id, 1,
+@@ -1752,6 +1753,8 @@ init_kms_caps(struct drm_backend *b)
+ 
+ 	weston_log("using %s\n", b->drm.filename);
+ 
++	b->is_nvdc = strcmp(b->drm.filename, "drm-nvdc") == 0;
++
+ 	ret = drmGetCap(b->drm.fd, DRM_CAP_TIMESTAMP_MONOTONIC, &cap);
+ 	if (ret == 0 && cap == 1)
+ 		clk_id = CLOCK_MONOTONIC;
+@@ -1858,7 +1861,9 @@ drm_backend_create_gl_renderer(struct drm_backend *b)
+ {
+ 	if (b->use_egldevice) {
+ 		EGLint device_platform_attribs[] = {
++#ifdef EGL_DRM_MASTER_FD_EXT
+ 			EGL_DRM_MASTER_FD_EXT, b->drm.fd,
++#endif
+ 			EGL_NONE
+ 		};
+ 
+@@ -2210,7 +2215,6 @@ drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
+ 			return -1;
+ 		}
+ 		memset(output->dumb[0]->map, 0, output->dumb[0]->size);
+-
+ 		if (gl_renderer->output_stream_create(&output->base, ~0u,
+ 						      output->crtc_id) < 0) {
+ 			weston_log("failed to create gl renderer output stream "
+diff --git a/shared/weston-egl-ext.h b/shared/weston-egl-ext.h
+index 778eae07..53491cf7 100644
+--- a/shared/weston-egl-ext.h
++++ b/shared/weston-egl-ext.h
+@@ -180,10 +180,6 @@ typedef EGLSurface (EGLAPIENTRYP PFNEGLCREATEPLATFORMPIXMAPSURFACEEXTPROC) (EGLD
+ #define EGL_PLATFORM_DEVICE_EXT 0x313F
+ #endif
+ 
+-#ifndef EGL_DRM_MASTER_FD_EXT
+-#define EGL_DRM_MASTER_FD_EXT 0x333C
+-#endif
+-
+ /*
+  * FIXME: Remove both EGL_EXT_stream_acquire_mode and
+  *        EGL_NV_output_drm_flip_event definitions below once both extensions
+-- 
+2.17.1
+
