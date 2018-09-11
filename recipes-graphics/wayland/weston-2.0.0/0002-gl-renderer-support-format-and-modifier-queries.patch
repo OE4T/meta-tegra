@@ -1,0 +1,184 @@
+From 22597b868cd8b4fe3bc236ea059306c34b9e15eb Mon Sep 17 00:00:00 2001
+From: Varad Gautam <varad.gautam@collabora.com>
+Date: Wed, 23 Nov 2016 14:03:20 +0530
+Subject: [PATCH 02/16] gl-renderer: support format and modifier queries
+
+EGL_EXT_image_dma_buf_import_modifiers allows querying the formats
+and modifiers supported by the platform. expose these to the compositor.
+
+v2:
+ - change calloc args (Daniel Stone)
+ - check for modifier support before querying formats (Daniel Stone)
+
+Signed-off-by: Varad Gautam <varad.gautam@collabora.com>
+Reviewed-by: Daniel Stone <daniels@collabora.com>
+---
+ libweston/compositor.h  |  7 ++++
+ libweston/gl-renderer.c | 85 ++++++++++++++++++++++++++++++++++++++++-
+ shared/weston-egl-ext.h |  7 ++++
+ 3 files changed, 98 insertions(+), 1 deletion(-)
+
+diff --git a/libweston/compositor.h b/libweston/compositor.h
+index 08e728a9..bc8de607 100644
+--- a/libweston/compositor.h
++++ b/libweston/compositor.h
+@@ -732,6 +732,13 @@ struct weston_renderer {
+ 	/** See weston_compositor_import_dmabuf() */
+ 	bool (*import_dmabuf)(struct weston_compositor *ec,
+ 			      struct linux_dmabuf_buffer *buffer);
++
++	bool (*query_dmabuf_formats)(struct weston_compositor *ec,
++				int **formats, int *num_formats);
++
++	bool (*query_dmabuf_modifiers)(struct weston_compositor *ec,
++				int format, uint64_t **modifiers,
++				int *num_modifiers);
+ };
+ 
+ enum weston_capability {
+diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
+index c6091af0..d4a07a8c 100644
+--- a/libweston/gl-renderer.c
++++ b/libweston/gl-renderer.c
+@@ -227,6 +227,10 @@ struct gl_renderer {
+ 	struct wl_signal destroy_signal;
+ 
+ 	struct wl_listener output_destroy_listener;
++
++	int has_dmabuf_import_modifiers;
++	PFNEGLQUERYDMABUFFORMATSEXTPROC query_dmabuf_formats;
++	PFNEGLQUERYDMABUFMODIFIERSEXTPROC query_dmabuf_modifiers;
+ };
+ 
+ static PFNEGLGETPLATFORMDISPLAYEXTPROC get_platform_display = NULL;
+@@ -1865,6 +1869,70 @@ import_dmabuf(struct gl_renderer *gr,
+ 	return image;
+ }
+ 
++static bool
++gl_renderer_query_dmabuf_formats(struct weston_compositor *wc,
++				int **formats, int *num_formats)
++{
++	struct gl_renderer *gr = get_renderer(wc);
++	EGLint num;
++
++	assert(gr->has_dmabuf_import);
++
++	if (!gr->has_dmabuf_import_modifiers ||
++	    !gr->query_dmabuf_formats(gr->egl_display, 0, NULL, &num)) {
++		*num_formats = 0;
++		return false;
++	}
++
++	*formats = calloc(num, sizeof(int));
++	if (*formats == NULL) {
++		*num_formats = 0;
++		return false;
++	}
++	if (!gr->query_dmabuf_formats(gr->egl_display, num, *formats,
++			(EGLint*) &num)) {
++		*num_formats = 0;
++		free(*formats);
++		return false;
++	}
++
++	*num_formats = num;
++	return true;
++}
++
++static bool
++gl_renderer_query_dmabuf_modifiers(struct weston_compositor *wc, int format,
++					uint64_t **modifiers,
++					int *num_modifiers)
++{
++	struct gl_renderer *gr = get_renderer(wc);
++	int num;
++
++	assert(gr->has_dmabuf_import);
++
++	if (!gr->has_dmabuf_import_modifiers ||
++		!gr->query_dmabuf_modifiers(gr->egl_display, format, 0, NULL,
++					    NULL, &num)) {
++		*num_modifiers = 0;
++		return false;
++	}
++
++	*modifiers = calloc(num, sizeof(uint64_t));
++	if (*modifiers == NULL) {
++		*num_modifiers = 0;
++		return false;
++	}
++	if (!gr->query_dmabuf_modifiers(gr->egl_display, format,
++				num, *modifiers, NULL, &num)) {
++		*num_modifiers = 0;
++		free(*modifiers);
++		return false;
++	}
++
++	*num_modifiers = num;
++	return true;
++}
++
+ static bool
+ gl_renderer_import_dmabuf(struct weston_compositor *ec,
+ 			  struct linux_dmabuf_buffer *dmabuf)
+@@ -2855,6 +2923,7 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
+ 
+ 	gr->create_image = (void *) eglGetProcAddress("eglCreateImageKHR");
+ 	gr->destroy_image = (void *) eglGetProcAddress("eglDestroyImageKHR");
++
+ 	gr->bind_display =
+ 		(void *) eglGetProcAddress("eglBindWaylandDisplayWL");
+ 	gr->unbind_display =
+@@ -2908,6 +2977,15 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
+ 	if (weston_check_egl_extension(extensions, "EGL_EXT_image_dma_buf_import"))
+ 		gr->has_dmabuf_import = 1;
+ 
++	if (weston_check_egl_extension(extensions,
++				"EGL_EXT_image_dma_buf_import_modifiers")) {
++		gr->query_dmabuf_formats =
++			(void *) eglGetProcAddress("eglQueryDmaBufFormatsEXT");
++		gr->query_dmabuf_modifiers =
++			(void *) eglGetProcAddress("eglQueryDmaBufModifiersEXT");
++		gr->has_dmabuf_import_modifiers = 1;
++	}
++
+ 	if (weston_check_egl_extension(extensions, "GL_EXT_texture_rg"))
+ 		gr->has_gl_texture_rg = 1;
+ 
+@@ -3146,8 +3224,13 @@ gl_renderer_display_create(struct weston_compositor *ec, EGLenum platform,
+ 		goto fail_with_error;
+ 
+ 	wl_list_init(&gr->dmabuf_images);
+-	if (gr->has_dmabuf_import)
++	if (gr->has_dmabuf_import) {
+ 		gr->base.import_dmabuf = gl_renderer_import_dmabuf;
++		gr->base.query_dmabuf_formats =
++			gl_renderer_query_dmabuf_formats;
++		gr->base.query_dmabuf_modifiers =
++			gl_renderer_query_dmabuf_modifiers;
++	}
+ 
+ 	if (gr->has_surfaceless_context) {
+ 		weston_log("EGL_KHR_surfaceless_context available\n");
+diff --git a/shared/weston-egl-ext.h b/shared/weston-egl-ext.h
+index f3e6dcea..c7a34302 100644
+--- a/shared/weston-egl-ext.h
++++ b/shared/weston-egl-ext.h
+@@ -125,6 +125,13 @@ typedef struct wl_buffer * (EGLAPIENTRYP PFNEGLCREATEWAYLANDBUFFERFROMIMAGEWL) (
+ #define EGL_DMA_BUF_PLANE2_PITCH_EXT				0x327A
+ #endif
+ 
++/* Define tokens from EGL_EXT_image_dma_buf_import_modifiers */
++#ifndef EGL_EXT_image_dma_buf_import_modifiers
++#define EGL_EXT_image_dma_buf_import_modifiers 1
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLQUERYDMABUFFORMATSEXTPROC) (EGLDisplay dpy, EGLint max_formats, EGLint *formats, EGLint *num_formats);
++typedef EGLBoolean (EGLAPIENTRYP PFNEGLQUERYDMABUFMODIFIERSEXTPROC) (EGLDisplay dpy, EGLint format, EGLint max_modifiers, EGLuint64KHR *modifiers, EGLBoolean *external_only, EGLint *num_modifiers);
++#endif
++
+ #ifndef EGL_EXT_swap_buffers_with_damage
+ #define EGL_EXT_swap_buffers_with_damage 1
+ typedef EGLBoolean (EGLAPIENTRYP PFNEGLSWAPBUFFERSWITHDAMAGEEXTPROC) (EGLDisplay dpy, EGLSurface surface, EGLint *rects, EGLint n_rects);
+-- 
+2.17.1
+

@@ -1,0 +1,79 @@
+From 93c84b58cdaff97d4da6f2e6c6b7e0498350aa1f Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 7 Sep 2018 08:49:33 -0700
+Subject: [PATCH 15/16] libweston: have compositor-drm try drmOpen should udev
+ search fail
+
+---
+ libweston/compositor-drm.c | 34 +++++++++++++++++++++++++++-------
+ 1 file changed, 27 insertions(+), 7 deletions(-)
+
+diff --git a/libweston/compositor-drm.c b/libweston/compositor-drm.c
+index 5dbb5cac..e814208e 100644
+--- a/libweston/compositor-drm.c
++++ b/libweston/compositor-drm.c
+@@ -143,6 +143,7 @@ struct drm_fb {
+ 
+ 	/* Used by dumb fbs */
+ 	void *map;
++	bool nounmap;
+ };
+ 
+ struct drm_edid {
+@@ -369,10 +370,16 @@ drm_fb_create_dumb(struct drm_backend *b, int width, int height,
+ 	if (ret)
+ 		goto err_add_fb;
+ 
+-	fb->map = mmap(NULL, fb->size, PROT_WRITE,
+-		       MAP_SHARED, b->drm.fd, map_arg.offset);
+-	if (fb->map == MAP_FAILED)
+-		goto err_add_fb;
++	if (!strcmp(b->drm.filename, "drm-nvdc")) {
++		fb->map = map_arg.offset;
++		fb->nounmap = true;
++	} else {
++		fb->map = mmap(NULL, fb->size, PROT_WRITE,
++			       MAP_SHARED, b->drm.fd, map_arg.offset);
++		if (fb->map == MAP_FAILED)
++			goto err_add_fb;
++		fb->nounmap = false;
++	}
+ 
+ 	return fb;
+ 
+@@ -3462,8 +3469,20 @@ drm_backend_create(struct weston_compositor *compositor,
+ 
+ 	drm_device = find_primary_gpu(b, seat_id);
+ 	if (drm_device == NULL) {
+-		weston_log("no drm device found\n");
+-		goto err_udev;
++		int fd = drmOpen("", "");
++		char *name;
++		if (fd >= 0) {
++			name = drmGetDeviceNameFromFd(fd);
++			b->drm.fd = fd;
++			b->drm.id = -1;
++			if (name) {
++				b->drm.filename = strdup(name);
++				drmFree(name);
++			}
++		} else {
++			weston_log("no drm device found\n");
++			goto err_udev;
++		}
+ 	}
+ 
+ 	if (init_kms_caps(b) < 0) {
+@@ -3532,7 +3551,8 @@ drm_backend_create(struct weston_compositor *compositor,
+ 		goto err_udev_monitor;
+ 	}
+ 
+-	udev_device_unref(drm_device);
++	if (drm_device)
++		udev_device_unref(drm_device);
+ 
+ 	weston_compositor_add_debug_binding(compositor, KEY_O,
+ 					    planes_binding, b);
+-- 
+2.17.1
+

@@ -1,0 +1,263 @@
+From b905c72c83d7497d7f5f0219af77f85fe4a21609 Mon Sep 17 00:00:00 2001
+From: Daniel Stone <daniels@collabora.com>
+Date: Mon, 19 Dec 2016 16:48:20 +0000
+Subject: [PATCH 01/16] compositor-drm: Ignore non-KMS devices
+
+Given that we can have render-only devices, or vgem in a class of its
+own, ignore any non-KMS devices in compositor-drm's device selection.
+For x86 platforms, this is mostly a non-issue since we look at the udev
+boot_vga issue, but other architectures which lack this, and have
+multiple KMS devices present, will hit this.
+
+Signed-off-by: Daniel Stone <daniels@collabora.com>
+Reviewed-by: Emil Velikov <emil.velikov@collabora.com>
+Reported-by: Thierry Reding <treding@nvidia.com>
+Reported-by: Daniel Vetter <daniel.vetter@intel.com>
+---
+ libweston/compositor-drm.c | 145 ++++++++++++++++++++++++++-----------
+ 1 file changed, 103 insertions(+), 42 deletions(-)
+
+diff --git a/libweston/compositor-drm.c b/libweston/compositor-drm.c
+index 1d38f051..a2a07cfe 100644
+--- a/libweston/compositor-drm.c
++++ b/libweston/compositor-drm.c
+@@ -1506,36 +1506,15 @@ on_drm_input(int fd, uint32_t mask, void *data)
+ }
+ 
+ static int
+-init_drm(struct drm_backend *b, struct udev_device *device)
++init_kms_caps(struct drm_backend *b)
+ {
+-	const char *filename, *sysnum;
+ 	uint64_t cap;
+-	int fd, ret;
++	int ret;
+ 	clockid_t clk_id;
+ 
+-	sysnum = udev_device_get_sysnum(device);
+-	if (sysnum)
+-		b->drm.id = atoi(sysnum);
+-	if (!sysnum || b->drm.id < 0) {
+-		weston_log("cannot get device sysnum\n");
+-		return -1;
+-	}
+-
+-	filename = udev_device_get_devnode(device);
+-	fd = weston_launcher_open(b->compositor->launcher, filename, O_RDWR);
+-	if (fd < 0) {
+-		/* Probably permissions error */
+-		weston_log("couldn't open %s, skipping\n",
+-			udev_device_get_devnode(device));
+-		return -1;
+-	}
+-
+-	weston_log("using %s\n", filename);
+-
+-	b->drm.fd = fd;
+-	b->drm.filename = strdup(filename);
++	weston_log("using %s\n", b->drm.filename);
+ 
+-	ret = drmGetCap(fd, DRM_CAP_TIMESTAMP_MONOTONIC, &cap);
++	ret = drmGetCap(b->drm.fd, DRM_CAP_TIMESTAMP_MONOTONIC, &cap);
+ 	if (ret == 0 && cap == 1)
+ 		clk_id = CLOCK_MONOTONIC;
+ 	else
+@@ -1547,13 +1526,13 @@ init_drm(struct drm_backend *b, struct udev_device *device)
+ 		return -1;
+ 	}
+ 
+-	ret = drmGetCap(fd, DRM_CAP_CURSOR_WIDTH, &cap);
++	ret = drmGetCap(b->drm.fd, DRM_CAP_CURSOR_WIDTH, &cap);
+ 	if (ret == 0)
+ 		b->cursor_width = cap;
+ 	else
+ 		b->cursor_width = 64;
+ 
+-	ret = drmGetCap(fd, DRM_CAP_CURSOR_HEIGHT, &cap);
++	ret = drmGetCap(b->drm.fd, DRM_CAP_CURSOR_HEIGHT, &cap);
+ 	if (ret == 0)
+ 		b->cursor_height = cap;
+ 	else
+@@ -2940,12 +2919,68 @@ session_notify(struct wl_listener *listener, void *data)
+ 	};
+ }
+ 
++/**
++ * Determines whether or not a device is capable of modesetting. If successful,
++ * sets b->drm.fd and b->drm.filename to the opened device.
++ */
++static bool
++drm_device_is_kms(struct drm_backend *b, struct udev_device *device)
++{
++	const char *filename = udev_device_get_devnode(device);
++	const char *sysnum = udev_device_get_sysnum(device);
++	drmModeRes *res;
++	int id, fd;
++
++	if (!filename)
++		return false;
++
++	fd = weston_launcher_open(b->compositor->launcher, filename, O_RDWR);
++	if (fd < 0)
++		return false;
++
++	res = drmModeGetResources(fd);
++	if (!res)
++		goto out_fd;
++
++	if (res->count_crtcs <= 0 || res->count_connectors <= 0 ||
++	    res->count_encoders <= 0)
++		goto out_res;
++
++	if (sysnum)
++		id = atoi(sysnum);
++	if (!sysnum || id < 0) {
++		weston_log("couldn't get sysnum for device %s\n", filename);
++		goto out_res;
++	}
++
++	/* We can be called successfully on multiple devices; if we have,
++	 * clean up old entries. */
++	if (b->drm.fd >= 0)
++		weston_launcher_close(b->compositor->launcher, b->drm.fd);
++	free(b->drm.filename);
++
++	b->drm.fd = fd;
++	b->drm.id = id;
++	b->drm.filename = strdup(filename);
++
++	return true;
++
++out_res:
++	drmModeFreeResources(res);
++out_fd:
++	weston_launcher_close(b->compositor->launcher, fd);
++	return false;
++}
++
+ /*
+  * Find primary GPU
+  * Some systems may have multiple DRM devices attached to a single seat. This
+  * function loops over all devices and tries to find a PCI device with the
+  * boot_vga sysfs attribute set to 1.
+  * If no such device is found, the first DRM device reported by udev is used.
++ * Devices are also vetted to make sure they are are capable of modesetting,
++ * rather than pure render nodes (GPU with no display), or pure
++ * memory-allocation devices (VGEM).
+  */
+ static struct udev_device*
+ find_primary_gpu(struct drm_backend *b, const char *seat)
+@@ -2962,6 +2997,8 @@ find_primary_gpu(struct drm_backend *b, const char *seat)
+ 	udev_enumerate_scan_devices(e);
+ 	drm_device = NULL;
+ 	udev_list_entry_foreach(entry, udev_enumerate_get_list_entry(e)) {
++		bool is_boot_vga = false;
++
+ 		path = udev_list_entry_get_name(entry);
+ 		device = udev_device_new_from_syspath(b->udev, path);
+ 		if (!device)
+@@ -2978,20 +3015,46 @@ find_primary_gpu(struct drm_backend *b, const char *seat)
+ 								"pci", NULL);
+ 		if (pci) {
+ 			id = udev_device_get_sysattr_value(pci, "boot_vga");
+-			if (id && !strcmp(id, "1")) {
+-				if (drm_device)
+-					udev_device_unref(drm_device);
+-				drm_device = device;
+-				break;
+-			}
++			if (id && !strcmp(id, "1"))
++				is_boot_vga = true;
+ 		}
+ 
+-		if (!drm_device)
+-			drm_device = device;
+-		else
++		/* If we already have a modesetting-capable device, and this
++		 * device isn't our boot-VGA device, we aren't going to use
++		 * it. */
++		if (!is_boot_vga && drm_device) {
++			udev_device_unref(device);
++			continue;
++		}
++
++		/* Make sure this device is actually capable of modesetting;
++		 * if this call succeeds, b->drm.{fd,filename} will be set,
++		 * and any old values freed. */
++		if (!drm_device_is_kms(b, device)) {
+ 			udev_device_unref(device);
++			continue;
++		}
++
++		/* There can only be one boot_vga device, and we try to use it
++		 * at all costs. */
++		if (is_boot_vga) {
++			if (drm_device)
++				udev_device_unref(drm_device);
++			drm_device = device;
++			break;
++		}
++
++		/* Per the (!is_boot_vga && drm_device) test above, we only
++		 * trump existing saved devices with boot-VGA devices, so if
++		 * we end up here, this must be the first device we've seen. */
++		assert(!drm_device);
++		drm_device = device;
+ 	}
+ 
++	/* If we're returning a device to use, we must have an open FD for
++	 * it. */
++	assert(!!drm_device == (b->drm.fd >= 0));
++
+ 	udev_enumerate_unref(e);
+ 	return drm_device;
+ }
+@@ -3194,7 +3257,6 @@ drm_backend_create(struct weston_compositor *compositor,
+ 	struct drm_backend *b;
+ 	struct udev_device *drm_device;
+ 	struct wl_event_loop *loop;
+-	const char *path;
+ 	const char *seat_id = default_seat;
+ 	int ret;
+ 
+@@ -3204,6 +3266,8 @@ drm_backend_create(struct weston_compositor *compositor,
+ 	if (b == NULL)
+ 		return NULL;
+ 
++	b->drm.fd = -1;
++
+ 	/*
+ 	 * KMS support for hardware planes cannot properly synchronize
+ 	 * without nuclear page flip. Without nuclear/atomic, hw plane
+@@ -3247,9 +3311,8 @@ drm_backend_create(struct weston_compositor *compositor,
+ 		weston_log("no drm device found\n");
+ 		goto err_udev;
+ 	}
+-	path = udev_device_get_syspath(drm_device);
+ 
+-	if (init_drm(b, drm_device) < 0) {
++	if (init_kms_caps(b) < 0) {
+ 		weston_log("failed to initialize kms\n");
+ 		goto err_udev_dev;
+ 	}
+@@ -3284,7 +3347,7 @@ drm_backend_create(struct weston_compositor *compositor,
+ 	b->connector = config->connector;
+ 
+ 	if (create_outputs(b, drm_device) < 0) {
+-		weston_log("failed to create output for %s\n", path);
++		weston_log("failed to create output for %s\n", b->drm.filename);
+ 		goto err_udev_input;
+ 	}
+ 
+@@ -3293,8 +3356,6 @@ drm_backend_create(struct weston_compositor *compositor,
+ 	if (!b->cursors_are_broken)
+ 		compositor->capabilities |= WESTON_CAP_CURSOR_PLANE;
+ 
+-	path = NULL;
+-
+ 	loop = wl_display_get_event_loop(compositor->wl_display);
+ 	b->drm_source =
+ 		wl_event_loop_add_fd(loop, b->drm.fd,
+-- 
+2.17.1
+

@@ -1,0 +1,77 @@
+From a06c2791c02b704ee1f1e1eda6cc8da29ed3122f Mon Sep 17 00:00:00 2001
+From: Varad Gautam <varad.gautam@collabora.com>
+Date: Wed, 23 Nov 2016 14:03:19 +0530
+Subject: [PATCH 04/16] gl-renderer: allow importing fourth dmabuf plane
+
+EGL_EXT_image_dma_buf_import_modifiers supports importing upto four dmabuf
+planes into an EGLImage.
+
+v2: correct PLANE3_PITCH token (Daniel Stone)
+
+Signed-off-by: Varad Gautam <varad.gautam@collabora.com>
+Reviewed-by: Daniel Stone <daniels@collabora.com>
+---
+ libweston/gl-renderer.c | 17 ++++++++++++++++-
+ shared/weston-egl-ext.h |  5 +++++
+ 2 files changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
+index 23189a8a..6ae398e3 100644
+--- a/libweston/gl-renderer.c
++++ b/libweston/gl-renderer.c
+@@ -1577,7 +1577,7 @@ import_simple_dmabuf(struct gl_renderer *gr,
+                      struct dmabuf_attributes *attributes)
+ {
+ 	struct egl_image *image;
+-	EGLint attribs[40];
++	EGLint attribs[50];
+ 	int atti = 0;
+ 
+ 	/* This requires the Mesa commit in
+@@ -1640,6 +1640,21 @@ import_simple_dmabuf(struct gl_renderer *gr,
+ 		}
+ 	}
+ 
++	if (gr->has_dmabuf_import_modifiers) {
++		if (attributes->n_planes > 3) {
++			attribs[atti++] = EGL_DMA_BUF_PLANE3_FD_EXT;
++			attribs[atti++] = attributes->fd[3];
++			attribs[atti++] = EGL_DMA_BUF_PLANE3_OFFSET_EXT;
++			attribs[atti++] = attributes->offset[3];
++			attribs[atti++] = EGL_DMA_BUF_PLANE3_PITCH_EXT;
++			attribs[atti++] = attributes->stride[3];
++			attribs[atti++] = EGL_DMA_BUF_PLANE3_MODIFIER_LO_EXT;
++			attribs[atti++] = attributes->modifier[3] & 0xFFFFFFFF;
++			attribs[atti++] = EGL_DMA_BUF_PLANE3_MODIFIER_HI_EXT;
++			attribs[atti++] = attributes->modifier[3] >> 32;
++		}
++	}
++
+ 	attribs[atti++] = EGL_NONE;
+ 
+ 	image = egl_image_create(gr, EGL_LINUX_DMA_BUF_EXT, NULL,
+diff --git a/shared/weston-egl-ext.h b/shared/weston-egl-ext.h
+index 05eca317..ffea438b 100644
+--- a/shared/weston-egl-ext.h
++++ b/shared/weston-egl-ext.h
+@@ -128,12 +128,17 @@ typedef struct wl_buffer * (EGLAPIENTRYP PFNEGLCREATEWAYLANDBUFFERFROMIMAGEWL) (
+ /* Define tokens from EGL_EXT_image_dma_buf_import_modifiers */
+ #ifndef EGL_EXT_image_dma_buf_import_modifiers
+ #define EGL_EXT_image_dma_buf_import_modifiers 1
++#define EGL_DMA_BUF_PLANE3_FD_EXT         0x3440
++#define EGL_DMA_BUF_PLANE3_OFFSET_EXT     0x3441
++#define EGL_DMA_BUF_PLANE3_PITCH_EXT      0x3442
+ #define EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT 0x3443
+ #define EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT 0x3444
+ #define EGL_DMA_BUF_PLANE1_MODIFIER_LO_EXT 0x3445
+ #define EGL_DMA_BUF_PLANE1_MODIFIER_HI_EXT 0x3446
+ #define EGL_DMA_BUF_PLANE2_MODIFIER_LO_EXT 0x3447
+ #define EGL_DMA_BUF_PLANE2_MODIFIER_HI_EXT 0x3448
++#define EGL_DMA_BUF_PLANE3_MODIFIER_LO_EXT 0x3449
++#define EGL_DMA_BUF_PLANE3_MODIFIER_HI_EXT 0x344A
+ typedef EGLBoolean (EGLAPIENTRYP PFNEGLQUERYDMABUFFORMATSEXTPROC) (EGLDisplay dpy, EGLint max_formats, EGLint *formats, EGLint *num_formats);
+ typedef EGLBoolean (EGLAPIENTRYP PFNEGLQUERYDMABUFMODIFIERSEXTPROC) (EGLDisplay dpy, EGLint format, EGLint max_modifiers, EGLuint64KHR *modifiers, EGLBoolean *external_only, EGLint *num_modifiers);
+ #endif
+-- 
+2.17.1
+
