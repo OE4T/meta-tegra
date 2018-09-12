@@ -27,6 +27,3 @@ do_install_append_tegra() {
 }
 FILES_${PN} += "${sysconfdir}/default/weston"
 RDEPENDS_${PN} += "egl-wayland"
-
-DEPENDS += "gdb-cross-${TARGET_ARCH}"
-CFLAGS += "-O0"
