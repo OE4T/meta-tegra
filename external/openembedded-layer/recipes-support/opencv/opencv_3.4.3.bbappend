@@ -1,7 +1,8 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-3.3:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/opencv-3.4.3:"
 
-SRC_URI += "file://0001-Merge-pull-request-9418-from-borisfom-cuda9.patch \
-            file://0001-Addressing-CUDA9-shfl-deprecation.patch"
+SRC_URI += "\
+    file://0001-samples-eliminate-cvconfig.h-usage.patch \
+"
 
 CXXFLAGS += "-std=c++11"
 CUDA_NVCC_EXTRA_FLAGS = "-std=c++11 --expt-relaxed-constexpr"
