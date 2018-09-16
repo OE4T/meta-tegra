@@ -1,0 +1,424 @@
+From 966d79d55f13d5cb762c9912703dee61e32473d2 Mon Sep 17 00:00:00 2001
+From: "Miguel A. Vico" <mvicomoya@nvidia.com>
+Date: Thu, 18 May 2017 14:35:36 -0700
+Subject: [PATCH 06/10] compositor: Process stream attach requests with
+ wl_eglstream_controller
+
+So far, the EGLStream implementation of the Wayland client-side driver
+has been using wl_surface_attach + commit in order to make the server
+create its stream endpoint and attach a consumer to it.
+
+However, no actual buffer would be actually shared between client and
+server, which goes against many of the assumptions behind
+wl_surface_attach + commit.
+
+This has caused different interaction issues in the past.
+
+In order to properly resolve this once and for all, a new
+wl_eglstream_controller protocol has been added which will let clients
+request the compositor to create its stream.
+
+This change adds the required code for weston to create a
+wl_eglstream_controller global and process attach_eglstream_consumer
+requests.
+
+[mvicomoya: - Dynamically load libnvidia-egl-wayland.so.1 instead linking
+              against it
+            - add a copy of wayland-eglstream-controller protocol, and
+              generate the server header at build time]
+
+Signed-off-by: Ashutosh Agarwal <asagarwal@nvidia.com>
+Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
+---
+ Makefile.am                               |   5 +
+ libweston/compositor.c                    |  78 ++++++++++++
+ libweston/compositor.h                    |   4 +
+ libweston/gl-renderer.c                   | 147 ++++++++++++++--------
+ protocol/wayland-eglstream-controller.xml |  37 ++++++
+ 5 files changed, 217 insertions(+), 54 deletions(-)
+ create mode 100644 protocol/wayland-eglstream-controller.xml
+
+diff --git a/Makefile.am b/Makefile.am
+index 83bb2533..3b8fe631 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -173,6 +173,11 @@ nodist_libweston_@LIBWESTON_MAJOR@_la_SOURCES =				\
+ 
+ BUILT_SOURCES += $(nodist_libweston_@LIBWESTON_MAJOR@_la_SOURCES)
+ 
++nodist_libweston_eglstreams_@LIBWESTON_MAJOR@_la_SOURCES =		\
++	protocol/wayland-eglstream-controller-server-protocol.h
++
++BUILT_SOURCES += $(nodist_libweston_eglstreams_@LIBWESTON_MAJOR@_la_SOURCES)
++
+ bin_PROGRAMS += weston
+ 
+ weston_LDFLAGS = -export-dynamic
+diff --git a/libweston/compositor.c b/libweston/compositor.c
+index 9deb7817..a2941788 100644
+--- a/libweston/compositor.c
++++ b/libweston/compositor.c
+@@ -3,6 +3,7 @@
+  * Copyright © 2008-2011 Kristian Høgsberg
+  * Copyright © 2012-2018 Collabora, Ltd.
+  * Copyright © 2017, 2018 General Electric Company
++ * Copyright © 2017-2018 NVIDIA Corporation
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining
+  * a copy of this software and associated documentation files (the
+@@ -64,6 +65,7 @@
+ #include "git-version.h"
+ #include "version.h"
+ #include "plugin-registry.h"
++#include "wayland-eglstream-controller-server-protocol.h"
+ 
+ #define DEFAULT_REPAINT_WINDOW 7 /* milliseconds */
+ 
+@@ -6246,6 +6248,80 @@ bind_presentation(struct wl_client *client,
+ 	wp_presentation_send_clock_id(resource, compositor->presentation_clock);
+ }
+ 
++static struct wl_interface *eglstream_controller_interface = NULL;
++
++static void
++attach_eglstream_consumer(struct wl_client *client,
++			  struct wl_resource *resource,
++			  struct wl_resource *wl_surface,
++			  struct wl_resource *wl_eglstream)
++{
++	struct weston_surface *surface =
++		wl_resource_get_user_data(wl_surface);
++
++	surface->compositor->renderer->attach_eglstream_consumer(surface,
++								 wl_eglstream);
++}
++
++static const struct wl_eglstream_controller_interface
++eglstream_controller_implementation = {
++	attach_eglstream_consumer
++};
++
++static void
++bind_eglstream_controller(struct wl_client *client,
++			  void *data, uint32_t version, uint32_t id)
++{
++	struct wl_resource *resource;
++
++	resource = wl_resource_create(client, eglstream_controller_interface,
++				      version, id);
++
++	if (resource == NULL) {
++		wl_client_post_no_memory(client);
++		return;
++	}
++	wl_resource_set_implementation(resource,
++				       &eglstream_controller_implementation,
++				       data,
++				       NULL);
++}
++
++static void
++init_eglstream_controller(struct wl_display *display)
++{
++	/*
++	 * wl_eglstream_controller_interface is provided by
++	 * libnvidia-egl-wayland.so.1
++	 *
++	 * Since it might not be available on the
++	 * system, dynamically load it at runtime and resolve the needed
++	 * symbols. If available, it should be found under any of the search
++	 * directories of dlopen()
++	 *
++	 * Failure to initialize wl_eglstream_controller is non-fatal
++	 */
++
++	void *lib = dlopen("libnvidia-egl-wayland.so.1", RTLD_NOW | RTLD_LAZY);
++	if (!lib)
++		goto fail;
++
++	eglstream_controller_interface =
++		dlsym(lib, "wl_eglstream_controller_interface");
++
++	if (!eglstream_controller_interface)
++		goto fail;
++
++	if (wl_global_create(display,
++			     eglstream_controller_interface, 1,
++			     NULL, bind_eglstream_controller))
++		return; /* success */
++fail:
++	if (lib)
++		dlclose(lib);
++	weston_log("warning: Unable to initialize wl_eglstream_controller.\n");
++}
++
+ static void
+ compositor_bind(struct wl_client *client,
+ 		void *data, uint32_t version, uint32_t id)
+@@ -6361,6 +6437,8 @@ weston_compositor_create(struct wl_display *display, void *user_data)
+ 			      ec, bind_presentation))
+ 		goto fail;
+ 
++	init_eglstream_controller(ec->wl_display);
++
+ 	if (weston_input_init(ec) != 0)
+ 		goto fail;
+ 
+diff --git a/libweston/compositor.h b/libweston/compositor.h
+index 8b7a1020..2edce664 100644
+--- a/libweston/compositor.h
++++ b/libweston/compositor.h
+@@ -924,6 +924,10 @@ struct weston_renderer {
+ 	void (*query_dmabuf_modifiers)(struct weston_compositor *ec,
+ 				int format, uint64_t **modifiers,
+ 				int *num_modifiers);
++
++	/** Create weston endpoint of an EGLStream & attach a consumer to it */
++	bool (*attach_eglstream_consumer)(struct weston_surface *es,
++					  struct wl_resource *wl_eglstream);
+ };
+ 
+ enum weston_capability {
+diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
+index 39e33350..c89c7965 100644
+--- a/libweston/gl-renderer.c
++++ b/libweston/gl-renderer.c
+@@ -1,7 +1,7 @@
+ /*
+  * Copyright © 2012 Intel Corporation
+  * Copyright © 2015 Collabora, Ltd.
+- * Copyright © 2016 NVIDIA Corporation
++ * Copyright © 2016-2017 NVIDIA Corporation
+  *
+  * Permission is hereby granted, free of charge, to any person obtaining
+  * a copy of this software and associated documentation files (the
+@@ -2371,18 +2371,9 @@ gl_renderer_attach_dmabuf(struct weston_surface *surface,
+ 	gs->y_inverted = buffer->y_inverted;
+ }
+ 
+-/*
+- * gl_renderer_attach_stream_texture
+- *
+- * Try to bind given <buffer> to an EGLStream. If the given buffer was already
+- * bound, it will acquire next frame on the stream.
+- *
+- * Return true if the given <buffer> corresponds to an EGLStream; otherwise,
+- * return false (if might be another kind of buffer).
+- */
+-static bool
+-gl_renderer_attach_stream_texture(struct weston_surface *es,
+-				  struct weston_buffer *buffer)
++static EGLint
++gl_renderer_attach_eglstream_consumer_common(struct weston_surface *es,
++					     struct wl_resource *wl_eglstream)
+ {
+ #ifdef EGL_NV_stream_attrib
+ 	struct weston_compositor *ec = es->compositor;
+@@ -2391,65 +2382,111 @@ gl_renderer_attach_stream_texture(struct weston_surface *es,
+ 	EGLStreamKHR stream = EGL_NO_STREAM_KHR;
+ 	EGLAttrib stream_attribs[] = {
+ #ifdef EGL_WL_wayland_eglstream
+-		EGL_WAYLAND_EGLSTREAM_WL, (EGLAttrib)buffer->resource,
++		EGL_WAYLAND_EGLSTREAM_WL, (EGLAttrib)wl_eglstream,
+ #endif
+ 		EGL_NONE
+ 	};
+-	EGLint stream_state = EGL_STREAM_STATE_EMPTY_KHR;
+ 
+ 	/* Check for required extensions. If they arent supported, there's no
+-	 * way the given buffer corresponds to an EGLStream */
++	 *  way the given resource corresponds to an EGLStream */
+ 	if (!gr->has_egl_stream_attrib ||
+ 	    !gr->has_egl_stream_consumer_gltexture ||
+ 	    !gr->has_egl_wayland_eglstream)
+-		return false;
++		return EGL_BAD_ACCESS;
+ 
+ 	stream = gr->create_stream_attrib(gr->egl_display, stream_attribs);
+-	if (stream == EGL_NO_STREAM_KHR) {
++
++	if (stream == EGL_NO_STREAM_KHR)
++		return eglGetError();
++
++	if (gs->egl_stream != EGL_NO_STREAM_KHR)
++		gr->destroy_stream(gr->egl_display, gs->egl_stream);
++
++	gs->egl_stream = stream;
++	gs->shader = &gr->texture_shader_egl_external;
++	gs->target = GL_TEXTURE_EXTERNAL_OES;
++
++	glActiveTexture(GL_TEXTURE0);
++	ensure_textures(gs, 2);
++	glBindTexture(gs->target, gs->textures[1]);
++
++	gs->new_stream = (gr->stream_consumer_gltexture(
++					gr->egl_display,
++					gs->egl_stream) == EGL_TRUE);
++
++	if (!gs->new_stream) {
+ 		EGLint err = eglGetError();
+ 
+-		switch (err) {
+-		case EGL_BAD_ACCESS:
+-			/* EGL_BAD_ACCESS is generated whenever buffer->resource
+-			 * does not corresponds to a stream */
+-			return false;
++		weston_log("failed to set stream consumer\n");
++		weston_log("EGL error state: %s (0x%04lx)\n",
++			   egl_error_string(err), (long)err);
+ 
+-		case EGL_BAD_STREAM_KHR:
+-			/* EGL_BAD_STREAM_KHR is generated whenever
+-			 * buffer->resource corresponds to a previously created
+-			 * stream so we must have a valid stream handle already
+-			 * we can use to acquire next frame */
+-			break;
++		gr->destroy_stream(gr->egl_display, gs->egl_stream);
++		gs->egl_stream = EGL_NO_STREAM_KHR;
++		return err;
++	}
+ 
+-		default:
+-			/* An unknown error was generated */
+-			assert(0);
+-			return false;
+-		}
+-	} else {
+-		/* Clean up current stream resources if needed */
+-		if (gs->egl_stream != EGL_NO_STREAM_KHR)
+-			gr->destroy_stream(gr->egl_display, gs->egl_stream);
++	return EGL_SUCCESS;
++#else
++	return EGL_BAD_ACCESS;
++#endif
++}
+ 
+-		gs->egl_stream = stream;
+-		gs->shader = &gr->texture_shader_egl_external;
+-		gs->target = GL_TEXTURE_EXTERNAL_OES;
++static bool
++gl_renderer_attach_eglstream_consumer(struct weston_surface *es,
++				      struct wl_resource *stream)
++{
++	EGLint err = gl_renderer_attach_eglstream_consumer_common(es, stream);
++	return (err == EGL_SUCCESS);
++}
++
++/*
++ * gl_renderer_attach_stream_texture
++ *
++ * Try to bind given <buffer> to an EGLStream. If the given buffer was already
++ * bound, it will acquire next frame on the stream.
++ *
++ * Return true if the given <buffer> corresponds to an EGLStream; otherwise,
++ * return false (if might be another kind of buffer).
++ */
++static bool
++gl_renderer_attach_stream_texture(struct weston_surface *es,
++				  struct weston_buffer *buffer)
++{
++#ifdef EGL_NV_stream_attrib
++	struct weston_compositor *ec = es->compositor;
++	struct gl_renderer *gr = get_renderer(ec);
++	struct gl_surface_state *gs = get_surface_state(es);
++	EGLint stream_state = EGL_STREAM_STATE_EMPTY_KHR;
+ 
+-		glActiveTexture(GL_TEXTURE0);
+-		ensure_textures(gs, 2);
+-		glBindTexture(gs->target, gs->textures[1]);
++	EGLint err;
+ 
+-		gs->new_stream = (gr->stream_consumer_gltexture(
+-						gr->egl_display,
+-						gs->egl_stream) == EGL_TRUE);
++	err = gl_renderer_attach_eglstream_consumer_common(es, buffer->resource);
+ 
+-		if (!gs->new_stream) {
+-			weston_log("failed to set stream consumer\n");
+-			gl_renderer_print_egl_error_state();
+-			gr->destroy_stream(gr->egl_display, gs->egl_stream);
+-			gs->egl_stream = EGL_NO_STREAM_KHR;
+-			return true; /* buffer->resource is EGLStream */
+-		}
++	switch (err) {
++	case EGL_BAD_ACCESS:
++		/* EGL_BAD_ACCESS is generated whenever buffer->resource
++		 * does not corresponds to a stream */
++		return false;
++
++	case EGL_BAD_STREAM_KHR:
++		/* EGL_BAD_STREAM_KHR is generated whenever
++		 * buffer->resource corresponds to a previously created
++		 * stream so we must have a valid stream handle already
++		 * we can use to acquire next frame */
++		break;
++
++	case EGL_SUCCESS:
++		/* EGL_SUCCESS is returned when the server stream endpoint is
++		 * created and a consumer is attached successfully. This path is
++		 * hit with old drivers which use wl_surface::attach + commit to
++		 * request stream creation. */
++		return true; /* buffer->resource is EGLStream */
++
++	default:
++		/* An unknown error was generated */
++		assert(0);
++		return false;
+ 	}
+ 
+ 	/* At this point we should have a valid stream handle */
+@@ -3831,6 +3868,8 @@ gl_renderer_display_create(struct weston_compositor *ec, EGLenum platform,
+ 	gr->base.surface_get_content_size =
+ 		gl_renderer_surface_get_content_size;
+ 	gr->base.surface_copy_content = gl_renderer_surface_copy_content;
++	gr->base.attach_eglstream_consumer =
++		gl_renderer_attach_eglstream_consumer;
+ 	gr->egl_display = NULL;
+ 
+ 	/* extension_suffix is supported */
+diff --git a/protocol/wayland-eglstream-controller.xml b/protocol/wayland-eglstream-controller.xml
+new file mode 100644
+index 00000000..dea072e6
+--- /dev/null
++++ b/protocol/wayland-eglstream-controller.xml
+@@ -0,0 +1,37 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<protocol name="wl_eglstream_controller">
++  <copyright>
++    Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved.
++
++    Permission is hereby granted, free of charge, to any person obtaining a
++    copy of this software and associated documentation files (the "Software"),
++    to deal in the Software without restriction, including without limitation
++    the rights to use, copy, modify, merge, publish, distribute, sublicense,
++    and/or sell copies of the Software, and to permit persons to whom the
++    Software is furnished to do so, subject to the following conditions:
++
++    The above copyright notice and this permission notice shall be included in
++    all copies or substantial portions of the Software.
++
++    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
++    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
++    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
++    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
++    DEALINGS IN THE SOFTWARE.
++  </copyright>
++  <interface name="wl_eglstream_controller" version="1">
++    <request name="attach_eglstream_consumer">
++      <description summary="Create server stream and attach consumer">
++        Creates the corresponding server side EGLStream from the given wl_buffer
++        and attaches a consumer to it.
++      </description>
++      <arg name="wl_surface" type="object" interface="wl_surface"
++        summary="wl_surface corresponds to the client surface associated with
++        newly created eglstream"/>
++      <arg name="wl_resource" type="object" interface="wl_buffer"
++        summary="wl_resource corresponding to an EGLStream"/>
++    </request>
++  </interface>
++</protocol>
+-- 
+2.17.1
+
