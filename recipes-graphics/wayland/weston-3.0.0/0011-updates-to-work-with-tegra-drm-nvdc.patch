@@ -1,15 +1,19 @@
-From 3bd19eafda9f791f81f19cf61385fab2c8f13d21 Mon Sep 17 00:00:00 2001
+From 7e32ec6fe41ae937aa2449ec9aeaab3704e3a414 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Sun, 9 Sep 2018 08:30:19 -0700
+Date: Wed, 19 Sep 2018 03:56:18 -0700
 Subject: [PATCH 11/11] updates to work with tegra drm-nvdc
 
+- double-free SIGABRT in NVIDIA library if you call
+  drmModeRmFB, so avoid that
+- only apply modesets when really needed
+- close EGL on DPMS off and re-initialize on DPMS ON
 ---
- libweston/compositor-drm.c | 14 +++++++++-----
- shared/weston-egl-ext.h    |  4 ----
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ libweston/compositor-drm.c | 54 +++++++++++++++++++++++++++++++++-----
+ shared/weston-egl-ext.h    |  4 ---
+ 2 files changed, 47 insertions(+), 11 deletions(-)
 
 diff --git a/libweston/compositor-drm.c b/libweston/compositor-drm.c
-index b7bd0d7d..15b77512 100644
+index b7bd0d7d..e705443a 100644
 --- a/libweston/compositor-drm.c
 +++ b/libweston/compositor-drm.c
 @@ -118,6 +118,7 @@ struct drm_backend {
@@ -20,7 +24,24 @@ index b7bd0d7d..15b77512 100644
  
  	struct udev_input input;
  
-@@ -485,8 +486,8 @@ drm_fb_create_dumb(struct drm_backend *b, int width, int height,
+@@ -232,6 +233,7 @@ struct drm_output {
+ 	int page_flip_pending;
+ 	int destroy_pending;
+ 	int disable_pending;
++	int dpms_off_pending;
+ 
+ 	struct drm_fb *gbm_cursor_fb[2];
+ 	struct weston_plane cursor_plane;
+@@ -371,7 +373,7 @@ drm_output_find_by_connector(struct drm_backend *b, uint32_t connector_id)
+ static void
+ drm_fb_destroy(struct drm_fb *fb)
+ {
+-	if (fb->fb_id != 0)
++	if (fb->fb_id != 0 && !fb->nounmap)
+ 		drmModeRmFB(fb->fd, fb->fb_id);
+ 	weston_buffer_reference(&fb->buffer_ref, NULL);
+ 	free(fb);
+@@ -485,8 +487,8 @@ drm_fb_create_dumb(struct drm_backend *b, int width, int height,
  	if (ret)
  		goto err_add_fb;
  
@@ -31,7 +52,7 @@ index b7bd0d7d..15b77512 100644
  		fb->nounmap = true;
  	} else {
  		fb->map = mmap(NULL, fb->size, PROT_WRITE,
-@@ -898,8 +899,8 @@ drm_output_repaint(struct weston_output *output_base,
+@@ -898,8 +900,8 @@ drm_output_repaint(struct weston_output *output_base,
  		return -1;
  
  	mode = container_of(output->base.current_mode, struct drm_mode, base);
@@ -42,7 +63,19 @@ index b7bd0d7d..15b77512 100644
  		ret = drmModeSetCrtc(backend->drm.fd, output->crtc_id,
  				     output->fb_pending->fb_id, 0, 0,
  				     &output->connector_id, 1,
-@@ -1752,6 +1753,8 @@ init_kms_caps(struct drm_backend *b)
+@@ -1188,6 +1190,11 @@ page_flip_handler(int fd, unsigned int frame,
+ 		if (output->recorder)
+ 			weston_output_schedule_repaint(&output->base);
+ 	}
++
++	if (output->dpms_off_pending) {
++		output->dpms_off_pending = 0;
++		output->base.set_dpms(&output->base, WESTON_DPMS_OFF);
++	}
+ }
+ 
+ static uint32_t
+@@ -1752,6 +1759,8 @@ init_kms_caps(struct drm_backend *b)
  
  	weston_log("using %s\n", b->drm.filename);
  
@@ -51,7 +84,7 @@ index b7bd0d7d..15b77512 100644
  	ret = drmGetCap(b->drm.fd, DRM_CAP_TIMESTAMP_MONOTONIC, &cap);
  	if (ret == 0 && cap == 1)
  		clk_id = CLOCK_MONOTONIC;
-@@ -1858,7 +1861,9 @@ drm_backend_create_gl_renderer(struct drm_backend *b)
+@@ -1858,7 +1867,9 @@ drm_backend_create_gl_renderer(struct drm_backend *b)
  {
  	if (b->use_egldevice) {
  		EGLint device_platform_attribs[] = {
@@ -61,7 +94,47 @@ index b7bd0d7d..15b77512 100644
  			EGL_NONE
  		};
  
-@@ -2210,7 +2215,6 @@ drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
+@@ -2054,8 +2065,38 @@ drm_set_dpms(struct weston_output *output_base, enum dpms_enum level)
+ 	struct drm_backend *b = to_drm_backend(ec);
+ 	int ret;
+ 
+-	if (!output->dpms_prop)
++	if (!output->dpms_prop && !b->is_nvdc)
++		return;
++
++	if (b->is_nvdc) {
++		if (level == WESTON_DPMS_OFF) {
++			if (output->page_flip_pending) {
++				output->dpms_off_pending = 1;
++				return;
++			}
++			ret = drmModeSetCrtc(b->drm.fd, output->crtc_id, 0, 0, 0,
++					     NULL, 0, NULL);
++			drm_fb_unref(output->fb_current);
++			output->fb_current = NULL;
++			drm_output_fini_egl(output);
++		} else {
++			struct drm_mode *mode = container_of(output->base.current_mode,
++							     struct drm_mode, base);
++			ret = drm_output_init_egl(output, b);
++			if (!ret)
++				ret = drmModeSetCrtc(b->drm.fd, output->crtc_id,
++						     output->dumb[0]->fb_id, 0, 0,
++						     &output->connector_id, 1,
++						     &mode->mode_info);
++		}
++		if (ret) {
++			weston_log("DRM: failed to change DPMS state for %s\n",
++				   output->base.name);
++			return;
++		}
++		output->dpms = level;
+ 		return;
++	}
+ 
+ 	ret = drmModeConnectorSetProperty(b->drm.fd, output->connector_id,
+ 				 	  output->dpms_prop->prop_id, level);
+@@ -2210,7 +2251,6 @@ drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
  			return -1;
  		}
  		memset(output->dumb[0]->map, 0, output->dumb[0]->size);
