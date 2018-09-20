@@ -2,10 +2,10 @@
 
 SOC_FAMILY = "tegra124"
 
+DEFAULTTUNE ?= "cortexa15thf-neon-vfpv4"
+
 require conf/machine/include/soc-family.inc
 require conf/machine/include/tune-cortexa15.inc
-
-DEFAULTTUNE = "cortexa15hf-neon"
 
 KERNEL_IMAGETYPE = "zImage"
 
