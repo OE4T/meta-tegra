@@ -1,0 +1,12 @@
+[Unit]
+Description=NVIDIA Argus daemon
+After=local-fs.target network.target nvpmodel.service
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/nvargus-daemon
+StandardOutput=journal
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

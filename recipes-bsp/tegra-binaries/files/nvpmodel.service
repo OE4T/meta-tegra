@@ -1,5 +1,8 @@
 [Unit]
 Description=NVIDIA power model daemon
+Requires=nvstartup.service
+After=nvstartup.service
+Before=graphical.target
 
 [Service]
 Type=oneshot
