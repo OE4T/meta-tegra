@@ -8,7 +8,7 @@ IMAGE_UBOOT ??= "u-boot"
 INITRD_IMAGE ??= ""
 KERNEL_ARGS ??= ""
 
-DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', True).split()[0])}"
+DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${INITRD_IMAGE}-${MACHINE}.cboot'}"
 LNXSIZE ?= "67108864"
 
@@ -154,6 +154,34 @@ tegraflash_create_flash_config_tegra186() {
         > $destdir/flash.xml.in
 }
 
+tegraflash_create_flash_config_tegra194() {
+    local destdir="$1"
+
+    # The following sed expression are derived from xxx_TAG variables
+    # in the L4T flash.sh script.  Tegra194-specific.
+    # Note that the blank before DTB_FILE is important, to
+    # prevent BPFDTB_FILE from being matched.
+    cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
+        -e"s,LNXFILE,${LNXFILE}," -e"s,LNXSIZE,${LNXSIZE}," \
+        -e"s,TEGRABOOT,nvtboot_t194.bin," \
+        -e"s,MTSPREBOOT,preboot_c10_prod_cr.bin," \
+        -e"s,MTS_MCE,mce_c10_prod_cr.bin," \
+        -e"s,MTSPROPER,mts_c10_prod_cr.bin," \
+        -e"s,MB1FILE,mb1_t194_prod.bin," \
+        -e"s,BPFFILE,bpmp_t194.bin," \
+        -e"s,TBCFILE,cboot_t194.bin," \
+        -e"s,TBCDTB-FILE,${DTBFILE}," \
+        -e"s,CAMERAFW,camera-rtcpu-rce.bin," \
+        -e"s,SPEFILE,spe_t194.bin," \
+        -e"s,WB0BOOT,warmboot_t194_prod.bin," \
+        -e"s,TOSFILE,tos_t194.img," \
+        -e"s,EKSFILE,eks.img," \
+	-e"s, DTB_FILE, ${DTBFILE}," \
+	-e"s,CBOOTOPTION_FILE,cbo.dtb," \
+	-e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        > flash.xml.in
+}
+
 BOOTFILES = ""
 BOOTFILES_tegra210 = "\
     board_config_${MACHINE}.xml \
@@ -185,6 +213,30 @@ BOOTFILES_tegra186 = "\
     minimal_scr.cfg \
     mobile_scr.cfg \
     emmc.cfg \
+"
+
+BOOTFILES_tegra194 = "\
+    bmp.blob \
+    bpmp_t194.bin \
+    camera-rtcpu-rce.bin \
+    cboot_t194.bin \
+    eks.img \
+    mb1_t194_prod.bin \
+    nvtboot_applet_t194.bin \
+    nvtboot_t194.bin \
+    preboot_c10_prod_cr.bin \
+    mce_c10_prod_cr.bin \
+    mts_c10_prod_cr.bin \
+    nvtboot_cpu_t194.bin \
+    nvtboot_recovery_t194.bin \
+    nvtboot_recovery_cpu_t194.bin \
+    preboot_d15_prod_cr.bin \
+    slot_metadata.bin \
+    spe_t194.bin \
+    tos_t194.img \
+    warmboot_t194_prod.bin \
+    xusb_sil_rel_fw \
+    cbo.dtb \
 "
 
 create_tegraflash_pkg() {
@@ -313,6 +365,44 @@ create_tegraflash_pkg_tegra186() {
 #!/bin/sh
 PATH=\$PATH:tegra186-flash
 ./tegra186-flash/tegra186-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA}
+END
+    chmod +x doflash.sh
+    tegraflash_custom_post
+    rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip
+    zip -r ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip .
+    ln -sf ${IMAGE_NAME}.tegraflash.zip ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.tegraflash.zip
+    cd $oldwd
+}
+
+create_tegraflash_pkg_tegra194() {
+    local f
+    PATH="${STAGING_BINDIR_NATIVE}/tegra186-flash:${PATH}"
+    rm -rf "${WORKDIR}/tegraflash"
+    mkdir -p "${WORKDIR}/tegraflash"
+    oldwd=`pwd`
+    cd "${WORKDIR}/tegraflash"
+    ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
+    ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
+    ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
+    ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    for f in ${BOOTFILES}; do
+        ln -s "${STAGING_DATADIR}/tegraflash/$f" .
+    done
+    for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
+	ln -s $f .
+    done
+    for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
+	ln -s $f .
+    done
+    ln -s ${STAGING_BINDIR_NATIVE}/tegra186-flash .
+    tegraflash_custom_pre
+    mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
+    tegraflash_create_flash_config "${WORKDIR}/tegraflash"
+    rm -f doflash.sh
+    cat > doflash.sh <<END
+#!/bin/sh
+PATH=\$PATH:tegra186-flash
+./tegra186-flash/tegra194-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA}
 END
     chmod +x doflash.sh
     tegraflash_custom_post
