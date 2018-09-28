@@ -2,7 +2,7 @@ LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=2cc00be68c1227a7c42ff3620ef75d05 \
                     file://nv_tegra/LICENSE.brcm_patchram_plus;md5=38fb07f0dacf4830bc57f40a0fb7532e"
 
-SRC_URI = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t_prerel/4.0/m39xww/beta40/JetPackL4T_40_b186/Jetson_Linux_R${PV}_aarch64.tbz2"
+SRC_URI = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t_prerel/4.0/m39xww/beta40/JetPackL4T_40_b190/Jetson_Linux_R${PV}_aarch64.tbz2"
 SRC_URI[md5sum] = "84c7a07f232ec66e70a0fbc762a915a6"
 SRC_URI[sha256sum] = "807d9aece3009d048bf24f4ac6cacd645a5e69cf6926abafd0d9973ce0a13bef"
 
