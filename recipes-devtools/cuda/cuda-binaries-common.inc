@@ -29,9 +29,11 @@ deltask do_package_qa
 deltask do_packagedata
 deltask do_rm_work
 
+CUDA_REPO_EXTRA ??= ""
+
 do_preconfigure() {
     CUDA_VERSION_DASHED=$(echo ${CUDA_VERSION} | sed s/\\./-/g)
-    dpkg-deb --extract ${S}/var/cuda-repo-${CUDA_VERSION_DASHED}-local/cuda-license-${CUDA_VERSION_DASHED}_${PV}_${DEB_PKG_EXTENSION}.deb ${S}
+    dpkg-deb --extract ${S}/var/cuda-repo-${CUDA_VERSION_DASHED}-local${CUDA_REPO_EXTRA}/cuda-license-${CUDA_VERSION_DASHED}_${PV}_${DEB_PKG_EXTENSION}.deb ${S}
 }
 do_preconfigure[depends] += "dpkg-native:do_populate_sysroot"
 addtask preconfigure after do_patch
