@@ -24,7 +24,7 @@ do_install_append_tegra186() {
     install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda.conf ${D}${datadir}/alsa/cards/
 }
 do_install_append_tegra194() {
-    install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda-galen.conf ${D}${datadir}/alsa/cards/tegra-hda.conf
+    install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda-galen.conf ${D}${datadir}/alsa/cards/
 }
 
 FILES_${PN} = "${sysconfdir} ${datadir}/alsa"

@@ -16,7 +16,7 @@ IMAGE_CLASSES_append = " image_types_cboot"
 INITRD_FSTYPES ?= "cpio.gz.cboot"
 IMAGE_UBOOT ?= ""
 
-TEGRA_AUDIO_DEVICE ?= "tegrahda"
+TEGRA_AUDIO_DEVICE ?= "tegrahdat194ref"
 
 SERIAL_CONSOLE = "115200 ttyTCU0"
 
