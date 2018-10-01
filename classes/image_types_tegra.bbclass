@@ -6,7 +6,6 @@ IMAGE_ROOTFS_ALIGNMENT ?= "4"
 
 IMAGE_UBOOT ??= "u-boot"
 INITRD_IMAGE ??= ""
-KERNEL_ARGS ??= ""
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${INITRD_IMAGE}-${MACHINE}.cboot'}"
@@ -194,6 +193,7 @@ BOOTFILES_tegra210 = "\
     tos.img \
 "
 BOOTFILES_tegra186 = "\
+    adsp-fw.bin \
     bmp.blob \
     bpmp.bin \
     camera-rtcpu-sce.bin \
@@ -419,6 +419,8 @@ do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_po
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''}"
+				 ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else ''} \
+                                 ${@d.expand('${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic') if d.getVar('IMAGE_UBOOT') != '' else  ''}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 
 oe_make_bup_payload() {

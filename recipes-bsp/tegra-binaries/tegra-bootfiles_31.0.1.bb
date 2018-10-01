@@ -13,6 +13,7 @@ SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
 CBOOTOPTION_FILE ?= "${S}/bootloader/cbo.dts"
 
 BOOTBINS_tegra186 = "\
+    adsp-fw.bin \
     bmp.blob \
     bpmp.bin \
     camera-rtcpu-sce.bin \
