@@ -3,8 +3,8 @@ LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=2cc00be68c1227a7c42ff3620ef75d05
                     file://nv_tegra/LICENSE.brcm_patchram_plus;md5=38fb07f0dacf4830bc57f40a0fb7532e"
 
 SRC_URI = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t_prerel/4.0/m39xww/beta40/JetPackL4T_40_b190/Jetson_Linux_R${PV}_aarch64.tbz2"
-SRC_URI[md5sum] = "84c7a07f232ec66e70a0fbc762a915a6"
-SRC_URI[sha256sum] = "807d9aece3009d048bf24f4ac6cacd645a5e69cf6926abafd0d9973ce0a13bef"
+SRC_URI[md5sum] = "6a68a562af159cb932c5841a785e0c91"
+SRC_URI[sha256sum] = "496ec9b79d45f6ea0b9dceb8349432d382cd6db372f508267ffa9d519b2205ac"
 
 SRC_URI += "\
     file://nvargus-daemon.init \
