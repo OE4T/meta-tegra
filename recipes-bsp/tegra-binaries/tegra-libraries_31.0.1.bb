@@ -32,9 +32,9 @@ do_install() {
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so.1
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so
     rm -f ${D}${libdir}/libdrm*
-    # argus libraries have a hard-coded path for this
-    install -d ${D}${nonarch_libdir}/aarch64-linux-gnu/tegra-egl
-    ln -sf ${libdir}/libEGL.so.1 ${D}${nonarch_libdir}/aarch64-linux-gnu/tegra-egl/libEGL.so
+    # argus and scf libraries hard-coded to use this path
+    install -d ${D}/usr/lib/aarch64-linux-gnu/tegra-egl
+    ln -sf ${libdir}/libEGL_nvidia.so.0 ${D}/usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0
     install -d ${D}${sbindir}
     install -m755 ${B}/usr/sbin/nvargus-daemon ${D}${sbindir}/
     install -d ${D}${sysconfdir}/init.d
