@@ -31,7 +31,7 @@ do_install() {
     ln -sf libnvbuf_utils.so.1.0.0 ${D}${libdir}/libnvbuf_utils.so
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so.1
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so
-    rm -f ${D}${libdir}/libdrm* ${D}${libdir}/libnvphs*
+    rm -f ${D}${libdir}/libdrm* ${D}${libdir}/libnvphsd*
     # argus and scf libraries hard-coded to use this path
     install -d ${D}/usr/lib/aarch64-linux-gnu/tegra-egl
     ln -sf ${libdir}/libEGL_nvidia.so.0 ${D}/usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0
