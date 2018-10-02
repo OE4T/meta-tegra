@@ -9,7 +9,7 @@ KERNEL_IMAGETYPE = "Image"
 
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image"
-MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-configs-nvstartup tegra-configs-udev"
+MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-configs-nvstartup tegra-configs-udev"
 
 INITRD_IMAGE ?=	"tegra186-minimal-initramfs"
 IMAGE_CLASSES_append = " image_types_cboot"
