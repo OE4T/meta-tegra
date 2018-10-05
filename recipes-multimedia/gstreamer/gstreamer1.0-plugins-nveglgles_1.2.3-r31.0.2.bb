@@ -13,14 +13,16 @@ SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0003-fix-pkg-config-path-in-makefiles.patch \
 	    file://0004-make-x11-optional.patch \
 	    file://fix-missing-gstegljitter.patch \
+	    file://make-wayland-configurable.patch \
 "
 # The following is _appended by the .inc file
 SRC_URI_remove = "file://0001-introspection.m4-prefix-pkgconfig-paths-with-PKG_CON.patch"
 
 DEPENDS += "gstreamer1.0-plugins-base virtual/egl virtual/libgles2"
 
-PACKAGECONFIG ??= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)}"
+PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11 wayland', d)}"
 PACKAGECONFIG[x11] = "--with-x11 --with-egl-window-system=x11,--without-x11 --with-egl-window-system=auto,libx11 libxext"
+PACKAGECONFIG[wayland] = "--with-wayland,--without-wayland,wayland,mesa"
 
 S = "${WORKDIR}/gstegl_src/gst-egl"
 
