@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "file://usr/local/cuda-10.0/LICENSE;md5=dfb2d23fe5070ac47b201
 
 PR = "r0"
 
-SRC_URI = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t_prerel/4.0/m39xww/beta40/JetPackL4T_40_b190/16.04/cuda-repo-ubuntu1604-10-0-local-10.0.117-410.38_1.0-1_amd64.deb"
+SRC_URI = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/4.1/walpdzz/JetPackL4T_4.1_b5/16.04/cuda-repo-ubuntu1604-10-0-local-10.0.117-410.38_1.0-1_amd64.deb"
 SRC_URI[md5sum] = "563a8ab56c5618b990e1b72d18e14c6f"
 SRC_URI[sha256sum] = "89d8a72957aa1737ad15ce2a4e803063972eca26b0e326366d0f755153d66db3"
 do_unpack[depends] += "xz-native:do_populate_sysroot"

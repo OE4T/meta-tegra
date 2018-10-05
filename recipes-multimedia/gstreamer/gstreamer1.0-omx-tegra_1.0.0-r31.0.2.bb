@@ -5,8 +5,8 @@ LICENSE_FLAGS = "commercial"
 HOMEPAGE = "http://www.gstreamer.net/"
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad gstreamer1.0-plugins-nveglgles gstreamer1.0-plugins-tegra"
 
-TEGRA_SRC_SUBARCHIVE = "public_release/gstomx1_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-31.0.1.inc
+TEGRA_SRC_SUBARCHIVE = "public_sources/gstomx1_src.tbz2"
+require recipes-bsp/tegra-sources/tegra-sources-31.0.2.inc
 
 SRC_URI += "file://0001-use_lt_sysroot_when_parsing_gstconfig_header.patch \
 	    file://0003-add-missing-nviva-lib.patch \

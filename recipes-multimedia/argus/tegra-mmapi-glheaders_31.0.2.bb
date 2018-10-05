@@ -2,9 +2,9 @@ DESCRIPTION = "NVIDIA-specific OpenGL headers"
 HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary"
 
-SRC_URI = "https://developer.download.nvidia.com/embedded/L4T/r31_Release_v0.1/EA/Tegra_Multimedia_API_R${PV}_aarch64.tbz2"
-SRC_URI[md5sum] = "680c177242fc65ea398b62d99b81f49c"
-SRC_URI[sha256sum] = "ca7ffcfe3681081c131c004b8f621022c82eb88d8039475881ecb82a8000762d"
+SRC_URI = "https://developer.download.nvidia.com/embedded/L4T/r31_Release_v0.2/EA/Tegra_Multimedia_API_R${PV}_aarch64.tbz2"
+SRC_URI[md5sum] = "ddc315550698ef072070bad82edf4325"
+SRC_URI[sha256sum] = "d95ba40a929b70785a6c0448430d138f05635a1c78743f9426752ede4f400831"
 
 LIC_FILES_CHKSUM = "file://include/EGL/eglext_nv.h;beginline=8;endline=16;md5=60d5636609dae48b08c5cdcef3d376c3"
 

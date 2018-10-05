@@ -3,7 +3,7 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
 DEPENDS = "dpkg-native"
 
-L4T_URI_BASE = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t_prerel/4.0/m39xww/beta40/JetPackL4T_40_b190"
+L4T_URI_BASE = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/4.1/walpdzz/JetPackL4T_4.1_b5"
 SRC_URI = "\
     ${L4T_URI_BASE}/libnvinfer5_${PV}+cuda10.0_arm64.deb;name=lib;unpack=false \
     ${L4T_URI_BASE}/libnvinfer-dev_${PV}+cuda10.0_arm64.deb;name=dev;unpack=false \
