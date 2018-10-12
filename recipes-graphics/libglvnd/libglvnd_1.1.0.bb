@@ -9,7 +9,7 @@ SRC_URI[sha256sum] = "f5a74598e769d55d652c464cb6507437dac5c2d513f16c6ddf3a1bec65
 
 REQUIRED_DISTRO_FEATURES = "x11 opengl"
 
-DEPENDS = "libx11 libxext glproto"
+DEPENDS = "libx11 libxext xorgproto"
 
 inherit autotools pkgconfig
 
