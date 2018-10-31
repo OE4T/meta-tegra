@@ -9,6 +9,8 @@ IMAGE_UBOOT ??= "u-boot"
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', True).split()[0])}"
 LNXFILE ?= "${IMAGE_UBOOT}-${MACHINE}.bin"
 LNXSIZE ?= "67108864"
+DATAFILE ?= "${IMAGE_BASENAME}-${MACHINE}.dataimg"
+
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
@@ -19,7 +21,9 @@ IMAGE_TEGRAFLASH_KERNEL ?= "${DEPLOY_DIR_IMAGE}/${LNXFILE}"
 # copied/symlinked into the working directory
 # and before processing begins.
 tegraflash_custom_pre() {
-    :
+    if [ -f ${DEPLOY_DIR_IMAGE}/${DATAFILE} ]; then
+        ln -s ${DEPLOY_DIR_IMAGE}/${DATAFILE} ./${DATAFILE}
+    fi
 }
 
 # Override this function if you need to add
@@ -116,6 +120,7 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
         -e"s,BCTSIZE,${BOOTPART_SIZE}," -e"s,PPTSIZE,$gptsize," \
         -e"s,PPTFILE,ppt.img," -e"s,GPTFILE,gpt.img," \
+        -e"s,DATAFILE,${DATAFILE}," \
         > flash.xml
 }
 
@@ -145,6 +150,7 @@ tegraflash_create_flash_config_tegra186() {
 	-e"s,KERNELDTB-NAME,kernel-dtb," -e"s,KERNELDTB-FILE,${DTBFILE}," \
 	-e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
 	-e"s,PPTSIZE,2097152," \
+        -e"s,DATAFILE,${DATAFILE}," \
         > flash.xml.in
 }
 
