@@ -22,7 +22,7 @@ SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 "
 S = "${WORKDIR}/git"
 
-KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p1 rw rootwait"
+KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p\${distro_bootpart} rw rootwait"
 
 do_configure_prepend() {
     localversion="-${L4T_VERSION}"
