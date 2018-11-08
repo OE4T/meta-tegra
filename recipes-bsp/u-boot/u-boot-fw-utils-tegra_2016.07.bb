@@ -5,7 +5,6 @@ DEPENDS = "mtd-utils"
 
 INSANE_SKIP_${PN} = "already-stripped"
 
-FILESEXTRAPATHS_prepend := "${THISDIR}/patches:"
 SRC_URI += "\
            file://0001-Override-HOSTCC.patch \
            "
