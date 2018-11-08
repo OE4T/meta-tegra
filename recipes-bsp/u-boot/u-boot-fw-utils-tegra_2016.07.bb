@@ -1,4 +1,4 @@
-require u-boot-common_${PV}.inc
+require u-boot-common-${PV}.inc
 
 SUMMARY = "U-Boot bootloader fw_printenv/setenv utilities"
 DEPENDS = "mtd-utils"
