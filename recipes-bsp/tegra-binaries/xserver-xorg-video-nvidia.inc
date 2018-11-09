@@ -1,4 +1,4 @@
-require tegra-shared-binaries.inc
+require tegra-shared-libraries.inc
 
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib/xorg ${DRV_EXTRAS}
