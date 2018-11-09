@@ -1,7 +1,7 @@
 UBOOT_BINARY ?= "u-boot-dtb.${UBOOT_SUFFIX}"
 
 require recipes-bsp/u-boot/u-boot.inc
-require u-boot-common-${PV}.inc
+require u-boot-tegra-common-${PV}.inc
 
 PROVIDES += "u-boot"
 DEPENDS += "dtc-native ${SOC_FAMILY}-flashtools-native"
