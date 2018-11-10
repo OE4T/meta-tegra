@@ -1,6 +1,6 @@
-SRC_URI = "https://developer.download.nvidia.com/embedded/L4T/r31_Release_v0.2/EA/public_sources.tbz2;downloadfilename=public_sources-31.0.2.tbz2"
-SRC_URI[md5sum] = "ac3b188ff6511b6e816aafbb1bf31ca9"
-SRC_URI[sha256sum] = "453cc20fec6da4efb54fa2418a0ef4d4f6b0524d439ed04fcca23e312cb406d2"
+SRC_URI = "https://developer.download.nvidia.com/embedded/L4T/r31_Release_v1.0/BSP/public_sources.tbz2;downloadfilename=public_sources-31.1.0.tbz2"
+SRC_URI[md5sum] = "6d50dbf1616efb2c373763410938a2a5"
+SRC_URI[sha256sum] = "cc9137afbba71f9acc1e85d1b25186c8bef730dc6b225690e7c86bef0375d2b3"
 
 unpack_tar_in_tar() {
     cd ${WORKDIR}

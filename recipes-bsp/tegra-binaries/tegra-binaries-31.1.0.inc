@@ -2,9 +2,9 @@ LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=2cc00be68c1227a7c42ff3620ef75d05 \
                     file://nv_tegra/LICENSE.brcm_patchram_plus;md5=38fb07f0dacf4830bc57f40a0fb7532e"
 
-SRC_URI = "https://developer.download.nvidia.com/embedded/L4T/r31_Release_v0.2/EA/Jetson_Linux_R${PV}_aarch64.tbz2"
-SRC_URI[md5sum] = "19c23c5196e81365c108eb74f8abbef7"
-SRC_URI[sha256sum] = "22b2d5b01c2bc09327d2cc1f92a7b561c93887ee940b8c327805755c46108fe9"
+SRC_URI = "https://developer.download.nvidia.com/embedded/L4T/r31_Release_v1.0/BSP/Jetson_Linux_R${PV}_aarch64.tbz2"
+SRC_URI[md5sum] = "d1d7e1fa49c0102ee705e581a188d34c"
+SRC_URI[sha256sum] = "c968e74a410592976595710eefc3b5fdb123d0d1e4baaf1a8019a1003b89f561"
 
 SRC_URI += "\
     file://nvargus-daemon.init \

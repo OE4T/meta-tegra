@@ -2,9 +2,9 @@ DESCRIPTION = "NVIDIA Tegra Multimedia API headers"
 HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD"
 
-SRC_URI = "https://developer.download.nvidia.com/embedded/L4T/r31_Release_v0.2/EA/Tegra_Multimedia_API_R${PV}_aarch64.tbz2"
-SRC_URI[md5sum] = "ddc315550698ef072070bad82edf4325"
-SRC_URI[sha256sum] = "d95ba40a929b70785a6c0448430d138f05635a1c78743f9426752ede4f400831"
+SRC_URI = "https://developer.download.nvidia.com/embedded/L4T/r31_Release_v1.0/BSP/Tegra_Multimedia_API_R${PV}_aarch64.tbz2"
+SRC_URI[md5sum] = "65f1812bf594d8fe8346c2325cf930f6"
+SRC_URI[sha256sum] = "cdf379e2a578d93b5c7b7ac6c7b89c545892eded23c5dbcfe48f490ea4a52478"
 
 COMPATIBLE_MACHINE = "(tegra186|tegra194)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

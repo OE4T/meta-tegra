@@ -10,7 +10,7 @@ PV .= "+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 EXTRA_OEMAKE += 'LIBGCC=""'
 
-L4T_VERSION = "l4t-r31.0.1"
+L4T_VERSION = "l4t-r31.1"
 SCMVERSION ??= "y"
 export LOCALVERSION = ""
 

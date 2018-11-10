@@ -3,18 +3,18 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
 DEPENDS = "dpkg-native"
 
-L4T_URI_BASE = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/4.1/walpdzz/JetPackL4T_4.1_b5"
+L4T_URI_BASE = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/4.1.1/xddsn.im/JetPackL4T_4.1.1_b57"
 SRC_URI = "\
     ${L4T_URI_BASE}/libnvinfer5_${PV}+cuda10.0_arm64.deb;name=lib;unpack=false \
     ${L4T_URI_BASE}/libnvinfer-dev_${PV}+cuda10.0_arm64.deb;name=dev;unpack=false \
-    ${L4T_URI_BASE}/libnvinfer-samples_${PV}+cuda10.0_arm64.deb;name=samples;unpack=false \
+    ${L4T_URI_BASE}/libnvinfer-samples_${PV}+cuda10.0_all.deb;name=samples;unpack=false \
 "
-SRC_URI[lib.md5sum] = "aa7f186068583b35c1ce9cf7e7e55052"
-SRC_URI[lib.sha256sum] = "3c847f556447b9c279b1642f9bfbb2bfed93d3ad122f32d16197e70754e93759"
-SRC_URI[dev.md5sum] = "54c0b98090e337fc603245436b57ee70"
-SRC_URI[dev.sha256sum] = "ae185546f00cd7fc1a36b2df6e2c41b3415bf9e5750f4a5109a1e1fd33da389b"
-SRC_URI[samples.md5sum] = "d2e92cca68344edc09c54c38e9a3e6bd"
-SRC_URI[samples.sha256sum] = "499a16890d705f2ad7e8ddd19e9cc7ff56a0d5f6d3a954effe00f0ba177bf736"
+SRC_URI[lib.md5sum] = "6880ccc6d8a8dc3ef023d3b485c1c692"
+SRC_URI[lib.sha256sum] = "b1e7a49a3df15ef0e7fdae785fcd95628ff7c3b05fce9796f68d4b41fbb55598"
+SRC_URI[dev.md5sum] = "beb81ab9eba95a813c16b147af338021"
+SRC_URI[dev.sha256sum] = "aa09fd4b587835896e64df87637380f7f3ddeb462ed49c97232a54ae30484223"
+SRC_URI[samples.md5sum] = "fdaf46c4dfcd1cb1fd2c204037897959"
+SRC_URI[samples.sha256sum] = "e285b63280212b22c3f3a8b7594bb8eb5702ed1f0b26bbb81d7642ca04b226ac"
 
 COMPATIBLE_MACHINE = "(tegra186|tegra194)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
@@ -32,7 +32,7 @@ B = "${S}/tensorrt"
 do_configure() {
     dpkg-deb --extract ${S}/libnvinfer5_${PV}+cuda10.0_arm64.deb ${B}
     dpkg-deb --extract ${S}/libnvinfer-dev_${PV}+cuda10.0_arm64.deb ${B}
-    dpkg-deb --extract ${S}/libnvinfer-samples_${PV}+cuda10.0_arm64.deb ${B}
+    dpkg-deb --extract ${S}/libnvinfer-samples_${PV}+cuda10.0_all.deb ${B}
     # for the LIC_FILES_CHKSUM check
     cp ${B}/usr/include/aarch64-linux-gnu/NvInfer.h ${S}/
 }
