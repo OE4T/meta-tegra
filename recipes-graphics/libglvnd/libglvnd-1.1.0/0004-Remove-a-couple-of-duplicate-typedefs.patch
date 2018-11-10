@@ -1,0 +1,75 @@
+From 85b09efcd4cacf359b7a75963f4b2bf624734ad3 Mon Sep 17 00:00:00 2001
+From: Kyle Brenneman <kbrenneman@nvidia.com>
+Date: Thu, 4 Oct 2018 09:53:25 -0600
+Subject: [PATCH 4/4] Remove a couple of duplicate typedefs.
+
+In GL/gl.h, remove PFNGLBLENDCOLORPROC, PFNGLBLENDEQUATIONPROC, and the
+GL_OES_EGL_image section.
+
+PFNGLBLENDCOLORPROC and PFNGLBLENDEQUATIONPROC are defined in GL/glext.h in the
+GL_VERSION_1_4 section.
+
+GL_OES_EGL_image is defined in GLES/glext.h and GLES2/gl2ext.h, and the
+GLeglImageOES typedef is also defined in GL/glext.h under
+GL_EXT_EGL_image_storage.
+---
+ include/GL/gl.h    | 19 -------------------
+ include/glheader.h |  5 -----
+ 2 files changed, 24 deletions(-)
+
+diff --git a/include/GL/gl.h b/include/GL/gl.h
+index 975cfe8..3f8cb62 100644
+--- a/include/GL/gl.h
++++ b/include/GL/gl.h
+@@ -1736,9 +1736,6 @@ GLAPI void GLAPIENTRY glSeparableFilter2D( GLenum target,
+ GLAPI void GLAPIENTRY glGetSeparableFilter( GLenum target, GLenum format,
+ 	GLenum type, GLvoid *row, GLvoid *column, GLvoid *span );
+ 
+-typedef void (APIENTRYP PFNGLBLENDCOLORPROC) (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
+-typedef void (APIENTRYP PFNGLBLENDEQUATIONPROC) (GLenum mode);
+-
+ 
+ 
+ /*
+@@ -2189,22 +2186,6 @@ typedef void (APIENTRYP PFNGLBLENDEQUATIONSEPARATEATIPROC) (GLenum modeRGB, GLen
+ #endif /* GL_ATI_blend_equation_separate */
+ 
+ 
+-/* GL_OES_EGL_image */
+-#ifndef GL_OES_EGL_image
+-typedef void* GLeglImageOES;
+-#endif
+-
+-#ifndef GL_OES_EGL_image
+-#define GL_OES_EGL_image 1
+-#ifdef GL_GLEXT_PROTOTYPES
+-GLAPI void APIENTRY glEGLImageTargetTexture2DOES (GLenum target, GLeglImageOES image);
+-GLAPI void APIENTRY glEGLImageTargetRenderbufferStorageOES (GLenum target, GLeglImageOES image);
+-#endif
+-typedef void (APIENTRYP PFNGLEGLIMAGETARGETTEXTURE2DOESPROC) (GLenum target, GLeglImageOES image);
+-typedef void (APIENTRYP PFNGLEGLIMAGETARGETRENDERBUFFERSTORAGEOESPROC) (GLenum target, GLeglImageOES image);
+-#endif
+-
+-
+ /**
+  ** NOTE!!!!!  If you add new functions to this file, or update
+  ** glext.h be sure to regenerate the gl_mangle.h file.  See comments
+diff --git a/include/glheader.h b/include/glheader.h
+index 2ae24ea..f2f0b64 100644
+--- a/include/glheader.h
++++ b/include/glheader.h
+@@ -65,11 +65,6 @@ extern "C" {
+ typedef int GLclampx;
+ 
+ 
+-#ifndef GL_OES_EGL_image
+-typedef void *GLeglImageOES;
+-#endif
+-
+-
+ #ifndef GL_OES_EGL_image_external
+ #define GL_TEXTURE_EXTERNAL_OES                                 0x8D65
+ #define GL_SAMPLER_EXTERNAL_OES                                 0x8D66
+-- 
+2.19.1
+
