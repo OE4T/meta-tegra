@@ -5,11 +5,11 @@ LIC_FILES_CHKSUM = "file://Licenses/README;md5=a2c678cfd4a4d97135585cad908541c6"
 
 UBOOT_TEGRA_REPO ?= "github.com/madisongh/u-boot-tegra.git"
 L4T_VERSION ?= "28.2"
-L4T_VERSION_tegra186 = "31.0.1"
+L4T_VERSION_tegra186 = "31.1"
 SRCBRANCH ?= "patches-l4t-r${L4T_VERSION}"
 SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
 SRCREV = "8a044b187228e60b454529e72c0610edd9d845bf"
-SRCREV_tegra186 = "91b70f9389ce5dc4cf3bb25a7e2ee507821d3629"
+SRCREV_tegra186 = "7813fb8f9ab68bef0b1b7a21b41a7c9acebf8508"
 PV .= "+git${SRCPV}"
 
 S = "${WORKDIR}/git"
