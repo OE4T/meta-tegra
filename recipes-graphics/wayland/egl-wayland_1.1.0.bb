@@ -5,8 +5,11 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=cfa5a0f49cb081823fc5d965566e8298"
 DEPENDS = "eglexternalplatform mesa wayland wayland-protocols wayland-native"
 
 SRC_URI = "git://github.com/NVIDIA/egl-wayland;protocol=https"
-SRCREV = "1676d1d2bfe646fb3ecbba29a85db529dd399493"
-SRC_URI += "file://nvidia_wayland.json"
+SRCREV = "0eb29d4a84788b2abb3642ec2d3ccec0b0befe36"
+SRC_URI += " \
+    file://0001-Fix-wayland-interface-checks.patch \
+    file://nvidia_wayland.json \
+"
 
 S = "${WORKDIR}/git"
 
