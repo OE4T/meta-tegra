@@ -14,6 +14,7 @@ SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0004-make-x11-optional.patch \
 	    file://fix-missing-gstegljitter.patch \
 	    file://make-wayland-configurable.patch \
+	    file://gst-plugin-init-for-1.14.patch \
 "
 # The following is _appended by the .inc file
 SRC_URI_remove = "file://0001-introspection.m4-prefix-pkgconfig-paths-with-PKG_CON.patch"
