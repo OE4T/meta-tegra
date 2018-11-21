@@ -1,0 +1,32 @@
+Index: xorg-server-1.19.6/hw/xfree86/os-support/linux/systemd-logind.c
+===================================================================
+--- xorg-server-1.19.6.orig/hw/xfree86/os-support/linux/systemd-logind.c
++++ xorg-server-1.19.6/hw/xfree86/os-support/linux/systemd-logind.c
+@@ -245,6 +245,7 @@ systemd_logind_vtenter(void)
+     if (info->vt_active)
+         return; /* Already did vtenter */
+ 
++#ifdef XSERVER_PLATFORM_BUS
+     for (i = 0; i < xf86_num_platform_devices; i++) {
+         if (xf86_platform_devices[i].flags & XF86_PDEV_PAUSED)
+             break;
+@@ -262,6 +263,7 @@ systemd_logind_vtenter(void)
+ 
+     /* Do delayed input probing, this must be done after the above enabling */
+     xf86InputEnableVTProbe();
++#endif
+ }
+ 
+ static void
+@@ -390,7 +392,11 @@ message_filter(DBusConnection * connecti
+     LogMessage(X_INFO, "systemd-logind: got %s for %u:%u\n",
+                pause ? "pause" : "resume", major, minor);
+ 
++#ifdef XSERVER_PLATFORM_BUS
+     pdev = xf86_find_platform_device_by_devnum(major, minor);
++#else
++    pdev = NULL;
++#endif
+     if (!pdev)
+         pInfo = systemd_logind_find_info_ptr_by_devnum(xf86InputDevs,
+                                                        major, minor);
