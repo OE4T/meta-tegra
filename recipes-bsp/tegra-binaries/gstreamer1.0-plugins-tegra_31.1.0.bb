@@ -35,16 +35,16 @@ do_install() {
         install -m 0644 $f ${D}${libdir}/gstreamer-1.0/
     done
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnveglglessink.so*
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvideo4linux2.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstomx.so*
 }
 
-PACKAGES = "${NVGSTCAPTURE} ${NVGSTPLAYER} ${PN}-nvcompositor ${PN}-nvv4l2 ${PN}"
+PACKAGES = "${NVGSTCAPTURE} ${NVGSTPLAYER} ${PN}-nvcompositor ${PN}"
 FILES_nvgstcapture = "${bindir}/nvgstcapture-1.0"
 RDEPENDS_nvgstcapture = "${PN} libgstapp-1.0 tegra-libraries-argus"
 FILES_nvgstplayer = "${bindir}/nvgstplayer-1.0"
 RDEPENDS_nvgstplayer = "${PN}"
 FILES_${PN}-nvcompositor = "${libdir}/gstreamer-1.0/libgstnvcompositor.so"
-FILES_${PN}-nvv4l2 = "${libdir}/gstreamer-1.0/libgstnvvideo4linux2.so"
 FILES_${PN} = "${libdir}"
 DEBIAN_NOAUTONAME_${PN} = "1"
 
@@ -58,4 +58,3 @@ INSANE_SKIP_nvgstcapture = "ldflags build-deps"
 INSANE_SKIP_nvgstplayer = "ldflags build-deps"
 RDEPENDS_${PN} = "gstreamer1.0 libgstvideo-1.0 tegra-libraries"
 RDEPENDS_${PN}-nvcompositor = "gstreamer1.0 libgstbadbase-1.0 libgstbadvideo-1.0 libgstvideo-1.0 tegra-libraries"
-RDEPENDS_${PN}-nvv4l2 = "gstreamer1.0 libgstvideo-1.0 v4l-utils tegra-libraries"
