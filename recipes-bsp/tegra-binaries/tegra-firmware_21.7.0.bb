@@ -10,6 +10,7 @@ do_compile[noexec] = "1"
 do_install() {
     install -d ${D}${nonarch_base_libdir}
     cp -R -f ${B}/lib/firmware ${D}${nonarch_base_libdir}/
+    ln -snf tegra12x ${D}${nonarch_base_libdir}/firmware/gk20a
 }
 
 PACKAGES = "${PN}"
