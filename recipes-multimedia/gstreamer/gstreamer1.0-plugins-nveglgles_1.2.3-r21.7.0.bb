@@ -14,6 +14,7 @@ SRC_URI += "file://0001-introspection-pkgconfig.patch \
             file://0002-fix-libtool-references.patch \
             file://0003-fix-pkg-config-path-in-makefiles.patch \
             file://0004-make-x11-optional.patch \
+            file://gst-plugin-init-for-1.14.patch \
 "
 
 DEPENDS += "gstreamer1.0-plugins-base virtual/egl virtual/libgles2 gobject-introspection"
