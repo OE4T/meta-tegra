@@ -6,6 +6,7 @@ IMAGE_ROOTFS_ALIGNMENT ?= "4"
 
 IMAGE_UBOOT ??= "u-boot"
 INITRD_IMAGE ??= ""
+KERNEL_ARGS ??= ""
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${INITRD_IMAGE}-${MACHINE}.cboot'}"
@@ -384,7 +385,15 @@ create_tegraflash_pkg_tegra194() {
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
-    ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    if [ -n "${KERNEL_ARGS}" ]; then
+        rm -f ./${DTBFILE}.tmp ./${DTBFILE}
+        dtc -Idtb -Odts -o ./${DTBFILE}.tmp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" 2>/dev/null
+        sed -i -r -e's|bootargs = ".*";|bootargs = "${KERNEL_ARGS}";|' ./${DTBFILE}.tmp
+        dtc -Idts -Odtb -o ./${DTBFILE} ./${DTBFILE}.tmp
+        rm ./${DTBFILE}.tmp
+    else
+        ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    fi
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
