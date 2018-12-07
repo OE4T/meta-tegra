@@ -1,4 +1,4 @@
-From 79f3fe99bad6f464af676777a151f72e24148d25 Mon Sep 17 00:00:00 2001
+From 102b9f0957235cb295cf91bca8d0ba1d8d264391 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 21 Nov 2018 10:03:35 -0800
 Subject: [PATCH] Fix wayland interface checks
@@ -19,16 +19,16 @@ See https://bugs.freedesktop.org/show_bug.cgi?id=103757
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  include/wayland-eglutils.h |  1 +
- src/wayland-egldisplay.c   | 23 +++++++++++++++--------
+ src/wayland-egldisplay.c   | 17 ++++++++++++++---
  src/wayland-eglsurface.c   | 17 ++++++++++++++++-
- src/wayland-eglutils.c     | 21 +++++++++++++++++++++
- 4 files changed, 53 insertions(+), 9 deletions(-)
+ src/wayland-eglutils.c     | 20 ++++++++++++++++++++
+ 4 files changed, 51 insertions(+), 4 deletions(-)
 
 diff --git a/include/wayland-eglutils.h b/include/wayland-eglutils.h
-index 6e8f942..f7f02c0 100644
+index e2c5821..6b0c094 100644
 --- a/include/wayland-eglutils.h
 +++ b/include/wayland-eglutils.h
-@@ -50,6 +50,7 @@ void wlEglSetErrorCallback(WlEglPlatformData *data,
+@@ -54,6 +54,7 @@ void wlEglSetErrorCallback(WlEglPlatformData *data,
                             EGLint err,
                             const char *file,
                             int line);
@@ -37,27 +37,23 @@ index 6e8f942..f7f02c0 100644
  #ifdef __cplusplus
  }
 diff --git a/src/wayland-egldisplay.c b/src/wayland-egldisplay.c
-index a7c0c12..e0323b0 100644
+index a34fd7f..4f15414 100644
 --- a/src/wayland-egldisplay.c
 +++ b/src/wayland-egldisplay.c
-@@ -38,20 +38,27 @@ static struct wl_list wlEglDeviceDpyList = WL_LIST_INIT(&wlEglDeviceDpyList);
- 
- EGLBoolean wlEglIsWaylandDisplay(void *nativeDpy)
+@@ -40,7 +40,8 @@ EGLBoolean wlEglIsWaylandDisplay(void *nativeDpy)
  {
+ #if HAS_MINCORE
+     void *first_pointer = NULL;
 -    EGLBoolean ret;
-+    void *first_pointer;
 +    static int got_symbols;
 +    static void *wdi_c, *wdi_s;
  
      if (!wlEglPointerIsDereferencable(nativeDpy)) {
          return EGL_FALSE;
-     }
- 
--    void *first_pointer = *(void **) nativeDpy;
--
--    /* wl_display is a wl_proxy, which is a wl_object.
--     * wl_object's first element points to the interfacetype.
--     */
+@@ -51,9 +52,19 @@ EGLBoolean wlEglIsWaylandDisplay(void *nativeDpy)
+     /* wl_display is a wl_proxy, which is a wl_object.
+      * wl_object's first element points to the interfacetype.
+      */
 -    ret = (first_pointer == &wl_display_interface) ? EGL_TRUE : EGL_FALSE;
 +    if (!got_symbols) {
 +        if (!wlEglLookupSymbol("wl_display_interface", "libwayland-client.so.0", &wdi_c))
@@ -66,21 +62,21 @@ index a7c0c12..e0323b0 100644
 +            wdi_s = NULL;
 +        got_symbols = 1;
 +    }
-+    first_pointer = *(void **) nativeDpy;
+ 
+-    return ret;
 +    if (first_pointer == wdi_c || first_pointer == wdi_s ||
 +        first_pointer == &wl_display_interface)
 +        return EGL_TRUE;
- 
--    return ret;
++
 +    return EGL_FALSE;
- }
- 
- EGLBoolean wlEglIsValidNativeDisplayExport(void *data, void *nativeDpy)
+ #else
+     /* we return EGL_TRUE in order to always assume a valid wayland
+      * display is given so that we bypass all the checks that would
 diff --git a/src/wayland-eglsurface.c b/src/wayland-eglsurface.c
-index 531eaf2..4ef6cca 100644
+index 92302f0..2f6dd49 100644
 --- a/src/wayland-eglsurface.c
 +++ b/src/wayland-eglsurface.c
-@@ -57,10 +57,20 @@ EGLBoolean wlEglIsWlEglSurface(WlEglSurface *surface)
+@@ -58,11 +58,21 @@ EGLBoolean wlEglIsWlEglSurface(WlEglSurface *surface)
  EGLBoolean wlEglIsWaylandWindowValid(struct wl_egl_window *window)
  {
      struct wl_surface *surface = NULL;
@@ -88,6 +84,7 @@ index 531eaf2..4ef6cca 100644
 +    static int got_symbols;
 +    static void *wsi_c, *wsi_s;
  
+ #if HAS_MINCORE
      if (!window || !wlEglPointerIsDereferencable(window)) {
          return EGL_FALSE;
      }
@@ -101,8 +98,8 @@ index 531eaf2..4ef6cca 100644
  
      surface = (struct wl_surface *)window->version;
      if (!wlEglPointerIsDereferencable(surface)) {
-@@ -72,7 +82,12 @@ EGLBoolean wlEglIsWaylandWindowValid(struct wl_egl_window *window)
- 
+@@ -81,7 +91,12 @@ EGLBoolean wlEglIsWaylandWindowValid(struct wl_egl_window *window)
+ #endif
      /* wl_surface is a wl_proxy, which is a wl_object. wl_objects's first
       * element points to the interface type */
 -    return (((*(void **)surface)) == &wl_surface_interface);
@@ -116,10 +113,10 @@ index 531eaf2..4ef6cca 100644
  
  static void
 diff --git a/src/wayland-eglutils.c b/src/wayland-eglutils.c
-index cf50a7f..0e95f0f 100644
+index f0dafe9..1bab337 100644
 --- a/src/wayland-eglutils.c
 +++ b/src/wayland-eglutils.c
-@@ -36,6 +36,27 @@
+@@ -36,6 +36,26 @@
  #include <dlfcn.h> // Need dlsym() to load mincore() symbol dynamically.
  #endif
  
@@ -129,7 +126,6 @@ index cf50a7f..0e95f0f 100644
 +    return EGL_FALSE;
 +#else
 +    void *libHandle = dlopen(libname, RTLD_NOW|RTLD_LOCAL|RTLD_NOLOAD);
-+    void *symPtr;
 +    EGLBoolean ret;
 +
 +    if (libHandle == NULL)
