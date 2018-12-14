@@ -1,0 +1,162 @@
+From cc7891f982006a2d934203afe4b33dc33f63da18 Mon Sep 17 00:00:00 2001
+From: "Miguel A. Vico" <mvicomoya@nvidia.com>
+Date: Wed, 12 Dec 2018 09:21:58 -0800
+Subject: [PATCH 2/2] Fix several warnings
+
+This fixes:
+
+  -Werror=expansion-to-defined
+  -Werror=unused-parameter
+  -Werror=old-style-declaration
+---
+ include/wayland-eglutils.h     | 6 +++++-
+ src/wayland-egldisplay.c       | 8 ++++++++
+ src/wayland-eglhandle.c        | 2 +-
+ src/wayland-eglstream-server.c | 4 +++-
+ src/wayland-eglsurface.c       | 4 ++++
+ src/wayland-external-exports.c | 1 +
+ 6 files changed, 22 insertions(+), 3 deletions(-)
+
+diff --git a/include/wayland-eglutils.h b/include/wayland-eglutils.h
+index 6b0c094..c2e9c79 100644
+--- a/include/wayland-eglutils.h
++++ b/include/wayland-eglutils.h
+@@ -40,7 +40,11 @@
+ #define WL_LIST_INIT(head) { .prev = (head), .next = (head) }
+ #endif
+ 
+-#define HAS_MINCORE (!defined(__QNX__) && !defined(__INTEGRITY))
++#if defined(__QNX__) || defined(__INTEGRITY)
++#define HAS_MINCORE 0
++#else
++#define HAS_MINCORE 1
++#endif
+ 
+ #ifdef __cplusplus
+ extern "C" {
+diff --git a/src/wayland-egldisplay.c b/src/wayland-egldisplay.c
+index 4f15414..fe5f91c 100644
+--- a/src/wayland-egldisplay.c
++++ b/src/wayland-egldisplay.c
+@@ -78,6 +78,7 @@ EGLBoolean wlEglIsWaylandDisplay(void *nativeDpy)
+ EGLBoolean wlEglIsValidNativeDisplayExport(void *data, void *nativeDpy)
+ {
+     char *val = getenv("EGL_PLATFORM");
++    (void) data;
+ 
+     if (val && !strcasecmp(val, "wayland")) {
+         return EGL_TRUE;
+@@ -157,6 +158,9 @@ registry_handle_global_remove(void *data,
+                               struct wl_registry *registry,
+                               uint32_t name)
+ {
++    (void) data;
++    (void) registry;
++    (void) name;
+ }
+ 
+ static const struct wl_registry_listener registry_listener = {
+@@ -170,6 +174,7 @@ eglstream_display_handle_caps(void *data,
+                               int32_t caps)
+ {
+     WlEglDisplay *dpy = (WlEglDisplay *)data;
++    (void) wlStreamDpy;
+ 
+ #define IS_CAP_SET(CAPS, CAP) (((CAPS)&(CAP)) != 0)
+ 
+@@ -191,6 +196,8 @@ eglstream_display_handle_swapinterval_override(
+                                     struct wl_buffer *streamResource)
+ {
+     WlEglSurface *surf = NULL;
++    (void) data;
++    (void) wlStreamDpy;
+ 
+     wl_list_for_each(surf, &wlEglSurfaceList, link) {
+         if (surf->ctx.wlStreamResource == streamResource) {
+@@ -216,6 +223,7 @@ static void
+ sync_callback(void *data, struct wl_callback *callback, uint32_t serial)
+ {
+     int *done = data;
++    (void) serial;
+ 
+     *done = 1;
+     wl_callback_destroy(callback);
+diff --git a/src/wayland-eglhandle.c b/src/wayland-eglhandle.c
+index 937c150..f4c7e4f 100644
+--- a/src/wayland-eglhandle.c
++++ b/src/wayland-eglhandle.c
+@@ -44,7 +44,7 @@ wlEglCreatePlatformData(int apiMajor, int apiMinor, const EGLExtDriver *driver)
+ 
+     /* Cache the EGL driver version */
+ #if EGL_EXTERNAL_PLATFORM_HAS(DRIVER_VERSION)
+-    if (EGL_EXTERNAL_PLATFORM_SUPPORTS(apiMajor, apiMajor, DRIVER_VERSION)) {
++    if (EGL_EXTERNAL_PLATFORM_SUPPORTS(apiMajor, apiMinor, DRIVER_VERSION)) {
+         res->egl.major = driver->major;
+         res->egl.minor = driver->minor;
+     }
+diff --git a/src/wayland-eglstream-server.c b/src/wayland-eglstream-server.c
+index 7f4251c..422ff04 100644
+--- a/src/wayland-eglstream-server.c
++++ b/src/wayland-eglstream-server.c
+@@ -60,6 +60,7 @@ destroy_wl_eglstream_resource(struct wl_resource *resource)
+ static void
+ destroy_wl_eglstream(struct wl_client *client, struct wl_resource *resource)
+ {
++    (void) client;
+     wl_resource_destroy(resource);
+ }
+ 
+@@ -224,6 +225,7 @@ handle_swap_interval(struct wl_client *client,
+         wl_resource_get_user_data(displayResource);
+     struct wl_eglstream *wlStream =
+         wl_eglstream_display_get_stream(wlStreamDpy, streamResource);
++    (void) client;
+ 
+     if (wlEglStreamSwapIntervalCallback(wlStreamDpy->data,
+                                         wlStream->eglStream,
+@@ -234,7 +236,7 @@ handle_swap_interval(struct wl_client *client,
+     }
+ }
+ 
+-const static struct wl_eglstream_display_interface
++static const struct wl_eglstream_display_interface
+ wl_eglstream_display_interface_impl = {
+     handle_create_stream,
+     handle_swap_interval,
+diff --git a/src/wayland-eglsurface.c b/src/wayland-eglsurface.c
+index 2f6dd49..04525fe 100644
+--- a/src/wayland-eglsurface.c
++++ b/src/wayland-eglsurface.c
+@@ -105,6 +105,7 @@ wayland_throttleCallback(void *data,
+                          uint32_t time)
+ {
+     WlEglSurface *surface = (WlEglSurface *)data;
++    (void) time;
+ 
+     surface->throttleCallback = NULL;
+     wl_callback_destroy(callback);
+@@ -1230,6 +1231,9 @@ EGLSurface wlEglCreatePlatformPixmapSurfaceHook(EGLDisplay dpy,
+                                                 const EGLAttrib *attribs)
+ {
+     WlEglDisplay *display = (WlEglDisplay*)dpy;
++    (void) config;
++    (void) nativePixmap;
++    (void) attribs;
+ 
+     /* Wayland does not support pixmap types. See EGL_EXT_platform_wayland. */
+     wlEglSetError(display->data, EGL_BAD_PARAMETER);
+diff --git a/src/wayland-external-exports.c b/src/wayland-external-exports.c
+index 62a1d49..f37ba73 100644
+--- a/src/wayland-external-exports.c
++++ b/src/wayland-external-exports.c
+@@ -66,6 +66,7 @@ static int hookCmp(const void *elemA, const void *elemB)
+ static void* wlEglGetHookAddressExport(void *data, const char *name)
+ {
+     WlEglHook *hook;
++    (void) data;
+ 
+     hook = (WlEglHook *)bsearch((const void *)name,
+                                 (const void *)wlEglHooksMap,
+-- 
+2.19.1
+

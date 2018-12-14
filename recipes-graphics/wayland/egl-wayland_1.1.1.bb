@@ -9,6 +9,7 @@ SRC_URI[md5sum] = "d01b82530200bc5ad77283ff331f7439"
 SRC_URI[sha256sum] = "d73a6344e766ca0cb0d3b3547173b1d7066f9dddc85e689f1b0b3fe466f54b51"
 SRC_URI += " \
     file://0001-Fix-wayland-interface-checks.patch \
+    file://0002-Fix-several-warnings.patch \
     file://nvidia_wayland.json \
 "
 
