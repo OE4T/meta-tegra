@@ -5,9 +5,11 @@ IMAGE_TYPES += "tegraflash"
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
 
 IMAGE_UBOOT ??= "u-boot"
+INITRD_IMAGE ??= ""
+KERNEL_ARGS ??= ""
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE', True).split()[0])}"
-LNXFILE ?= "${IMAGE_UBOOT}-${MACHINE}.bin"
+LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${INITRD_IMAGE}-${MACHINE}.cboot'}"
 LNXSIZE ?= "67108864"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
@@ -163,7 +165,6 @@ BOOTFILES_tegra186 = "\
     bmp.blob \
     bpmp.bin \
     camera-rtcpu-sce.bin \
-    cboot.bin \
     eks.img \
     mb1_prod.bin \
     mb1_recovery_prod.bin \
@@ -273,6 +274,7 @@ create_tegraflash_pkg_tegra186() {
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
     ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    ln -s "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./cboot.bin
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
@@ -302,8 +304,9 @@ END
 create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
 IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
-do_image_tegraflash[depends] += "zip-native:do_populate_sysroot \
+do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_populate_sysroot \
                                  ${SOC_FAMILY}-flashtools-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
-                                 ${@d.expand('${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic') if d.getVar('IMAGE_UBOOT') != '' else  ''}"
+                                 ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
+                                 ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
