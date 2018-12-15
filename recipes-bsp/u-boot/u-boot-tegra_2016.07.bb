@@ -5,6 +5,8 @@ require u-boot-tegra-common-${PV}.inc
 
 PROVIDES += "u-boot"
 DEPENDS += "dtc-native ${SOC_FAMILY}-flashtools-native"
+CBOOTDEP = ""
+CBOOTDEP_tegra186 = "cboot:do_deploy"
 
 UBOOT_BOOTIMG_BOARD ?= "/dev/mmcblk0p1"
 
@@ -45,3 +47,5 @@ uboot_make_bootimg() {
 do_compile_append() {
     uboot_make_bootimg
 }
+
+do_deploy[depends] += "${CBOOTDEP}"
