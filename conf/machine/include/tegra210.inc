@@ -21,7 +21,7 @@ SERIAL_CONSOLE = "115200 ttyS0"
 
 KERNEL_MODULE_AUTOLOAD = ""
 
-EXTRA_KERNEL_ARGS ?= "sdhci_tegra.en_boot_part_access=1"
+KERNEL_ARGS ?= "OS=l4t sdhci_tegra.en_boot_part_access=1"
 
 NVIDIA_CHIP = "0x21"
 
