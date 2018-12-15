@@ -273,7 +273,13 @@ create_tegraflash_pkg_tegra186() {
     cd "${WORKDIR}/tegraflash"
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
-    ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    if [ "${PREFERRED_PROVIDER_virtual/bootloader}" = "cboot" -a -n "${KERNEL_ARGS}" ]; then
+        cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+        bootargs="`fdtget ./${DTBFILE} /chosen bootargs 2>/dev/null`"
+        fdtput -t s ./${DTBFILE} /chosen bootargs "$bootargs ${KERNEL_ARGS}"
+    else
+        ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    fi
     ln -s "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./cboot.bin
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
