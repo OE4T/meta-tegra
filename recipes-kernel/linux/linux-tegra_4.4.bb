@@ -39,10 +39,9 @@ do_install_append() {
         install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE_NAME}.cpio.gz ${D}/${KERNEL_IMAGEDEST}/initrd
     fi
 }
-do_install[depends] += "${@['', '${INITRAMFS_IMAGE}:do_image_complete'][(d.getVar('INITRAMFS_IMAGE', True) or '') != '' and (d.getVar('TEGRA_INITRAMFS_INITRD', True) or '') == "1"]}"
+do_install[depends] += "${@'${INITRAMFS_IMAGE}:do_image_complete' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
 
-EXTRA_KERNEL_ARGS ??= ""
-KERNEL_ARGS ?= "\${cbootargs} ${EXTRA_KERNEL_ARGS}"
+KERNEL_ARGS ?= "\${cbootargs}"
 
 generate_extlinux_conf() {
     install -d ${D}/${KERNEL_IMAGEDEST}/extlinux
@@ -61,7 +60,7 @@ EOF
     fi
 }
 
-do_install[postfuncs] += "generate_extlinux_conf"
+do_install[postfuncs] += "${@'generate_extlinux_conf' if not d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
 
 FILES_${KERNEL_PACKAGE_NAME}-image += "/${KERNEL_IMAGEDEST}/extlinux /${KERNEL_IMAGEDEST}/initrd"
 
