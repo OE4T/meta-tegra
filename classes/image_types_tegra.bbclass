@@ -386,11 +386,9 @@ create_tegraflash_pkg_tegra194() {
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
     if [ -n "${KERNEL_ARGS}" ]; then
-        rm -f ./${DTBFILE}.tmp ./${DTBFILE}
-        dtc -Idtb -Odts -o ./${DTBFILE}.tmp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" 2>/dev/null
-        sed -i -r -e's|bootargs = ".*";|bootargs = "${KERNEL_ARGS}";|' ./${DTBFILE}.tmp
-        dtc -Idts -Odtb -o ./${DTBFILE} ./${DTBFILE}.tmp
-        rm ./${DTBFILE}.tmp
+        cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+        bootargs="`fdtget ./${DTBFILE} /chosen bootargs 2>/dev/null`"
+        fdtput -t s ./${DTBFILE} /chosen bootargs "$bootargs ${KERNEL_ARGS}"
     else
         ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     fi
