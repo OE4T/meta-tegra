@@ -75,6 +75,7 @@ do_install() {
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
     install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/flash_${MACHINE}.xml
     install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
+    install -m 0644 ${S}/flashvars ${D}${datadir}/tegraflash/
 }
 
 do_install_append_tegra186() {
