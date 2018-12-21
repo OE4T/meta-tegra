@@ -67,6 +67,7 @@ do_install() {
 
 do_install_append_tegra186() {
     install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
+    install -m 0644 ${S}/flashvars ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra186* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra186-a02-bpmp*dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/minimal_scr.cfg ${D}${datadir}/tegraflash/
