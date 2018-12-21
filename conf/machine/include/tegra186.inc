@@ -15,7 +15,7 @@ MACHINE_EXTRA_RRECOMMENDS += "tegra-firmware-brcm kernel-module-bcmdhd"
 INITRAMFS_IMAGE ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'tegra186-minimal-initramfs'}"
 TEGRA_INITRAMFS_INITRD ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '1'}"
 INITRD_IMAGE ?= "${@'tegra186-minimal-initramfs' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
-INITRD_FSTYPES ?= "${@'cpio.gz.cboot' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '${INITRAMFS_FSTYPES}'}"
+INITRD_FSTYPES ?= "${@'cpio.gz.cboot cpio.gz.cboot.bup-payload' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '${INITRAMFS_FSTYPES}'}"
 IMAGE_CLASSES_append = "${@' image_types_cboot' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
 IMAGE_UBOOT ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'u-boot'}"
 
@@ -26,6 +26,9 @@ SERIAL_CONSOLE = "115200 ttyS0"
 KERNEL_MODULE_AUTOLOAD = ""
 
 NVIDIA_CHIP = "0x18"
+
+TEGRA_FAB ?= "B02"
+TEGRA_BOARDID ?= "3310"
 
 DEB_PKG_EXTENSION = "arm64"
 
