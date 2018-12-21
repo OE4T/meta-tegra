@@ -1,4 +1,4 @@
-inherit image_types
+inherit image_types image_types_cboot pythonnative
 
 IMAGE_TYPES += "tegraflash"
 
@@ -15,6 +15,8 @@ LNXSIZE ?= "67108864"
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
 IMAGE_TEGRAFLASH_KERNEL ?= "${DEPLOY_DIR_IMAGE}/${LNXFILE}"
+
+BL_IS_CBOOT = "${@'1' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '0'}"
 
 # Override this function if you need to add
 # customization after the default files are
@@ -42,6 +44,7 @@ tegraflash_create_flash_config() {
 }
 
 tegraflash_create_flash_config_tegra124() {
+    local destdir="$1"
     local gptsize
     if [ `expr ${BOOTPART_LIMIT} % ${EMMC_DEVSECT_SIZE}` -ne 0 ]; then
         bberror "Boot partition limit must be an even multiple of the device sector size"
@@ -65,7 +68,7 @@ tegraflash_create_flash_config_tegra124() {
         -e"s,size=8388608\s\+#PPTSIZE,size=$gptsize," \
         -e"s,#filename=ppt.img,filename=ppt.img," \
         -e"s,#filename=spt.img,filename=gpt.img," \
-        > flash.cfg
+        > $destdir/flash.cfg
 }
 
 # When using the Tegra210 boot redundancy feature, all of the
@@ -118,16 +121,17 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
         -e"s,BCTSIZE,${BOOTPART_SIZE}," -e"s,PPTSIZE,$gptsize," \
         -e"s,PPTFILE,ppt.img," -e"s,GPTFILE,gpt.img," \
-        > flash.xml
+        > $destdir/flash.xml
 }
 
 tegraflash_create_flash_config_tegra186() {
     local destdir="$1"
+    local lnxfile="$2"
 
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra186-specific.
     cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
-        -e"s,LNXFILE,${LNXFILE}," \
+        -e"s,LNXFILE,$lnxfile," \
         -e"s,LNXSIZE,${LNXSIZE}," -e"s,LNXNAME,kernel," \
         -e"/SOSFILE/d" \
         -e"s,MB2TYPE,mb2_bootloader," -e"s,MB2FILE,nvtboot.bin," -e"s,MB2NAME,mb2," \
@@ -147,7 +151,7 @@ tegraflash_create_flash_config_tegra186() {
 	-e"s,KERNELDTB-NAME,kernel-dtb," -e"s,KERNELDTB-FILE,${DTBFILE}," \
 	-e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
 	-e"s,PPTSIZE,2097152," \
-        > flash.xml.in
+        > $destdir/flash.xml.in
 }
 
 BOOTFILES = ""
@@ -273,27 +277,37 @@ create_tegraflash_pkg_tegra186() {
     cd "${WORKDIR}/tegraflash"
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
-    if [ "${PREFERRED_PROVIDER_virtual/bootloader}" = "cboot" -a -n "${KERNEL_ARGS}" ]; then
+    if [ "${BL_IS_CBOOT}" = "1" -a -n "${KERNEL_ARGS}" ]; then
         cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
         bootargs="`fdtget ./${DTBFILE} /chosen bootargs 2>/dev/null`"
         fdtput -t s ./${DTBFILE} /chosen bootargs "$bootargs ${KERNEL_ARGS}"
     else
         ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     fi
-    ln -s "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./cboot.bin
+    ln -sf "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./cboot.bin
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
-    for f in ${STAGING_DATADIR}/tegraflash/tegra186-*.cfg; do
-	ln -s $f .
-    done
-    for f in ${STAGING_DATADIR}/tegraflash/tegra186-a02-bpmp*.dtb; do
-	ln -s $f .
+    cp ${STAGING_DATADIR}/tegraflash/flashvars .
+    . ./flashvars
+    for var in $FLASHVARS; do
+	eval pat=$`echo $var`
+	if [ -z "$pat" ]; then
+	    echo "ERR: missing variable: $var" >&2
+	    exit 1
+        fi
+	fnglob=`echo $pat | sed -e"s,@BPFDTBREV@,\*," -e"s,@BOARDREV@,\*," -e"s,@PMICREV@,\*," -e"s,@CHIPREV@,\*,"`
+	for fname in ${STAGING_DATADIR}/tegraflash/$fnglob; do
+	    if [ ! -e $fname ]; then
+	       bbfatal "$var file(s) not found"
+	    fi
+	    ln -sf $fname ./
+	done
     done
     ln -s ${STAGING_BINDIR_NATIVE}/tegra186-flash .
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
-    tegraflash_create_flash_config "${WORKDIR}/tegraflash"
+    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
@@ -316,3 +330,102 @@ do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_po
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
+
+oe_make_bup_payload() {
+    bbfatal "BUP payloads only supported on tegra186 platforms"
+}
+
+oe_make_bup_payload_tegra186() {
+    export cbootfilename=cboot.bin
+    oe_make_bup_payload_common "$@"
+}
+
+oe_make_bup_payload_common() {
+    PATH="${STAGING_BINDIR_NATIVE}/tegra186-flash:${PATH}"
+    rm -rf ${WORKDIR}/bup-payload
+    mkdir ${WORKDIR}/bup-payload
+    oldwd="$PWD"
+    cd ${WORKDIR}/bup-payload
+    # BUP generator really wants to use 'boot.img' for the LNX
+    # partition contents
+    ln -sf $1 ./boot.img
+    tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img
+    # XXX put back the APPFILE placeholder for later use - not used for signing
+    sed -i -e's,${IMAGE_BASENAME}.img,APPFILE,' flash.xml.in
+    ln -sf "${STAGING_DATADIR}/nv_tegra/nv_tegra_release" .
+    ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
+    if [ "${SOC_FAMILY}" = "tegra194" ]; then
+        ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
+    fi
+    rm -f ./${DTBFILE}
+    if [ "${BL_IS_CBOOT}" = "1" -a -n "${KERNEL_ARGS}" ]; then
+        cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+        bootargs="`fdtget ./${DTBFILE} /chosen bootargs 2>/dev/null`"
+        fdtput -t s ./${DTBFILE} /chosen bootargs "$bootargs ${KERNEL_ARGS}"
+    else
+        ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    fi
+    ln -s "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./$cbootfilename
+    for f in ${BOOTFILES}; do
+        ln -s "${STAGING_DATADIR}/tegraflash/$f" .
+    done
+    cp ${STAGING_DATADIR}/tegraflash/flashvars .
+    . ./flashvars
+    for var in $FLASHVARS; do
+	eval pat=$`echo $var`
+	if [ -z "$pat" ]; then
+	    echo "ERR: missing variable: $var" >&2
+	    exit 1
+        fi
+	if [ "${SOC_FAMILY}" = "tegra186" ]; then
+	    fnglob=`echo $pat | sed -e"s,@BPFDTBREV@,\*," -e"s,@BOARDREV@,\*," -e"s,@PMICREV@,\*," -e"s,@CHIPREV@,\*,"`
+	    for fname in ${STAGING_DATADIR}/tegraflash/$fnglob; do
+	        if [ ! -e $fname ]; then
+		    bbfatal "$var file(s) not found"
+		fi
+	        ln -sf $fname ./
+	    done
+	else
+	    for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
+		ln -sf $f .
+	    done
+	    for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
+		ln -sf $f .
+	    done
+	fi
+    done
+    rm -f ./slot_metadata.bin
+    cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
+    mkdir ./rollback
+    ln -sf ${STAGING_BINDIR_NATIVE}/tegra186-flash/rollback_parser.py ./rollback/
+    ln -snf ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
+    ln -sf ${STAGING_BINDIR_NATIVE}/tegra186-flash/BUP_generator.py ./
+    ln -sf ${STAGING_BINDIR_NATIVE}/tegra186-flash/${SOC_FAMILY}-flash-helper.sh ./
+    sed -e 's,^function ,,' ${STAGING_BINDIR_NATIVE}/tegra186-flash/l4t_bup_gen.func > ./l4t_bup_gen.func
+    rm -rf signed
+    export BOARDID=${TEGRA_BOARDID}
+    export FAB=${TEGRA_FAB}
+    export fuselevel=fuselevel_production
+    export localbootfile=${LNXFILE}
+    if [ "${SOC_FAMILY}" = "tegra194" ]; then
+        export CHIPREV=${TEGRA_CHIPREV}
+        sdramcfg=${MACHINE}.cfg,${MACHINE}-override.cfg
+    else
+        sdramcfg=${MACHINE}.cfg
+    fi
+    ./${SOC_FAMILY}-flash-helper.sh --bup ./flash.xml.in ${DTBFILE} $sdramcfg ${ODMDATA}
+    cd "$oldwd"
+}
+
+create_bup_payload_image() {
+    local type="$1"
+    oe_make_bup_payload ${IMGDEPLOYDIR}/${IMAGE_NAME}.rootfs.${type}
+    install -m 0644 ${WORKDIR}/bup-payload/bl_update_payload ${IMGDEPLOYDIR}/${IMAGE_NAME}.bup-payload
+    ln -sf ${IMAGE_NAME}.bup-payload ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.bup-payload
+}
+create_bup_payload_image[vardepsexclude] += "DATETIME"
+
+CONVERSIONTYPES += "bup-payload"
+CONVERSION_DEPENDS_bup-payload = "tegra186-flashtools-native tegra-bootfiles tegra186-redundant-boot nv-tegra-release dtc-native virtual/bootloader:do_deploy"
+CONVERSION_CMD_bup-payload = "create_bup_payload_image ${type}"
+IMAGE_TYPES += "cpio.gz.cboot.bup-payload"
