@@ -10,6 +10,10 @@ CBOOTDEP_append_tegra186 = " cboot:do_deploy"
 
 inherit image_types_tegra
 
+DEPENDS_append_tegra186 = " tegra186-flashtools-native tegra-bootfiles nv-tegra-release dtc-native"
+
+inherit image_types_tegra
+
 UBOOT_BOOTIMG_BOARD ?= "/dev/mmcblk0p1"
 
 uboot_make_bootimg() {
