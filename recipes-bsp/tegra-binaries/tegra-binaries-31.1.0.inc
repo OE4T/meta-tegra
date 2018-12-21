@@ -13,16 +13,19 @@ SRC_URI += "\
     file://nvstartup.service \
     file://tegra186-flash-helper.sh \
     file://tegra194-flash-helper.sh \
+    file://xavier-bup-fix.patch \
 "
 
 SRC_URI_append_tegra186 = " \
     file://nvpmodel.init \
     file://nvpmodel.service \
+    file://flashvars \
 "
 
 SRC_URI_append_tegra194 = " \
     file://nvpmodel.init \
     file://nvpmodel.service \
+    file://flashvars \
 "
 
 S = "${TMPDIR}/work-shared/L4T-${SOC_FAMILY}-${PV}-${PR}/Linux_for_Tegra"
@@ -36,10 +39,12 @@ do_preconfigure() {
 
 do_preconfigure_append_tegra186() {
     cp ${WORKDIR}/nvpmodel.* ${S}/
+    cp ${WORKDIR}/flashvars ${S}/
 }
 
 do_preconfigure_append_tegra194() {
     cp ${WORKDIR}/nvpmodel.* ${S}/
+    cp ${WORKDIR}/flashvars ${S}/
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
