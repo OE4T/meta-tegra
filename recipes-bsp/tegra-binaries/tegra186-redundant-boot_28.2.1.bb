@@ -4,7 +4,10 @@ require tegra-shared-binaries.inc
 COMPATIBLE_MACHINE = "(tegra186)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
-TNSPEC ?= "3310-B02-fuselevel_production"
+TEGRA_BOARDID ??= "XXX"
+TEGRA_FAB ??= "XXX"
+NVIDIA_CHIP ??= "0xXX"
+TNSPEC ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-fuselevel_production"
 
 inherit systemd
 
@@ -23,7 +26,9 @@ do_install() {
 	install -m 0755 ${B}/usr/sbin/nv_bootloader_payload_updater ${D}${sbindir}
 	install -m 0755 ${B}/usr/sbin/nv_update_engine ${D}${sbindir}
 	install -d ${D}${sysconfdir}
-	sed -e 's,^TNSPEC.*$,TNSPEC ${TNSPEC},' ${B}/etc/nv_boot_control.conf >${D}${sysconfdir}/nv_boot_control.conf
+	sed -e 's,^TNSPEC.*$,TNSPEC ${TNSPEC},' \
+	    -e '/^TEGRA_CHIPID/d' \
+	    -e '$ a TEGRA_CHIPID ${NVIDIA_CHIP}' ${B}/etc/nv_boot_control.conf >${D}${sysconfdir}/nv_boot_control.conf
 	chmod 0644 ${D}${sysconfdir}/nv_boot_control.conf
 	install -d ${D}${systemd_system_unitdir}
 	install -m 0644 ${B}/etc/systemd/system/nv_update_verifier.service ${D}${systemd_system_unitdir}
