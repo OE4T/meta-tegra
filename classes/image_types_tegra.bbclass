@@ -156,13 +156,14 @@ tegraflash_create_flash_config_tegra186() {
 
 tegraflash_create_flash_config_tegra194() {
     local destdir="$1"
+    local lnxfile="$2"
 
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra194-specific.
     # Note that the blank before DTB_FILE is important, to
     # prevent BPFDTB_FILE from being matched.
     cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
-        -e"s,LNXFILE,${LNXFILE}," -e"s,LNXSIZE,${LNXSIZE}," \
+        -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
         -e"s,TEGRABOOT,nvtboot_t194.bin," \
         -e"s,MTSPREBOOT,preboot_c10_prod_cr.bin," \
         -e"s,MTS_MCE,mce_c10_prod_cr.bin," \
@@ -179,7 +180,7 @@ tegraflash_create_flash_config_tegra194() {
 	-e"s, DTB_FILE, ${DTBFILE}," \
 	-e"s,CBOOTOPTION_FILE,cbo.dtb," \
 	-e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
-        > flash.xml.in
+        > $destdir/flash.xml.in
 }
 
 BOOTFILES = ""
@@ -392,9 +393,11 @@ create_tegraflash_pkg_tegra194() {
     else
         ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     fi
+    ln -sf "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./cboot_t194.bin
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
+    cp ${STAGING_DATADIR}/tegraflash/flashvars .
     for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
 	ln -s $f .
     done
@@ -404,7 +407,7 @@ create_tegraflash_pkg_tegra194() {
     ln -s ${STAGING_BINDIR_NATIVE}/tegra186-flash .
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
-    tegraflash_create_flash_config "${WORKDIR}/tegraflash"
+    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
@@ -431,7 +434,7 @@ do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_po
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 
 oe_make_bup_payload() {
-    bbfatal "BUP payloads only supported on tegra186 platforms"
+    bbfatal "BUP payloads only supported on tegra186/tegra194 platforms"
 }
 
 oe_make_bup_payload_tegra186() {
@@ -439,6 +442,10 @@ oe_make_bup_payload_tegra186() {
     oe_make_bup_payload_common "$@"
 }
 
+oe_make_bup_payload_tegra194() {
+    export cbootfilename=cboot_t194.bin
+    oe_make_bup_payload_common "$@"
+}
 oe_make_bup_payload_common() {
     PATH="${STAGING_BINDIR_NATIVE}/tegra186-flash:${PATH}"
     rm -rf ${WORKDIR}/bup-payload
