@@ -5,8 +5,8 @@ COMPATIBLE_MACHINE = "(tegra186|tegra194)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 TNSPEC = "XXXX-XXX-fuselevel_unspecified"
-TNSPEC_tegra186 ?= "3310-B02-fuselevel_production"
-TNSPEC_tegra194 ?= "2888-400-fuselevel_production"
+TNSPEC_tegra186 ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-fuselevel_production"
+TNSPEC_tegra194 ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-fuselevel_production"
 
 inherit systemd
 
@@ -33,8 +33,16 @@ do_install() {
 	install -m 0644 ${B}/etc/systemd/system/nv_update_verifier.service ${D}${systemd_system_unitdir}
 	sed -i -e's,^After=nv\.service,After=nvstartup.service,' ${D}${systemd_system_unitdir}/nv_update_verifier.service
 	install -d ${D}/opt/ota_package
-	install -d ${D}${datadir}/nv_tegra/rollback
-	install -m 0644 ${S}/bootloader/rollback/rollback.cfg ${D}${datadir}/nv_tegra/rollback
+}
+
+do_install_append_tegra186() {
+	install -d ${D}${datadir}/nv_tegra/rollback/t18x
+	install -m 0644 ${S}/bootloader/rollback/t18x/rollback.cfg ${D}${datadir}/nv_tegra/rollback/t18x/
+}
+
+do_install_append_tegra194() {
+	install -d ${D}${datadir}/nv_tegra/rollback/t19x
+	install -m 0644 ${S}/bootloader/rollback/t19x/rollback.cfg ${D}${datadir}/nv_tegra/rollback/t19x/
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
