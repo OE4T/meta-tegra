@@ -38,6 +38,7 @@ do_install() {
     sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/BUP_generator.py
     install -m 0755 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}
     sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/rollback_parser.py
+    install -m 0644 ${S}/bootloader/l4t_bup_gen.func ${D}${BINDIR}
 
     install -m 0755 ${S}/bootloader/mkgpt ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mksparse ${D}${BINDIR}
