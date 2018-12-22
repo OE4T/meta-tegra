@@ -12,7 +12,7 @@ MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-imag
 MACHINE_EXTRA_RDEPENDS = "tegra-configs-nvstartup tegra-configs-udev"
 MACHINE_EXTRA_RRECOMMENDS = "tegra-firmware-brcm kernel-module-bcmdhd"
 
-INITRAMFS_IMAGE ?= "tegra210-minimal-initramfs"
+INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 TEGRA_INITRAMFS_INITRD ?= "1"
 
 TEGRA_AUDIO_DEVICE ?= "tegrahda"
