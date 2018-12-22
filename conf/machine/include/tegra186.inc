@@ -41,6 +41,4 @@ PREFERRED_PROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
 PREFERRED_RPROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
 PREFERRED_PROVIDER_cboot ?= "cboot-prebuilt"
 
-PREFERRED_VERSION_xserver-xorg = "1.19%"
-
 require conf/machine/include/tegra-common.inc
