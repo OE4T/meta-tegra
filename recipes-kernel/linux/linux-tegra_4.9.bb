@@ -61,7 +61,7 @@ EOF
 }
 
 EXTLINUX = ""
-EXTLINUX_tegra186 = "generate_extlinux_conf"
+EXTLINUX_tegra186 = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'generate_extlinux_conf'}"
 do_install[postfuncs] += "${EXTLINUX}"
 
 FILES_${KERNEL_PACKAGE_NAME}-image += "/${KERNEL_IMAGEDEST}/extlinux /${KERNEL_IMAGEDEST}/initrd"
