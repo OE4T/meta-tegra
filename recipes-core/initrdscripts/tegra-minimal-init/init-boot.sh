@@ -7,13 +7,19 @@ mount -t sysfs sysfs /sys
 rootdev=""
 opt="rw"
 wait=""
-for bootarg in `cat /proc/cmdline`; do
-    case "$bootarg" in
-	root=*) rootdev="${bootarg##root=}" ;;
-	ro) opt="ro" ;;
-	rootwait) wait="yes" ;;
-    esac
-done
+
+[ ! -f /etc/platform-preboot ] || . /etc/platform-preboot
+
+if [ -z "$rootdev" ]; then
+    for bootarg in `cat /proc/cmdline`; do
+	case "$bootarg" in
+	    root=*) rootdev="${bootarg##root=}" ;;
+	    ro) opt="ro" ;;
+	    rootwait) wait="yes" ;;
+	esac
+    done
+fi
+
 if [ -n "$wait" -a ! -b "${rootdev}" ]; then
     echo "Waiting for ${rootdev}..."
     count=0
