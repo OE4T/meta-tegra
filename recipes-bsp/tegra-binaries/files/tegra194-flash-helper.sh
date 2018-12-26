@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 bup_build=
 fuse_burn=
 secureflash=
