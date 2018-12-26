@@ -24,7 +24,6 @@ B = "${WORKDIR}/build"
 DEPENDS ?= "cuda-cudart"
 
 do_compile() {
-    set -x
     if [ -f ${S}/var/cuda-repo-9-0-local/${CUDA_PKG}-9-0_${PV}_arm64.deb ]; then
         dpkg-deb --extract ${S}/var/cuda-repo-9-0-local/${CUDA_PKG}-9-0_${PV}_arm64.deb ${B}
     fi
