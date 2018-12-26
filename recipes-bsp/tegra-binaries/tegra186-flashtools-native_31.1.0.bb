@@ -36,6 +36,7 @@ do_install() {
     install -m 0755 ${S}/bootloader/tegraflash.py ${D}${BINDIR}
     install -m 0644 ${S}/bootloader/tegraflash_internal.py ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/sw_memcfg_overlay.pl ${D}${BINDIR}
+    sed -i -e's,^#!/usr/bin/perl,#!/usr/bin/env perl,' ${D}${BINDIR}/sw_memcfg_overlay.pl
     install -m 0755 ${S}/bootloader/nv_smd_generator ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/BUP_generator.py ${D}${BINDIR}
     sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/BUP_generator.py
