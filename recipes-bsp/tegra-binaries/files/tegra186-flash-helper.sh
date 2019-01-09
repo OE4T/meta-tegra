@@ -26,7 +26,7 @@ if tegraflash.py --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom b
     boardrev=`chkbdinfo -f cvm.bin`
     boardrev=`echo $boardrev | tr [a-z] [A-Z]`
     case $boardrev in
-	B0[1-9])
+	B0[1-9]|[C-Z]??)
 	    BPFDTBREV="c04"
 	    PMICREV="c04"
 	    ;;
