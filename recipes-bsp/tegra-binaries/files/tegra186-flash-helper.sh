@@ -52,7 +52,7 @@ else
     exit 1
 fi
 case $boardrev in
-    B0[1-9])
+    B0[1-9]|[C-Z]??)
 	BPFDTBREV="c04"
 	PMICREV="c04"
 	;;
