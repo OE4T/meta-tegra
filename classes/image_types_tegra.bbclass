@@ -429,8 +429,6 @@ do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_po
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''}"
-				 ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else ''} \
-                                 ${@d.expand('${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic') if d.getVar('IMAGE_UBOOT') != '' else  ''}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 
 oe_make_bup_payload() {
@@ -532,6 +530,6 @@ create_bup_payload_image() {
 create_bup_payload_image[vardepsexclude] += "DATETIME"
 
 CONVERSIONTYPES += "bup-payload"
-CONVERSION_DEPENDS_bup-payload = "tegra186-flashtools-native tegra-bootfiles tegra186-redundant-boot nv-tegra-release dtc-native virtual/bootloader:do_deploy"
+CONVERSION_DEPENDS_bup-payload = "tegra186-flashtools-native tegra-bootfiles tegra186-redundant-boot nv-tegra-release dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy"
 CONVERSION_CMD_bup-payload = "create_bup_payload_image ${type}"
 IMAGE_TYPES += "cpio.gz.cboot.bup-payload"

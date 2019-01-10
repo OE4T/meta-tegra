@@ -7,10 +7,8 @@ PROVIDES += "u-boot"
 DEPENDS += "dtc-native ${SOC_FAMILY}-flashtools-native tegra-bootfiles nv-tegra-release"
 CBOOTDEP = "virtual/kernel:do_deploy"
 CBOOTDEP_append_tegra186 = " cboot:do_deploy"
-
-inherit image_types_tegra
-
-DEPENDS_append_tegra186 = " tegra186-flashtools-native tegra-bootfiles nv-tegra-release dtc-native"
+BUPDEPS = ""
+BUPDEPS_tegra186 = "cboot:do_deploy virtual/kernel:do_deploy"
 
 inherit image_types_tegra
 
@@ -65,7 +63,7 @@ uboot_bup_payload_tegra186() {
     cp ${WORKDIR}/bup-payload/bl_update_payload ${1}.bup-payload
 }
 
-do_compile[depends] += "${CBOOTDEP}"
+do_compile[depends] += "${BUPDEPS}"
 
 do_deploy_append_tegra186 () {
     if [ -n "${UBOOT_CONFIG}" ]
