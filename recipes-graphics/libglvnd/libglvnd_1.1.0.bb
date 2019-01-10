@@ -14,9 +14,12 @@ SRC_URI += "\
     file://0004-Remove-a-couple-of-duplicate-typedefs.patch \
 "
 
+COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+
 REQUIRED_DISTRO_FEATURES = "x11 opengl"
 
 DEPENDS = "libx11 libxext xorgproto"
 
 inherit autotools pkgconfig
 
+PACKAGE_ARCH_tegra = "${SOC_FAMILY_PKGARCH}"
