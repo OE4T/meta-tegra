@@ -37,7 +37,7 @@ EXTRA_OEMAKE = 'CFLAGS= CPPFLAGS= LDFLAGS= PROJECT=t186 TOOLCHAIN_PREFIX="${TARG
 CBOOT_IMAGE ?= "cboot-${MACHINE}-${PV}-${PR}.bin"
 CBOOT_SYMLINK ?= "cboot-${MACHINE}.bin"
 
-inherit nvidia_devnet_downloads deploy
+inherit pythonnative nvidia_devnet_downloads deploy
 
 do_compile() {
     LIBGCC=`${CC} -print-libgcc-file-name`
