@@ -5,9 +5,9 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=d0988ef952643512d96488ffa614a795"
 COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 
 SRC_REPO ?= "github.com/madisongh/libdrm-tegra-shim"
-SRCBRANCH ?= "master"
+SRCBRANCH ?= "l4t-r28.2"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
-SRCREV ?= "82357b0aecc9614035effca9c340b291cf52293e"
+SRCREV ?= "994c464386bba2aeddf6e57c97592534f43cd01f"
 
 PV = "2.4+git${SRCPV}"
 
