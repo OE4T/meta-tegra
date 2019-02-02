@@ -1,7 +1,7 @@
-From 102b9f0957235cb295cf91bca8d0ba1d8d264391 Mon Sep 17 00:00:00 2001
+From a4ff0e5bd0bbbabd58b62b012440be8ff82d4ff9 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 21 Nov 2018 10:03:35 -0800
-Subject: [PATCH] Fix wayland interface checks
+Subject: [PATCH 1/2] Fix wayland interface checks
 
 egl-wayland links against both libwayland-client and
 libwayland-server libraries, each of which defines the
@@ -25,10 +25,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  4 files changed, 51 insertions(+), 4 deletions(-)
 
 diff --git a/include/wayland-eglutils.h b/include/wayland-eglutils.h
-index e2c5821..6b0c094 100644
+index 7c607a2..c2e9c79 100644
 --- a/include/wayland-eglutils.h
 +++ b/include/wayland-eglutils.h
-@@ -54,6 +54,7 @@ void wlEglSetErrorCallback(WlEglPlatformData *data,
+@@ -58,6 +58,7 @@ void wlEglSetErrorCallback(WlEglPlatformData *data,
                             EGLint err,
                             const char *file,
                             int line);
@@ -37,7 +37,7 @@ index e2c5821..6b0c094 100644
  #ifdef __cplusplus
  }
 diff --git a/src/wayland-egldisplay.c b/src/wayland-egldisplay.c
-index a34fd7f..4f15414 100644
+index e7e6e74..e80b3cc 100644
 --- a/src/wayland-egldisplay.c
 +++ b/src/wayland-egldisplay.c
 @@ -40,7 +40,8 @@ EGLBoolean wlEglIsWaylandDisplay(void *nativeDpy)
@@ -73,7 +73,7 @@ index a34fd7f..4f15414 100644
      /* we return EGL_TRUE in order to always assume a valid wayland
       * display is given so that we bypass all the checks that would
 diff --git a/src/wayland-eglsurface.c b/src/wayland-eglsurface.c
-index 92302f0..2f6dd49 100644
+index 2756cdd..de62c83 100644
 --- a/src/wayland-eglsurface.c
 +++ b/src/wayland-eglsurface.c
 @@ -58,11 +58,21 @@ EGLBoolean wlEglIsWlEglSurface(WlEglSurface *surface)
