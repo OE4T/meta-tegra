@@ -1,10 +1,10 @@
-SUMMARY = "NVIDIA VisionWorks target tools"
+DESCRIPTION = "NVIDIA VisionWorks Toolkit is a CUDA accelerated software development package for computer vision (CV) and image processing."
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-repo/copyright;md5=55bbad78645f10682903c530636cf1a9"
 
-SRC_URI = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/3.2.1/m8u2ki/JetPackL4T_321_b23/libvisionworks-repo_${PV}_arm64.deb"
-SRC_URI[md5sum] = "066cb90ca605f805aa616c5be6b06926"
-SRC_URI[sha256sum] = "87c98ba693fc89a564ea1cd202241d55f003e5b62b8c1b47118e4030702197c1"
+SRC_URI = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/4.1.1/xddsn.im/JetPackL4T_4.1.1_b57/libvisionworks-repo_${PV}_arm64.deb"
+SRC_URI[md5sum] = "73961d2e2b387d2116eb85710d80aeb3"
+SRC_URI[sha256sum] = "c5c507716e48fa2e9dc6f7bef63b5a8d2fde8ebe5489c28e4ebcd84100d3297f"
 S = "${WORKDIR}"
 B = "${WORKDIR}/build"
 
@@ -12,7 +12,7 @@ CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
 
 DEPENDS = "dpkg-native cuda-cudart patchelf-native"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+COMPATIBLE_MACHINE = "(tegra186|tegra210|tegra194)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 do_compile() {
