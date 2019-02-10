@@ -13,7 +13,7 @@ MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-configs-nvstartup tegra-configs-u
 MACHINE_EXTRA_RRECOMMENDS += "tegra-firmware-brcm kernel-module-bcmdhd"
 
 INITRAMFS_IMAGE ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'tegra-minimal-initramfs'}"
-TEGRA_INITRAMFS_INITRD ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '1'}"
+TEGRA_INITRAMFS_INITRD ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '0'}"
 INITRD_IMAGE ?= "${@'tegra-minimal-initramfs' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
 INITRD_FSTYPES ?= "${@'cpio.gz.cboot cpio.gz.cboot.bup-payload' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '${INITRAMFS_FSTYPES}'}"
 IMAGE_CLASSES_append = "${@' image_types_cboot' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
