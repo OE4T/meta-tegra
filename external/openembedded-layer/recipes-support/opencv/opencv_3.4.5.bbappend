@@ -1,9 +1,3 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/opencv-3.4.3:"
-
-SRC_URI += "\
-    file://0001-samples-eliminate-cvconfig.h-usage.patch \
-"
-
 CXXFLAGS += "-std=c++11"
 CUDA_NVCC_EXTRA_FLAGS = "-std=c++11 --expt-relaxed-constexpr"
 
