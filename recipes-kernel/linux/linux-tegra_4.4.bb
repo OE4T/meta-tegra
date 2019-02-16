@@ -22,8 +22,6 @@ SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 "
 S = "${WORKDIR}/git"
 
-KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p\${distro_bootpart} rw rootwait"
-
 do_configure_prepend() {
     localversion="-${L4T_VERSION}"
     if [ "${SCMVERSION}" = "y" ]; then
@@ -33,36 +31,5 @@ do_configure_prepend() {
     sed -e"s,^CONFIG_LOCALVERSION=.*$,CONFIG_LOCALVERSION=\"${localversion}\"," \
 	< ${WORKDIR}/defconfig > ${B}/.config
 }
-
-do_install_append() {
-    if [ "${TEGRA_INITRAMFS_INITRD}" = "1" ]; then
-        install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE_NAME}.cpio.gz ${D}/${KERNEL_IMAGEDEST}/initrd
-    fi
-}
-do_install[depends] += "${@'${INITRAMFS_IMAGE}:do_image_complete' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
-
-KERNEL_BASE_ARGS ?= "\${cbootargs}"
-KERNEL_ARGS ??= ""
-
-generate_extlinux_conf() {
-    install -d ${D}/${KERNEL_IMAGEDEST}/extlinux
-    rm -f ${D}/${KERNEL_IMAGEDEST}/extlinux/extlinux.conf
-    cat >${D}/${KERNEL_IMAGEDEST}/extlinux/extlinux.conf << EOF
-DEFAULT primary
-TIMEOUT 30
-MENU TITLE Boot Options
-LABEL primary
-      MENU LABEL primary ${KERNEL_IMAGETYPE}-${KERNEL_VERSION}
-      LINUX /${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}-${KERNEL_VERSION}
-      APPEND ${KERNEL_BASE_ARGS} ${KERNEL_ARGS} ${KERNEL_ROOTSPEC}
-EOF
-    if [ -n "${INITRAMFS_IMAGE}" -a "${TEGRA_INITRAMFS_INITRD}" = "1" ]; then
-        echo "      INITRD /${KERNEL_IMAGEDEST}/initrd" >> ${D}/${KERNEL_IMAGEDEST}/extlinux/extlinux.conf
-    fi
-}
-
-do_install[postfuncs] += "${@'generate_extlinux_conf' if not d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
-
-FILES_${KERNEL_PACKAGE_NAME}-image += "/${KERNEL_IMAGEDEST}/extlinux /${KERNEL_IMAGEDEST}/initrd"
 
 COMPATIBLE_MACHINE = "(tegra186|tegra210)"

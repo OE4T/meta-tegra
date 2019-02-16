@@ -10,3 +10,32 @@ SRCREV = "8a044b187228e60b454529e72c0610edd9d845bf"
 PV .= "+git${SRCPV}"
 
 S = "${WORKDIR}/git"
+
+KERNEL_ROOTSPEC ??= ""
+KERNEL_ARGS ??= ""
+
+def uboot_var(name):
+    return '${' + name + '}'
+
+UBOOT_EXTLINUX = "1"
+UBOOT_EXTLINUX_LABELS = "primary"
+UBOOT_EXTLINUX_DEFAULT_LABEL = "primary"
+UBOOT_EXTLINUX_KERNEL_IMAGE_primary = "../${KERNEL_IMAGETYPE}"
+UBOOT_EXTLINUX_FDTDIR_primary = ""
+UBOOT_EXTLINUX_FDT_primary = ""
+UBOOT_EXTLINUX_ROOT_primary = "${@uboot_var('cbootargs')} ${KERNEL_ROOTSPEC}"
+# Console setting comes from ${cbootargs}
+UBOOT_EXTLINUX_CONSOLE = ""
+UBOOT_EXTLINUX_KERNEL_ARGS_primary = "${KERNEL_ARGS}"
+UBOOT_EXTLINUX_INITRD_primary = "${@'../initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
+
+do_install_append() {
+	install -m 0644 ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE} ${D}/boot/
+	if [ -n "${INITRAMFS_IMAGE}" -a "${TEGRA_INITRAMFS_INITRD}" = "1" ]; then
+		install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz ${D}/boot/initrd
+	fi
+}
+do_install[depends] += "${@'${INITRAMFS_IMAGE}:do_image_complete' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
+
+EXTLINUX_OVERRIDABLE_VARS = "MENU_DESCRIPTION ROOT KERNEL_IMAGE FDTDIR FDT KERNEL_ARGS INITRD"
+do_create_extlinux_config[vardeps] += "${@' '.join(['UBOOT_EXTLINUX_%s_%s' % (v, l) for v in d.getVar('EXTLINUX_OVERRIDABLE_VARS').split() for l in d.getVar('UBOOT_EXTLINUX_LABELS').split()])}"

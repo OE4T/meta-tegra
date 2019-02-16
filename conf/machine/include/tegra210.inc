@@ -8,12 +8,12 @@ require conf/machine/include/arm/arch-armv8a.inc
 KERNEL_IMAGETYPE = "Image"
 
 MACHINE_FEATURES = "alsa bluetooth usbhost pci wifi rtc cuda"
-MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image"
+MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image u-boot"
 MACHINE_EXTRA_RDEPENDS = "tegra-configs-nvstartup tegra-configs-udev"
 MACHINE_EXTRA_RRECOMMENDS = "tegra-firmware-brcm kernel-module-bcmdhd"
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
-TEGRA_INITRAMFS_INITRD ?= "0"
+TEGRA_INITRAMFS_INITRD ?= "1"
 
 TEGRA_AUDIO_DEVICE ?= "tegrahda"
 

@@ -19,6 +19,20 @@ PV .= "+git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
+def uboot_var(name):
+    return '${' + name + '}'
+
+UBOOT_EXTLINUX = "1"
+UBOOT_EXTLINUX_LABELS = "primary"
+UBOOT_EXTLINUX_DEFAULT_LABEL = "primary"
+UBOOT_EXTLINUX_KERNEL_IMAGE_primary = "../${KERNEL_IMAGETYPE}"
+UBOOT_EXTLINUX_FDTDIR_primary = ""
+UBOOT_EXTLINUX_FDT_primary = "../${@d.getVar('KERNEL_DEVICETREE').split()[0]}"
+UBOOT_EXTLINUX_ROOT_primary = "${KERNEL_ROOTSPEC}"
+# Set in KERNEL_ARGS for ordering
+UBOOT_EXTLINUX_CONSOLE = ""
+UBOOT_EXTLINUX_KERNEL_ARGS_primary = "${KERNEL_ARGS}"
+
 do_configure() {
     if [ -z "${UBOOT_CONFIG}" ]; then
 	if [ -n "${UBOOT_MACHINE}" ]; then
@@ -30,3 +44,8 @@ do_configure() {
 	cml1_do_configure
     fi
 }
+
+EXTLINUX_OVERRIDABLE_VARS = "MENU_DESCRIPTION ROOT KERNEL_IMAGE FDTDIR FDT KERNEL_ARGS INITRD"
+do_create_extlinux_config[vardeps] += "${@' '.join(['UBOOT_EXTLINUX_%s_%s' % (v, l) for v in d.getVar('EXTLINUX_OVERRIDABLE_VARS').split() for l in d.getVar('UBOOT_EXTLINUX_LABELS').split()])}"
+
+RPROVIDES_${PN} += "u-boot"

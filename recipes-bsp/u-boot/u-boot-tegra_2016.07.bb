@@ -8,7 +8,7 @@ DEPENDS += "dtc-native ${SOC_FAMILY}-flashtools-native"
 CBOOTDEP = ""
 CBOOTDEP_tegra186 = "cboot:do_deploy virtual/kernel:do_deploy"
 
-DEPENDS_append_tegra186 = " tegra186-flashtools-native tegra-bootfiles nv-tegra-release dtc-native"
+DEPENDS_append_tegra186 = " tegra-bootfiles nv-tegra-release"
 
 inherit image_types_tegra
 
@@ -95,3 +95,5 @@ do_deploy_append_tegra186 () {
         ln -sf ${UBOOT_IMAGE}.bup-payload ${UBOOT_BINARY}.bup-payload
     fi
 }
+
+RPROVIDES_${PN} += "u-boot"

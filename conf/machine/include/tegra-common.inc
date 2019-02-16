@@ -2,6 +2,9 @@ MACHINEOVERRIDES =. "cuda:tegra:"
 SOC_FAMILY_PKGARCH = "${ARMPKGARCH}${ARMPKGSFX_DSP}${ARMPKGSFX_EABI}${ARMPKGSFX_ENDIAN}${ARMPKGSFX_FPU}_${SOC_FAMILY}"
 PACKAGE_EXTRA_ARCHS_append = " ${SOC_FAMILY_PKGARCH}"
 
+KERNEL_ROOTSPEC ?= "root=/dev/mmcblk${@uboot_var('devnum')}p${@uboot_var('distro_bootpart')} rw rootwait"
+KERNEL_ARGS ??= ""
+
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-tegra"
 PREFERRED_PROVIDER_u-boot ?= "u-boot-tegra"
 PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-tegra"
