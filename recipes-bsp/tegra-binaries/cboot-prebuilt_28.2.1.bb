@@ -6,6 +6,7 @@ INHIBIT_DEFAULT_DEPS = "1"
 
 CBOOTBIN_PREBUILT = "cboot.bin"
 CBOOTBIN_PREBUILT_tegra194 = "cboot_t194.bin"
+PREFERRED_PROVIDER_virtual/bootloader ??= ""
 PROVIDES = "cboot"
 PROVIDES += "${@'virtual/bootloader' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
 CBOOT_IMAGE ?= "cboot-${MACHINE}-${PV}-${PR}.bin"
