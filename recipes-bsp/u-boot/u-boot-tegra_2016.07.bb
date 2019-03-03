@@ -4,11 +4,9 @@ require recipes-bsp/u-boot/u-boot.inc
 require u-boot-tegra-common-${PV}.inc
 
 PROVIDES += "u-boot"
-DEPENDS += "dtc-native ${SOC_FAMILY}-flashtools-native"
-CBOOTDEP = ""
-CBOOTDEP_tegra186 = "cboot:do_deploy virtual/kernel:do_deploy"
-
-DEPENDS_append_tegra186 = " tegra-bootfiles nv-tegra-release"
+DEPENDS += "dtc-native ${SOC_FAMILY}-flashtools-native tegra-bootfiles nv-tegra-release"
+CBOOTDEP = "virtual/kernel:do_deploy"
+CBOOTDEP_append_tegra186 = " cboot:do_deploy"
 
 inherit image_types_tegra
 
