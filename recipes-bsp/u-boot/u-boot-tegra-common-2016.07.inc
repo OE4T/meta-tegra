@@ -36,6 +36,3 @@ do_install_append() {
 	fi
 }
 do_install[depends] += "${@'${INITRAMFS_IMAGE}:do_image_complete' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
-
-EXTLINUX_OVERRIDABLE_VARS = "MENU_DESCRIPTION ROOT KERNEL_IMAGE FDTDIR FDT KERNEL_ARGS INITRD"
-do_create_extlinux_config[vardeps] += "${@' '.join(['UBOOT_EXTLINUX_%s_%s' % (v, l) for v in d.getVar('EXTLINUX_OVERRIDABLE_VARS').split() for l in d.getVar('UBOOT_EXTLINUX_LABELS').split()])}"

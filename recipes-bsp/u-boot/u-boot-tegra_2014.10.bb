@@ -45,7 +45,4 @@ do_configure() {
     fi
 }
 
-EXTLINUX_OVERRIDABLE_VARS = "MENU_DESCRIPTION ROOT KERNEL_IMAGE FDTDIR FDT KERNEL_ARGS INITRD"
-do_create_extlinux_config[vardeps] += "${@' '.join(['UBOOT_EXTLINUX_%s_%s' % (v, l) for v in d.getVar('EXTLINUX_OVERRIDABLE_VARS').split() for l in d.getVar('UBOOT_EXTLINUX_LABELS').split()])}"
-
 RPROVIDES_${PN} += "u-boot"
