@@ -33,3 +33,5 @@ do_configure_prepend() {
 }
 
 COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+
+RDEPENDS_${KERNEL_PACKAGE_NAME}-base = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '${KERNEL_PACKAGE_NAME}-image'}"
