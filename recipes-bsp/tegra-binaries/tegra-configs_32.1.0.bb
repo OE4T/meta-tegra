@@ -26,9 +26,6 @@ do_install() {
     install -d ${D}${sysconfdir}/X11
 
     install -m 0644 ${B}/etc/enctune.conf ${D}${sysconfdir}
-
-    install -d ${D}${sysconfdir}/pulse
-    install -m 0644 ${B}/etc/pulse/default.pa.hdmi ${D}${sysconfdir}/pulse/default.pa
 }
 
 do_install_append_tegra186() {
@@ -38,11 +35,10 @@ do_install_append_tegra194() {
     install -m 0644 ${B}/etc/X11/xorg.conf.t194_ref ${D}${sysconfdir}/X11/xorg.conf
 }
 
-PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-pulseaudio ${PN}-nvstartup"
+PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup"
 FILES_${PN}-udev = "${sysconfdir}/udev/rules.d"
 FILES_${PN}-xorg = "${sysconfdir}/X11"
 FILES_${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
-FILES_${PN}-pulseaudio = "${sysconfdir}/pulse"
 FILES_${PN}-nvstartup = "${sysconfdir}/init.d/nvstartup ${sbindir}"
 SYSTEMD_PACKAGES = "${PN}-nvstartup"
 SYSTEMD_SERVICE_${PN}-nvstartup = "nvstartup.service"
