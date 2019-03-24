@@ -13,7 +13,7 @@ SRC_URI += "file://0001-use_lt_sysroot_when_parsing_gstconfig_header.patch \
 "
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=4fbd65380cdd255951079008b364516c \
-                    file://omx/gstomx.h;beginline=1;endline=22;md5=e8f9fc01813eb08967e8c62e652e57ef"
+                    file://omx/gstomx.h;beginline=1;endline=22;md5=3e5e5aa39221b7c190c3b7a0dac609d3"
 
 S = "${WORKDIR}/gstomx1_src/gst-omx1"
 
@@ -27,7 +27,6 @@ do_configure_append() {
 acpaths = "-I ${S}/common/m4 -I ${S}/m4"
 
 EXTRA_OECONF += "--disable-valgrind --with-omx-target=tegra"
-EXTRA_OEMAKE += 'OMX_INCLUDEPATH="-I${S}/omx/openmax/khronos -I${S}/omx/openmax"'
 
 FILES_${PN} += "${libdir}/gstreamer-1.0/*.so"
 FILES_${PN}-dbg += "${libdir}/gstreamer-1.0/.debug"
