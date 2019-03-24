@@ -21,7 +21,6 @@ SRC_URI += "\
     file://nvstartup.service \
     file://tegra186-flash-helper.sh \
     file://tegra194-flash-helper.sh \
-    file://xavier-bup-fix.patch \
 "
 
 SRC_URI_append_tegra186 = " \

@@ -87,7 +87,7 @@ tegraflash_create_flash_config_tegra210() {
     local dtbsize=$(tegraflash_roundup_size ${DTBFILE})
     local bpfsize=$(tegraflash_roundup_size bpmp.bin)
     local wb0size=$(tegraflash_roundup_size warmboot.bin)
-    local tossize=$(tegraflash_roundup_size tos.img)
+    local tossize=$(tegraflash_roundup_size tos-mon-only.img)
     # Total size of the bootfileset cannot exceed ((size of one boot area) - 1MiB) / 2,
     # (1.5MiB on the eMMC shipped on the TX1 SOM).
     if [ "${TEGRA210_REDUNDANT_BOOT}" = "1" ]; then
@@ -112,7 +112,7 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,MBPTYPE,data," -e"/MBPFILE/d" \
         -e"s,BXF,BPF," -e"s,BPFFILE,bpmp.bin," -e"s,BPFSIZE,$bpfsize," \
         -e"s,WX0,WB0," -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,WB0SIZE,$wb0size," \
-        -e"s,TXS,TOS," -e"s,TOSFILE,tos.img," -e"s,TOSSIZE,$tossize," \
+        -e"s,TXS,TOS," -e"s,TOSFILE,tos-mon-only.img," -e"s,TOSSIZE,$tossize," \
         -e"/EKSFILE/d" \
         -e"s,FBTYPE,data," -e"/FBFILE/d" \
         -e"s,DXB,DTB," -e"s,DTBFILE,${DTBFILE}," -e"s,DTBSIZE,$dtbsize," \
@@ -138,14 +138,16 @@ tegraflash_create_flash_config_tegra186() {
         -e"s,MPBTYPE,mts_preboot," -e"s,MPBFILE,preboot_d15_prod_cr.bin," -e"s,MPBNAME,mts-preboot," \
         -e"s,MBPTYPE,mts_bootpack," -e"s,MBPFILE,mce_mts_d15_prod_cr.bin," -e"s,MBPNAME,mts-bootpack," \
         -e"s,MB1TYPE,mb1_bootloader," -e"s,MB1FILE,mb1_prod.bin," -e"s,MB1NAME,mb1," \
+        -e"s,DRAMECCTYPE,dram_ecc," -e"s,DRAMECCFILE,dram-ecc.bin," -e"s,DRAMECCNAME,dram-ecc-fw," \
+        -e"s,BADPAGETYPE,black_list_info," -e"s,BADPAGEFILE,badpage.bin," -e"s,BADPAGENAME,badpage-fw," \
         -e"s,BPFFILE,bpmp.bin," -e"s,BPFNAME,bpmp-fw," -e"s,BPFSIGN,true," \
         -e"s,BPFDTB-NAME,bpmp-fw-dtb," -e"s,BPMPDTB-SIGN,true," \
         -e"s,TBCFILE,cboot.bin," -e"s,TBCTYPE,bootloader," -e"s,TBCNAME,cpu-bootloader," \
         -e"s,TBCDTB-NAME,bootloader-dtb," -e"s,TBCDTB-FILE,${DTBFILE}," \
-        -e"s,SCEFILE,camera-rtcpu-sce.bin," -e"s,SCENAME,sce-fw," -e"s,SCESIGN,true," \
+        -e"s,SCEFILE,camera-rtcpu-sce.img," -e"s,SCENAME,sce-fw," -e"s,SCESIGN,true," \
         -e"s,SPEFILE,spe.bin," -e"s,SPENAME,spe-fw," -e"s,SPETYPE,spe_fw," \
         -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,SC7NAME,sc7," \
-        -e"s,TOSFILE,tos.img," -e"s,TOSNAME,secure-os," \
+        -e"s,TOSFILE,tos-mon-only.img," -e"s,TOSNAME,secure-os," \
         -e"s,EKSFILE,eks.img," \
         -e"s,FBTYPE,data," -e"s,FBSIGN,false," -e"/FBFILE/d" \
 	-e"s,KERNELDTB-NAME,kernel-dtb," -e"s,KERNELDTB-FILE,${DTBFILE}," \
@@ -172,10 +174,10 @@ tegraflash_create_flash_config_tegra194() {
         -e"s,BPFFILE,bpmp_t194.bin," \
         -e"s,TBCFILE,cboot_t194.bin," \
         -e"s,TBCDTB-FILE,${DTBFILE}," \
-        -e"s,CAMERAFW,camera-rtcpu-rce.bin," \
+        -e"s,CAMERAFW,camera-rtcpu-rce.img," \
         -e"s,SPEFILE,spe_t194.bin," \
         -e"s,WB0BOOT,warmboot_t194_prod.bin," \
-        -e"s,TOSFILE,tos_t194.img," \
+        -e"s,TOSFILE,tos-mon-only_t194.img," \
         -e"s,EKSFILE,eks.img," \
 	-e"s, DTB_FILE, ${DTBFILE}," \
 	-e"s,CBOOTOPTION_FILE,cbo.dtb," \
@@ -192,13 +194,14 @@ BOOTFILES_tegra210 = "\
     nvtboot_cpu.bin \
     warmboot.bin \
     bpmp.bin \
-    tos.img \
+    tos-mon-only.img \
 "
 BOOTFILES_tegra186 = "\
     adsp-fw.bin \
     bmp.blob \
     bpmp.bin \
-    camera-rtcpu-sce.bin \
+    camera-rtcpu-sce.img \
+    dram-ecc.bin \
     eks.img \
     mb1_prod.bin \
     mb1_recovery_prod.bin \
@@ -209,7 +212,7 @@ BOOTFILES_tegra186 = "\
     preboot_d15_prod_cr.bin \
     slot_metadata.bin \
     spe.bin \
-    tos.img \
+    tos-mon-only.img \
     nvtboot.bin \
     warmboot.bin \
     minimal_scr.cfg \
@@ -220,7 +223,7 @@ BOOTFILES_tegra186 = "\
 BOOTFILES_tegra194 = "\
     bmp.blob \
     bpmp_t194.bin \
-    camera-rtcpu-rce.bin \
+    camera-rtcpu-rce.img \
     cboot_t194.bin \
     eks.img \
     mb1_t194_prod.bin \
@@ -235,7 +238,7 @@ BOOTFILES_tegra194 = "\
     preboot_d15_prod_cr.bin \
     slot_metadata.bin \
     spe_t194.bin \
-    tos_t194.img \
+    tos-mon-only_t194.img \
     warmboot_t194_prod.bin \
     xusb_sil_rel_fw \
     cbo.dtb \
@@ -359,6 +362,7 @@ create_tegraflash_pkg_tegra186() {
 	done
     done
     ln -s ${STAGING_BINDIR_NATIVE}/tegra186-flash .
+    dd if=/dev/zero of=badpage.bin bs=4096 count=1
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
@@ -450,6 +454,9 @@ oe_make_bup_payload_common() {
     mkdir ${WORKDIR}/bup-payload
     oldwd="$PWD"
     cd ${WORKDIR}/bup-payload
+    if [ "${SOC_FAMILY}" = "tegra186" ]; then
+        dd if=/dev/zero of=badpage.bin bs=4096 count=1
+    fi
     # BUP generator really wants to use 'boot.img' for the LNX
     # partition contents
     ln -sf $1 ./boot.img

@@ -85,7 +85,7 @@ mts_preboot preboot_d15_prod_cr.bin; \
 mts_bootpack mce_mts_d15_prod_cr.bin; \
 bpmp_fw bpmp.bin; \
 bpmp_fw_dtb $BPFDTB_FILE; \
-tlk tos.img; \
+tlk tos-mon-only.img; \
 eks eks.img; \
 bootloader_dtb $dtb_file"
 

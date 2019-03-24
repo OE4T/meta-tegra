@@ -18,6 +18,7 @@ BOOTBINS_tegra186 = "\
     bpmp.bin \
     camera-rtcpu-sce.img \
     cboot.bin \
+    dram-ecc.bin \
     eks.img \
     mb1_prod.bin \
     mb1_recovery_prod.bin \
@@ -27,7 +28,6 @@ BOOTBINS_tegra186 = "\
     nvtboot_recovery_cpu.bin \
     preboot_d15_prod_cr.bin \
     spe.bin \
-    tos.img \
     tos-mon-only.img \
 "
 BOOTBINS_tegra194 = "\
@@ -48,7 +48,6 @@ BOOTBINS_tegra194 = "\
     nvtboot_recovery_cpu_t194.bin \
     preboot_d15_prod_cr.bin \
     spe_t194.bin \
-    tos_t194.img \
     tos-mon-only_t194.img \
     warmboot_t194_prod.bin \
 "
@@ -61,7 +60,6 @@ BOOTBINS_tegra210 = "\
     nvtboot_recovery_cpu.bin \
     nvtboot_recovery_t210b01.bin \
     rp4.blob \
-    tos.img \
     tos-mon-only.img \
 "
 
