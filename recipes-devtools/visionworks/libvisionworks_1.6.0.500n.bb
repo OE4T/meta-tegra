@@ -2,9 +2,12 @@ DESCRIPTION = "NVIDIA VisionWorks Toolkit is a CUDA accelerated software develop
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-repo/copyright;md5=55bbad78645f10682903c530636cf1a9"
 
-SRC_URI = "https://developer.download.nvidia.com/devzone/devcenter/mobile/jetpack_l4t/4.1.1/xddsn.im/JetPackL4T_4.1.1_b57/libvisionworks-repo_${PV}_arm64.deb"
-SRC_URI[md5sum] = "73961d2e2b387d2116eb85710d80aeb3"
-SRC_URI[sha256sum] = "c5c507716e48fa2e9dc6f7bef63b5a8d2fde8ebe5489c28e4ebcd84100d3297f"
+inherit nvidia_devnet_downloads
+
+SRC_URI = "${NVIDIA_DEVNET_MIRROR}/libvisionworks-repo_${PV}_arm64.deb"
+
+SRC_URI[md5sum] = "e70d49ff115bc5782a3d07b572b5e3c0"
+SRC_URI[sha256sum] = "fb46f48965e78e031ba8e987ba0421c03dd5e2428572e5681f1e31c74aabff22"
 S = "${WORKDIR}"
 B = "${WORKDIR}/build"
 
@@ -12,8 +15,8 @@ CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
 
 DEPENDS = "dpkg-native cuda-cudart patchelf-native"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra210|tegra194)"
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
+COMPATIBLE_MACHINE = "tegra"
+COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 do_compile() {
     dpkg-deb --extract ${S}/var/visionworks-repo/libvisionworks_${PV}_arm64.deb ${B}
@@ -35,3 +38,4 @@ INHIBIT_SYSROOT_STRIP = "1"
 FILES_${PN} = "${libdir}/libvisionworks.so"
 FILES_${PN}-dev = "${includedir} ${libdir}/pkgconfig ${datadir}/visionworks"
 RDEPENDS_${PN} = "libstdc++"
+PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
