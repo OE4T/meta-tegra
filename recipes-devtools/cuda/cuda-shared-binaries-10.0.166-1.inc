@@ -12,7 +12,7 @@ DESCRIPTION = "CUDA package ${PN}"
 SRC_URI = ""
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/local/cuda-10.0/LICENSE;md5=dfb2d23fe5070ac47b201fbf1e497891 \
-	            file://usr/local/cuda-10.0/doc/EULA.txt;md5=b6b0dd0f286af264e7cd31befef7d738"
+	            file://usr/local/cuda-10.0/doc/EULA.txt;md5=987e5f80d382a9feae03e4afd8855dea"
 do_configure[depends] += "${MLPREFIX}cuda-binaries:do_preconfigure dpkg-native:do_populate_sysroot"
 do_populate_lic[depends] += "${MLPREFIX}cuda-binaries:do_preconfigure"
 
@@ -25,11 +25,11 @@ DEPENDS ?= "cuda-cudart"
 
 do_compile() {
     for pkg in ${CUDA_PKG}; do
-	if [ -f ${S}/var/cuda-repo-10-0-local-10.0.117/$pkg-10-0_${PV}_arm64.deb ]; then
-            dpkg-deb --extract ${S}/var/cuda-repo-10-0-local-10.0.117/$pkg-10-0_${PV}_arm64.deb ${B}
+	if [ -f ${S}/var/cuda-repo-10-0-local-10.0.166/$pkg-10-0_${PV}_arm64.deb ]; then
+            dpkg-deb --extract ${S}/var/cuda-repo-10-0-local-10.0.166/$pkg-10-0_${PV}_arm64.deb ${B}
 	fi
-	if [ -f ${S}/var/cuda-repo-10-0-local-10.0.117/$pkg-dev-10-0_${PV}_arm64.deb ]; then
-            dpkg-deb --extract ${S}/var/cuda-repo-10-0-local-10.0.117/$pkg-dev-10-0_${PV}_arm64.deb ${B}
+	if [ -f ${S}/var/cuda-repo-10-0-local-10.0.166/$pkg-dev-10-0_${PV}_arm64.deb ]; then
+            dpkg-deb --extract ${S}/var/cuda-repo-10-0-local-10.0.166/$pkg-dev-10-0_${PV}_arm64.deb ${B}
 	fi
     done
     rm -f ${B}/usr/local/cuda-10.0/lib64

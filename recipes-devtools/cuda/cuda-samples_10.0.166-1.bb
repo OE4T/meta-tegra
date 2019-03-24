@@ -1,9 +1,10 @@
 DESCRIPTION = "CUDA sample programs"
 SRC_URI = ""
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://EULA.txt;md5=b6b0dd0f286af264e7cd31befef7d738"
+LIC_FILES_CHKSUM = "file://EULA.txt;md5=987e5f80d382a9feae03e4afd8855dea"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "(tegra)"
+COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 do_fetch[noexec] = "1"
 do_unpack[depends] += "${MLPREFIX}cuda-binaries:do_preconfigure dpkg-native:do_populate_sysroot"
@@ -11,7 +12,7 @@ do_unpack[depends] += "${MLPREFIX}cuda-binaries:do_preconfigure dpkg-native:do_p
 PR = "r0"
 
 unpack_samples() {
-    dpkg-deb --fsys-tarfile ${TMPDIR}/work-shared/cuda-binaries-${PV}-${PR}/var/cuda-repo-10-0-local-10.0.117/cuda-samples-10-0_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${TMPDIR}/work-shared/cuda-binaries-${PV}-${PR}/var/cuda-repo-10-0-local-10.0.166/cuda-samples-10-0_${PV}_arm64.deb | \
         tar --strip-components=5 --exclude="*/doc/*" --exclude="*/bin/*" -x -f- -C ${S}
 }
 
@@ -88,7 +89,7 @@ do_install() {
         [ -e "$f" ] || continue
         install -m 0755 "$f" ${D}${bindir}/cuda-samples/
     done
-    dpkg-deb --fsys-tarfile ${TMPDIR}/work-shared/cuda-binaries-${PV}-${PR}/var/cuda-repo-10-0-local-10.0.117/cuda-samples-10-0_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${TMPDIR}/work-shared/cuda-binaries-${PV}-${PR}/var/cuda-repo-10-0-local-10.0.166/cuda-samples-10-0_${PV}_arm64.deb | \
         tar --exclude="*usr/share*" -x -f- -C ${D}
 }
 
