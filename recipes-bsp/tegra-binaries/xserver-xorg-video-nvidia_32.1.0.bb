@@ -1,6 +1,7 @@
 require tegra-binaries-${PV}.inc
 
 DRV_EXTRAS = ""
+GLXEXT = "libglxserver_nvidia.so"
 
 require xserver-xorg-video-nvidia.inc
 
