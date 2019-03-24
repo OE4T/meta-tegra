@@ -1,6 +1,12 @@
-SRC_URI = "https://developer.download.nvidia.com/embedded/L4T/r31_Release_v1.0/BSP/public_sources.tbz2;downloadfilename=public_sources-31.1.0.tbz2"
-SRC_URI[md5sum] = "6d50dbf1616efb2c373763410938a2a5"
-SRC_URI[sha256sum] = "cc9137afbba71f9acc1e85d1b25186c8bef730dc6b225690e7c86bef0375d2b3"
+SRC_URI = "${L4T_URI_BASE}/${L4T_BSP_BASEPFX}-public_sources.tbz2;downloadfilename=${L4T_BSP_BASEPFX}-public_sources-32.1.0.tbz2"
+SRC_MD5SUM = "8943880af9e731a4fa17f3bb7829aca7"
+SRC_SHA256SUM = "b9fc4d07b39fcbe107cf496b0bc07e4e6ccaaaa67d0f0e21d004066ff34239c2"
+SRC_MD5SUM_tegra210 = "bbd8350dea8dc061b40571c6fa7d3749"
+SRC_SHA256SUM_tegra210 = "b9d7b277ee0cd3910a1344eadf4928552470eb38269d1bf431a9040fb2c945f5"
+SRC_URI[md5sum] = "${SRC_MD5SUM}"
+SRC_URI[sha256sum] = "${SRC_SHA256SUM}"
+
+inherit l4t_bsp
 
 unpack_tar_in_tar() {
     cd ${WORKDIR}
@@ -23,5 +29,6 @@ python do_unpack() {
     bb.build.exec_func("unpack_tar_in_tar", d)
 }
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "tegra"
+COMPATIBLE_MACHINE_tegra124 = "(-)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

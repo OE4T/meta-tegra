@@ -16,7 +16,7 @@ BOOTBINS_tegra186 = "\
     adsp-fw.bin \
     bmp.blob \
     bpmp.bin \
-    camera-rtcpu-sce.bin \
+    camera-rtcpu-sce.img \
     cboot.bin \
     eks.img \
     mb1_prod.bin \
@@ -28,11 +28,13 @@ BOOTBINS_tegra186 = "\
     preboot_d15_prod_cr.bin \
     spe.bin \
     tos.img \
+    tos-mon-only.img \
 "
 BOOTBINS_tegra194 = "\
+    adsp-fw.bin \
     bmp.blob \
     bpmp_t194.bin \
-    camera-rtcpu-rce.bin \
+    camera-rtcpu-rce.img \
     cboot_t194.bin \
     eks.img \
     mb1_t194_prod.bin \
@@ -47,7 +49,20 @@ BOOTBINS_tegra194 = "\
     preboot_d15_prod_cr.bin \
     spe_t194.bin \
     tos_t194.img \
+    tos-mon-only_t194.img \
     warmboot_t194_prod.bin \
+"
+
+BOOTBINS_tegra210 = "\
+    bpmp_t210b01.bin \
+    eks.img \
+    nvtboot_cpu.bin \
+    nvtboot_recovery.bin \
+    nvtboot_recovery_cpu.bin \
+    nvtboot_recovery_t210b01.bin \
+    rp4.blob \
+    tos.img \
+    tos-mon-only.img \
 "
 
 BOOTBINS_MACHINE_SPECIFIC_tegra186 = "\
@@ -56,6 +71,13 @@ BOOTBINS_MACHINE_SPECIFIC_tegra186 = "\
 "
 BOOTBINS_MACHINE_SPECIFIC_tegra194 = ""
 
+BOOTBINS_MACHINE_SPECIFIC_tegra210 = "\
+    cboot.bin \
+    nvtboot.bin \
+    nvtboot_t210b01.bin \
+    sc7entry-firmware.bin \
+    warmboot.bin \
+"
 do_compile() {
     ${STAGING_BINDIR_NATIVE}/tegra186-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
 }
