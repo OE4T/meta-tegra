@@ -1,9 +1,10 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-DESCRIPTION = "NVIDIA Power Hinting Service for TX2/Xavier"
+DESCRIPTION = "NVIDIA Power Hinting Service"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "(tegra)"
+COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/sbin/nvphsd usr/lib/aarch64-linux-gnu/tegra

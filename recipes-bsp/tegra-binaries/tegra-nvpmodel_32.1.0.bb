@@ -1,9 +1,10 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-DESCRIPTION = "nvpmodel tool and configuration files for TX2/Xavier"
+DESCRIPTION = "nvpmodel tool and configuration files"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "(tegra)"
+COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nv_tools.tbz2
@@ -17,6 +18,8 @@ do_compile[noexec] = "1"
 NVPMODEL = ""
 NVPMODEL_tegra186 ?= "nvpmodel_t186"
 NVPMODEL_tegra194 ?= "nvpmodel_t194"
+NVPMODEL_tegra210 ?= "nvpmodel_t210"
+NVPMODEL_jetson-nano ?= "nvpmodel_t210_jetson-nano"
 
 do_install() {
     install -d ${D}${sbindir}
