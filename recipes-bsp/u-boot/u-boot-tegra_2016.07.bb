@@ -4,7 +4,7 @@ require recipes-bsp/u-boot/u-boot.inc
 require u-boot-tegra-common-${PV}.inc
 
 PROVIDES += "u-boot"
-DEPENDS += "dtc-native ${SOC_FAMILY}-flashtools-native tegra-bootfiles nv-tegra-release"
+DEPENDS += "dtc-native bc-native ${SOC_FAMILY}-flashtools-native tegra-bootfiles nv-tegra-release"
 CBOOTDEP = "virtual/kernel:do_deploy"
 CBOOTDEP_append_tegra186 = " cboot:do_deploy"
 BUPDEPS = ""
