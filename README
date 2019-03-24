@@ -1,30 +1,69 @@
-OpenEmbedded/Yocto BSP layer for NVIDIA Tegra X1/X2/K1
-======================================================
+OpenEmbedded/Yocto BSP layer for NVIDIA Tegra X1/X2/AGX/K1
+==========================================================
+
+**NOTE** this is a 'work-in-progress' branch. Please do not
+rely on the presence of this branch, it will be deleted once
+the work is completed and changes have been merged.
 
 Boards supported:
 * Jetson-TK1 development kit (Linux4Tegra R21.7)
-* Jetson-TX1 development kit (Linux4Tegra R28.2, JetPack 3.3)
-* Jetson-TX2 development kit (Linux4Tegra R28.2.1, JetPack 3.3)
+* Jetson-TX1 development kit (Linux4Tegra <tbd>)
+* Jetson-TX2 development kit (Linux4Tegra R32.1, JetPack 4.2)
+* Jetson AGX Xavier development kit (Linux4Tegra R32.1, JetPack 4.2)
+* Jetson Nano development kit (Linux4Tegra R32.1, JetPack 4.2)
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: master
 
+Current WIP Status
+------------------
+
+* Recipes have been updated for L4T R32.1.0.
+
+* Jetson-TX2: passes basic tests with core-image-sato
+  (camera capture, video playback, Vulkan, GLX, CUDA).
+  Weston image boots but does not start the compositor.
+
+* Jetson AGX Xavier: still to be tested
+
+* Jetson Nano: still to be tested
+
+* Jetson-TX1: not actually supported by NVIDIA with 32.1,
+  but it may work. If not, will need to figure out how to
+  continue to support it with R28.2 in parallel with Nano
+  (also tegra210) using R32.1.
+
+
 Limitations
 -----------
 
-* CUDA 9 supports up through gcc 6 only, so if you intend
-  to build CUDA applications, stick with gcc 6.
+* Starting with JetPack 4.2, packages outside the L4T BSP cannot
+  be downloaded from NVIDIA's web site without being logged in
+  to a developer network account. So to use CUDA 10, cuDNN, and
+  any other packages that require a devnet login, you must first
+  create an devnet account and install the NVIDIA SDK Manager
+  on your host so you can download the packages you need for
+  your builds. Once downloaded, you can set the variable
+  NVIDIA_DEVNET_MIRROR to "file://path/to/the/downloads" in
+  your local.conf file to make them available to your bitbake
+  builds.
 
+* CUDA 10 supports up through gcc 7 only, and some NVIDIA-provided
+  binary libraries appear to be compiled with g++ 7 and cause linker
+  failures when building applications with g++ 6, so it looks
 
 Selecting the toolchain version
 -------------------------------
 
 Toolchain version selection is usually a distro configuration setting,
 but you can also set this in your build/conf/local.conf file. To use
-gcc 6 instead of gcc 7, set:
+gcc 7 instead of gcc 8, set:
 
-GCCVERSION = "6.%"
+GCCVERSION = "7.%"
+
+but you will also need the gcc 7 toolchain recipes in one of your layers,
+since it was retired from OE-Core in favor of gcc 8.
 
 
 Contributing
