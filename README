@@ -25,9 +25,10 @@ Current WIP Status
   (camera capture, video playback, Vulkan, GLX, CUDA).
   Weston image boots but does not start the compositor.
 
-* Jetson AGX Xavier: still to be tested
+* Jetson AGX Xavier: sato image builds, not yet tested
 
-* Jetson Nano: still to be tested
+* Jetson Nano: sato image rootfs builds, but flash package
+  creation needs updating
 
 * Jetson-TX1: not actually supported by NVIDIA with 32.1,
   but it may work. If not, will need to figure out how to
