@@ -8,6 +8,7 @@ PACKAGECONFIG[glvnd] = "--enable-libglvnd,--disable-libglvnd,libglvnd"
 
 PACKAGECONFIG_append_tegra186 = " glvnd"
 PACKAGECONFIG_append_tegra194 = " glvnd"
+PACKAGECONFIG_append_tegra210 = " glvnd"
 DEPENDS_append_tegra = " tegra-libraries"
 EXTRA_OECONF_append_tegra = " --without-dri-drivers --disable-dri3"
 
