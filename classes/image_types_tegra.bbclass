@@ -221,10 +221,10 @@ BOOTFILES_tegra186 = "\
 "
 
 BOOTFILES_tegra194 = "\
+    adsp-fw.bin \
     bmp.blob \
     bpmp_t194.bin \
     camera-rtcpu-rce.img \
-    cboot_t194.bin \
     eks.img \
     mb1_t194_prod.bin \
     nvtboot_applet_t194.bin \
