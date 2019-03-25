@@ -96,5 +96,6 @@ sysroot_stage_dirs_append() {
     sysroot_stage_dir $from${prefix}/local/cuda-10.0 $to${prefix}/local/cuda-10.0
 }
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "(tegra)"
+COMPATIBLE_MACHINE_tegra124 = "(-)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

@@ -22,7 +22,8 @@ do_configure[noexec] = "1"
 do_compile[noexec] = "1"
 do_install[noexec] = "1"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "tegra"
+COMPATIBLE_MACHINE_tegra124 = "(-)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
 PACKAGES = "${PN}"
