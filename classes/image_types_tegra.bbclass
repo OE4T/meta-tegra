@@ -85,7 +85,7 @@ tegraflash_create_flash_config_tegra210() {
     local nvcsize=$(tegraflash_roundup_size nvtboot.bin)
     local tbcsize=$(tegraflash_roundup_size nvtboot_cpu.bin)
     local dtbsize=$(tegraflash_roundup_size ${DTBFILE})
-    local bpfsize=$(tegraflash_roundup_size bpmp.bin)
+    local bpfsize=$(tegraflash_roundup_size sc7entry-firmware.bin)
     local wb0size=$(tegraflash_roundup_size warmboot.bin)
     local tossize=$(tegraflash_roundup_size tos-mon-only.img)
     # Total size of the bootfileset cannot exceed ((size of one boot area) - 1MiB) / 2,
@@ -110,7 +110,7 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,NXC,NVC," -e"s,NVCTYPE,bootloader," -e"s,NVCFILE,nvtboot.bin," -e "s,NVCSIZE,$nvcsize," \
         -e"s,MPBTYPE,data," -e"/MPBFILE/d" \
         -e"s,MBPTYPE,data," -e"/MBPFILE/d" \
-        -e"s,BXF,BPF," -e"s,BPFFILE,bpmp.bin," -e"s,BPFSIZE,$bpfsize," \
+        -e"s,BXF,BPF," -e"s,BPFFILE,sc7entry-firmware.bin," -e"s,BPFSIZE,$bpfsize," \
         -e"s,WX0,WB0," -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,WB0SIZE,$wb0size," \
         -e"s,TXS,TOS," -e"s,TOSFILE,tos-mon-only.img," -e"s,TOSSIZE,$tossize," \
         -e"/EKSFILE/d" \
@@ -193,7 +193,7 @@ BOOTFILES_tegra210 = "\
     nvtboot.bin \
     nvtboot_cpu.bin \
     warmboot.bin \
-    bpmp.bin \
+    sc7entry-firmware.bin \
     tos-mon-only.img \
 "
 BOOTFILES_tegra186 = "\
