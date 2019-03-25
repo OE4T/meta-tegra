@@ -14,7 +14,8 @@ SRC_URI += "\
     file://0004-Remove-a-couple-of-duplicate-typedefs.patch \
 "
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "(tegra)"
+COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 REQUIRED_DISTRO_FEATURES = "x11 opengl"
 
