@@ -1,7 +1,8 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "(tegra)"
+COMPATIBLE_MACHINE_tegra124 = "(-)"
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native"
 
@@ -77,10 +78,15 @@ BOOTBINS_MACHINE_SPECIFIC_tegra210 = "\
     warmboot.bin \
 "
 do_compile() {
+    :
+}
+
+do_compile_append_tegra186() {
     ${STAGING_BINDIR_NATIVE}/tegra186-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
 }
 
 do_compile_append_tegra194() {
+    ${STAGING_BINDIR_NATIVE}/tegra186-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
     dtc -I dts -O dtb -o ${B}/cbo.dtb ${CBOOTOPTION_FILE}
 }
 
@@ -94,11 +100,11 @@ do_install() {
     done
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
     install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/flash_${MACHINE}.xml
-    install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
-    install -m 0644 ${S}/flashvars ${D}${datadir}/tegraflash/
 }
 
 do_install_append_tegra186() {
+    install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
+    install -m 0644 ${S}/flashvars ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra186* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra186-a02-bpmp*dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/minimal_scr.cfg ${D}${datadir}/tegraflash/
@@ -107,6 +113,8 @@ do_install_append_tegra186() {
 }
 
 do_install_append_tegra194() {
+    install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
+    install -m 0644 ${S}/flashvars ${D}${datadir}/tegraflash/
     install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}-override.cfg
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb ${D}${datadir}/tegraflash/
@@ -114,6 +122,9 @@ do_install_append_tegra194() {
     install -m 0644 ${B}/cbo.dtb ${D}${datadir}/tegraflash/
 }
 
+do_install_append_tegra210() {
+    [ -z "${NVIDIA_BOARD_CFG}" ] || install -m 0644 ${BOARD_CFG} ${D}${datadir}/tegraflash/board_config_${MACHINE}.xml
+}
 
 PACKAGES = "${PN}-dev"
 FILES_${PN}-dev = "${datadir}"
