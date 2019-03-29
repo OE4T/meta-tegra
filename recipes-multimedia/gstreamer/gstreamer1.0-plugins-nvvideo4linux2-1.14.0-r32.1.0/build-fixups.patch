@@ -84,7 +84,7 @@ Index: gst-v4l2/gstv4l2allocator.c
 ===================================================================
 --- gst-v4l2.orig/gstv4l2allocator.c
 +++ gst-v4l2/gstv4l2allocator.c
-@@ -836,7 +836,7 @@ gst_v4l2_allocator_alloc_mmap (GstV4l2Al
+@@ -845,7 +845,7 @@ gst_v4l2_allocator_alloc_mmap (GstV4l2Al
        expbuf.plane = i;
        expbuf.flags = O_CLOEXEC | O_RDWR;
  
@@ -92,9 +92,9 @@ Index: gst-v4l2/gstv4l2allocator.c
 +      if (obj->ioctl (obj->video_fd, VIDIOC_EXPBUF, &expbuf) < 0)
          GST_ERROR_OBJECT (allocator, "expbuf_failed");
  
-       /* TODO : Unmask the FD masked in underlying framework.
-@@ -1367,7 +1367,7 @@ gst_v4l2_allocator_dqbuf (GstV4l2Allocat
-   /* TODO: This could a possible bug in library */
+       if ((!V4L2_TYPE_IS_OUTPUT (obj->type)) &&
+@@ -1384,7 +1384,7 @@ gst_v4l2_allocator_dqbuf (GstV4l2Allocat
+  /* TODO: This could a possible bug in library */
    while (1)
    {
 -    if (v4l2_ioctl (obj->video_fd, VIDIOC_DQBUF, &buffer) == 0)
