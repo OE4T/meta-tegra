@@ -22,10 +22,14 @@ Current WIP Status
 * Recipes have been updated for L4T R32.1.0.
 
 * Jetson-TX2: passes basic tests with core-image-sato
-  (camera capture, video playback, Vulkan, GLX, CUDA).
-  Weston image boots but does not start the compositor.
+  (camera capture, video playback, Vulkan, GLX, CUDA)
+  and core-image-weston (camera capture, video playback,
+  weston-egl, CUDA).
 
-* Jetson AGX Xavier: sato image builds, not yet tested
+* Jetson AGX Xavier: passes basic tests with core-image-sato
+  (camera capture, video playback, Vulkan, GLX, CUDA)
+  and core-image-weston (camera capture, video playback,
+  weston-egl, CUDA).
 
 * Jetson Nano: sato image rootfs builds, but flash package
   creation needs updating
