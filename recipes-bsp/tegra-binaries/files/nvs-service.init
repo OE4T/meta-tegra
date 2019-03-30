@@ -1,0 +1,23 @@
+#! /bin/sh
+DAEMON=/usr/sbin/nvs-service
+NAME=nvs-service
+DESC="NVIDIA embedded sensor HAL daemon"
+
+test -x $DAEMON || exit 0
+
+case "$1" in
+    start|restart)
+      echo -n "Running $DESC: "
+      $DAEMON $ARGS < /dev/null > /dev/null 2>&1 &
+      echo "[OK]"
+      ;;
+  stop)
+      ;;
+  *)
+      N=/etc/init.d/$NAME
+      echo "Usage: $N {start|stop|restart}" >&2
+      exit 1
+      ;;
+esac
+
+exit 0

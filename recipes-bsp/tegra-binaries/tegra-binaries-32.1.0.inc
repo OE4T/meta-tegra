@@ -17,6 +17,10 @@ SRC_URI += "\
     file://nvargus-daemon.service \
     file://nvpmodel.init \
     file://nvpmodel.service \
+    file://nvphs.init \
+    file://nvphs.service \
+    file://nvs-service.init \
+    file://nvs-service.service \
     file://nvstartup.init \
     file://nvstartup.service \
     file://tegra186-flash-helper.sh \
@@ -36,7 +40,7 @@ B = "${WORKDIR}/build"
 
 do_preconfigure() {
     cp ${WORKDIR}/*-daemon.* ${WORKDIR}/nvstartup.* ${S}/
-    cp ${WORKDIR}/nvpmodel.* ${S}/
+    cp ${WORKDIR}/nvpmodel.* ${WORKDIR}/nvphs.* ${WORKDIR}/nvs-service.* ${S}/
     cp ${WORKDIR}/tegra186-flash-helper.sh ${S}/
     cp ${WORKDIR}/tegra194-flash-helper.sh ${S}/
 }

@@ -1,0 +1,13 @@
+[Unit]
+Description=NVIDIA embedded sensor HAL daemon
+Requires=nvstartup.service
+After=network-online.target nvstartup.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/nvs-service
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
