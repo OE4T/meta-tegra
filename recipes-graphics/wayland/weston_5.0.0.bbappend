@@ -11,6 +11,7 @@ SRC_URI += " \
     file://0008-gl-renderer-Use-mailbox-streams-for-scanout.patch \
     file://0009-libweston-have-compositor-drm-try-drmOpen-should-ude.patch \
     file://0010-updates-to-work-with-tegra-drm-nvdc.patch \
+    file://0011-compositor-drm-pass-drm-nvdc-to-drmOpen.patch \
     file://weston.default \
 "
 LIC_FILES_CHKSUM = "file://COPYING;md5=d79ee9e66bb0f95d3386a7acae780b70 \
