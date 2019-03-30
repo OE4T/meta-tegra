@@ -9,7 +9,7 @@ KERNEL_IMAGETYPE = "Image"
 
 MACHINE_FEATURES = "alsa bluetooth usbhost pci wifi rtc cuda"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image u-boot"
-MACHINE_EXTRA_RDEPENDS = "tegra-configs-nvstartup tegra-configs-udev"
+MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-configs-nvstartup tegra-configs-udev"
 MACHINE_EXTRA_RRECOMMENDS = "tegra-firmware-brcm kernel-module-bcmdhd"
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
