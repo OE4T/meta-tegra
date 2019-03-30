@@ -5,9 +5,9 @@ After=nvstartup.service
 Before=graphical.target
 
 [Service]
-Type=oneshot
-RemainAfterExit=yes
+Type=simple
 ExecStart=/usr/sbin/nvpmodel -f /etc/nvpmodel.conf
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
