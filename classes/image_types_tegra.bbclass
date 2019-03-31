@@ -90,7 +90,7 @@ tegraflash_create_flash_config_tegra210() {
     local tossize=$(tegraflash_roundup_size tos-mon-only.img)
     # Total size of the bootfileset cannot exceed ((size of one boot area) - 1MiB) / 2,
     # (1.5MiB on the eMMC shipped on the TX1 SOM).
-    if [ "${TEGRA210_REDUNDANT_BOOT}" = "1" ]; then
+    if [ "${TEGRA210_REDUNDANT_BOOT}" = "1" -a -n "${BOOTPART_SIZE}" ]; then
         local bfssize=$(expr $ebtsize + $nvcsize + $tbcsize + $dtbsize + $dtbsize + $bpfsize + $wb0size + $tossize)
 	local bfsmax=$(expr \( ${BOOTPART_SIZE} / 2 - 1048576 \) / 2)
         if [ $bfssize -gt $bfsmax ]; then
@@ -98,6 +98,7 @@ tegraflash_create_flash_config_tegra210() {
             exit 1
         fi
     fi
+    head -n 1 ${STAGING_DATADIR}/nv_tegra/nv_tegra_release > ./nv_tegra_release
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Some of the substitutions apply only to
     # the redundant-boot layout, some apply only to the non-redundant layout.
@@ -111,9 +112,10 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,MPBTYPE,data," -e"/MPBFILE/d" \
         -e"s,MBPTYPE,data," -e"/MBPFILE/d" \
         -e"s,BXF,BPF," -e"s,BPFFILE,sc7entry-firmware.bin," -e"s,BPFSIZE,$bpfsize," \
+        -e"/BPFDTB-FILE/d" \
         -e"s,WX0,WB0," -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,WB0SIZE,$wb0size," \
         -e"s,TXS,TOS," -e"s,TOSFILE,tos-mon-only.img," -e"s,TOSSIZE,$tossize," \
-        -e"/EKSFILE/d" \
+        -e"s,EXS,EKS," -e"s,EKSFILE,eks.img," \
         -e"s,FBTYPE,data," -e"/FBFILE/d" \
         -e"s,DXB,DTB," -e"s,DTBFILE,${DTBFILE}," -e"s,DTBSIZE,$dtbsize," \
         -e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
@@ -121,7 +123,7 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
         -e"s,BCTSIZE,${BOOTPART_SIZE}," -e"s,PPTSIZE,$gptsize," \
         -e"s,PPTFILE,ppt.img," -e"s,GPTFILE,gpt.img," \
-        > $destdir/flash.xml
+        > $destdir/flash.xml.in
 }
 
 tegraflash_create_flash_config_tegra186() {
@@ -187,12 +189,15 @@ tegraflash_create_flash_config_tegra194() {
 
 BOOTFILES = ""
 BOOTFILES_tegra210 = "\
+    bmp.blob \
     board_config_${MACHINE}.xml \
     cboot.bin \
+    eks.img \
     nvtboot_recovery.bin \
     nvtboot.bin \
     nvtboot_cpu.bin \
     warmboot.bin \
+    rp4.blob \
     sc7entry-firmware.bin \
     tos-mon-only.img \
 "
@@ -278,9 +283,9 @@ END
 }
 
 create_tegraflash_pkg_tegra210() {
-    local gptsize
+    local gptsize=16896
     PATH="${STAGING_BINDIR_NATIVE}/tegra210-flash:${PATH}"
-    if [ "${TEGRA210_REDUNDANT_BOOT}" != "1" ]; then
+    if [ "${TEGRA210_REDUNDANT_BOOT}" != "1" -a -n "${BOOTPART_SIZE}" ]; then
         if [ `expr ${BOOTPART_LIMIT} % ${EMMC_DEVSECT_SIZE}` -ne 0 ]; then
             bberror "Boot partition limit must be an even multiple of the device sector size"
             exit 1
@@ -300,22 +305,27 @@ create_tegraflash_pkg_tegra210() {
     cd "${WORKDIR}/tegraflash"
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
-    ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    if [ -n "${KERNEL_ARGS}" ]; then
+        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
+    else
+	fdtput -d ./${DTBFILE} /chosen bootargs
+    fi
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
     ln -s "${STAGING_BINDIR_NATIVE}/tegra210-flash" .
     tegraflash_custom_pre
-    mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
+    mksparse -b ${TEGRA_BLBLOCKSIZE} -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" $gptsize
-    if [ "${TEGRA210_REDUNDANT_BOOT}" != "1" ]; then
-        mkgpt -c flash.xml -P ppt.img -t ${EMMC_SIZE} -b ${BOOTPART_SIZE} -s 4KiB -a GPT -v GP1 -V
+    if [ "${TEGRA210_REDUNDANT_BOOT}" != "1" -a -n "${EMMC_SIZE}" -a -n "${BOOTPART_SIZE}" ]; then
+        mkgpt -c flash.xml.in -P ppt.img -t ${EMMC_SIZE} -b ${BOOTPART_SIZE} -s 4KiB -a GPT -v GP1 -V
     fi
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-./tegra210-flash/tegraflash.py --bl cboot.bin --bct ${MACHINE}.cfg --odmdata ${ODMDATA} --bldtb ${DTBFILE} --applet nvtboot_recovery.bin \
-              --boardconfig board_config_${MACHINE}.xml --cmd "flash;reboot" --cfg flash.xml --chip ${NVIDIA_CHIP}
+PATH=\$PATH:tegra210-flash
+./tegra210-flash/tegra210-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${NVIDIA_BOARD_CFG}
 END
     chmod +x doflash.sh
     tegraflash_custom_post
@@ -431,6 +441,7 @@ IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
 do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_populate_sysroot \
                                  ${SOC_FAMILY}-flashtools-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
+                                 virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
