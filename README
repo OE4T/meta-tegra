@@ -27,12 +27,12 @@ Current WIP Status
   weston-egl, CUDA).
 
 * Jetson AGX Xavier: passes basic tests with core-image-sato
-  (camera capture, video playback, Vulkan, GLX, CUDA)
-  and core-image-weston (camera capture, video playback,
-  weston-egl, CUDA).
+  (video playback, Vulkan, GLX, CUDA) and core-image-weston
+  (video playback, weston-egl, CUDA).
 
-* Jetson Nano: sato image rootfs builds, but flash package
-  creation needs updating
+* Jetson Nano: passes some basic tests with core-image-sato
+  (video playback, Vulkan, GLX, CUDA), but not always
+  booting after flashing. Still working on it.
 
 * Jetson-TX1: not actually supported by NVIDIA with 32.1,
   but it may work. If not, will need to figure out how to
