@@ -10,6 +10,7 @@ PREFERRED_PROVIDER_u-boot ?= "u-boot-tegra"
 PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-tegra"
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
+TEGRA_BLBLOCKSIZE ?= "${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}"
 EXTRA_IMAGECMD_ext4 ?= "-i 4096 -b 4096"
 
 MACHINE_HWCODECS = "gstreamer1.0-omx-tegra"
