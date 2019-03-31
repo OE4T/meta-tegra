@@ -5,6 +5,8 @@ COMPATIBLE_MACHINE = "(tegra)"
 COMPATIBLE_MACHINE_tegra124 = "(-)"
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native"
+DEPENDS_append_tegra186 = " tegra-flashvars"
+DEPENDS_append_tegra194 = " tegra-flashvars"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
@@ -54,6 +56,7 @@ BOOTBINS_tegra194 = "\
 "
 
 BOOTBINS_tegra210 = "\
+    bmp.blob \
     bpmp_t210b01.bin \
     eks.img \
     nvtboot_cpu.bin \
@@ -104,7 +107,6 @@ do_install() {
 
 do_install_append_tegra186() {
     install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
-    install -m 0644 ${S}/flashvars ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra186* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra186-a02-bpmp*dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/minimal_scr.cfg ${D}${datadir}/tegraflash/
@@ -114,7 +116,6 @@ do_install_append_tegra186() {
 
 do_install_append_tegra194() {
     install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
-    install -m 0644 ${S}/flashvars ${D}${datadir}/tegraflash/
     install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}-override.cfg
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb ${D}${datadir}/tegraflash/

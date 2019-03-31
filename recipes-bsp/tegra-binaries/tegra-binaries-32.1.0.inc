@@ -25,14 +25,7 @@ SRC_URI += "\
     file://nvstartup.service \
     file://tegra186-flash-helper.sh \
     file://tegra194-flash-helper.sh \
-"
-
-SRC_URI_append_tegra186 = " \
-    file://flashvars \
-"
-
-SRC_URI_append_tegra194 = " \
-    file://flashvars \
+    file://tegra210-flash-helper.sh \
 "
 
 S = "${TMPDIR}/work-shared/L4T-${SOC_FAMILY}-${PV}-${PR}/Linux_for_Tegra"
@@ -41,16 +34,7 @@ B = "${WORKDIR}/build"
 do_preconfigure() {
     cp ${WORKDIR}/*-daemon.* ${WORKDIR}/nvstartup.* ${S}/
     cp ${WORKDIR}/nvpmodel.* ${WORKDIR}/nvphs.* ${WORKDIR}/nvs-service.* ${S}/
-    cp ${WORKDIR}/tegra186-flash-helper.sh ${S}/
-    cp ${WORKDIR}/tegra194-flash-helper.sh ${S}/
-}
-
-do_preconfigure_append_tegra186() {
-    cp ${WORKDIR}/flashvars ${S}/
-}
-
-do_preconfigure_append_tegra194() {
-    cp ${WORKDIR}/flashvars ${S}/
+    cp ${WORKDIR}/tegra*-flash-helper.sh ${S}/
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
