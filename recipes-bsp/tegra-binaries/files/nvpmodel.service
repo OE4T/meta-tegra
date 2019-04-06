@@ -2,7 +2,7 @@
 Description=NVIDIA power model daemon
 Requires=nvstartup.service
 After=nvstartup.service
-Before=graphical.target
+Before=graphical.target weston.service display-manager.service
 
 [Service]
 Type=simple
