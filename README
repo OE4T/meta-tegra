@@ -1,13 +1,9 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Tegra X1/X2/AGX/K1
 ==========================================================
 
-**NOTE** this is a 'work-in-progress' branch. Please do not
-rely on the presence of this branch, it will be deleted once
-the work is completed and changes have been merged.
-
 Boards supported:
 * Jetson-TK1 development kit (Linux4Tegra R21.7)
-* Jetson-TX1 development kit (Linux4Tegra <tbd>)
+* Jetson-TX1 development kit (Linux4Tegra R32.1, JetPack 4.2 [see note below])
 * Jetson-TX2 development kit (Linux4Tegra R32.1, JetPack 4.2)
 * Jetson AGX Xavier development kit (Linux4Tegra R32.1, JetPack 4.2)
 * Jetson Nano development kit (Linux4Tegra R32.1, JetPack 4.2)
@@ -15,48 +11,34 @@ Boards supported:
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: master
-
-Current WIP Status
-------------------
-
-* Recipes have been updated for L4T R32.1.0.
-
-* Jetson-TX2: passes basic tests with core-image-sato
-  (camera capture, video playback, Vulkan, GLX, CUDA)
-  and core-image-weston (camera capture, video playback,
-  weston-egl, CUDA).
-
-* Jetson AGX Xavier: passes basic tests with core-image-sato
-  (video playback, Vulkan, GLX, CUDA) and core-image-weston
-  (video playback, weston-egl, CUDA).
-
-* Jetson Nano: passes some basic tests with core-image-sato
-  (video playback, Vulkan, GLX, CUDA), but not always
-  booting after flashing. Still working on it.
-
-* Jetson-TX1: not actually supported by NVIDIA with 32.1,
-  but it may work. If not, will need to figure out how to
-  continue to support it with R28.2 in parallel with Nano
-  (also tegra210) using R32.1.
+LAYERSERIES_COMPAT: warrior
 
 
-Limitations
+PLEASE NOTE
 -----------
 
-* Starting with JetPack 4.2, packages outside the L4T BSP cannot
-  be downloaded from NVIDIA's web site without being logged in
-  to a developer network account. So to use CUDA 10, cuDNN, and
-  any other packages that require a devnet login, you must first
-  create an devnet account and install the NVIDIA SDK Manager
-  on your host so you can download the packages you need for
-  your builds. Once downloaded, you can set the variable
-  NVIDIA_DEVNET_MIRROR to "file://path/to/the/downloads" in
-  your local.conf file to make them available to your bitbake
+* Starting with JetPack 4.2, packages outside the L4T BSP can
+  only be downloaded with an NVIDIA Developer Network login.
+  So to use CUDA 10, cuDNN, and any other packages that require
+  a Devnet login, you **must** create a Devnet account and
+  download the JetPack packages you need for your builds using
+  NVIDIA SDK Manager.
+
+  You must then set the variable NVIDIA_DEVNET_MIRROR to
+  "file://path/to/the/downloads" in your build configuration
+  (e.g., local.conf) to make them available to your bitbake
   builds.
 
 * CUDA 10 supports up through gcc 7 only, and some NVIDIA-provided
   binary libraries appear to be compiled with g++ 7 and cause linker
-  failures when building applications with g++ 6, so it looks
+  failures when building applications with g++ 6, so **only** gcc 7
+  should be used if you intend to use CUDA. (For Jetson-TK1, CUDA 6.5
+  supports up through gcc 5.x only.)
+
+* NVIDIA **does not support** Jetson-TX1 with L4T R32.1/JetPack 4.2.
+  DO NOT use this version of the BSP for Jetson-TX1 systems if you
+  need vendor support. Only R28.x and earlier versions of L4T are
+  supported on that platform.
 
 Selecting the toolchain version
 -------------------------------
@@ -74,5 +56,6 @@ since it was retired from OE-Core in favor of gcc 8.
 Contributing
 ------------
 
-Please submit issues and pull requests via GitHub.  Contributions
-are welcome!
+Please use GitHub (https://github.com/madisongh/meta-tegra) to submit
+issues or pull requests, or add to the documentation on the wiki.
+Contributions are welcome!
