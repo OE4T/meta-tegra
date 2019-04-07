@@ -17,6 +17,7 @@ IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLAS
 IMAGE_TEGRAFLASH_KERNEL ?= "${DEPLOY_DIR_IMAGE}/${LNXFILE}"
 
 BL_IS_CBOOT = "${@'1' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '0'}"
+TEGRA_SPIFLASH_BOOT ??= ""
 
 # Override this function if you need to add
 # customization after the default files are
@@ -124,6 +125,33 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,BCTSIZE,${BOOTPART_SIZE}," -e"s,PPTSIZE,$gptsize," \
         -e"s,PPTFILE,ppt.img," -e"s,GPTFILE,gpt.img," \
         > $destdir/flash.xml.in
+    [ "${TEGRA_SPIFLASH_BOOT}" = "1" ] || return 0
+    cat "${STAGING_DATADIR}/tegraflash/sdcard_${MACHINE}.xml" | sed \
+        -e"s,EBTFILE,cboot.bin," -e"s,EBTSIZE,$ebtsize," \
+        -e"s,LNXFILE,${LNXFILE}," \
+        -e"/NCTFILE/d" -e"s,NCTTYPE,data," \
+        -e"/SOSFILE/d" \
+        -e"s,NXC,NVC," -e"s,NVCTYPE,bootloader," -e"s,NVCFILE,nvtboot.bin," -e "s,NVCSIZE,$nvcsize," \
+        -e"s,MPBTYPE,data," -e"/MPBFILE/d" \
+        -e"s,MBPTYPE,data," -e"/MBPFILE/d" \
+        -e"s,BXF,BPF," -e"s,BPFFILE,sc7entry-firmware.bin," -e"s,BPFSIZE,$bpfsize," \
+        -e"/BPFDTB-FILE/d" \
+        -e"s,WX0,WB0," -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,WB0SIZE,$wb0size," \
+        -e"s,TXS,TOS," -e"s,TOSFILE,tos-mon-only.img," -e"s,TOSSIZE,$tossize," \
+        -e"s,EXS,EKS," -e"s,EKSFILE,eks.img," \
+        -e"s,FBTYPE,data," -e"/FBFILE/d" \
+        -e"s,DXB,DTB," -e"s,DTBFILE,${DTBFILE}," -e"s,DTBSIZE,$dtbsize," \
+        -e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        -e"s,TXC,TBC," -e"s,TBCTYPE,bootloader," -e"s,TBCFILE,nvtboot_cpu.bin," -e"s,TBCSIZE,$tbcsize,"  \
+        -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
+        -e"s,BCTSIZE,${BOOTPART_SIZE}," -e"s,PPTSIZE,$gptsize," \
+        -e"s,PPTFILE,ppt.img," -e"s,GPTFILE,gpt.img," \
+        > $destdir/sdcard.xml.in
+    cat "${STAGING_DATADIR}/tegraflash/sdcard-layout.in" | sed \
+        -e"s,DTBFILE,${DTBFILE}.encrypt," \
+        -e"s,LNXFILE,${LNXFILE}.encrypt," \
+        -e"s,APPFILE,${IMAGE_BASENAME}.raw.img," \
+      > $destdir/sdcard-layout
 }
 
 tegraflash_create_flash_config_tegra186() {
@@ -190,7 +218,6 @@ tegraflash_create_flash_config_tegra194() {
 BOOTFILES = ""
 BOOTFILES_tegra210 = "\
     bmp.blob \
-    board_config_${MACHINE}.xml \
     cboot.bin \
     eks.img \
     nvtboot_recovery.bin \
@@ -314,18 +341,58 @@ create_tegraflash_pkg_tegra210() {
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
+    if [ -n "${NVIDIA_BOARD_CFG}" ]; then
+        ln -s "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
+	boardcfg=board_config_${MACHINE}.xml
+    else
+	boardcfg=
+    fi
+
     ln -s "${STAGING_BINDIR_NATIVE}/tegra210-flash" .
     tegraflash_custom_pre
-    mksparse -b ${TEGRA_BLBLOCKSIZE} -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
+    if [ "${TEGRA_SPIFLASH_BOOT}" != "1" ]; then
+        mksparse -b ${TEGRA_BLBLOCKSIZE} -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
+    fi
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" $gptsize
     if [ "${TEGRA210_REDUNDANT_BOOT}" != "1" -a -n "${EMMC_SIZE}" -a -n "${BOOTPART_SIZE}" ]; then
-        mkgpt -c flash.xml.in -P ppt.img -t ${EMMC_SIZE} -b ${BOOTPART_SIZE} -s 4KiB -a GPT -v GP1 -V
+        ln -sf flash.xml.in flash.xml
+        mkgpt -c flash.xml -P ppt.img -t ${EMMC_SIZE} -b ${BOOTPART_SIZE} -s 4KiB -a GPT -v GP1 -V
+	rm -f flash.xml
     fi
+    if [ "${TEGRA_SPIFLASH_BOOT}" = "1" ]; then
+        BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} tegra210-flash-helper.sh --sign ./sdcard.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg"
+	dd if=/dev/zero of=${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard bs=1 count=0 seek=${TEGRAFLASH_SDCARD_SIZE}
+        sgdisk ${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard --clear
+        ln -s "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.raw.img
+        while IFS=, read partnum partname partsize partfile; do
+	    if [ $partsize -eq 0 ]; then
+	        partarg="--largest-new=$partnum"
+	    else
+                partarg="--new=$partnum:0:+$(expr \( $partsize + 511 \) / 512)"
+	    fi
+	    sgdisk ${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard $partarg --typecode=$partnum:8300 -c $partnum:$partname
+	done < sdcard-layout
+        sgdisk ${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard --verify
+	blksize=${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}
+	startpoint=$blksize
+        while IFS=, read partnum partname partsize partfile; do
+	    if [ -e signed/$partfile ]; then
+	        partfile=signed/$partfile
+	    fi
+	    dd if=$partfile of=${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard conv=notrunc,fsync seek=$(expr $startpoint / $blksize) bs=$blksize
+	    startpoint=$(expr $startpoint + \( \( $partsize + \( $blksize - 1 \) \) / $blksize \) \* $blksize)
+	done < sdcard-layout
+        sgdisk ${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard --verify
+	rm ${IMAGE_BASENAME}.raw.img
+	rm -r signed
+	ln -sf ${IMAGE_NAME}.sdcard ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.sdcard
+    fi
+
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
 PATH=\$PATH:tegra210-flash
-./tegra210-flash/tegra210-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${NVIDIA_BOARD_CFG}
+./tegra210-flash/tegra210-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" "${TEGRA_SPIFLASH_BOOT}"
 END
     chmod +x doflash.sh
     tegraflash_custom_post
@@ -439,7 +506,7 @@ create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
 IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
 do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_populate_sysroot \
-                                 ${SOC_FAMILY}-flashtools-native:do_populate_sysroot \
+                                 ${SOC_FAMILY}-flashtools-native:do_populate_sysroot gptfdisk-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
                                  virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \

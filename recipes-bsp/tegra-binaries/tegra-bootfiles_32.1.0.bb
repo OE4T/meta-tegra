@@ -4,7 +4,7 @@ require tegra-shared-binaries.inc
 COMPATIBLE_MACHINE = "(tegra)"
 COMPATIBLE_MACHINE_tegra124 = "(-)"
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native"
+DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native sdcard-layout"
 DEPENDS_append_tegra186 = " tegra-flashvars"
 DEPENDS_append_tegra194 = " tegra-flashvars"
 
@@ -12,6 +12,8 @@ BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
 BOARD_CFG ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${NVIDIA_BOARD_CFG}"
 PARTITION_FILE ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${PARTITION_LAYOUT_TEMPLATE}"
+SDCARD_LAYOUT_TEMPLATE ??= ""
+SDCARD_PARTITION_FILE ?= "${@'${S}/bootloader/${NVIDIA_BOARD}/cfg/${SDCARD_LAYOUT_TEMPLATE}' if d.getVar('SDCARD_LAYOUT_TEMPLATE') else ''}"
 SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
 CBOOTOPTION_FILE ?= "${S}/bootloader/cbo.dts"
 
@@ -103,6 +105,7 @@ do_install() {
     done
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
     install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/flash_${MACHINE}.xml
+    [ -z "${SDCARD_PARTITION_FILE}" ] || install -m 0644 ${SDCARD_PARTITION_FILE} ${D}${datadir}/tegraflash/sdcard_${MACHINE}.xml
 }
 
 do_install_append_tegra186() {
