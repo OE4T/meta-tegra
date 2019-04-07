@@ -1,0 +1,12 @@
+2,TBC,131072,nvtboot_cpu.bin.encrypt
+3,RP1,458752,DTBFILE
+4,EBT,589824,cboot.bin.encrypt
+5,WB0,65536,warmboot.bin.encrypt
+6,BPF,196608,sc7entry-firmware.bin.encrypt
+7,TOS,589824,tos-mon-only.img.encrypt
+8,EKS,65536,eks.img
+9,LNX,655360,LNXFILE
+10,DTB,458752,DTBFILE
+11,RP4,131072,rp4.blob
+12,BMP,81920,bmp.blob
+1,APP,0,APPFILE
