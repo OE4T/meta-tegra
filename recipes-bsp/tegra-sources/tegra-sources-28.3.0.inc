@@ -1,6 +1,4 @@
-SRC_URI = "http://developer.download.nvidia.com/embedded/L4T/r28_Release_v2.1/public_sources.tbz2;downloadfilename=public_sources-28.2.1.tbz2"
-SRC_URI[md5sum] = "acb7d00138e94a43f8f91e67008c8533"
-SRC_URI[sha256sum] = "0b62f11a811e469f5320d250924a0fa6c6c938d428822559138ebd1c37897098"
+require tegra-sources-${SOC_FAMILY}-28.3.0.inc
 
 unpack_tar_in_tar() {
     cd ${WORKDIR}
@@ -23,5 +21,5 @@ python do_unpack() {
     bb.build.exec_func("unpack_tar_in_tar", d)
 }
 
-COMPATIBLE_MACHINE = "(tegra186)"
+COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

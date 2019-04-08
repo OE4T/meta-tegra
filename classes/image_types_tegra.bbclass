@@ -80,7 +80,7 @@ tegraflash_create_flash_config_tegra210() {
     local nvcsize=$(tegraflash_roundup_size nvtboot.bin)
     local tbcsize=$(tegraflash_roundup_size nvtboot_cpu.bin)
     local dtbsize=$(tegraflash_roundup_size ${DTBFILE})
-    local bpfsize=$(tegraflash_roundup_size bpmp.bin)
+    local bpfsize=$(tegraflash_roundup_size sc7entry-firmware.bin)
     local wb0size=$(tegraflash_roundup_size warmboot.bin)
     local tossize=$(tegraflash_roundup_size tos.img)
     # Total size of the bootfileset cannot exceed ((size of one boot area) - 1MiB) / 2,
@@ -105,7 +105,7 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,NXC,NVC," -e"s,NVCTYPE,bootloader," -e"s,NVCFILE,nvtboot.bin," -e "s,NVCSIZE,$nvcsize," \
         -e"s,MPBTYPE,data," -e"/MPBFILE/d" \
         -e"s,MBPTYPE,data," -e"/MBPFILE/d" \
-        -e"s,BXF,BPF," -e"s,BPFFILE,bpmp.bin," -e"s,BPFSIZE,$bpfsize," \
+        -e"s,BXF,BPF," -e"s,BPFFILE,sc7entry-firmware.bin," -e"s,BPFSIZE,$bpfsize," \
         -e"s,WX0,WB0," -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,WB0SIZE,$wb0size," \
         -e"s,TXS,TOS," -e"s,TOSFILE,tos.img," -e"s,TOSSIZE,$tossize," \
         -e"/EKSFILE/d" \
@@ -133,6 +133,7 @@ tegraflash_create_flash_config_tegra186() {
         -e"s,MBPTYPE,mts_bootpack," -e"s,MBPFILE,mce_mts_d15_prod_cr.bin," -e"s,MBPNAME,mts-bootpack," \
         -e"s,MB1TYPE,mb1_bootloader," -e"s,MB1FILE,mb1_prod.bin," -e"s,MB1NAME,mb1," \
         -e"s,BPFFILE,bpmp.bin," -e"s,BPFNAME,bpmp-fw," -e"s,BPFSIGN,true," \
+	-e"s,DRAMECCFILE,dram-ecc.bin," -e"s,DRAMECCNAME,dram-ecc-fw," -e"s,DRAMECCTYPE,dram_ecc," \
         -e"s,BPFDTB-NAME,bpmp-fw-dtb," -e"s,BPMPDTB-SIGN,true," \
         -e"s,TBCFILE,cboot.bin," -e"s,TBCTYPE,bootloader," -e"s,TBCNAME,cpu-bootloader," \
         -e"s,TBCDTB-NAME,bootloader-dtb," -e"s,TBCDTB-FILE,${DTBFILE}," \
@@ -150,19 +151,21 @@ tegraflash_create_flash_config_tegra186() {
 
 BOOTFILES = ""
 BOOTFILES_tegra210 = "\
+    bmp.blob \
     board_config_${MACHINE}.xml \
     cboot.bin \
     nvtboot_recovery.bin \
     nvtboot.bin \
     nvtboot_cpu.bin \
     warmboot.bin \
-    bpmp.bin \
+    sc7entry-firmware.bin \
     tos.img \
 "
 BOOTFILES_tegra186 = "\
     bmp.blob \
     bpmp.bin \
     camera-rtcpu-sce.bin \
+    dram-ecc.bin \
     cboot.bin \
     eks.img \
     mb1_prod.bin \
