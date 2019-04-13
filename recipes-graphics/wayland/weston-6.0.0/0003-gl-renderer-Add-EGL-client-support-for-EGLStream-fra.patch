@@ -1,7 +1,7 @@
-From 4a3fac5ee64fbe2ac5aa36bbbb1191ae632cf740 Mon Sep 17 00:00:00 2001
+From d97cba040b82b4e5b61e3ee1fa9add8a2dd7aebb Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 29 Mar 2018 00:15:49 -0700
-Subject: [PATCH 03/10] gl-renderer: Add EGL client support for EGLStream frame
+Subject: [PATCH 3/9] gl-renderer: Add EGL client support for EGLStream frame
  presentation
 
 By attaching a GLTexture consumer to a stream, a producer (wayland EGL
@@ -28,10 +28,10 @@ Reviewed-by: James Jones <jajones@nvidia.com>
  2 files changed, 187 insertions(+), 1 deletion(-)
 
 diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
-index 27794b60..39e33350 100644
+index f3fb2c65..5e594535 100644
 --- a/libweston/gl-renderer.c
 +++ b/libweston/gl-renderer.c
-@@ -188,6 +188,9 @@ struct gl_surface_state {
+@@ -189,6 +189,9 @@ struct gl_surface_state {
  	int hsub[3];  /* horizontal subsampling per plane */
  	int vsub[3];  /* vertical subsampling per plane */
  
@@ -40,8 +40,8 @@ index 27794b60..39e33350 100644
 +
  	struct weston_surface *surface;
  
- 	struct wl_listener surface_destroy_listener;
-@@ -243,6 +246,7 @@ struct gl_renderer {
+ 	/* Whether this surface was used in the current output repaint.
+@@ -248,6 +251,7 @@ struct gl_renderer {
  
  	PFNEGLCREATESTREAMKHRPROC create_stream;
  	PFNEGLDESTROYSTREAMKHRPROC destroy_stream;
@@ -49,7 +49,7 @@ index 27794b60..39e33350 100644
  	int has_egl_stream;
  
  	PFNEGLCREATESTREAMPRODUCERSURFACEKHRPROC create_stream_producer_surface;
-@@ -252,11 +256,16 @@ struct gl_renderer {
+@@ -257,11 +261,16 @@ struct gl_renderer {
  	int has_egl_stream_consumer_egloutput;
  
  #ifdef EGL_NV_stream_attrib
@@ -66,8 +66,8 @@ index 27794b60..39e33350 100644
  	int has_dmabuf_import;
  	struct wl_list dmabuf_images;
  
-@@ -2362,6 +2371,145 @@ gl_renderer_attach_dmabuf(struct weston_surface *surface,
- 	gs->y_inverted = buffer->y_inverted;
+@@ -2528,6 +2537,145 @@ gl_renderer_attach_dmabuf(struct weston_surface *surface,
+ 	surface->is_opaque = dmabuf_is_opaque(dmabuf);
  }
  
 +/*
@@ -212,10 +212,10 @@ index 27794b60..39e33350 100644
  static void
  gl_renderer_attach(struct weston_surface *es, struct weston_buffer *buffer)
  {
-@@ -2385,6 +2533,12 @@ gl_renderer_attach(struct weston_surface *es, struct weston_buffer *buffer)
- 		gs->num_textures = 0;
+@@ -2554,6 +2702,12 @@ gl_renderer_attach(struct weston_surface *es, struct weston_buffer *buffer)
  		gs->buffer_type = BUFFER_TYPE_NULL;
  		gs->y_inverted = 1;
+ 		es->is_opaque = false;
 +
 +		if (gs->egl_stream != EGL_NO_STREAM_KHR) {
 +			gr->destroy_stream(gr->egl_display, gs->egl_stream);
@@ -225,18 +225,18 @@ index 27794b60..39e33350 100644
  		return;
  	}
  
-@@ -2398,7 +2552,7 @@ gl_renderer_attach(struct weston_surface *es, struct weston_buffer *buffer)
+@@ -2567,7 +2721,7 @@ gl_renderer_attach(struct weston_surface *es, struct weston_buffer *buffer)
  		gl_renderer_attach_egl(es, buffer, format);
  	else if ((dmabuf = linux_dmabuf_buffer_get(buffer->resource)))
  		gl_renderer_attach_dmabuf(es, buffer, dmabuf);
 -	else {
 +	else if (!gl_renderer_attach_stream_texture(es, buffer)) {
  		weston_log("unhandled buffer type!\n");
- 		weston_buffer_reference(&gs->buffer_ref, NULL);
- 		gs->buffer_type = BUFFER_TYPE_NULL;
-@@ -2586,6 +2740,10 @@ surface_state_destroy(struct gl_surface_state *gs, struct gl_renderer *gr)
- 
+ 		if (gr->has_bind_display) {
+ 		  weston_log("eglQueryWaylandBufferWL failed\n");
+@@ -2764,6 +2918,10 @@ surface_state_destroy(struct gl_surface_state *gs, struct gl_renderer *gr)
  	weston_buffer_reference(&gs->buffer_ref, NULL);
+ 	weston_buffer_release_reference(&gs->buffer_release_ref, NULL);
  	pixman_region32_fini(&gs->texture_damage);
 +
 +	if (gs->egl_stream != EGL_NO_STREAM_KHR)
@@ -245,7 +245,7 @@ index 27794b60..39e33350 100644
  	free(gs);
  }
  
-@@ -2636,6 +2794,8 @@ gl_renderer_create_surface(struct weston_surface *surface)
+@@ -2814,6 +2972,8 @@ gl_renderer_create_surface(struct weston_surface *surface)
  
  	gs->surface = surface;
  
@@ -254,7 +254,7 @@ index 27794b60..39e33350 100644
  	pixman_region32_init(&gs->texture_damage);
  	surface->renderer_state = gs;
  
-@@ -3361,14 +3521,19 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
+@@ -3570,14 +3730,19 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
  		(void *) eglGetProcAddress("eglQueryOutputLayerAttribEXT");
  	gr->create_stream = (void *) eglGetProcAddress("eglCreateStreamKHR");
  	gr->destroy_stream = (void *) eglGetProcAddress("eglDestroyStreamKHR");
@@ -274,7 +274,7 @@ index 27794b60..39e33350 100644
  
  	extensions =
  		(const char *) eglQueryString(gr->egl_display, EGL_EXTENSIONS);
-@@ -3466,6 +3631,12 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
+@@ -3676,6 +3841,12 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
  	if (weston_check_egl_extension(extensions, "EGL_EXT_stream_acquire_mode"))
  		gr->has_egl_stream_acquire_mode = 1;
  
@@ -287,7 +287,7 @@ index 27794b60..39e33350 100644
  	renderer_setup_egl_client_extensions(gr);
  
  	return 0;
-@@ -3738,6 +3909,16 @@ gl_renderer_display_create(struct weston_compositor *ec, EGLenum platform,
+@@ -3953,6 +4124,16 @@ gl_renderer_display_create(struct weston_compositor *ec, EGLenum platform,
  			goto fail_terminate;
  		}
  

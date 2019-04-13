@@ -1,8 +1,7 @@
-From 90a04c32a40372a32da2cbc9907068496ec9ade6 Mon Sep 17 00:00:00 2001
+From 0c3c0a04ef61ce63e14c8876d87e1fc83697745a Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 27 Feb 2017 15:31:35 -0800
-Subject: [PATCH 07/10] simple-egl: Do not set EGL up until XDG setup is
- complete
+Subject: [PATCH 7/9] simple-egl: Do not set EGL up until XDG setup is complete
 
 There is nothing that prohibits the underlying EGL_PLATFORM_WAYLAND
 implementation to attach a buffer or commit surfaces right after the
@@ -18,14 +17,14 @@ Related bug:
 
 Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
 ---
- clients/simple-egl.c | 67 +++++++++++++++++++++++---------------------
- 1 file changed, 35 insertions(+), 32 deletions(-)
+ clients/simple-egl.c | 64 +++++++++++++++++++++++---------------------
+ 1 file changed, 33 insertions(+), 31 deletions(-)
 
 diff --git a/clients/simple-egl.c b/clients/simple-egl.c
-index a1e57aef..0ca66415 100644
+index 8a086ef0..2d409c70 100644
 --- a/clients/simple-egl.c
 +++ b/clients/simple-egl.c
-@@ -221,11 +221,32 @@ init_egl(struct display *display, struct window *window)
+@@ -217,11 +217,32 @@ init_egl(struct display *display, struct window *window)
  	if (display->swap_buffers_with_damage)
  		printf("has EGL_EXT_buffer_age and %s\n", swap_damage_ext_to_entrypoint[i].extension);
  
@@ -59,17 +58,7 @@ index a1e57aef..0ca66415 100644
  	eglTerminate(display->egl.dpy);
  	eglReleaseThread();
  }
-@@ -364,7 +385,8 @@ handle_ivi_surface_configure(void *data, struct ivi_surface *ivi_surface,
- {
- 	struct window *window = data;
- 
--	wl_egl_window_resize(window->native, width, height, 0, 0);
-+	if (window->native)
-+		wl_egl_window_resize(window->native, width, height, 0, 0);
- 
- 	window->geometry.width = width;
- 	window->geometry.height = height;
-@@ -417,7 +439,6 @@ static void
+@@ -358,7 +379,6 @@ static void
  create_surface(struct window *window)
  {
  	struct display *display = window->display;
@@ -77,7 +66,7 @@ index a1e57aef..0ca66415 100644
  
  	window->surface = wl_compositor_create_surface(display->compositor);
  
-@@ -425,10 +446,6 @@ create_surface(struct window *window)
+@@ -366,10 +386,6 @@ create_surface(struct window *window)
  		wl_egl_window_create(window->surface,
  				     window->geometry.width,
  				     window->geometry.height);
@@ -86,11 +75,11 @@ index a1e57aef..0ca66415 100644
 -						   display->egl.conf,
 -						   window->native, NULL);
  
- 
- 	if (display->shell) {
-@@ -439,13 +456,6 @@ create_surface(struct window *window)
- 		assert(0);
- 	}
+ 	window->xdg_surface = xdg_wm_base_get_xdg_surface(display->wm_base,
+ 							  window->surface);
+@@ -386,13 +402,6 @@ create_surface(struct window *window)
+ 	window->wait_for_configure = true;
+ 	wl_surface_commit(window->surface);
  
 -	ret = eglMakeCurrent(window->display->egl.dpy, window->egl_surface,
 -			     window->egl_surface, window->display->egl.ctx);
@@ -99,10 +88,10 @@ index a1e57aef..0ca66415 100644
 -	if (!window->frame_sync)
 -		eglSwapInterval(display->egl.dpy, 0);
 -
- 	if (!display->shell)
+ 	if (!display->wm_base)
  		return;
  
-@@ -456,15 +466,6 @@ create_surface(struct window *window)
+@@ -403,15 +412,6 @@ create_surface(struct window *window)
  static void
  destroy_surface(struct window *window)
  {
@@ -116,9 +105,9 @@ index a1e57aef..0ca66415 100644
 -	wl_egl_window_destroy(window->native);
 -
  	if (window->xdg_toplevel)
- 		zxdg_toplevel_v6_destroy(window->xdg_toplevel);
+ 		xdg_toplevel_destroy(window->xdg_toplevel);
  	if (window->xdg_surface)
-@@ -906,9 +907,7 @@ main(int argc, char **argv)
+@@ -846,9 +846,7 @@ main(int argc, char **argv)
  
  	wl_display_roundtrip(display.display);
  
@@ -128,7 +117,7 @@ index a1e57aef..0ca66415 100644
  
  	display.cursor_surface =
  		wl_compositor_create_surface(display.compositor);
-@@ -918,23 +917,27 @@ main(int argc, char **argv)
+@@ -858,23 +856,27 @@ main(int argc, char **argv)
  	sigint.sa_flags = SA_RESETHAND;
  	sigaction(SIGINT, &sigint, NULL);
  

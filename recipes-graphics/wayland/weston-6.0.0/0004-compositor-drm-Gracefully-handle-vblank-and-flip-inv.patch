@@ -1,8 +1,8 @@
-From df44f7c797e472b9033f30ee35ba6c552a49c5e2 Mon Sep 17 00:00:00 2001
+From a50bfd75bdbb55509c6c70deb72b0a707ab44274 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Tue, 1 Mar 2016 22:19:14 +0100
-Subject: [PATCH 04/10] compositor-drm: Gracefully handle vblank and flip
- invalid timestamps
+Subject: [PATCH 4/9] compositor-drm: Gracefully handle vblank and flip invalid
+ timestamps
 
 Instant query for vblank timestamp may always fail, resulting in
 never scheduling a full repaint in drm_output_start_repaint_loop().
@@ -21,18 +21,18 @@ Reviewed-by: Andy Ritger <aritger@nvidia.com>
  1 file changed, 25 insertions(+), 3 deletions(-)
 
 diff --git a/libweston/compositor-drm.c b/libweston/compositor-drm.c
-index 38911763..577d2e2f 100644
+index c1101105..77dbb077 100644
 --- a/libweston/compositor-drm.c
 +++ b/libweston/compositor-drm.c
-@@ -3,6 +3,7 @@
-  * Copyright © 2011 Intel Corporation
+@@ -4,6 +4,7 @@
   * Copyright © 2017, 2018 Collabora, Ltd.
   * Copyright © 2017, 2018 General Electric Company
-+ * Copyright © 2016-2018 NVIDIA Corporation
+  * Copyright (c) 2018 DisplayLink (UK) Ltd.
++ * Copyright © 2016-2019 NVIDIA Corporation
   *
   * Permission is hereby granted, free of charge, to any person obtaining
   * a copy of this software and associated documentation files (the
-@@ -1860,6 +1861,19 @@ drm_output_update_complete(struct drm_output *output, uint32_t flags,
+@@ -1937,6 +1938,19 @@ drm_output_update_complete(struct drm_output *output, uint32_t flags,
  
  	ts.tv_sec = sec;
  	ts.tv_nsec = usec * 1000;
@@ -52,7 +52,7 @@ index 38911763..577d2e2f 100644
  	weston_output_finish_frame(&output->base, &ts, flags);
  
  	/* We can't call this from frame_notify, because the output's
-@@ -2849,8 +2863,16 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
+@@ -3010,8 +3024,16 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
  	vbl.request.type |= drm_waitvblank_pipe(output);
  	ret = drmWaitVBlank(backend->drm.fd, &vbl);
  
@@ -71,7 +71,7 @@ index 38911763..577d2e2f 100644
  		ts.tv_sec = vbl.reply.tval_sec;
  		ts.tv_nsec = vbl.reply.tval_usec * 1000;
  
-@@ -2871,7 +2893,7 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
+@@ -3032,7 +3054,7 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
  		}
  	}
  

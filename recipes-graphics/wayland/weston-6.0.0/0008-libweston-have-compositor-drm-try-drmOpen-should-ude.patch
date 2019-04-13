@@ -1,18 +1,19 @@
-From f5e05fecca1a394f59d46d6e7c4ff98128109ad3 Mon Sep 17 00:00:00 2001
+From b56aaaa3f571d07c172ee5a12e0bd34a5d12ca4f Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Fri, 7 Sep 2018 08:49:33 -0700
-Subject: [PATCH 09/10] libweston: have compositor-drm try drmOpen should udev
+Date: Sat, 30 Mar 2019 08:35:01 -0700
+Subject: [PATCH 8/9] libweston: have compositor-drm try drmOpen should udev
  search fail
 
+Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  libweston/compositor-drm.c | 36 ++++++++++++++++++++++++++++--------
  1 file changed, 28 insertions(+), 8 deletions(-)
 
 diff --git a/libweston/compositor-drm.c b/libweston/compositor-drm.c
-index 1352a38e..8696449b 100644
+index 100b3050..336cc7a2 100644
 --- a/libweston/compositor-drm.c
 +++ b/libweston/compositor-drm.c
-@@ -346,6 +346,7 @@ struct drm_fb {
+@@ -399,6 +399,7 @@ struct drm_fb {
  
  	/* Used by dumb fbs */
  	void *map;
@@ -20,7 +21,7 @@ index 1352a38e..8696449b 100644
  };
  
  struct drm_edid {
-@@ -888,7 +889,7 @@ drm_fb_destroy_dumb(struct drm_fb *fb)
+@@ -969,7 +970,7 @@ drm_fb_destroy_dumb(struct drm_fb *fb)
  
  	assert(fb->type == BUFFER_PIXMAN_DUMB);
  
@@ -29,7 +30,7 @@ index 1352a38e..8696449b 100644
  		munmap(fb->map, fb->size);
  
  	memset(&destroy_arg, 0, sizeof(destroy_arg));
-@@ -1013,10 +1014,16 @@ drm_fb_create_dumb(struct drm_backend *b, int width, int height,
+@@ -1095,10 +1096,16 @@ drm_fb_create_dumb(struct drm_backend *b, int width, int height,
  	if (ret)
  		goto err_add_fb;
  
@@ -50,13 +51,13 @@ index 1352a38e..8696449b 100644
  
  	return fb;
  
-@@ -6893,8 +6900,20 @@ drm_backend_create(struct weston_compositor *compositor,
+@@ -7607,8 +7614,20 @@ drm_backend_create(struct weston_compositor *compositor,
  	else
  		drm_device = find_primary_gpu(b, seat_id);
  	if (drm_device == NULL) {
 -		weston_log("no drm device found\n");
 -		goto err_udev;
-+		int fd = drmOpen("", "");
++		int fd = drmOpen("drm-nvdc", "");
 +		char *name;
 +		if (fd >= 0) {
 +			name = drmGetDeviceNameFromFd(fd);
@@ -73,7 +74,7 @@ index 1352a38e..8696449b 100644
  	}
  
  	if (init_kms_caps(b) < 0) {
-@@ -6964,7 +6983,8 @@ drm_backend_create(struct weston_compositor *compositor,
+@@ -7678,7 +7697,8 @@ drm_backend_create(struct weston_compositor *compositor,
  		goto err_udev_monitor;
  	}
  

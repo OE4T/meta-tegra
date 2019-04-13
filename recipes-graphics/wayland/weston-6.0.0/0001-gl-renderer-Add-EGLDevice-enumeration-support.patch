@@ -1,7 +1,7 @@
-From d21dfd5ec079b5227553aa84dc4667ea5dd4ee16 Mon Sep 17 00:00:00 2001
+From 17713b7d02da605fe825e2473f199d4974c41e18 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 15:56:37 +0200
-Subject: [PATCH 01/10] gl-renderer: Add EGLDevice enumeration support
+Subject: [PATCH 1/9] gl-renderer: Add EGLDevice enumeration support
 
 EGLDevice provides means to enumerate native devices.
 
@@ -21,10 +21,10 @@ Reviewed-by: James Jones <jajones@nvidia.com>
  2 files changed, 96 insertions(+), 1 deletion(-)
 
 diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
-index 2c50d2da..b681668b 100644
+index a03e45ea..74315347 100644
 --- a/libweston/gl-renderer.c
 +++ b/libweston/gl-renderer.c
-@@ -3775,6 +3775,90 @@ gl_renderer_setup(struct weston_compositor *ec, EGLSurface egl_surface)
+@@ -3990,6 +3990,90 @@ gl_renderer_setup(struct weston_compositor *ec, EGLSurface egl_surface)
  	return 0;
  }
  
@@ -115,10 +115,10 @@ index 2c50d2da..b681668b 100644
  WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
  	.opaque_attribs = gl_renderer_opaque_attribs,
  	.alpha_attribs = gl_renderer_alpha_attribs,
-@@ -3785,5 +3869,8 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
- 	.output_destroy = gl_renderer_output_destroy,
+@@ -4001,5 +4085,8 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
  	.output_surface = gl_renderer_output_surface,
  	.output_set_border = gl_renderer_output_set_border,
+ 	.create_fence_fd = gl_renderer_create_fence_fd,
 -	.print_egl_error_state = gl_renderer_print_egl_error_state
 +	.print_egl_error_state = gl_renderer_print_egl_error_state,
 +
@@ -126,7 +126,7 @@ index 2c50d2da..b681668b 100644
 +	.get_drm_device_file = gl_renderer_get_drm_device_file
  };
 diff --git a/libweston/gl-renderer.h b/libweston/gl-renderer.h
-index b47ea07f..9ff4e21e 100644
+index 202702b5..151879da 100644
 --- a/libweston/gl-renderer.h
 +++ b/libweston/gl-renderer.h
 @@ -38,6 +38,7 @@
@@ -137,8 +137,8 @@ index b47ea07f..9ff4e21e 100644
  typedef void *EGLDisplay;
  typedef void *EGLSurface;
  typedef void *EGLConfig;
-@@ -114,5 +115,12 @@ struct gl_renderer_interface {
- 				  int32_t tex_width, unsigned char *data);
+@@ -121,5 +122,12 @@ struct gl_renderer_interface {
+ 	int (*create_fence_fd)(struct weston_output *output);
  
  	void (*print_egl_error_state)(void);
 +
