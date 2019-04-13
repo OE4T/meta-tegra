@@ -15,8 +15,6 @@ SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://fix-missing-gstegljitter.patch \
 	    file://make-wayland-configurable.patch \
 "
-# The following is _appended by the .inc file
-SRC_URI_remove = "file://0001-introspection.m4-prefix-pkgconfig-paths-with-PKG_CON.patch"
 
 DEPENDS += "gstreamer1.0-plugins-base virtual/egl virtual/libgles2"
 
@@ -26,7 +24,7 @@ PACKAGECONFIG[wayland] = "--with-wayland,--without-wayland,wayland,mesa"
 
 S = "${WORKDIR}/gstegl_src/gst-egl"
 
-inherit gettext
+inherit gettext gobject-introspection
 
 do_configure_append() {
     rm -f ${S}/po/POTFILES.in
