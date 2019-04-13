@@ -9,12 +9,12 @@ SRC_URI = "\
     ${NVIDIA_DEVNET_MIRROR}/libnvinfer-dev_${PV}+cuda10.0_arm64.deb;name=dev;subdir=tensorrt \
     ${NVIDIA_DEVNET_MIRROR}/libnvinfer-samples_${PV}+cuda10.0_all.deb;name=samples;subdir=tensorrt \
 "
-SRC_URI[lib.md5sum] = "6880ccc6d8a8dc3ef023d3b485c1c692"
-SRC_URI[lib.sha256sum] = "b1e7a49a3df15ef0e7fdae785fcd95628ff7c3b05fce9796f68d4b41fbb55598"
-SRC_URI[dev.md5sum] = "beb81ab9eba95a813c16b147af338021"
-SRC_URI[dev.sha256sum] = "aa09fd4b587835896e64df87637380f7f3ddeb462ed49c97232a54ae30484223"
-SRC_URI[samples.md5sum] = "fdaf46c4dfcd1cb1fd2c204037897959"
-SRC_URI[samples.sha256sum] = "e285b63280212b22c3f3a8b7594bb8eb5702ed1f0b26bbb81d7642ca04b226ac"
+SRC_URI[lib.md5sum] = "b3f083e0665dc8d3d8eb61349bb275d7"
+SRC_URI[lib.sha256sum] = "b6336bccde901e64d2118dd2abb3d697d6211e422eb64daf0624f56cc6e58c83"
+SRC_URI[dev.md5sum] = "9e8e0d8356ba4af730c39b35c50ae2a8"
+SRC_URI[dev.sha256sum] = "9269fac7d525dbbddc07ea6aaeec03620ee18a44379d53b1aab7ec9aa868ffc3"
+SRC_URI[samples.md5sum] = "dfa8bee28c87ec3c08b4063b779d63ef"
+SRC_URI[samples.sha256sum] = "f518dd3110a2da48c59604cc33d836291fb5177357aa2eb2be432bd712dc04ed"
 
 COMPATIBLE_MACHINE = "(tegra)"
 COMPATIBLE_MACHINE_tegra124 = "(-)"
