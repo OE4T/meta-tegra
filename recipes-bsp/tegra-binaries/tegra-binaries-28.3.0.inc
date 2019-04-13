@@ -2,7 +2,9 @@ LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=2174e6214d83da8e19ab6510ffa71336 \
                     file://nv_tegra/LICENSE.brcm_patchram_plus;md5=38fb07f0dacf4830bc57f40a0fb7532e"
 
-require tegra-binaries-${SOC_FAMILY}-28.3.0.inc
+INCNAME = "tegra186"
+INCNAME_tegra210 = "tegra210"
+require tegra-binaries-${INCNAME}-28.3.0.inc
 
 SRC_URI += "\
     file://nvcamera-daemon.init \

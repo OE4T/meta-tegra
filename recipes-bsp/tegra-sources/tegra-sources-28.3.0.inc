@@ -1,4 +1,6 @@
-require tegra-sources-${SOC_FAMILY}-28.3.0.inc
+INCNAME = "tegra186"
+INCNAME_tegra210 = "tegra210"
+require tegra-sources-${INCNAME}-28.3.0.inc
 
 unpack_tar_in_tar() {
     cd ${WORKDIR}

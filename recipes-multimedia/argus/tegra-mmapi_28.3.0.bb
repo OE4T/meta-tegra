@@ -2,9 +2,9 @@ DESCRIPTION = "NVIDIA Tegra Multimedia API headers"
 HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD"
 
-SOC_FAMILY ??= "tegra186"
-
-require tegra-mmapi-${SOC_FAMILY}-28.3.0.inc
+INCNAME = "tegra186"
+INCNAME_tegra210 = "tegra210"
+require tegra-mmapi-${INCNAME}-28.3.0.inc
 
 COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
