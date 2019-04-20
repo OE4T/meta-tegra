@@ -11,7 +11,8 @@ python () {
     # the mirror is located locally vs. remotely.
     # XXX
     csfiles = d.getVarFlag('do_fetch', 'file-checksums').split()
-    files = [os.path.basename(uri) for uri in d.getVar('SRC_URI', False).split() if uri.startswith('${NVIDIA_DEVNET_MIRROR}')]
+    files = [os.path.basename(d.expand(uri.split(';')[0])) for uri in d.getVar('SRC_URI', False).split() \
+                                                               if uri.startswith('${NVIDIA_DEVNET_MIRROR}')]
     for f in files:
         for csf in csfiles:
             if os.path.basename(csf.split(':')[0]) == f:
