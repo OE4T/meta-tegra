@@ -1,0 +1,25 @@
+From c316858091ef01210393d63ccea9661f15bffb98 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 5 Jul 2018 10:25:59 -0700
+Subject: [PATCH 3/8] tegrabl_bootloader_update: fix int-conversion error
+
+---
+ .../lib/tegrabl_bootloader_update/tegrabl_bootloader_update.c   | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bootloader/partner/common/lib/tegrabl_bootloader_update/tegrabl_bootloader_update.c b/bootloader/partner/common/lib/tegrabl_bootloader_update/tegrabl_bootloader_update.c
+index fbf36dc..28d3f48 100644
+--- a/bootloader/partner/common/lib/tegrabl_bootloader_update/tegrabl_bootloader_update.c
++++ b/bootloader/partner/common/lib/tegrabl_bootloader_update/tegrabl_bootloader_update.c
+@@ -471,7 +471,7 @@ fail:
+ tegrabl_error_t tegrabl_check_and_update_bl_payload(void *buff, uint32_t size,
+ 													const char *suffix)
+ {
+-	tegrabl_blob_handle bh = NULL;
++	tegrabl_blob_handle bh = 0;
+ 	enum tegrabl_blob_type btype = BLOB_UPDATE;
+ 	uint32_t num_entries;
+ 	tegrabl_error_t status = TEGRABL_NO_ERROR;
+-- 
+2.19.1
+

@@ -1,0 +1,27 @@
+From 4571d9f5192b927e09f0b08e91cd0080787efbe0 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 5 Jul 2018 12:33:32 -0700
+Subject: [PATCH 7/8] make: update MAKECONFIGHEADER macro
+
+to just use the base filename of the configuration header,
+rather than the full path name.
+---
+ bootloader/partner/t18x/cboot/make/macros.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bootloader/partner/t18x/cboot/make/macros.mk b/bootloader/partner/t18x/cboot/make/macros.mk
+index c8cf604..564d068 100644
+--- a/bootloader/partner/t18x/cboot/make/macros.mk
++++ b/bootloader/partner/t18x/cboot/make/macros.mk
+@@ -32,7 +32,7 @@ define MAKECONFIGHEADER
+ 	$(MKDIR); \
+ 	echo generating $1; \
+ 	rm -f $1.tmp; \
+-	LDEF=`echo $1 | tr '/\\.-' '_'`; \
++	LDEF=`basename $1 | tr '/\\.-' '_'`; \
+ 	echo \#ifndef __$${LDEF}_H > $1.tmp; \
+ 	echo \#define __$${LDEF}_H >> $1.tmp; \
+ 	for d in `echo $($2) `; do \
+-- 
+2.19.1
+
