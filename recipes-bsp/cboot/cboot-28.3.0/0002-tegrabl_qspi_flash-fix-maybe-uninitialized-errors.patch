@@ -1,0 +1,24 @@
+From 540b5c1b3562fa2d5b247468811dba24221043a0 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 5 Jul 2018 10:25:41 -0700
+Subject: [PATCH 2/8] tegrabl_qspi_flash: fix maybe-uninitialized errors
+
+---
+ .../partner/common/drivers/qspi_flash/tegrabl_qspi_flash.c       | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/bootloader/partner/common/drivers/qspi_flash/tegrabl_qspi_flash.c b/bootloader/partner/common/drivers/qspi_flash/tegrabl_qspi_flash.c
+index feaecc3..03659cd 100644
+--- a/bootloader/partner/common/drivers/qspi_flash/tegrabl_qspi_flash.c
++++ b/bootloader/partner/common/drivers/qspi_flash/tegrabl_qspi_flash.c
+@@ -1166,6 +1166,7 @@ static tegrabl_error_t qspi_bdev_erase(tegrabl_bdev_t *dev, bnum_t block,
+ 	}
+ 
+ 	head_count = tail_count = 0;
++	head_start = tail_start = 0;
+ 	sector_num = block_num_to_sector_num(block);
+ 	sector_cnt = block_cnt_to_sector_cnt(count);
+ 
+-- 
+2.19.1
+
