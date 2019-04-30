@@ -12,7 +12,7 @@ LIC_FILES_CHKSUM = " \
     file://bootloader/partner/common/drivers/display/tegrabl_display.c;endline=9;md5=c8ca1ecaf97ac64ea801dd20a81d463a \
 "
 
-SRC_URI = "${NVIDIA_DEVNET_MIRROR}/L4T-${PV}/cboot_src_t194.tbz2;subdir=${BP}"
+SRC_URI = "${NVIDIA_DEVNET_MIRROR}/L4T-${PV}/cboot_src_t194.tbz2;subdir=${BP};downloadfilename=${BP}.tbz2"
 SRC_URI[md5sum] = "f1e23010e2ed635ae1f26f1aea08e76e"
 SRC_URI[sha256sum] = "b895489382b16032afc1e2c79cb0a38440e111378cf91ccf42c8df013f6b7390"
 
