@@ -336,7 +336,7 @@ create_tegraflash_pkg_tegra210() {
     if [ -n "${KERNEL_ARGS}" ]; then
         fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
     else
-	fdtput -d ./${DTBFILE} /chosen bootargs
+        fdtput -d ./${DTBFILE} /chosen bootargs
     fi
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
@@ -411,12 +411,11 @@ create_tegraflash_pkg_tegra186() {
     cd "${WORKDIR}/tegraflash"
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
-    if [ "${BL_IS_CBOOT}" = "1" -a -n "${KERNEL_ARGS}" ]; then
-        cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-        bootargs="`fdtget ./${DTBFILE} /chosen bootargs 2>/dev/null`"
-        fdtput -t s ./${DTBFILE} /chosen bootargs "$bootargs ${KERNEL_ARGS}"
+    cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    if [ -n "${KERNEL_ARGS}" ]; then
+        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
     else
-        ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+        fdtput -d ./${DTBFILE} /chosen bootargs
     fi
     ln -sf "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./cboot.bin
     for f in ${BOOTFILES}; do
