@@ -412,7 +412,7 @@ create_tegraflash_pkg_tegra186() {
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
     cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-    if [ -n "${KERNEL_ARGS}" ]; then
+    if [ "${BL_IS_CBOOT}" = "1" -a -n "${KERNEL_ARGS}" ]; then
         fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
     else
         fdtput -d ./${DTBFILE} /chosen bootargs
@@ -546,12 +546,11 @@ oe_make_bup_payload_common() {
         ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
     fi
     rm -f ./${DTBFILE}
+    cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     if [ "${BL_IS_CBOOT}" = "1" -a -n "${KERNEL_ARGS}" ]; then
-        cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-        bootargs="`fdtget ./${DTBFILE} /chosen bootargs 2>/dev/null`"
-        fdtput -t s ./${DTBFILE} /chosen bootargs "$bootargs ${KERNEL_ARGS}"
+        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
     else
-        ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+        fdtput -d ./${DTBFILE} /chosen bootargs
     fi
     ln -s "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./$cbootfilename
     for f in ${BOOTFILES}; do
