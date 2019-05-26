@@ -4,22 +4,16 @@ SRC_URI += "file://egl-gles2-nv-extensions.patch"
 
 DEPENDS += "tegra-mmapi-glheaders"
 
-PACKAGECONFIG[glvnd] = "--enable-libglvnd,--disable-libglvnd,libglvnd"
+PACKAGECONFIG[glvnd] = "-Dglvnd=true,-Dglvnd=false,libglvnd"
 
-PACKAGECONFIG_append_tegra186 = " glvnd"
-PACKAGECONFIG_append_tegra194 = " glvnd"
-PACKAGECONFIG_append_tegra210 = " glvnd"
+GLVNDCFG = ""
+GLVNDCFG_tegra186 = " glvnd"
+GLVNDCFG_tegra194 = " glvnd"
+GLVNDCFG_tegra210 = " glvnd"
+PACKAGECONFIG_append_class-target = "${GLVNDCFG}"
+PACKAGECONFIG_remove_class-target_tegra = "glx-tls"
 DEPENDS_append_tegra = " tegra-libraries"
-EXTRA_OECONF_append_tegra = " --without-dri-drivers --disable-dri3"
-
-python () {
-    overrides = d.getVar("OVERRIDES").split(":")
-    if "tegra" not in overrides:
-        return
-
-    x11flag = d.getVarFlag("PACKAGECONFIG", "x11", False)
-    d.setVarFlag("PACKAGECONFIG", "x11", x11flag.replace("--enable-glx-tls", "--enable-glx"))
-}
+EXTRA_OEMESON_append_tegra = " -Ddri-drivers='' -Ddri3=false"
 
 move_libraries() {
     install -d ${D}${libdir}/mesa
