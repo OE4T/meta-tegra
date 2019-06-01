@@ -4,14 +4,15 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://COPYING;md5=cfa5a0f49cb081823fc5d965566e8298"
 DEPENDS = "eglexternalplatform mesa wayland wayland-protocols wayland-native"
 
-SRC_URI = "https://github.com/NVIDIA/egl-wayland/archive/${PV}.tar.gz;downloadfilename=${BP}.tar.gz"
-SRC_URI[md5sum] = "c698a493f937988f2269c5e05f38b8b8"
-SRC_URI[sha256sum] = "0970ad869845525f243ccfce8b45f740c35b7ce4327241e49a7cbe910fedc360"
+SRC_URI = "git://github.com/NVIDIA/egl-wayland"
+# tag 1.1.3
+SRCREV = "d70ead930d458b4e0bcec4ef493f7d54e9fd5435"
 SRC_URI += " \
-    file://0001-Fix-wayland-interface-checks.patch \
-    file://0002-Fix-wayland-eglstream-protocols-pc-file.patch \
+    file://0001-Fix-wayland-eglstream-protocols-pc-file.patch \
     file://nvidia_wayland.json \
 "
+
+S = "${WORKDIR}/git"
 
 inherit meson pkgconfig
 
