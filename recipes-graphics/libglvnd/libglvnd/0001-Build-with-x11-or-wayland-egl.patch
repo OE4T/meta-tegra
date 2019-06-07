@@ -1,0 +1,121 @@
+From a2725c8434a9a23eb9d653d8cc2ddf8c87597fc4 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kurt.kiefer@arthrex.com>
+Date: Fri, 7 Jun 2019 08:27:14 -0700
+Subject: [PATCH] Build with x11 or wayland-egl
+
+---
+ configure.ac              | 20 +++++++++++++++++++-
+ include/EGL/eglplatform.h |  6 ++++++
+ src/EGL/libegl.c          |  8 +++++++-
+ 3 files changed, 32 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 4a2099a..68e4998 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -57,6 +57,14 @@ AC_ARG_ENABLE([glx],
+ )
+ AM_CONDITIONAL([ENABLE_GLX], [test "x$enable_glx" = "xyes"])
+ 
++AC_ARG_ENABLE([wayland],
++    [AS_HELP_STRING([--enable-wayland],
++        [Enable Wayland support @<:@default=disabled@:>@])],
++    [enable_wayland="$enableval"],
++    [enable_wayland=yes]
++)
++AM_CONDITIONAL([ENABLE_WAYLAND], [test "x$enable_wayland" = "xyes"])
++
+ AC_ARG_ENABLE([gles],
+     [AS_HELP_STRING([--disable-gles],
+         [Do not build the libGLES*.so libraries @<:@default=enabled@:>@])],
+@@ -143,9 +151,17 @@ dnl
+ dnl Checks for libraries.
+ AX_PTHREAD()
+ 
++AM_COND_IF([ENABLE_GLX], [
+ PKG_CHECK_MODULES([X11], [x11])
+ PKG_CHECK_MODULES([XEXT], [xext])
+ PKG_CHECK_MODULES([GLPROTO], [glproto])
++AC_DEFINE(WITH_X11,[],[Use X11])
++])
++
++AM_COND_IF([ENABLE_WAYLAND], [
++PKG_CHECK_MODULES([WAYLAND], [wayland-egl])
++AC_DEFINE(WL_EGL_PLATFORM,[],[Use wayland])
++])
+ 
+ dnl Checks for typedefs, structures, and compiler characteristics.
+ AC_C_TYPEOF
+@@ -312,11 +328,13 @@ AC_CONFIG_FILES([Makefile
+                  src/OpenGL/Makefile
+                  src/GLESv1/Makefile
+                  src/GLESv2/Makefile
+-                 src/GLX/Makefile
+                  src/EGL/Makefile
+                  src/GLdispatch/Makefile
+                  src/GLdispatch/vnd-glapi/Makefile
+                  src/util/Makefile
+                  tests/Makefile
+                  tests/dummy/Makefile])
++AM_COND_IF([ENABLE_GLX], [
++AC_CONFIG_FILES([src/GLX/Makefile])
++])
+ AC_OUTPUT
+diff --git a/include/EGL/eglplatform.h b/include/EGL/eglplatform.h
+index 1284089..6ab2529 100644
+--- a/include/EGL/eglplatform.h
++++ b/include/EGL/eglplatform.h
+@@ -83,6 +83,12 @@ typedef int   EGLNativeDisplayType;
+ typedef void *EGLNativeWindowType;
+ typedef void *EGLNativePixmapType;
+ 
++#elif defined(WL_EGL_PLATFORM)
++
++typedef struct wl_display     *EGLNativeDisplayType;
++typedef struct wl_egl_pixmap  *EGLNativePixmapType;
++typedef struct wl_egl_window  *EGLNativeWindowType;
++
+ #elif defined(__ANDROID__) || defined(ANDROID)
+ 
+ #include <android/native_window.h>
+diff --git a/src/EGL/libegl.c b/src/EGL/libegl.c
+index 54e3a28..a2ec660 100644
+--- a/src/EGL/libegl.c
++++ b/src/EGL/libegl.c
+@@ -36,7 +36,9 @@
+ #include <unistd.h>
+ #include <sys/mman.h>
+ 
++#if defined(WITH_X11)
+ #include <X11/Xlib.h>
++#endif
+ 
+ #include "glvnd_pthread.h"
+ #include "libeglabipriv.h"
+@@ -178,6 +180,7 @@ static EGLBoolean IsGbmDisplay(void *native_display)
+ 
+ static EGLBoolean IsX11Display(void *dpy)
+ {
++#if defined(WITH_X11)
+     void *alloc;
+     void *handle;
+     void *XAllocID = NULL;
+@@ -194,6 +197,9 @@ static EGLBoolean IsX11Display(void *dpy)
+     }
+ 
+     return (XAllocID != NULL && XAllocID == alloc);
++#else
++    return EGL_FALSE;
++#endif
+ }
+ 
+ static EGLBoolean IsWaylandDisplay(void *native_display)
+@@ -615,7 +621,7 @@ static EGLBoolean InternalMakeCurrentDispatch(
+ 
+     apiState = __eglCreateAPIState();
+     if (apiState == NULL) {
+-        return False;
++        return EGL_FALSE;
+     }
+ 
+     ret = __glDispatchMakeCurrent(
