@@ -31,7 +31,9 @@ move_libraries() {
 do_install_append() {
     if ${@bb.utils.contains("PACKAGECONFIG", "glvnd", "true", "false", d)}; then
         rm -f ${D}${libdir}/libGLESv1_CM.so* ${D}${libdir}/libGLESv2.so*
-	sed -i -e's,lGLX_mesa,lGL,' ${D}${libdir}/pkgconfig/gl.pc
+        if [ -e ${D}${libdir}/pkgconfig/gl.pc ]; then
+	    sed -i -e's,lGLX_mesa,lGL,' ${D}${libdir}/pkgconfig/gl.pc
+        fi
     fi
 }
 
