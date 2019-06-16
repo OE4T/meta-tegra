@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://README.md;beginline=309;md5=f98ec0fbe6c0d2fbbd0298b5d
 
 SRC_URI = "git://github.com/NVIDIA/libglvnd \
            file://0001-Build-with-x11-or-wayland-egl.patch \
+           file://0002-Add-generation-of-pkgconfig-files.patch \
            "
 # tag v1.1.1
 SRCREV = "bc9990b7bede44899627354d0c356f48950f4ad1"

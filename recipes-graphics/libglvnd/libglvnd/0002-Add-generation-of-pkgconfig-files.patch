@@ -1,0 +1,206 @@
+From ba9c35587fc241586a02f47e9e8e4a862fcdf29d Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 16 Jun 2019 05:47:11 -0700
+Subject: [PATCH 2/2] Add generation of pkgconfig files
+
+See https://github.com/NVIDIA/libglvnd/pull/86
+
+Tweaked the version number in gl.pc to match mesa's,
+rather than the Khronos API version, since xserver-xorg
+uses the mesa version number for its compatibility
+checks.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ configure.ac               |  8 +++++++-
+ src/EGL/Makefile.am        |  3 +++
+ src/EGL/egl.pc.in          | 10 ++++++++++
+ src/GL/Makefile.am         |  3 +++
+ src/GL/gl.pc.in            | 10 ++++++++++
+ src/GLESv1/Makefile.am     |  2 ++
+ src/GLESv1/glesv1_cm.pc.in | 10 ++++++++++
+ src/GLESv2/Makefile.am     |  2 ++
+ src/GLESv2/glesv2.pc.in    | 10 ++++++++++
+ src/GLX/glx.pc.in          | 10 ++++++++++
+ src/OpenGL/opengl.pc.in    | 10 ++++++++++
+ 11 files changed, 77 insertions(+), 1 deletion(-)
+ create mode 100644 src/EGL/egl.pc.in
+ create mode 100644 src/GL/gl.pc.in
+ create mode 100644 src/GLESv1/glesv1_cm.pc.in
+ create mode 100644 src/GLESv2/glesv2.pc.in
+ create mode 100644 src/GLX/glx.pc.in
+ create mode 100644 src/OpenGL/opengl.pc.in
+
+diff --git a/configure.ac b/configure.ac
+index 68e4998..561ca12 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -324,10 +324,15 @@ AC_CONFIG_FILES([Makefile
+                  libglvnd.pc
+                  include/Makefile
+                  src/Makefile
++                 src/GL/gl.pc
+                  src/GL/Makefile
++                 src/OpenGL/opengl.pc
+                  src/OpenGL/Makefile
++                 src/GLESv1/glesv1_cm.pc
+                  src/GLESv1/Makefile
++                 src/GLESv2/glesv2.pc
+                  src/GLESv2/Makefile
++                 src/EGL/egl.pc
+                  src/EGL/Makefile
+                  src/GLdispatch/Makefile
+                  src/GLdispatch/vnd-glapi/Makefile
+@@ -335,6 +340,7 @@ AC_CONFIG_FILES([Makefile
+                  tests/Makefile
+                  tests/dummy/Makefile])
+ AM_COND_IF([ENABLE_GLX], [
+-AC_CONFIG_FILES([src/GLX/Makefile])
++AC_CONFIG_FILES([src/GLX/glx.pc
++                 src/GLX/Makefile])
+ ])
+ AC_OUTPUT
+diff --git a/src/EGL/Makefile.am b/src/EGL/Makefile.am
+index 5c036dc..91a69ea 100644
+--- a/src/EGL/Makefile.am
++++ b/src/EGL/Makefile.am
+@@ -67,6 +67,9 @@ libEGL_la_LIBADD += $(UTIL_DIR)/libcJSON.la
+ libEGL_la_LIBADD += $(UTIL_DIR)/libwinsys_dispatch.la
+ libEGL_la_LIBADD += libEGL_dispatch_stubs.la
+ 
++pkgconfigdir = $(libdir)/pkgconfig
++pkgconfig_DATA = egl.pc
++
+ libEGL_la_LDFLAGS = -shared -Wl,-Bsymbolic -version-info 2:0:1 $(LINKER_FLAG_NO_UNDEFINED)
+ 
+ libEGL_la_SOURCES = \
+diff --git a/src/EGL/egl.pc.in b/src/EGL/egl.pc.in
+new file mode 100644
+index 0000000..ffae9e2
+--- /dev/null
++++ b/src/EGL/egl.pc.in
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=${prefix}
++libdir=@libdir@
++includedir=@includedir@
++
++Name: egl
++Description: EGL library and headers
++Version: 1.5
++Libs: -L${libdir} -lEGL
++Cflags: -I${includedir}
+diff --git a/src/GL/Makefile.am b/src/GL/Makefile.am
+index ecdcbd0..225fdcb 100644
+--- a/src/GL/Makefile.am
++++ b/src/GL/Makefile.am
+@@ -70,3 +70,6 @@ libGL_la_LIBADD += ../GLdispatch/libGLdispatch.la
+ libGL_la_LIBADD += ../GLdispatch/vnd-glapi/libglapi_gl.la
+ libGL_la_LIBADD += ../util/libutils_misc.la
+ libGL_la_LIBADD += @LIB_DL@
++
++pkgconfigdir = $(libdir)/pkgconfig
++pkgconfig_DATA = gl.pc
+diff --git a/src/GL/gl.pc.in b/src/GL/gl.pc.in
+new file mode 100644
+index 0000000..af82162
+--- /dev/null
++++ b/src/GL/gl.pc.in
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=${prefix}
++libdir=@libdir@
++includedir=@includedir@
++
++Name: gl
++Description: Legacy OpenGL and GLX library and headers
++Version: 19.1.0
++Libs: -L${libdir} -lGL
++Cflags: -I${includedir}
+diff --git a/src/GLESv1/Makefile.am b/src/GLESv1/Makefile.am
+index d20017d..88e07bc 100644
+--- a/src/GLESv1/Makefile.am
++++ b/src/GLESv1/Makefile.am
+@@ -38,3 +38,5 @@ libGLESv1_CM_la_LIBADD = \
+ 	../GLdispatch/vnd-glapi/libglapi_glesv1.la \
+ 	../util/libutils_misc.la
+ 
++pkgconfigdir = $(libdir)/pkgconfig
++pkgconfig_DATA = glesv1_cm.pc
+diff --git a/src/GLESv1/glesv1_cm.pc.in b/src/GLESv1/glesv1_cm.pc.in
+new file mode 100644
+index 0000000..daa247f
+--- /dev/null
++++ b/src/GLESv1/glesv1_cm.pc.in
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=${prefix}
++libdir=@libdir@
++includedir=@includedir@
++
++Name: glesv1_cm
++Description: OpenGL ES-CM v1 library and headers
++Version: 1.0
++Libs: -L${libdir} -lGLESv1_CM
++Cflags: -I${includedir}
+diff --git a/src/GLESv2/Makefile.am b/src/GLESv2/Makefile.am
+index a9c2351..f40e06f 100644
+--- a/src/GLESv2/Makefile.am
++++ b/src/GLESv2/Makefile.am
+@@ -38,3 +38,5 @@ libGLESv2_la_LIBADD = \
+ 	../GLdispatch/vnd-glapi/libglapi_glesv2.la \
+ 	../util/libutils_misc.la
+ 
++pkgconfigdir = $(libdir)/pkgconfig
++pkgconfig_DATA = glesv2.pc
+diff --git a/src/GLESv2/glesv2.pc.in b/src/GLESv2/glesv2.pc.in
+new file mode 100644
+index 0000000..a9fe839
+--- /dev/null
++++ b/src/GLESv2/glesv2.pc.in
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=${prefix}
++libdir=@libdir@
++includedir=@includedir@
++
++Name: gles2
++Description: OpenGL ES v2/v3 library and headers
++Version: 3.2
++Libs: -L${libdir} -lGLESv2
++Cflags: -I${includedir}
+diff --git a/src/GLX/glx.pc.in b/src/GLX/glx.pc.in
+new file mode 100644
+index 0000000..1561181
+--- /dev/null
++++ b/src/GLX/glx.pc.in
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=${prefix}
++libdir=@libdir@
++includedir=@includedir@
++
++Name: glx
++Description: GLX library and headers
++Version: 1.4
++Libs: -L${libdir} -lGLX
++Cflags: -I${includedir}
+diff --git a/src/OpenGL/opengl.pc.in b/src/OpenGL/opengl.pc.in
+new file mode 100644
+index 0000000..d560c06
+--- /dev/null
++++ b/src/OpenGL/opengl.pc.in
+@@ -0,0 +1,10 @@
++prefix=@prefix@
++exec_prefix=${prefix}
++libdir=@libdir@
++includedir=@includedir@
++
++Name: opengl
++Description: OpenGL (without GLX) headers and interface
++Version: 4.5
++Libs: -L${libdir} -lOpenGL
++Cflags: -I${includedir}
+-- 
+2.20.1
+
