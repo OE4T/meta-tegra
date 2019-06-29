@@ -1,7 +1,7 @@
 UBOOT_BINARY ?= "u-boot-dtb.${UBOOT_SUFFIX}"
 
 require recipes-bsp/u-boot/u-boot.inc
-require u-boot-tegra-common-${PV}.inc
+require u-boot-common-tegra_${PV}.inc
 
 PROVIDES += "u-boot"
 DEPENDS += "dtc-native bc-native ${SOC_FAMILY}-flashtools-native tegra-bootfiles nv-tegra-release"
@@ -95,5 +95,12 @@ do_deploy_append_tegra186 () {
         ln -sf ${UBOOT_IMAGE}.bup-payload ${UBOOT_BINARY}.bup-payload
     fi
 }
+
+do_install_append() {
+    if [ -n "${INITRAMFS_IMAGE}" -a "${TEGRA_INITRAMFS_INITRD}" = "1" ]; then
+        install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz ${D}/boot/initrd
+    fi
+}
+do_install[depends] += "${@'${INITRAMFS_IMAGE}:do_image_complete' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
 
 RPROVIDES_${PN} += "u-boot"
