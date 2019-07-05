@@ -1,3 +1,4 @@
+# This file is shared with fw-utils and u-boot builds
 LICENSE = "GPLv2+"
 DESCRIPTION = "U-Boot for Nvidia Tegra platforms, based on Nvidia sources"
 COMPATIBLE_MACHINE = "(tegra186|tegra210)"
@@ -28,10 +29,3 @@ UBOOT_EXTLINUX_ROOT_primary = "${@uboot_var('cbootargs')} ${KERNEL_ROOTSPEC}"
 UBOOT_EXTLINUX_CONSOLE = ""
 UBOOT_EXTLINUX_KERNEL_ARGS_primary = "${KERNEL_ARGS}"
 UBOOT_EXTLINUX_INITRD_primary = "${@'../initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
-
-do_install_append() {
-    if [ -n "${INITRAMFS_IMAGE}" -a "${TEGRA_INITRAMFS_INITRD}" = "1" ]; then
-        install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz ${D}/boot/initrd
-    fi
-}
-do_install[depends] += "${@'${INITRAMFS_IMAGE}:do_image_complete' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
