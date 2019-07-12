@@ -32,37 +32,65 @@ if [ -z "$FLASHVARS" ]; then
     exit 1
 fi
 
-# The following defaults are for the B00 revision SOM
-# which shipped with at least some Jetson TX2 dev kits.
-# BOARDREV is used for all substitutions, except for
-# BPFDTB and PMIC revisions, which differ between B00
-# and B01 revisions.  See p2771-0000.conf.common in
-# the L4T kit.
-BOARDREV="c03"
-BPFDTBREV="c01"
-PMICREV="c03"
+# Temp file for storing cvm.bin in, if we need to query the board for its
+# attributes
+cvm_bin=$(mktemp cvm.bin.XXXXX)
+
+if [ -n "$BOARDID" ]; then
+    boardid="$BOARDID"
+elif python "$flashapp" --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    boardid=`chkbdinfo -i ${cvm_bin} | tr -d '[:space:]'`
+else
+    echo "ERR: could not retrieve EEPROM board information" >&2
+    exit 1
+fi
 
 if [ -n "$FAB" ]; then
     boardrev="$FAB"
-elif python "$flashapp" --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo cvm.bin"; then
-    boardrev=`chkbdinfo -f cvm.bin`
+elif [ -r ${cvm_bin} ] || python "$flashapp" --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    boardrev=`chkbdinfo -f ${cvm_bin}`
     boardrev=`echo $boardrev | tr [a-z] [A-Z]`
 else
     echo "ERR: could not retrieve EEPROM board information" >&2
     exit 1
 fi
-case $boardrev in
-    B0[1-9]|[C-Z]??)
-	BPFDTBREV="c04"
-	PMICREV="c04"
-	;;
-    B00)
-	;;
-    *)
-	echo "ERR: unsupported board revision: $boardrev" >&2
-	exit 1
-	;;
-esac
+
+[ -f ${cvm_bin} ] && rm -f ${cvm_bin}
+
+# The following defaults are drawn from
+# p2771-0000.conf.common in the L4T kit.
+if [ "$boardid" = "3310" ]; then
+    # The B00 revision SOM which shipped with at least some
+    # Jetson TX2 dev kits.
+    # BOARDREV is used for all substitutions, except for
+    # BPFDTB and PMIC revisions, which differ between B00
+    # and B01 revisions.
+    BOARDREV="c03"
+    BPFDTBREV="c01"
+    PMICREV="c03"
+    case $boardrev in
+        B0[1-9]|[C-Z]??)
+            BPFDTBREV="c04"
+            PMICREV="c04"
+            ;;
+        B00)
+            ;;
+        *)
+            echo "ERR: unsupported board revision: $boardrev" >&2
+            exit 1
+            ;;
+    esac
+elif [ "$boardid" = "3849" ]; then
+    BOARDREV="a00"
+    PMICREV="a00"
+    BPFDTBREV="a00";
+    if [ "${boardrev}" = "A02" ]; then
+        BPFDTBREV="evt"
+    fi
+else
+    echo "ERR: unsupported board id: $boardid" >&2
+    exit 1
+fi
 
 for var in $FLASHVARS; do
     eval pat=$`echo $var`
