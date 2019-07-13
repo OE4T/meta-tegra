@@ -1,6 +1,3 @@
-CXXFLAGS += "-std=c++11"
-CUDA_NVCC_EXTRA_FLAGS = "-std=c++11 --expt-relaxed-constexpr"
-
 inherit cuda
 
 EXTRA_OECMAKE_append_tegra210 = ' -DWITH_CUDA=ON -DCUDA_ARCH_BIN="5.3" -DCUDA_ARCH_PTX=""'
@@ -16,3 +13,5 @@ EXTRA_OECMAKE_append_tegra124 = '       \
     -DENABLE_NEON=ON                    \
     -DWITH_OPENMP=ON                    \
   '
+
+EXTRA_OECMAKE_append = " -DOPENCV_GENERATE_PKGCONFIG=ON"
