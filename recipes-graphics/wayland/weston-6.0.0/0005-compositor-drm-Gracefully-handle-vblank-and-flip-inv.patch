@@ -1,8 +1,8 @@
-From a50bfd75bdbb55509c6c70deb72b0a707ab44274 Mon Sep 17 00:00:00 2001
+From 68991ef00894b80f28e18af72a361f4ddb30c0f8 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Tue, 1 Mar 2016 22:19:14 +0100
-Subject: [PATCH 4/9] compositor-drm: Gracefully handle vblank and flip invalid
- timestamps
+Subject: [PATCH 05/11] compositor-drm: Gracefully handle vblank and flip
+ invalid timestamps
 
 Instant query for vblank timestamp may always fail, resulting in
 never scheduling a full repaint in drm_output_start_repaint_loop().
@@ -81,5 +81,5 @@ index c1101105..77dbb077 100644
  	 */
  
 -- 
-2.19.1
+2.20.1
 

@@ -1,0 +1,53 @@
+From c3a276c06bc173a56679f0573a5d53d2c5a126cb Mon Sep 17 00:00:00 2001
+From: "Miguel A. Vico" <mvicomoya@nvidia.com>
+Date: Tue, 26 Mar 2019 15:34:12 -0700
+Subject: [PATCH 01/11] configure/meson: Tmp fix for gobject-2.0 libs missing
+ in pango pkgconfig
+
+This fixes the following build error, until the pango pkgconfig is
+restored to also include the corresponding flags to link against
+gobject-2.0:
+
+  /usr/bin/ld: clients/weston_editor-editor.o: undefined reference to symbol 'g_object_unref'
+  /usr/bin/ld: /usr/lib/libgobject-2.0.so.0: error adding symbols: DSO missing from command line
+  collect2: error: ld returned 1 exit status
+
+Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
+---
+ configure.ac       | 2 +-
+ shared/meson.build | 5 +++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index c05ad011..425ba238 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -503,7 +503,7 @@ if test x$enable_clients = xyes; then
+ 	  [AC_ERROR([cairo-egl not used because $CAIRO_EGL_PKG_ERRORS])])],
+   [have_cairo_egl=no])
+ 
+-  PKG_CHECK_MODULES(PANGO, [pangocairo pango glib-2.0 >= 2.36], [have_pango=yes], [have_pango=no])
++  PKG_CHECK_MODULES(PANGO, [pangocairo pango glib-2.0 >= 2.36 gobject-2.0 >= 2.36], [have_pango=yes], [have_pango=no])
+ fi
+ 
+ AC_ARG_ENABLE(resize-optimization,
+diff --git a/shared/meson.build b/shared/meson.build
+index 5b0d8d13..c90be7de 100644
+--- a/shared/meson.build
++++ b/shared/meson.build
+@@ -37,9 +37,10 @@ deps_cairo_shared = [
+ dep_pango = dependency('pango', required: false)
+ dep_pangocairo = dependency('pangocairo', required: false)
+ dep_glib = dependency('glib-2.0', version: '>= 2.36', required: false)
++dep_gobject = dependency('gobject-2.0', version: '>= 2.36', required: false)
+ 
+-if dep_pango.found() and dep_pangocairo.found() and dep_glib.found()
+-	deps_cairo_shared += [ dep_pango, dep_pangocairo, dep_glib ]
++if dep_pango.found() and dep_pangocairo.found() and dep_glib.found() and dep_gobject.found()
++	deps_cairo_shared += [ dep_pango, dep_pangocairo, dep_glib, dep_gobject ]
+ 	config_h.set('HAVE_PANGO', '1')
+ endif
+ 
+-- 
+2.20.1
+

@@ -1,7 +1,7 @@
-From ce488f614c62b1af4521ba661c9e2bfab1ab145b Mon Sep 17 00:00:00 2001
+From 5cc981e98db96c5f75dcba152c195d463747bd4e Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 28 Jan 2016 19:37:10 +0100
-Subject: [PATCH 5/9] compositor-drm: Add support for EGLDevice+EGLOutput
+Subject: [PATCH 06/11] compositor-drm: Add support for EGLDevice+EGLOutput
 
 As previously stated, EGLDevice and EGLOutput will provide means
 to access native device objects and different portions of display
@@ -574,5 +574,5 @@ index 96982e2d..e4e10ef9 100644
  
  #endif
 -- 
-2.19.1
+2.20.1
 

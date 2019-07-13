@@ -1,7 +1,8 @@
-From 0c3c0a04ef61ce63e14c8876d87e1fc83697745a Mon Sep 17 00:00:00 2001
+From c003384d86a1701c398b00355cd25eacb592c9db Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 27 Feb 2017 15:31:35 -0800
-Subject: [PATCH 7/9] simple-egl: Do not set EGL up until XDG setup is complete
+Subject: [PATCH 08/11] simple-egl: Do not set EGL up until XDG setup is
+ complete
 
 There is nothing that prohibits the underlying EGL_PLATFORM_WAYLAND
 implementation to attach a buffer or commit surfaces right after the
@@ -153,5 +154,5 @@ index 8a086ef0..2d409c70 100644
  	wl_surface_destroy(display.cursor_surface);
  	if (display.cursor_theme)
 -- 
-2.19.1
+2.20.1
 

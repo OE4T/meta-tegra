@@ -1,7 +1,7 @@
-From 645233f7f3fdf39929f3e9152eb4c43f59a85526 Mon Sep 17 00:00:00 2001
+From 683c165157bc686735531ea45ff70e43b64061b8 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 18 May 2017 14:35:36 -0700
-Subject: [PATCH 6/9] compositor: Process stream attach requests with
+Subject: [PATCH 07/11] compositor: Process stream attach requests with
  wl_eglstream_controller
 
 So far, the EGLStream implementation of the Wayland client-side driver
@@ -85,7 +85,7 @@ index d5d7282f..7655ef5a 100644
  deps_weston = [
  	dep_libshared,
 diff --git a/configure.ac b/configure.ac
-index c05ad011..9a28ee9b 100644
+index 425ba238..5c1932bc 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -261,6 +261,10 @@ PKG_CHECK_MODULES(WAYLAND_PROTOCOLS, [wayland-protocols >= 1.17],
@@ -454,5 +454,5 @@ index 34026ff9..37642298 100644
  		base_file = proto_name
  		xml_path = '@0@/stable/@1@/@1@.xml'.format(dir_wp_base, base_file)
 -- 
-2.19.1
+2.20.1
 
