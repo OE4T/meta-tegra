@@ -36,7 +36,7 @@ OECMAKE_CUDA_LINK_FLAGS ?= "${OECMAKE_CXX_LINK_FLAGS}"
 OECMAKE_CUDA_LIBRARIES ?= "-lcudadevrt -lcudart_static -lrt -lpthread -ldl"
 
 PACKAGE_ARCH_cuda = "${SOC_FAMILY_PKGARCH}"
-RDEPENDS_${PN}_append_tegra = " tegra-libraries"
+RDEPENDS_${PN}_append_tegra = " tegra-libraries kernel-module-nvgpu"
 
 cmake_do_generate_toolchain_file_append_cuda() {
     cat >> ${WORKDIR}/toolchain.cmake <<EOF
