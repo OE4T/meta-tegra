@@ -80,7 +80,7 @@ if [ "$boardid" = "3310" ]; then
             exit 1
             ;;
     esac
-elif [ "$boardid" = "3849" ]; then
+elif [ "$boardid" = "3489" ]; then
     BOARDREV="a00"
     PMICREV="a00"
     BPFDTBREV="a00";
