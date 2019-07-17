@@ -84,7 +84,7 @@ elif [ "$boardid" = "3489" ]; then
     BOARDREV="a00"
     PMICREV="a00"
     BPFDTBREV="a00";
-    if [ "${boardrev}" = "A02" ]; then
+    if [ "${boardrev}" < "300" ]; then
         BPFDTBREV="evt"
     fi
 else
