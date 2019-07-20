@@ -1,7 +1,7 @@
 HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD"
 
-SRC_URI = "${L4T_URI_BASE}/${L4T_BSP_BASEPFX}-Tegra_Multimedia_API_R${PV}_aarch64.tbz2"
+SRC_URI = "${L4T_URI_BASE}/Tegra_Multimedia_API_R${PV}_aarch64.tbz2;downloadfilename=Tegra_Multimedia_API_R${PV}-${L4T_BSP_NAME}.tbz2"
 SRC_MD5SUM = "bf7225ab1f3373328c0def240bc6cec2"
 SRC_SHA256SUM = "905908bd4797efeed954b9cfc78eece0e1ad6c686723fe863f1852956553f012"
 SRC_MD5SUM_tegra210 = "00979fd8a30ae5d49152d229465614e9"
