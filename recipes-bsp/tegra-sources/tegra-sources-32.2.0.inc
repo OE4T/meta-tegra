@@ -1,4 +1,4 @@
-SRC_URI = "${L4T_URI_BASE}/${L4T_BSP_BASEPFX}-public_sources.tbz2;downloadfilename=${L4T_BSP_BASEPFX}-public_sources-32.1.0.tbz2"
+SRC_URI = "${L4T_URI_BASE}/public_sources.tbz2;downloadfilename=${L4T_BSP_PREFIX}-public_sources-${L4T_VERSION}.tbz2"
 SRC_MD5SUM = "8943880af9e731a4fa17f3bb7829aca7"
 SRC_SHA256SUM = "b9fc4d07b39fcbe107cf496b0bc07e4e6ccaaaa67d0f0e21d004066ff34239c2"
 SRC_MD5SUM_tegra210 = "bbd8350dea8dc061b40571c6fa7d3749"

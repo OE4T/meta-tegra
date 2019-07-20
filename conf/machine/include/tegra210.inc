@@ -36,6 +36,5 @@ PREFERRED_RPROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
 
 require conf/machine/include/tegra-common.inc
 
-L4T_BSP_NAME = "jetson-nano"
-L4T_BSP_BASEPFX = "Jetson-Nano"
-L4T_BSP_PREFIX = "${L4T_BSP_BASEPFX}-Tegra210"
+L4T_BSP_NAME = "Nano-TX1"
+L4T_BSP_PREFIX = "Jetson-210"
