@@ -1,0 +1,23 @@
+Index: gst-omx1/omx/gstomxh265enc.c
+===================================================================
+--- gst-omx1.orig/omx/gstomxh265enc.c
++++ gst-omx1/omx/gstomxh265enc.c
+@@ -709,6 +709,8 @@ gst_omx_h265_enc_set_params (GstOMXVideo
+ 
+   if (enc->iframeinterval != 0xffffffff) {
+     OMX_VIDEO_PARAM_HEVCTYPE oH265Type;
++    NVX_VIDEO_PARAM_HEVCTYPE_EXT oH265ExtType;
++    OMX_INDEXTYPE eExtIndex;
+ 
+     GST_OMX_INIT_STRUCT (&oH265Type);
+     oH265Type.nPortIndex = 0;
+@@ -722,9 +724,7 @@ gst_omx_h265_enc_set_params (GstOMXVideo
+           OMX_IndexParamVideoHevc, &oH265Type);
+     }
+ 
+-    NVX_VIDEO_PARAM_HEVCTYPE_EXT oH265ExtType;
+     GST_OMX_INIT_STRUCT (&oH265ExtType);
+-    OMX_INDEXTYPE eExtIndex;
+ 
+     eError = gst_omx_component_get_index(GST_OMX_VIDEO_ENC (self)->enc,
+              (gpointer) NVX_INDEX_PARAM_VIDEO_HEVC, &eExtIndex);
