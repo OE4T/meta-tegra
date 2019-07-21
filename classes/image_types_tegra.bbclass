@@ -99,7 +99,6 @@ tegraflash_create_flash_config_tegra210() {
             exit 1
         fi
     fi
-    head -n 1 ${STAGING_DATADIR}/nv_tegra/nv_tegra_release > ./nv_tegra_release
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Some of the substitutions apply only to
     # the redundant-boot layout, some apply only to the non-redundant layout.
@@ -124,6 +123,7 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
         -e"s,BCTSIZE,${BOOTPART_SIZE}," -e"s,PPTSIZE,$gptsize," \
         -e"s,PPTFILE,ppt.img," -e"s,GPTFILE,gpt.img," \
+	-e"s,APPUUID,," \
         > $destdir/flash.xml.in
     [ "${TEGRA_SPIFLASH_BOOT}" = "1" ] || return 0
     cat "${STAGING_DATADIR}/tegraflash/sdcard_${MACHINE}.xml" | sed \
@@ -177,12 +177,13 @@ tegraflash_create_flash_config_tegra186() {
         -e"s,SCEFILE,camera-rtcpu-sce.img," -e"s,SCENAME,sce-fw," -e"s,SCESIGN,true," \
         -e"s,SPEFILE,spe.bin," -e"s,SPENAME,spe-fw," -e"s,SPETYPE,spe_fw," \
         -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,SC7NAME,sc7," \
-        -e"s,TOSFILE,tos-mon-only.img," -e"s,TOSNAME,secure-os," \
+        -e"s,TOSFILE,tos-trusty.img," -e"s,TOSNAME,secure-os," \
         -e"s,EKSFILE,eks.img," \
         -e"s,FBTYPE,data," -e"s,FBSIGN,false," -e"/FBFILE/d" \
 	-e"s,KERNELDTB-NAME,kernel-dtb," -e"s,KERNELDTB-FILE,${DTBFILE}," \
 	-e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
 	-e"s,PPTSIZE,2097152," \
+	-e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
 
@@ -207,11 +208,12 @@ tegraflash_create_flash_config_tegra194() {
         -e"s,CAMERAFW,camera-rtcpu-rce.img," \
         -e"s,SPEFILE,spe_t194.bin," \
         -e"s,WB0BOOT,warmboot_t194_prod.bin," \
-        -e"s,TOSFILE,tos-mon-only_t194.img," \
+        -e"s,TOSFILE,tos-trusty_t194.img," \
         -e"s,EKSFILE,eks.img," \
 	-e"s, DTB_FILE, ${DTBFILE}," \
 	-e"s,CBOOTOPTION_FILE,cbo.dtb," \
 	-e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+	-e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
 
@@ -244,7 +246,7 @@ BOOTFILES_tegra186 = "\
     preboot_d15_prod_cr.bin \
     slot_metadata.bin \
     spe.bin \
-    tos-mon-only.img \
+    tos-trusty.img \
     nvtboot.bin \
     warmboot.bin \
     minimal_scr.cfg \
@@ -270,7 +272,7 @@ BOOTFILES_tegra194 = "\
     preboot_d15_prod_cr.bin \
     slot_metadata.bin \
     spe_t194.bin \
-    tos-mon-only_t194.img \
+    tos-trusty_t194.img \
     warmboot_t194_prod.bin \
     xusb_sil_rel_fw \
     cbo.dtb \
@@ -519,11 +521,13 @@ oe_make_bup_payload() {
 oe_make_bup_payload_tegra186() {
     export cbootfilename=cboot.bin
     oe_make_bup_payload_common "$@"
+    mv ${WORKDIR}/bup-payload/payloads_t18x/* ${WORKDIR}/bup-payload/
 }
 
 oe_make_bup_payload_tegra194() {
     export cbootfilename=cboot_t194.bin
     oe_make_bup_payload_common "$@"
+    mv ${WORKDIR}/bup-payload/payloads_t19x/* ${WORKDIR}/bup-payload/
 }
 oe_make_bup_payload_common() {
     PATH="${STAGING_BINDIR_NATIVE}/tegra186-flash:${PATH}"
@@ -540,7 +544,7 @@ oe_make_bup_payload_common() {
     tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img
     # XXX put back the APPFILE placeholder for later use - not used for signing
     sed -i -e's,${IMAGE_BASENAME}.img,APPFILE,' flash.xml.in
-    ln -sf "${STAGING_DATADIR}/nv_tegra/nv_tegra_release" .
+    ln -sf "${STAGING_DATADIR}/tegraflash/bsp_version" .
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
         ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
