@@ -26,8 +26,6 @@ addtask preconfigure after do_patch before do_configure
 
 do_install() {
     install -d ${D}${BINDIR}
-    install -m 0755 ${S}/elf-get-entry.py ${D}${BINDIR}
-    install -m 0755 ${S}/bootloader/gen-tboot-img.py ${D}${BINDIR}
 
     install -m 0755 ${S}/bootloader/tegrabct ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/tegradevflash ${D}${BINDIR}
