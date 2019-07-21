@@ -42,27 +42,23 @@ else
 fi
 rm -f verfile.txt
 echo "NV2" >verfile.txt
-cat nv_tegra_release >>verfile.txt
+. bsp_version
+echo "# R$BSP_BRANCH , REVISION: $BSP_MAJOR.$BSP_MINOR" >>verfile.txt
 echo "BOARDID=$boardid BOARDSKU=$boardsku FAB=$boardver" >>verfile.txt
 sed -e"s,VERFILE,verfile.txt," "$flash_in" > flash.xml
 boardcfg=
 [ -z "$boardcfg_file" ] || boardcfg="--boardconfig $boardcfg_file"
 if [ "$sign_only" = "yes" ]; then
     cmd="sign"
+    binargs=
 else
     cmd="flash;reboot"
+    if [ "$BOARDID" = "3448" ]; then
+	binargs="--bins \"EBT cboot.bin; DTB $dtbfile\""
+    fi
 fi
 
-if [ "$spiflash_only" = "yes" -a "$sign_only" != "yes" ]; then
-    sed -e "/PAD/a      <filename> $dtb_file </filename>" flash.xml >flash.xml.tmp
-    sed -i -e "s,PAD,RP1," flash.xml.tmp
-    python $here/tegraflash.py --bl cboot.bin --bct "$sdramcfg_file" --odmdata $odmdata \
-	   --bldtb "$dtb_file" --applet nvtboot_recovery.bin \
-	   $boardcfg --cfg flash.xml.tmp --chip 0x21 --cmd sign
-    dtb_file="signed/${dtb_file}.encrypt"
-    rm flash.xml.tmp
-fi
 python $here/tegraflash.py --bl cboot.bin --bct "$sdramcfg_file" --odmdata $odmdata \
        --bldtb "$dtb_file" --applet nvtboot_recovery.bin \
-       $boardcfg --cfg flash.xml --chip 0x21 \
+       $boardcfg --cfg flash.xml --chip 0x21 $binargs \
        --cmd "$cmd"
