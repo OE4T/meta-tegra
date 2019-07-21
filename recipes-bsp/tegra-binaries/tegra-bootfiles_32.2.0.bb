@@ -33,7 +33,7 @@ BOOTBINS_tegra186 = "\
     nvtboot_recovery_cpu.bin \
     preboot_d15_prod_cr.bin \
     spe.bin \
-    tos-mon-only.img \
+    tos-trusty.img \
 "
 BOOTBINS_tegra194 = "\
     adsp-fw.bin \
@@ -53,7 +53,7 @@ BOOTBINS_tegra194 = "\
     nvtboot_recovery_cpu_t194.bin \
     preboot_d15_prod_cr.bin \
     spe_t194.bin \
-    tos-mon-only_t194.img \
+    tos-trusty_t194.img \
     warmboot_t194_prod.bin \
 "
 
@@ -97,6 +97,7 @@ do_compile_append_tegra194() {
 
 do_install() {
     install -d ${D}${datadir}/tegraflash
+    install -m 0644 ${S}/nv_tegra/bsp_version ${D}${datadir}/tegraflash/
     for f in ${BOOTBINS}; do
         install -m 0644 ${S}/bootloader/$f ${D}${datadir}/tegraflash
     done

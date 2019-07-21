@@ -14,8 +14,8 @@ DRVROOT = "${B}/usr/lib/aarch64-linux-gnu"
 do_install() {
     install -d ${D}${localstatedir}
     cp -R ${B}/var/nvidia ${D}${localstatedir}/
-    install -d ${D}${libdir}/libv4l/plugins
-    for f in ${DRVROOT}/libv4l/plugins/lib*; do
+    install -d ${D}${libdir}/libv4l/plugins/
+    for f in ${DRVROOT}/tegra/libv4l2_nv*; do
         install -m 0644 $f ${D}${libdir}/libv4l/plugins/
     done
     install -d ${D}${libdir}
@@ -27,11 +27,14 @@ do_install() {
     done
     ln -sf libcuda.so.1.1 ${D}${libdir}/libcuda.so
     ln -sf libcuda.so.1.1 ${D}${libdir}/libcuda.so.1
-    ln -sf libnvbuf_utils.so.1.0.0 ${D}${libdir}/libnvbuf_utils.so.1
-    ln -sf libnvbuf_utils.so.1.0.0 ${D}${libdir}/libnvbuf_utils.so
+    for libname in nvbuf_fdmap nvbufsurface nvbufsurftransform nvbuf_utils; do
+	ln -sf lib$libname.so.1.0.0 ${D}${libdir}/lib$libname.so.1
+	ln -sf lib$libname.so.1.0.0 ${D}${libdir}/lib$libname.so
+    done
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so.1
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so
     rm -f ${D}${libdir}/libdrm* ${D}${libdir}/libnvphsd* ${D}${libdir}/libnvgov*
+    rm -f ${D}${libdir}/libv4l2.so* ${D}${libdir}/libv4lconvert.so*
     # argus and scf libraries hard-coded to use this path
     install -d ${D}/usr/lib/aarch64-linux-gnu/tegra-egl
     ln -sf ${libdir}/libEGL_nvidia.so.0 ${D}/usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0
