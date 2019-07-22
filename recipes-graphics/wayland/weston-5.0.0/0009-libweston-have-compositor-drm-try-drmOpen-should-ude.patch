@@ -1,4 +1,4 @@
-From 4a2daca646fcac015034a5e0a670f9146c2a320b Mon Sep 17 00:00:00 2001
+From f5e05fecca1a394f59d46d6e7c4ff98128109ad3 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Fri, 7 Sep 2018 08:49:33 -0700
 Subject: [PATCH 09/10] libweston: have compositor-drm try drmOpen should udev
@@ -84,5 +84,5 @@ index 1352a38e..8696449b 100644
  	weston_compositor_add_debug_binding(compositor, KEY_O,
  					    planes_binding, b);
 -- 
-2.17.1
+2.19.1
 

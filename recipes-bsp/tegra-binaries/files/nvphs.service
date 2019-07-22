@@ -1,0 +1,13 @@
+[Unit]
+Description=NVIDIA PHS daemon
+Requires=nvstartup.service
+After=nvstartup.service
+Before=graphical.target
+
+[Service]
+Type=simple
+ExecStartPre=/usr/sbin/nvphsd_setup.sh
+ExecStart=/usr/sbin/nvphsd
+
+[Install]
+WantedBy=multi-user.target

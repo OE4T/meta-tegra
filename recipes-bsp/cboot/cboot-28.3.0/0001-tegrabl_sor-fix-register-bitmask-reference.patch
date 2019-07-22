@@ -1,0 +1,25 @@
+From d497a321dba60b7a63dac4dad5f79f8b79f676b9 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 5 Jul 2018 10:05:56 -0700
+Subject: [PATCH 1/8] tegrabl_sor: fix register bitmask reference
+
+---
+ bootloader/partner/common/drivers/display/sor/tegrabl_sor.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bootloader/partner/common/drivers/display/sor/tegrabl_sor.c b/bootloader/partner/common/drivers/display/sor/tegrabl_sor.c
+index db166f3..f6ecef1 100644
+--- a/bootloader/partner/common/drivers/display/sor/tegrabl_sor.c
++++ b/bootloader/partner/common/drivers/display/sor/tegrabl_sor.c
+@@ -398,7 +398,7 @@ static void sor_config_pwm(struct sor_data *sor,
+ 	sor_writel(sor, SOR_NV_PDISP_SOR_PWM_CTL_0, r_val);
+ 
+ 	if (sor_poll_register(sor, SOR_NV_PDISP_SOR_PWM_CTL_0,
+-			NV_DRF_DEF(SOR_NV_PDISP, SOR_PWM_CTL, SETTING_NEW, SHIFT),
++			SOR_NV_PDISP_SOR_PWM_CTL_0_SETTING_NEW_FIELD,
+ 			NV_DRF_DEF(SOR_NV_PDISP, SOR_PWM_CTL, SETTING_NEW, DONE),
+ 			100, SOR_TIMEOUT_MS)) {
+ 		pr_debug("dp: timeout while waiting for SOR PWM setting\n");
+-- 
+2.19.1
+

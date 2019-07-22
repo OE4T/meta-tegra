@@ -3,32 +3,55 @@ OpenEmbedded/Yocto BSP layer for NVIDIA Tegra X1/X2/K1
 
 Boards supported:
 * Jetson-TK1 development kit (Linux4Tegra R21.7)
-* Jetson-TX1 development kit (Linux4Tegra R28.2, JetPack 3.3)
-* Jetson-TX2 development kit (Linux4Tegra R28.2.1, JetPack 3.3)
+* Jetson-TX1 development kit (Linux4Tegra R32.1, JetPack 4.2 [see note below])
+* Jetson-TX2 development kit (Linux4Tegra R32.1, JetPack 4.2)
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: thud
 
-Limitations
+PLEASE NOTE
 -----------
 
-* CUDA 9 supports up through gcc 6 only, so if you intend
-  to build CUDA applications, stick with gcc 6.
+* Starting with JetPack 4.2, packages outside the L4T BSP can
+  only be downloaded with an NVIDIA Developer Network login.
+  So to use CUDA 10, cuDNN, and any other packages that require
+  a Devnet login, you **must** create a Devnet account and
+  download the JetPack packages you need for your builds using
+  NVIDIA SDK Manager.
 
+  You must then set the variable NVIDIA_DEVNET_MIRROR to
+  "file://path/to/the/downloads" in your build configuration
+  (e.g., local.conf) to make them available to your bitbake
+  builds.
+
+* CUDA 10 supports up through gcc 7 only, and some NVIDIA-provided
+  binary libraries appear to be compiled with g++ 7 and cause linker
+  failures when building applications with g++ 6, so **only** gcc 7
+  should be used if you intend to use CUDA. (For Jetson-TK1, CUDA 6.5
+  supports up through gcc 5.x only.)
+
+* NVIDIA **does not support** Jetson-TX1 with L4T R32.1/JetPack 4.2.
+  DO NOT use this version of the BSP for Jetson-TX1 systems if you
+  need vendor support. Only R28.x and earlier versions of L4T are
+  supported on that platform.
 
 Selecting the toolchain version
 -------------------------------
 
 Toolchain version selection is usually a distro configuration setting,
 but you can also set this in your build/conf/local.conf file. To use
-gcc 6 instead of gcc 7, set:
+gcc 7 instead of gcc 8, set:
 
-GCCVERSION = "6.%"
+GCCVERSION = "7.%"
+
+but you will also need the gcc 7 toolchain recipes in one of your layers,
+since it was retired from OE-Core in favor of gcc 8.
 
 
 Contributing
 ------------
 
-Please submit issues and pull requests via GitHub.  Contributions
-are welcome!
+Please use GitHub (https://github.com/madisongh/meta-tegra) to submit
+issues or pull requests, or add to the documentation on the wiki.
+Contributions are welcome!

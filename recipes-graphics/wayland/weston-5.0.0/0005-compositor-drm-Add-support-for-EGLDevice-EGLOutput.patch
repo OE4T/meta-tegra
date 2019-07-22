@@ -1,4 +1,4 @@
-From ef1c92a93c0ad570d4e998899033a14cdde34e83 Mon Sep 17 00:00:00 2001
+From ea7811fe82f686669cd820338f18f03e21f6b171 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 28 Jan 2016 19:37:10 +0100
 Subject: [PATCH 05/10] compositor-drm: Add support for EGLDevice+EGLOutput
@@ -556,5 +556,5 @@ index 96982e2d..e4e10ef9 100644
  
  #endif
 -- 
-2.17.1
+2.19.1
 

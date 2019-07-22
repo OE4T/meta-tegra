@@ -1,0 +1,35 @@
+From cf7600195270f262ee4da8367ce8c313214c25a4 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 5 Jul 2018 11:10:46 -0700
+Subject: [PATCH 5/8] tegrabl_xusbf: fix misleading-indentation compilation
+ error
+
+---
+ .../partner/common/drivers/usbf/xusbf/tegrabl_xusbf.c     | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/bootloader/partner/common/drivers/usbf/xusbf/tegrabl_xusbf.c b/bootloader/partner/common/drivers/usbf/xusbf/tegrabl_xusbf.c
+index bd69de4..5b4fcdd 100644
+--- a/bootloader/partner/common/drivers/usbf/xusbf/tegrabl_xusbf.c
++++ b/bootloader/partner/common/drivers/usbf/xusbf/tegrabl_xusbf.c
+@@ -1182,13 +1182,13 @@ static tegrabl_error_t tegrabl_handle_setuppkt(uint8_t *psetup_data)
+ 			}
+ 			break;
+ 		case SET_SEL:
+-		/* Data stage for receiving 6 bytes */
+-		e = tegrabl_issue_data_trb(
++			/* Data stage for receiving 6 bytes */
++			e = tegrabl_issue_data_trb(
+ 				(dma_addr_t)(uintptr_t)tdata,
+ 				6,
+ 				DIR_OUT);
+-		if (e != TEGRABL_NO_ERROR)
+-			return e;
++			if (e != TEGRABL_NO_ERROR)
++				return e;
+ 
+ 			/* Send status */
+ 			e = tegrabl_issue_status_trb(DIR_IN);
+-- 
+2.19.1
+

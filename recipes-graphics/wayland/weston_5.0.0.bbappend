@@ -8,9 +8,10 @@ SRC_URI += " \
     file://0005-compositor-drm-Add-support-for-EGLDevice-EGLOutput.patch \
     file://0006-compositor-Process-stream-attach-requests-with-wl_eg.patch \
     file://0007-simple-egl-Do-not-set-EGL-up-until-XDG-setup-is-comp.patch \
-    file://0008-Add-nvidia-release-notes-file.patch \
+    file://0008-gl-renderer-Use-mailbox-streams-for-scanout.patch \
     file://0009-libweston-have-compositor-drm-try-drmOpen-should-ude.patch \
     file://0010-updates-to-work-with-tegra-drm-nvdc.patch \
+    file://0011-compositor-drm-pass-drm-nvdc-to-drmOpen.patch \
     file://weston.default \
 "
 LIC_FILES_CHKSUM = "file://COPYING;md5=d79ee9e66bb0f95d3386a7acae780b70 \

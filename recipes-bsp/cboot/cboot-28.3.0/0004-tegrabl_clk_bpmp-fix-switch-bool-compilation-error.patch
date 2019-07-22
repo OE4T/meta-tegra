@@ -1,0 +1,28 @@
+From f420b125afe021786a0f0adfbe93979c3a02748a Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 5 Jul 2018 11:08:24 -0700
+Subject: [PATCH 4/8] tegrabl_clk_bpmp: fix switch-bool compilation error
+
+---
+ .../t18x/common/drivers/soc/t186/clocks/tegrabl_clk_bpmp.c    | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/bootloader/partner/t18x/common/drivers/soc/t186/clocks/tegrabl_clk_bpmp.c b/bootloader/partner/t18x/common/drivers/soc/t186/clocks/tegrabl_clk_bpmp.c
+index ac8326c..637df51 100644
+--- a/bootloader/partner/t18x/common/drivers/soc/t186/clocks/tegrabl_clk_bpmp.c
++++ b/bootloader/partner/t18x/common/drivers/soc/t186/clocks/tegrabl_clk_bpmp.c
+@@ -271,8 +271,10 @@ static uint32_t spi_module_instances[SPI_MAX_INSTANCES_1TO4][2] = {
+ static int32_t tegrabl_module_to_bpmp_id(
+ 				tegrabl_module_t module_num,
+ 				uint8_t instance,
+-				bool clk_or_rst)
++				bool clk_or_rst__)
+ {
++	int clk_or_rst = clk_or_rst__;
++
+ 	/* TODO - Complete below mapping */
+ 	switch (module_num) {
+ 	case (TEGRABL_MODULE_UART):
+-- 
+2.19.1
+

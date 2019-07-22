@@ -1,0 +1,26 @@
+From dd93dc17f168b6267c95e237b2a8e4e166e8d80e Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 30 Mar 2019 07:49:20 -0700
+Subject: [PATCH 11/11] compositor-drm: pass "drm-nvdc" to drmOpen
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ libweston/compositor-drm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libweston/compositor-drm.c b/libweston/compositor-drm.c
+index 8ed48fe5..bbad7a89 100644
+--- a/libweston/compositor-drm.c
++++ b/libweston/compositor-drm.c
+@@ -6968,7 +6968,7 @@ drm_backend_create(struct weston_compositor *compositor,
+ 	else
+ 		drm_device = find_primary_gpu(b, seat_id);
+ 	if (drm_device == NULL) {
+-		int fd = drmOpen("", "");
++		int fd = drmOpen("drm-nvdc", "");
+ 		char *name;
+ 		if (fd >= 0) {
+ 			name = drmGetDeviceNameFromFd(fd);
+-- 
+2.19.1
+

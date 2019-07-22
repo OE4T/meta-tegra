@@ -1,10 +1,10 @@
-Index: cmake-3.4.3/Modules/FindCUDA.cmake
+Index: cmake-3.14.1/Modules/FindCUDA.cmake
 ===================================================================
---- cmake-3.4.3.orig/Modules/FindCUDA.cmake
-+++ cmake-3.4.3/Modules/FindCUDA.cmake
-@@ -746,14 +746,7 @@ if(CUDA_USE_STATIC_CUDA_RUNTIME)
-     endif()
-     set(CMAKE_THREAD_PREFER_PTHREAD 1)
+--- cmake-3.14.1.orig/Modules/FindCUDA.cmake
++++ cmake-3.14.1/Modules/FindCUDA.cmake
+@@ -877,14 +877,7 @@ if(CUDA_USE_STATIC_CUDA_RUNTIME)
+   if(UNIX)
+     # Check for the dependent libraries.
  
 -    # Many of the FindXYZ CMake comes with makes use of try_compile with int main(){return 0;}
 -    # as the source file.  Unfortunately this causes a warning with -Wstrict-prototypes and
@@ -15,5 +15,5 @@ Index: cmake-3.4.3/Modules/FindCUDA.cmake
      find_package(Threads REQUIRED)
 -    set(CMAKE_C_FLAGS ${_cuda_cmake_c_flags})
  
-     if (DEFINED _cuda_cmake_thread_prefer_pthread)
-       set(CMAKE_THREAD_PREFER_PTHREAD ${_cuda_cmake_thread_prefer_pthread})
+     if(NOT APPLE)
+       #On Linux, you must link against librt when using the static cuda runtime.

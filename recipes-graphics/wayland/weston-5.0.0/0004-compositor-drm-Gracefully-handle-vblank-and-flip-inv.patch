@@ -1,4 +1,4 @@
-From 2c90d0b324547134e2fdcebce7e3d8582a35fd64 Mon Sep 17 00:00:00 2001
+From df44f7c797e472b9033f30ee35ba6c552a49c5e2 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Tue, 1 Mar 2016 22:19:14 +0100
 Subject: [PATCH 04/10] compositor-drm: Gracefully handle vblank and flip
@@ -81,5 +81,5 @@ index 38911763..577d2e2f 100644
  	 */
  
 -- 
-2.17.1
+2.19.1
 
