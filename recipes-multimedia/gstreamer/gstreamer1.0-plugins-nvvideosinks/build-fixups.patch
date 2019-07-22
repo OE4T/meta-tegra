@@ -1,0 +1,63 @@
+Index: gst-plugins-nv-video-sinks/Makefile
+===================================================================
+--- gst-plugins-nv-video-sinks.orig/Makefile
++++ gst-plugins-nv-video-sinks/Makefile
+@@ -11,7 +11,9 @@
+ ###############################################################################
+ 
+ SO_NAME := libgstnvvideosinks.so
+-DEST_DIR ?= /usr/lib/aarch64-linux-gnu/gstreamer-1.0
++prefix ?= /usr
++exec_prefix ?= $(prefix)
++libdir ?= $(exec_prefix)/lib
+ 
+ SRCS := common/context.c \
+ 	common/display.c \
+@@ -28,8 +30,7 @@ INCLUDES +=  -I./common \
+ 	-I./common/egl \
+ 	-I./common/renderer \
+ 	-I./common/x11 \
+-	-I/usr/local/include/gstreamer-1.0 \
+-	-I../
++	-I.
+ 
+ PKGS := glib-2.0 \
+ 	gstreamer-1.0 \
+@@ -38,19 +39,17 @@ PKGS := glib-2.0 \
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+-CFLAGS := -fPIC \
++CFLAGS += -fPIC \
+ 	-DNV_VIDEO_SINKS_HAS_EGL \
+ 	-DNV_VIDEO_SINKS_HAS_GL \
+ 	-DNV_VIDEO_SINKS_HAS_NV3DSINK \
+ 	-DNV_VIDEO_SINKS_HAS_X11
+ 
+-CFLAGS += `pkg-config --cflags $(PKGS)`
+-
+-LDFLAGS = -Wl,--no-undefined -L/usr/lib/aarch64-linux-gnu/tegra
++CFLAGS += $(shell pkg-config --cflags $(PKGS))
+ 
+ LIBS = -lnvbuf_utils -lGLESv2 -lEGL -lX11
+ 
+-LIBS += `pkg-config --libs $(PKGS)`
++LIBS += $(shell pkg-config --libs $(PKGS))
+ 
+ all: $(SO_NAME)
+ 
+@@ -58,11 +57,12 @@ all: $(SO_NAME)
+ 	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
+ 
+ $(SO_NAME): $(OBJS)
+-	$(CC) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
++	$(CC) -shared -o $(SO_NAME) $(LDFLAGS) $(OBJS) $(LIBS)
+ 
+ .PHONY: install
+ install: $(SO_NAME)
+-	cp -vp $(SO_NAME) $(DEST_DIR)
++	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
++	install -m 0644 $(SO_NAME) $(DESTDIR)$(libdir)/gstreamer-1.0/
+ 
+ .PHONY: clean
+ clean:

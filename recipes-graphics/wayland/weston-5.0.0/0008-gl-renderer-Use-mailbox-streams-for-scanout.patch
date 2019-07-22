@@ -1,0 +1,33 @@
+From 8c17ee3c128e1e0389fe16f97842b67698219c12 Mon Sep 17 00:00:00 2001
+From: "Miguel A. Vico" <mvicomoya@nvidia.com>
+Date: Wed, 16 Jan 2019 14:16:30 -0800
+Subject: [PATCH 08/10] gl-renderer: Use mailbox streams for scanout
+
+Ever since flip-event-based output repaints have been used, FIFO mode
+for EGLOutput streams was not necessary.
+
+Make the streams operate in mailbox mode. This also fixes certain
+interaction issues when recovering from power-saving mode or
+vt-switches.
+
+Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
+---
+ libweston/gl-renderer.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
+index c89c7965..95690108 100644
+--- a/libweston/gl-renderer.c
++++ b/libweston/gl-renderer.c
+@@ -3272,7 +3272,7 @@ gl_renderer_create_stream_surface(struct gl_renderer *gr,
+ 				  EGLStreamKHR *egl_stream)
+ {
+ 	EGLint stream_attribs[] = {
+-		EGL_STREAM_FIFO_LENGTH_KHR, 1,
++		EGL_STREAM_FIFO_LENGTH_KHR, 0, /* Mailbox mode */
+ #ifdef EGL_EXT_stream_acquire_mode
+ 		EGL_CONSUMER_AUTO_ACQUIRE_EXT, EGL_FALSE,
+ #endif
+-- 
+2.19.1
+

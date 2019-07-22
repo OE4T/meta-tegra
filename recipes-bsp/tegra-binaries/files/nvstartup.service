@@ -1,6 +1,8 @@
 [Unit]
 Description=NVIDIA-specific startup
 DefaultDependencies=no
+Before=graphical-session-pre.target
+Before=serial-getty@ttyS0.service
 
 [Service]
 Type=oneshot

@@ -1,0 +1,24 @@
+From 912962619d66115b4236c1c28c2cce8ccbe5942f Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 2 Feb 2019 06:59:41 -0800
+Subject: [PATCH 2/2] Fix wayland-eglstream-protocols pc file
+
+---
+ wayland-eglstream-protocols.pc.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/wayland-eglstream-protocols.pc.in b/wayland-eglstream-protocols.pc.in
+index 775222f..272df8d 100644
+--- a/wayland-eglstream-protocols.pc.in
++++ b/wayland-eglstream-protocols.pc.in
+@@ -1,6 +1,6 @@
+ prefix=@prefix@
+ datarootdir=@datarootdir@
+-pkgdatadir=@datadir@/@PACKAGE@
++pkgdatadir=${pc_sysrootdir}@datadir@/@PACKAGE@
+ 
+ Name: wayland-eglstream-protocols
+ Description: Nvidia Wayland EGLStream XML protocol files
+-- 
+2.19.1
+

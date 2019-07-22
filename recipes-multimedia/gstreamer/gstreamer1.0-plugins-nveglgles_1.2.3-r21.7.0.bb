@@ -22,7 +22,7 @@ DEPENDS += "gstreamer1.0-plugins-base virtual/egl virtual/libgles2 gobject-intro
 PACKAGECONFIG ??= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)}"
 PACKAGECONFIG[x11] = "--with-x11 --with-egl-window-system=x11,--without-x11 --with-egl-window-system=auto,libx11 libxext"
 
-inherit gettext
+inherit gettext gobject-introspection
 
 do_configure_append() {
     rm -f ${S}/po/POTFILES.in

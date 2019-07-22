@@ -1,0 +1,25 @@
+From acc26a0b1d90f8dfcab17d037229182e658eca01 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 5 Jul 2018 11:14:18 -0700
+Subject: [PATCH 6/8] zlib: fix shift-negative-value compilation error
+
+---
+ bootloader/partner/common/lib/external/zlib/inflate.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bootloader/partner/common/lib/external/zlib/inflate.c b/bootloader/partner/common/lib/external/zlib/inflate.c
+index 0e3311e..cfc6d70 100644
+--- a/bootloader/partner/common/lib/external/zlib/inflate.c
++++ b/bootloader/partner/common/lib/external/zlib/inflate.c
+@@ -1472,7 +1472,7 @@ z_streamp strm;
+ {
+     struct inflate_state FAR *state;
+ 
+-    if (strm == Z_NULL || strm->state == Z_NULL) return -1L << 16;
++    if (strm == Z_NULL || strm->state == Z_NULL) return -(1L << 16);
+     state = (struct inflate_state FAR *)strm->state;
+     return ((long)(state->back) << 16) +
+         (state->mode == COPY ? state->length :
+-- 
+2.19.1
+

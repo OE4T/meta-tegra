@@ -1,4 +1,4 @@
-From a5d3e1d5ac0958bbd89d4f0421ec8d48f1d8043f Mon Sep 17 00:00:00 2001
+From 260f094546f76d3e1639b699edc251c3dad14414 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 16:34:01 +0200
 Subject: [PATCH 02/10] gl-renderer: Add support for EGLDevice composited frame
@@ -517,5 +517,5 @@ index 0784ea2d..f39990ed 100644
  #endif /* ENABLE_EGL */
  
 -- 
-2.17.1
+2.19.1
 

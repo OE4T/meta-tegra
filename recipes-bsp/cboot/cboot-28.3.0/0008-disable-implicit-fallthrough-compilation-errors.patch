@@ -1,0 +1,25 @@
+From 9df2f65f8d5c4bae16bee27b46f331b6cf037525 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 29 Apr 2019 04:14:44 -0700
+Subject: [PATCH 8/8] disable implicit-fallthrough compilation errors
+
+since all occurrences being flagged look intentional.
+---
+ bootloader/partner/t18x/cboot/engine.mk | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/bootloader/partner/t18x/cboot/engine.mk b/bootloader/partner/t18x/cboot/engine.mk
+index 9fcc986..cd1f23d 100644
+--- a/bootloader/partner/t18x/cboot/engine.mk
++++ b/bootloader/partner/t18x/cboot/engine.mk
+@@ -65,6 +65,7 @@ GLOBAL_CFLAGS += -Werror
+ # TEMPORARY until dislay code static initializer issues are dealt with
+ GLOBAL_CFLAGS += -Wno-missing-field-initializers
+ 
++GLOBAL_CFLAGS += -Wno-error=implicit-fallthrough
+ GLOBAL_CPPFLAGS := -fno-exceptions -fno-rtti -fno-threadsafe-statics
+ #GLOBAL_CPPFLAGS += -Weffc++
+ GLOBAL_ASMFLAGS := -DASSEMBLY
+-- 
+2.19.1
+
