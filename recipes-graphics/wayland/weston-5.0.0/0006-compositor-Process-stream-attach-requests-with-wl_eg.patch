@@ -1,4 +1,4 @@
-From 966d79d55f13d5cb762c9912703dee61e32473d2 Mon Sep 17 00:00:00 2001
+From 27f51dc0fa2df95f3c2843052183d0dbb6eacdfc Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 18 May 2017 14:35:36 -0700
 Subject: [PATCH 06/10] compositor: Process stream attach requests with
@@ -30,16 +30,15 @@ requests.
 Signed-off-by: Ashutosh Agarwal <asagarwal@nvidia.com>
 Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
 ---
- Makefile.am                               |   5 +
- libweston/compositor.c                    |  78 ++++++++++++
- libweston/compositor.h                    |   4 +
- libweston/gl-renderer.c                   | 147 ++++++++++++++--------
- protocol/wayland-eglstream-controller.xml |  37 ++++++
- 5 files changed, 217 insertions(+), 54 deletions(-)
- create mode 100644 protocol/wayland-eglstream-controller.xml
+ Makefile.am             |  14 ++++
+ configure.ac            |   4 ++
+ libweston/compositor.c  |  78 +++++++++++++++++++++
+ libweston/compositor.h  |   4 ++
+ libweston/gl-renderer.c | 147 +++++++++++++++++++++++++---------------
+ 5 files changed, 193 insertions(+), 54 deletions(-)
 
 diff --git a/Makefile.am b/Makefile.am
-index 83bb2533..3b8fe631 100644
+index 83bb2533..ac24e1dd 100644
 --- a/Makefile.am
 +++ b/Makefile.am
 @@ -173,6 +173,11 @@ nodist_libweston_@LIBWESTON_MAJOR@_la_SOURCES =				\
@@ -54,6 +53,37 @@ index 83bb2533..3b8fe631 100644
  bin_PROGRAMS += weston
  
  weston_LDFLAGS = -export-dynamic
+@@ -1658,6 +1663,15 @@ protocol/%-server-protocol.h : $(WAYLAND_PROTOCOLS_DATADIR)/$$(call protostabili
+ protocol/%-client-protocol.h : $(WAYLAND_PROTOCOLS_DATADIR)/$$(call protostability,$$*)/$$(call protoname,$$*)/$$*.xml
+ 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) client-header < $< > $@
+ 
++protocol/%-protocol.c : $(WAYLAND_EGLSTREAM_PROTOCOLS_DATADIR)/%.xml
++	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) code < $< > $@
++
++protocol/%-server-protocol.h : $(WAYLAND_EGLSTREAM_PROTOCOLS_DATADIR)/%.xml
++	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) server-header < $< > $@
++
++protocol/%-client-protocol.h : $(WAYLAND_EGLSTREAM_PROTOCOLS_DATADIR)/%.xml
++	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) client-header < $< > $@
++
+ protocol/%-protocol.c : $(top_srcdir)/protocol/%.xml
+ 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) code < $< > $@
+ 
+diff --git a/configure.ac b/configure.ac
+index 50f8e013..b219d2e2 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -231,6 +231,10 @@ PKG_CHECK_MODULES(WAYLAND_PROTOCOLS, [wayland-protocols >= 1.13],
+ 		  [ac_wayland_protocols_pkgdatadir=`$PKG_CONFIG --variable=pkgdatadir wayland-protocols`])
+ AC_SUBST(WAYLAND_PROTOCOLS_DATADIR, $ac_wayland_protocols_pkgdatadir)
+ 
++PKG_CHECK_MODULES(WAYLAND_EGLSTREAM_PROTOCOLS, [wayland-eglstream-protocols],
++		  [ac_wayland_eglstream_protocols_pkgdatadir=`$PKG_CONFIG --variable=pkgdatadir wayland-eglstream-protocols`])
++AC_SUBST(WAYLAND_EGLSTREAM_PROTOCOLS_DATADIR, $ac_wayland_eglstream_protocols_pkgdatadir)
++
+ AC_ARG_ENABLE(wayland-compositor, [  --enable-wayland-compositor],,
+ 	      enable_wayland_compositor=yes)
+ AM_CONDITIONAL(ENABLE_WAYLAND_COMPOSITOR,
 diff --git a/libweston/compositor.c b/libweston/compositor.c
 index 9deb7817..a2941788 100644
 --- a/libweston/compositor.c
@@ -376,49 +406,6 @@ index 39e33350..c89c7965 100644
  	gr->egl_display = NULL;
  
  	/* extension_suffix is supported */
-diff --git a/protocol/wayland-eglstream-controller.xml b/protocol/wayland-eglstream-controller.xml
-new file mode 100644
-index 00000000..dea072e6
---- /dev/null
-+++ b/protocol/wayland-eglstream-controller.xml
-@@ -0,0 +1,37 @@
-+<?xml version="1.0" encoding="UTF-8"?>
-+<protocol name="wl_eglstream_controller">
-+  <copyright>
-+    Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved.
-+
-+    Permission is hereby granted, free of charge, to any person obtaining a
-+    copy of this software and associated documentation files (the "Software"),
-+    to deal in the Software without restriction, including without limitation
-+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
-+    and/or sell copies of the Software, and to permit persons to whom the
-+    Software is furnished to do so, subject to the following conditions:
-+
-+    The above copyright notice and this permission notice shall be included in
-+    all copies or substantial portions of the Software.
-+
-+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-+    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-+    DEALINGS IN THE SOFTWARE.
-+  </copyright>
-+  <interface name="wl_eglstream_controller" version="1">
-+    <request name="attach_eglstream_consumer">
-+      <description summary="Create server stream and attach consumer">
-+        Creates the corresponding server side EGLStream from the given wl_buffer
-+        and attaches a consumer to it.
-+      </description>
-+      <arg name="wl_surface" type="object" interface="wl_surface"
-+        summary="wl_surface corresponds to the client surface associated with
-+        newly created eglstream"/>
-+      <arg name="wl_resource" type="object" interface="wl_buffer"
-+        summary="wl_resource corresponding to an EGLStream"/>
-+    </request>
-+  </interface>
-+</protocol>
 -- 
-2.17.1
+2.19.1
 

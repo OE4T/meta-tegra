@@ -18,3 +18,31 @@ SRCREV = "61c56f7e658c2f330197f196f656cc61b6458d6d"
 PV .= "+git${SRCPV}"
 
 S = "${WORKDIR}/git"
+
+def uboot_var(name):
+    return '${' + name + '}'
+
+UBOOT_EXTLINUX = "1"
+UBOOT_EXTLINUX_LABELS = "primary"
+UBOOT_EXTLINUX_DEFAULT_LABEL = "primary"
+UBOOT_EXTLINUX_KERNEL_IMAGE_primary = "../${KERNEL_IMAGETYPE}"
+UBOOT_EXTLINUX_FDTDIR_primary = ""
+UBOOT_EXTLINUX_FDT_primary = "../${@d.getVar('KERNEL_DEVICETREE').split()[0]}"
+UBOOT_EXTLINUX_ROOT_primary = "${KERNEL_ROOTSPEC}"
+# Set in KERNEL_ARGS for ordering
+UBOOT_EXTLINUX_CONSOLE = ""
+UBOOT_EXTLINUX_KERNEL_ARGS_primary = "${KERNEL_ARGS}"
+
+do_configure() {
+    if [ -z "${UBOOT_CONFIG}" ]; then
+	if [ -n "${UBOOT_MACHINE}" ]; then
+	    oe_runmake -C ${S} O=${B} ${UBOOT_MACHINE}
+	else
+	    oe_runmake -C ${S} O=${B} oldconfig
+	fi
+	${S}/scripts/kconfig/merge_config.sh -m .config ${@" ".join(find_cfgs(d))}
+	cml1_do_configure
+    fi
+}
+
+RPROVIDES_${PN} += "u-boot"

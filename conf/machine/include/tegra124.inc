@@ -8,9 +8,10 @@ require conf/machine/include/soc-family.inc
 require conf/machine/include/tune-cortexa15.inc
 
 KERNEL_IMAGETYPE = "zImage"
+KERNEL_ROOTSPEC ?= "root=/dev/mmcblk0p1 rw rootwait"
 
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
-MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image"
+MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image u-boot"
 MACHINE_EXTRA_RDEPENDS = "tegra-configs-nvstartup tegra-configs-udev"
 
 SERIAL_CONSOLE = "115200 ttyS0"

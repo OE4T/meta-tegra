@@ -1,0 +1,104 @@
+Index: gst-v4l2/Makefile
+===================================================================
+--- gst-v4l2.orig/Makefile
++++ gst-v4l2/Makefile
+@@ -11,46 +11,51 @@
+ ###############################################################################
+ 
+ SO_NAME := libgstnvvideo4linux2.so
+-DEST_DIR ?= /usr/lib/aarch64-linux-gnu/gstreamer-1.0
++prefix ?= /usr
++exec_prefix ?= $(prefix)
++libdir ?= $(exec_prefix}/lib
+ 
+ SRCS := $(wildcard *.c)
+ 
+-INCLUDES := -I/usr/local/include/gstreamer-1.0
+-
+-INCLUDES += -I./ -I../
+-
+ PKGS := gstreamer-1.0 \
++	gstreamer-allocators-1.0 \
+ 	gstreamer-base-1.0 \
+ 	gstreamer-video-1.0 \
+ 	glib-2.0
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+-CFLAGS := -fPIC \
++CFLAGS += -fPIC -I. \
+ 	-DEXPLICITLY_ADDED=1 \
+         -DGETTEXT_PACKAGE=1 \
+-        -DHAVE_LIBV4L2=1 \
+         -DUSE_V4L2_TARGET_NV=1
+ 
+-CFLAGS += `pkg-config --cflags $(PKGS)`
++CFLAGS += $(shell pkg-config --cflags $(PKGS))
++
++LDFLAGS += -Wl,--no-undefined
+ 
+-LDFLAGS = -Wl,--no-undefined -L/usr/lib/aarch64-linux-gnu/tegra
++LIBS = -lnvbuf_utils
+ 
+-LIBS = -lv4l2 -lnvbuf_utils -lgstallocators-1.0
++LIBS += $(shell pkg-config --libs $(PKGS))
+ 
+-LIBS += `pkg-config --libs $(PKGS)`
++ifneq ($(USE_LIBV4L2),)
++CFLAGS += -DHAVE_LIBV4L2=1 $(shell pkg-config --cflags libv4l2)
++LIBS += $(shell pkg-config --libs libv4l2)
++endif
+ 
++.PHONY: all
+ all: $(SO_NAME)
+ 
+ %.o: %.c
+-	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
++	$(CC) -c $< $(CFLAGS) -o $@
+ 
+ $(SO_NAME): $(OBJS)
+-	$(CC) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
++	$(CC) -shared -o $(SO_NAME) $(LDFLAGS) $(OBJS) $(LIBS)
+ 
+ .PHONY: install
+ install: $(SO_NAME)
+-	cp -vp $(SO_NAME) $(DEST_DIR)
++	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
++	install -m 0644 $(SO_NAME) $(DESTDIR)$(libdir)/gstreamer-1.0/
+ 
+ .PHONY: clean
+ clean:
+Index: gst-v4l2/gstv4l2videoenc.h
+===================================================================
+--- gst-v4l2.orig/gstv4l2videoenc.h
++++ gst-v4l2/gstv4l2videoenc.h
+@@ -30,6 +30,7 @@
+ 
+ #include <gstv4l2object.h>
+ #include <gstv4l2bufferpool.h>
++#include <stdio.h>
+ 
+ G_BEGIN_DECLS
+ #define GST_TYPE_V4L2_VIDEO_ENC \
+Index: gst-v4l2/gstv4l2allocator.c
+===================================================================
+--- gst-v4l2.orig/gstv4l2allocator.c
++++ gst-v4l2/gstv4l2allocator.c
+@@ -845,7 +845,7 @@ gst_v4l2_allocator_alloc_mmap (GstV4l2Al
+       expbuf.plane = i;
+       expbuf.flags = O_CLOEXEC | O_RDWR;
+ 
+-      if (v4l2_ioctl (obj->video_fd, VIDIOC_EXPBUF, &expbuf) < 0)
++      if (obj->ioctl (obj->video_fd, VIDIOC_EXPBUF, &expbuf) < 0)
+         GST_ERROR_OBJECT (allocator, "expbuf_failed");
+ 
+       if ((!V4L2_TYPE_IS_OUTPUT (obj->type)) &&
+@@ -1384,7 +1384,7 @@ gst_v4l2_allocator_dqbuf (GstV4l2Allocat
+  /* TODO: This could a possible bug in library */
+   while (1)
+   {
+-    if (v4l2_ioctl (obj->video_fd, VIDIOC_DQBUF, &buffer) == 0)
++    if (obj->ioctl (obj->video_fd, VIDIOC_DQBUF, &buffer) == 0)
+       break;
+     else if (errno == EPIPE)
+       goto error;
