@@ -25,9 +25,10 @@ do_compile() {
 }
 
 do_install() {
-    install -d ${D}${prefix} ${D}${libdir} ${D}${datadir}
+    install -d ${D}${prefix} ${D}${libdir} ${D}${datadir} ${D}${libdir}/pkgconfig
     cp -R --preserve=mode,timestamps ${B}/usr/include ${D}${prefix}/
-    cp -R --preserve=mode,timestamps ${B}/usr/lib/* ${D}${libdir}/
+    cp -R --preserve=mode,timestamps ${B}/usr/lib/pkgconfig/* ${D}${libdir}/pkgconfig
+    cp --preserve=mode,timestamps ${B}/usr/lib/libvisionworks.so ${D}${libdir}/
     cp -R --preserve=mode,timestamps ${B}/usr/share/visionworks ${D}${datadir}/
 }
 
