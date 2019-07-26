@@ -9,17 +9,17 @@ SRC_URI = "\
     ${NVIDIA_DEVNET_MIRROR}/libnvinfer-dev_${PV}+cuda10.0_arm64.deb;name=dev;subdir=tensorrt \
     ${NVIDIA_DEVNET_MIRROR}/libnvinfer-samples_${PV}+cuda10.0_all.deb;name=samples;subdir=tensorrt \
 "
-SRC_URI[lib.md5sum] = "b3f083e0665dc8d3d8eb61349bb275d7"
-SRC_URI[lib.sha256sum] = "b6336bccde901e64d2118dd2abb3d697d6211e422eb64daf0624f56cc6e58c83"
-SRC_URI[dev.md5sum] = "9e8e0d8356ba4af730c39b35c50ae2a8"
-SRC_URI[dev.sha256sum] = "9269fac7d525dbbddc07ea6aaeec03620ee18a44379d53b1aab7ec9aa868ffc3"
-SRC_URI[samples.md5sum] = "dfa8bee28c87ec3c08b4063b779d63ef"
-SRC_URI[samples.sha256sum] = "f518dd3110a2da48c59604cc33d836291fb5177357aa2eb2be432bd712dc04ed"
+SRC_URI[lib.md5sum] = "9da0093178ae3dde92942e74274e8e3a"
+SRC_URI[lib.sha256sum] = "6c652464897c10b33adf69dec5004ed40a5f59348f2b560469dcbe58fcc0fc25"
+SRC_URI[dev.md5sum] = "1a580a0b8b1aad0a497c722fbd4e77c2"
+SRC_URI[dev.sha256sum] = "b14706016fb0a0bbe91e91cc5174a59345fa553a0a39ae1ffc63a91cabd01230"
+SRC_URI[samples.md5sum] = "c8cc2db854381b7f92a5e7604da66e36"
+SRC_URI[samples.sha256sum] = "97dbeda8c97508586bc5344923fe3b32f79173c5a2ca7993148a3de0363cfe6a"
 
 COMPATIBLE_MACHINE = "(tegra)"
 COMPATIBLE_MACHINE_tegra124 = "(-)"
 
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=48;md5=f38fd2aaeae3de115bacde66c2c93d2e"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=48;md5=1755df325a6e1ac8515b1e469efe07a7"
 
 CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
 BASEVER = "${@d.getVar('PV').split('-')[0]}"
