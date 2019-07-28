@@ -27,7 +27,7 @@ do_install() {
 	install -d ${D}${sysconfdir}
 	sed -e 's,^TNSPEC.*$,TNSPEC ${TNSPEC},' \
 	    -e '/^TEGRA_CHIPID/d' \
-	    -e '$ a TEGRA_CHIPID ${NVIDIA_CHIP}' ${B}/etc/nv_boot_control.conf >${D}${sysconfdir}/nv_boot_control.conf
+	    -e '$ a TEGRA_CHIPID ${NVIDIA_CHIP}' ${S}/bootloader/nv_boot_control.conf >${D}${sysconfdir}/nv_boot_control.conf
 	chmod 0644 ${D}${sysconfdir}/nv_boot_control.conf
 	install -d ${D}${systemd_system_unitdir}
 	install -m 0644 ${B}/etc/systemd/system/nv_update_verifier.service ${D}${systemd_system_unitdir}
