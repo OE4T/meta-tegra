@@ -19,21 +19,31 @@ LAYERSERIES_COMPAT: warrior
 WORK-IN-PROGRESS STATUS
 -----------------------
 
-* Jetson-TX2 core-image-sato builds, boots, and passes some basic tests.
+* core-image-sato builds, boots, and passes basic tests on
+  TX1, TX2, Nano, Xavier
+
+* core-image-weston builds and boots on TX1, TX2, Nano, Xavier,
+  with some issues:
+  - gstreamer nveglgles plugin not displaying anything
+  - capture test not working on Jetson-TX1
+
+* BUP packages are now getting built, still need testing
 
 TO DO
 -----
 
-* Weston builds
+* look into the nveglgles gstreamer issue with Weston
 
-* Validate Jetson-TX1, Jetson Nano, Jetson AGX Xavier
+* test OTA/BUP on TX2 and Xavier
 
-* BUP package generation, currently disabled due to
-  changes in the L4T BUP generator
+* look at OTA/BUP for TX1/Nano, since it looks like
+  there's some support there now
 
 * look at building trusty and cboot (t194) from sources
 
 * look at container support
+
+* run through more tests and fix up any issues
 
 
 PLEASE NOTE
@@ -50,6 +60,14 @@ PLEASE NOTE
   "file://path/to/the/downloads" in your build configuration
   (e.g., local.conf) to make them available to your bitbake
   builds.
+
+* The tensorrt 5.1.6 packages for Xavier, are different from
+  those for TX1/TX2, even though the deb files have the same
+  name.  If you need to build for Xavier and another platform
+  and include tensorrt 5.1.6, create a subdirectory called
+  "P2888" under your NVIDIA_DEVNET_MIRROR directory, and copy
+  the Xavier tensorrt packages there. The non-Xavier copies
+  should go in the NVIDIA_DEVNET_MIRROR top level.
 
 * CUDA 10 supports up through gcc 7 only, and some NVIDIA-provided
   binary libraries appear to be compiled with g++ 7 and cause linker
