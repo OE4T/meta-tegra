@@ -521,11 +521,13 @@ oe_make_bup_payload() {
 oe_make_bup_payload_tegra186() {
     export cbootfilename=cboot.bin
     oe_make_bup_payload_common "$@"
+    mv ${WORKDIR}/bup-payload/payloads_t18x/* ${WORKDIR}/bup-payload/
 }
 
 oe_make_bup_payload_tegra194() {
     export cbootfilename=cboot_t194.bin
     oe_make_bup_payload_common "$@"
+    mv ${WORKDIR}/bup-payload/payloads_t19x/* ${WORKDIR}/bup-payload/
 }
 oe_make_bup_payload_common() {
     PATH="${STAGING_BINDIR_NATIVE}/tegra186-flash:${PATH}"
