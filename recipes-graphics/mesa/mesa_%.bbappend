@@ -2,7 +2,10 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
 
 SRC_URI += "file://egl-gles2-nv-extensions.patch"
 
-DEPENDS += "tegra-mmapi-glheaders"
+GLHDRS = ""
+GLHDRS_tegra = "tegra-mmapi-glheaders"
+GLHDRS_tegra124 = ""
+DEPENDS += "${GLHDRS}"
 
 PACKAGECONFIG[glvnd] = "-Dglvnd=true,-Dglvnd=false,libglvnd"
 
