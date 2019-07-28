@@ -58,14 +58,14 @@ uboot_bup_payload() {
     :
 }
 
-#uboot_bup_payload_tegra186() {
-#    oe_make_bup_payload ${B}/$1
-#    cp ${WORKDIR}/bup-payload/bl_update_payload ${1}.bup-payload
-#}
+uboot_bup_payload_tegra186() {
+    oe_make_bup_payload ${B}/$1
+    cp ${WORKDIR}/bup-payload/bl_update_payload ${1}.bup-payload
+}
 
 do_compile[depends] += "${BUPDEPS}"
 
-do_deploy_append_tegra186XXX () {
+do_deploy_append_tegra186 () {
     if [ -n "${UBOOT_CONFIG}" ]
     then
         for config in ${UBOOT_MACHINE}; do
