@@ -1,7 +1,7 @@
-From 5577b5e6f66b09bda71ea39a9cd10aceeadb6044 Mon Sep 17 00:00:00 2001
+From f426c33e25d0f99feccbdbaee13f3bf5f455e3c2 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 15:56:37 +0200
-Subject: [PATCH 02/11] gl-renderer: Add EGLDevice enumeration support
+Subject: [PATCH 1/8] gl-renderer: Add EGLDevice enumeration support
 
 EGLDevice provides means to enumerate native devices.
 

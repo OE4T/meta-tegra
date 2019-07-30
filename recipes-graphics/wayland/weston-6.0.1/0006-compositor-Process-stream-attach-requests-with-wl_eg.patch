@@ -1,7 +1,7 @@
-From 683c165157bc686735531ea45ff70e43b64061b8 Mon Sep 17 00:00:00 2001
+From 33c7d7b7573fad7109767a34128fc1ae1548fe64 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 18 May 2017 14:35:36 -0700
-Subject: [PATCH 07/11] compositor: Process stream attach requests with
+Subject: [PATCH 6/8] compositor: Process stream attach requests with
  wl_eglstream_controller
 
 So far, the EGLStream implementation of the Wayland client-side driver
@@ -73,7 +73,7 @@ index 5407b593..0bad6976 100644
  	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) code < $< > $@
  
 diff --git a/compositor/meson.build b/compositor/meson.build
-index d5d7282f..7655ef5a 100644
+index 3824d6ff..075b0bcd 100644
 --- a/compositor/meson.build
 +++ b/compositor/meson.build
 @@ -9,6 +9,7 @@ srcs_weston = [
@@ -85,7 +85,7 @@ index d5d7282f..7655ef5a 100644
  deps_weston = [
  	dep_libshared,
 diff --git a/configure.ac b/configure.ac
-index 425ba238..5c1932bc 100644
+index 68cdc86c..53b64bea 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -261,6 +261,10 @@ PKG_CHECK_MODULES(WAYLAND_PROTOCOLS, [wayland-protocols >= 1.17],
@@ -100,7 +100,7 @@ index 425ba238..5c1932bc 100644
  	      enable_wayland_compositor=yes)
  AM_CONDITIONAL(ENABLE_WAYLAND_COMPOSITOR,
 diff --git a/libweston/compositor.c b/libweston/compositor.c
-index d87522e7..947739f8 100644
+index e117479c..3a7b4cec 100644
 --- a/libweston/compositor.c
 +++ b/libweston/compositor.c
 @@ -3,6 +3,7 @@
@@ -200,7 +200,7 @@ index d87522e7..947739f8 100644
  static void
  compositor_bind(struct wl_client *client,
  		void *data, uint32_t version, uint32_t id)
-@@ -6836,6 +6912,8 @@ weston_compositor_create(struct wl_display *display, void *user_data)
+@@ -6840,6 +6916,8 @@ weston_compositor_create(struct wl_display *display, void *user_data)
  			      ec, bind_presentation))
  		goto fail;
  
@@ -210,10 +210,10 @@ index d87522e7..947739f8 100644
  		goto fail;
  
 diff --git a/libweston/compositor.h b/libweston/compositor.h
-index a5223c28..1c39c50c 100644
+index 3af1443a..d7ed3ff2 100644
 --- a/libweston/compositor.h
 +++ b/libweston/compositor.h
-@@ -925,6 +925,10 @@ struct weston_renderer {
+@@ -926,6 +926,10 @@ struct weston_renderer {
  	void (*query_dmabuf_modifiers)(struct weston_compositor *ec,
  				int format, uint64_t **modifiers,
  				int *num_modifiers);
@@ -225,7 +225,7 @@ index a5223c28..1c39c50c 100644
  
  enum weston_capability {
 diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
-index 5e594535..8265a712 100644
+index 4bae6546..e66bbd4c 100644
 --- a/libweston/gl-renderer.c
 +++ b/libweston/gl-renderer.c
 @@ -1,7 +1,7 @@
@@ -412,7 +412,7 @@ index 5e594535..8265a712 100644
  	}
  
  	/* At this point we should have a valid stream handle */
-@@ -4041,6 +4078,8 @@ gl_renderer_display_create(struct weston_compositor *ec, EGLenum platform,
+@@ -4044,6 +4081,8 @@ gl_renderer_display_create(struct weston_compositor *ec, EGLenum platform,
  	gr->base.surface_get_content_size =
  		gl_renderer_surface_get_content_size;
  	gr->base.surface_copy_content = gl_renderer_surface_copy_content;

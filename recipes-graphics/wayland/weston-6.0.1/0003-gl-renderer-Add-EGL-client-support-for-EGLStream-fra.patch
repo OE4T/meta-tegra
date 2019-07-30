@@ -1,7 +1,7 @@
-From 67905b02346cba35dd984f32c84a42fda967b854 Mon Sep 17 00:00:00 2001
+From 13d1ea9490a9d72d19e97392d384985f5e7f2bc3 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 29 Mar 2018 00:15:49 -0700
-Subject: [PATCH 04/11] gl-renderer: Add EGL client support for EGLStream frame
+Subject: [PATCH 3/8] gl-renderer: Add EGL client support for EGLStream frame
  presentation
 
 By attaching a GLTexture consumer to a stream, a producer (wayland EGL
@@ -19,16 +19,20 @@ Note that some unpublished EGL extensions were needed:
  - EGL_WL_wayland_eglstream:
    https://github.com/aritger/eglstreams-kms-example/blob/master/proposed-extensions/EGL_WL_wayland_eglstream.txt
 
+[ekurzinger: - Try realizing EGLStream before EGLImage buffer since
+               libnvidia-egl-wayland now reports EGL_TEXTURE_FORMAT]
+
 Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
+Signed-off-by: Erik Kurzinger <ekurzinger@nvidia.com>
 Reviewed-by: Adam Cheney <acheney@nvidia.com>
 Reviewed-by: James Jones <jajones@nvidia.com>
 ---
- libweston/gl-renderer.c | 183 +++++++++++++++++++++++++++++++++++++++-
+ libweston/gl-renderer.c | 184 ++++++++++++++++++++++++++++++++++++++++
  shared/weston-egl-ext.h |   5 ++
- 2 files changed, 187 insertions(+), 1 deletion(-)
+ 2 files changed, 189 insertions(+)
 
 diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
-index f3fb2c65..5e594535 100644
+index f3fb2c65..4bae6546 100644
 --- a/libweston/gl-renderer.c
 +++ b/libweston/gl-renderer.c
 @@ -189,6 +189,9 @@ struct gl_surface_state {
@@ -225,16 +229,17 @@ index f3fb2c65..5e594535 100644
  		return;
  	}
  
-@@ -2567,7 +2721,7 @@ gl_renderer_attach(struct weston_surface *es, struct weston_buffer *buffer)
- 		gl_renderer_attach_egl(es, buffer, format);
- 	else if ((dmabuf = linux_dmabuf_buffer_get(buffer->resource)))
- 		gl_renderer_attach_dmabuf(es, buffer, dmabuf);
--	else {
-+	else if (!gl_renderer_attach_stream_texture(es, buffer)) {
- 		weston_log("unhandled buffer type!\n");
- 		if (gr->has_bind_display) {
- 		  weston_log("eglQueryWaylandBufferWL failed\n");
-@@ -2764,6 +2918,10 @@ surface_state_destroy(struct gl_surface_state *gs, struct gl_renderer *gr)
+@@ -2561,6 +2715,9 @@ gl_renderer_attach(struct weston_surface *es, struct weston_buffer *buffer)
+ 
+ 	if (shm_buffer)
+ 		gl_renderer_attach_shm(es, buffer, shm_buffer);
++	else if (gl_renderer_attach_stream_texture(es, buffer))
++        /* The stream texture is attached. Nothing else to be done here */
++        ((void)0);
+ 	else if (gr->has_bind_display &&
+ 		 gr->query_buffer(gr->egl_display, (void *)buffer->resource,
+ 				  EGL_TEXTURE_FORMAT, &format))
+@@ -2764,6 +2921,10 @@ surface_state_destroy(struct gl_surface_state *gs, struct gl_renderer *gr)
  	weston_buffer_reference(&gs->buffer_ref, NULL);
  	weston_buffer_release_reference(&gs->buffer_release_ref, NULL);
  	pixman_region32_fini(&gs->texture_damage);
@@ -245,7 +250,7 @@ index f3fb2c65..5e594535 100644
  	free(gs);
  }
  
-@@ -2814,6 +2972,8 @@ gl_renderer_create_surface(struct weston_surface *surface)
+@@ -2814,6 +2975,8 @@ gl_renderer_create_surface(struct weston_surface *surface)
  
  	gs->surface = surface;
  
@@ -254,7 +259,7 @@ index f3fb2c65..5e594535 100644
  	pixman_region32_init(&gs->texture_damage);
  	surface->renderer_state = gs;
  
-@@ -3570,14 +3730,19 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
+@@ -3570,14 +3733,19 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
  		(void *) eglGetProcAddress("eglQueryOutputLayerAttribEXT");
  	gr->create_stream = (void *) eglGetProcAddress("eglCreateStreamKHR");
  	gr->destroy_stream = (void *) eglGetProcAddress("eglDestroyStreamKHR");
@@ -274,7 +279,7 @@ index f3fb2c65..5e594535 100644
  
  	extensions =
  		(const char *) eglQueryString(gr->egl_display, EGL_EXTENSIONS);
-@@ -3676,6 +3841,12 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
+@@ -3676,6 +3844,12 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
  	if (weston_check_egl_extension(extensions, "EGL_EXT_stream_acquire_mode"))
  		gr->has_egl_stream_acquire_mode = 1;
  
@@ -287,7 +292,7 @@ index f3fb2c65..5e594535 100644
  	renderer_setup_egl_client_extensions(gr);
  
  	return 0;
-@@ -3953,6 +4124,16 @@ gl_renderer_display_create(struct weston_compositor *ec, EGLenum platform,
+@@ -3953,6 +4127,16 @@ gl_renderer_display_create(struct weston_compositor *ec, EGLenum platform,
  			goto fail_terminate;
  		}
  
