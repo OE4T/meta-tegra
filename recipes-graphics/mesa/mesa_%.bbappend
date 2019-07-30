@@ -1,15 +1,21 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
 
-SRC_URI += "file://egl-gles2-nv-extensions.patch"
+GLHDRS_PATCH = ""
+GLHDRS_PATCH_tegra = "file://egl-gles2-nv-extensions.patch"
+GLHDRS_PATCH_tegra124 = ""
+SRC_URI += "${GLHDRS_PATCH}"
 
-DEPENDS += "tegra-mmapi-glheaders"
+TEGRADEPS = ""
+TEGRADEPS_tegra = "tegra-mmapi-glheaders tegra-libraries"
+TEGRADEPS_tegra124 = "tegra-libraries"
+DEPENDS += "${TEGRADEPS}"
 
 PACKAGECONFIG[glvnd] = "--enable-libglvnd,--disable-libglvnd,libglvnd"
 
-PACKAGECONFIG_append_tegra186 = " glvnd"
-PACKAGECONFIG_append_tegra194 = " glvnd"
-PACKAGECONFIG_append_tegra210 = " glvnd"
-DEPENDS_append_tegra = " tegra-libraries"
+GLVNDCFG = ""
+GLVNDCFG_tegra = " glvnd"
+GLVNDCFG_tegra124 = ""
+PACKAGECONFIG_append_class-target = "${GLVNDCFG}"
 EXTRA_OECONF_append_tegra = " --without-dri-drivers --disable-dri3"
 
 python () {
