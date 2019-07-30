@@ -1,7 +1,7 @@
-From 5cc981e98db96c5f75dcba152c195d463747bd4e Mon Sep 17 00:00:00 2001
+From ec13af0f35e82fad87934a800ffb7e5278e67fc6 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 28 Jan 2016 19:37:10 +0100
-Subject: [PATCH 06/11] compositor-drm: Add support for EGLDevice+EGLOutput
+Subject: [PATCH 5/8] compositor-drm: Add support for EGLDevice+EGLOutput
 
 As previously stated, EGLDevice and EGLOutput will provide means
 to access native device objects and different portions of display
@@ -25,17 +25,17 @@ Reviewed-by: Adam Cheney <acheney@nvidia.com>
 Reviewed-by: James Jones <jajones@nvidia.com>
 ---
  compositor/main.c          |   2 +
- libweston/compositor-drm.c | 336 +++++++++++++++++++++++++------------
+ libweston/compositor-drm.c | 343 +++++++++++++++++++++++++------------
  libweston/compositor-drm.h |   4 +
  libweston/gl-renderer.h    |   1 +
  shared/weston-egl-ext.h    |   9 +
- 5 files changed, 245 insertions(+), 107 deletions(-)
+ 5 files changed, 249 insertions(+), 110 deletions(-)
 
 diff --git a/compositor/main.c b/compositor/main.c
-index c3206783..103305e3 100644
+index b6ac6ea3..f101e3d9 100644
 --- a/compositor/main.c
 +++ b/compositor/main.c
-@@ -664,6 +664,7 @@ usage(int error_code)
+@@ -665,6 +665,7 @@ usage(int error_code)
  		"  --tty=TTY\t\tThe tty to use\n"
  		"  --drm-device=CARD\tThe DRM device to use, e.g. \"card0\".\n"
  		"  --use-pixman\t\tUse the pixman (CPU) renderer\n"
@@ -43,16 +43,16 @@ index c3206783..103305e3 100644
  		"  --current-mode\tPrefer current KMS mode over EDID preferred mode\n\n");
  #endif
  
-@@ -2341,6 +2342,7 @@ load_drm_backend(struct weston_compositor *c,
+@@ -2345,6 +2346,7 @@ load_drm_backend(struct weston_compositor *c,
  		{ WESTON_OPTION_STRING, "drm-device", 0, &config.specific_device },
- 		{ WESTON_OPTION_BOOLEAN, "current-mode", 0, &wet->drm_use_current_mode },
+ 		{ WESTON_OPTION_BOOLEAN, "current-mode", 0, &drm_use_current_mode },
  		{ WESTON_OPTION_BOOLEAN, "use-pixman", 0, &use_pixman_ },
 +		{ WESTON_OPTION_BOOLEAN, "use-egldevice", 0, &config.use_egldevice },
  	};
  
  	parse_options(options, ARRAY_LENGTH(options), argc, argv);
 diff --git a/libweston/compositor-drm.c b/libweston/compositor-drm.c
-index 77dbb077..100b3050 100644
+index b9eb2883..6b0b8be7 100644
 --- a/libweston/compositor-drm.c
 +++ b/libweston/compositor-drm.c
 @@ -310,7 +310,10 @@ struct drm_backend {
@@ -75,13 +75,14 @@ index 77dbb077..100b3050 100644
  	struct udev_input input;
  
  	int32_t cursor_width;
-@@ -2109,20 +2114,24 @@ drm_output_render_gl(struct drm_output_state *state, pixman_region32_t *damage)
+@@ -2111,21 +2116,25 @@ drm_output_render_gl(struct drm_output_state *state, pixman_region32_t *damage)
  	output->base.compositor->renderer->repaint_output(&output->base,
  							  damage);
  
 -	bo = gbm_surface_lock_front_buffer(output->gbm_surface);
 -	if (!bo) {
--		weston_log("failed to lock front buffer: %m\n");
+-		weston_log("failed to lock front buffer: %s\n",
+-			   strerror(errno));
 -		return NULL;
 -	}
 +	if (b->use_egldevice)
@@ -89,7 +90,8 @@ index 77dbb077..100b3050 100644
 +	else {
 +		bo = gbm_surface_lock_front_buffer(output->gbm_surface);
 +		if (!bo) {
-+			weston_log("failed to lock front buffer: %m\n");
++			weston_log("failed to lock front buffer: %s\n",
++				   strerror(errno));
 +			return NULL;
 +		}
  
@@ -112,7 +114,7 @@ index 77dbb077..100b3050 100644
  
  	return ret;
  }
-@@ -2165,7 +2174,9 @@ drm_output_render(struct drm_output_state *state, pixman_region32_t *damage)
+@@ -2168,7 +2177,9 @@ drm_output_render(struct drm_output_state *state, pixman_region32_t *damage)
  	if (scanout_state->fb)
  		return;
  
@@ -123,7 +125,7 @@ index 77dbb077..100b3050 100644
  	    scanout_plane->state_cur->fb &&
  	    (scanout_plane->state_cur->fb->type == BUFFER_GBM_SURFACE ||
  	     scanout_plane->state_cur->fb->type == BUFFER_PIXMAN_DUMB) &&
-@@ -2358,9 +2369,14 @@ drm_output_apply_state_legacy(struct drm_output_state *state)
+@@ -2364,9 +2375,14 @@ drm_output_apply_state_legacy(struct drm_output_state *state)
  			   output->crtc_id, scanout_state->plane->plane_id,
  			   pinfo ? pinfo->drm_format_name : "UNKNOWN");
  
@@ -138,10 +140,10 @@ index 77dbb077..100b3050 100644
 +				      DRM_MODE_PAGE_FLIP_EVENT, output);
 +
 +	if (ret < 0) {
- 		weston_log("queueing pageflip failed: %m\n");
+ 		weston_log("queueing pageflip failed: %s\n", strerror(errno));
  		goto err;
  	}
-@@ -4174,7 +4190,8 @@ init_kms_caps(struct drm_backend *b)
+@@ -4184,7 +4200,8 @@ init_kms_caps(struct drm_backend *b)
  		   b->universal_planes ? "supports" : "does not support");
  
  #ifdef HAVE_DRM_ATOMIC
@@ -151,7 +153,7 @@ index 77dbb077..100b3050 100644
  		ret = drmGetCap(b->drm.fd, DRM_CAP_CRTC_IN_VBLANK_EVENT, &cap);
  		if (ret != 0)
  			cap = 0;
-@@ -4217,11 +4234,6 @@ create_gbm_device(int fd)
+@@ -4227,11 +4244,6 @@ create_gbm_device(int fd)
  {
  	struct gbm_device *gbm;
  
@@ -163,7 +165,7 @@ index 77dbb077..100b3050 100644
  	/* GBM will load a dri driver, but even though they need symbols from
  	 * libglapi, in some version of Mesa they are not linked to it. Since
  	 * only the gl-renderer module links to it, the call above won't make
-@@ -4234,6 +4246,40 @@ create_gbm_device(int fd)
+@@ -4244,6 +4256,40 @@ create_gbm_device(int fd)
  	return gbm;
  }
  
@@ -204,7 +206,7 @@ index 77dbb077..100b3050 100644
  /* When initializing EGL, if the preferred buffer format isn't available
   * we may be able to substitute an ARGB format for an XRGB one.
   *
-@@ -4260,38 +4306,62 @@ fallback_format_for(uint32_t format)
+@@ -4270,38 +4316,62 @@ fallback_format_for(uint32_t format)
  static int
  drm_backend_create_gl_renderer(struct drm_backend *b)
  {
@@ -288,7 +290,7 @@ index 77dbb077..100b3050 100644
  		return -1;
  	}
  
-@@ -5058,71 +5128,98 @@ err:
+@@ -5068,71 +5138,98 @@ err:
  static int
  drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
  {
@@ -443,7 +445,19 @@ index 77dbb077..100b3050 100644
  
  	return 0;
  }
-@@ -5144,8 +5241,17 @@ drm_output_fini_egl(struct drm_output *output)
+@@ -5145,8 +5242,9 @@ drm_output_fini_egl(struct drm_output *output)
+ 	/* Destroying the GBM surface will destroy all our GBM buffers,
+ 	 * regardless of refcount. Ensure we destroy them here. */
+ 	if (!b->shutting_down &&
+-	    output->scanout_plane->state_cur->fb &&
+-	    output->scanout_plane->state_cur->fb->type == BUFFER_GBM_SURFACE) {
++	    ((output->scanout_plane->state_cur->fb &&
++	      output->scanout_plane->state_cur->fb->type == BUFFER_GBM_SURFACE) ||
++	     b->use_egldevice)) {
+ 		drm_plane_state_free(output->scanout_plane->state_cur, true);
+ 		output->scanout_plane->state_cur =
+ 			drm_plane_state_alloc(NULL, output->scanout_plane);
+@@ -5154,8 +5252,17 @@ drm_output_fini_egl(struct drm_output *output)
  	}
  
  	gl_renderer->output_destroy(&output->base);
@@ -463,7 +477,7 @@ index 77dbb077..100b3050 100644
  	drm_output_fini_cursor_egl(output);
  }
  
-@@ -7050,6 +7156,11 @@ recorder_binding(struct weston_keyboard *keyboard, const struct timespec *time,
+@@ -7060,6 +7167,11 @@ recorder_binding(struct weston_keyboard *keyboard, const struct timespec *time,
  	struct drm_output *output;
  	int width, height;
  
@@ -475,7 +489,7 @@ index 77dbb077..100b3050 100644
  	output = container_of(b->compositor->output_list.next,
  			      struct drm_output, base.link);
  
-@@ -7108,11 +7219,20 @@ switch_to_gl_renderer(struct drm_backend *b)
+@@ -7118,11 +7230,20 @@ switch_to_gl_renderer(struct drm_backend *b)
  
  	weston_log("Switching to GL renderer\n");
  
@@ -501,7 +515,7 @@ index 77dbb077..100b3050 100644
  	}
  
  	wl_list_for_each(output, &b->compositor->output_list, base.link)
-@@ -7121,7 +7241,8 @@ switch_to_gl_renderer(struct drm_backend *b)
+@@ -7131,7 +7252,8 @@ switch_to_gl_renderer(struct drm_backend *b)
  	b->compositor->renderer->destroy(b->compositor);
  
  	if (drm_backend_create_gl_renderer(b) < 0) {
@@ -511,7 +525,7 @@ index 77dbb077..100b3050 100644
  		weston_log("Failed to create GL renderer. Quitting.\n");
  		/* FIXME: we need a function to shutdown cleanly */
  		assert(0);
-@@ -7451,6 +7572,7 @@ drm_backend_create(struct weston_compositor *compositor,
+@@ -7461,6 +7583,7 @@ drm_backend_create(struct weston_compositor *compositor,
  	b->use_pixman = config->use_pixman;
  	b->pageflip_timeout = config->pageflip_timeout;
  	b->use_pixman_shadow = config->use_pixman_shadow;

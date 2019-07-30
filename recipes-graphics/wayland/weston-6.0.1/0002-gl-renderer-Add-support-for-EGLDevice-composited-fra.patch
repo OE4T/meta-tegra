@@ -1,7 +1,7 @@
-From 45a793ab789925c4fc63bdd8af0537f9ce525709 Mon Sep 17 00:00:00 2001
+From 4c0c8589f45e6055332ae86b806741aa3954b917 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 16:34:01 +0200
-Subject: [PATCH 03/11] gl-renderer: Add support for EGLDevice composited frame
+Subject: [PATCH 2/8] gl-renderer: Add support for EGLDevice composited frame
  presentation
 
 EGLDevice provides means to enumerate native devices, and then create
