@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BP}:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/${BP}:${THISDIR}/${BPN}:"
 
 SRC_URI += " \
     file://0001-gl-renderer-Add-EGLDevice-enumeration-support.patch \
