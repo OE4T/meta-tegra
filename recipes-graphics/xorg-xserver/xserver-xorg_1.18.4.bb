@@ -26,3 +26,5 @@ RCONFLICTS_${PN} = "${PN}-extension-dri \
                     ${PN}-extension-extmod \
                     ${PN}-extension-dbe \
                    "
+
+PACKAGE_ARCH_tegra = "${SOC_FAMILY_PKGARCH}"
