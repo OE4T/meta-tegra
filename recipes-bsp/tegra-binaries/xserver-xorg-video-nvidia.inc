@@ -13,7 +13,7 @@ do_install() {
     install -d ${D}${libdir}/xorg/modules/drivers
     install -m 0644 ${DRVROOT}/drivers/nvidia_drv.so ${D}${libdir}/xorg/modules/drivers/
     install -d ${D}${libdir}/xorg/modules/extensions
-    install -m 0644 ${DRVROOT}/extensions/${GLXEXT} ${D}${libdir}/xorg/modules/extensions/
+    install -m 0644 ${DRVROOT}/extensions/${GLXEXT} ${D}${libdir}/xorg/modules/extensions/libglx.so
     if [ -f ${S}/xorg.conf ]; then
         install -d ${D}${datadir}/X11/xorg.conf.d
         install -m 0644 ${S}/xorg.conf ${D}${datadir}/X11/xorg.conf.d/00-tegra-xorg.conf
