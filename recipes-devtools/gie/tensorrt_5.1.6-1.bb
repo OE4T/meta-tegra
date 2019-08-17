@@ -64,7 +64,7 @@ PACKAGES =+ "${PN}-samples"
 FILES_${PN}-samples = "${prefix}/src"
 
 RDEPENDS_${PN} += "libstdc++ cudnn cuda-cublas cuda-cudart cuda-command-line-tools-libnvtoolsext tegra-libraries libglvnd"
-RDEPENDS_${PN}-samples += "bash python libglvnd"
+RDEPENDS_${PN}-samples += "bash python libglvnd cudnn cuda-cudart cuda-cublas"
 RPROVIDES_${PN}-samples = "${PN}-examples"
 
 INHIBIT_PACKAGE_STRIP = "1"
