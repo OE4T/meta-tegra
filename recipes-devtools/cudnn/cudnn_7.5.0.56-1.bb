@@ -56,6 +56,6 @@ INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
-RDEPENDS_${PN}-samples = "cuda-cublas-dev cuda-cudart"
+RDEPENDS_${PN}-samples = "cuda-cublas cuda-cublas-dev cuda-cudart"
 RPROVIDES_${PN}-samples = "${PN}-examples"
 INSANE_SKIP_${PN}-samples = "build-deps dev-deps ldflags staticdev"
