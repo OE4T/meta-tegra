@@ -1,7 +1,7 @@
-From 4293eadef82756c2c4a55bc265e3db3aedffaf32 Mon Sep 17 00:00:00 2001
+From 9408982d66402b583d74a9d9dcd9a377380e0771 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 2 Feb 2019 06:59:41 -0800
-Subject: [PATCH] Fix wayland-eglstream-protocols pc file
+Subject: [PATCH 2/2] Fix wayland-eglstream-protocols pc file
 
 ---
  wayland-eglstream-protocols.pc.in | 2 +-
