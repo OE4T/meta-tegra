@@ -1,3 +1,4 @@
+CUDA_BINARIES_NATIVE ??= "cuda-binaries-ubuntu1804-native"
 require cuda-shared-binaries-native-${PV}.inc
 
 CUDA_PKGS = " \
