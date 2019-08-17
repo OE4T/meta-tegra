@@ -1,0 +1,132 @@
+Index: gst-egl/ext/eglgles/gsteglglessink.c
+===================================================================
+--- gst-egl.orig/ext/eglgles/gsteglglessink.c
++++ gst-egl/ext/eglgles/gsteglglessink.c
+@@ -170,8 +170,6 @@ enum
+   PROP_WINDOW_Y,
+   PROP_WINDOW_WIDTH,
+   PROP_WINDOW_HEIGHT,
+-  PROP_ROWS,
+-  PROP_COLUMNS,
+   PROP_PROFILE,
+   PROP_WINSYS
+ };
+@@ -2123,8 +2121,8 @@ gst_eglglessink_render (GstEglGlesSink *
+     if (!eglglessink->render_region_user) {
+       eglglessink->render_region.x = 0;
+       eglglessink->render_region.y = 0;
+-      eglglessink->render_region.w = eglglessink->egl_context->surface_width / eglglessink->rows;
+-      eglglessink->render_region.h = eglglessink->egl_context->surface_height / eglglessink->columns;
++      eglglessink->render_region.w = eglglessink->egl_context->surface_width;
++      eglglessink->render_region.h = eglglessink->egl_context->surface_height;
+     }
+     eglglessink->render_region_changed = FALSE;
+     eglglessink->crop_changed = FALSE;
+@@ -2177,21 +2175,16 @@ gst_eglglessink_render (GstEglGlesSink *
+           &eglglessink->display_region, TRUE);
+     }
+ 
+-    glViewport (eglglessink->render_region.x +
+-                    (eglglessink->change_port % eglglessink->rows) * eglglessink->render_region.w,
+-                eglglessink->egl_context->surface_height - eglglessink->render_region.h -
+-                    (eglglessink->render_region.y +
+-                        ((eglglessink->change_port / eglglessink->columns) % eglglessink->columns) *
+-                            eglglessink->render_region.h),
+-                eglglessink->render_region.w,
+-                eglglessink->render_region.h);
++    glViewport (eglglessink->render_region.x,
++        eglglessink->egl_context->surface_height -
++        eglglessink->render_region.y -
++        eglglessink->render_region.h,
++        eglglessink->render_region.w, eglglessink->render_region.h);
+ 
+     /* Clear the surface once if its content is preserved */
+-    if (eglglessink->egl_context->buffer_preserved ||
+-        eglglessink->change_port % (eglglessink->rows * eglglessink->columns) == 0) {
++    if (eglglessink->egl_context->buffer_preserved) {
+       glClearColor (0.0, 0.0, 0.0, 1.0);
+       glClear (GL_COLOR_BUFFER_BIT);
+-      eglglessink->egl_context->buffer_preserved = FALSE;
+     }
+ 
+     if (!gst_eglglessink_setup_vbo (eglglessink)) {
+@@ -3036,13 +3029,6 @@ gst_eglglessink_set_property (GObject *
+       break;
+     case PROP_WINSYS:
+       eglglessink->winsys = g_strdup (g_value_get_string(value));
+-    case PROP_ROWS:
+-      eglglessink->rows = g_value_get_uint (value);
+-      eglglessink->change_port = -1;
+-      break;
+-    case PROP_COLUMNS:
+-      eglglessink->columns = g_value_get_uint (value);
+-      eglglessink->change_port = -1;
+       break;
+     default:
+       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+@@ -3088,12 +3074,6 @@ gst_eglglessink_get_property (GObject *
+     case PROP_WINSYS:
+       g_value_set_string (value, eglglessink->winsys);
+       break;
+-    case PROP_ROWS:
+-      g_value_set_uint (value, eglglessink->rows);
+-      break;
+-    case PROP_COLUMNS:
+-      g_value_set_uint (value, eglglessink->columns);
+-      break;
+     default:
+       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+       break;
+@@ -3105,12 +3085,6 @@ gst_eglglessink_event (GstBaseSink * sin
+ {
+   GstEglGlesSink *eglglessink = GST_EGLGLESSINK (sink);
+ 
+-  if (GST_EVENT_TYPE (event) == GST_EVENT_STREAM_START &&
+-      !(eglglessink->rows == 1 && eglglessink->columns == 1)) {
+-      eglglessink->change_port++;
+-      eglglessink->render_region_changed = TRUE;
+-  }
+-
+   switch (GST_EVENT_TYPE (event)) {
+     case GST_EVENT_CUSTOM_DOWNSTREAM:{
+       GstStructure *s;
+@@ -3225,16 +3199,6 @@ gst_eglglessink_class_init (GstEglGlesSi
+           "profile",
+           "gsteglglessink jitter information", 0, G_MAXUINT, 0,
+           G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+-  g_object_class_install_property (gobject_class, PROP_ROWS,
+-        g_param_spec_uint ("rows",
+-            "Display rows",
+-            "Rows of Display", 1, G_MAXINT, 1,
+-            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+-  g_object_class_install_property (gobject_class, PROP_COLUMNS,
+-        g_param_spec_uint ("columns",
+-            "Display columns",
+-            "Columns of display", 1, G_MAXINT, 1,
+-            G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+ 
+   gst_element_class_set_static_metadata (gstelement_class,
+       "EGL/GLES vout Sink",
+@@ -3297,8 +3261,6 @@ gst_eglglessink_init (GstEglGlesSink * e
+   eglglessink->window_width = 0;
+   eglglessink->window_height = 0;
+   eglglessink->profile = 0;
+-  eglglessink->rows = 1;
+-  eglglessink->columns = 1;
+ #ifdef IS_DESKTOP
+   eglglessink->cuContext = NULL;
+   eglglessink->cuResource[0] = NULL;
+Index: gst-egl/ext/eglgles/gsteglglessink.h
+===================================================================
+--- gst-egl.orig/ext/eglgles/gsteglglessink.h
++++ gst-egl/ext/eglgles/gsteglglessink.h
+@@ -104,9 +104,6 @@ struct _GstEglGlesSink
+   gint window_width;
+   gint window_height;
+   guint profile;
+-  gint rows;
+-  gint columns;
+-  gint change_port;
+ 
+   /* Runtime flags */
+   gboolean have_window;
