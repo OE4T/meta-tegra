@@ -1,0 +1,32 @@
+From 4a23e68b6afa069cf89ff60c560703afdf49d200 Mon Sep 17 00:00:00 2001
+From: Kyle Brenneman <kbrenneman@nvidia.com>
+Date: Fri, 14 Jun 2019 15:33:51 -0600
+Subject: [PATCH 1/2] Zero the wl_eglstream_display struct in
+ wl_eglstream_display_bind.
+
+In wl_eglstream_display_bind, it allocates a wl_eglstream_display struct and
+never zeroes the supported_caps field before it starts setting bits. As a
+result, the wl_eglstream_display::caps event contains garbage data in it.
+
+To fix that, and to avoid any other potential problems like this, just zero
+the whole wl_eglstream_display struct.
+---
+ src/wayland-eglstream-server.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/wayland-eglstream-server.c b/src/wayland-eglstream-server.c
+index 5a5e96d..ef2c1a2 100644
+--- a/src/wayland-eglstream-server.c
++++ b/src/wayland-eglstream-server.c
+@@ -287,7 +287,7 @@ wl_eglstream_display_bind(WlEglPlatformData *data,
+         return EGL_FALSE;
+     }
+ 
+-    wlStreamDpy = malloc(sizeof(*wlStreamDpy));
++    wlStreamDpy = calloc(1, sizeof(*wlStreamDpy));
+     if (!wlStreamDpy) {
+         return EGL_FALSE;
+     }
+-- 
+2.20.1
+
