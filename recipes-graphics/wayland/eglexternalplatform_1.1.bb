@@ -4,9 +4,9 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://COPYING;md5=cfa5a0f49cb081823fc5d965566e8298"
 
 SRC_URI = "git://github.com/NVIDIA/eglexternalplatform;protocol=https"
+# corresponds to 1.1 tag
 SRCREV = "7c8f8e2218e46b1a4aa9538520919747f1184d86"
 
-PV = "1.0+git${SRCPV}"
 S = "${WORKDIR}/git"
 
 do_compile() {
