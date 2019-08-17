@@ -14,6 +14,7 @@ SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0004-make-x11-optional.patch \
 	    file://fix-missing-gstegljitter.patch \
 	    file://make-wayland-configurable.patch \
+	    file://back-out-rows-cols.patch \
 "
 
 DEPENDS += "gstreamer1.0-plugins-base virtual/egl virtual/libgles2"
