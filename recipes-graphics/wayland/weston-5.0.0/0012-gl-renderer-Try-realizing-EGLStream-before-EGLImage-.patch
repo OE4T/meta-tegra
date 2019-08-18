@@ -1,0 +1,38 @@
+From 57fdfad5721e48b0e898beb4e2ac86e7c02bd3cc Mon Sep 17 00:00:00 2001
+From: Erik Kurzinger <ekurzinger@nvidia.com>
+Date: Fri, 12 Apr 2019 21:31:46 +0000
+Subject: [PATCH 12/13] gl-renderer: Try realizing EGLStream before EGLImage
+ buffer
+
+Currently, it is assumed that if querying the EGL_TEXTURE_FORMAT of a
+Wayland buffer succeeds it is an EGLImage. However, this assumption will no
+longer hold on upcoming versions of the NVIDIA EGL Wayland driver which
+will include support for querying this attribute for EGLStream buffers as
+well. Hence, we need to check if buffers are EGLStreams first.
+---
+ libweston/gl-renderer.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
+index 95690108..3b6d00ac 100644
+--- a/libweston/gl-renderer.c
++++ b/libweston/gl-renderer.c
+@@ -2583,13 +2583,14 @@ gl_renderer_attach(struct weston_surface *es, struct weston_buffer *buffer)
+ 
+ 	if (shm_buffer)
+ 		gl_renderer_attach_shm(es, buffer, shm_buffer);
++	else if (gl_renderer_attach_stream_texture(es, buffer));
+ 	else if (gr->has_bind_display &&
+ 		 gr->query_buffer(gr->egl_display, (void *)buffer->resource,
+ 				  EGL_TEXTURE_FORMAT, &format))
+ 		gl_renderer_attach_egl(es, buffer, format);
+ 	else if ((dmabuf = linux_dmabuf_buffer_get(buffer->resource)))
+ 		gl_renderer_attach_dmabuf(es, buffer, dmabuf);
+-	else if (!gl_renderer_attach_stream_texture(es, buffer)) {
++	else {
+ 		weston_log("unhandled buffer type!\n");
+ 		weston_buffer_reference(&gs->buffer_ref, NULL);
+ 		gs->buffer_type = BUFFER_TYPE_NULL;
+-- 
+2.20.1
+

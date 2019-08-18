@@ -1,0 +1,38 @@
+From 3d8453d5da60b52a45c664c616f501285960c4d6 Mon Sep 17 00:00:00 2001
+From: "Miguel A. Vico" <mvicomoya@nvidia.com>
+Date: Fri, 21 Jun 2019 13:51:11 -0700
+Subject: [PATCH 13/13] compositor-drm: Cleanup scanout plane state upon head
+ detach
+
+When using EGLStreams and a head is detached, the scanout plane buffers
+will be destroyed upon output destruction as the stream is torn down.
+That needs to be reflected in the drm structures that keep track of all
+this.
+
+This change ensures the scanout plane state is freed appropriately upon
+output destruction when using EGLStreams as well as GBM.
+
+Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
+---
+ libweston/compositor-drm.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/libweston/compositor-drm.c b/libweston/compositor-drm.c
+index bbad7a89..0d014c3e 100644
+--- a/libweston/compositor-drm.c
++++ b/libweston/compositor-drm.c
+@@ -4890,8 +4890,9 @@ drm_output_fini_egl(struct drm_output *output)
+ 	/* Destroying the GBM surface will destroy all our GBM buffers,
+ 	 * regardless of refcount. Ensure we destroy them here. */
+ 	if (!b->shutting_down &&
+-	    output->scanout_plane->state_cur->fb &&
+-	    output->scanout_plane->state_cur->fb->type == BUFFER_GBM_SURFACE) {
++	    ((output->scanout_plane->state_cur->fb &&
++	      output->scanout_plane->state_cur->fb->type == BUFFER_GBM_SURFACE) ||
++	     b->use_egldevice)) {
+ 		drm_plane_state_free(output->scanout_plane->state_cur, true);
+ 		output->scanout_plane->state_cur =
+ 			drm_plane_state_alloc(NULL, output->scanout_plane);
+-- 
+2.20.1
+

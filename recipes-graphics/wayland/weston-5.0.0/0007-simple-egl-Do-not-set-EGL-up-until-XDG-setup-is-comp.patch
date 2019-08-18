@@ -1,7 +1,7 @@
 From 90a04c32a40372a32da2cbc9907068496ec9ade6 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 27 Feb 2017 15:31:35 -0800
-Subject: [PATCH 07/10] simple-egl: Do not set EGL up until XDG setup is
+Subject: [PATCH 07/13] simple-egl: Do not set EGL up until XDG setup is
  complete
 
 There is nothing that prohibits the underlying EGL_PLATFORM_WAYLAND
@@ -164,5 +164,5 @@ index a1e57aef..0ca66415 100644
  	wl_surface_destroy(display.cursor_surface);
  	if (display.cursor_theme)
 -- 
-2.19.1
+2.20.1
 

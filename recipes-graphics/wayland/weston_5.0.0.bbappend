@@ -12,6 +12,8 @@ SRC_URI += " \
     file://0009-libweston-have-compositor-drm-try-drmOpen-should-ude.patch \
     file://0010-updates-to-work-with-tegra-drm-nvdc.patch \
     file://0011-compositor-drm-pass-drm-nvdc-to-drmOpen.patch \
+    file://0012-gl-renderer-Try-realizing-EGLStream-before-EGLImage-.patch \
+    file://0013-compositor-drm-Cleanup-scanout-plane-state-upon-head.patch \
     file://weston.default \
 "
 LIC_FILES_CHKSUM = "file://COPYING;md5=d79ee9e66bb0f95d3386a7acae780b70 \

@@ -1,7 +1,7 @@
 From 27f51dc0fa2df95f3c2843052183d0dbb6eacdfc Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 18 May 2017 14:35:36 -0700
-Subject: [PATCH 06/10] compositor: Process stream attach requests with
+Subject: [PATCH 06/13] compositor: Process stream attach requests with
  wl_eglstream_controller
 
 So far, the EGLStream implementation of the Wayland client-side driver
@@ -407,5 +407,5 @@ index 39e33350..c89c7965 100644
  
  	/* extension_suffix is supported */
 -- 
-2.19.1
+2.20.1
 

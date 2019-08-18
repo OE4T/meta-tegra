@@ -1,7 +1,7 @@
 From d21dfd5ec079b5227553aa84dc4667ea5dd4ee16 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 15:56:37 +0200
-Subject: [PATCH 01/10] gl-renderer: Add EGLDevice enumeration support
+Subject: [PATCH 01/13] gl-renderer: Add EGLDevice enumeration support
 
 EGLDevice provides means to enumerate native devices.
 
@@ -151,5 +151,5 @@ index b47ea07f..9ff4e21e 100644
  };
  
 -- 
-2.19.1
+2.20.1
 

@@ -1,7 +1,7 @@
 From 4a3fac5ee64fbe2ac5aa36bbbb1191ae632cf740 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 29 Mar 2018 00:15:49 -0700
-Subject: [PATCH 03/10] gl-renderer: Add EGL client support for EGLStream frame
+Subject: [PATCH 03/13] gl-renderer: Add EGL client support for EGLStream frame
  presentation
 
 By attaching a GLTexture consumer to a stream, a producer (wayland EGL
@@ -321,5 +321,5 @@ index f39990ed..96982e2d 100644
  
  /* EGL platform definition are keept to allow compositor-xx.c to build */
 -- 
-2.19.1
+2.20.1
 

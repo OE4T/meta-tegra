@@ -1,7 +1,7 @@
 From 7d4f52fa508f30229ff1ada517d466b7f4cc9733 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 9 Sep 2018 08:30:19 -0700
-Subject: [PATCH 10/10] updates to work with tegra drm-nvdc
+Subject: [PATCH 10/13] updates to work with tegra drm-nvdc
 
 - drm-nvdc doesn't properly flag enums
 - double-free SIGABRT in an NVIDIA library if you
@@ -426,5 +426,5 @@ index e4e10ef9..4676a782 100644
  
  #endif /* ENABLE_EGL */
 -- 
-2.19.1
+2.20.1
 
