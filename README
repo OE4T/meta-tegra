@@ -1,9 +1,6 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Tegra X1/X2/AGX/K1
 ==========================================================
 
-**WORK IN PROGRESS** - Please do not use this branch for
-any production development.
-
 Boards supported:
 * Jetson-TK1 development kit (Linux4Tegra R21.7)
 * Jetson-TX1 development kit (Linux4Tegra R32.2, JetPack 4.2.1
@@ -12,22 +9,12 @@ Boards supported:
 * Jetson Nano development kit (Linux4Tegra R32.2, JetPack 4.2.1)
 
 Also supported:
-* Jetson-TX2i module (Linux4Tegra R32.1, JetPack 4.2)
+* Jetson-TX2i module (Linux4Tegra R32.1, JetPack 4.2.1)
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: warrior
 LAYERSERIES_COMPAT: warrior
-
-TO DO
------
-
-* look at OTA/BUP for TX1/Nano, since it looks like
-  there's some support there now
-
-* look at building trusty and cboot (t194) from sources
-
-* look at container support
 
 
 PLEASE NOTE
