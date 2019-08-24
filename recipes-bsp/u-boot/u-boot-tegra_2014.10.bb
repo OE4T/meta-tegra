@@ -33,16 +33,4 @@ UBOOT_EXTLINUX_ROOT_primary = "${KERNEL_ROOTSPEC}"
 UBOOT_EXTLINUX_CONSOLE = ""
 UBOOT_EXTLINUX_KERNEL_ARGS_primary = "${KERNEL_ARGS}"
 
-do_configure() {
-    if [ -z "${UBOOT_CONFIG}" ]; then
-	if [ -n "${UBOOT_MACHINE}" ]; then
-	    oe_runmake -C ${S} O=${B} ${UBOOT_MACHINE}
-	else
-	    oe_runmake -C ${S} O=${B} oldconfig
-	fi
-	${S}/scripts/kconfig/merge_config.sh -m .config ${@" ".join(find_cfgs(d))}
-	cml1_do_configure
-    fi
-}
-
 RPROVIDES_${PN} += "u-boot"
