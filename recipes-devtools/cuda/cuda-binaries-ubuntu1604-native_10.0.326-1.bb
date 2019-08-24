@@ -8,7 +8,7 @@ LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/local/cuda-10.0/LICENSE;md5=dfb2d23fe5070ac47b201fbf1e497891 \
 	            file://usr/local/cuda-10.0/doc/EULA.txt;md5=049f8f2a31b8c3cc436cc63f0a72c9c9"
 
-SRC_URI = "${NVIDIA_DEVNET_MIRROR}/cuda-repo-ubuntu1804-10-0-local-10.0.326-410.108_1.0-1_amd64.deb"
-SRC_URI[md5sum] = "0396239108d46ab682fb90468ea937b6"
-SRC_URI[sha256sum] = "94ae0add742224198eaa059353fc218ba3e90fe008bafa01e00f547600c3afdf"
+SRC_URI = "${NVIDIA_DEVNET_MIRROR}/cuda-repo-ubuntu1604-10-0-local-10.0.326-410.108_1.0-1_amd64.deb"
+SRC_URI[md5sum] = "07ff157a7980aed07d0eafeebe86d64a"
+SRC_URI[sha256sum] = "b476fa6a5b702ac55977a9d9cad4d1761a850fc3fd76bd7caf04eb4f15b288a3"
 do_unpack[depends] += "xz-native:do_populate_sysroot"
