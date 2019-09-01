@@ -47,4 +47,4 @@ PREFERRED_PROVIDER_cboot ?= "cboot-prebuilt"
 require conf/machine/include/tegra-common.inc
 
 L4T_BSP_NAME = "TX2-AGX"
-L4T_BSP_PREFIX = "Jetson"
+L4T_BSP_PREFIX = "Tegra186"

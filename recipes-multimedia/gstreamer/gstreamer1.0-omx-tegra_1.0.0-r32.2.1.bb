@@ -7,7 +7,7 @@ DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad gstre
 DEPENDS += "tegra-libraries"
 
 TEGRA_SRC_SUBARCHIVE = "public_sources/gstomx1_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.2.0.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.2.1.inc
 
 # Plugin needs a couple of header files that it does not include, but
 # they are present in the V4L2 plugin source package, so extract them
