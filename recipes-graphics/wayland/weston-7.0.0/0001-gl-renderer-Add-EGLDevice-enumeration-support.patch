@@ -1,4 +1,4 @@
-From f426c33e25d0f99feccbdbaee13f3bf5f455e3c2 Mon Sep 17 00:00:00 2001
+From 78f72e9eb8e42b2791099c519cf8c47e89c4143f Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 15:56:37 +0200
 Subject: [PATCH 1/8] gl-renderer: Add EGLDevice enumeration support
@@ -16,15 +16,15 @@ Reviewed-by: Andy Ritger <aritger@nvidia.com>
 Reviewed-by: Adam Cheney <acheney@nvidia.com>
 Reviewed-by: James Jones <jajones@nvidia.com>
 ---
- libweston/gl-renderer.c | 89 ++++++++++++++++++++++++++++++++++++++++-
- libweston/gl-renderer.h |  8 ++++
+ libweston/renderer-gl/gl-renderer.c | 89 ++++++++++++++++++++++++++++-
+ libweston/renderer-gl/gl-renderer.h |  8 +++
  2 files changed, 96 insertions(+), 1 deletion(-)
 
-diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
-index a03e45ea..74315347 100644
---- a/libweston/gl-renderer.c
-+++ b/libweston/gl-renderer.c
-@@ -3990,6 +3990,90 @@ gl_renderer_setup(struct weston_compositor *ec, EGLSurface egl_surface)
+diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
+index 54f8b1cd..a6be2b7b 100644
+--- a/libweston/renderer-gl/gl-renderer.c
++++ b/libweston/renderer-gl/gl-renderer.c
+@@ -4084,6 +4084,90 @@ gl_renderer_setup(struct weston_compositor *ec, EGLSurface egl_surface)
  	return 0;
  }
  
@@ -115,7 +115,7 @@ index a03e45ea..74315347 100644
  WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
  	.opaque_attribs = gl_renderer_opaque_attribs,
  	.alpha_attribs = gl_renderer_alpha_attribs,
-@@ -4001,5 +4085,8 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
+@@ -4095,5 +4179,8 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
  	.output_surface = gl_renderer_output_surface,
  	.output_set_border = gl_renderer_output_set_border,
  	.create_fence_fd = gl_renderer_create_fence_fd,
@@ -125,11 +125,11 @@ index a03e45ea..74315347 100644
 +	.get_devices = gl_renderer_get_devices,
 +	.get_drm_device_file = gl_renderer_get_drm_device_file
  };
-diff --git a/libweston/gl-renderer.h b/libweston/gl-renderer.h
-index 202702b5..151879da 100644
---- a/libweston/gl-renderer.h
-+++ b/libweston/gl-renderer.h
-@@ -38,6 +38,7 @@
+diff --git a/libweston/renderer-gl/gl-renderer.h b/libweston/renderer-gl/gl-renderer.h
+index b1d6abbe..cd330932 100644
+--- a/libweston/renderer-gl/gl-renderer.h
++++ b/libweston/renderer-gl/gl-renderer.h
+@@ -40,6 +40,7 @@
  
  typedef int EGLint;
  typedef int EGLenum;
@@ -137,7 +137,7 @@ index 202702b5..151879da 100644
  typedef void *EGLDisplay;
  typedef void *EGLSurface;
  typedef void *EGLConfig;
-@@ -121,5 +122,12 @@ struct gl_renderer_interface {
+@@ -123,5 +124,12 @@ struct gl_renderer_interface {
  	int (*create_fence_fd)(struct weston_output *output);
  
  	void (*print_egl_error_state)(void);

@@ -1,7 +1,7 @@
-From c350837cab1ed5fe72b66c905faf641f035990bb Mon Sep 17 00:00:00 2001
+From f664250b469b329189aef308ce9a65e06a851242 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Tue, 1 Mar 2016 22:19:14 +0100
-Subject: [PATCH 4/8] compositor-drm: Gracefully handle vblank and flip invalid
+Subject: [PATCH 4/8] backend-drm: Gracefully handle vblank and flip invalid
  timestamps
 
 Instant query for vblank timestamp may always fail, resulting in
@@ -17,13 +17,13 @@ situations above.
 Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
 Reviewed-by: Andy Ritger <aritger@nvidia.com>
 ---
- libweston/compositor-drm.c | 28 +++++++++++++++++++++++++---
+ libweston/backend-drm/drm.c | 28 +++++++++++++++++++++++++---
  1 file changed, 25 insertions(+), 3 deletions(-)
 
-diff --git a/libweston/compositor-drm.c b/libweston/compositor-drm.c
-index f1c5d73a..b9eb2883 100644
---- a/libweston/compositor-drm.c
-+++ b/libweston/compositor-drm.c
+diff --git a/libweston/backend-drm/drm.c b/libweston/backend-drm/drm.c
+index 041a15a5..e631ffb9 100644
+--- a/libweston/backend-drm/drm.c
++++ b/libweston/backend-drm/drm.c
 @@ -4,6 +4,7 @@
   * Copyright © 2017, 2018 Collabora, Ltd.
   * Copyright © 2017, 2018 General Electric Company
@@ -32,7 +32,7 @@ index f1c5d73a..b9eb2883 100644
   *
   * Permission is hereby granted, free of charge, to any person obtaining
   * a copy of this software and associated documentation files (the
-@@ -1939,6 +1940,19 @@ drm_output_update_complete(struct drm_output *output, uint32_t flags,
+@@ -268,6 +269,19 @@ drm_output_update_complete(struct drm_output *output, uint32_t flags,
  
  	ts.tv_sec = sec;
  	ts.tv_nsec = usec * 1000;
@@ -52,7 +52,7 @@ index f1c5d73a..b9eb2883 100644
  	weston_output_finish_frame(&output->base, &ts, flags);
  
  	/* We can't call this from frame_notify, because the output's
-@@ -3018,8 +3032,16 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
+@@ -501,8 +515,16 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
  	vbl.request.type |= drm_waitvblank_pipe(output);
  	ret = drmWaitVBlank(backend->drm.fd, &vbl);
  
@@ -71,7 +71,7 @@ index f1c5d73a..b9eb2883 100644
  		ts.tv_sec = vbl.reply.tval_sec;
  		ts.tv_nsec = vbl.reply.tval_usec * 1000;
  
-@@ -3040,7 +3062,7 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
+@@ -523,7 +545,7 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
  		}
  	}
  

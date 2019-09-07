@@ -1,0 +1,357 @@
+From e71722e6fac35bce7b3938611a7dfd8f083a7c1a Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 7 Sep 2019 08:46:17 -0700
+Subject: [PATCH 8/8] libweston: updates to work with tegra drm-nvdc
+
+- drm-nvdc doesn't properly flag enums
+- double-free SIGABRT in an NVIDIA library if you
+  call drmModeRmFB, so avoid that
+- drm-nvdc atomic API incorrect return values and
+  avoid setting some properties that are not writable
+  (although atomic mode setting not actually used here)
+- don't re-modeset on every paint, since drm-nvdc
+  reapplies the modeset even if it's the same, leading
+  to severe flicker
+- work around hang in gl renderer on DPMS OFF->ON transitions
+  by closing EGL on DPMS OFF and re-initializion on DPMS ON
+- always leave backend->state_invalid as true to avoid
+  vblank waits
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ libweston/backend-drm/drm-internal.h |  6 ++
+ libweston/backend-drm/drm.c          | 17 ++++--
+ libweston/backend-drm/fb.c           |  6 +-
+ libweston/backend-drm/kms.c          | 83 +++++++++++++++++++---------
+ 4 files changed, 76 insertions(+), 36 deletions(-)
+
+diff --git a/libweston/backend-drm/drm-internal.h b/libweston/backend-drm/drm-internal.h
+index 8511cbf9..d7c6b9d7 100644
+--- a/libweston/backend-drm/drm-internal.h
++++ b/libweston/backend-drm/drm-internal.h
+@@ -238,6 +238,7 @@ struct drm_backend {
+ 
+ 	EGLDeviceEXT egldevice;
+ 	bool use_egldevice;
++	bool is_nvdc;
+ 
+ 	/* we need these parameters in order to not fail drmModeAddFB2()
+ 	 * due to out of bounds dimensions, and then mistakenly set
+@@ -689,3 +690,8 @@ drm_assign_planes(struct weston_output *output_base, void *repaint_data);
+ 
+ bool
+ drm_plane_is_available(struct drm_plane *plane, struct drm_output *output);
++
++int
++drm_output_init_egl(struct drm_output *output, struct drm_backend *b);
++void
++drm_output_fini_egl(struct drm_output *output);
+diff --git a/libweston/backend-drm/drm.c b/libweston/backend-drm/drm.c
+index c068b630..91dedb68 100644
+--- a/libweston/backend-drm/drm.c
++++ b/libweston/backend-drm/drm.c
+@@ -425,8 +425,10 @@ drm_output_repaint(struct weston_output *output_base,
+ {
+ 	struct drm_pending_state *pending_state = repaint_data;
+ 	struct drm_output *output = to_drm_output(output_base);
++	struct drm_backend *b = to_drm_backend(output_base->compositor);
+ 	struct drm_output_state *state = NULL;
+ 	struct drm_plane_state *scanout_state;
++	bool was_off;
+ 
+ 	assert(!output->virtual);
+ 
+@@ -443,7 +445,14 @@ drm_output_repaint(struct weston_output *output_base,
+ 		state = drm_output_state_duplicate(output->state_cur,
+ 						   pending_state,
+ 						   DRM_OUTPUT_STATE_CLEAR_PLANES);
++	was_off = state->dpms == WESTON_DPMS_OFF;
+ 	state->dpms = WESTON_DPMS_ON;
++	if (was_off && b->is_nvdc && !output->dumb[0]) {
++		if (drm_output_init_egl(output, b) < 0) {
++			weston_log("%s: could not re-initialize EGL\n", __func__);
++			goto err;
++		}
++	}
+ 
+ 	drm_output_render(state, damage);
+ 	scanout_state = drm_output_state_get_plane(state,
+@@ -650,10 +659,6 @@ drm_repaint_cancel(struct weston_compositor *compositor, void *repaint_data)
+ 	b->repaint_data = NULL;
+ }
+ 
+-static int
+-drm_output_init_egl(struct drm_output *output, struct drm_backend *b);
+-static void
+-drm_output_fini_egl(struct drm_output *output);
+ static int
+ drm_output_init_pixman(struct drm_output *output, struct drm_backend *b);
+ static void
+@@ -1410,7 +1415,7 @@ err:
+ }
+ 
+ /* Init output state that depends on gl or gbm */
+-static int
++int
+ drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
+ {
+ 	if (b->use_egldevice) {
+@@ -1509,7 +1514,7 @@ drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
+ 	return 0;
+ }
+ 
+-static void
++void
+ drm_output_fini_egl(struct drm_output *output)
+ {
+ 	struct drm_backend *b = to_drm_backend(output->base.compositor);
+diff --git a/libweston/backend-drm/fb.c b/libweston/backend-drm/fb.c
+index 247883b4..d77017c9 100644
+--- a/libweston/backend-drm/fb.c
++++ b/libweston/backend-drm/fb.c
+@@ -46,7 +46,7 @@
+ static void
+ drm_fb_destroy(struct drm_fb *fb)
+ {
+-	if (fb->fb_id != 0)
++	if (fb->fb_id != 0 && !fb->nounmap)
+ 		drmModeRmFB(fb->fd, fb->fb_id);
+ 	weston_buffer_reference(&fb->buffer_ref, NULL);
+ 	weston_buffer_release_reference(&fb->buffer_release_ref, NULL);
+@@ -186,8 +186,8 @@ drm_fb_create_dumb(struct drm_backend *b, int width, int height,
+ 	if (ret)
+ 		goto err_add_fb;
+ 
+-	if (!strcmp(b->drm.filename, "drm-nvdc")) {
+-		fb->map = map_arg.offset;
++	if (b->is_nvdc) {
++		fb->map = (void *) map_arg.offset;
+ 		fb->nounmap = true;
+ 	} else {
+ 		fb->map = mmap(NULL, fb->size, PROT_WRITE,
+diff --git a/libweston/backend-drm/kms.c b/libweston/backend-drm/kms.c
+index d25df495..5472fd44 100644
+--- a/libweston/backend-drm/kms.c
++++ b/libweston/backend-drm/kms.c
+@@ -272,7 +272,8 @@ drm_property_info_populate(struct drm_backend *b,
+ 			continue;
+ 		}
+ 
+-		if (!(prop->flags & DRM_MODE_PROP_ENUM)) {
++		if (!((prop->flags & DRM_MODE_PROP_ENUM) ||
++		      (b->is_nvdc && prop->count_enums > 0))) {
+ 			weston_log("DRM: expected property %s to be an enum,"
+ 				   " but it is not; ignoring\n", prop->name);
+ 			drmModeFreeProperty(prop);
+@@ -604,6 +605,8 @@ drm_output_apply_state_legacy(struct drm_output_state *state)
+ 					   strerror(errno));
+ 		}
+ 
++		if (backend->is_nvdc)
++			drm_output_fini_egl(output);
+ 		ret = drmModeSetCrtc(backend->drm.fd, output->crtc_id, 0, 0, 0,
+ 				     NULL, 0, NULL);
+ 		if (ret)
+@@ -638,10 +641,10 @@ drm_output_apply_state_legacy(struct drm_output_state *state)
+ 	assert(scanout_state->in_fence_fd == -1);
+ 
+ 	mode = to_drm_mode(output->base.current_mode);
+-	if (backend->state_invalid ||
+-	    !scanout_plane->state_cur->fb ||
+-	    scanout_plane->state_cur->fb->strides[0] !=
+-	    scanout_state->fb->strides[0]) {
++	if (!backend->is_nvdc && (backend->state_invalid ||
++				  !scanout_plane->state_cur->fb ||
++				  scanout_plane->state_cur->fb->strides[0] !=
++				  scanout_state->fb->strides[0])) {
+ 
+ 		ret = drmModeSetCrtc(backend->drm.fd, output->crtc_id,
+ 				     scanout_state->fb->fb_id,
+@@ -711,6 +714,7 @@ static int
+ crtc_add_prop(drmModeAtomicReq *req, struct drm_output *output,
+ 	      enum wdrm_crtc_property prop, uint64_t val)
+ {
++	struct drm_backend *b = to_drm_backend(output->base.compositor);
+ 	struct drm_property_info *info = &output->props_crtc[prop];
+ 	int ret;
+ 
+@@ -723,13 +727,17 @@ crtc_add_prop(drmModeAtomicReq *req, struct drm_output *output,
+ 		  (unsigned long) output->crtc_id,
+ 		  (unsigned long) info->prop_id, info->name,
+ 		  (unsigned long long) val, (unsigned long long) val);
+-	return (ret <= 0) ? -1 : 0;
++	if (b->is_nvdc)
++		return (ret < 0) ? -1 : 0;
++	else
++		return (ret <= 0) ? -1 : 0;
+ }
+ 
+ static int
+ connector_add_prop(drmModeAtomicReq *req, struct drm_head *head,
+ 		   enum wdrm_connector_property prop, uint64_t val)
+ {
++	struct drm_backend *b = head->backend;
+ 	struct drm_property_info *info = &head->props_conn[prop];
+ 	int ret;
+ 
+@@ -742,13 +750,17 @@ connector_add_prop(drmModeAtomicReq *req, struct drm_head *head,
+ 		  (unsigned long) head->connector_id,
+ 		  (unsigned long) info->prop_id, info->name,
+ 		  (unsigned long long) val, (unsigned long long) val);
+-	return (ret <= 0) ? -1 : 0;
++	if (b->is_nvdc)
++		return (ret < 0) ? -1 : 0;
++	else
++		return (ret <= 0) ? -1 : 0;
+ }
+ 
+ static int
+ plane_add_prop(drmModeAtomicReq *req, struct drm_plane *plane,
+ 	       enum wdrm_plane_property prop, uint64_t val)
+ {
++	struct drm_backend *b = plane->backend;
+ 	struct drm_property_info *info = &plane->props[prop];
+ 	int ret;
+ 
+@@ -761,7 +773,10 @@ plane_add_prop(drmModeAtomicReq *req, struct drm_plane *plane,
+ 		  (unsigned long) plane->plane_id,
+ 		  (unsigned long) info->prop_id, info->name,
+ 		  (unsigned long long) val, (unsigned long long) val);
+-	return (ret <= 0) ? -1 : 0;
++	if (b->is_nvdc)
++		return (ret < 0) ? -1 : 0;
++	else
++		return (ret <= 0) ? -1 : 0;
+ }
+ 
+ 
+@@ -833,9 +848,11 @@ drm_output_apply_state_atomic(struct drm_output_state *state,
+ 
+ 		/* No need for the DPMS property, since it is implicit in
+ 		 * routing and CRTC activity. */
+-		wl_list_for_each(head, &output->base.head_list, base.output_link) {
+-			ret |= connector_add_prop(req, head, WDRM_CONNECTOR_CRTC_ID,
+-						  output->crtc_id);
++		if (!b->is_nvdc) {
++			wl_list_for_each(head, &output->base.head_list, base.output_link) {
++				ret |= connector_add_prop(req, head, WDRM_CONNECTOR_CRTC_ID,
++							  output->crtc_id);
++			}
+ 		}
+ 	} else {
+ 		ret |= crtc_add_prop(req, output, WDRM_CRTC_MODE_ID, 0);
+@@ -843,8 +860,9 @@ drm_output_apply_state_atomic(struct drm_output_state *state,
+ 
+ 		/* No need for the DPMS property, since it is implicit in
+ 		 * routing and CRTC activity. */
+-		wl_list_for_each(head, &output->base.head_list, base.output_link)
+-			ret |= connector_add_prop(req, head, WDRM_CONNECTOR_CRTC_ID, 0);
++		if (!b->is_nvdc)
++			wl_list_for_each(head, &output->base.head_list, base.output_link)
++				ret |= connector_add_prop(req, head, WDRM_CONNECTOR_CRTC_ID, 0);
+ 	}
+ 
+ 	if (ret != 0) {
+@@ -858,8 +876,9 @@ drm_output_apply_state_atomic(struct drm_output_state *state,
+ 
+ 		ret |= plane_add_prop(req, plane, WDRM_PLANE_FB_ID,
+ 				      plane_state->fb ? plane_state->fb->fb_id : 0);
+-		ret |= plane_add_prop(req, plane, WDRM_PLANE_CRTC_ID,
+-				      plane_state->fb ? output->crtc_id : 0);
++		if (!b->is_nvdc)
++			ret |= plane_add_prop(req, plane, WDRM_PLANE_CRTC_ID,
++					      plane_state->fb ? output->crtc_id : 0);
+ 		ret |= plane_add_prop(req, plane, WDRM_PLANE_SRC_X,
+ 				      plane_state->src_x);
+ 		ret |= plane_add_prop(req, plane, WDRM_PLANE_SRC_Y,
+@@ -963,6 +982,7 @@ drm_pending_state_apply_atomic(struct drm_pending_state *pending_state,
+ 				  info->name);
+ 			if (err <= 0)
+ 				ret = -1;
++			flags |= DRM_MODE_ATOMIC_ALLOW_MODESET;
+ 		}
+ 
+ 		wl_array_for_each(unused, &b->unused_crtcs) {
+@@ -1018,18 +1038,21 @@ drm_pending_state_apply_atomic(struct drm_pending_state *pending_state,
+ 				ret = -1;
+ 
+ 			drm_property_info_free(infos, WDRM_CRTC__COUNT);
++			flags |= DRM_MODE_ATOMIC_ALLOW_MODESET;
+ 		}
+ 
+ 		/* Disable all the planes; planes which are being used will
+ 		 * override this state in the output-state application. */
+-		wl_list_for_each(plane, &b->plane_list, link) {
+-			drm_debug(b, "\t\t[atomic] starting with plane %lu disabled\n",
+-				  (unsigned long) plane->plane_id);
+-			plane_add_prop(req, plane, WDRM_PLANE_CRTC_ID, 0);
+-			plane_add_prop(req, plane, WDRM_PLANE_FB_ID, 0);
+-		}
++		if (!b->is_nvdc || mode == DRM_STATE_APPLY_SYNC) {
++			wl_list_for_each(plane, &b->plane_list, link) {
++				drm_debug(b, "\t\t[atomic] starting with plane %lu disabled\n",
++					  (unsigned long) plane->plane_id);
++				plane_add_prop(req, plane, WDRM_PLANE_CRTC_ID, 0);
++				plane_add_prop(req, plane, WDRM_PLANE_FB_ID, 0);
++			}
+ 
+-		flags |= DRM_MODE_ATOMIC_ALLOW_MODESET;
++			flags |= DRM_MODE_ATOMIC_ALLOW_MODESET;
++		}
+ 	}
+ 
+ 	wl_list_for_each(output_state, &pending_state->output_list, link) {
+@@ -1045,8 +1068,12 @@ drm_pending_state_apply_atomic(struct drm_pending_state *pending_state,
+ 		goto out;
+ 	}
+ 
+-	ret = drmModeAtomicCommit(b->drm.fd, req, flags, b);
+-	drm_debug(b, "[atomic] drmModeAtomicCommit\n");
++	if (b->is_nvdc && (flags & DRM_MODE_ATOMIC_ALLOW_MODESET) == 0)
++		ret = 0;
++	else {
++		ret = drmModeAtomicCommit(b->drm.fd, req, flags, b);
++		drm_debug(b, "[atomic] drmModeAtomicCommit\n");
++	}
+ 
+ 	/* Test commits do not take ownership of the state; return
+ 	 * without freeing here. */
+@@ -1065,7 +1092,7 @@ drm_pending_state_apply_atomic(struct drm_pending_state *pending_state,
+ 			      link)
+ 		drm_output_assign_state(output_state, mode);
+ 
+-	b->state_invalid = false;
++	b->state_invalid = b->is_nvdc;
+ 
+ 	assert(wl_list_empty(&pending_state->output_list));
+ 
+@@ -1159,7 +1186,7 @@ drm_pending_state_apply(struct drm_pending_state *pending_state)
+ 		}
+ 	}
+ 
+-	b->state_invalid = false;
++	b->state_invalid = b->is_nvdc;
+ 
+ 	assert(wl_list_empty(&pending_state->output_list));
+ 
+@@ -1211,7 +1238,7 @@ drm_pending_state_apply_sync(struct drm_pending_state *pending_state)
+ 		}
+ 	}
+ 
+-	b->state_invalid = false;
++	b->state_invalid = b->is_nvdc;
+ 
+ 	assert(wl_list_empty(&pending_state->output_list));
+ 
+@@ -1311,6 +1338,8 @@ init_kms_caps(struct drm_backend *b)
+ 
+ 	weston_log("using %s\n", b->drm.filename);
+ 
++	b->is_nvdc = strcmp(b->drm.filename, "drm-nvdc") == 0;
++
+ 	ret = drmGetCap(b->drm.fd, DRM_CAP_TIMESTAMP_MONOTONIC, &cap);
+ 	if (ret == 0 && cap == 1)
+ 		clk_id = CLOCK_MONOTONIC;
+-- 
+2.20.1
+

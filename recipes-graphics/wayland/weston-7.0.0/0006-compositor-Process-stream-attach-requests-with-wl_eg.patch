@@ -1,4 +1,4 @@
-From 33c7d7b7573fad7109767a34128fc1ae1548fe64 Mon Sep 17 00:00:00 2001
+From 7b4d70dc7f5024e80656d9facdb0bc834d91adb9 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 18 May 2017 14:35:36 -0700
 Subject: [PATCH 6/8] compositor: Process stream attach requests with
@@ -31,49 +31,15 @@ requests.
 Signed-off-by: Ashutosh Agarwal <asagarwal@nvidia.com>
 Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
 ---
- Makefile.am             |  14 ++++
- compositor/meson.build  |   1 +
- configure.ac            |   4 ++
- libweston/compositor.c  |  78 +++++++++++++++++++++
- libweston/compositor.h  |   4 ++
- libweston/gl-renderer.c | 147 +++++++++++++++++++++++++---------------
- protocol/meson.build    |   7 ++
- 7 files changed, 201 insertions(+), 54 deletions(-)
+ compositor/meson.build              |   1 +
+ include/libweston/libweston.h       |   4 +
+ libweston/compositor.c              |  78 +++++++++++++++
+ libweston/renderer-gl/gl-renderer.c | 147 ++++++++++++++++++----------
+ protocol/meson.build                |   7 ++
+ 5 files changed, 183 insertions(+), 54 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 5407b593..0bad6976 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -192,6 +192,11 @@ nodist_libweston_@LIBWESTON_MAJOR@_la_SOURCES =				\
- 
- BUILT_SOURCES += $(nodist_libweston_@LIBWESTON_MAJOR@_la_SOURCES)
- 
-+nodist_libweston_eglstreams_@LIBWESTON_MAJOR@_la_SOURCES =		\
-+	protocol/wayland-eglstream-controller-server-protocol.h
-+
-+BUILT_SOURCES += $(nodist_libweston_eglstreams_@LIBWESTON_MAJOR@_la_SOURCES)
-+
- bin_PROGRAMS += weston
- 
- weston_LDFLAGS = -export-dynamic
-@@ -1736,6 +1741,15 @@ protocol/%-server-protocol.h : $(WAYLAND_PROTOCOLS_DATADIR)/$$(call protostabili
- protocol/%-client-protocol.h : $(WAYLAND_PROTOCOLS_DATADIR)/$$(call protostability,$$*)/$$(call protoname,$$*)/$$*.xml
- 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) client-header < $< > $@
- 
-+protocol/%-protocol.c : $(WAYLAND_EGLSTREAM_PROTOCOLS_DATADIR)/%.xml
-+	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) code < $< > $@
-+
-+protocol/%-server-protocol.h : $(WAYLAND_EGLSTREAM_PROTOCOLS_DATADIR)/%.xml
-+	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) server-header < $< > $@
-+
-+protocol/%-client-protocol.h : $(WAYLAND_EGLSTREAM_PROTOCOLS_DATADIR)/%.xml
-+	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) client-header < $< > $@
-+
- protocol/%-protocol.c : $(top_srcdir)/protocol/%.xml
- 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(wayland_scanner) code < $< > $@
- 
 diff --git a/compositor/meson.build b/compositor/meson.build
-index 3824d6ff..075b0bcd 100644
+index 61860a7a..f11d55e8 100644
 --- a/compositor/meson.build
 +++ b/compositor/meson.build
 @@ -9,6 +9,7 @@ srcs_weston = [
@@ -84,23 +50,23 @@ index 3824d6ff..075b0bcd 100644
  ]
  deps_weston = [
  	dep_libshared,
-diff --git a/configure.ac b/configure.ac
-index 68cdc86c..53b64bea 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -261,6 +261,10 @@ PKG_CHECK_MODULES(WAYLAND_PROTOCOLS, [wayland-protocols >= 1.17],
- 		  [ac_wayland_protocols_pkgdatadir=`$PKG_CONFIG --variable=pkgdatadir wayland-protocols`])
- AC_SUBST(WAYLAND_PROTOCOLS_DATADIR, $ac_wayland_protocols_pkgdatadir)
- 
-+PKG_CHECK_MODULES(WAYLAND_EGLSTREAM_PROTOCOLS, [wayland-eglstream-protocols],
-+		  [ac_wayland_eglstream_protocols_pkgdatadir=`$PKG_CONFIG --variable=pkgdatadir wayland-eglstream-protocols`])
-+AC_SUBST(WAYLAND_EGLSTREAM_PROTOCOLS_DATADIR, $ac_wayland_eglstream_protocols_pkgdatadir)
+diff --git a/include/libweston/libweston.h b/include/libweston/libweston.h
+index 5be8ef05..178bb071 100644
+--- a/include/libweston/libweston.h
++++ b/include/libweston/libweston.h
+@@ -917,6 +917,10 @@ struct weston_renderer {
+ 	void (*query_dmabuf_modifiers)(struct weston_compositor *ec,
+ 				int format, uint64_t **modifiers,
+ 				int *num_modifiers);
 +
- AC_ARG_ENABLE(wayland-compositor, [  --enable-wayland-compositor],,
- 	      enable_wayland_compositor=yes)
- AM_CONDITIONAL(ENABLE_WAYLAND_COMPOSITOR,
++	/** Create weston endpoint of an EGLStream & attach a consumer to it */
++	bool (*attach_eglstream_consumer)(struct weston_surface *es,
++					  struct wl_resource *wl_eglstream);
+ };
+ 
+ enum weston_capability {
 diff --git a/libweston/compositor.c b/libweston/compositor.c
-index e117479c..3a7b4cec 100644
+index 85327159..0a6a56e2 100644
 --- a/libweston/compositor.c
 +++ b/libweston/compositor.c
 @@ -3,6 +3,7 @@
@@ -111,15 +77,15 @@ index e117479c..3a7b4cec 100644
   *
   * Permission is hereby granted, free of charge, to any person obtaining
   * a copy of this software and associated documentation files (the
-@@ -71,6 +72,7 @@
- #include "version.h"
- #include "plugin-registry.h"
+@@ -74,6 +75,7 @@
  #include "pixel-formats.h"
+ #include "backend.h"
+ #include "libweston-internal.h"
 +#include "wayland-eglstream-controller-server-protocol.h"
  
- #define DEFAULT_REPAINT_WINDOW 7 /* milliseconds */
+ #include "weston-log-internal.h"
  
-@@ -6473,6 +6475,80 @@ bind_presentation(struct wl_client *client,
+@@ -6850,6 +6852,80 @@ bind_presentation(struct wl_client *client,
  	wp_presentation_send_clock_id(resource, compositor->presentation_clock);
  }
  
@@ -200,34 +166,19 @@ index e117479c..3a7b4cec 100644
  static void
  compositor_bind(struct wl_client *client,
  		void *data, uint32_t version, uint32_t id)
-@@ -6840,6 +6916,8 @@ weston_compositor_create(struct wl_display *display, void *user_data)
+@@ -7230,6 +7306,8 @@ weston_compositor_create(struct wl_display *display,
  			      ec, bind_presentation))
  		goto fail;
  
 +	init_eglstream_controller(ec->wl_display);
 +
- 	if (weston_debug_compositor_create(ec) < 0)
+ 	if (weston_log_ctx_compositor_setup(ec, log_ctx) < 0)
  		goto fail;
  
-diff --git a/libweston/compositor.h b/libweston/compositor.h
-index 3af1443a..d7ed3ff2 100644
---- a/libweston/compositor.h
-+++ b/libweston/compositor.h
-@@ -926,6 +926,10 @@ struct weston_renderer {
- 	void (*query_dmabuf_modifiers)(struct weston_compositor *ec,
- 				int format, uint64_t **modifiers,
- 				int *num_modifiers);
-+
-+	/** Create weston endpoint of an EGLStream & attach a consumer to it */
-+	bool (*attach_eglstream_consumer)(struct weston_surface *es,
-+					  struct wl_resource *wl_eglstream);
- };
- 
- enum weston_capability {
-diff --git a/libweston/gl-renderer.c b/libweston/gl-renderer.c
-index 4bae6546..e66bbd4c 100644
---- a/libweston/gl-renderer.c
-+++ b/libweston/gl-renderer.c
+diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
+index 22a64f81..b4a88da3 100644
+--- a/libweston/renderer-gl/gl-renderer.c
++++ b/libweston/renderer-gl/gl-renderer.c
 @@ -1,7 +1,7 @@
  /*
   * Copyright © 2012 Intel Corporation
@@ -237,7 +188,7 @@ index 4bae6546..e66bbd4c 100644
   *
   * Permission is hereby granted, free of charge, to any person obtaining
   * a copy of this software and associated documentation files (the
-@@ -2537,18 +2537,9 @@ gl_renderer_attach_dmabuf(struct weston_surface *surface,
+@@ -2626,18 +2626,9 @@ gl_renderer_attach_dmabuf(struct weston_surface *surface,
  	surface->is_opaque = dmabuf_is_opaque(dmabuf);
  }
  
@@ -259,7 +210,7 @@ index 4bae6546..e66bbd4c 100644
  {
  #ifdef EGL_NV_stream_attrib
  	struct weston_compositor *ec = es->compositor;
-@@ -2557,65 +2548,111 @@ gl_renderer_attach_stream_texture(struct weston_surface *es,
+@@ -2646,65 +2637,111 @@ gl_renderer_attach_stream_texture(struct weston_surface *es,
  	EGLStreamKHR stream = EGL_NO_STREAM_KHR;
  	EGLAttrib stream_attribs[] = {
  #ifdef EGL_WL_wayland_eglstream
@@ -412,7 +363,7 @@ index 4bae6546..e66bbd4c 100644
  	}
  
  	/* At this point we should have a valid stream handle */
-@@ -4044,6 +4081,8 @@ gl_renderer_display_create(struct weston_compositor *ec, EGLenum platform,
+@@ -4138,6 +4175,8 @@ gl_renderer_display_create(struct weston_compositor *ec, EGLenum platform,
  	gr->base.surface_get_content_size =
  		gl_renderer_surface_get_content_size;
  	gr->base.surface_copy_content = gl_renderer_surface_copy_content;
@@ -422,11 +373,11 @@ index 4bae6546..e66bbd4c 100644
  
  	/* extension_suffix is supported */
 diff --git a/protocol/meson.build b/protocol/meson.build
-index 34026ff9..37642298 100644
+index 1228d15b..e47d0a6c 100644
 --- a/protocol/meson.build
 +++ b/protocol/meson.build
-@@ -7,6 +7,9 @@ prog_scanner = find_program(dep_scanner.get_pkgconfig_variable('wayland_scanner'
- dep_wp = dependency('wayland-protocols', version: '>= 1.17')
+@@ -4,6 +4,9 @@ prog_scanner = find_program(dep_scanner.get_pkgconfig_variable('wayland_scanner'
+ dep_wp = dependency('wayland-protocols', version: '>= 1.18')
  dir_wp_base = dep_wp.get_pkgconfig_variable('pkgdatadir')
  
 +dep_wep = dependency('wayland-eglstream-protocols')
@@ -435,7 +386,7 @@ index 34026ff9..37642298 100644
  install_data(
  	[
  		'weston-debug.xml',
-@@ -37,6 +40,7 @@ generated_protocols = [
+@@ -35,6 +38,7 @@ generated_protocols = [
  	[ 'xdg-output', 'v1' ],
  	[ 'xdg-shell', 'v6' ],
  	[ 'xdg-shell', 'stable' ],
@@ -443,7 +394,7 @@ index 34026ff9..37642298 100644
  ]
  
  foreach proto: generated_protocols
-@@ -44,6 +48,9 @@ foreach proto: generated_protocols
+@@ -42,6 +46,9 @@ foreach proto: generated_protocols
  	if proto[1] == 'internal'
  		base_file = proto_name
  		xml_path = '@0@.xml'.format(proto_name)

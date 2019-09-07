@@ -1,0 +1,101 @@
+From 75f11fdca8f21e27020ea4cfed49d95164d9d843 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 7 Sep 2019 08:17:06 -0700
+Subject: [PATCH 7/8] libweston: have backend-drm use drmOpen if primary GPU
+ not found
+
+for compatibility with tegra drm.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ libweston/backend-drm/drm-internal.h |  1 +
+ libweston/backend-drm/drm.c          | 19 ++++++++++++++++---
+ libweston/backend-drm/fb.c           | 16 +++++++++++-----
+ 3 files changed, 28 insertions(+), 8 deletions(-)
+
+diff --git a/libweston/backend-drm/drm-internal.h b/libweston/backend-drm/drm-internal.h
+index 99767442..8511cbf9 100644
+--- a/libweston/backend-drm/drm-internal.h
++++ b/libweston/backend-drm/drm-internal.h
+@@ -319,6 +319,7 @@ struct drm_fb {
+ 
+ 	/* Used by dumb fbs */
+ 	void *map;
++	bool nounmap;
+ };
+ 
+ struct drm_edid {
+diff --git a/libweston/backend-drm/drm.c b/libweston/backend-drm/drm.c
+index b975c444..c068b630 100644
+--- a/libweston/backend-drm/drm.c
++++ b/libweston/backend-drm/drm.c
+@@ -3404,8 +3404,20 @@ drm_backend_create(struct weston_compositor *compositor,
+ 	else
+ 		drm_device = find_primary_gpu(b, seat_id);
+ 	if (drm_device == NULL) {
+-		weston_log("no drm device found\n");
+-		goto err_udev;
++		int fd = drmOpen("drm-nvdc", "");
++		char *name;
++		if (fd >= 0) {
++			name = drmGetDeviceNameFromFd(fd);
++			b->drm.fd = fd;
++			b->drm.id = -1;
++			if (name) {
++				b->drm.filename = strdup(name);
++				drmFree(name);
++			}
++		} else {
++			weston_log("no drm device found\n");
++			goto err_udev;
++		}
+ 	}
+ 
+ 	if (init_kms_caps(b) < 0) {
+@@ -3476,7 +3488,8 @@ drm_backend_create(struct weston_compositor *compositor,
+ 		goto err_udev_monitor;
+ 	}
+ 
+-	udev_device_unref(drm_device);
++	if (drm_device)
++		udev_device_unref(drm_device);
+ 
+ 	weston_compositor_add_debug_binding(compositor, KEY_O,
+ 					    planes_binding, b);
+diff --git a/libweston/backend-drm/fb.c b/libweston/backend-drm/fb.c
+index 58d26ea1..247883b4 100644
+--- a/libweston/backend-drm/fb.c
++++ b/libweston/backend-drm/fb.c
+@@ -60,7 +60,7 @@ drm_fb_destroy_dumb(struct drm_fb *fb)
+ 
+ 	assert(fb->type == BUFFER_PIXMAN_DUMB);
+ 
+-	if (fb->map && fb->size > 0)
++	if (fb->map && fb->size > 0 && !fb->nounmap)
+ 		munmap(fb->map, fb->size);
+ 
+ 	memset(&destroy_arg, 0, sizeof(destroy_arg));
+@@ -186,10 +186,16 @@ drm_fb_create_dumb(struct drm_backend *b, int width, int height,
+ 	if (ret)
+ 		goto err_add_fb;
+ 
+-	fb->map = mmap(NULL, fb->size, PROT_WRITE,
+-		       MAP_SHARED, b->drm.fd, map_arg.offset);
+-	if (fb->map == MAP_FAILED)
+-		goto err_add_fb;
++	if (!strcmp(b->drm.filename, "drm-nvdc")) {
++		fb->map = map_arg.offset;
++		fb->nounmap = true;
++	} else {
++		fb->map = mmap(NULL, fb->size, PROT_WRITE,
++			       MAP_SHARED, b->drm.fd, map_arg.offset);
++		if (fb->map == MAP_FAILED)
++			goto err_add_fb;
++		fb->nounmap = false;
++	}
+ 
+ 	return fb;
+ 
+-- 
+2.20.1
+
