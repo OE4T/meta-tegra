@@ -4,7 +4,6 @@ LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://EULA.txt;md5=049f8f2a31b8c3cc436cc63f0a72c9c9"
 
 COMPATIBLE_MACHINE = "(tegra)"
-COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 do_fetch[noexec] = "1"
 do_unpack[depends] += "${MLPREFIX}cuda-binaries:do_preconfigure dpkg-native:do_populate_sysroot"

@@ -4,7 +4,6 @@ require tegra-shared-binaries.inc
 DESCRIPTION = "nvpmodel tool and configuration files"
 
 COMPATIBLE_MACHINE = "(tegra)"
-COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nv_tools.tbz2

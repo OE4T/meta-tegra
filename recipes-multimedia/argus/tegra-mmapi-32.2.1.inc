@@ -18,7 +18,6 @@ S = "${WORKDIR}/tegra_multimedia_api"
 B = "${S}"
 
 COMPATIBLE_MACHINE = "(tegra)"
-COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 

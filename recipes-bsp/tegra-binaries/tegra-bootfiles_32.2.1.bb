@@ -2,7 +2,6 @@ require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(tegra)"
-COMPATIBLE_MACHINE_tegra124 = "(-)"
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native sdcard-layout"
 DEPENDS_append_tegra186 = " tegra-flashvars"

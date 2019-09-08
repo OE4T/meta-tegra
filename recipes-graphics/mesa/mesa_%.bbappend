@@ -2,19 +2,16 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
 
 GLHDRS_PATCH = ""
 GLHDRS_PATCH_tegra = "file://egl-gles2-nv-extensions.patch"
-GLHDRS_PATCH_tegra124 = ""
 SRC_URI += "${GLHDRS_PATCH}"
 
 TEGRADEPS = ""
 TEGRADEPS_tegra = "tegra-mmapi-glheaders tegra-libraries"
-TEGRADEPS_tegra124 = "tegra-libraries"
 DEPENDS += "${TEGRADEPS}"
 
 PACKAGECONFIG[glvnd] = "-Dglvnd=true,-Dglvnd=false,libglvnd"
 
 GLVNDCFG = ""
 GLVNDCFG_tegra = " glvnd"
-GLVNDCFG_tegra124 = ""
 PACKAGECONFIG_append_class-target = "${GLVNDCFG}"
 PACKAGECONFIG_remove_class-target_tegra = "glx-tls"
 EXTRA_OEMESON_append_tegra = " -Ddri-drivers='' -Ddri3=false"

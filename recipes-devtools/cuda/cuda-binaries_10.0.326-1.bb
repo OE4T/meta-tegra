@@ -14,5 +14,4 @@ SRC_URI[sha256sum] = "3a8bcbd19b102fc4daae6ea00648eae5e65c48e8656e93008072abd373
 do_unpack[depends] += "xz-native:do_populate_sysroot"
 
 COMPATIBLE_MACHINE = "(tegra)"
-COMPATIBLE_MACHINE_tegra124 = "(-)"
 

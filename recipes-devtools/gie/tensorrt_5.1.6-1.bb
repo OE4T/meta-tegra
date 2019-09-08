@@ -35,7 +35,6 @@ SRC_URI[samples.md5sum] = "${SAMPMD5SUM}"
 SRC_URI[samples.sha256sum] = "${SAMPSHA256SUM}"
 
 COMPATIBLE_MACHINE = "(tegra)"
-COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=48;md5=1755df325a6e1ac8515b1e469efe07a7"
 

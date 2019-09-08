@@ -4,7 +4,6 @@ require tegra-shared-binaries.inc
 DESCRIPTION = "NVIDIA Power Hinting Service"
 
 COMPATIBLE_MACHINE = "(tegra)"
-COMPATIBLE_MACHINE_tegra124 = "(-)"
 NVPHSD_MACHINE_CONF = "nvphsd.conf"
 NVPHSD_MACHINE_CONF_tegra186 = "nvphsd.conf.t186"
 NVPHSD_MACHINE_CONF_tegra194 = "nvphsd.conf.t194"

@@ -11,7 +11,6 @@ SRC_URI = "git://github.com/NVIDIA/libglvnd \
 SRCREV = "bc9990b7bede44899627354d0c356f48950f4ad1"
 
 COMPATIBLE_MACHINE = "(tegra)"
-COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
