@@ -44,34 +44,6 @@ tegraflash_create_flash_config() {
     :
 }
 
-tegraflash_create_flash_config_tegra124() {
-    local destdir="$1"
-    local gptsize
-    if [ `expr ${BOOTPART_LIMIT} % ${EMMC_DEVSECT_SIZE}` -ne 0 ]; then
-        bberror "Boot partition limit must be an even multiple of the device sector size"
-        exit 1
-    elif [ `expr ${BOOTPART_SIZE} % ${EMMC_DEVSECT_SIZE}` -ne 0 ]; then
-        bberror "Boot partition size must be an even multiple of the device sector size"
-        exit 1
-    fi
-    gptsize=`expr ${BOOTPART_LIMIT} - ${BOOTPART_SIZE}`
-    if [ $gptsize -lt ${EMMC_DEVSECT_SIZE} ]; then
-        bberror "No space for primary GPT"
-        exit 1
-    fi
-    cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.cfg" | sed \
-        -e"s,filename=fastboot.bin,filename=${IMAGE_UBOOT}-${MACHINE}.bin," \
-        -e"s,#filename=fastboot.bin,filename=${IMAGE_UBOOT}-${MACHINE}.bin," \
-        -e"/filename=boot.img/d" \
-        -e"s,size=1073741824,size=${ROOTFSPART_SIZE}," \
-        -e"s,#filename=tegra.dtb,filename=${DTBFILE}," \
-        -e"s,size=2097152\s\+#BCTSIZE,size=${BOOTPART_SIZE}," \
-        -e"s,size=8388608\s\+#PPTSIZE,size=$gptsize," \
-        -e"s,#filename=ppt.img,filename=ppt.img," \
-        -e"s,#filename=spt.img,filename=gpt.img," \
-        > $destdir/flash.cfg
-}
-
 # When using the Tegra210 boot redundancy feature, all of the
 # bootloader binaries/data are combined into a bootfileset that is
 # programmed into the boot0 and boot1 areas of the eMMC.  We
@@ -280,35 +252,6 @@ BOOTFILES_tegra194 = "\
 
 create_tegraflash_pkg() {
     :
-}
-
-create_tegraflash_pkg_tegra124() {
-    local gptsize
-    PATH="${STAGING_BINDIR_NATIVE}/tegra124-flash:${PATH}"
-    rm -rf "${WORKDIR}/tegraflash"
-    mkdir -p "${WORKDIR}/tegraflash"
-    oldwd=`pwd`
-    cd "${WORKDIR}/tegraflash"
-    ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
-    ln -s "${DEPLOY_DIR_IMAGE}/${IMAGE_UBOOT}-${MACHINE}.bin" .
-    ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-    ln -s "${STAGING_DATADIR}/tegraflash/fastboot.bin" .
-    ln -s "${STAGING_BINDIR_NATIVE}/tegra124-flash/nvflash" .
-    tegraflash_custom_pre
-    mksparse -v --fillpattern=0 "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" system.img
-    tegraflash_create_flash_config "${WORKDIR}/tegraflash" $gptsize
-    mkgpt -c flash.cfg -P ppt.img -t ${EMMC_SIZE} -b ${BOOTPART_SIZE} -s 4KiB -a GPT -v GP1 -V
-    rm -f doflash.sh
-    cat > doflash.sh <<END
-#!/bin/sh
-./nvflash --bct ${MACHINE}.cfg --setbct --configfile flash.cfg --create --bl fastboot.bin --odmdata ${ODMDATA} --go
-END
-    chmod +x doflash.sh
-    tegraflash_custom_post
-    rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip
-    zip -r ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip .
-    ln -sf ${IMAGE_NAME}.tegraflash.zip ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.tegraflash.zip
-    cd $oldwd
 }
 
 create_tegraflash_pkg_tegra210() {
