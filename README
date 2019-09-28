@@ -9,6 +9,7 @@ Boards supported:
 
 Also supported:
 * Jetson-TX2i module (Linux4Tegra R32.2.1, JetPack 4.2.2)
+* Jetson-TX2 4GB module (Linux4Tegra R32.2.1, JetPack 4.2.2)
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
