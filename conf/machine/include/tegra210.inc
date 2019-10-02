@@ -29,8 +29,6 @@ DEB_PKG_EXTENSION = "arm64"
 CUDA_VERSION ?= "10.0"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_53 --gpu-code=sm_53"
 
-PREFERRED_PROVIDER_libdrm = "libdrm-tegra-shim"
-PREFERRED_PROVIDER_drm = "libdrm-tegra-shim"
 PREFERRED_PROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
 PREFERRED_RPROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
 
