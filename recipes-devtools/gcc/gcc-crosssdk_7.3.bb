@@ -1,2 +1,2 @@
 require recipes-devtools/gcc/gcc-cross_${PV}.bb
-require gcc-crosssdk.inc
+require recipes-devtools/gcc/gcc-crosssdk.inc

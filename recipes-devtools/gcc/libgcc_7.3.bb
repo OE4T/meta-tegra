@@ -1,2 +1,2 @@
 require recipes-devtools/gcc/gcc-${PV}.inc
-require libgcc.inc
+require recipes-devtools/gcc/libgcc.inc
