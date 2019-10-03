@@ -1,4 +1,4 @@
-require gcc-common.inc
+require recipes-devtools/gcc/gcc-common.inc
 
 # Third digit in PV should be incremented after a minor release
 
