@@ -114,20 +114,6 @@ EXTRA_OECONF_BASE = "\
     --without-isl \
 "
 
-EXTRA_OECONF_INITIAL = "\
-    --disable-libmudflap \
-    --disable-libgomp \
-    --disable-libitm \
-    --disable-libquadmath \
-    --with-system-zlib \
-    --disable-lto \
-    --disable-plugin \
-    --enable-linker-build-id \
-    --enable-decimal-float=no \
-    --without-isl \
-    --disable-libssp \
-"
-
 EXTRA_OECONF_PATHS = "\
     --with-gxx-include-dir=/not/exist{target_includedir}/c++/${BINV} \
     --with-sysroot=/not/exist \
