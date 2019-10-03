@@ -1,5 +1,5 @@
 require recipes-devtools/gcc/gcc-${PV}.inc
-require gcc-cross-canadian.inc
+require recipes-devtools/gcc/gcc-cross-canadian.inc
 
 
 
