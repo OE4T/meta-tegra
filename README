@@ -61,13 +61,11 @@ Selecting the toolchain version
 -------------------------------
 
 Toolchain version selection is usually a distro configuration setting,
-but you can also set this in your build/conf/local.conf file. To use
-gcc 7 instead of gcc 8, set:
-
-GCCVERSION = "7.%"
-
-but you will also need the gcc 7 toolchain recipes in one of your layers,
+but you can also set this in your build/conf/local.conf file. 
+You will need the gcc 7 toolchain recipes in one of your layers,
 since it was retired from OE-Core in favor of gcc 8.
+See the [Using Linaro for GCC 7](https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
+wiki page for more detailed intructions.
 
 
 Contributing
