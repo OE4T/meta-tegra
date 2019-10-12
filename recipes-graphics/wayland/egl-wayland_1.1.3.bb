@@ -2,7 +2,7 @@ DESCRIPTION = "Wayland EGL external platform library"
 HOMEPAGE = "https://github.com/NVIDIA/egl-wayland"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://COPYING;md5=cfa5a0f49cb081823fc5d965566e8298"
-DEPENDS = "eglexternalplatform mesa wayland wayland-protocols wayland-native"
+DEPENDS = "eglexternalplatform virtual/egl wayland wayland-protocols wayland-native"
 
 SRC_URI = "git://github.com/NVIDIA/egl-wayland"
 # tag 1.1.3
