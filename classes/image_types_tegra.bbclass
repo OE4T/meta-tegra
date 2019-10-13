@@ -275,6 +275,7 @@ create_tegraflash_pkg_tegra210() {
     mkdir -p "${WORKDIR}/tegraflash"
     oldwd=`pwd`
     cd "${WORKDIR}/tegraflash"
+    ln -sf "${STAGING_DATADIR}/tegraflash/bsp_version" .
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
     cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
