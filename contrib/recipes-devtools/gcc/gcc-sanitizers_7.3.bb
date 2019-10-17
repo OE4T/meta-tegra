@@ -1,2 +1,2 @@
 require recipes-devtools/gcc/gcc-${PV}.inc
-require recipes-devtools/gcc/gcc-sanitizers.inc
+require gcc-sanitizers.inc
