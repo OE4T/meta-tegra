@@ -47,6 +47,9 @@ do_install() {
     install -m 0755 ${S}/bootloader/mkgpt ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mksparse ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mkbootimg ${D}${BINDIR}
+    install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}
+    install -m 0755 ${S}/pkc/nvsecuretool ${D}${BINDIR}
+    install -m 0755 ${S}/bootloader/tegrakeyhash ${D}${BINDIR}
     install -m 0755 ${S}/tegra186-flash-helper.sh ${D}${BINDIR}
     install -m 0755 ${S}/tegra194-flash-helper.sh ${D}${BINDIR}
 }
