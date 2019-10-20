@@ -1,9 +1,13 @@
 SOC_FAMILY = "tegra210"
+L4T_BSP_NAME = "Nano-TX1"
+L4T_BSP_PREFIX = "Tegra210"
 
 require tegra-binaries-${PV}.inc
 
-SRC_MD5SUM = "${SRC_MD5SUM_tegra210}"
-SRC_SHA256SUM = "${SRC_SHA256SUM_tegra210}"
+L4T_MD5SUM = "${L4T_MD5SUM_tegra210}"
+L4T_SHA256SUM = "${L4T_SHA256SUM_tegra210}"
+SB_MD5SUM = "${SB_MD5SUM_tegra210}"
+SB_SHA256SUM = "${SB_SHA256SUM_tegra210}"
 
 WORKDIR = "${TMPDIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-${PR}"
 SSTATE_SWSPEC = "sstate:tegra-binaries-native::${PV}:${PR}::${SSTATE_VERSION}:"
@@ -42,6 +46,6 @@ do_install() {
     install -m 0755 ${S}/bootloader/mkbootimg ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mkbctpart ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/chkbdinfo ${D}${BINDIR}
-    install -m 0755 ${S}/bootloader/pkc/mkpkc ${D}${BINDIR}
+    install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}
     install -m 0755 ${S}/tegra210-flash-helper.sh ${D}${BINDIR}
 }
