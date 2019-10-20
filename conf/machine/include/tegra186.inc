@@ -30,8 +30,9 @@ module_conf_tegra-udrm = "options tegra-udrm modeset=1"
 
 NVIDIA_CHIP = "0x18"
 
-TEGRA_FAB ?= "B02"
+TEGRA_FAB ?= "C04"
 TEGRA_BOARDID ?= "3310"
+TEGRA_SIGNING_ENV ?= "BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB}"
 
 DEB_PKG_EXTENSION = "arm64"
 
