@@ -1,4 +1,6 @@
 SOC_FAMILY = "tegra186"
+L4T_BSP_NAME = "TX2-AGX"
+L4T_BSP_PREFIX = "Tegra186"
 
 require tegra-binaries-${PV}.inc
 
@@ -7,6 +9,22 @@ SSTATE_SWSPEC = "sstate:tegra-binaries-native::${PV}:${PR}::${SSTATE_VERSION}:"
 STAMP = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-${PR}"
 STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-*"
 
+SRC_URI += "file://nvargus-daemon.init \
+           file://nvargus-daemon.service \
+           file://nvpmodel.init \
+           file://nvpmodel.service \
+           file://nvphs.init \
+           file://nvphs.service \
+           file://nvs-service.init \
+           file://nvs-service.service \
+           file://nvstartup.init \
+           file://nvstartup.service \
+           file://tegra186-flash-helper.sh \
+           file://tegra194-flash-helper.sh \
+           file://tegra210-flash-helper.sh \
+           file://0001-Fix-skipuid-arg-usage-for-tx2-in-odmsign.func.patch \
+           file://0002-Update-l4t_bup_gen.func-to-handle-signed-encrypted-b.patch \
+           "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
 
@@ -43,12 +61,14 @@ do_install() {
     install -m 0755 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}
     sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/rollback_parser.py
     install -m 0644 ${S}/bootloader/l4t_bup_gen.func ${D}${BINDIR}
+    install -m 0644 ${S}/bootloader/odmsign.func ${D}${BINDIR}
 
     install -m 0755 ${S}/bootloader/mkgpt ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mksparse ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mkbootimg ${D}${BINDIR}
-    install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}
-    install -m 0755 ${S}/pkc/nvsecuretool ${D}${BINDIR}
+    install -d ${D}${BINDIR}/pkc
+    install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}/pkc/
+    install -m 0755 ${S}/pkc/nvsecuretool ${D}${BINDIR}/pkc/
     install -m 0755 ${S}/bootloader/tegrakeyhash ${D}${BINDIR}
     install -m 0755 ${S}/tegra186-flash-helper.sh ${D}${BINDIR}
     install -m 0755 ${S}/tegra194-flash-helper.sh ${D}${BINDIR}
