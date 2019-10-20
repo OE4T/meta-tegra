@@ -8,7 +8,7 @@ DEPENDS += "dtc-native bc-native ${SOC_FAMILY}-flashtools-native tegra-bootfiles
 CBOOTDEP = "virtual/kernel:do_deploy"
 CBOOTDEP_append_tegra186 = " cboot:do_deploy"
 BUPDEPS = ""
-BUPDEPS_tegra186 = "cboot:do_deploy virtual/kernel:do_deploy"
+BUPDEPS_tegra186 = "cboot:do_deploy virtual/kernel:do_deploy tegra186-redundant-boot:do_populate_sysroot"
 
 inherit image_types_tegra
 
