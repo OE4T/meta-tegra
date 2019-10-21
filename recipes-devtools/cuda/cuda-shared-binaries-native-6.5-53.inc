@@ -9,8 +9,8 @@ SRC_URI = ""
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/local/cuda-6.5/LICENSE;md5=a5678b143ee92fd459ba7d92db32d3f5 \
 	            file://usr/local/cuda-6.5/doc/EULA.txt;md5=035ceb64718e9de387e31cd635e782a9"
-do_configure[depends] += "cuda-binaries-native:do_preconfigure dpkg-native:do_populate_sysroot"
-do_populate_lic[depends] += "cuda-binaries-native:do_preconfigure"
+do_configure[depends] += "${CUDA_BINARIES_NATIVE}:do_preconfigure dpkg-native:do_populate_sysroot"
+do_populate_lic[depends] += "${CUDA_BINARIES_NATIVE}:do_preconfigure"
 
 S = "${TMPDIR}/work-shared/cuda-binaries-native-${PV}-${PR}"
 B = "${WORKDIR}/build"
