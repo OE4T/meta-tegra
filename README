@@ -11,6 +11,7 @@ Boards supported:
 Also supported:
 * Jetson-TX2i module (Linux4Tegra R32.1, JetPack 4.2)
 
+
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: warrior
@@ -32,28 +33,40 @@ PLEASE NOTE
   (e.g., local.conf) to make them available to your bitbake
   builds.
 
+* The SDK Manager downloads a different package of CUDA host-side
+  tools depending on whether you are running Ubuntu 16.04
+  or 18.04. If you downloaded the Ubuntu 16.04 package, you
+  should add
+
+      CUDA_BINARIES_NATIVE = "cuda-binaries-ubuntu1604-native"
+
+  to your build configuration so the CUDA recipes can find
+  them. Otherwise, the recipes will default to looking for
+  the Ubuntu 18.04 package.
+
+* The tensorrt 5.1.6 packages for Xavier are different from
+  those for TX1/TX2, even though the deb files have the same
+  name.  If you need to build for Xavier and another platform
+  and include tensorrt 5.1.6, create a subdirectory called
+  "P2888" under your NVIDIA_DEVNET_MIRROR directory, and copy
+  the Xavier tensorrt packages there. The non-Xavier copies
+  should go in the NVIDIA_DEVNET_MIRROR top level.
+
 * CUDA 10 supports up through gcc 7 only, and some NVIDIA-provided
   binary libraries appear to be compiled with g++ 7 and cause linker
   failures when building applications with g++ 6, so **only** gcc 7
-  should be used if you intend to use CUDA. (For Jetson-TK1, CUDA 6.5
-  supports up through gcc 5.x only.)
+  should be used if you intend to use CUDA.
 
-* NVIDIA **does not support** Jetson-TX1 with L4T R32.1/JetPack 4.2.
-  DO NOT use this version of the BSP for Jetson-TX1 systems if you
-  need vendor support. Only R28.x and earlier versions of L4T are
-  supported on that platform.
 
 Selecting the toolchain version
 -------------------------------
 
 Toolchain version selection is usually a distro configuration setting,
-but you can also set this in your build/conf/local.conf file. To use
-gcc 7 instead of gcc 8, set:
-
-GCCVERSION = "7.%"
-
-but you will also need the gcc 7 toolchain recipes in one of your layers,
+but you can also set this in your build/conf/local.conf file.
+You will need the gcc 7 toolchain recipes in one of your layers,
 since it was retired from OE-Core in favor of gcc 8.
+See the [Using Linaro for GCC 7](https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
+wiki page for more detailed intructions.
 
 
 Contributing
