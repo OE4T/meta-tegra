@@ -322,11 +322,22 @@ create_tegraflash_pkg_tegra210() {
 	blksize=${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}
 	startpoint=$blksize
         while IFS=, read partnum partname partsize partfile; do
-	    if [ -e signed/$partfile ]; then
-	        partfile=signed/$partfile
+	    if [ $partsize -eq 0 ]; then
+	        partlen=0
+	    else
+	        partlen=$(expr \( \( $partsize + \( $blksize - 1 \) \) / $blksize \) \* $blksize)
 	    fi
-	    dd if=$partfile of=${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard conv=notrunc,fsync seek=$(expr $startpoint / $blksize) bs=$blksize
-	    startpoint=$(expr $startpoint + \( \( $partsize + \( $blksize - 1 \) \) / $blksize \) \* $blksize)
+	    if [ -n "$partfile" ]; then
+	        if [ -e signed/$partfile ]; then
+	            partfile=signed/$partfile
+	        fi
+	        ddsize=
+	        if [ "$partfile" = "/dev/zero" ]; then
+		    ddsize="count=$(expr $partlen / $blksize)"
+		fi
+		dd if=$partfile of=${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard conv=notrunc,fsync seek=$(expr $startpoint / $blksize) bs=$blksize $ddsize
+	    fi
+	    startpoint=$(expr $startpoint + $partlen)
 	done < sdcard-layout
         sgdisk ${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard --verify
 	rm ${IMAGE_BASENAME}.raw.img
