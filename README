@@ -14,7 +14,7 @@ Also supported:
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: master
-LAYERSERIES_COMPAT: warrior
+LAYERSERIES_COMPAT: warrior, zeus
 
 
 PLEASE NOTE
