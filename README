@@ -13,8 +13,8 @@ Also supported:
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
-branch: master
-LAYERSERIES_COMPAT: warrior
+branch: zeus
+LAYERSERIES_COMPAT: zeus
 
 
 PLEASE NOTE
