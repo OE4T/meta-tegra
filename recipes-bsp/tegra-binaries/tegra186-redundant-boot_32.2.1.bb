@@ -4,9 +4,11 @@ require tegra-shared-binaries.inc
 COMPATIBLE_MACHINE = "(tegra186|tegra194)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
-TNSPEC = "XXXX-XXX-fuselevel_unspecified"
-TNSPEC_tegra186 ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-fuselevel_production"
-TNSPEC_tegra194 ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-fuselevel_production"
+TNSPEC = "XXXX-XXX---1--${MACHINE}"
+TNSPEC_tegra186 ?= "${TEGRA_BOARDID}-${TEGRA_FAB}---1--${MACHINE}"
+TNSPEC_tegra194 ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-${TEGRA_BOARDSKU}-${TEGRA_BOARDREV}-1-${TEGRA_CHIPID}-${MACHINE}"
+OTABOOTDEV ?= "/dev/mmcblk0boot0"
+OTAGPTDEV ?= "/dev/mmcblk0boot1"
 
 inherit systemd
 
@@ -26,8 +28,11 @@ do_install() {
 	install -m 0755 ${B}/usr/sbin/nv_update_engine ${D}${sbindir}
 	install -d ${D}${sysconfdir}
 	sed -e 's,^TNSPEC.*$,TNSPEC ${TNSPEC},' \
-	    -e '/^TEGRA_CHIPID/d' \
-	    -e '$ a TEGRA_CHIPID ${NVIDIA_CHIP}' ${S}/bootloader/nv_boot_control.conf >${D}${sysconfdir}/nv_boot_control.conf
+	    -e '/TEGRA_CHIPID/d' -e '/TEGRA_OTA_BOOT_DEVICE/d' -e '/TEGRA_OTA_GPT_DEVICE/d' \
+	    -e '$ a TEGRA_CHIPID ${NVIDIA_CHIP}' \
+	    -e '$ a TEGRA_OTA_BOOT_DEVICE ${OTABOOTDEV}' \
+	    -e '$ a TEGRA_OTA_GPT_DEVICE ${OTAGPTDEV}' \
+	    ${S}/bootloader/nv_boot_control.conf >${D}${sysconfdir}/nv_boot_control.conf
 	chmod 0644 ${D}${sysconfdir}/nv_boot_control.conf
 	install -d ${D}${systemd_system_unitdir}
 	install -m 0644 ${B}/etc/systemd/system/nv_update_verifier.service ${D}${systemd_system_unitdir}
