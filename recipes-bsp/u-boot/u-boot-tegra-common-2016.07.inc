@@ -26,5 +26,5 @@ UBOOT_EXTLINUX_FDT_primary = ""
 UBOOT_EXTLINUX_ROOT_primary = "${@uboot_var('cbootargs')} ${KERNEL_ROOTSPEC}"
 # Console setting comes from ${cbootargs}
 UBOOT_EXTLINUX_CONSOLE = ""
-UBOOT_EXTLINUX_KERNEL_ARGS_primary = "${KERNEL_ARGS}"
+UBOOT_EXTLINUX_KERNEL_ARGS_primary = "${@uboot_var('bootargs')} ${KERNEL_ARGS}"
 UBOOT_EXTLINUX_INITRD_primary = "${@'../initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
