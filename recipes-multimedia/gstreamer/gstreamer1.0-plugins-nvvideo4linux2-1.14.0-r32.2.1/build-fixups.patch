@@ -1,7 +1,17 @@
-Index: gst-v4l2/Makefile
-===================================================================
---- gst-v4l2.orig/Makefile
-+++ gst-v4l2/Makefile
+From 8a9e5579c1dd9fd66cbb7ad8c962fca6ffb5edbf Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 22 Nov 2018 09:48:57 -0800
+
+---
+ Makefile           | 37 +++++++++++++++----------------------
+ gstv4l2allocator.c |  4 ++--
+ gstv4l2videoenc.h  |  1 +
+ 3 files changed, 18 insertions(+), 24 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 5a309bf..d4213a0 100644
+--- a/Makefile
++++ b/Makefile
 @@ -12,21 +12,7 @@
  
  SO_NAME := libgstnvvideo4linux2.so
@@ -25,11 +35,31 @@ Index: gst-v4l2/Makefile
  
  SRCS := $(wildcard *.c)
  
-@@ -47,11 +33,11 @@ CFLAGS += -fPIC \
-         -DHAVE_LIBV4L2=1 \
+@@ -36,22 +22,28 @@ PKGS := gstreamer-1.0 \
+ 	gstreamer-base-1.0 \
+ 	gstreamer-video-1.0 \
+ 	gstreamer-allocators-1.0 \
+-	glib-2.0 \
+-	libv4l2
++	glib-2.0
++
++ifeq ($(USE_V4L2),1)
++PKGS += libv4l2
++endif
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+ CFLAGS += -fPIC \
+ 	-DEXPLICITLY_ADDED=1 \
+         -DGETTEXT_PACKAGE=1 \
+-        -DHAVE_LIBV4L2=1 \
          -DUSE_V4L2_TARGET_NV=1
  
 -CFLAGS += `pkg-config --cflags $(PKGS)`
++ifeq ($(USE_V4L2),1)
++CFLAGS += -DHAVE_LIBV4L2=1
++endif
++
 +CFLAGS += $(shell pkg-config --cflags $(PKGS))
  
 -LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
@@ -40,7 +70,7 @@ Index: gst-v4l2/Makefile
  
  all: $(SO_NAME)
  
-@@ -63,7 +49,8 @@ $(SO_NAME): $(OBJS)
+@@ -63,7 +55,8 @@ $(SO_NAME): $(OBJS)
  
  .PHONY: install
  install: $(SO_NAME)
@@ -50,23 +80,11 @@ Index: gst-v4l2/Makefile
  
  .PHONY: clean
  clean:
-Index: gst-v4l2/gstv4l2videoenc.h
-===================================================================
---- gst-v4l2.orig/gstv4l2videoenc.h
-+++ gst-v4l2/gstv4l2videoenc.h
-@@ -30,6 +30,7 @@
- 
- #include <gstv4l2object.h>
- #include <gstv4l2bufferpool.h>
-+#include <stdio.h>
- 
- G_BEGIN_DECLS
- #define GST_TYPE_V4L2_VIDEO_ENC \
-Index: gst-v4l2/gstv4l2allocator.c
-===================================================================
---- gst-v4l2.orig/gstv4l2allocator.c
-+++ gst-v4l2/gstv4l2allocator.c
-@@ -856,7 +856,7 @@ gst_v4l2_allocator_alloc_mmap (GstV4l2Al
+diff --git a/gstv4l2allocator.c b/gstv4l2allocator.c
+index 2263f6b..c6b717e 100644
+--- a/gstv4l2allocator.c
++++ b/gstv4l2allocator.c
+@@ -856,7 +856,7 @@ gst_v4l2_allocator_alloc_mmap (GstV4l2Allocator * allocator)
        expbuf.plane = i;
        expbuf.flags = O_CLOEXEC | O_RDWR;
  
@@ -75,7 +93,7 @@ Index: gst-v4l2/gstv4l2allocator.c
          GST_ERROR_OBJECT (allocator, "expbuf_failed");
  
        if ((!V4L2_TYPE_IS_OUTPUT (obj->type)) &&
-@@ -1411,7 +1411,7 @@ gst_v4l2_allocator_dqbuf (GstV4l2Allocat
+@@ -1411,7 +1411,7 @@ gst_v4l2_allocator_dqbuf (GstV4l2Allocator * allocator,
   /* TODO: This could a possible bug in library */
    while (1)
    {
@@ -84,3 +102,15 @@ Index: gst-v4l2/gstv4l2allocator.c
        break;
      else if (errno == EPIPE)
        goto error;
+diff --git a/gstv4l2videoenc.h b/gstv4l2videoenc.h
+index df322d0..13365c2 100644
+--- a/gstv4l2videoenc.h
++++ b/gstv4l2videoenc.h
+@@ -30,6 +30,7 @@
+ 
+ #include <gstv4l2object.h>
+ #include <gstv4l2bufferpool.h>
++#include <stdio.h>
+ 
+ G_BEGIN_DECLS
+ #define GST_TYPE_V4L2_VIDEO_ENC \
