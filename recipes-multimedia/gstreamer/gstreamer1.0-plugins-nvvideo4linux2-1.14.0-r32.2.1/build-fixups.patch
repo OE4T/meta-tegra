@@ -43,7 +43,7 @@ index 5a309bf..d4213a0 100644
 -	libv4l2
 +	glib-2.0
 +
-+ifeq ($(USE_V4L2),1)
++ifeq ($(USE_LIBV4L2),1)
 +PKGS += libv4l2
 +endif
  
@@ -56,7 +56,7 @@ index 5a309bf..d4213a0 100644
          -DUSE_V4L2_TARGET_NV=1
  
 -CFLAGS += `pkg-config --cflags $(PKGS)`
-+ifeq ($(USE_V4L2),1)
++ifeq ($(USE_LIBV4L2),1)
 +CFLAGS += -DHAVE_LIBV4L2=1
 +endif
 +
