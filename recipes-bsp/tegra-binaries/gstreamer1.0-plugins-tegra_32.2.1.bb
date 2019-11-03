@@ -36,6 +36,7 @@ do_install() {
     done
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnveglglessink.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvideo4linux2.so*
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvideosinks.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstomx.so*
 }
 
