@@ -54,18 +54,11 @@ PLEASE NOTE
 * CUDA 10 supports up through gcc 7 only, and some NVIDIA-provided
   binary libraries appear to be compiled with g++ 7 and cause linker
   failures when building applications with g++ 6, so **only** gcc 7
-  should be used if you intend to use CUDA.
+  should be used if you intend to use CUDA. See the following wiki
+  pages for instructions on including gcc 7 in your builds:
 
-
-Selecting the toolchain version
--------------------------------
-
-Toolchain version selection is usually a distro configuration setting,
-but you can also set this in your build/conf/local.conf file. 
-You will need the gcc 7 toolchain recipes in one of your layers,
-since it was retired from OE-Core in favor of gcc 8.
-See the [Using Linaro for GCC 7](https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
-wiki page for more detailed intructions.
+  (https://github.com/madisongh/meta-tegra/wiki/Using-gcc7-from-the-contrib-layer)
+  (https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
 
 
 Contributing
