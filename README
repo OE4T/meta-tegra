@@ -54,21 +54,13 @@ PLEASE NOTE
 * CUDA 10 supports up through gcc 7 only, and some NVIDIA-provided
   binary libraries appear to be compiled with g++ 7 and cause linker
   failures when building applications with g++ 6, so **only** gcc 7
-  should be used if you intend to use CUDA. (For Jetson-TK1, CUDA 6.5
-  supports up through gcc 5.x only.)
+  should be used if you intend to use CUDA. See the following wiki
+  pages for instructions on including gcc 7 in your builds:
 
+  (https://github.com/madisongh/meta-tegra/wiki/Using-gcc7-from-the-contrib-layer)
+  (https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
 
-Selecting the toolchain version
--------------------------------
-
-Toolchain version selection is usually a distro configuration setting,
-but you can also set this in your build/conf/local.conf file. To use
-gcc 7 instead of gcc 8, set:
-
-GCCVERSION = "7.%"
-
-but you will also need the gcc 7 toolchain recipes in one of your layers,
-since it was retired from OE-Core in favor of gcc 8.
+  Note that for Jetson-TK1, CUDA 6.5 supports up through gcc 5.x only.
 
 
 Contributing
