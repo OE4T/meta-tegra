@@ -3,6 +3,8 @@ bup_build=
 keyfile=
 sbk_keyfile=
 no_flash=0
+flash_cmd=
+
 ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash" -o "u:v:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
@@ -26,6 +28,10 @@ while true; do
 	    ;;
 	-v)
 	    sbk_keyfile="$2"
+	    shift 2
+	    ;;
+	-c)
+	    flash_cmd="$2"
 	    shift 2
 	    ;;
 	--)
@@ -187,7 +193,7 @@ elif [ -n "$keyfile" ]; then
     fi
     exit 0
 else
-    tfcmd="flash;reboot"
+    tfcmd=${flash_cmd:-"flash;reboot"}
 fi
 
 flashcmd="python $flashappname --chip 0x18 --bl nvtboot_recovery_cpu.bin \
