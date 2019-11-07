@@ -3,6 +3,7 @@ bup_build=
 keyfile=
 sbk_keyfile=
 no_flash=0
+flash_cmd=
 
 ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash" -o "u:v:" -- "$@")
 if [ $? -ne 0 ]; then
@@ -27,6 +28,10 @@ while true; do
 	    ;;
 	-v)
 	    sbk_keyfile="$2"
+	    shift 2
+	    ;;
+	-c)
+	    flash_cmd="$2"
 	    shift 2
 	    ;;
 	--)
@@ -230,7 +235,7 @@ elif [ -n "$keyfile" ]; then
     fi
     exit 0
 else
-    tfcmd="flash;reboot"
+    tfcmd=${flash_cmd:-"flash;reboot"}
 fi
 
 flashcmd="python $flashappname --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
