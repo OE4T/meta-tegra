@@ -133,7 +133,7 @@ done
 [ -n "$FAB" ] || FAB=B02
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 
-spec="${BOARDID}-${FAB}---1-${MACHINE}"
+spec="${BOARDID}-${FAB}---1--${MACHINE}"
 
 sed -e"s,BPFDTB-FILE,$BPFDTB_FILE," "$flash_in" > flash.xml
 
