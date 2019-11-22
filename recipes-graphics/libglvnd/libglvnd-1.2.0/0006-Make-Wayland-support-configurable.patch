@@ -1,14 +1,14 @@
-From f73dab21428f216421a03d5d4e79ff8e537e8229 Mon Sep 17 00:00:00 2001
+From 27313156f80478c3d4f2f79002943b054075db19 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 5 Oct 2019 08:51:44 -0700
-Subject: [PATCH] Make Wayland support configurable
+Subject: [PATCH 6/7] Make Wayland support configurable
 
 ---
  configure.ac | 14 ++++++++++++++
  1 file changed, 14 insertions(+)
 
 diff --git a/configure.ac b/configure.ac
-index faa0379..dabde4c 100644
+index eb68d3b..6d9fc10 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -58,6 +58,14 @@ AC_ARG_ENABLE([x11],
@@ -26,7 +26,7 @@ index faa0379..dabde4c 100644
  AC_ARG_ENABLE([glx],
      [AS_HELP_STRING([--disable-glx],
          [Disable GLX support @<:@default=enabled@:>@])],
-@@ -177,6 +185,12 @@ if test "x$enable_glx" = "xyes" ; then
+@@ -184,6 +192,12 @@ if test "x$enable_glx" = "xyes" ; then
      PKG_CHECK_MODULES([GLPROTO], [glproto])
  fi
  
@@ -39,3 +39,6 @@ index faa0379..dabde4c 100644
  AS_IF([test "x$gldispatch_use_tls" = "xyes"],
        [AC_DEFINE([GLDISPATCH_USE_TLS], 1,
        [Define to 1 if libGLdispatch should use a TLS variable for the dispatch table.])])
+-- 
+2.20.1
+
