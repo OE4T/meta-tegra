@@ -1,7 +1,7 @@
-From b9a5c865be31371979593909ccfe8af92bdb18c1 Mon Sep 17 00:00:00 2001
+From 18fb64ab3e66c4ee2ae89c6aa45c2e24bf3f705e Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 5 Oct 2019 08:43:29 -0700
-Subject: [PATCH] Add EGL and GLES2 extensions for Tegra
+Subject: [PATCH 5/7] Add EGL and GLES2 extensions for Tegra
 
 ---
  include/EGL/eglext.h   | 2 ++
@@ -34,3 +34,6 @@ index cab1c45..176afc6 100644
  #ifdef __cplusplus
  }
  #endif
+-- 
+2.20.1
+
