@@ -40,7 +40,7 @@ do_install_append() {
     #make eglplatform.h independent of EGL_NO_X11
     # If necessary, fix up pkgconfig anyhow, for the benefit of SDK users
     if ${@bb.utils.contains('PACKAGECONFIG', 'x11', 'false', 'true', d)}; then
-        sed -i -e 's/^\(#elif defined(__unix__) && defined(EGL_NO_X11)\)$/\1 || 0/' ${D}${includedir}/EGL/eglplatform.h
+        sed -i -e 's!^#elif \(defined(__unix__) && defined(EGL_NO_X11)\)$!#elif  1 /* \1 */!' ${D}${includedir}/EGL/eglplatform.h
         sed -i -e 's|^Cflags: .*|& -DEGL_NO_X11|g' ${D}${libdir}/pkgconfig/libglvnd.pc ${D}${libdir}/pkgconfig/egl.pc
     fi
 }
