@@ -1,7 +1,8 @@
-L4T_BSP_NAME ??= "TX2-AGX"
+L4T_BSP_NAME ??= "t186ref_release_aarch64"
+L4T_SRCS_NAME ??= "Sources/T186"
 L4T_BSP_PREFIX ??= "Tegra186"
 
-L4T_VERSION ?= "32.2.1"
+L4T_VERSION ?= "32.2.3"
 
 def l4t_release_dir(d):
     verparts = d.getVar('L4T_VERSION').split('.')
