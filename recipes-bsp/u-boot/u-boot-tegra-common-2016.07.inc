@@ -5,9 +5,9 @@ COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 LIC_FILES_CHKSUM = "file://Licenses/README;md5=a2c678cfd4a4d97135585cad908541c6"
 
 UBOOT_TEGRA_REPO ?= "github.com/madisongh/u-boot-tegra.git"
-SRCBRANCH ?= "patches-l4t-r32.2-v2016.07"
+SRCBRANCH ?= "patches-l4t-r32.2.2-v2016.07"
 SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
-SRCREV = "e07c4410083f8c4439c5d00dc60a17488d07875b"
+SRCREV = "${AUTOREV}"
 PV .= "+git${SRCPV}"
 
 S = "${WORKDIR}/git"
