@@ -5,18 +5,17 @@ GLVNDCFG_tegra = " glvnd"
 PACKAGECONFIG_append_class-target = "${GLVNDCFG}"
 PROVIDES_tegra = "virtual/mesa virtual/libgbm"
 
+# Workaround for the do_install_append() present in the OE-Core recipe
+do_install_prepend() {
+    if ${@bb.utils.contains("PACKAGECONFIG", "glvnd", "true", "false", d)}; then
+        install -d ${D}${includedir}/EGL
+	touch ${D}${includedir}/EGL/eglplatform.h
+    fi
+}
+
 do_install_append() {
     if ${@bb.utils.contains("PACKAGECONFIG", "glvnd", "true", "false", d)}; then
-	# libglvnd provides these headers
-	for d in EGL GLES GLES2 GLES3 KHR; do
-	    rm -rf ${D}${includedir}/$d
-	done
-	find ${D}${includedir}/GL -ignore_readdir_race -mindepth 1 -maxdepth 1 -name '*.h' -delete
-        for pkgf in gl egl; do
-	    if [ -e ${STAGING_LIBDIR}/pkgconfig/${pkgf}.pc ]; then
-	       rm -f ${D}${libdir}/pkgconfig/${pkgf}.pc
-	    fi
-	done
+        rm -rf ${D}${includedir}/EGL
     fi
 }
 
