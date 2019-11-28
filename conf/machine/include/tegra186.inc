@@ -42,6 +42,8 @@ CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_62 --gpu-code=sm_62"
 PREFERRED_PROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
 PREFERRED_RPROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
 PREFERRED_PROVIDER_cboot ?= "cboot-prebuilt"
+PREFERRED_PROVIDER_virtual/secure-os ?= "tos-trusty-prebuilt"
+PREFERRED_PROVIDER_tos-trusty ?= "tos-trusty-prebuilt"
 
 require conf/machine/include/tegra-common.inc
 

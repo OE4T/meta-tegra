@@ -249,7 +249,6 @@ BOOTFILES_tegra186 = "\
     preboot_d15_prod_cr.bin \
     slot_metadata.bin \
     spe.bin \
-    tos-trusty.img \
     nvtboot.bin \
     warmboot.bin \
     minimal_scr.cfg \
@@ -275,7 +274,6 @@ BOOTFILES_tegra194 = "\
     preboot_d15_prod_cr.bin \
     slot_metadata.bin \
     spe_t194.bin \
-    tos-trusty_t194.img \
     warmboot_t194_prod.bin \
     xusb_sil_rel_fw \
     cbo.dtb \
@@ -406,6 +404,7 @@ create_tegraflash_pkg_tegra186() {
         fdtput -d ./${DTBFILE} /chosen bootargs
     fi
     ln -sf "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./cboot.bin
+    ln -sf "${DEPLOY_DIR_IMAGE}/tos-trusty-${MACHINE}.img" ./tos-trusty.img
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
@@ -462,6 +461,7 @@ create_tegraflash_pkg_tegra194() {
         ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     fi
     ln -sf "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./cboot_t194.bin
+    ln -sf "${DEPLOY_DIR_IMAGE}/tos-trusty-${MACHINE}.img" ./tos-trusty_t194.img
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
@@ -492,13 +492,16 @@ END
 create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
 IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
+TEGRAFLASH_DEPS_EXTRA = ""
+TEGRAFLASH_DEPS_EXTRA_tegra186 = "${@'cboot:do_deploy' if d.getVar('IMAGE_UBOOT') != '' else  ''} virtual/secure-os:do_deploy"
+TEGRAFLASH_DEPS_EXTRA_tegra194 = "virtual/secure-os:do_deploy"
 do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_populate_sysroot \
                                  ${SOC_FAMILY}-flashtools-native:do_populate_sysroot gptfdisk-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
                                  virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''} \
-                                 ${@'cboot:do_deploy' if d.getVar('IMAGE_UBOOT') != '' and d.getVar('SOC_FAMILY') == 'tegra186' else  ''}"
+                                 ${TEGRAFLASH_DEPS_EXTRA}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 
 oe_make_bup_payload() {
@@ -507,12 +510,14 @@ oe_make_bup_payload() {
 
 oe_make_bup_payload_tegra186() {
     export cbootfilename=cboot.bin
+    export tosimgfilename=tos-trusty.img
     oe_make_bup_payload_common "$@"
     mv ${WORKDIR}/bup-payload/payloads_t18x/* ${WORKDIR}/bup-payload/
 }
 
 oe_make_bup_payload_tegra194() {
     export cbootfilename=cboot_t194.bin
+    export tosimgfilename=tos-trusty_t194.img
     oe_make_bup_payload_common "$@"
     mv ${WORKDIR}/bup-payload/payloads_t19x/* ${WORKDIR}/bup-payload/
 }
@@ -544,6 +549,7 @@ oe_make_bup_payload_common() {
         fdtput -d ./${DTBFILE} /chosen bootargs
     fi
     ln -s "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./$cbootfilename
+    ln -s "${DEPLOY_DIR_IMAGE}/tos-trusty-${MACHINE}.img" ./$tosimgfilename
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
