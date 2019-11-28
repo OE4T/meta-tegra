@@ -32,7 +32,6 @@ BOOTBINS_tegra186 = "\
     nvtboot_recovery_cpu.bin \
     preboot_d15_prod_cr.bin \
     spe.bin \
-    tos-trusty.img \
 "
 BOOTBINS_tegra194 = "\
     adsp-fw.bin \
@@ -52,7 +51,6 @@ BOOTBINS_tegra194 = "\
     nvtboot_recovery_cpu_t194.bin \
     preboot_d15_prod_cr.bin \
     spe_t194.bin \
-    tos-trusty_t194.img \
     warmboot_t194_prod.bin \
 "
 
