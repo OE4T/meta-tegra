@@ -70,6 +70,9 @@ do_install() {
     install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}/pkc/
     install -m 0755 ${S}/pkc/nvsecuretool ${D}${BINDIR}/pkc/
     install -m 0755 ${S}/bootloader/tegrakeyhash ${D}${BINDIR}
+
+    install -m 0755 ${S}/nv_tegra/tos-scripts/gen_tos_part_img.py ${D}${BINDIR}
+
     install -m 0755 ${S}/tegra186-flash-helper.sh ${D}${BINDIR}
     install -m 0755 ${S}/tegra194-flash-helper.sh ${D}${BINDIR}
 }
