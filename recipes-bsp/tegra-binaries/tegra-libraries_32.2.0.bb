@@ -54,7 +54,7 @@ do_install() {
 PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-libnvosd ${PN}-dev ${PN}"
 
 FILES_${PN}-libv4l-plugins = "${libdir}/libv4l"
-FILES_${PN}-argus = "${libdir}/libnvargus* ${sbindir}/nvargus_daemon ${sysconfdir}/init.d/nvargus-daemon"
+FILES_${PN}-argus = "${libdir}/libnvargus* ${sbindir}/nvargus-daemon ${sysconfdir}/init.d/nvargus-daemon"
 FILES_${PN}-libnvosd = "${libdir}/libnvosd*"
 FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir} ${datadir}"
 FILES_${PN}-dev = "${libdir}/lib*GL*.so"
