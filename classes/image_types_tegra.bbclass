@@ -348,7 +348,7 @@ create_tegraflash_pkg_tegra210() {
 	boardcfg=
     fi
 
-    ln -s "${STAGING_BINDIR_NATIVE}/tegra210-flash" .
+    cp -R ${STAGING_BINDIR_NATIVE}/tegra210-flash/* .
     tegraflash_custom_pre
     if [ "${TEGRA_SPIFLASH_BOOT}" != "1" ]; then
         mksparse -b ${TEGRA_BLBLOCKSIZE} -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
@@ -391,8 +391,7 @@ create_tegraflash_pkg_tegra210() {
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-PATH=\$PATH:tegra210-flash
-./tegra210-flash/tegra210-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" "${TEGRA_SPIFLASH_BOOT}"
+./tegra210-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" "${TEGRA_SPIFLASH_BOOT}"
 END
     chmod +x doflash.sh
     tegraflash_custom_post
@@ -437,7 +436,7 @@ create_tegraflash_pkg_tegra186() {
 	    ln -sf $fname ./
 	done
     done
-    ln -s ${STAGING_BINDIR_NATIVE}/tegra186-flash .
+    cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
     dd if=/dev/zero of=badpage.bin bs=4096 count=1
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
@@ -445,8 +444,7 @@ create_tegraflash_pkg_tegra186() {
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-PATH=\$PATH:tegra186-flash
-./tegra186-flash/tegra186-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA}
+./tegra186-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA}
 END
     chmod +x doflash.sh
     tegraflash_custom_post
@@ -484,15 +482,14 @@ create_tegraflash_pkg_tegra194() {
     for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
 	ln -s $f .
     done
-    ln -s ${STAGING_BINDIR_NATIVE}/tegra186-flash .
+    cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-PATH=\$PATH:tegra186-flash
-./tegra186-flash/tegra194-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA}
+./tegra194-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA}
 END
     chmod +x doflash.sh
     tegraflash_custom_post

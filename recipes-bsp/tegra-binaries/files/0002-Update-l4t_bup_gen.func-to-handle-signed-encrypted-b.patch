@@ -1,0 +1,223 @@
+From a25cb8629864cc917330b40559aa168903ba1e41 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 26 Oct 2019 09:06:48 -0700
+Subject: [PATCH] Update l4t_bup_gen.func to handle signed+encrypted bootloader
+
+---
+ bootloader/l4t_bup_gen.func | 103 ++++++++++++++++++++++++------------
+ 1 file changed, 68 insertions(+), 35 deletions(-)
+
+diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
+index af14e7e..d66c1eb 100644
+--- a/bootloader/l4t_bup_gen.func
++++ b/bootloader/l4t_bup_gen.func
+@@ -109,14 +109,28 @@ _generate_bl_update_payload()
+ 	local zerosbk_signing="${3}"
+ 	local tegra_soc="${4}"
+ 	local BUP_GENERATOR="${OUT}"/BUP_generator.py
++	local subdir="signed"
++	local subdir_kernel
++	local signed_ext_kernel
+ 
+ 	# When signed with PKC, the signed file extension is .signed
+ 	local signed_ext
+ 	if [ ${zerosbk_signing} -eq 1 ]; then
+ 		signed_ext="encrypt"
++	elif [ ${zerosbk_signing} -eq 99 ]; then
++		signed_ext="encrypt.signed"
++		if [ "${tegra_soc}" = "t18x" ]; then
++			subdir="encrypted_signed"
++		else
++			subdir="encrypted_signed_t19x"
++		fi
++		signed_ext_kernel="signed"
++		subdir_kernel="signed"
+ 	else
+ 		signed_ext="signed"
+ 	fi
++	[ -n "${subdir_kernel}" ] || subdir_kernel="${subdir}"
++	[ -n "${signed_ext_kernel}" ] || signed_ext_kernel="${signed_ext}"
+ 
+ 	echo ""
+ 	echo "Creating update payloads for Jetson-${_sw_spec} board ..."
+@@ -174,13 +188,13 @@ _generate_bl_update_payload()
+ 	#     for production mode special binary(_prod), op_mode = 2
+ 	if [ "${tegra_soc}" == "t18x" ]; then
+ 		local kernel_image_base=$(echo "${lnx_image}" | cut -f 1 -d '.')
+-		ENTRY_LIST[bl]="signed/bpmp_sigheader.bin.${signed_ext} bpmp-fw 2 0 $_common_spec; \
+-				signed/camera-rtcpu-sce_sigheader.img.${signed_ext} sce-fw 2 0 $_common_spec; \
+-				signed/cboot_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
+-				signed/nvtboot_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
+-				signed/spe_sigheader.bin.${signed_ext} spe-fw 2 0 $_common_spec; \
+-				signed/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec;"
+-		ENTRY_LIST[kernel]="signed/${kernel_image_base}_sigheader.img.${signed_ext} kernel 2 0 $_common_spec;"
++		ENTRY_LIST[bl]="${subdir}/bpmp_sigheader.bin.${signed_ext} bpmp-fw 2 0 $_common_spec; \
++				${subdir}/camera-rtcpu-sce_sigheader.img.${signed_ext} sce-fw 2 0 $_common_spec; \
++				${subdir}/cboot_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
++				${subdir}/nvtboot_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
++				${subdir}/spe_sigheader.bin.${signed_ext} spe-fw 2 0 $_common_spec; \
++				${subdir}/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec;"
++		ENTRY_LIST[kernel]="${subdir_kernel}/${kernel_image_base}_sigheader.img.${signed_ext_kernel} kernel 2 0 $_common_spec;"
+ 
+ 		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
+ 			ENTRY_LIST[bl]+="signed/mb1_dev.bin.${signed_ext} mb1 2 1 $_common_spec; \
+@@ -189,10 +203,10 @@ _generate_bl_update_payload()
+ 				signed/warmboot_dev_wbheader.bin.${signed_ext} sc7 2 1 $_common_spec;"
+ 		else
+ 			# fuselevel_production or any other level
+-			ENTRY_LIST[bl]+="signed/mb1_prod.bin.${signed_ext} mb1 2 2 $_common_spec; \
+-				signed/mce_mts_d15_prod_cr_sigheader.bin.${signed_ext} mts-bootpack 2 2 $_common_spec; \
+-				signed/preboot_d15_prod_cr_sigheader.bin.${signed_ext} mts-preboot 2 2 $_common_spec; \
+-				signed/warmboot_wbheader.bin.${signed_ext} sc7 2 2 $_common_spec;"
++			ENTRY_LIST[bl]+="${subdir}/mb1_prod.bin.${signed_ext} mb1 2 2 $_common_spec; \
++				${subdir}/mce_mts_d15_prod_cr_sigheader.bin.${signed_ext} mts-bootpack 2 2 $_common_spec; \
++				${subdir}/preboot_d15_prod_cr_sigheader.bin.${signed_ext} mts-preboot 2 2 $_common_spec; \
++				${subdir}/warmboot_wbheader.bin.${signed_ext} sc7 2 2 $_common_spec;"
+ 		fi;
+ 
+ 		# add multiple binaries into BUP
+@@ -206,7 +220,7 @@ _generate_bl_update_payload()
+ 
+ 		local kernel_dtb_base=$(echo "${lnx_dtb}" | cut -f 1 -d '.')
+ 		_add_multi_bins "kernel-dtb" \
+-			"$(ls multi_signed/*/${kernel_dtb_base}_sigheader.dtb.${signed_ext})" "kernel"
++			"$(ls multi_signed/*/${kernel_dtb_base}_sigheader.dtb.${signed_ext_kernel})" "kernel"
+ 
+ 		_add_multi_bins "BCT" "$(ls multi_signed/*/br_bct*.bct)"
+ 		_add_multi_bins "MB1_BCT" \
+@@ -214,13 +228,13 @@ _generate_bl_update_payload()
+ 
+ 	elif [ "${tegra_soc}" == "t19x" ]; then
+ 		local kernel_image_base=$(echo "${lnx_image}" | cut -f 1 -d '.')
+-		ENTRY_LIST[bl]="signed/spe_t194_sigheader.bin.${signed_ext} spe-fw 2 0 $_common_spec; \
+-				signed/nvtboot_t194_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
+-				signed/cboot_t194_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
+-				signed/tos-trusty_t194_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
+-				signed/bpmp_t194_sigheader.bin.${signed_ext} bpmp-fw 2 0 $_common_spec; \
+-				signed/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw 2 0 $_common_spec;"
+-		ENTRY_LIST[kernel]="signed/${kernel_image_base}_sigheader.img.${signed_ext} kernel 2 0 $_common_spec;"
++		ENTRY_LIST[bl]="${subdir}/spe_t194_sigheader.bin.${signed_ext} spe-fw 2 0 $_common_spec; \
++				${subdir}/nvtboot_t194_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
++				${subdir}/cboot_t194_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
++				${subdir}/tos-trusty_t194_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
++				${subdir}/bpmp_t194_sigheader.bin.${signed_ext} bpmp-fw 2 0 $_common_spec; \
++				${subdir}/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw 2 0 $_common_spec;"
++		ENTRY_LIST[kernel]="${subdir_kernel}/${kernel_image_base}_sigheader.img.${signed_ext_kernel} kernel 2 0 $_common_spec;"
+ 
+ 		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
+ 			ENTRY_LIST[bl]+="signed/mb1_t194_dev_sigheader.bin.${signed_ext} mb1 2 1 $_common_spec; \
+@@ -230,11 +244,11 @@ _generate_bl_update_payload()
+ 				signed/warmboot_t194_dev_sigheader.bin.${signed_ext} sc7 2 1 $_common_spec;"
+ 		else
+ 			# fuselevel_production or any other level
+-			ENTRY_LIST[bl]+="signed/mb1_t194_prod_sigheader.bin.${signed_ext} mb1 2 2 $_common_spec; \
+-				signed/preboot_c10_prod_cr_sigheader.bin.${signed_ext} mts-preboot 2 2 $_common_spec; \
+-				signed/mce_c10_prod_cr_sigheader.bin.${signed_ext} mts-mce 2 2 $_common_spec; \
+-				signed/mts_c10_prod_cr_sigheader.bin.${signed_ext} mts-proper 2 2 $_common_spec; \
+-				signed/warmboot_t194_prod_sigheader.bin.${signed_ext} sc7 2 2 $_common_spec;"
++			ENTRY_LIST[bl]+="${subdir}/mb1_t194_prod_sigheader.bin.${signed_ext} mb1 2 2 $_common_spec; \
++				${subdir}/preboot_c10_prod_cr_sigheader.bin.${signed_ext} mts-preboot 2 2 $_common_spec; \
++				${subdir}/mce_c10_prod_cr_sigheader.bin.${signed_ext} mts-mce 2 2 $_common_spec; \
++				${subdir}/mts_c10_prod_cr_sigheader.bin.${signed_ext} mts-proper 2 2 $_common_spec; \
++				${subdir}/warmboot_t194_prod_sigheader.bin.${signed_ext} sc7 2 2 $_common_spec;"
+ 		fi;
+ 
+ 		# add multiple binaries into BUP
+@@ -248,7 +262,7 @@ _generate_bl_update_payload()
+ 
+ 		local kernel_dtb_base=$(echo "${lnx_dtb}" | cut -f 1 -d '.')
+ 		_add_multi_bins "kernel-dtb" \
+-			"$(ls multi_signed/*/${kernel_dtb_base}_sigheader.dtb.${signed_ext})" "kernel"
++			"$(ls multi_signed/*/${kernel_dtb_base}_sigheader.dtb.${signed_ext_kernel})" "kernel"
+ 
+ 		_add_multi_bins "BCT" "$(ls multi_signed/*/br_bct*.bct)"
+ 		_add_multi_bins "MB1_BCT" \
+@@ -343,6 +357,7 @@ _sign_multi_images()
+ 	local fuselevel="${3}"
+ 	local tegra_soc="${4}"
+ 	local result
++	local subdir="signed"
+ 
+ 	#
+ 	# Retrieve info from main
+@@ -357,16 +372,31 @@ _sign_multi_images()
+ 	# xusb fw
+ 	xusb_fw="xusb_sil_rel_fw";
+ 
++	local extracmd
++	if echo "${cmd}" | grep -q -- '--encrypt_key' 2>/dev/null; then
++		subdir="encrypted_signed"
++		if [ "${tegra_soc}" = "t19x" ]; then
++			subdir+="_t19x"
++		fi
++		extracmd=$(echo "${cmd}" | sed -r -e's,(.*)--encrypt_key +"[^"]+"(.*),\1\2,')
++	fi
++
+ 	if [ $support_multi_spec -ne 0 ]; then
+ 		mkdir -p multi_signed
+ 	else
+ 		[ -d "${OUT}"/signed ] && { rm signed -rI -f; }
++		[ -d "${OUT}"/encrypted_signed ] && { rm encrypted_signed -rI -f; }
++		[ -d "${OUT}"/encrypted_signed_t19x ] && { rm encrypted_signed_t19x -rI -f; }
+ 		[ -d "${OUT}"/multi_signed ] && { rm multi_signed -rI -f; }
+ 		mkdir multi_signed
+ 	fi;
+ 
+ 	echo ""
+ 	echo "Generating signed binaries for $_sw_spec ..."
++	if [ -n "${extracmd}" ]; then
++		echo ${extracmd}
++		eval ${extracmd}
++	fi
+ 	echo ${cmd}
+ 	eval ${cmd}
+ 	if [ $? -eq 0 ];then
+@@ -388,9 +418,9 @@ _sign_multi_images()
+ 
+ 		if [ "${tegra_soc}" != "t21x" ]; then
+ 			if [ "${fuselevel}" = "fuselevel_nofuse" ]; then
+-				mv "${OUT}"/signed/br_bct_BR.bct "${OUT}"/signed/br_bct_BR_dev.bct
++				mv "${OUT}"/${subdir}/br_bct_BR.bct "${OUT}"/${subdir}/br_bct_BR_dev.bct
+ 			else
+-				mv "${OUT}"/signed/br_bct_BR.bct "${OUT}"/signed/br_bct_BR_prod.bct
++				mv "${OUT}"/${subdir}/br_bct_BR.bct "${OUT}"/${subdir}/br_bct_BR_prod.bct
+ 			fi
+ 		fi
+ 
+@@ -405,7 +435,10 @@ _sign_multi_images()
+ 			cp "${OUT}"/signed/nvtboot.bin.* "${OUT}"/multi_signed/"${_sw_spec}"/
+ 		fi
+ 
+-		mv "${OUT}"/signed/*.dtb* "${OUT}"/signed/*bct* "${OUT}"/multi_signed/"${_sw_spec}"/
++		mv "${OUT}"/${subdir}/*.dtb* "${OUT}"/${subdir}/*bct* "${OUT}"/multi_signed/"${_sw_spec}"/
++		if [ "${subdir}" != "signed" ]; then
++			mv "${OUT}"/signed/*.dtb* "${OUT}"/multi_signed/"${_sw_spec}"/
++		fi
+ 
+ 		# xusb-fw
+ 		if [ "${tegra_soc}" == "t19x" ]; then
+@@ -472,17 +505,17 @@ function l4t_bup_gen()
+ 	fi;
+ 
+ 	# check signing key
+-	if [ ! -z "${keyfile}" ];then
+-		if [ ! -f "${keyfile}" ]; then
+-			echo "Error: No such file: '${OUT}/${keyfile}'."
+-			exit 1
+-		fi
++	if echo "${cmd}" | grep -q -- '--key' 2>/dev/null; then
+ 		if [ "${fuselevel}" = "fuselevel_nofuse" ]; then
+ 			echo "Warning: Sign images for '${fuselevel}' board."
+ 		fi
+-		cmd=${cmd}" --key ${keyfile} "
+-		echo "Signing with ${keyfile} ..."
+ 		zerosbk=0
++		if echo "${cmd}" | grep -q -- '--encrypt_key' 2>/dev/null; then
++		    zerosbk=99
++		    echo "PKC+SBK - signing and encryption..."
++		else
++		    echo "PKC only - signing..."
++		fi
+ 	else
+ 		echo "Signing with zerosbk ..."
+ 	fi

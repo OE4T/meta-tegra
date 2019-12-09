@@ -1,0 +1,26 @@
+From 1b1b7925b370fd7e13a02c06db7ae779ceea4a9b Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 20 Oct 2019 09:04:10 -0700
+Subject: [PATCH] Fix skipuid arg usage for tx2 in odmsign.func
+
+---
+ bootloader/odmsign.func | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/bootloader/odmsign.func b/bootloader/odmsign.func
+index 69f2503..5b07232 100644
+--- a/bootloader/odmsign.func
++++ b/bootloader/odmsign.func
+@@ -721,7 +721,11 @@ odmsign_ext_flash ()
+ 	fi;
+ 
+ 	BINSARGS="--bins \"${SIGNEDBINSARGS}\" ";
+-	SKIPUID="--skipuid ";
++	if [ "${CHIPID}" = "0x18" ]; then
++		SKIPUID=""
++	else
++		SKIPUID="--skipuid ";
++	fi
+ 
+ 	FBARGS="--cmd \"secureflash;reboot\" ";
+ 	FLASHARGS="--bl ${flashername} ${BCT} ${bctfilename}";

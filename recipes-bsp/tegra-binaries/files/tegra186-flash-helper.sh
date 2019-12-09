@@ -1,24 +1,58 @@
 #!/bin/bash
 bup_build=
-fuse_burn=
-secureflash=
-if [ "$1" = "--bup" ]; then
-    bup_build=yes
-    shift
-elif [ "$1" = "--burnfuses" ]; then
-    fuse_burn=yes
-    shift
-elif [ "$1" = "--secureflash" ]; then
-    secureflash=yes
-    shift
+keyfile=
+sbk_keyfile=
+no_flash=0
+flash_cmd=
+
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash" -o "u:v:" -- "$@")
+if [ $? -ne 0 ]; then
+    echo "Error parsing options" >&2
+    exit 1
 fi
+eval set -- "$ARGS"
+
+while true; do
+    case "$1" in
+    --bup)
+        bup_build=yes
+        shift
+        ;;
+    --no-flash)
+        no_flash=1
+        shift
+        ;;
+    -u)
+        keyfile="$2"
+        shift 2
+        ;;
+    -v)
+        sbk_keyfile="$2"
+        shift 2
+        ;;
+    -c)
+        flash_cmd="$2"
+        shift 2
+        ;;
+    --)
+        shift
+        break
+        ;;
+    *)
+        echo "Error processing options" >&2
+        exit 1
+        ;;
+    esac
+done
+
 flash_in="$1"
 dtb_file="$2"
 sdramcfg_file="$3"
 odmdata="$4"
+kernfile="$5"
 
 here=$(readlink -f $(dirname "$0"))
-flashapp=$(which tegraflash.py)
+flashappname="tegraflash.py"
 
 if [ ! -e ./flashvars ]; then
     echo "ERR: missing flash variables file" >&2
@@ -36,23 +70,22 @@ fi
 # attributes
 cvm_bin=$(mktemp cvm.bin.XXXXX)
 
-if [ -n "$BOARDID" ]; then
-    boardid="$BOARDID"
-elif python "$flashapp" --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
-    boardid=`chkbdinfo -i ${cvm_bin} | tr -d '[:space:]'`
-else
+if [ -z "$BOARDID" -o -z "$FAB" ]; then
+    if ! python "$flashappname" --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
     echo "ERR: could not retrieve EEPROM board information" >&2
     exit 1
+    fi
+fi
+if [ -n "$BOARDID" ]; then
+    boardid="$BOARDID"
+else
+    boardid=`$here/chkbdinfo -i ${cvm_bin} | tr -d '[:space:]'`
 fi
 
 if [ -n "$FAB" ]; then
-    boardrev="$FAB"
-elif [ -r ${cvm_bin} ] || python "$flashapp" --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
-    boardrev=`chkbdinfo -f ${cvm_bin}`
-    boardrev=`echo $boardrev | tr [a-z] [A-Z]`
+    board_version="$FAB"
 else
-    echo "ERR: could not retrieve EEPROM board information" >&2
-    exit 1
+    board_version=`$here/chkbdinfo -f ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z]`
 fi
 
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
@@ -62,13 +95,14 @@ fi
 if [ "$boardid" = "3310" ]; then
     # The B00 revision SOM which shipped with at least some
     # Jetson TX2 dev kits.
-    # BOARDREV is used for all substitutions, except for
+    # TOREV is used for all substitutions, except for
     # BPFDTB and PMIC revisions, which differ between B00
     # and B01 revisions.
-    BOARDREV="c03"
+    TOREV="c03"
     BPFDTBREV="c01"
     PMICREV="c03"
-    case $boardrev in
+
+    case $board_version in
         B0[1-9]|[C-Z]??)
             BPFDTBREV="c04"
             PMICREV="c04"
@@ -76,15 +110,15 @@ if [ "$boardid" = "3310" ]; then
         B00)
             ;;
         *)
-            echo "ERR: unsupported board revision: $boardrev" >&2
+            echo "ERR: unsupported board version: $board_version" >&2
             exit 1
             ;;
     esac
 elif [ "$boardid" = "3489" ]; then
-    BOARDREV="a00"
+    TOREV="a00"
     PMICREV="a00"
     BPFDTBREV="a00";
-    if [ "${boardrev}" < "300" ]; then
+    if [ "${board_version}" < "300" ]; then
         BPFDTBREV="evt"
     fi
 else
@@ -95,20 +129,21 @@ fi
 for var in $FLASHVARS; do
     eval pat=$`echo $var`
     if [ -z "$pat" ]; then
-	echo "ERR: missing variable: $var" >&2
-	exit 1
+    echo "ERR: missing variable: $var" >&2
+    exit 1
     fi
-    eval $var=`echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@BOARDREV@,$BOARDREV," -e"s,@PMICREV@,$PMICREV,"`
+    eval $var=`echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@BOARDREV@,$TOREV," -e"s,@PMICREV@,$PMICREV,"`
 done
 
 [ -n "$BOARDID" ] || BOARDID=3310
 [ -n "$FAB" ] || FAB=B02
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
-spec="${BOARDID}-${FAB}-${fuselevel}"
+
+spec="${BOARDID}-${FAB}---1--${MACHINE}"
 
 sed -e"s,BPFDTB-FILE,$BPFDTB_FILE," "$flash_in" > flash.xml
 
-BINS="mb2_bootloader nvtboot_recovery.bin; \
+BINSARGS="mb2_bootloader nvtboot_recovery.bin; \
 mts_preboot preboot_d15_prod_cr.bin; \
 mts_bootpack mce_mts_d15_prod_cr.bin; \
 bpmp_fw bpmp.bin; \
@@ -120,49 +155,58 @@ bootloader_dtb $dtb_file"
 cfgappargs="--sdram_config $sdramcfg_file \
               --applet mb1_recovery_prod.bin"
 bctargs="--misc_config $MISC_CONFIG \
-	      --pinmux_config $PINMUX_CONFIG \
-	      --pmic_config $PMIC_CONFIG \
-	      --pmc_config $PMC_CONFIG \
-	      --prod_config $PROD_CONFIG \
-	      --scr_config $SCR_CONFIG \
-	      --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
-	      --br_cmd_config $BOOTROM_CONFIG \
-	      --dev_params $DEV_PARAMS"
-flashcfg="--cfg flash.xml"
-blarg="--bl nvtboot_recovery_cpu.bin"
+          --pinmux_config $PINMUX_CONFIG \
+          --pmic_config $PMIC_CONFIG \
+          --pmc_config $PMC_CONFIG \
+          --prod_config $PROD_CONFIG \
+          --scr_config $SCR_CONFIG \
+          --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
+          --br_cmd_config $BOOTROM_CONFIG \
+          --dev_params $DEV_PARAMS"
 skipuid=""
 if [ "$bup_build" = "yes" ]; then
     tfcmd=sign
     skipuid="--skipuid"
-elif [ "$fuse_burn" = "yes" ]; then
-    tfcmd="burnfuses odmfuse_pkc.xml"
-elif [ "$secureflash" = "yes" ]; then
-    tfcmd="secureflash;reboot"
-    cfgappargs="--bct br_bct_BR.bct \
-              --applet rcm_1_signed.rcm"
-    bctargs="--mb1_bct mb1_bct_MB1_sigheader.bct.signed"
-    flashcfg="--cfg secureflash.xml"
-    blarg="--bl nvtboot_recovery_cpu_sigheader.bin.signed"
-    BINS="mb2_bootloader nvtboot_recovery_sigheader.bin.signed; \
-mts_preboot preboot_d15_prod_cr_sigheader.bin.signed; \
-mts_bootpack mce_mts_d15_prod_cr_sigheader.bin.signed; \
-bpmp_fw bpmp_sigheader.bin.signed; \
-bpmp_fw_dtb `basename $BPFDTB_FILE .dtb`_sigheader.dtb.signed; \
-tlk tos_sigheader.img.signed; \
-eks eks_sigheader.img.signed; \
-bootloader_dtb `basename $dtb_file .dtb`_sigheader.dtb.signed"
+elif [ -n "$keyfile" ]; then
+    CHIPID="0x18"
+    tegraid="$CHIPID"
+    localcfgfile="flash.xml"
+    dtbfilename="$dtb_file"
+    tbcdtbfilename="$dtb_file"
+    bpfdtbfilename="$BPFDTB_FILE"
+    localbootfile="$kernfile"
+    BINSARGS="--bins \"$BINSARGS\""
+    flashername=nvtboot_recovery_cpu.bin
+    BCT="--sdram_config"
+    bctfilename="$sdramcfg_file"
+    SOSARGS="--applet mb1_recovery_prod.bin "
+    BCTARGS="$bctargs"
+    . "$here/odmsign.func"
+    odmsign_ext || exit 1
+    if [ $no_flash -ne 0 ]; then
+    if [ -f flashcmd.txt ]; then
+        chmod +x flashcmd.txt
+        ln -sf flashcmd.txt ./secureflash.sh
+    else
+        echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
+    fi
+    fi
+    exit 0
 else
-    tfcmd="flash;reboot"
+    tfcmd=${flash_cmd:-"flash;reboot"}
 fi
-flashcmd="python $flashapp --chip 0x18 $blarg \
-	      $cfgappargs \
-	      --odmdata $odmdata \
-	      --cmd \"$tfcmd\" $skipuid \
-	      $flashcfg \
-	      $bctargs \
-	      --bins \"$BINS\""
+
+flashcmd="python $flashappname --chip 0x18 --bl nvtboot_recovery_cpu.bin \
+          $cfgappargs \
+          --odmdata $odmdata \
+          --cmd \"$tfcmd\" $skipuid \
+          --cfg flash.xml \
+          $bctargs \
+          --bins \"$BINSARGS\""
 
 if [ "$bup_build" = "yes" ]; then
+    [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
+    [ -z "$sbk_keyfile" ] || flashcmd="${flashcmd} --encrypt_key \"$sbk_keyfile\""
     support_multi_spec=0
     clean_up=0
     dtbfilename="$dtb_file"
@@ -170,7 +214,7 @@ if [ "$bup_build" = "yes" ]; then
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
-    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "" 0x18 || exit 1
+    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" 0x18 || exit 1
 else
     eval $flashcmd || exit 1
 fi
