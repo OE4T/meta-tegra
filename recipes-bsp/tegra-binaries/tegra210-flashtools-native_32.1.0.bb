@@ -2,8 +2,9 @@ SOC_FAMILY = "tegra210"
 
 require tegra-binaries-${PV}.inc
 
-SRC_MD5SUM = "${SRC_MD5SUM_tegra210}"
-SRC_SHA256SUM = "${SRC_SHA256SUM_tegra210}"
+L4T_MD5SUM = "${L4T_MD5SUM_tegra210}"
+L4T_SHA256SUM = "${L4T_SHA256SUM_tegra210}"
+SRC_URI_SECUREBOOT = ""
 
 WORKDIR = "${TMPDIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-${PR}"
 SSTATE_SWSPEC = "sstate:tegra-binaries-native::${PV}:${PR}::${SSTATE_VERSION}:"

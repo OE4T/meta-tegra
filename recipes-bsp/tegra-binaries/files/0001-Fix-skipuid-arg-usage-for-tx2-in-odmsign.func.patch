@@ -1,0 +1,17 @@
+PATCH: Backport fix skipuid arg usage for tx2 in odmsign.func
+===================================================================
+--- a/bootloader/odmsign.func	2019-12-16 19:25:54.000000000 -0800
++++ b/bootloader/odmsign.func	2019-12-30 13:09:47.710088311 -0800
+@@ -721,7 +721,11 @@
+ 	fi;
+ 
+ 	BINSARGS="--bins \"${SIGNEDBINSARGS}\" ";
+-	SKIPUID="--skipuid ";
++	if [ "${CHIPID}" = "0x18" ]; then
++		SKIPUID=""
++	else
++		SKIPUID="--skipuid ";
++	fi
+ 
+ 	FBARGS="--cmd \"secureflash;reboot\" ";
+ 	FLASHARGS="--bl ${flashername} ${BCT} ${bctfilename}";
