@@ -112,7 +112,7 @@ elif [ "$boardid" = "3489" ]; then
     TOREV="a00"
     PMICREV="a00"
     BPFDTBREV="a00";
-    if [ "${boardver}" < "300" ]; then
+    if [ "$board_version" < "300" ]; then
         BPFDTBREV="evt"
     fi
 else
