@@ -363,10 +363,10 @@ create_tegraflash_pkg_tegra210() {
     cd "${WORKDIR}/tegraflash"
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
-    cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     if [ -n "${KERNEL_ARGS}" ]; then
         fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
-    else
+    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
         fdtput -d ./${DTBFILE} /chosen bootargs
     fi
     for f in ${BOOTFILES}; do
@@ -441,10 +441,10 @@ create_tegraflash_pkg_tegra186() {
     cd "${WORKDIR}/tegraflash"
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
-    cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     if [ "${BL_IS_CBOOT}" = "1" -a -n "${KERNEL_ARGS}" ]; then
         fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
-    else
+    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
         fdtput -d ./${DTBFILE} /chosen bootargs
     fi
     ln -sf "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./cboot.bin
@@ -496,7 +496,7 @@ create_tegraflash_pkg_tegra194() {
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
     if [ -n "${KERNEL_ARGS}" ]; then
-        cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+        cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
         bootargs="`fdtget ./${DTBFILE} /chosen bootargs 2>/dev/null`"
         fdtput -t s ./${DTBFILE} /chosen bootargs "$bootargs ${KERNEL_ARGS}"
     else
@@ -577,10 +577,10 @@ oe_make_bup_payload_common() {
         ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
     fi
     rm -f ./${DTBFILE}
-    cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     if [ "${BL_IS_CBOOT}" = "1" -a -n "${KERNEL_ARGS}" ]; then
         fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
-    else
+    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
         fdtput -d ./${DTBFILE} /chosen bootargs
     fi
     ln -s "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./$cbootfilename
