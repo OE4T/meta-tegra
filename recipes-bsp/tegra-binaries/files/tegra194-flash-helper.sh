@@ -138,7 +138,9 @@ if [ "$boardid" = "2888" ]; then
 	    TOREV="a02"
 	    PMICREV="a04"
 	    BPFDTBREV="a02"
-	    if [ "$board_sku" = "0004" ] || [ $board_version -gt 300 -a `expr "$board_revision" \> "D.0"` -eq 1 ]; then
+	    if [ "$board_sku" = "0006" ]; then
+		BPFDTBREV="0006-a04"
+	    elif [ "$board_sku" = "0004" ] || [ $board_version -gt 300 -a `expr "$board_revision" \> "D.0"` -eq 1 ]; then
 		PMICREV="a04-E-0"
 		BPFDTBREV="a04"
 	    fi
