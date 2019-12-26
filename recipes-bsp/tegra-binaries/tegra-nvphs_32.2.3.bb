@@ -38,5 +38,8 @@ PACKAGES = "${PN}"
 FILES_${PN} = "${sbindir} ${sysconfdir} ${libdir}"
 RDEPENDS_${PN} = "bash tegra-libraries"
 INSANE_SKIP_${PN} = "ldflags dev-so"
+INHIBIT_SYSROOT_STRIP = "1"
+INHIBIT_PACKAGE_STRIP = "1"
+INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
