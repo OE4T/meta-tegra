@@ -620,6 +620,9 @@ create_bup_payload_image() {
 create_bup_payload_image[vardepsexclude] += "DATETIME"
 
 CONVERSIONTYPES += "bup-payload"
-CONVERSION_DEPENDS_bup-payload = "tegra186-flashtools-native tegra-bootfiles tegra186-redundant-boot nv-tegra-release dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy"
+BUP_DEPS_EXTRA = ""
+BUP_DEPS_EXTRA_tegra186 = "virtual/secure-os:do_deploy"
+BUP_DEPS_EXTRA_tegra194 = "virtual/secure-os:do_deploy"
+CONVERSION_DEPENDS_bup-payload = "tegra186-flashtools-native tegra-bootfiles tegra186-redundant-boot nv-tegra-release dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy ${BUP_DEPS_EXTRA}"
 CONVERSION_CMD_bup-payload = "create_bup_payload_image ${type}"
 IMAGE_TYPES += "cpio.gz.cboot.bup-payload"
