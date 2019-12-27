@@ -17,6 +17,7 @@ do_compile[noexec] = "1"
 NVPMODEL = ""
 NVPMODEL_tegra186 ?= "nvpmodel_t186"
 NVPMODEL_tegra194 ?= "nvpmodel_t194"
+NVPMODEL_xavier-8gb ?= "nvpmodel_t194_8gb"
 NVPMODEL_tegra210 ?= "nvpmodel_t210"
 NVPMODEL_jetson-nano ?= "nvpmodel_t210_jetson-nano"
 
