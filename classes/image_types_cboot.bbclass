@@ -22,7 +22,7 @@ oe_cbootimg_tegra194() {
 
 make_cboot_image() {
     local type="$1"
-    oe_cbootimg ${IMAGE_NAME}.rootfs.${type}
+    oe_cbootimg ${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.${type}
 }
 make_cboot_image[vardepsexclude] += "DATETIME"
 
