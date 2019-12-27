@@ -19,3 +19,4 @@ do_install() {
 }
 
 FILES_${PN} = "${datadir}/tegraflash"
+PACKAGE_ARCH = "${MACHINE_ARCH}"
