@@ -128,33 +128,34 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,PPTFILE,ppt.img," -e"s,GPTFILE,gpt.img," \
         -e"s,APPUUID,," \
         > $destdir/flash.xml.in
-    [ "${TEGRA_SPIFLASH_BOOT}" = "1" ] || return 0
-    cat "${STAGING_DATADIR}/tegraflash/sdcard_${MACHINE}.xml" | sed \
-        -e"s,EBTFILE,cboot.bin," -e"s,EBTSIZE,$ebtsize," \
-        -e"s,LNXFILE,${LNXFILE}," \
-        -e"/NCTFILE/d" -e"s,NCTTYPE,data," \
-        -e"/SOSFILE/d" \
-        -e"s,NXC,NVC," -e"s,NVCTYPE,bootloader," -e"s,NVCFILE,nvtboot.bin," -e "s,NVCSIZE,$nvcsize," \
-        -e"s,MPBTYPE,data," -e"/MPBFILE/d" \
-        -e"s,MBPTYPE,data," -e"/MBPFILE/d" \
-        -e"s,BXF,BPF," -e"s,BPFFILE,sc7entry-firmware.bin," -e"s,BPFSIZE,$bpfsize," \
-        -e"/BPFDTB-FILE/d" \
-        -e"s,WX0,WB0," -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,WB0SIZE,$wb0size," \
-        -e"s,TXS,TOS," -e"s,TOSFILE,tos-mon-only.img," -e"s,TOSSIZE,$tossize," \
-        -e"s,EXS,EKS," -e"s,EKSFILE,eks.img," \
-        -e"s,FBTYPE,data," -e"/FBFILE/d" \
-        -e"s,DXB,DTB," -e"s,DTBFILE,${DTBFILE}," -e"s,DTBSIZE,$dtbsize," \
-        -e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
-        -e"s,TXC,TBC," -e"s,TBCTYPE,bootloader," -e"s,TBCFILE,nvtboot_cpu.bin," -e"s,TBCSIZE,$tbcsize,"  \
-        -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
-        -e"s,BCTSIZE,${BOOTPART_SIZE}," -e"s,PPTSIZE,$gptsize," \
-        -e"s,PPTFILE,ppt.img," -e"s,GPTFILE,gpt.img," \
-        > $destdir/sdcard.xml.in
-    cat "${STAGING_DATADIR}/tegraflash/sdcard-layout.in" | sed \
-        -e"s,DTBFILE,${DTBFILE}.encrypt," \
-        -e"s,LNXFILE,${LNXFILE}.encrypt," \
-        -e"s,APPFILE,${IMAGE_BASENAME}.raw.img," \
-      > $destdir/sdcard-layout
+    if [ "${TEGRA_SPIFLASH_BOOT}" = "1" ]; then
+        cat "${STAGING_DATADIR}/tegraflash/sdcard_${MACHINE}.xml" | sed \
+            -e"s,EBTFILE,cboot.bin," -e"s,EBTSIZE,$ebtsize," \
+            -e"s,LNXFILE,${LNXFILE}," \
+            -e"/NCTFILE/d" -e"s,NCTTYPE,data," \
+            -e"/SOSFILE/d" \
+            -e"s,NXC,NVC," -e"s,NVCTYPE,bootloader," -e"s,NVCFILE,nvtboot.bin," -e "s,NVCSIZE,$nvcsize," \
+            -e"s,MPBTYPE,data," -e"/MPBFILE/d" \
+            -e"s,MBPTYPE,data," -e"/MBPFILE/d" \
+            -e"s,BXF,BPF," -e"s,BPFFILE,sc7entry-firmware.bin," -e"s,BPFSIZE,$bpfsize," \
+            -e"/BPFDTB-FILE/d" \
+            -e"s,WX0,WB0," -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,WB0SIZE,$wb0size," \
+            -e"s,TXS,TOS," -e"s,TOSFILE,tos-mon-only.img," -e"s,TOSSIZE,$tossize," \
+            -e"s,EXS,EKS," -e"s,EKSFILE,eks.img," \
+            -e"s,FBTYPE,data," -e"/FBFILE/d" \
+            -e"s,DXB,DTB," -e"s,DTBFILE,${DTBFILE}," -e"s,DTBSIZE,$dtbsize," \
+            -e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+            -e"s,TXC,TBC," -e"s,TBCTYPE,bootloader," -e"s,TBCFILE,nvtboot_cpu.bin," -e"s,TBCSIZE,$tbcsize,"  \
+            -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
+            -e"s,BCTSIZE,${BOOTPART_SIZE}," -e"s,PPTSIZE,$gptsize," \
+            -e"s,PPTFILE,ppt.img," -e"s,GPTFILE,gpt.img," \
+            > $destdir/sdcard.xml.in
+        cat "${STAGING_DATADIR}/tegraflash/sdcard-layout.in" | sed \
+            -e"s,DTBFILE,${DTBFILE}.encrypt," \
+            -e"s,LNXFILE,${LNXFILE}.encrypt," \
+            -e"s,APPFILE,${IMAGE_BASENAME}.raw.img," \
+          > $destdir/sdcard-layout
+    fi
 }
 
 tegraflash_create_flash_config_tegra186() {
