@@ -9,12 +9,12 @@ SRC_URI = "\
     ${NVIDIA_DEVNET_MIRROR}/libcudnn7-dev_${PV}+cuda10.0_arm64.deb;name=dev;subdir=cudnn \
     ${NVIDIA_DEVNET_MIRROR}/libcudnn7-doc_${PV}+cuda10.0_arm64.deb;name=doc;subdir=cudnn \
 "
-SRC_URI[lib.md5sum] = "9f30aa86e505a3b83b127ed7a51309a1"
-SRC_URI[lib.sha256sum] = "92186b906591f741becba7f7f0acdf99209fcf1f49dbc5e2e51148050749d9e9"
-SRC_URI[dev.md5sum] = "a010637c80859b2143ef24461ee2ef97"
-SRC_URI[dev.sha256sum] = "dc3f17b3d3a3db983389784b0902d32651f0b7d1b35a903385d2ccdba421f59a"
-SRC_URI[doc.md5sum] = "f9e43d15ff69d65a85d2aade71a43870"
-SRC_URI[doc.sha256sum] = "5df29804608ddc34d90d116e99b752bd3a2fb569c4c3fa36964018b5ae0b18f8"
+SRC_URI[lib.md5sum] = "e37d987c29bf9ef8ede082c19df12ad8"
+SRC_URI[lib.sha256sum] = "40ddff085ce25aa7468c2eec5d808b22bdd57546cb7bbe1707932e928afb44e9"
+SRC_URI[dev.md5sum] = "9aee6d3179cd6ae7cd0cb126f1781c94"
+SRC_URI[dev.sha256sum] = "96dca964b29c3ce5412158ad99b53f480fe8285747ebc82b13abc9570636e368"
+SRC_URI[doc.md5sum] = "4019391d5f31fabdfeca8487e4161bd3"
+SRC_URI[doc.sha256sum] = "f1e45aace86823cded6572ad14b13ea403785ffa5392adfb0d5fc4163d5660a9"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
