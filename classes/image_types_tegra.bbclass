@@ -615,9 +615,8 @@ oe_make_bup_payload_common() {
     rm -f ./slot_metadata.bin
     cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
     mkdir ./rollback
-    ln -sf ${STAGING_BINDIR_NATIVE}/tegra186-flash/rollback/rollback_parser.py ./rollback/
+    ln -sf ${STAGING_BINDIR_NATIVE}/tegra186-flash/rollback_parser.py ./rollback/
     ln -snf ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
-    # ln -sf ${STAGING_BINDIR_NATIVE}/tegra186-flash/BUP_generator.py ./
     ln -sf ${STAGING_BINDIR_NATIVE}/tegra186-flash/${SOC_FAMILY}-flash-helper.sh ./
     sed -e 's,^function ,,' ${STAGING_BINDIR_NATIVE}/tegra186-flash/l4t_bup_gen.func > ./l4t_bup_gen.func
     ln -sf ${STAGING_BINDIR_NATIVE}/tegra186-flash/*.py .

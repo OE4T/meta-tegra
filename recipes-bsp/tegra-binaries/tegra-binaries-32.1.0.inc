@@ -14,9 +14,9 @@ SRC_URI[sb.md5sum] = "${SB_MD5SUM}"
 SRC_URI[sb.sha256sum] = "${SB_SHA256SUM}"
 
 # L4T 32.1 does not support Jetson Nano secureboot (L4T 32.2 support Jetson Nano secureboot)
-SRC_URI_tegra210 = "${L4T_URI_BASE}/${L4T_BSP_PREFIX}_Linux_R${PV}_aarch64.tbz2;"
-SRC_MD5SUM_tegra210 = "15fda16d83e9a189ea5534108f57af2f"
-SRC_SHA256SUM_tegra210 = "e4902a952245217227486322b3e8cef47942f87f2ea91f9e67d700314ae3ade3"
+SRC_URI_tegra210 = "${L4T_URI_BASE}/${L4T_BSP_PREFIX}_Linux_R${PV}_aarch64.tbz2;name=l4t"
+L4T_MD5SUM_tegra210 = "15fda16d83e9a189ea5534108f57af2f"
+L4T_SHA256SUM_tegra210 = "e4902a952245217227486322b3e8cef47942f87f2ea91f9e67d700314ae3ade3"
 
 inherit l4t_bsp
 

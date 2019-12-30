@@ -20,6 +20,8 @@ SRC_URI += "file://nvargus-daemon.init \
            file://tegra186-flash-helper.sh \
            file://tegra194-flash-helper.sh \
            file://tegra210-flash-helper.sh \
+           file://0001-Fix-skipuid-arg-usage-for-tx2-in-odmsign.func.patch \
+           file://0002-Update-l4t_bup_gen.func-to-handle-signed-encrypted-b.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
@@ -54,9 +56,8 @@ do_install() {
     install -m 0755 ${S}/bootloader/nv_smd_generator ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/BUP_generator.py ${D}${BINDIR}
     sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/BUP_generator.py
-    install -d ${D}${BINDIR}/rollback
-    install -m 0755 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}/rollback
-    sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/rollback/rollback_parser.py
+    install -m 0755 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}
+    sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/rollback_parser.py
     install -m 0644 ${S}/bootloader/l4t_bup_gen.func ${D}${BINDIR}
     install -m 0644 ${S}/bootloader/odmsign.func ${D}${BINDIR}
 
