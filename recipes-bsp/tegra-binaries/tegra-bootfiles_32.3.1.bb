@@ -56,12 +56,10 @@ BOOTBINS_tegra194 = "\
 
 BOOTBINS_tegra210 = "\
     bmp.blob \
-    bpmp_t210b01.bin \
     eks.img \
     nvtboot_cpu.bin \
     nvtboot_recovery.bin \
     nvtboot_recovery_cpu.bin \
-    nvtboot_recovery_t210b01.bin \
     rp4.blob \
     tos-mon-only.img \
 "
@@ -75,7 +73,6 @@ BOOTBINS_MACHINE_SPECIFIC_tegra194 = ""
 BOOTBINS_MACHINE_SPECIFIC_tegra210 = "\
     cboot.bin \
     nvtboot.bin \
-    nvtboot_t210b01.bin \
     sc7entry-firmware.bin \
     warmboot.bin \
 "

@@ -101,21 +101,25 @@ if [ -n "$BOARDID" ]; then
     boardid="$BOARDID"
 else
     boardid=`$here/chkbdinfo -i ${cvm_bin} | tr -d '[:space:]'`
+    BOARDID="$boardid"
 fi
 if [ -n "$FAB" ]; then
     board_version="$FAB"
 else
     board_version=`$here/chkbdinfo -f ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z]`
+    FAB="$board_version"
 fi
 if [ -n "$BOARDSKU" ]; then
     board_sku="$BOARDSKU"
 else
     board_sku=`$here/chkbdinfo -k ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z]`
+    BOARDSKU="$board_sku"
 fi
 if [ -n "$BOARDREV" ]; then
     board_revision="$BOARDREV"
 else
     board_revision=`$here/chkbdinfo -r ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z]`
+    BOARDREV="$board_revision"
 fi
 
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
@@ -150,19 +154,19 @@ if [ "$boardid" = "2888" ]; then
 	    exit 1
 	    ;;
     esac
-elif [ "$BOARDID" = "3660" ]; then
+elif [ "$boardid" = "3660" ]; then
     case $board_version in
 	[01][0-9][0-9])
 	    TOREV="a02"
 	    PMICREV="a02"
 	    ;;
 	*)
-	    echo "ERR: unrecognized board revision $boardrev" >&2
+	    echo "ERR: unrecognized board version $board_version" >&2
 	    exit 1
 	    ;;
     esac
 else
-    echo "ERR: unrecognized board ID $BOARDID" >&2
+    echo "ERR: unrecognized board ID $boardid" >&2
     exit 1
 fi
 
@@ -180,7 +184,16 @@ done
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}"
 
-sed -e"s,BPFDTB_FILE,$BPFDTB_FILE," "$flash_in" > flash.xml
+rm -f verfile.txt
+echo "NV3" >verfile.txt
+. bsp_version
+echo "# R$BSP_BRANCH , REVISION: $BSP_MAJOR.$BSP_MINOR" >>verfile.txt
+echo "BOARDID=$BOARDID BOARDSKU=$BOARDSKU FAB=$FAB" >>verfile.txt
+date "+%Y%m%d%H%M%S" >>verfile.txt
+bytes=`cksum verfile.txt | cut -d' ' -f2`
+cksum=`cksum verfile.txt | cut -d' ' -f1`
+echo "BYTES:$bytes CRC32:$cksum" >>verfile.txt
+sed -e"s,VERFILE,verfile.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," "$flash_in" > flash.xml
 
 BINSARGS="mb2_bootloader nvtboot_recovery_t194.bin; \
 mts_preboot preboot_c10_prod_cr.bin; \

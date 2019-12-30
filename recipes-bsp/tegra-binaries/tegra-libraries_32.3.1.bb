@@ -20,6 +20,7 @@ do_install() {
     done
     install -d ${D}${libdir}
     for f in ${DRVROOT}/tegra/lib*; do
+	[ -f $f ] || continue
         install -m 0644 $f ${D}${libdir}
     done
     for f in ${DRVROOT}/tegra-egl/lib*; do

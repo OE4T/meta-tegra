@@ -80,12 +80,14 @@ if [ -n "$BOARDID" ]; then
     boardid="$BOARDID"
 else
     boardid=`$here/chkbdinfo -i ${cvm_bin} | tr -d '[:space:]'`
+    BOARDID="$boardid"
 fi
 
 if [ -n "$FAB" ]; then
     board_version="$FAB"
 else
     board_version=`$here/chkbdinfo -f ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z]`
+    FAB="$board_version"
 fi
 
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
@@ -136,12 +138,22 @@ for var in $FLASHVARS; do
 done
 
 [ -n "$BOARDID" ] || BOARDID=3310
+[ -n "$BOARDSKU" ] || BOARDSKU=1000
 [ -n "$FAB" ] || FAB=B02
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 
 spec="${BOARDID}-${FAB}---1--${MACHINE}"
 
-sed -e"s,BPFDTB-FILE,$BPFDTB_FILE," "$flash_in" > flash.xml
+rm -f verfile.txt
+echo "NV3" >verfile.txt
+. bsp_version
+echo "# R$BSP_BRANCH , REVISION: $BSP_MAJOR.$BSP_MINOR" >>verfile.txt
+echo "BOARDID=$BOARDID BOARDSKU=$BOARDSKU FAB=$FAB" >>verfile.txt
+date "+%Y%m%d%H%M%S" >>verfile.txt
+bytes=`cksum verfile.txt | cut -d' ' -f2`
+cksum=`cksum verfile.txt | cut -d' ' -f1`
+echo "BYTES:$bytes CRC32:$cksum" >>verfile.txt
+sed -e"s,VERFILE,verfile.txt," -e"s,BPFDTB-FILE,$BPFDTB_FILE," "$flash_in" > flash.xml
 
 BINSARGS="mb2_bootloader nvtboot_recovery.bin; \
 mts_preboot preboot_d15_prod_cr.bin; \
