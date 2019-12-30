@@ -51,7 +51,7 @@ do_deploy() {
 }
 do_deploy[depends] += "cboot:do_deploy virtual/bootloader:do_deploy virtual/kernel:do_deploy ${SOC_FAMILY}-flashtools-native:do_populate_sysroot"
 do_deploy[depends] += "tegra186-redundant-boot:do_populate_sysroot tegra-bootfiles:do_populate_sysroot nv-tegra-release:do_populate_sysroot"
-do_deploy[depends] += "virtual/secure-os:do_deploy"
+do_deploy[depends] += "virtual/secure-os:do_deploy coreutils-native:do_populate_sysroot"
 addtask deploy before do_build
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

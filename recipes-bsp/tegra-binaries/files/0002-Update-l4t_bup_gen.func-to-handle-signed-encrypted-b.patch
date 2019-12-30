@@ -7,10 +7,10 @@ Subject: [PATCH] Update l4t_bup_gen.func to handle signed+encrypted bootloader
  bootloader/l4t_bup_gen.func | 103 ++++++++++++++++++++++++------------
  1 file changed, 68 insertions(+), 35 deletions(-)
 
-diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
-index af14e7e..d66c1eb 100644
---- a/bootloader/l4t_bup_gen.func
-+++ b/bootloader/l4t_bup_gen.func
+Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
+===================================================================
+--- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
++++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
 @@ -109,14 +109,28 @@ _generate_bl_update_payload()
  	local zerosbk_signing="${3}"
  	local tegra_soc="${4}"
@@ -40,7 +40,7 @@ index af14e7e..d66c1eb 100644
  
  	echo ""
  	echo "Creating update payloads for Jetson-${_sw_spec} board ..."
-@@ -174,13 +188,13 @@ _generate_bl_update_payload()
+@@ -196,13 +210,13 @@ _generate_bl_update_payload()
  	#     for production mode special binary(_prod), op_mode = 2
  	if [ "${tegra_soc}" == "t18x" ]; then
  		local kernel_image_base=$(echo "${lnx_image}" | cut -f 1 -d '.')
@@ -61,7 +61,7 @@ index af14e7e..d66c1eb 100644
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
  			ENTRY_LIST[bl]+="signed/mb1_dev.bin.${signed_ext} mb1 2 1 $_common_spec; \
-@@ -189,10 +203,10 @@ _generate_bl_update_payload()
+@@ -211,10 +225,10 @@ _generate_bl_update_payload()
  				signed/warmboot_dev_wbheader.bin.${signed_ext} sc7 2 1 $_common_spec;"
  		else
  			# fuselevel_production or any other level
@@ -76,16 +76,16 @@ index af14e7e..d66c1eb 100644
  		fi;
  
  		# add multiple binaries into BUP
-@@ -206,7 +220,7 @@ _generate_bl_update_payload()
+@@ -228,7 +242,7 @@ _generate_bl_update_payload()
  
- 		local kernel_dtb_base=$(echo "${lnx_dtb}" | cut -f 1 -d '.')
+ 		local kernel_dtb_base=$(echo "${lnx_dtb}" | cut -f 1,2 -d '-')
  		_add_multi_bins "kernel-dtb" \
--			"$(ls multi_signed/*/${kernel_dtb_base}_sigheader.dtb.${signed_ext})" "kernel"
-+			"$(ls multi_signed/*/${kernel_dtb_base}_sigheader.dtb.${signed_ext_kernel})" "kernel"
+-			"$(ls multi_signed/*/${kernel_dtb_base}*_sigheader.dtb.${signed_ext})" "kernel"
++			"$(ls multi_signed/*/${kernel_dtb_base}*_sigheader.dtb.${signed_ext_kernel})" "kernel"
  
  		_add_multi_bins "BCT" "$(ls multi_signed/*/br_bct*.bct)"
  		_add_multi_bins "MB1_BCT" \
-@@ -214,13 +228,13 @@ _generate_bl_update_payload()
+@@ -236,13 +250,13 @@ _generate_bl_update_payload()
  
  	elif [ "${tegra_soc}" == "t19x" ]; then
  		local kernel_image_base=$(echo "${lnx_image}" | cut -f 1 -d '.')
@@ -106,7 +106,7 @@ index af14e7e..d66c1eb 100644
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
  			ENTRY_LIST[bl]+="signed/mb1_t194_dev_sigheader.bin.${signed_ext} mb1 2 1 $_common_spec; \
-@@ -230,11 +244,11 @@ _generate_bl_update_payload()
+@@ -252,11 +266,11 @@ _generate_bl_update_payload()
  				signed/warmboot_t194_dev_sigheader.bin.${signed_ext} sc7 2 1 $_common_spec;"
  		else
  			# fuselevel_production or any other level
@@ -123,16 +123,16 @@ index af14e7e..d66c1eb 100644
  		fi;
  
  		# add multiple binaries into BUP
-@@ -248,7 +262,7 @@ _generate_bl_update_payload()
+@@ -270,7 +284,7 @@ _generate_bl_update_payload()
  
- 		local kernel_dtb_base=$(echo "${lnx_dtb}" | cut -f 1 -d '.')
+ 		local kernel_dtb_base=$(echo "${lnx_dtb}" | cut -f 1,2 -d '-')
  		_add_multi_bins "kernel-dtb" \
--			"$(ls multi_signed/*/${kernel_dtb_base}_sigheader.dtb.${signed_ext})" "kernel"
-+			"$(ls multi_signed/*/${kernel_dtb_base}_sigheader.dtb.${signed_ext_kernel})" "kernel"
+-			"$(ls multi_signed/*/${kernel_dtb_base}*_sigheader.dtb.${signed_ext})" "kernel"
++			"$(ls multi_signed/*/${kernel_dtb_base}*_sigheader.dtb.${signed_ext_kernel})" "kernel"
  
  		_add_multi_bins "BCT" "$(ls multi_signed/*/br_bct*.bct)"
  		_add_multi_bins "MB1_BCT" \
-@@ -343,6 +357,7 @@ _sign_multi_images()
+@@ -367,6 +381,7 @@ _sign_multi_images()
  	local fuselevel="${3}"
  	local tegra_soc="${4}"
  	local result
@@ -140,7 +140,7 @@ index af14e7e..d66c1eb 100644
  
  	#
  	# Retrieve info from main
-@@ -357,16 +372,31 @@ _sign_multi_images()
+@@ -381,16 +396,31 @@ _sign_multi_images()
  	# xusb fw
  	xusb_fw="xusb_sil_rel_fw";
  
@@ -172,7 +172,7 @@ index af14e7e..d66c1eb 100644
  	echo ${cmd}
  	eval ${cmd}
  	if [ $? -eq 0 ];then
-@@ -388,9 +418,9 @@ _sign_multi_images()
+@@ -412,9 +442,9 @@ _sign_multi_images()
  
  		if [ "${tegra_soc}" != "t21x" ]; then
  			if [ "${fuselevel}" = "fuselevel_nofuse" ]; then
@@ -184,8 +184,8 @@ index af14e7e..d66c1eb 100644
  			fi
  		fi
  
-@@ -405,7 +435,10 @@ _sign_multi_images()
- 			cp "${OUT}"/signed/nvtboot.bin.* "${OUT}"/multi_signed/"${_sw_spec}"/
+@@ -424,7 +454,10 @@ _sign_multi_images()
+ 			mv "${OUT}"/*_bootblob_ver.txt "${OUT}"/multi_signed/"${_sw_spec}"/
  		fi
  
 -		mv "${OUT}"/signed/*.dtb* "${OUT}"/signed/*bct* "${OUT}"/multi_signed/"${_sw_spec}"/
@@ -196,7 +196,7 @@ index af14e7e..d66c1eb 100644
  
  		# xusb-fw
  		if [ "${tegra_soc}" == "t19x" ]; then
-@@ -472,17 +505,17 @@ function l4t_bup_gen()
+@@ -491,17 +524,17 @@ function l4t_bup_gen()
  	fi;
  
  	# check signing key

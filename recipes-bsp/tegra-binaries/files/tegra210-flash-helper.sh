@@ -41,10 +41,14 @@ else
     echo "Board ID($boardid) version($boardver) SKU($boardsku) from environment"
 fi
 rm -f verfile.txt
-echo "NV2" >verfile.txt
+echo "NV3" >verfile.txt
 . bsp_version
 echo "# R$BSP_BRANCH , REVISION: $BSP_MAJOR.$BSP_MINOR" >>verfile.txt
 echo "BOARDID=$boardid BOARDSKU=$boardsku FAB=$boardver" >>verfile.txt
+date "+%Y%m%d%H%M%S" >>verfile.txt
+bytes=`cksum verfile.txt | cut -d' ' -f2`
+cksum=`cksum verfile.txt | cut -d' ' -f1`
+echo "BYTES:$bytes CRC32:$cksum" >>verfile.txt
 sed -e"s,VERFILE,verfile.txt," "$flash_in" > flash.xml
 boardcfg=
 [ -z "$boardcfg_file" ] || boardcfg="--boardconfig $boardcfg_file"
@@ -53,12 +57,17 @@ if [ "$sign_only" = "yes" ]; then
     binargs=
 else
     cmd="flash;reboot"
-    if [ "$BOARDID" = "3448" ]; then
-	binargs="--bins \"EBT cboot.bin; DTB $dtbfile\""
+    if [ "$boardid" = "3448" ]; then
+	binargs="--bins \"EBT cboot.bin;DTB $dtb_file\""
     fi
 fi
 
-python $here/tegraflash.py --bl cboot.bin --bct "$sdramcfg_file" --odmdata $odmdata \
-       --bldtb "$dtb_file" --applet nvtboot_recovery.bin \
-       $boardcfg --cfg flash.xml --chip 0x21 $binargs \
-       --cmd "$cmd"
+# tegraflash.py is very finicky (read: broken) when it comes to argument
+# parsing, in particular with the --bins option value and the interaction
+# with shell quoting. Hence this rather clunky approach to executing the
+# command.
+flashcmd="python $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $odmdata \
+ --bldtb \"$dtb_file\" --applet nvtboot_recovery.bin \
+ $boardcfg --cfg flash.xml --chip 0x21 --cmd \"$cmd\" $binargs"
+eval "$flashcmd"
+

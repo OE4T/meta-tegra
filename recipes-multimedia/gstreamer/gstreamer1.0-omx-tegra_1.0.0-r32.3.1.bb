@@ -6,14 +6,14 @@ HOMEPAGE = "http://www.gstreamer.net/"
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-nveglgles gstreamer1.0-plugins-tegra"
 DEPENDS += "tegra-libraries"
 
-TEGRA_SRC_SUBARCHIVE = "public_sources/gstomx1_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.2.3.inc
+TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstomx1_src.tbz2"
+require recipes-bsp/tegra-sources/tegra-sources-32.3.1.inc
 
 # Plugin needs a couple of header files that it does not include, but
 # they are present in the V4L2 plugin source package, so extract them
 # from there.
 unpack_tar_in_tar_append() {
-    tar -x -j -f ${SRC_ARCHIVE} public_sources/gst-nvvideo4linux2_src.tbz2 \
+    tar -x -j -f ${SRC_ARCHIVE} Linux_for_Tegra/source/public/gst-nvvideo4linux2_src.tbz2 \
 	--to-command="tar -C ${S}/omx -x -j --no-same-owner -f- nvbufsurface.h nvbuf_utils.h"
 }
 

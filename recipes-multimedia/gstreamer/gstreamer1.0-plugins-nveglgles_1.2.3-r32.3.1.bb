@@ -5,8 +5,8 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=73a5855a8119deb017f5f13cf327095d \
                     file://COPYING.LIB;md5=21682e4e8fea52413fd26c60acb907e5 \
                     file://ext/eglgles/gstegladaptation.c;beginline=9;endline=25;md5=51eafe984c428127773b6a95eb959d0b"
 
-TEGRA_SRC_SUBARCHIVE = "public_sources/gstegl_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.2.3.inc
+TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstegl_src.tbz2"
+require recipes-bsp/tegra-sources/tegra-sources-32.3.1.inc
 
 SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0002-fix-libtool-references.patch \
@@ -14,7 +14,6 @@ SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0004-make-x11-optional.patch \
 	    file://fix-missing-gstegljitter.patch \
 	    file://make-wayland-configurable.patch \
-	    file://back-out-rows-cols.patch \
 "
 
 DEPENDS += "gstreamer1.0-plugins-base virtual/egl virtual/libgles2"
