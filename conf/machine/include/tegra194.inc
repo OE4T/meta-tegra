@@ -9,7 +9,7 @@ KERNEL_IMAGETYPE = "Image"
 
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image"
-MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-configs-nvstartup tegra-configs-udev kernel-module-nvgpu"
+MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev kernel-module-nvgpu"
 
 INITRD_IMAGE ?=	"tegra-minimal-initramfs"
 IMAGE_CLASSES_append = " image_types_cboot"
@@ -46,3 +46,5 @@ require conf/machine/include/tegra-common.inc
 L4T_BSP_NAME = "t186ref_release_aarch64"
 L4T_SRCS_NAME = "Sources/T186"
 L4T_BSP_PREFIX = "Tegra186"
+
+NVPMODEL ?= "nvpmodel_t194"

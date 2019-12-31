@@ -3,8 +3,6 @@ require tegra-shared-binaries.inc
 
 DESCRIPTION = "Miscellaneous configuration files provided by L4T"
 
-inherit systemd
-
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/config.tbz2
     sed -e'/camera_device_detect/d' ${B}/etc/udev/rules.d/99-tegra-devices.rules
@@ -13,9 +11,6 @@ do_configure() {
 do_compile[noexec] = "1"
 
 do_install() {
-    install -d ${D}${sysconfdir}/init.d ${D}${systemd_system_unitdir}
-    install -m 0755 ${S}/nvstartup.init ${D}${sysconfdir}/init.d/nvstartup
-    install -m 0644 ${S}/nvstartup.service ${D}${systemd_system_unitdir}/
     install -d ${D}${sbindir}
     sed -e's,\(sudo bash .*\),: #\1,' -e'/^# Ensure libglx/,$d' ${B}/etc/systemd/nv.sh >${D}${sbindir}/nvstartup
     chmod 0755 ${D}${sbindir}/nvstartup
@@ -42,8 +37,6 @@ PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup"
 FILES_${PN}-udev = "${sysconfdir}/udev/rules.d"
 FILES_${PN}-xorg = "${sysconfdir}/X11"
 FILES_${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
-FILES_${PN}-nvstartup = "${sysconfdir}/init.d/nvstartup ${sbindir}"
-SYSTEMD_PACKAGES = "${PN}-nvstartup"
-SYSTEMD_SERVICE_${PN}-nvstartup = "nvstartup.service"
+FILES_${PN}-nvstartup = "${sbindir}"
 RDEPENDS_${PN}-udev = "udev"
 RDEPENDS_${PN}-nvstartup = "bash"

@@ -1,8 +1,6 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-inherit update-rc.d systemd
-
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib usr/sbin var/nvidia
 }
@@ -41,10 +39,6 @@ do_install() {
     ln -sf ${libdir}/libEGL_nvidia.so.0 ${D}/usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0
     install -d ${D}${sbindir}
     install -m755 ${B}/usr/sbin/nvargus-daemon ${D}${sbindir}/
-    install -d ${D}${sysconfdir}/init.d
-    install -m755 ${S}/nvargus-daemon.init ${D}${sysconfdir}/init.d/nvargus-daemon
-    install -d ${D}${systemd_system_unitdir}
-    install -m644 ${S}/nvargus-daemon.service ${D}${systemd_system_unitdir}
     install -d ${D}${datadir}/glvnd/egl_vendor.d
     install -m644 ${DRVROOT}/tegra-egl/nvidia.json ${D}${datadir}/glvnd/egl_vendor.d/10-nvidia.json
     install -d ${D}${sysconfdir}/vulkan/icd.d
@@ -52,26 +46,23 @@ do_install() {
     rm ${D}${libdir}/libnvidia-egl-wayland*
 }
 
-PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-libnvosd ${PN}-dev ${PN}"
+PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-argus-daemon-base ${PN}-libnvosd ${PN}-dev ${PN}"
 
 FILES_${PN}-libv4l-plugins = "${libdir}/libv4l"
-FILES_${PN}-argus = "${libdir}/libnvargus* ${sbindir}/nvargus-daemon ${sysconfdir}/init.d/nvargus-daemon"
+FILES_${PN}-argus = "${libdir}/libnvargus*"
+FILES_${PN}-argus-daemon-base = "${sbindir}/nvargus-daemon"
 FILES_${PN}-libnvosd = "${libdir}/libnvosd*"
 FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir} ${datadir}"
 FILES_${PN}-dev = "${libdir}/lib*GL*.so"
 RDEPENDS_${PN} = "libasound"
-RDEPENDS_${PN}-argus = "${PN} libglvnd"
+RDEPENDS_${PN}-argus = "tegra-argus-daemon"
+RDEPENDS_${PN}-argus-daemon-base = "${PN} libglvnd"
 RDEPENDS_${PN}-libnvosd = "${PN} pango cairo glib-2.0"
-
-INITSCRIPT_PACKAGES = "${PN}-argus"
-INITSCRIPT_NAME_${PN}-argus = "nvargus-daemon"
-INITSCRIPT_PARAMS_${PN}-argus = "defaults"
-SYSTEMD_PACKAGES = "${PN}-argus"
-SYSTEMD_SERVICE_${PN}-argus = "nvargus-daemon.service"
 
 INSANE_SKIP_${PN}-libv4l-plugins = "dev-so textrel ldflags build-deps"
 INSANE_SKIP_${PN} = "dev-so textrel ldflags build-deps"
 INSANE_SKIP_${PN}-argus = "dev-so ldflags"
+INSANE_SKIP_${PN}-argus-daemon-base = "ldflags"
 INSANE_SKIP_${PN}-libnvosd = "dev-so ldflags"
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"

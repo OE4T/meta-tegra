@@ -9,19 +9,7 @@ SSTATE_SWSPEC = "sstate:tegra-binaries-native::${PV}:${PR}::${SSTATE_VERSION}:"
 STAMP = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-${PR}"
 STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-*"
 
-SRC_URI += "file://nvargus-daemon.init \
-           file://nvargus-daemon.service \
-           file://nvpmodel.init \
-           file://nvpmodel.service \
-           file://nvphs.init \
-           file://nvphs.service \
-           file://nvs-service.init \
-           file://nvs-service.service \
-           file://nvstartup.init \
-           file://nvstartup.service \
-           file://tegra186-flash-helper.sh \
-           file://tegra194-flash-helper.sh \
-           file://tegra210-flash-helper.sh \
+SRC_URI += "\
            file://0001-Fix-skipuid-arg-usage-for-tx2-in-odmsign.func.patch \
            file://0002-Update-l4t_bup_gen.func-to-handle-signed-encrypted-b.patch \
            "
@@ -35,6 +23,8 @@ PROVIDES = "tegra194-flashtools-native"
 inherit native
 
 INHIBIT_DEFAULT_DEPS = "1"
+DEPENDS = "tegra-helper-scripts-native"
+
 do_compile[noexec] = "1"
 
 BINDIR = "${bindir}/tegra186-flash"
@@ -72,7 +62,4 @@ do_install() {
     install -m 0755 ${S}/bootloader/tegrakeyhash ${D}${BINDIR}
 
     install -m 0755 ${S}/nv_tegra/tos-scripts/gen_tos_part_img.py ${D}${BINDIR}
-
-    install -m 0755 ${S}/tegra186-flash-helper.sh ${D}${BINDIR}
-    install -m 0755 ${S}/tegra194-flash-helper.sh ${D}${BINDIR}
 }
