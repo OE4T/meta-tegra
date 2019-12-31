@@ -1,19 +1,18 @@
-require tegra-binaries-${PV}.inc
-require tegra-shared-binaries.inc
+DESCRIPTION = "nvs-service startup files"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-DESCRIPTION = "NVIDIA sensor HAL daemon"
+SRC_URI = "\
+    file://nvs-service.init \
+    file://nvs-service.service \
+"
 
+INHIBIT_DEFAULT_DEPS = "1"
 COMPATIBLE_MACHINE = "(tegra)"
 
-do_configure() {
-    tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/sbin/nvs-service
-}
-
-do_compile[noexec] = "1"
+S = "${WORKDIR}"
 
 do_install() {
-    install -d ${D}${sbindir}
-    install -m 0755 ${B}/usr/sbin/nvs-service ${D}${sbindir}/
     install -d ${D}${systemd_system_unitdir} ${D}${sysconfdir}/init.d
     install -m 0644 ${S}/nvs-service.service ${D}${systemd_system_unitdir}
     install -m 0755 ${S}/nvs-service.init ${D}${sysconfdir}/init.d/nvs-service
@@ -25,10 +24,6 @@ inherit systemd update-rc.d
 INITSCRIPT_NAME = "nvs-service"
 INITSCRIPT_PARAMS = "defaults"
 SYSTEMD_SERVICE_${PN} = "nvs-service.service"
-
-PACKAGES = "${PN}"
-FILES_${PN} = "${sbindir} ${sysconfdir}"
-RDEPENDS_${PN} = "bash tegra-libraries"
-INSANE_SKIP_${PN} = "ldflags"
+RDEPENDS_${PN} = "tegra-nvs-base"
 
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

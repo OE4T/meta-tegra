@@ -22,6 +22,8 @@ COMPATIBLE_MACHINE = ""
 inherit native
 
 INHIBIT_DEFAULT_DEPS = "1"
+DEPENDS = "tegra-helper-scripts-native"
+
 do_compile[noexec] = "1"
 
 BINDIR = "${bindir}/tegra210-flash"
@@ -47,5 +49,4 @@ do_install() {
     install -m 0755 ${S}/bootloader/mkbctpart ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/chkbdinfo ${D}${BINDIR}
     install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}
-    install -m 0755 ${S}/tegra210-flash-helper.sh ${D}${BINDIR}
 }

@@ -19,32 +19,14 @@ SRC_URI[sb.sha256sum] = "${SB_SHA256SUM}"
 
 inherit l4t_bsp
 
-SRC_URI += "\
-    file://nvargus-daemon.init \
-    file://nvargus-daemon.service \
-    file://nvpmodel.init \
-    file://nvpmodel.service \
-    file://nvphs.init \
-    file://nvphs.service \
-    file://nvs-service.init \
-    file://nvs-service.service \
-    file://nvstartup.init \
-    file://nvstartup.service \
-    file://tegra186-flash-helper.sh \
-    file://tegra194-flash-helper.sh \
-    file://tegra210-flash-helper.sh \
-"
-
 S = "${TMPDIR}/work-shared/L4T-${SOC_FAMILY}-${PV}-${PR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
-
-do_preconfigure() {
-    cp ${WORKDIR}/*-daemon.* ${WORKDIR}/nvstartup.* ${S}/
-    cp ${WORKDIR}/nvpmodel.* ${WORKDIR}/nvphs.* ${WORKDIR}/nvs-service.* ${S}/
-    cp ${WORKDIR}/tegra*-flash-helper.sh ${S}/
-}
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
 COMPATIBLE_MACHINE = "tegra"
+
+do_preconfigure() {
+    :
+}

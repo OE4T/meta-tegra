@@ -9,7 +9,7 @@ KERNEL_IMAGETYPE = "Image"
 
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image u-boot"
-MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-configs-nvstartup tegra-configs-udev kernel-module-nvgpu kernel-module-tegra-udrm"
+MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev kernel-module-nvgpu kernel-module-tegra-udrm"
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 TEGRA_INITRAMFS_INITRD ?= "1"
@@ -37,3 +37,5 @@ require conf/machine/include/tegra-common.inc
 L4T_BSP_NAME = "t210ref_release_aarch64"
 L4T_SRCS_NAME = "Sources/T210"
 L4T_BSP_PREFIX = "Tegra210"
+
+NVPMODEL ?= "nvpmodel_t210"
