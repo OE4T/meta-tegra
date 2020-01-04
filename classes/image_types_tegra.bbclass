@@ -91,9 +91,9 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,TXC,TBC," -e"s,TBCTYPE,bootloader," -e"s,TBCFILE,nvtboot_cpu.bin," \
         -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
-	-e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
+        -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"s,PPTSIZE,16896," \
-	-e"s,APPUUID,," \
+        -e"s,APPUUID,," \
         > $destdir/flash.xml.in
     if [ "${TEGRA_SPIFLASH_BOOT}" = "1" ]; then
         cat "${STAGING_DATADIR}/tegraflash/sdcard_${MACHINE}.xml" | sed \
@@ -111,18 +111,13 @@ tegraflash_create_flash_config_tegra210() {
             -e"s,EXS,EKS," -e"s,EKSFILE,eks.img," \
             -e"s,FBTYPE,data," -e"/FBFILE/d" \
             -e"s,DXB,DTB," -e"s,DTBFILE,${DTBFILE}," \
-            -e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+            -e"s,APPFILE,${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
             -e"s,TXC,TBC," -e"s,TBCTYPE,bootloader," -e"s,TBCFILE,nvtboot_cpu.bin," \
             -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
-	    -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
+            -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
             -e"s,PPTSIZE,16896," \
-	    -e"s,APPUUID,," \
+            -e"s,APPUUID,," \
             > $destdir/sdcard.xml.in
-        cat "${STAGING_DATADIR}/tegraflash/sdcard-layout.in" | sed \
-            -e"s,DTBFILE,${DTBFILE}.encrypt," \
-            -e"s,LNXFILE,${lnxfile}.encrypt," \
-            -e"s,APPFILE,${IMAGE_BASENAME}.raw.img," \
-          > $destdir/sdcard-layout
     fi
 }
 
@@ -152,12 +147,12 @@ tegraflash_create_flash_config_tegra186() {
         -e"s,TOSFILE,tos-trusty.img," -e"s,TOSNAME,secure-os," \
         -e"s,EKSFILE,eks.img," \
         -e"s,FBTYPE,data," -e"s,FBSIGN,false," -e"/FBFILE/d" \
-	-e"s,KERNELDTB-NAME,kernel-dtb," -e"s,KERNELDTB-FILE,${DTBFILE}," \
-	-e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
-	-e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
-	-e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
-	-e"s,PPTSIZE,2097152," \
-	-e"s,APPUUID,," \
+        -e"s,KERNELDTB-NAME,kernel-dtb," -e"s,KERNELDTB-FILE,${DTBFILE}," \
+        -e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
+        -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
+        -e"s,PPTSIZE,2097152," \
+        -e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
 
@@ -184,12 +179,12 @@ tegraflash_create_flash_config_tegra194() {
         -e"s,WB0BOOT,warmboot_t194_prod.bin," \
         -e"s,TOSFILE,tos-trusty_t194.img," \
         -e"s,EKSFILE,eks.img," \
-	-e"s, DTB_FILE, ${DTBFILE}," \
-	-e"s,CBOOTOPTION_FILE,cbo.dtb," \
-	-e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
-	-e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
-	-e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
-	-e"s,APPUUID,," \
+        -e"s, DTB_FILE, ${DTBFILE}," \
+        -e"s,CBOOTOPTION_FILE,cbo.dtb," \
+        -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
+        -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
+        -e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        -e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
 
@@ -257,7 +252,6 @@ create_tegraflash_pkg() {
 }
 
 create_tegraflash_pkg_tegra210() {
-    local gptsize=16896
     PATH="${STAGING_BINDIR_NATIVE}/tegra210-flash:${PATH}"
     rm -rf "${WORKDIR}/tegraflash"
     mkdir -p "${WORKDIR}/tegraflash"
@@ -284,56 +278,23 @@ create_tegraflash_pkg_tegra210() {
 
     cp -R ${STAGING_BINDIR_NATIVE}/tegra210-flash/* .
     tegraflash_custom_pre
-    if [ "${TEGRA_SPIFLASH_BOOT}" != "1" ]; then
-        mksparse -b ${TEGRA_BLBLOCKSIZE} -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
-    fi
+    ln -s "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
-    if [ "${TEGRA_SPIFLASH_BOOT}" = "1" ]; then
-        BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} tegra210-flash-helper.sh --sign ./sdcard.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg"
-        dd if=/dev/zero of=${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard bs=1 count=0 seek=${TEGRAFLASH_SDCARD_SIZE}
-        sgdisk ${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard --clear
-        ln -s "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.raw.img
-        while IFS=, read partnum partname partsize partfile; do
-            if [ $partsize -eq 0 ]; then
-                partarg="--largest-new=$partnum"
-            else
-                partarg="--new=$partnum:0:+$(expr \( $partsize + 511 \) / 512)"
-            fi
-            sgdisk ${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard $partarg --typecode=$partnum:8300 -c $partnum:$partname
-        done < sdcard-layout
-        sgdisk ${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard --verify
-        blksize=${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}
-        startpoint=$blksize
-        while IFS=, read partnum partname partsize partfile; do
-            if [ $partsize -eq 0 ]; then
-                partlen=0
-            else
-                partlen=$(expr \( \( $partsize + \( $blksize - 1 \) \) / $blksize \) \* $blksize)
-            fi
-            if [ -n "$partfile" ]; then
-                if [ -e signed/$partfile ]; then
-                    partfile=signed/$partfile
-                fi
-                ddsize=
-                if [ "$partfile" = "/dev/zero" ]; then
-                    ddsize="count=$(expr $partlen / $blksize)"
-                fi
-                dd if=$partfile of=${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard conv=notrunc,fsync seek=$(expr $startpoint / $blksize) bs=$blksize $ddsize
-            fi
-            startpoint=$(expr $startpoint + $partlen)
-        done < sdcard-layout
-        sgdisk ${IMGDEPLOYDIR}/${IMAGE_NAME}.sdcard --verify
-        rm ${IMAGE_BASENAME}.raw.img
-        rm -r signed
-        ln -sf ${IMAGE_NAME}.sdcard ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.sdcard
-    fi
 
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra210-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" "${TEGRA_SPIFLASH_BOOT}" "\$@"
+MACHINE=${MACHINE} ./tegra210-flash-helper.sh -B ${TEGRA_BLBLOCKSIZE} flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" ${LNXFILE} "${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" "\$@"
 END
     chmod +x doflash.sh
+    if [ "${TEGRA_SPIFLASH_BOOT}" = "1" ]; then
+        rm -f dosdcard.sh
+        cat > dosdcard.sh <<END
+#!/bin/sh
+MACHINE=${MACHINE} ./tegra210-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} sdcard.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" ${LNXFILE} "${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" "\$@"
+END
+        chmod +x dosdcard.sh
+    fi
     tegraflash_custom_post
     tegraflash_custom_sign_pkg
     rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip

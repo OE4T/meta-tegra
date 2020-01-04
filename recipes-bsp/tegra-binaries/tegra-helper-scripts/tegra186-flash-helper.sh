@@ -11,6 +11,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 eval set -- "$ARGS"
+unset ARGS
 
 while true; do
     case "$1" in
@@ -142,7 +143,7 @@ done
 [ -n "$FAB" ] || FAB=B02
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 
-spec="${BOARDID}-${FAB}---1--${MACHINE}"
+spec="${BOARDID}-${FAB}-${BOARDSKU}--1--${MACHINE}"
 
 rm -f verfile.txt
 echo "NV3" >verfile.txt
