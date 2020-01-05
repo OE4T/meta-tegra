@@ -87,7 +87,7 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,TXS,TOS," -e"s,TOSFILE,tos-mon-only.img," \
         -e"s,EXS,EKS," -e"s,EKSFILE,eks.img," \
         -e"s,FBTYPE,data," -e"/FBFILE/d" \
-        -e"s,DXB,DTB," -e"s,DTBFILE,${DTBFILE}," \
+        -e"s,DXB,DTB," \
         -e"s,APPFILE,${IMAGE_BASENAME}.img," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,TXC,TBC," -e"s,TBCTYPE,bootloader," -e"s,TBCFILE,nvtboot_cpu.bin," \
         -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
@@ -110,7 +110,7 @@ tegraflash_create_flash_config_tegra210() {
             -e"s,TXS,TOS," -e"s,TOSFILE,tos-mon-only.img," \
             -e"s,EXS,EKS," -e"s,EKSFILE,eks.img," \
             -e"s,FBTYPE,data," -e"/FBFILE/d" \
-            -e"s,DXB,DTB," -e"s,DTBFILE,${DTBFILE}," \
+            -e"s,DXB,DTB," \
             -e"s,APPFILE,${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
             -e"s,TXC,TBC," -e"s,TBCTYPE,bootloader," -e"s,TBCFILE,nvtboot_cpu.bin," \
             -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
@@ -260,12 +260,16 @@ create_tegraflash_pkg_tegra210() {
     ln -sf "${STAGING_DATADIR}/tegraflash/bsp_version" .
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
-    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-    if [ -n "${KERNEL_ARGS}" ]; then
-        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
-    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
-        fdtput -d ./${DTBFILE} /chosen bootargs
-    fi
+    cp ${STAGING_DATADIR}/tegraflash/flashvars .
+    for f in ${KERNEL_DEVICETREE}; do
+	dtbf=`basename $f`
+	cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" ./
+	if [ -n "${KERNEL_ARGS}" ]; then
+            fdtput -t s ./$dtbf /chosen bootargs "${KERNEL_ARGS}"
+	elif fdtget -t s ./$dtbf /chosen bootargs >/dev/null 2>&1; then
+            fdtput -d ./$dtbf /chosen bootargs
+	fi
+    done
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
