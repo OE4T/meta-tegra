@@ -71,6 +71,10 @@ shift 7
 here=$(readlink -f $(dirname "$0"))
 flashapp=$here/tegraflash.py
 
+if [ -e ./flashvars ]; then
+    . ./flashvars
+fi
+
 # Temp file for storing cvm.bin in, if we need to query the board for its
 # attributes
 cvm_bin=$(mktemp cvm.bin.XXXXX)
@@ -109,6 +113,28 @@ else
     echo "Board ID($boardid) version($boardver) SKU($boardsku) revision($boardrev) from environment"
 fi
 
+if [ "$boardid" = "3448" ]; then
+    if expr "$boardver" \< "300" >/dev/null 2>&1; then
+	dtbfab="a02"
+    else
+	dtbfab="b00"
+    fi
+    if [ -z "$boardsku" ]; then
+	boardsku="0000"
+	BOARDSKU="0000"
+    fi
+    for var in $FLASHVARS; do
+	eval pat=$`echo $var`
+	if [ -z "$pat" ]; then
+	    echo "ERR: missing variable: $var" >&2
+	    exit 1
+	fi
+	eval $var=`echo $pat | sed -e"s,@BOARDSKU@,$BOARDSKU," -e"s,@DTBFAB@,$dtbfab,"`
+    done
+fi
+
+[ -n "$DTBFILE" ] || DTBFILE="$dtb_file"
+
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
 
 [ -n "fuselevel" ] || fuselevel=fuselevel_production
@@ -124,14 +150,14 @@ date "+%Y%m%d%H%M%S" >>verfile.txt
 bytes=`cksum verfile.txt | cut -d' ' -f2`
 cksum=`cksum verfile.txt | cut -d' ' -f1`
 echo "BYTES:$bytes CRC32:$cksum" >>verfile.txt
-sed -e"s,VERFILE,verfile.txt," "$flash_in" > flash.xml
+sed -e"s,VERFILE,verfile.txt," -e"s,DTBFILE,$DTBFILE," "$flash_in" > flash.xml
 boardcfg=
 [ -z "$boardcfg_file" ] || boardcfg="--boardconfig $boardcfg_file"
 if [ "$bup_build" = "yes" -o "$sdcard" = "yes" ]; then
     cmd="sign"
     binargs=
 else
-    if [ -z "$sdcard" ]; then
+    if [ -z "$sdcard" -a "$BOARDID" != "3448" -a "$BOARDSKU" != "0000" ]; then
 	appfile=$(echo $(basename "$imgfile") | cut -d. -f1).img
 	rm -f "$appfile"
 	$here/mksparse -b ${blocksize} -v --fillpattern=0 "$imgfile"  "$appfile" || exit 1
@@ -158,9 +184,12 @@ else
 	fi
 	exit 0
     else
-	cmd="flash;reboot"
 	if [ "$boardid" = "3448" ]; then
+	    cmd="flash"
+	    [ "$BOARDSKU" = "0000" ] || cmd="${cmd};reboot"
 	    binargs="--bins \"EBT cboot.bin;DTB $dtb_file\""
+	else
+	    cmd="flash;reboot"
 	fi
     fi
 fi
@@ -175,4 +204,7 @@ flashcmd="python $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $od
 eval "$flashcmd" || exit 1
 if [ -n "$sdcard" ]; then
     $here/make-sdcard $make_sdcard_args signed/flash.xml "$@"
+elif [ "$boardid" = "3448" -a "$BOARDSKU" = "0000" ]; then
+    echo "QSPI flashing complete.  To create an SDCard image, enter:"
+    echo "    BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU ./dosdcard.sh [device-or-file-name]"
 fi

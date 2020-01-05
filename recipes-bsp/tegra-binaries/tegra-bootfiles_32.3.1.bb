@@ -3,9 +3,7 @@ require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native sdcard-layout"
-DEPENDS_append_tegra186 = " tegra-flashvars"
-DEPENDS_append_tegra194 = " tegra-flashvars"
+DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native sdcard-layout tegra-flashvars"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
