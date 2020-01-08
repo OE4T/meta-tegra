@@ -43,6 +43,10 @@ do_install() {
     install -m 0755 ${S}/bootloader/tegraflash.py ${D}${BINDIR}
     install -m 0644 ${S}/bootloader/tegraflash_internal.py ${D}${BINDIR}
 
+    install -m 0755 ${S}/bootloader/BUP_generator.py ${D}${BINDIR}
+    install -m 0644 ${S}/bootloader/l4t_bup_gen.func ${D}${BINDIR}
+    install -m 0644 ${S}/bootloader/odmsign.func ${D}${BINDIR}
+
     install -m 0755 ${S}/bootloader/mkgpt ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mksparse ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mkbootimg ${D}${BINDIR}
