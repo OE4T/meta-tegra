@@ -1,15 +1,16 @@
 require recipes-bsp/tegra-binaries/tegra-binaries-${PV}.inc
 require recipes-bsp/tegra-binaries/tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
 
 TOSIMG_PREBUILT = "tos-trusty.img"
 TOSIMG_PREBUILT_tegra194 = "tos-trusty_t194.img"
+TOSIMG_PREBUILT_tegra210 = "tos-mon-only.img"
 PREFERRED_PROVIDER_virtual/secure-os ??= ""
-PROVIDES = "tos-trusty virtual/secure-os"
-TOS_IMAGE ?= "tos-trusty-${MACHINE}-${PV}-${PR}.img"
-TOS_SYMLINK ?= "tos-trusty-${MACHINE}.img"
+PROVIDES = "trusted-os virtual/secure-os"
+TOS_IMAGE ?= "tos-${MACHINE}-${PV}-${PR}.img"
+TOS_SYMLINK ?= "tos-${MACHINE}.img"
 
 inherit deploy
 

@@ -19,7 +19,6 @@ BOOTBINS_tegra186 = "\
     bmp.blob \
     bpmp.bin \
     camera-rtcpu-sce.img \
-    cboot.bin \
     dram-ecc.bin \
     eks.img \
     mb1_prod.bin \
@@ -36,7 +35,6 @@ BOOTBINS_tegra194 = "\
     bmp.blob \
     bpmp_t194.bin \
     camera-rtcpu-rce.img \
-    cboot_t194.bin \
     eks.img \
     mb1_t194_prod.bin \
     nvtboot_applet_t194.bin \
@@ -69,7 +67,6 @@ BOOTBINS_MACHINE_SPECIFIC_tegra186 = "\
 BOOTBINS_MACHINE_SPECIFIC_tegra194 = ""
 
 BOOTBINS_MACHINE_SPECIFIC_tegra210 = "\
-    cboot.bin \
     nvtboot.bin \
     sc7entry-firmware.bin \
     warmboot.bin \
