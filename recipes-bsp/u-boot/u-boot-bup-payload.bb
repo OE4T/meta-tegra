@@ -1,7 +1,7 @@
 DESCRIPTION = "Generates a bootloader update payload for use with nv_update_engine when using U-Boot on tegra186 platforms."
 LICENSE = "MIT"
 
-COMPATIBLE_MACHINE = "(tegra186)"
+COMPATIBLE_MACHINE = "(tegra)"
 
 INHIBIT_DEFAULT_DEPS = "1"
 
@@ -49,9 +49,9 @@ do_deploy() {
         ln -sf ${UBOOT_IMAGE}.bup-payload ${DEPLOYDIR}/${UBOOT_BINARY}.bup-payload
     fi
 }
-do_deploy[depends] += "cboot:do_deploy virtual/bootloader:do_deploy virtual/kernel:do_deploy ${SOC_FAMILY}-flashtools-native:do_populate_sysroot"
-do_deploy[depends] += "tegra186-redundant-boot:do_populate_sysroot tegra-bootfiles:do_populate_sysroot nv-tegra-release:do_populate_sysroot"
-do_deploy[depends] += "virtual/secure-os:do_deploy coreutils-native:do_populate_sysroot"
+do_deploy[depends] += "virtual/bootloader:do_deploy virtual/kernel:do_deploy ${SOC_FAMILY}-flashtools-native:do_populate_sysroot"
+do_deploy[depends] += "tegra-redundant-boot:do_populate_sysroot tegra-bootfiles:do_populate_sysroot nv-tegra-release:do_populate_sysroot"
+do_deploy[depends] += "coreutils-native:do_populate_sysroot cboot:do_deploy virtual/secure-os:do_deploy"
 addtask deploy before do_build
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
