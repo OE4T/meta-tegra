@@ -35,7 +35,7 @@ PLEASE NOTE
   builds.  This can be the NVIDIA SDK Manager downloads
   directory, `/home/$USER/Downloads/nvidia/sdkm_downloads`
 
-  **Note** Starting with L4T R32.3 and JetPack 4.3, The Tegra
+  **Note** Starting with L4T R32.3.1 and JetPack 4.3, The Tegra
   Multimedia API kit has moved to JetPack, so **all builds**
   now require you to set up an SDK Manager downloads area.
 
@@ -71,8 +71,8 @@ PLEASE NOTE
   should be used if you intend to use CUDA. See the following wiki
   pages for instructions on including gcc 7 in your builds:
 
-  (https://github.com/madisongh/meta-tegra/wiki/Using-gcc7-from-the-contrib-layer)
-  (https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
+  [Using gcc7 from the contrib layer](https://github.com/madisongh/meta-tegra/wiki/Using-gcc7-from-the-contrib-layer)
+  [Using linaro gcc7 for CUDA support](https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
 
 
 Contributing
