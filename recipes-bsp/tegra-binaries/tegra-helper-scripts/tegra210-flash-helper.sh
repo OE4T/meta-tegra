@@ -137,28 +137,38 @@ fi
 
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
 
-[ -n "fuselevel" ] || fuselevel=fuselevel_production
+[ -n "$fuselevel" ] || fuselevel=fuselevel_production
+[ -n "${BOOTDEV}" ] || BOOTDEV="mmcblk0p1"
 
-spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1--${MACHINE}"
+spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-0-${MACHINE}-${BOOTDEV}"
 
-rm -f verfile.txt
-echo "NV3" >verfile.txt
+rm -f ${MACHINE}_bootblob_ver.txt
+echo "NV3" >${MACHINE}_bootblob_ver.txt
 . bsp_version
-echo "# R$BSP_BRANCH , REVISION: $BSP_MAJOR.$BSP_MINOR" >>verfile.txt
-echo "BOARDID=$boardid BOARDSKU=$boardsku FAB=$boardver" >>verfile.txt
-date "+%Y%m%d%H%M%S" >>verfile.txt
-bytes=`cksum verfile.txt | cut -d' ' -f2`
-cksum=`cksum verfile.txt | cut -d' ' -f1`
-echo "BYTES:$bytes CRC32:$cksum" >>verfile.txt
-sed -e"s,VERFILE,verfile.txt," -e"s,DTBFILE,$DTBFILE," "$flash_in" > flash.xml
+echo "# R$BSP_BRANCH , REVISION: $BSP_MAJOR.$BSP_MINOR" >>${MACHINE}_bootblob_ver.txt
+echo "BOARDID=$boardid BOARDSKU=$boardsku FAB=$boardver" >>${MACHINE}_bootblob_ver.txt
+date "+%Y%m%d%H%M%S" >>${MACHINE}_bootblob_ver.txt
+bytes=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f2`
+cksum=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1`
+echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
+if [ -z "$bup_build" ]; then
+    if [ -z "$sdcard" ]; then
+	appfile=$(echo $(basename "$imgfile") | cut -d. -f1).img
+    else
+	appfile="$imgfile"
+    fi
+else
+    # ignore rootfs for BUP builds
+    appfile=APPFILE
+fi
+sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,DTBFILE,$DTBFILE," -e"s,APPFILE,$appfile," "$flash_in" > flash.xml
 boardcfg=
 [ -z "$boardcfg_file" ] || boardcfg="--boardconfig $boardcfg_file"
 if [ "$bup_build" = "yes" -o "$sdcard" = "yes" ]; then
     cmd="sign"
     binargs=
 else
-    if [ -z "$sdcard" -a "$BOARDID" != "3448" -a "$BOARDSKU" != "0000" ]; then
-	appfile=$(echo $(basename "$imgfile") | cut -d. -f1).img
+    if [ -z "$sdcard" ]; then
 	rm -f "$appfile"
 	$here/mksparse -b ${blocksize} -v --fillpattern=0 "$imgfile"  "$appfile" || exit 1
     fi
@@ -184,27 +194,30 @@ else
 	fi
 	exit 0
     else
+	cmd="flash;reboot"
 	if [ "$boardid" = "3448" ]; then
-	    cmd="flash"
-	    [ "$BOARDSKU" = "0000" ] || cmd="${cmd};reboot"
 	    binargs="--bins \"EBT cboot.bin;DTB $dtb_file\""
-	else
-	    cmd="flash;reboot"
 	fi
     fi
 fi
 
-# tegraflash.py is very finicky (read: broken) when it comes to argument
-# parsing, in particular with the --bins option value and the interaction
-# with shell quoting. Hence this rather clunky approach to executing the
-# command.
 flashcmd="python $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $odmdata \
  --bldtb \"$dtb_file\" --applet nvtboot_recovery.bin \
  $boardcfg --cfg flash.xml --chip 0x21 --cmd \"$cmd\" $binargs"
-eval "$flashcmd" || exit 1
-if [ -n "$sdcard" ]; then
-    $here/make-sdcard $make_sdcard_args signed/flash.xml "$@"
-elif [ "$boardid" = "3448" -a "$BOARDSKU" = "0000" ]; then
-    echo "QSPI flashing complete.  To create an SDCard image, enter:"
-    echo "    BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU ./dosdcard.sh [device-or-file-name]"
+
+if [ "$bup_build" = "yes" ]; then
+    [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
+    support_multi_spec=0
+    clean_up=0
+    dtbfilename="$dtb_file"
+    tbcdtbfilename="$dtb_file"
+    bpfdtbfilename="$BPFDTB_FILE"
+    localbootfile="boot.img"
+    . "$here/l4t_bup_gen.func"
+    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t210ref "$keyfile" 0x21 || exit 1
+else
+    eval "$flashcmd" || exit 1
+    if [ -n "$sdcard" ]; then
+	$here/make-sdcard $make_sdcard_args signed/flash.xml "$@"
+    fi
 fi
