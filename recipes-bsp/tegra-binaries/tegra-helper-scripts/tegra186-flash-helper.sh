@@ -136,8 +136,9 @@ done
 [ -n "$BOARDSKU" ] || BOARDSKU=1000
 [ -n "$FAB" ] || FAB=B02
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
+[ -n "${BOOTDEV}" ] || BOOTDEV="mmcblk0p1"
 
-spec="${BOARDID}-${FAB}-${BOARDSKU}--1--${MACHINE}"
+spec="${BOARDID}-${FAB}-${BOARDSKU}--1-0-${MACHINE}-${BOOTDEV}"
 
 rm -f verfile.txt
 echo "NV3" >verfile.txt

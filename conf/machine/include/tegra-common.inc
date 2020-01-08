@@ -6,7 +6,7 @@ KERNEL_ROOTSPEC ?= "root=/dev/mmcblk${@uboot_var('devnum')}p${@uboot_var('distro
 KERNEL_ARGS ??= ""
 
 TNSPEC_BOOTDEV ??= "mmcblk0p1"
-TNSPEC ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-${TEGRA_BOARDSKU}-${TEGRA-BOARDREV}-1-${TEGRA_CHIPREV}-${MACHINE}-${TNSPEC_BOOTDEV}"
+TNSPEC ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-${TEGRA_BOARDSKU}-${TEGRA_BOARDREV}-1-${TEGRA_CHIPREV}-${MACHINE}-${TNSPEC_BOOTDEV}"
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-tegra"
 PREFERRED_PROVIDER_u-boot ?= "u-boot-tegra"
