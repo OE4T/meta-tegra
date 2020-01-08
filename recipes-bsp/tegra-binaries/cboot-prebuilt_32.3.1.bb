@@ -1,11 +1,12 @@
 require recipes-bsp/tegra-binaries/tegra-binaries-${PV}.inc
 require recipes-bsp/tegra-binaries/tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
 
 CBOOTBIN_PREBUILT = "cboot.bin"
 CBOOTBIN_PREBUILT_tegra194 = "cboot_t194.bin"
+CBOOTBIN_PREBUILT_tegra210 = "t210ref/cboot.bin"
 PREFERRED_PROVIDER_virtual/bootloader ??= ""
 PROVIDES = "cboot"
 PROVIDES += "${@'virtual/bootloader' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"

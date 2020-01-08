@@ -37,9 +37,7 @@ CUDA_VERSION ?= "10.0"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_72 --gpu-code=sm_72"
 
 PREFERRED_PROVIDER_virtual/bootloader ?= "cboot-prebuilt"
-PREFERRED_PROVIDER_cboot ?= "cboot-prebuilt"
-PREFERRED_PROVIDER_virtual/secure-os ?= "tos-trusty-prebuilt"
-PREFERRED_PROVIDER_tos-trusty ?= "tos-trusty-prebuilt"
+PREFERRED_PROVIDER_tos-trusty ?= "tos-prebuilt"
 
 require conf/machine/include/tegra-common.inc
 

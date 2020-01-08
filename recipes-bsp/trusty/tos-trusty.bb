@@ -14,8 +14,8 @@ PROVIDES += "virtual/secure-os"
 TOSIMG = "tos-trusty.img"
 TOSIMG_tegra194 = "tos-trusty_t194.img"
 
-TOS_IMAGE ?= "tos-trusty-${MACHINE}-${PV}-${PR}.img"
-TOS_SYMLINK ?= "tos-trusty-${MACHINE}.img"
+TOS_IMAGE ?= "tos-${MACHINE}-${PV}-${PR}.img"
+TOS_SYMLINK ?= "tos-${MACHINE}.img"
 
 S = "${WORKDIR}/${BP}"
 
