@@ -1,1 +1,83 @@
-README
+OpenEmbedded/Yocto BSP layer for NVIDIA Jetson TX1/TX2/AGX Xavier/Nano
+======================================================================
+
+Boards supported:
+* Jetson-TX1 development kit (Linux4Tegra R32.3.1, JetPack 4.3)
+* Jetson-TX2 development kit (Linux4Tegra R32.3.1, JetPack 4.3)
+* Jetson AGX Xavier development kit (Linux4Tegra R32.3.1, JetPack 4.3)
+* Jetson Nano development kit (Linux4Tegra R32.3.1, JetPack 4.3)
+
+Also supported thanks to community support:
+* Jetson-TX2i module (Linux4Tegra R32.3.1, JetPack 4.3)
+* Jetson-TX2 4GB module (Linux4Tegra R32.3.1, JetPack 4.3)
+* Jetson AGX Xavier 8GB module (Linux4Tegra R32.3.1, JetPack 4.3)
+
+
+This layer depends on:
+URI: git://git.openembedded.org/openembedded-core
+branch: master
+LAYERSERIES_COMPAT: zeus
+
+
+PLEASE NOTE
+-----------
+
+* Starting with JetPack 4.2, packages outside the L4T BSP can
+  only be downloaded with an NVIDIA Developer Network login.
+  So to use CUDA 10, cuDNN, and any other packages that require
+  a Devnet login, you **must** create a Devnet account and
+  download the JetPack packages you need for your builds using
+  NVIDIA SDK Manager.
+
+  You must then set the variable NVIDIA_DEVNET_MIRROR to
+  "file://path/to/the/downloads" in your build configuration
+  (e.g., local.conf) to make them available to your bitbake
+  builds.  This can be the NVIDIA SDK Manager downloads
+  directory, `/home/$USER/Downloads/nvidia/sdkm_downloads`
+
+  **Note** Starting with L4T R32.3.1 and JetPack 4.3, The Tegra
+  Multimedia API kit has moved to JetPack, so **all builds**
+  now require you to set up an SDK Manager downloads area.
+
+* The SDK Manager downloads a different package of CUDA host-side
+  tools depending on whether you are running Ubuntu 16.04
+  or 18.04. If you downloaded the Ubuntu 16.04 package, you
+  should add
+
+      CUDA_BINARIES_NATIVE = "cuda-binaries-ubuntu1604-native"
+
+  to your build configuration so the CUDA recipes can find
+  them. Otherwise, the recipes will default to looking for
+  the Ubuntu 18.04 package.
+
+* The TensorRT 6.0.1 packages for Xavier are different from
+  those for TX1/TX2, even though the deb files have the same
+  name. To prevent mixups during the build, the recipe here
+  expects to find the Xavier packages in a `DLA` subdirectory
+  under `${NVIDIA_DEVNET_MIRROR}`, and non-Xavier packages
+  in a `NoDLA` subdirectory.
+
+  If you need to include TensorRT in your builds, you **must**
+  create the subdirectory and move all of the TensorRT packages
+  downloaded by the SDK Manager there. Xavier example:
+
+      $ cd ~/Downloads/nvidia/sdkm_downloads
+      $ mkdir DLA
+      $ mv tensorrt*.deb libnvinfer*.deb DLA/
+
+* CUDA 10 supports up through gcc 7 only, and some NVIDIA-provided
+  binary libraries appear to be compiled with g++ 7 and cause linker
+  failures when building applications with g++ 6, so **only** gcc 7
+  should be used if you intend to use CUDA. See the following wiki
+  pages for instructions on including gcc 7 in your builds:
+
+  [Using gcc7 from the contrib layer](https://github.com/madisongh/meta-tegra/wiki/Using-gcc7-from-the-contrib-layer)
+  [Using linaro gcc7 for CUDA support](https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
+
+
+Contributing
+------------
+
+Please use GitHub (https://github.com/madisongh/meta-tegra) to submit
+issues or pull requests, or add to the documentation on the wiki.
+Contributions are welcome!
