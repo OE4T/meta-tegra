@@ -27,3 +27,5 @@ do_install() {
 RDEPENDS_${PN} = "${VIRTUAL-RUNTIME_base-utils}"
 RDEPENDS_${PN}_append_tegra = "${@' util-linux-blkid' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
 FILES_${PN} = "/"
+
+PACKAGE_ARCH = "${MACHINE_ARCH}"
