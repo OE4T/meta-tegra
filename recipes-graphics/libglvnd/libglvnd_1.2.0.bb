@@ -44,3 +44,5 @@ do_install_append() {
         sed -i -e 's|^Cflags: .*|& -DEGL_NO_X11|g' ${D}${libdir}/pkgconfig/libglvnd.pc ${D}${libdir}/pkgconfig/egl.pc
     fi
 }
+
+RPROVIDES_${PN} += "libegl libgl libgles1 libgles2"

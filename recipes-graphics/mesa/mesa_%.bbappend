@@ -25,3 +25,5 @@ FILES_libegl-mesa += "${libdir}/libEGL_mesa.so.* ${datadir}/glvnd"
 FILES_libegl-mesa-dev += "${libdir}/libEGL_mesa.so"
 FILES_libgl-mesa += "${libdir}/libGLX_mesa.so.*"
 FILES_libgl-mesa-dev += "${libdir}/libGLX_mesa.so"
+
+RPROVIDES_${PN}_tegra += "libgbm"
