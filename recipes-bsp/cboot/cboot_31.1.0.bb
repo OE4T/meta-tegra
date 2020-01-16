@@ -16,47 +16,6 @@ SRC_URI = "${NVIDIA_DEVNET_MIRROR}/L4T-${PV}/cboot_src_t194.tbz2;subdir=${BP};do
 SRC_URI[md5sum] = "f1e23010e2ed635ae1f26f1aea08e76e"
 SRC_URI[sha256sum] = "b895489382b16032afc1e2c79cb0a38440e111378cf91ccf42c8df013f6b7390"
 
-COMPATIBLE_MACHINE = "(tegra194)"
-PACKAGE_ARCH = "${MACHINE_ARCH}"
+inherit nvidia_devnet_downloads
 
-S = "${WORKDIR}/${BP}"
-B = "${WORKDIR}/build"
-
-EXTRA_OEMAKE = 'TEGRA_TOP=${S} CFLAGS= CPPFLAGS= LDFLAGS= PROJECT=t194 TOOLCHAIN_PREFIX="${TARGET_PREFIX}" DEBUG=2 \
-                BUILDROOT="${B}" NV_TARGET_BOARD=t194ref NV_BUILD_SYSTEM_TYPE=l4t NOECHO=" "'
-
-CBOOT_IMAGE ?= "cboot-${MACHINE}-${PV}-${PR}.bin"
-CBOOT_SYMLINK ?= "cboot-${MACHINE}.bin"
-
-inherit pythonnative nvidia_devnet_downloads deploy
-
-def cboot_pseudo_branch(d):
-    ver = d.getVar('PV').split('.')
-    return '%02d.%02d' % (int(ver[0]), int(ver[1]))
-
-do_configure() {
-    sed -i -r -e's,^(BUILD_BRANCH :=).*,BUILD_BRANCH := ${@cboot_pseudo_branch(d)},' ${S}/bootloader/partner/t18x/cboot/build/version.mk
-}
-
-do_compile() {
-    LIBGCC=`${CC} -print-libgcc-file-name`
-    oe_runmake -C ${S}/bootloader/partner/t18x/cboot LIBGCC="$LIBGCC"
-}
-
-do_install() {
-	:
-}
-
-do_deploy() {
-	install -d ${DEPLOYDIR}
-	install -m 0644 ${B}/build-t194/lk.bin ${DEPLOYDIR}/${CBOOT_IMAGE}
-	ln -sf ${CBOOT_IMAGE} ${DEPLOYDIR}/${CBOOT_SYMLINK}
-}
-
-addtask deploy before do_build after do_install
-
-python () {
-    socarch = d.getVar("SOC_FAMILY") or ""
-    if socarch == "tegra194" and d.getVar("PREFERRED_PROVIDER_virtual/bootloader").startswith("cboot"):
-        d.appendVar("PROVIDES", " virtual/bootloader")
-}
+require cboot-l4t.inc
