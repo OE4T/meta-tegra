@@ -19,3 +19,5 @@ SRC_URI[sha256sum] = "b895489382b16032afc1e2c79cb0a38440e111378cf91ccf42c8df013f
 inherit nvidia_devnet_downloads
 
 require cboot-l4t.inc
+
+CBOOT_CFLAGS = "-Wno-implicit-fallthrough"
