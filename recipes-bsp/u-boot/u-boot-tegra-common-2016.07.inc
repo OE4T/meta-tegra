@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://Licenses/README;md5=a2c678cfd4a4d97135585cad908541c6"
 UBOOT_TEGRA_REPO ?= "github.com/madisongh/u-boot-tegra.git"
 SRCBRANCH ?= "patches-l4t-r32.3.1-v2016.07"
 SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
-SRCREV = "${AUTOREV}"
+SRCREV = "11e6283795c38804eab29fabf2351c53abc93ae2"
 PV .= "+git${SRCPV}"
 
 S = "${WORKDIR}/git"
