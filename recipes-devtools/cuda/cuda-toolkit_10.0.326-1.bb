@@ -25,6 +25,6 @@ do_install[noexec] = "1"
 COMPATIBLE_MACHINE = "tegra"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
-PACKAGES = "${PN}"
+PACKAGES = "${PN} ${PN}-dev"
 ALLOW_EMPTY_${PN} = "1"
 RDEPENDS_${PN} = "${CUDA_COMPONENTS}"
