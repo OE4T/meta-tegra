@@ -9,7 +9,7 @@ KERNEL_IMAGETYPE = "Image"
 
 MACHINE_FEATURES = "alsa bluetooth usbhost pci wifi rtc cuda"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'kernel-devicetree kernel-image u-boot'}"
-MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-configs-nvstartup tegra-configs-udev kernel-module-nvgpu kernel-module-tegra-udrm"
+MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-configs-nvstartup tegra-configs-udev kernel-module-nvgpu"
 MACHINE_EXTRA_RRECOMMENDS += "tegra-firmware-brcm kernel-module-bcmdhd"
 
 INITRAMFS_IMAGE ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'tegra-minimal-initramfs'}"
@@ -23,10 +23,7 @@ TEGRA_AUDIO_DEVICE ?= "tegrahda"
 
 SERIAL_CONSOLE = "115200 ttyS0"
 
-KERNEL_MODULE_AUTOLOAD = "nvgpu tegra-udrm"
-KERNEL_MODULE_PROBECONF = "tegra-udrm"
-module_conf_tegra-udrm = "options tegra-udrm modeset=1"
-
+KERNEL_MODULE_AUTOLOAD = "nvgpu"
 
 NVIDIA_CHIP = "0x18"
 
