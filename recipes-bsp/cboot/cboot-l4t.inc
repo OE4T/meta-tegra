@@ -1,4 +1,3 @@
-COMPATIBLE_MACHINE ?= "(tegra194)"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 S = "${WORKDIR}/${BP}"

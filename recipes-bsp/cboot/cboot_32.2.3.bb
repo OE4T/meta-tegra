@@ -17,4 +17,6 @@ require recipes-bsp/tegra-sources/tegra-sources-32.2.3.inc
 
 require cboot-l4t.inc
 
+COMPATIBLE_MACHINE = "(tegra194)"
+
 S = "${WORKDIR}"
