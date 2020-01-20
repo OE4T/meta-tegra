@@ -1,0 +1,23 @@
+#!/bin/sh
+TARGET="@TARGET@"
+BOOTDEV="@BOOTDEV@"
+sysconfdir="@sysconfdir@"
+
+[ ! -e "${sysconfdir}/nv_boot_control.conf" ] || exit 0
+
+if [ ! -e "${sysconfdir}/nv_boot_control.template" ]; then
+    echo "ERR: nv_boot_control.conf template file not found" >&2
+    exit 1
+fi
+
+boardspec=$(tegra-boardspec 2>/dev/null)
+if [ -z "${boardspec}" ]; then
+    echo "ERR: could not retrieve boardspec for nv_boot_control.conf setup" >&2
+    exit 1
+fi
+
+sed -e"s,@TNSPEC@,${boardspec}-${TARGET}-${BOOTDEV}," \
+    "${sysconfdir}/nv_boot_control.template" > "${sysconfdir}/nv_boot_control.conf"
+chmod 0644 "${sysconfdir}/nv_boot_control.conf"
+exit 0
+
