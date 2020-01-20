@@ -35,6 +35,9 @@ TEGRA_BOARDID ?= "3310"
 TEGRA_BOARDSKU ?= ""
 TEGRA_BOARDREV ?= ""
 TEGRA_CHIPREV ?= "0"
+# Extracted from l4t_generate_soc_bup.sh for BOARDID=3310 and board=jetson-tx2
+TEGRA_BUPGEN_SPECS ?= "fab=B00 fab=B02 fab=C04 fab=D00 fab=D01"
+
 TEGRA_SIGNING_ENV ?= "BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB}"
 
 DEB_PKG_EXTENSION = "arm64"
