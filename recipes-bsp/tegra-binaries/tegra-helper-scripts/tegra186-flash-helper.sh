@@ -138,8 +138,6 @@ done
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 [ -n "${BOOTDEV}" ] || BOOTDEV="mmcblk0p1"
 
-spec="${BOARDID}-${FAB}-${BOARDSKU}--1-0-${MACHINE}-${BOOTDEV}"
-
 rm -f verfile.txt
 echo "NV3" >verfile.txt
 . bsp_version
@@ -215,13 +213,14 @@ flashcmd="python $flashappname --chip 0x18 --bl nvtboot_recovery_cpu.bin \
 if [ "$bup_build" = "yes" ]; then
     [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
     [ -z "$sbk_keyfile" ] || flashcmd="${flashcmd} --encrypt_key \"$sbk_keyfile\""
-    support_multi_spec=0
+    support_multi_spec=1
     clean_up=0
     dtbfilename="$dtb_file"
     tbcdtbfilename="$dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
+    spec="${BOARDID}-${FAB}-${BOARDSKU}--1-0-${MACHINE}-${BOOTDEV}"
     l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" 0x18 || exit 1
 else
     eval $flashcmd || exit 1
