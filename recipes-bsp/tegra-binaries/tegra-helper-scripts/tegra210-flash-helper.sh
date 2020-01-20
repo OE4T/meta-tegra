@@ -140,8 +140,6 @@ fi
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 [ -n "${BOOTDEV}" ] || BOOTDEV="mmcblk0p1"
 
-spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-0-${MACHINE}-${BOOTDEV}"
-
 rm -f ${MACHINE}_bootblob_ver.txt
 echo "NV3" >${MACHINE}_bootblob_ver.txt
 . bsp_version
@@ -207,13 +205,14 @@ flashcmd="python $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $od
 
 if [ "$bup_build" = "yes" ]; then
     [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
-    support_multi_spec=0
+    support_multi_spec=1
     clean_up=0
     dtbfilename="$dtb_file"
     tbcdtbfilename="$dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
+    spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-0-${MACHINE}-${BOOTDEV}"
     l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t210ref "$keyfile" 0x21 || exit 1
 else
     eval "$flashcmd" || exit 1

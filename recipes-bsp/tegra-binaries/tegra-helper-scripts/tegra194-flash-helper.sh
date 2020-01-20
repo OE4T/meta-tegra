@@ -50,6 +50,7 @@ flash_in="$1"
 dtb_file="$2"
 sdramcfg_files="$3"
 odmdata="$4"
+kernfile="$5"
 
 here=$(readlink -f $(dirname "$0"))
 flashappname="tegraflash.py"
@@ -184,7 +185,6 @@ done
 [ -n "$FAB" ] || FAB=400
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 [ -n "${BOOTDEV}" ] || BOOTDEV="mmcblk0p1"
-spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}-${BOOTDEV}"
 
 rm -f verfile.txt
 echo "NV3" >verfile.txt
@@ -268,13 +268,14 @@ flashcmd="python $flashappname --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
 if [ "$bup_build" = "yes" ]; then
     [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
     [ -z "$sbk_keyfile" ] || flashcmd="${flashcmd} --encrypt_key \"$sbk_keyfile\""
-    support_multi_spec=0
+    support_multi_spec=1
     clean_up=0
     dtbfilename="$dtb_file"
     tbcdtbfilename="$dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
+    spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}-${BOOTDEV}"
     l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" 0x19 || exit 1
 else
     eval $flashcmd || exit 1

@@ -11,6 +11,7 @@ TEGRA_SIGNING_ARGS ??= ""
 TEGRA_SIGNING_ENV ??= ""
 TEGRA_SIGNING_EXCLUDE_TOOLS ??= ""
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
+TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEGRA_BOARDREV};chiprev=${TEGRA_CHIPREV}"
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${INITRD_IMAGE}-${MACHINE}.cboot'}"
@@ -393,7 +394,7 @@ create_tegraflash_pkg_tegra194() {
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra194-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} "\$@"
+MACHINE=${MACHINE} ./tegra194-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} ${LNXFILE} "\$@"
 END
     chmod +x doflash.sh
     tegraflash_custom_post
@@ -492,21 +493,24 @@ oe_make_bup_payload() {
         rm -f ./doflash.sh
         cat <<EOF > ./doflash.sh
 export BOARDID=${TEGRA_BOARDID}
-export FAB=${TEGRA_FAB}
 export fuselevel=fuselevel_production
 export localbootfile=${LNXFILE}
 export CHIPREV=${TEGRA_CHIPREV}
-export BOARDSKU=${TEGRA_BOARDSKU}
-export BOARDREV=${TEGRA_BOARDREV}
 EOF
         if [ "${SOC_FAMILY}" = "tegra194" ]; then
             sdramcfg="${MACHINE}.cfg,${MACHINE}-override.cfg"
         else
             sdramcfg="${MACHINE}.cfg"
         fi
-        cat <<EOF >>./doflash.sh
-MACHINE=${MACHINE} ./${SOC_FAMILY}-flash-helper.sh --bup ./flash.xml.in ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
+	fab="${TEGRA_FAB}"
+	boardsku="${TEGRA_BOARDSKU}"
+	boardrev="${TEGRA_BOARDREV}"
+	for spec__ in ${@' '.join(['"%s"' % entry for entry in d.getVar('TEGRA_BUPGEN_SPECS').split()])}; do
+	    eval $spec__
+            cat <<EOF >>./doflash.sh
+MACHINE=${MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" ./${SOC_FAMILY}-flash-helper.sh --bup ./flash.xml.in ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
 EOF
+	done
         chmod +x ./doflash.sh
     fi
     tegraflash_custom_sign_bup
