@@ -437,13 +437,16 @@ oe_make_bup_payload() {
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
         ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
     fi
-    rm -f ./${DTBFILE}
-    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-    if [ -n "${KERNEL_ARGS}" ]; then
-        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
-    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
-        fdtput -d ./${DTBFILE} /chosen bootargs
-    fi
+    for dtb in ${KERNEL_DEVICETREE}; do
+	dtbf=`basename $dtb`
+        rm -f ./$dtbf
+        cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" ./$dtbf
+        if [ -n "${KERNEL_ARGS}" ]; then
+            fdtput -t s ./$dtbf /chosen bootargs "${KERNEL_ARGS}"
+        elif fdtget -t s ./$dtbf /chosen bootargs >/dev/null 2>&1; then
+            fdtput -d ./$dtbf /chosen bootargs
+        fi
+    done
     ln -s "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./$cbootfilename
     ln -s "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./$tosimgfilename
     for f in ${BOOTFILES}; do
