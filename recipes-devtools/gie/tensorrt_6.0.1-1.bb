@@ -90,7 +90,7 @@ do_configure() {
 }
 
 do_compile() {
-    :
+    find ${S}/usr/src/tensorrt -name '*.py' | xargs sed -i -r -e 's,^(\s*)print "(.*)$,\1print("\2),'
 }
 
 do_install() {
@@ -105,7 +105,7 @@ PACKAGES =+ "${PN}-samples"
 FILES_${PN}-samples = "${prefix}/src"
 
 RDEPENDS_${PN} += "libstdc++ cudnn cuda-cublas cuda-cudart cuda-command-line-tools-libnvtoolsext tegra-libraries libglvnd"
-RDEPENDS_${PN}-samples += "tegra-libraries bash python libglvnd cudnn cuda-cudart cuda-cublas"
+RDEPENDS_${PN}-samples += "tegra-libraries bash python3 libglvnd cudnn cuda-cudart cuda-cublas"
 RPROVIDES_${PN}-samples = "${PN}-examples"
 
 INHIBIT_PACKAGE_STRIP = "1"
