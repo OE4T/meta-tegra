@@ -15,7 +15,7 @@ TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEG
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${INITRD_IMAGE}-${MACHINE}.cboot'}"
-LNXSIZE ?= "67108864"
+LNXSIZE ?= "83886080"
 APPFILE ?= "${@'${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}' if d.getVar('TEGRA_SPIFLASH_BOOT') == '1' else '${IMAGE_BASENAME}.img'}"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
