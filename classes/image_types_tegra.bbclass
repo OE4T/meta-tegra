@@ -1,4 +1,4 @@
-inherit image_types image_types_cboot pythonnative perlnative
+inherit image_types image_types_cboot python3native perlnative
 
 IMAGE_TYPES += "tegraflash"
 
