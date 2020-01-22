@@ -15,6 +15,8 @@ LIC_FILES_CHKSUM = " \
 TEGRA_SRC_SUBARCHIVE = "public_sources/cboot_src_t19x.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-32.2.3.inc
 
+SRC_URI += " file://0001-Convert-Python-scripts-to-Python3.patch"
+
 require cboot-l4t.inc
 
 COMPATIBLE_MACHINE = "(tegra194)"

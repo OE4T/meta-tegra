@@ -11,7 +11,7 @@ CBOOT_BUILD_ARTIFACT ?= "build-t194/lk.bin"
 CBOOT_IMAGE ?= "cboot-${MACHINE}-${PV}-${PR}.bin"
 CBOOT_SYMLINK ?= "cboot-${MACHINE}.bin"
 
-inherit pythonnative deploy
+inherit python3native deploy
 
 def cboot_pseudo_branch(d):
     ver = d.getVar('PV').split('.')
