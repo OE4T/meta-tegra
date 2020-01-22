@@ -4,11 +4,19 @@ require tegra-shared-binaries.inc
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
 
+DEPENDS = "tegra-binaries-patches quilt-native"
+
 inherit systemd
 
 do_configure() {
+	rm -rf ${B}/usr/sbin ${B}/etc ${B}/patches ${B}/.pc
 	tar -C ${B} -x -f ${S}/nv_tegra/nv_tools.tbz2 usr/sbin
         tar -C ${B} -x -f ${S}/nv_tegra/config.tbz2 etc
+}
+
+do_configure_append_tegra210() {
+	quilt import ${STAGING_DATADIR}/l4t-patches-${PV}/Convert-l4t_payload_updater_t210-to-Python3.patch
+        quilt push
 }
 
 do_compile() {
@@ -39,7 +47,6 @@ do_install_append_tegra194() {
 do_install_tegra210() {
 	install -d ${D}${sbindir}
 	install -m 0755 ${B}/usr/sbin/l4t_payload_updater_t210 ${D}${sbindir}
-	sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python2,' ${D}${sbindir}/l4t_payload_updater_t210
 	install -d ${D}/opt/ota_package
 }
 
@@ -56,6 +63,6 @@ RDEPENDS_${PN}-nvbootctrl = "setup-nv-boot-control"
 RDEPENDS_${PN}-nvbootctrl_tegra210 = ""
 ALLOW_EMPTY_${PN}-nvbootctrl_tegra210 = "1"
 RDEPENDS_${PN} = "${PN}-nvbootctrl setup-nv-boot-control-service"
-RDEPENDS_${PN}_tegra210 = "setup-nv-boot-control-service python-argparse python-core python-subprocess python-textutils python-shell"
+RDEPENDS_${PN}_tegra210 = "setup-nv-boot-control-service python3-core"
 INSANE_SKIP_${PN} = "ldflags"
 INSANE_SKIP_${PN}-nvbootctrl = "ldflags"
