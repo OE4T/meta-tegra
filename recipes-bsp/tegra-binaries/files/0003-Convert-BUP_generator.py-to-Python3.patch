@@ -1,0 +1,301 @@
+From 5dcebb72de42283b00d41052a1faae299f38bd8f Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Wed, 22 Jan 2020 05:53:04 -0800
+Subject: [PATCH 3/3] Convert BUP_generator.py to Python3
+
+%% original patch: 0003-Convert-BUP_generator.py-to-Python3.patch
+---
+ bootloader/BUP_generator.py | 127 ++++++++++++++++++------------------
+ 1 file changed, 63 insertions(+), 64 deletions(-)
+
+diff --git a/bootloader/BUP_generator.py b/bootloader/BUP_generator.py
+index 5fb2a7c..f13f4eb 100755
+--- a/bootloader/BUP_generator.py
++++ b/bootloader/BUP_generator.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/env python3
+ #
+ # Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
+ #
+@@ -53,11 +53,6 @@ Appendix:
+ """
+ 
+ import sys
+-
+-if sys.hexversion < 0x02070000:
+-  print >> sys.stderr, "Python 2.7 or newer is required."
+-  sys.exit(1)
+-
+ import os
+ import sys
+ import struct
+@@ -127,8 +122,8 @@ def generate_BUP(arg):
+     global top_var
+ 
+     # Check "TOP" variable is set and is valid
+-    if not os.environ.has_key("TOP") or not os.path.isdir(os.environ["TOP"]):
+-        if not os.environ.has_key("ANDROID_BUILD_TOP") or \
++    if "TOP" not in os.environ or not os.path.isdir(os.environ["TOP"]):
++        if "ANDROID_BUILD_TOP" not in os.environ or \
+                 not os.path.isdir(os.environ["ANDROID_BUILD_TOP"]):
+             sys.stderr.write("Environment variable TOP not set or invalid.\n")
+             return
+@@ -136,11 +131,11 @@ def generate_BUP(arg):
+             top_var = "ANDROID_BUILD_TOP"
+ 
+     # Check "OUT" variable is set and is valid
+-    if not os.environ.has_key("OUT") or not os.path.isdir(os.environ["OUT"]):
++    if "OUT" not in os.environ or not os.path.isdir(os.environ["OUT"]):
+         sys.stderr.write("Environment variable OUT not set or invalid.\n")
+         return
+ 
+-    print 'PARTITION INFO   :', arg.entry_list
++    print('PARTITION INFO   :', arg.entry_list)
+ 
+     if arg.blob_type == 'update':
+         payload_obj = update_payload(arg)
+@@ -163,8 +158,8 @@ def inspect_BUP(arg):
+         sys.stderr.write("Error. Last argument must be a path to a valid blob file. Exiting...\r\n")
+         sys.exit(1)
+ 
+-    print 'BLOB PATH:'
+-    print os.path.realpath(arg.inspect_blob.name)
++    print('BLOB PATH:')
++    print(os.path.realpath(arg.inspect_blob.name))
+ 
+     if arg.blob_type == 'update':
+         payload_obj = inspect_update_payload(arg)
+@@ -176,15 +171,15 @@ def inspect_BUP(arg):
+         sys.exit(1)
+ 
+     if arg.inspect_mode is True:
+-        print
++        print()
+         payload_obj.print_blob_header()
+-        print
++        print()
+         payload_obj.print_entry_table()
+ 
+-    print
++    print()
+     if arg.inspect_extract_bin_list is not None:
+         # Check "OUT" variable is set and is valid if binary extraction is specified
+-        if not os.environ.has_key("OUT") or not os.path.isdir(os.environ["OUT"]):
++        if "OUT" not in os.environ or not os.path.isdir(os.environ["OUT"]):
+             sys.stderr.write("Environment variable OUT not set or invalid.\r\n" \
+                              "Error. Cannot save binaries. Exiting...\r\n"
+                             )
+@@ -197,7 +192,7 @@ class payload():
+     gpt_part_name_len_max = 36
+ 
+     def __init__(self, args):
+-        self.magic = 'NVIDIA__BLOB__V2'
++        self.magic = b'NVIDIA__BLOB__V2'
+         self.version = 0x00020000
+         self.blob_size_pos = struct.calcsize('=16sI')
+         self.header_packing = '=16sIIIIII'
+@@ -280,7 +275,7 @@ class update_payload(payload):
+         payload.__init__(self, arg)
+         self.blob_type = 0
+         self.entry_packing = '=40sIIII64s'
+-        self.entry_tuple = ('', 0, 0, 0, 0, '')
++        self.entry_tuple = (b'', 0, 0, 0, 0, b'')
+         self.param_c = 5
+         self.outfile = 'ota.blob'
+ 
+@@ -291,7 +286,7 @@ class update_payload(payload):
+ 
+             entry_info = self.entry_info_list[i]
+             if len(entry_info) != self.param_c:
+-                print 'Invalid entry tuple:', entry_info
++                print('Invalid entry tuple:', entry_info)
+                 return
+ 
+             binary_name = payload.get_binary_name(self, entry_info[0])
+@@ -334,7 +329,7 @@ class update_payload(payload):
+             spec_info = entry_info[4]
+             offset = entry_update[0]
+             length = entry_update[1]
+-            entry_tuple = (part_name, offset, length, version, op_mode, spec_info)
++            entry_tuple = (part_name.encode('utf-8'), offset, length, version, op_mode, spec_info.encode('utf-8'))
+             updated_entry = struct.pack(self.entry_packing, *entry_tuple)
+             blob.write(updated_entry)
+ 
+@@ -363,7 +358,7 @@ class bmp_payload(payload):
+ 
+             entry_info = self.entry_info_list[i]
+             if len(entry_info) != self.param_c:
+-                print 'Invalid entry tuple:', entry_info
++                print('Invalid entry tuple:', entry_info)
+                 return
+ 
+             binary_name = payload.get_binary_name(self, entry_info[0])
+@@ -407,7 +402,7 @@ class inspect_update_payload(update_payload):
+         self.raw_extract_bin_list = arg.inspect_extract_bin_list
+ 
+         self.blob_header_tuple = struct.unpack(self.header_packing, self.blob_file.read(struct.calcsize(self.header_packing)))
+-        self.blob_header_dict = dict(zip(self.header_name_tuple, self.blob_header_tuple))
++        self.blob_header_dict = dict(list(zip(self.header_name_tuple, self.blob_header_tuple)))
+ 
+         # # Detect if optional accessory field (8 bytes) is present
+         if self.blob_header_dict['header_size'] > struct.calcsize(self.header_packing):
+@@ -416,8 +411,8 @@ class inspect_update_payload(update_payload):
+ 
+         if not self._valid():
+             sys.stderr.write("Warning. Invalid input blob file. Results may be unexpected.\r\n" \
+-                             "      Input magic: " + self.blob_header_dict['magic'] + "\r\n" \
+-                             "   Expected magic: " + self.magic + "\r\n" \
++                             "      Input magic: " + self.blob_header_dict['magic'].decode('utf-8') + "\r\n" \
++                             "   Expected magic: " + self.magic.decode('utf-8') + "\r\n" \
+                              "    Input version: " + format(self.blob_header_dict['version'], "#010x") + "\r\n" \
+                              " Expected version: " + format(self.version, "#010x") + "\r\n" \
+                              "       Input type: " + str(self.blob_header_dict['type']) + "\r\n" \
+@@ -425,15 +420,15 @@ class inspect_update_payload(update_payload):
+                             )
+ 
+         if self.blob_header_dict['entry_count'] > arg.inspect_max_entries:
+-            print
+-            print "Blob header indicates " + str(self.blob_header_dict['entry_count']) + " partitions in this blob.\r\n" \
++            print()
++            print("Blob header indicates " + str(self.blob_header_dict['entry_count']) + " partitions in this blob.\r\n" \
+                   "Limiting display to the first " + str(arg.inspect_max_entries) + " partitions.\r\n" \
+-                  "Use the '--max-entries' or '-m' option to specify otherwise."
+-            self.blob_entry_list = range(arg.inspect_max_entries)
++                  "Use the '--max-entries' or '-m' option to specify otherwise.")
++            self.blob_entry_list = list(range(arg.inspect_max_entries))
+         else:
+-            self.blob_entry_list = range(self.blob_header_dict['entry_count'])
++            self.blob_entry_list = list(range(self.blob_header_dict['entry_count']))
+ 
+-        self.blob_entry_max_width_list = range(len(self.entry_name_tuple))
++        self.blob_entry_max_width_list = list(range(len(self.entry_name_tuple)))
+         for i in range(len(self.blob_entry_max_width_list)):
+             self.blob_entry_max_width_list[i] = len(self.entry_name_tuple[i])
+ 
+@@ -449,13 +444,17 @@ class inspect_update_payload(update_payload):
+         for idx, blob_entry in enumerate(self.blob_entry_list):
+             try:
+                 blob_entry_tuple = struct.unpack(self.entry_packing, self.blob_file.read(struct.calcsize(self.entry_packing)))
+-                blob_entry_dict = dict(zip(self.entry_name_tuple, blob_entry_tuple))
++                blob_entry_dict = dict(list(zip(self.entry_name_tuple, blob_entry_tuple)))
+                 self.blob_entry_list[idx] = blob_entry_dict
+ 
+                 for n in range(len(self.blob_entry_max_width_list)):
+                     try:
+-                        if len(str(blob_entry_tuple[n]).strip(' \t\n\0')) > self.blob_entry_max_width_list[n]:
+-                            self.blob_entry_max_width_list[n] = len(str(blob_entry_tuple[n]).strip(' \t\n\0'))
++                        if n in [0, 5]:
++                            val = blob_entry_tuple[n].decode('utf-8')
++                        else:
++                            val = str(blob_entry_tuple[n])
++                        if len(val.strip(' \t\n\0')) > self.blob_entry_max_width_list[n]:
++                            self.blob_entry_max_width_list[n] = len(val.strip(' \t\n\0'))
+                     except:
+                         pass
+             except:
+@@ -464,39 +463,39 @@ class inspect_update_payload(update_payload):
+                                 )
+ 
+     def print_blob_header(self):
+-        print "BLOB HEADER:"
+-        print "       Magic: " + self.blob_header_dict['magic']
+-        print "     Version: " + format(self.blob_header_dict['version'], "#010x")
+-        print "   Blob Size: " + "{:,}".format(self.blob_header_dict['blob_size']) + " bytes"
+-        print " Header Size: " + "{:,}".format(self.blob_header_dict['header_size']) + " bytes"
+-        print " Entry Count: " + str(self.blob_header_dict['entry_count']) + " partition(s)"
+-        print "        Type: " + str(self.blob_header_dict['type']) + " (0 for update, 1 for BMP)"
+-        print "Uncompressed\r\n" \
+-              "   Blob Size: " + "{:,}".format(self.blob_header_dict['uncomp_blob_size']) + " bytes"
+-        print "   Accessory:",
++        print("BLOB HEADER:")
++        print("       Magic: " + self.blob_header_dict['magic'].decode('utf-8'))
++        print("     Version: " + format(self.blob_header_dict['version'], "#010x"))
++        print("   Blob Size: " + "{:,}".format(self.blob_header_dict['blob_size']) + " bytes")
++        print(" Header Size: " + "{:,}".format(self.blob_header_dict['header_size']) + " bytes")
++        print(" Entry Count: " + str(self.blob_header_dict['entry_count']) + " partition(s)")
++        print("        Type: " + str(self.blob_header_dict['type']) + " (0 for update, 1 for BMP)")
++        print("Uncompressed\r\n" \
++              "   Blob Size: " + "{:,}".format(self.blob_header_dict['uncomp_blob_size']) + " bytes")
++        print("   Accessory:", end=' ')
+         if self.accessory_present == True:
+-            print format(self.blob_header_dict['accessory'], "#018x")
++            print(format(self.blob_header_dict['accessory'], "#018x"))
+         else:
+-            print "Not Present"
++            print("Not Present")
+         return
+ 
+     def print_entry_table(self):
+-        print "ENTRY TABLE:"
+-        print "|",
++        print("ENTRY TABLE:")
++        print("|", end=' ')
+         for idx, entry_name in enumerate(self.entry_name_tuple):
+-            print entry_name.center(self.blob_entry_max_width_list[idx]) + " |",
+-        print
++            print(entry_name.center(self.blob_entry_max_width_list[idx]) + " |", end=' ')
++        print()
+         for blob_entry in self.blob_entry_list:
+-            print "|",
++            print("|", end=' ')
+             try:
+-                print str(blob_entry['part_name']).strip(' \t\n\0').rjust(self.blob_entry_max_width_list[0]) + " |",
+-                print str(blob_entry['offset']).rjust(self.blob_entry_max_width_list[1]) + " |",
+-                print str(blob_entry['part_size']).rjust(self.blob_entry_max_width_list[2]) + " |",
+-                print str(blob_entry['version']).center(self.blob_entry_max_width_list[3]) + " |",
+-                print str(blob_entry['op_mode']).center(self.blob_entry_max_width_list[4]) + " |",
+-                print str(blob_entry['tnspec']).strip(' \t\n\0').ljust(self.blob_entry_max_width_list[5]) + " |"
++                print(blob_entry['part_name'].decode('utf-8').strip(' \t\n\0').rjust(self.blob_entry_max_width_list[0]) + " |", end=' ')
++                print(str(blob_entry['offset']).rjust(self.blob_entry_max_width_list[1]) + " |", end=' ')
++                print(str(blob_entry['part_size']).rjust(self.blob_entry_max_width_list[2]) + " |", end=' ')
++                print(str(blob_entry['version']).center(self.blob_entry_max_width_list[3]) + " |", end=' ')
++                print(str(blob_entry['op_mode']).center(self.blob_entry_max_width_list[4]) + " |", end=' ')
++                print(blob_entry['tnspec'].decode('utf-8').strip(' \t\n\0').ljust(self.blob_entry_max_width_list[5]) + " |")
+             except:
+-                print "SKIPPED".center(sum(self.blob_entry_max_width_list) + (len(self.blob_entry_max_width_list)*2) + 3) + " |"
++                print("SKIPPED".center(sum(self.blob_entry_max_width_list) + (len(self.blob_entry_max_width_list)*2) + 3) + " |")
+                 pass
+         return
+ 
+@@ -508,14 +507,14 @@ class inspect_update_payload(update_payload):
+         out_ext = ".raw.bin"
+         out_delim = "_"
+ 
+-        print "Saving partitions to \"" + out_path + "\""
+-        print "File names are of format \"<part_name>[" + out_delim + "<op_str>][" + out_delim + "<tnspec>]" + out_ext + "\""
+-        print
++        print("Saving partitions to \"" + out_path + "\"")
++        print("File names are of format \"<part_name>[" + out_delim + "<op_str>][" + out_delim + "<tnspec>]" + out_ext + "\"")
++        print()
+ 
+         for blob_entry in self.blob_entry_list:
+-            part_name = str(blob_entry['part_name']).strip(' \t\n\0')
++            part_name = blob_entry['part_name'].decode('utf-8').strip(' \t\n\0')
+             op_mode = blob_entry['op_mode']
+-            tnspec = str(blob_entry['tnspec']).strip(' \t\n\0')
++            tnspec = blob_entry['tnspec'].decode('utf-8').strip(' \t\n\0')
+ 
+             if op_mode == 0:
+                 op_str = ""
+@@ -531,7 +530,7 @@ class inspect_update_payload(update_payload):
+ 
+             if (part_name in extract_bin_set) or ("all" in extract_bin_set):
+                 # Binary will be saved to <OUT>/<part_name>[_<op_str>][_<tnspec>].raw.bin
+-                binary_name = out_delim.join(filter(None, [part_name, op_str, tnspec])) + out_ext
++                binary_name = out_delim.join([_f for _f in [part_name, op_str, tnspec] if _f]) + out_ext
+                 binary_path = os.path.join(out_path, binary_name)
+ 
+                 try:
+@@ -547,7 +546,7 @@ class inspect_update_payload(update_payload):
+                 # from "offset" of the specified partition name
+                 save_file.write(self.blob_file.read(int(blob_entry['part_size'])))
+ 
+-                print "Saved file \"" + binary_name + "\""
++                print("Saved file \"" + binary_name + "\"")
+ 
+                 # Remove partition name that was just saved from the list of
+                 # missing binaries (e.g. in extraction list but not in payload)
+-- 
+2.20.1
+
