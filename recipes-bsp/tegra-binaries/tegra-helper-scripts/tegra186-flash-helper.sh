@@ -72,7 +72,7 @@ fi
 cvm_bin=$(mktemp cvm.bin.XXXXX)
 
 if [ -z "$BOARDID" -o -z "$FAB" ]; then
-    if ! python "$flashappname" --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    if ! python3 "$flashappname" --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
 	echo "ERR: could not retrieve EEPROM board information" >&2
 	exit 1
     fi
@@ -208,7 +208,7 @@ else
     tfcmd=${flash_cmd:-"flash;reboot"}
 fi
 
-flashcmd="python $flashappname --chip 0x18 --bl nvtboot_recovery_cpu.bin \
+flashcmd="python3 $flashappname --chip 0x18 --bl nvtboot_recovery_cpu.bin \
 	      $cfgappargs \
 	      --odmdata $odmdata \
 	      --cmd \"$tfcmd\" $skipuid \

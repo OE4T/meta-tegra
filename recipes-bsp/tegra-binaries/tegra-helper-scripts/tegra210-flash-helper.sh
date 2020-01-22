@@ -91,7 +91,7 @@ if [ -z "$BOARDID" -a -z "$FAB" ]; then
 	echo "ERR: chip does not identify as tegra210 ($chipid)" >&2
 	exit 1
     fi
-    if python $flashapp --chip 0x21 --skipuid --applet nvtboot_recovery.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    if python3 $flashapp --chip 0x21 --skipuid --applet nvtboot_recovery.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
 	boardid=`$here/chkbdinfo -i ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z]`
 	BOARDID="$boardid"
 	boardver=`$here/chkbdinfo -f ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z]`
@@ -199,7 +199,7 @@ else
     fi
 fi
 
-flashcmd="python $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $odmdata \
+flashcmd="python3 $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $odmdata \
  --bldtb \"$dtb_file\" --applet nvtboot_recovery.bin \
  $boardcfg --cfg flash.xml --chip 0x21 --cmd \"$cmd\" $binargs"
 

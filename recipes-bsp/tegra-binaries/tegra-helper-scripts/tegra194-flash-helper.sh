@@ -91,7 +91,7 @@ if [ -z "$CHIPREV" ]; then
 fi
 
 if [ -z "$FAB" -o -z "$BOARDID" -o -z "$BOARDSKU" -o -z "$BOARDREV" ]; then
-    if ! python $flashappname --chip 0x19 --applet mb1_t194_prod.bin $skipuid --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
+    if ! python3 $flashappname --chip 0x19 --applet mb1_t194_prod.bin $skipuid --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
 		 --bins "mb2_applet nvtboot_applet_t194.bin" --cmd "dump eeprom boardinfo ${cvm_bin};reboot recovery"; then
 	echo "ERR: could not retrieve EEPROM board information" >&2
 	exit 1
@@ -255,7 +255,7 @@ else
     tfcmd=${flash_cmd:-"flash;reboot"}
 fi
 
-flashcmd="python $flashappname --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
+flashcmd="python3 $flashappname --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
 	      --sdram_config $sdramcfg_files \
 	      --odmdata $odmdata \
 	      --applet mb1_t194_prod.bin \
