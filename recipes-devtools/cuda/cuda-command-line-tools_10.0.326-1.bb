@@ -8,6 +8,7 @@ do_compile_append() {
     if [ "${baselib}" != "lib64" ]; then
         mv ${B}/usr/local/cuda-10.0/extras/CUPTI/lib64 ${B}/usr/local/cuda-10.0/extras/CUPTI/${baselib}
     fi
+    sed -i -r -e 's,^(\s*)print (.*)$,\1print(\2),' ${B}/usr/local/cuda-10.0/share/gdb/system-gdbinit/*.py
 }
 
 PACKAGES =+ "${PN}-libcupti ${PN}-libcupti-dev ${PN}-libnvtoolsext ${PN}-libnvtoolsext-dev"
@@ -21,5 +22,5 @@ INSANE_SKIP_${PN}-libcupti = "ldflags libdir"
 INSANE_SKIP_${PN}-libcupti-dev = "ldflags libdir dev-elf"
 FILES_${PN} += "${prefix}/local/cuda-10.0/bin"
 FILES_${PN}-dev += "${prefix}/local/cuda-10.0/extras ${prefix}/local/cuda-10.0/share ${prefix}/local/cuda-10.0/tools"
-RDEPENDS_${PN}-dev += "python"
+RDEPENDS_${PN}-dev += "python3"
 INSANE_SKIP_${PN}-dev += "staticdev"
