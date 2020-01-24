@@ -86,6 +86,15 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                               "    Input version: " + format(self.blob_header_dict['version'], "#010x") + "\r\n" \
                               " Expected version: " + format(self.version, "#010x") + "\r\n" \
                               "       Input type: " + str(self.blob_header_dict['type']) + "\r\n" \
+@@ -286,7 +282,7 @@ class system_info(object):
+ 
+         main_boot_dev_path = boot_dev_info['main']['dev_path']
+ 
+-        if main_boot_dev_path is not "":
++        if main_boot_dev_path != "":
+             main_boot_dev = open(main_boot_dev_path, 'rb')
+ 
+             boot_block_size_log_2 = self._get_bct_prop(bct_device=main_boot_dev, bct_base_offset=0, bct_property="boot_block_size_log_2")
 @@ -352,7 +348,7 @@ class system_info(object):
              if boot_partition_table[dev] is not None:
                  boot_partition_info['name_list'] += list(boot_partition_table[dev].keys())
@@ -182,7 +191,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
  
          # find last BCT "BCT_L"
          last_bct_num = 64
-@@ -604,15 +608,16 @@ class install_update_payload(update_type
+@@ -604,16 +608,17 @@ class install_update_payload(update_type
                          part_name_base = kfs_name
                          break
  
@@ -197,11 +206,22 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                  self._skip_boot_parts()
                  continue
  
+-            if part_name_base is 'BCT' and part_name is not 'BCT':
 +            blob_entry = blob_entries[0]
 +
-             if part_name_base is 'BCT' and part_name is not 'BCT':
++            if part_name_base == 'BCT' and part_name != 'BCT':
                  # all entries in "boot_part_name_update_order_list" containing "BCT" become
                  # aliases of the one updatable BCT entry in the payload, each BCT alias will
+                 # simply have a different intra_part_offset so that the same payload image
+@@ -621,7 +626,7 @@ class install_update_payload(update_type
+                 blob_entry = copy.deepcopy(blob_entry)
+                 blob_entry['intra_part_offset'] = bct_offset
+                 blob_entry['part_name'] = part_name
+-            elif part_name is 'NVC_R' or part_name is 'NVC-1' or part_name is 'VER_b' or part_name in BFS1_list or part_name in KFS1_list:
++            elif part_name in ['NVC_R', 'NVC-1', 'VER_b'] or part_name in BFS1_list or part_name in KFS1_list:
+                 # similarily for "NVC_R" or "NVC-1" or "BFS-1" or "KFS-1" or VER_b,
+                 # they will be an alias to the one updatable payload entry
+                 # and will be copied to the system under the those partition if one exists
 @@ -691,7 +696,7 @@ class install_update_payload(update_type
  
      def _check_nvc_part(self):
@@ -225,7 +245,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
          ver_entry = dict()
          ver_entry['part_name'] = 'VER'
 -        ver_data = self._read_partition_data(ver_entry)
-+        ver_data = self._read_partition_data(ver_entry).decode('utf-8')
++        ver_data = self._read_partition_data(ver_entry).decode('iso-8859-1')
          ver_info = ver_data.splitlines()
  
          # has CRC32 lines in VER, it's >=32.3, should do version check
@@ -234,7 +254,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
  
      def _validate_ver_part(self, ver_entry):
 -        ver_data = self._read_partition_data(ver_entry)
-+        ver_data = self._read_partition_data(ver_entry).decode('utf-8')
++        ver_data = self._read_partition_data(ver_entry).decode('iso-8859-1')
          ver_info = ver_data.splitlines()
  
          # find out the CRC line "BYTES:57 CRC32:3711412171"
@@ -257,7 +277,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
  
      def _get_ver_part_crc(self, ver_entry):
 -        ver_data = self._read_partition_data(ver_entry)
-+        ver_data = self._read_partition_data(ver_entry).decode('utf-8')
++        ver_data = self._read_partition_data(ver_entry).decode('iso-8859-1')
          ver_info = ver_data.splitlines()
  
          # find out the CRC line "BYTES:57 CRC32:3711412171"
@@ -444,9 +464,11 @@ Index: build/usr/sbin/l4t_payload_updater_t210
 +        print("ENTRY TABLE:")
 +        print("|", end=' ')
          for idx, entry_name in enumerate(self.entry_name_tuple):
-             if entry_name is "intra_part_offset":
+-            if entry_name is "intra_part_offset":
++            if entry_name == "intra_part_offset":
                  continue
-             elif (entry_name is "updatable") and (self.print_all is False):
+-            elif (entry_name is "updatable") and (self.print_all is False):
++            elif (entry_name == "updatable") and (self.print_all is False):
                  continue
              else:
 -                print entry_name.center(self.blob_entry_max_width_list[idx]) + " |",
