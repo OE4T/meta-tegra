@@ -7,8 +7,6 @@ SRC_URI += " \
     file://0004-backend-drm-Gracefully-handle-vblank-and-flip-invali.patch \
     file://0005-backend-drm-Add-support-for-EGLDevice-EGLOutput.patch \
     file://0006-compositor-Process-stream-attach-requests-with-wl_eg.patch \
-    file://0007-libweston-have-backend-drm-use-drmOpen-if-primary-GP.patch \
-    file://0008-libweston-updates-to-work-with-tegra-drm-nvdc.patch \
     file://weston.default \
 "
 LIC_FILES_CHKSUM = "file://COPYING;md5=d79ee9e66bb0f95d3386a7acae780b70 \
