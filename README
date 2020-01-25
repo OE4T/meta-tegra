@@ -6,6 +6,7 @@ Boards supported:
 * Jetson-TX2 development kit (Linux4Tegra R32.3.1, JetPack 4.3)
 * Jetson AGX Xavier development kit (Linux4Tegra R32.3.1, JetPack 4.3)
 * Jetson Nano development kit (Linux4Tegra R32.3.1, JetPack 4.3)
+* Jetson Nano eMMC module with rev B01 carrier board (L4T R32.3.1, JetPack 4.3)
 
 Also supported thanks to community support:
 * Jetson-TX2i module (Linux4Tegra R32.3.1, JetPack 4.3)
@@ -71,8 +72,8 @@ PLEASE NOTE
   should be used if you intend to use CUDA. See the following wiki
   pages for instructions on including gcc 7 in your builds:
 
-  [Using gcc7 from the contrib layer](https://github.com/madisongh/meta-tegra/wiki/Using-gcc7-from-the-contrib-layer)
-  [Using linaro gcc7 for CUDA support](https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
+  * [Using gcc7 from the contrib layer](https://github.com/madisongh/meta-tegra/wiki/Using-gcc7-from-the-contrib-layer)
+  * [Using linaro gcc7 for CUDA support](https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
 
 
 Contributing
