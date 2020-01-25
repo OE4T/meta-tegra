@@ -22,6 +22,9 @@ IMAGE_ROOTFS_ALIGNMENT ?= "4"
 TEGRA_BLBLOCKSIZE ?= "${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}"
 EXTRA_IMAGECMD_ext4 ?= "-i 4096 -b 4096"
 
+KERNEL_MODULE_PROBECONF = "tegra-udrm"
+module_conf_tegra-udrm = "options tegra-udrm modeset=1"
+
 MACHINE_HWCODECS = "gstreamer1.0-omx-tegra"
 LICENSE_FLAGS_WHITELIST_append = " commercial_gstreamer1.0-omx-tegra"
 

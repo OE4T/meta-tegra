@@ -23,11 +23,6 @@ TEGRA_AUDIO_DEVICE ?= "tegrahda"
 
 SERIAL_CONSOLE = "115200 ttyS0"
 
-KERNEL_MODULE_AUTOLOAD = "nvgpu tegra-udrm"
-KERNEL_MODULE_PROBECONF = "tegra-udrm"
-module_conf_tegra-udrm = "options tegra-udrm modeset=1"
-
-
 NVIDIA_CHIP = "0x18"
 
 TEGRA_FAB ?= "C04"
