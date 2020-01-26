@@ -23,3 +23,4 @@ do_install_append_tegra() {
 }
 FILES_${PN} += "${sysconfdir}/default/weston"
 RDEPENDS_${PN} += "egl-wayland"
+RDEPENDS_${PN}_append_tegra = " tegra-udrm-probeconf"
