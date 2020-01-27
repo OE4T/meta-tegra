@@ -87,7 +87,14 @@ tegraflash_create_flash_config_tegra210() {
     local destdir="$1"
     local lnxfile="$2"
     local rootfsimg="$3"
+    local bupgen="$4"
+    local apptag
 
+    if [ -n "$bupgen" ]; then
+        apptag="/APPFILE/d"
+    else
+	apptag="s,APPFILE,$3,"
+    fi
     cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
         -e"s,EBTFILE,${CBOOTFILENAME}," \
         -e"s,LNXFILE,$lnxfile," \
@@ -103,7 +110,7 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,EXS,EKS," -e"s,EKSFILE,eks.img," \
         -e"s,FBTYPE,data," -e"/FBFILE/d" \
         -e"s,DXB,DTB," \
-        -e"s,APPFILE,$3," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        -e"$apptag" -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,TXC,TBC," -e"s,TBCTYPE,bootloader," -e"s,TBCFILE,nvtboot_cpu.bin," \
         -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
@@ -116,6 +123,14 @@ tegraflash_create_flash_config_tegra186() {
     local destdir="$1"
     local lnxfile="$2"
     local rootfsimg="$3"
+    local bupgen="$4"
+    local apptag
+
+    if [ -n "$bupgen" ]; then
+        apptag="/APPFILE/d"
+    else
+	apptag="s,APPFILE,$3,"
+    fi
 
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra186-specific.
@@ -140,7 +155,7 @@ tegraflash_create_flash_config_tegra186() {
         -e"s,EKSFILE,eks.img," \
         -e"s,FBTYPE,data," -e"s,FBSIGN,false," -e"/FBFILE/d" \
         -e"s,KERNELDTB-NAME,kernel-dtb," -e"s,KERNELDTB-FILE,${DTBFILE}," \
-        -e"s,APPFILE,$3," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        -e"$apptag" -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,PPTSIZE,2097152," \
@@ -152,6 +167,14 @@ tegraflash_create_flash_config_tegra194() {
     local destdir="$1"
     local lnxfile="$2"
     local rootfsimg="$3"
+    local bupgen="$4"
+    local apptag
+
+    if [ -n "$bupgen" ]; then
+        apptag="/APPFILE/d"
+    else
+	apptag="s,APPFILE,$3,"
+    fi
 
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra194-specific.
@@ -176,7 +199,7 @@ tegraflash_create_flash_config_tegra194() {
         -e"s,CBOOTOPTION_FILE,cbo.dtb," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
-        -e"s,APPFILE,$3," -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        -e"$apptag" -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
@@ -431,7 +454,7 @@ oe_make_bup_payload() {
     # partition contents
     ln -sf $1 ./boot.img
     # We don't replace APPFILE for BUP payloads
-    tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img APPFILE
+    tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img APPFILE bupgen
     ln -sf "${STAGING_DATADIR}/tegraflash/bsp_version" .
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
