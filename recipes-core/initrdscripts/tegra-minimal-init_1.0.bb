@@ -5,14 +5,17 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 SRC_URI = "\
     file://init-boot.sh \
     file://platform-preboot.sh \
-"
-SRC_URI_append_tegra = "${@' file://platform-preboot-cboot.sh' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
+    ${@'file://platform-preboot-cboot.sh' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
+
+COMPATIBLE_MACHINE = "(tegra)"
 
 S = "${WORKDIR}"
 
 do_install() {
     install -m 0755 ${WORKDIR}/init-boot.sh ${D}/init
-    install -d ${D}/proc ${D}/sys ${D}/dev ${D}/tmp ${D}/mnt ${D}/run ${D}/usr
+    install -m 0555 -d ${D}/proc ${D}/sys
+    install -m 0755 -d ${D}/dev ${D}/mnt ${D}/run ${D}/usr
+    install -m 1777 -d ${D}/tmp
     mknod -m 622 ${D}/dev/console c 5 1
     install -d ${D}${sysconfdir}
     if [ -e ${WORKDIR}/platform-preboot-cboot.sh ]; then
@@ -24,6 +27,5 @@ do_install() {
     fi
 }
 
-RDEPENDS_${PN} = "${VIRTUAL-RUNTIME_base-utils}"
-RDEPENDS_${PN}_append_tegra = "${@' util-linux-blkid' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
+RDEPENDS_${PN} = "${@'util-linux-blkid' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
 FILES_${PN} = "/"
