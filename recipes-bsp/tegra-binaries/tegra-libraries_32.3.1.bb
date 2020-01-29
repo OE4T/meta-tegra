@@ -60,7 +60,7 @@ RDEPENDS_${PN}-argus-daemon-base = "${PN} libglvnd"
 RDEPENDS_${PN}-libnvosd = "${PN} pango cairo glib-2.0"
 
 INSANE_SKIP_${PN}-libv4l-plugins = "dev-so textrel ldflags build-deps"
-INSANE_SKIP_${PN} = "dev-so textrel ldflags build-deps"
+INSANE_SKIP_${PN} = "dev-so textrel ldflags build-deps libdir"
 INSANE_SKIP_${PN}-argus = "dev-so ldflags"
 INSANE_SKIP_${PN}-argus-daemon-base = "ldflags"
 INSANE_SKIP_${PN}-libnvosd = "dev-so ldflags"
