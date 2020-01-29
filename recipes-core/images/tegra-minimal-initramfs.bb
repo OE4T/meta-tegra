@@ -4,9 +4,13 @@ LICENSE = "MIT"
 TEGRA_INITRD_INSTALL ??= ""
 INITRD_FSTYPES ??= "${INITRAMFS_FSTYPES}"
 
+TEGRA_INITRD_BASEUTILS ?= "busybox"
+
 PACKAGE_INSTALL = "\
     tegra-firmware-xusb \
     tegra-minimal-init \
+    ${TEGRA_INITRD_BASEUTILS} \
+    ${ROOTFS_BOOTSTRAP_INSTALL} \
     ${TEGRA_INITRD_INSTALL} \
 "
 
@@ -22,6 +26,8 @@ KERNELDEPMODDEPEND = ""
 
 IMAGE_ROOTFS_SIZE = "8192"
 IMAGE_ROOTFS_EXTRA_SPACE = "0"
+
+FORCE_RO_REMOVE ?= "1"
 
 inherit core-image
 
