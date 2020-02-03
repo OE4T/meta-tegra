@@ -35,7 +35,7 @@ LIBTIRPC_VERSION = "1.1.4"
 
 SRC_URI = " \
     git://github.com/NVIDIA/libnvidia-container.git;name=libnvidia \
-    https://github.com/NVIDIA/nvidia-modprobe/archive/${NVIDIA_MODPROBE_VERSION}.tar.gz;name=modprobe \
+    git://github.com/NVIDIA/nvidia-modprobe.git;name=modprobe;destsuffix=git/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} \
     file://0001-Makefile-Fix-RCP-flags-and-change-prefix.patch \
 "
 
@@ -43,7 +43,9 @@ SRC_URI[modprobe.md5sum] = "f82b649e7a0f1d1279264f9494e7cf43"
 SRC_URI[modprobe.sha256sum] = "25bc6437a384be670e9fd76ac2e5b9753517e23eb16e7fa891b18537b70c4b20"
 
 
-SRCREV = "b6aff41f09bb2c21ed7da3058c61a063726fa5d6"
+SRCREV_libnvidia = "b6aff41f09bb2c21ed7da3058c61a063726fa5d6"
+# Nvidia modprobe version 396.51
+SRCREV_modprobe = "d97c08af5061f1516fb2e3a26508936f69d6d71d"
 
 S = "${WORKDIR}/git"
 
@@ -57,9 +59,7 @@ export OBJCPY="${OBJCOPY}"
 
 # Fix me: Create an independent recipe for nvidia-modprobe
 do_configure_append() {
-    mkdir -p ${S}/deps/src
     # Mark Nvidia modprobe as downloaded
-    cp -r ${WORKDIR}/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} ${S}/deps/src
     touch ${S}/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/.download_stamp
 }
 
