@@ -23,6 +23,8 @@ PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-shared-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-tools-native = "${CUDA_VERSION}%"
+# Tegra specific version of libnvidia-container
+PREFERRED_VERSION_libnvidia-container-tools = "0.9.0"
 
 ROOTFS_POSTPROCESS_COMMAND_append = " remove_mesa_stubs ; "
 
