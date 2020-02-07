@@ -56,7 +56,7 @@ def filtered_ldflags(d):
             newflags.append(flag)
     return ' '.join(newflags)
 
-LINKFLAGS = "-L${STAGING_DIR_HOST}${CUDA_PATH}/lib ${TOOLCHAIN_OPTIONS} ${@filtered_ldflags(d)} -lstdc++"
+LINKFLAGS = "-L${STAGING_DIR_HOST}${CUDA_PATH}/${baselib} ${TOOLCHAIN_OPTIONS} ${@filtered_ldflags(d)} -lstdc++"
 
 EXTRA_OEMAKE = ' \
     GENCODE_FLAGS="${CUDA_NVCC_ARCH_FLAGS}" SMS="${@extract_sm(d)}" OPENMP=yes \
