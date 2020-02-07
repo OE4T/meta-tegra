@@ -28,6 +28,11 @@ do_install() {
     cp -R --preserve=mode,timestamps ${B}/usr/include ${D}${prefix}/
     cp -R --preserve=mode,timestamps ${B}/usr/lib/* ${D}${libdir}/
     cp -R --preserve=mode,timestamps ${B}/usr/share/visionworks-tracking ${D}${datadir}/
+    # CSV file for nvidia-docker
+    install -d -m 755 ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
+    echo "lib, ${libdir}/libvisionworks_tracking.so.${PV}" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/visionworks-tracking.csv
+    echo "sym, ${libdir}/libvisionworks_tracking.so.0.88" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/visionworks-tracking.csv
+    echo "sym, ${libdir}/libvisionworks_tracking.so}" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/visionworks-tracking.csv
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
@@ -38,5 +43,6 @@ PACKAGES += "${PN}-samples"
 FILES_${PN}-dev += "${libdir}/pkgconfig ${datadir}/visionworks-tracking/cmake"
 FILES_${PN}-doc += "${datadir}/visionworks-tracking/docs"
 FILES_${PN}-samples += "${datadir}/visionworks-tracking/sources"
+FILES_${PN} += "${sysconfdir}/nvidia-container-runtime/host-files-for-container.d"
 RDEPENDS_${PN} = "libstdc++"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

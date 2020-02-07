@@ -30,6 +30,11 @@ do_install() {
     cp -R --preserve=mode,timestamps ${B}/usr/include ${D}${prefix}/
     cp -R --preserve=mode,timestamps ${B}/usr/lib/* ${D}${libdir}/
     cp -R --preserve=mode,timestamps ${B}/usr/share/visionworks-sfm ${D}${datadir}/
+    # CSV file for nvidia-docker
+    install -d -m 755 ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
+    echo "lib, ${libdir}/libvisionworks_sfm.so.${PV}" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/visionworks-sfm.csv
+    echo "sym, ${libdir}/libvisionworks_sfm.so.0.90" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/visionworks-sfm.csv
+    echo "sym, ${libdir}/libvisionworks_sfm.so}" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/visionworks-sfm.csv
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
@@ -40,5 +45,6 @@ PACKAGES += "${PN}-samples"
 FILES_${PN}-dev += "${libdir}/pkgconfig ${datadir}/visionworks-sfm/cmake"
 FILES_${PN}-doc += "${datadir}/visionworks-sfm/docs"
 FILES_${PN}-samples += "${datadir}/visionworks-sfm/sources"
+FILES_${PN} += "${sysconfdir}/nvidia-container-runtime/host-files-for-container.d"
 RDEPENDS_${PN} = "libstdc++"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

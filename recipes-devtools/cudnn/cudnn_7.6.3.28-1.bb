@@ -45,11 +45,17 @@ do_install() {
     cp --preserve=mode,timestamps --recursive ${S}/usr/share/* ${D}${datadir}/
     rm -rf ${D}${datadir}/lintian
     cp --preserve=mode,timestamps --recursive ${S}/usr/src/* ${D}${prefix}/src/
+    # CSV file for nvidia-docker
+    install -d -m 755 ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
+    echo "lib, ${libdir}/libcudnn.so.${BASEVER}" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/cudnn.csv
+    echo "sym, ${libdir}/libcudnn.so.7" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/cudnn.csv
+    echo "sym, ${libdir}/libcudnn.so" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/cudnn.csv
 }
 
 PACKAGES =+ "${PN}-samples"
 FILES_${PN}-samples = "${prefix}/src"
 INSANE_SKIP_${PN} = "ldflags"
+FILES_${PN} += "${sysconfdir}/nvidia-container-runtime/host-files-for-container.d"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"

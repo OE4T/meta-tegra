@@ -29,13 +29,19 @@ do_install() {
     cp -R --preserve=mode,timestamps ${B}/usr/lib/pkgconfig/* ${D}${libdir}/pkgconfig
     cp --preserve=mode,timestamps ${B}/usr/lib/libvisionworks.so ${D}${libdir}/
     cp -R --preserve=mode,timestamps ${B}/usr/share/visionworks ${D}${datadir}/
+    # CSV file for nvidia-docker
+    install -d -m 755 ${D}${syconfdir}/nvidia-container-runtime/host-files-for-container.d
+    echo "lib, ${libdir}/libvisionworks.so" >> ${D}${syconfdir}/nvidia-container-runtime/host-files-for-container.d/visionworks.csv
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
-FILES_${PN} = "${libdir}/libvisionworks.so"
+FILES_${PN} = "${libdir}/libvisionworks.so \
+               ${sysconfdir}/nvidia-container-runtime/host-files-for-container.d \
+"
 FILES_${PN}-dev = "${includedir} ${libdir}/pkgconfig ${datadir}/visionworks"
+
 RDEPENDS_${PN} = "libstdc++"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

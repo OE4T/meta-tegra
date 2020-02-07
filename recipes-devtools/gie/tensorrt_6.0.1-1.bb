@@ -100,6 +100,15 @@ do_install() {
     tar -C ${S}/usr/lib/aarch64-linux-gnu -cf- . | tar -C ${D}${libdir}/ --no-same-owner -xf-
     install -d ${D}${prefix}/src
     cp --preserve=mode,timestamps --recursive ${S}/usr/src/tensorrt ${D}${prefix}/src/
+    # CSV file for nvidia-docker
+    install -d -m 755 ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
+    echo "lib, ${libdir}/" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/tensorrt.csv 
+    echo "lib, ${libdir}/" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/tensorrt.csv
+    echo "lib, ${libdir}/" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/tensorrt.csv
+    echo "lib, ${libdir}/" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/tensorrt.csv
+    echo "lib, ${libdir}/" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/tensorrt.csv
+    echo "lib, ${libdir}/" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/tensorrt.csv
+
 }
 PACKAGES =+ "${PN}-samples"
 FILES_${PN}-samples = "${prefix}/src"
@@ -107,6 +116,8 @@ FILES_${PN}-samples = "${prefix}/src"
 RDEPENDS_${PN} += "libstdc++ cudnn cuda-cublas cuda-cudart cuda-command-line-tools-libnvtoolsext tegra-libraries libglvnd"
 RDEPENDS_${PN}-samples += "tegra-libraries bash python libglvnd cudnn cuda-cudart cuda-cublas"
 RPROVIDES_${PN}-samples = "${PN}-examples"
+
+FILES_${PN} += "${sysconfdir}/nvidia-container-runtime/host-files-for-container.d"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
