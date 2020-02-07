@@ -1,13 +1,13 @@
 CUDA_NVCC_COMPAT_FLAGS ??= ""
-CUDA_NVCC_PATH_FLAGS ??= "--include-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include --library-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/lib"
+CUDA_NVCC_PATH_FLAGS ??= "--include-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include --library-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/${baselib}"
 CUDA_NVCC_EXTRA_FLAGS ??= ""
 CUDA_NVCC_FLAGS ?= "${CUDA_NVCC_ARCH_FLAGS} ${CUDA_NVCC_COMPAT_FLAGS} ${CUDA_NVCC_PATH_FLAGS} ${CUDA_NVCC_EXTRA_FLAGS}"
 
 CUDA_CXXFLAGS = "-I=/usr/local/cuda-${CUDA_VERSION}/include"
 CUDA_LDFLAGS = "\
-   -L=/usr/local/cuda-${CUDA_VERSION}/lib -L=/usr/local/cuda-${CUDA_VERSION}/lib/stubs \
-  -Wl,-rpath-link,${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/lib \
-  -Wl,-rpath,/usr/local/cuda-${CUDA_VERSION}/lib \
+   -L=/usr/local/cuda-${CUDA_VERSION}/${baselib} -L=/usr/local/cuda-${CUDA_VERSION}/${baselib}/stubs \
+  -Wl,-rpath-link,${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/${baselib} \
+  -Wl,-rpath,/usr/local/cuda-${CUDA_VERSION}/${baselib} \
 "
 
 CUDA_EXTRA_OECMAKE = '\
