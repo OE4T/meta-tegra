@@ -30,8 +30,8 @@ do_install() {
     cp --preserve=mode,timestamps ${B}/usr/lib/libvisionworks.so ${D}${libdir}/
     cp -R --preserve=mode,timestamps ${B}/usr/share/visionworks ${D}${datadir}/
     # CSV file for nvidia-docker
-    install -d -m 755 ${D}${syconfdir}/nvidia-container-runtime/host-files-for-container.d
-    echo "lib, ${libdir}/libvisionworks.so" >> ${D}${syconfdir}/nvidia-container-runtime/host-files-for-container.d/visionworks.csv
+    install -d -m 755 ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
+    echo "lib, ${libdir}/libvisionworks.so" >> ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/visionworks.csv
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
