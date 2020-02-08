@@ -2,7 +2,7 @@ DESCRIPTION = "NVIDIA TensorRT (GPU Inference Engine) for deep learning"
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
 
-inherit nvidia_devnet_downloads
+inherit nvidia_devnet_downloads container-runtime-csv
 
 SUBDIR = ""
 SUBDIR_tegra194 = "P2888/"
@@ -43,6 +43,8 @@ CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
 BASEVER = "${@d.getVar('PV').split('-')[0]}"
 
 S = "${WORKDIR}/tensorrt"
+
+CONTAINER_CSV_FILES = "${libdir}/*.so* /usr/src/*"
 
 do_configure() {
     :
