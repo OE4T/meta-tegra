@@ -2,7 +2,7 @@ SUMMARY = "NVIDIA CUDA Deep Neural Network library"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v7.h;endline=48;md5=b48d68d7e5eb6b858c229fdb89171636"
 
-inherit nvidia_devnet_downloads
+inherit nvidia_devnet_downloads container-runtime-csv
 
 SRC_URI = "\
     ${NVIDIA_DEVNET_MIRROR}/libcudnn7_${PV}+cuda10.0_arm64.deb;name=lib;subdir=cudnn \
@@ -48,7 +48,7 @@ do_install() {
     cp --preserve=mode,timestamps --recursive ${S}/usr/src/* ${D}${prefix}/src/
 }
 
-PACKAGES =+ "${PN}-samples"
+PACKAGES += "${PN}-samples"
 FILES_${PN}-samples = "${prefix}/src"
 INSANE_SKIP_${PN} = "ldflags"
 
