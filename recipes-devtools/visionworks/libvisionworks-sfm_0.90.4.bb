@@ -4,7 +4,7 @@ DESCRIPTION = "NVIDIA VisionWorks Plus (SFM) contains platform specific optimize
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-sfm-repo/copyright;md5=99d8c0c1313afdf990f6407c07a88407"
 
-inherit nvidia_devnet_downloads
+inherit nvidia_devnet_downloads container-runtime-csv
 
 SRC_URI = "${NVIDIA_DEVNET_MIRROR}/libvisionworks-sfm-repo_${PV}_arm64.deb"
 SRC_URI[md5sum] = "647b0ae86a00745fc6d211545a9fcefe"
