@@ -1,0 +1,88 @@
+attrs :
+{
+    bcdUSB = 0x210;
+    bDeviceClass = 0x0;
+    bDeviceSubClass = 0x0;
+    bDeviceProtocol = 0x0;
+    bMaxPacketSize0 = 0x40;
+    idVendor = 0x1D6B;
+    idProduct = 0x104;
+    bcdDevice = 0x1;
+};
+os_descs :
+{
+    config_id = 1;
+    use = 1;
+    qw_sign = "MSFT100";
+    b_vendor_code = 0xcd;
+};
+strings = (
+    {
+        lang = 0x409;
+        manufacturer = "NVIDIA";
+        product = "Linux for Tegra";
+        serialnumber = "@SERIALNUMBER@";
+    } );
+functions :
+{
+    rndis_usb0 :
+    {
+        instance = "usb0";
+        type = "rndis";
+        attrs :
+        {
+        };
+        os_descs = (
+            {
+                interface = "rndis";
+                compatible_id = "RNDIS";
+                sub_compatible_id = "5162001";
+            } );
+    };
+    acm_usb0 :
+    {
+        instance = "usb0";
+        type = "acm";
+        attrs :
+        {
+        };
+        os_descs = ( );
+    };
+    ecm_usb0 :
+    {
+        instance = "usb0";
+        type = "ecm";
+        attrs :
+        {
+        };
+        os_descs = ( );
+    };
+};
+configs = (
+    {
+        id = 1;
+        name = "L4T";
+        attrs :
+        {
+            bmAttributes = 0x80;
+            bMaxPower = 0x2;
+        };
+        strings = (
+            {
+                lang = 0x409;
+                configuration = "CDC RNDIS+ACM+ECM";
+            } );
+        functions = (
+            {
+                name = "rndis.usb0";
+                function = "rndis_usb0";
+            },
+            {
+                name = "acm.GS0";
+                function = "acm_usb0";
+            },
+            {
+                name = "ecm.usb0";
+                function = "ecm_usb0";
+            } );
+    } );
