@@ -1,0 +1,2 @@
+SUBSYSTEM=="tty", KERNEL=="ttyGS[0-9]", ACTION=="add", RUN+="/bin/systemctl start serial-getty@%k.service"
+SUBSYSTEM=="tty", KERNEL=="ttyGS[0-9]", ACTION=="remove", RUN+="/bin/systemctl stop serial-getty@%k.service"
