@@ -1,7 +1,7 @@
-From 78f72e9eb8e42b2791099c519cf8c47e89c4143f Mon Sep 17 00:00:00 2001
+From e1cb3214647b044f1ba39fa8b0eff02a26bb894a Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 15:56:37 +0200
-Subject: [PATCH 1/8] gl-renderer: Add EGLDevice enumeration support
+Subject: [PATCH 1/6] gl-renderer: Add EGLDevice enumeration support
 
 EGLDevice provides means to enumerate native devices.
 
@@ -16,15 +16,15 @@ Reviewed-by: Andy Ritger <aritger@nvidia.com>
 Reviewed-by: Adam Cheney <acheney@nvidia.com>
 Reviewed-by: James Jones <jajones@nvidia.com>
 ---
- libweston/renderer-gl/gl-renderer.c | 89 ++++++++++++++++++++++++++++-
+ libweston/renderer-gl/gl-renderer.c | 86 +++++++++++++++++++++++++++++
  libweston/renderer-gl/gl-renderer.h |  8 +++
- 2 files changed, 96 insertions(+), 1 deletion(-)
+ 2 files changed, 94 insertions(+)
 
 diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
-index 54f8b1cd..a6be2b7b 100644
+index 6c435507..4bf95e60 100644
 --- a/libweston/renderer-gl/gl-renderer.c
 +++ b/libweston/renderer-gl/gl-renderer.c
-@@ -4084,6 +4084,90 @@ gl_renderer_setup(struct weston_compositor *ec, EGLSurface egl_surface)
+@@ -3826,6 +3826,90 @@ gl_renderer_setup(struct weston_compositor *ec, EGLSurface egl_surface)
  	return 0;
  }
  
@@ -113,20 +113,17 @@ index 54f8b1cd..a6be2b7b 100644
 +}
 +
  WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
- 	.opaque_attribs = gl_renderer_opaque_attribs,
- 	.alpha_attribs = gl_renderer_alpha_attribs,
-@@ -4095,5 +4179,8 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
- 	.output_surface = gl_renderer_output_surface,
+ 	.display_create = gl_renderer_display_create,
+ 	.output_window_create = gl_renderer_output_window_create,
+@@ -3833,4 +3917,6 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
+ 	.output_destroy = gl_renderer_output_destroy,
  	.output_set_border = gl_renderer_output_set_border,
  	.create_fence_fd = gl_renderer_create_fence_fd,
--	.print_egl_error_state = gl_renderer_print_egl_error_state
-+	.print_egl_error_state = gl_renderer_print_egl_error_state,
-+
 +	.get_devices = gl_renderer_get_devices,
 +	.get_drm_device_file = gl_renderer_get_drm_device_file
  };
 diff --git a/libweston/renderer-gl/gl-renderer.h b/libweston/renderer-gl/gl-renderer.h
-index b1d6abbe..cd330932 100644
+index 2bca2d00..b60a6463 100644
 --- a/libweston/renderer-gl/gl-renderer.h
 +++ b/libweston/renderer-gl/gl-renderer.h
 @@ -40,6 +40,7 @@
@@ -137,10 +134,10 @@ index b1d6abbe..cd330932 100644
  typedef void *EGLDisplay;
  typedef void *EGLSurface;
  typedef void *EGLConfig;
-@@ -123,5 +124,12 @@ struct gl_renderer_interface {
+@@ -202,4 +203,11 @@ struct gl_renderer_interface {
+ 	 * EGL_ANDROID_native_fence_sync extension.
+ 	 */
  	int (*create_fence_fd)(struct weston_output *output);
- 
- 	void (*print_egl_error_state)(void);
 +
 +	int (*get_devices)(EGLint max_devices,
 +			   EGLDeviceEXT *devices,
@@ -149,7 +146,6 @@ index b1d6abbe..cd330932 100644
 +	int (*get_drm_device_file)(EGLDeviceEXT device,
 +				   const char **drm_device_file);
  };
- 
 -- 
 2.20.1
 

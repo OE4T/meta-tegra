@@ -14,7 +14,6 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=d79ee9e66bb0f95d3386a7acae780b70 \
 
 DEPENDS += "egl-wayland"
 PACKAGECONFIG_remove_tegra = "fbdev"
-EXTRA_OEMESON_append_tegra = " -Dsimple-dmabuf-drm="
 PACKAGE_ARCH_tegra = "${SOC_FAMILY_PKGARCH}"
 
 do_install_append_tegra() {
