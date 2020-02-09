@@ -25,3 +25,26 @@ FILES_libegl-mesa += "${libdir}/libEGL_mesa.so.* ${datadir}/glvnd"
 FILES_libegl-mesa-dev += "${libdir}/libEGL_mesa.so"
 FILES_libgl-mesa += "${libdir}/libGLX_mesa.so.*"
 FILES_libgl-mesa-dev += "${libdir}/libGLX_mesa.so"
+
+python __anonymous() {
+    pkgconfig = (d.getVar('PACKAGECONFIG') or "").split()
+    if "glvnd" not in pkgconfig:
+        return
+    for p in (("egl", "libegl", "libegl1"),
+              ("dri", "libgl", "libgl1"),
+              ("gles", "libgles1", "libglesv1-cm1"),
+              ("gles", "libgles2", "libglesv2-2"),
+              ("gles", "libgles3",)):
+        if not p[0] in pkgconfig:
+            continue
+        fullp = p[1] + "-mesa"
+        d.delVar("RREPLACES_" + fullp)
+        d.delVar("RPROVIDES_" + fullp)
+        d.delVar("RCONFLICTS_" + fullp)
+
+        # For -dev, the first element is both the Debian and original name
+        fullp += "-dev"
+        d.delVar("RREPLACES_" + fullp)
+        d.delVar("RPROVIDES_" + fullp)
+        d.delVar("RCONFLICTS_" + fullp)
+}
