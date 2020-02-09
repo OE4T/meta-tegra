@@ -1,5 +1,6 @@
 UBOOT_BINARY ?= "u-boot-dtb.${UBOOT_SUFFIX}"
 
+require recipes-bsp/u-boot/u-boot-common.inc
 require recipes-bsp/u-boot/u-boot.inc
 require u-boot-tegra-common-${PV}.inc
 
