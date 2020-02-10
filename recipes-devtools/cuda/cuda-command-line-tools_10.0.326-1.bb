@@ -11,8 +11,8 @@ do_compile_append() {
 }
 
 PACKAGES =+ "${PN}-libcupti ${PN}-libcupti-dev ${PN}-libnvtoolsext ${PN}-libnvtoolsext-dev"
-FILES_${PN}-libnvtoolsext = "${prefix}/local/cuda-10.0/lib/libnvToolsExt${SOLIBS}"
-FILES_${PN}-libnvtoolsext-dev = "${prefix}/local/cuda-10.0/lib/libnvToolsExt${SOLIBSDEV}"
+FILES_${PN}-libnvtoolsext = "${prefix}/local/cuda-10.0/${baselib}/libnvToolsExt${SOLIBS}"
+FILES_${PN}-libnvtoolsext-dev = "${prefix}/local/cuda-10.0/${baselib}/libnvToolsExt${SOLIBSDEV}"
 INSANE_SKIP_${PN}-libnvtoolsext = "ldflags libdir"
 INSANE_SKIP_${PN}-libnvtoolsext-dev = "ldflags libdir dev-elf"
 FILES_${PN}-libcupti = "${prefix}/local/cuda-10.0/extras/CUPTI/${baselib}/*${SOLIBS}"
