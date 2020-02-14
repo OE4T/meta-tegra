@@ -15,6 +15,7 @@ SDCARD_LAYOUT_TEMPLATE ??= ""
 SDCARD_PARTITION_FILE ?= "${@'${S}/bootloader/${NVIDIA_BOARD}/cfg/${SDCARD_LAYOUT_TEMPLATE}' if d.getVar('SDCARD_LAYOUT_TEMPLATE') else ''}"
 SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
 CBOOTOPTION_FILE ?= "${S}/bootloader/cbo.dts"
+ODMFUSE_FILE ?= ""
 
 BOOTBINS_tegra186 = "\
     adsp-fw.bin \
@@ -104,6 +105,7 @@ do_install() {
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
     install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/flash_${MACHINE}.xml
     [ -z "${SDCARD_PARTITION_FILE}" ] || install -m 0644 ${SDCARD_PARTITION_FILE} ${D}${datadir}/tegraflash/sdcard_${MACHINE}.xml
+    [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
 }
 
 do_install_append_tegra186() {
