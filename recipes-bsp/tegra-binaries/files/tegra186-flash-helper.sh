@@ -2,8 +2,9 @@
 bup_build=
 keyfile=
 sbk_keyfile=
+fuse_burn=
 no_flash=0
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash" -o "u:v:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,burnfuses" -o "u:v:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -14,6 +15,10 @@ while true; do
     case "$1" in
 	--bup)
 	    bup_build=yes
+	    shift
+	    ;;
+	--burnfuses)
+	    fuse_burn=yes
 	    shift
 	    ;;
 	--no-flash)
@@ -161,6 +166,8 @@ skipuid=""
 if [ "$bup_build" = "yes" ]; then
     tfcmd=sign
     skipuid="--skipuid"
+elif [ "$fuse_burn" = "yes" ]; then
+    tfcmd="burnfuses odmfuse_pkc.xml"
 elif [ -n "$keyfile" ]; then
     CHIPID="0x18"
     tegraid="$CHIPID"
