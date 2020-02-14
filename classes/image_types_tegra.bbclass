@@ -431,6 +431,9 @@ create_tegraflash_pkg_tegra186() {
         cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
     fi
     dd if=/dev/zero of=badpage.bin bs=4096 count=1
+    if [ -e ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ]; then
+        cp ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ./odmfuse_pkc.xml
+    fi
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
@@ -440,6 +443,13 @@ create_tegraflash_pkg_tegra186() {
 MACHINE=${MACHINE} ./tegra186-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${LNXFILE} "\$@"
 END
     chmod +x doflash.sh
+    if [ -e ./odmfuse_pkc.xml ]; then
+        cat > burnfuses.sh <<END
+#!/bin/sh
+MACHINE=${MACHINE} ./tegra186-flash-helper.sh --burnfuses flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${LNXFILE} "\$@"
+END
+	chmod +x burnfuses.sh
+    fi
     tegraflash_custom_post
     tegraflash_custom_sign_pkg
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" = "1" ]; then
