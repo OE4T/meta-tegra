@@ -1,0 +1,39 @@
+From 18fb64ab3e66c4ee2ae89c6aa45c2e24bf3f705e Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 5 Oct 2019 08:43:29 -0700
+Subject: [PATCH 5/7] Add EGL and GLES2 extensions for Tegra
+
+---
+ include/EGL/eglext.h   | 2 ++
+ include/GLES2/gl2ext.h | 2 ++
+ 2 files changed, 4 insertions(+)
+
+diff --git a/include/EGL/eglext.h b/include/EGL/eglext.h
+index 4e9c0dc..131d284 100644
+--- a/include/EGL/eglext.h
++++ b/include/EGL/eglext.h
+@@ -1362,6 +1362,8 @@ EGLAPI EGLuint64NV EGLAPIENTRY eglGetSystemTimeNV (void);
+ #define EGL_NATIVE_SURFACE_TIZEN          0x32A1
+ #endif /* EGL_TIZEN_image_native_surface */
+ 
++#include <EGL/eglext_nv.h>
++
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/include/GLES2/gl2ext.h b/include/GLES2/gl2ext.h
+index cab1c45..176afc6 100644
+--- a/include/GLES2/gl2ext.h
++++ b/include/GLES2/gl2ext.h
+@@ -3859,6 +3859,8 @@ GL_APICALL void GL_APIENTRY glEndTilingQCOM (GLbitfield preserveMask);
+ #define GL_SHADER_BINARY_VIV              0x8FC4
+ #endif /* GL_VIV_shader_binary */
+ 
++#include <GLES2/gl2ext_nv.h>
++
+ #ifdef __cplusplus
+ }
+ #endif
+-- 
+2.20.1
+

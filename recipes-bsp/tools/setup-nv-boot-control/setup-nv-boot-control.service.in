@@ -1,0 +1,10 @@
+[Unit]
+Description=Set up redundant boot configuration
+Before=nv_update_verifier.service
+
+[Service]
+Type=oneshot
+ExecStart=@bindir@/setup-nv-boot-control
+
+[Install]
+WantedBy=multi-user.target

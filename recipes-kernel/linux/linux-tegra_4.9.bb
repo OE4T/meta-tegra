@@ -10,12 +10,12 @@ PV .= "+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 EXTRA_OEMAKE += 'LIBGCC=""'
 
-L4T_VERSION = "l4t-r32.1"
+L4T_VERSION = "l4t-r32.3.1"
 SCMVERSION ??= "y"
 export LOCALVERSION = ""
 
 SRCBRANCH = "patches-${L4T_VERSION}"
-SRCREV = "3c02a65d917016f5301422d76c255638c845d774"
+SRCREV = "47e7e1cb0b492487faa6258a4f3efe91676568b7"
 KERNEL_REPO = "github.com/madisongh/linux-tegra-4.9"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 	   file://defconfig \
@@ -33,6 +33,5 @@ do_configure_prepend() {
 }
 
 COMPATIBLE_MACHINE = "(tegra)"
-COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 RDEPENDS_${KERNEL_PACKAGE_NAME}-base = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '${KERNEL_PACKAGE_NAME}-image'}"

@@ -5,9 +5,18 @@ PACKAGE_EXTRA_ARCHS_append = " ${SOC_FAMILY_PKGARCH}"
 KERNEL_ROOTSPEC ?= "root=/dev/mmcblk${@uboot_var('devnum')}p${@uboot_var('distro_bootpart')} rw rootwait"
 KERNEL_ARGS ??= ""
 
+TNSPEC_BOOTDEV ??= "mmcblk0p1"
+TNSPEC ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-${TEGRA_BOARDSKU}-${TEGRA_BOARDREV}-1-${TEGRA_CHIPREV}-${MACHINE}-${TNSPEC_BOOTDEV}"
+
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-tegra"
 PREFERRED_PROVIDER_u-boot ?= "u-boot-tegra"
 PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-tegra"
+PREFERRED_PROVIDER_cboot ?= "cboot-prebuilt"
+PREFERRED_PROVIDER_virtual/secure-os ?= "tos-prebuilt"
+PREFERRED_PROVIDER_virtual/egl = "libglvnd"
+PREFERRED_PROVIDER_virtual/libgles1 = "libglvnd"
+PREFERRED_PROVIDER_virtual/libgles2 = "libglvnd"
+PREFERRED_PROVIDER_virtual/libgl = "libglvnd"
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
 TEGRA_BLBLOCKSIZE ?= "${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}"
@@ -23,9 +32,3 @@ PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-shared-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-tools-native = "${CUDA_VERSION}%"
-
-ROOTFS_POSTPROCESS_COMMAND_append = " remove_mesa_stubs ; "
-
-remove_mesa_stubs() {
-	rm -rf ${IMAGE_ROOTFS}${@d.getVar('libdir', False)}/mesa
-}

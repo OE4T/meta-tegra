@@ -1,0 +1,32 @@
+From d9732794d02258b0b71a0b1473da1c79694da628 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 5 Oct 2019 09:05:15 -0700
+Subject: [PATCH] Remove version check for gl
+
+See https://gitlab.freedesktop.org/xorg/xserver/issues/893
+and https://gitlab.freedesktop.org/xorg/xserver/merge_requests/292
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: xorg-server-1.20.5/configure.ac
+===================================================================
+--- xorg-server-1.20.5.orig/configure.ac
++++ xorg-server-1.20.5/configure.ac
+@@ -765,7 +765,7 @@ LIBDRI="dri >= 7.8.0"
+ LIBDRM="libdrm >= 2.4.89"
+ LIBEGL="egl"
+ LIBGBM="gbm >= 10.2.0"
+-LIBGL="gl >= 7.1.0"
++LIBGL="gl"
+ LIBXEXT="xext >= 1.0.99.4"
+ LIBXFONT="xfont2 >= 2.0.0"
+ LIBXI="xi >= 1.2.99.1"
+@@ -1116,7 +1116,6 @@ case "$DRI2,$HAVE_DRI2PROTO" in
+ 	yes,yes | auto,yes)
+ 		AC_DEFINE(DRI2, 1, [Build DRI2 extension])
+ 		DRI2=yes
+-		LIBGL="gl >= 9.2.0"
+ 		SDK_REQUIRED_MODULES="$SDK_REQUIRED_MODULES $DRI2PROTO"
+ 		;;
+ esac

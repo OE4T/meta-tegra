@@ -1,0 +1,16 @@
+[Match]
+Name=l4tbr0
+
+[Network]
+Address=192.168.55.1/24
+DHCPServer=yes
+
+[DHCPServer]
+PoolOffset=99
+PoolSize=1
+DefaultLeaseTime=900
+
+[Route]
+Gateway=192.168.55.100
+GatewayOnLink=yes
+Metric=32766

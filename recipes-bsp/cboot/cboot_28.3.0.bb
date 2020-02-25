@@ -27,38 +27,10 @@ SRC_URI += " \
     file://0008-disable-implicit-fallthrough-compilation-errors.patch \
 "
 
+inherit nvidia_devnet_downloads
+
+require cboot-l4t.inc
+
 COMPATIBLE_MACHINE = "(tegra186)"
-PACKAGE_ARCH = "${MACHINE_ARCH}"
-
-S = "${WORKDIR}/${BP}"
-B = "${WORKDIR}/build"
-
+CBOOT_BUILD_ARTIFACT = "tegra186/lk.bin"
 EXTRA_OEMAKE = 'CFLAGS= CPPFLAGS= LDFLAGS= PROJECT=t186 TOOLCHAIN_PREFIX="${TARGET_PREFIX}" DEBUG=2 BUILDROOT="${B}" NV_BUILD_SYSTEM_TYPE=l4t NOECHO=" "'
-
-CBOOT_IMAGE ?= "cboot-${MACHINE}-${PV}-${PR}.bin"
-CBOOT_SYMLINK ?= "cboot-${MACHINE}.bin"
-
-inherit pythonnative nvidia_devnet_downloads deploy
-
-do_compile() {
-    LIBGCC=`${CC} -print-libgcc-file-name`
-    oe_runmake -C ${S}/bootloader/partner/t18x/cboot LIBGCC="$LIBGCC"
-}
-
-do_install() {
-	:
-}
-
-do_deploy() {
-	install -d ${DEPLOYDIR}
-	install -m 0644 ${B}/build-t186/lk.bin ${DEPLOYDIR}/${CBOOT_IMAGE}
-	ln -sf ${CBOOT_IMAGE} ${DEPLOYDIR}/${CBOOT_SYMLINK}
-}
-
-addtask deploy before do_build after do_install
-
-python () {
-    socarch = d.getVar("SOC_FAMILY") or ""
-    if socarch in ['tegra186', 'tegra194'] and d.getVar("PREFERRED_PROVIDER_virtual/bootloader").startswith("cboot"):
-        d.appendVar("PROVIDES", " virtual/bootloader")
-}
