@@ -1,0 +1,6 @@
+[Match]
+Name=usb* rndis*
+Type=gadget
+
+[Network]
+Bridge=l4tbr0

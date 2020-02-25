@@ -18,7 +18,6 @@ CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
 DEPENDS = "dpkg-native cuda-cudart patchelf-native libvisionworks"
 
 COMPATIBLE_MACHINE = "(tegra)"
-COMPATIBLE_MACHINE_tegra124 = "(-)"
 
 do_compile() {
     dpkg-deb --extract ${S}/var/visionworks-sfm-repo/libvisionworks-sfm_${PV}_arm64.deb ${B}

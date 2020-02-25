@@ -9,7 +9,7 @@ KERNEL_IMAGETYPE = "Image"
 
 MACHINE_FEATURES = "alsa bluetooth usbhost pci wifi rtc cuda"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'kernel-devicetree kernel-image u-boot'}"
-MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-configs-nvstartup tegra-configs-udev kernel-module-nvgpu kernel-module-nvs"
+MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev kernel-module-nvgpu kernel-module-tegra-udrm"
 MACHINE_EXTRA_RRECOMMENDS += "tegra-firmware-brcm kernel-module-bcmdhd"
 
 INITRAMFS_IMAGE ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'tegra-minimal-initramfs'}"
@@ -23,28 +23,36 @@ TEGRA_AUDIO_DEVICE ?= "tegrahda"
 
 SERIAL_CONSOLE = "115200 ttyS0"
 
-KERNEL_MODULE_AUTOLOAD = "nvgpu"
+KERNEL_MODULE_AUTOLOAD = "nvgpu tegra-udrm"
+KERNEL_MODULE_PROBECONF = "tegra-udrm"
+module_conf_tegra-udrm = "options tegra-udrm modeset=1"
+
 
 NVIDIA_CHIP = "0x18"
 
-TEGRA_FAB ?= "B02"
+TEGRA_FAB ?= "C04"
 TEGRA_BOARDID ?= "3310"
+TEGRA_BOARDSKU ?= ""
+TEGRA_BOARDREV ?= ""
+TEGRA_CHIPREV ?= "0"
+# Extracted from l4t_generate_soc_bup.sh for BOARDID=3310 and board=jetson-tx2
+TEGRA_BUPGEN_SPECS ?= "fab=B00 fab=B02 fab=C04 fab=D00 fab=D01"
+
+TEGRA_SIGNING_ENV ?= "BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB}"
 
 DEB_PKG_EXTENSION = "arm64"
 
 CUDA_VERSION ?= "10.0"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_62 --gpu-code=sm_62"
 
-PREFERRED_PROVIDER_libdrm = "libdrm-tegra-shim"
-PREFERRED_PROVIDER_drm = "libdrm-tegra-shim"
 PREFERRED_PROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
 PREFERRED_RPROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
-PREFERRED_PROVIDER_cboot ?= "cboot-prebuilt"
-
-PREFERRED_VERSION_xserver-xorg = "1.19%"
+PREFERRED_PROVIDER_tos-trusty ?= "tos-prebuilt"
 
 require conf/machine/include/tegra-common.inc
 
-L4T_BSP_NAME = "jax-tx2"
-L4T_BSP_BASEPFX = "JAX-TX2"
-L4T_BSP_PREFIX = "${L4T_BSP_BASEPFX}-Jetson"
+L4T_BSP_NAME = "t186ref_release_aarch64"
+L4T_SRCS_NAME = "Sources/T186"
+L4T_BSP_PREFIX = "Tegra186"
+
+NVPMODEL ?= "nvpmodel_t186"

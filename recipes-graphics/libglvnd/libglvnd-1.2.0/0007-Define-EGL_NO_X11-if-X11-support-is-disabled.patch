@@ -1,0 +1,26 @@
+From 0b972d80bc2f7292f979eae82b985245c2fa4c88 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 22 Nov 2019 05:02:13 -0800
+Subject: [PATCH 7/7] Define EGL_NO_X11 if X11 support is disabled
+
+---
+ configure.ac | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/configure.ac b/configure.ac
+index 6d9fc10..c045295 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -186,6 +186,9 @@ if test "x$enable_x11" = "xyes" ; then
+     PKG_CHECK_MODULES([X11], [x11])
+     AC_DEFINE([USE_X11], 1,
+         [Define to 1 if X11 support is enabled.])
++else
++    AC_DEFINE([EGL_NO_X11], 1,
++        [Define to 1 if X11 support is disabled.])
+ fi
+ if test "x$enable_glx" = "xyes" ; then
+     PKG_CHECK_MODULES([XEXT], [xext])
+-- 
+2.20.1
+
