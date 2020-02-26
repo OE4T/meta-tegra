@@ -12,3 +12,5 @@ do_install_append_tegra() {
 }
 
 PACKAGE_ARCH_tegra = "${MACHINE_ARCH}"
+
+FILES_${PN} += "${systemd_system_unitdir}/weston.service"
