@@ -1,9 +1,19 @@
-PACKAGECONFIG[glvnd] = "-Dglvnd=true,-Dglvnd=false,libglvnd"
+PACKAGECONFIG[glvnd] = "--enable-libglvnd,--disable-libglvnd,libglvnd"
 
 GLVNDCFG = ""
 GLVNDCFG_tegra = " glvnd"
 PACKAGECONFIG_append_class-target = "${GLVNDCFG}"
 PROVIDES_tegra = "virtual/mesa virtual/libgbm"
+EXTRA_OECONF_append_tegra = " --without-dri-drivers --disable-dri3"
+
+python () {
+    overrides = d.getVar("OVERRIDES").split(":")
+    if "tegra" not in overrides:
+        return
+
+    x11flag = d.getVarFlag("PACKAGECONFIG", "x11", False)
+    d.setVarFlag("PACKAGECONFIG", "x11", x11flag.replace("--enable-glx-tls", "--enable-glx"))
+}
 
 do_install_append() {
     if ${@bb.utils.contains("PACKAGECONFIG", "glvnd", "true", "false", d)}; then
@@ -17,6 +27,9 @@ do_install_append() {
 	       rm -f ${D}${libdir}/pkgconfig/${pkgf}.pc
 	    fi
 	done
+	# libglvnd provides these files
+	rm -rf ${D}${libdir}/libGLES*
+	rm -rf ${D}${libdir}/pkgconfig/gles*.pc
     fi
 }
 
