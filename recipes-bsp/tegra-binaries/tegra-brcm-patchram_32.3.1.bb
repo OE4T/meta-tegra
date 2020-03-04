@@ -13,4 +13,4 @@ do_install() {
 }
 
 PACKAGES = "${PN}"
-FILES_${PN}-brcm-patchram = "${sbindir}/brcm_patchram_plus"
+RDEPENDS_${PN} = "tegra-firmware-brcm"
