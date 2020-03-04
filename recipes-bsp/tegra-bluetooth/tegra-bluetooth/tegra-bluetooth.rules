@@ -1,0 +1,2 @@
+ACTION=="change" SUBSYSTEM=="rfkill" ATTR{name}=="bluedroid_pm*" ATTR{state}=="1" RUN+="/bin/systemctl start tegra-bluetooth"
+ACTION=="change" SUBSYSTEM=="rfkill" ATTR{name}=="bluedroid_pm*" ATTR{state}=="0" RUN+="/bin/systemctl stop tegra-bluetooth"
