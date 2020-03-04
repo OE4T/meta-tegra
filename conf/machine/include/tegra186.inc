@@ -7,10 +7,9 @@ require conf/machine/include/arm/arch-armv8a.inc
 
 KERNEL_IMAGETYPE = "Image"
 
-MACHINE_FEATURES = "alsa bluetooth usbhost pci wifi rtc cuda"
+MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'kernel-devicetree kernel-image u-boot'}"
 MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev kernel-module-nvgpu kernel-module-tegra-udrm"
-MACHINE_EXTRA_RRECOMMENDS += "tegra-firmware-brcm kernel-module-bcmdhd"
 
 INITRAMFS_IMAGE ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'tegra-minimal-initramfs'}"
 TEGRA_INITRAMFS_INITRD ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '1'}"
@@ -29,14 +28,6 @@ module_conf_tegra-udrm = "options tegra-udrm modeset=1"
 
 
 NVIDIA_CHIP = "0x18"
-
-TEGRA_FAB ?= "C04"
-TEGRA_BOARDID ?= "3310"
-TEGRA_BOARDSKU ?= ""
-TEGRA_BOARDREV ?= ""
-TEGRA_CHIPREV ?= "0"
-# Extracted from l4t_generate_soc_bup.sh for BOARDID=3310 and board=jetson-tx2
-TEGRA_BUPGEN_SPECS ?= "fab=B00 fab=B02 fab=C04 fab=D00 fab=D01"
 
 TEGRA_SIGNING_ENV ?= "BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB}"
 
