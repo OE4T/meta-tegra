@@ -23,6 +23,6 @@ deltask do_install
 deltask do_populate_sysroot
 deltask do_package_qa
 deltask do_packagedata
-deltask do_rm_work
+RM_WORK_EXCLUDE += "${PN}"
 
 addtask preconfigure after do_patch
