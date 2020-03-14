@@ -4,6 +4,13 @@ IMAGE_TYPES += "tegraflash"
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
 
+def tegra_default_rootfs_size(d):
+    partsize = int(d.getVar('ROOTFSPART_SIZE')) // 1024
+    extraspace = eval(d.getVar('IMAGE_ROOTFS_EXTRA_SPACE'))
+    return str(partsize - extraspace)
+
+IMAGE_ROOTFS_SIZE ?= "${@tegra_default_rootfs_size(d)}"
+
 IMAGE_UBOOT ??= "u-boot"
 INITRD_IMAGE ??= ""
 KERNEL_ARGS ??= ""
