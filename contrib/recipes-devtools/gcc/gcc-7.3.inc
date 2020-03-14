@@ -72,6 +72,7 @@ SRC_URI = "\
            file://0047-sync-gcc-stddef.h-with-musl.patch \
            file://0048-gcc-Enable-static-PIE.patch \
            file://0049-gcc-override-TARGET_LIBC_PROVIDES_SSP.patch \
+           file://0050-gcc-ustat-compiler-error-fix.patch \
            file://fix-segmentation-fault-precompiled-hdr.patch \
            file://no-sse-fix-test-case-failures.patch \
            ${BACKPORTS} \
