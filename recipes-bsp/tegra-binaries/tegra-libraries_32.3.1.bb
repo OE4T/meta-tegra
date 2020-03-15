@@ -1,6 +1,11 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
+inherit container-runtime-csv
+
+CONTAINER_CSV_FILES = "${libdir}/*.so* ${datadir}/glvnd/egl_vendor.d/* ${sysconfdir}/vulkan/icd.d/*"
+CONTAINER_CSV_EXTRA = "lib, /usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0"
+
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib usr/sbin var/nvidia
 }
@@ -35,8 +40,8 @@ do_install() {
     rm -f ${D}${libdir}/libdrm* ${D}${libdir}/libnvphsd* ${D}${libdir}/libnvgov*
     rm -f ${D}${libdir}/libv4l2.so* ${D}${libdir}/libv4lconvert.so*
     # argus and scf libraries hard-coded to use this path
-    install -d ${D}/usr/lib/aarch64-linux-gnu/tegra-egl
-    ln -sf ${libdir}/libEGL_nvidia.so.0 ${D}/usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0
+    #install -d ${D}/usr/lib/aarch64-linux-gnu/tegra-egl
+    #ln -sf ${libdir}/libEGL_nvidia.so.0 ${D}/usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0
     install -d ${D}${sbindir}
     install -m755 ${B}/usr/sbin/nvargus-daemon ${D}${sbindir}/
     install -d ${D}${datadir}/glvnd/egl_vendor.d
@@ -44,6 +49,11 @@ do_install() {
     install -d ${D}${sysconfdir}/vulkan/icd.d
     install -m644 ${DRVROOT}/tegra/nvidia_icd.json ${D}${sysconfdir}/vulkan/icd.d/
     rm ${D}${libdir}/libnvidia-egl-wayland*
+}
+
+pkg_postinst_${PN}() {
+    install -d $D/usr/lib/aarch64-linux-gnu/tegra-egl
+    ln $D${libdir}/libEGL_nvidia.so.0 $D/usr/lib/aarch64-linux-gnu/tegra-egl/
 }
 
 PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-argus-daemon-base ${PN}-libnvosd ${PN}-dev ${PN}"
