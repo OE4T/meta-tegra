@@ -3,6 +3,10 @@ DESCRIPTION = "NVIDIA DRM compatibility library"
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
+inherit container-runtime-csv
+
+CONTAINER_CSV_FILES = "${libdir}/libdrm_nvdc.so ${libdir}/tegra/libdrm.so.2"
+
 do_configure () {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib/aarch64-linux-gnu/tegra/libdrm.so.2
 }
