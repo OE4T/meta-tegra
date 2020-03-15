@@ -1,6 +1,10 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
+inherit container-runtime-csv
+
+CONTAINER_CSV_FILES = "${nonarch_base_libdir}/firmware/tegra*"
+
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 lib/firmware
 }
