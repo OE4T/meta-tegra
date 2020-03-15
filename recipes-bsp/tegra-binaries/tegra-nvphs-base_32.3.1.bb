@@ -3,6 +3,8 @@ require tegra-shared-binaries.inc
 
 DESCRIPTION = "NVIDIA Power Hinting Service"
 
+inherit container-runtime-csv
+
 COMPATIBLE_MACHINE = "(tegra)"
 NVPHSD_MACHINE_CONF = "nvphsd.conf"
 NVPHSD_MACHINE_CONF_tegra186 = "nvphsd.conf.t186"
