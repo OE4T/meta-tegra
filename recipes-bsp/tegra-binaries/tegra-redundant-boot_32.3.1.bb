@@ -20,9 +20,11 @@ do_install() {
 	install -m 0755 ${B}/usr/sbin/nvbootctrl ${D}${sbindir}
 	install -m 0755 ${B}/usr/sbin/nv_bootloader_payload_updater ${D}${sbindir}
 	install -m 0755 ${B}/usr/sbin/nv_update_engine ${D}${sbindir}
-	install -d ${D}${systemd_system_unitdir}
-	install -m 0644 ${B}/etc/systemd/system/nv_update_verifier.service ${D}${systemd_system_unitdir}
-	sed -i -e's,^After=nv\.service,After=nvstartup.service,' ${D}${systemd_system_unitdir}/nv_update_verifier.service
+	if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
+		install -d ${D}${systemd_system_unitdir}
+		install -m 0644 ${B}/etc/systemd/system/nv_update_verifier.service ${D}${systemd_system_unitdir}
+		sed -i -e's,^After=nv\.service,After=nvstartup.service,' ${D}${systemd_system_unitdir}/nv_update_verifier.service
+	fi
 	install -d ${D}/opt/ota_package
 }
 
@@ -50,12 +52,13 @@ PACKAGES = "${PN}-nvbootctrl ${PN} ${PN}-dev"
 FILES_${PN}-nvbootctrl = "${sbindir}/nvbootctrl"
 FILES_${PN} += "/opt/ota_package"
 FILES_${PN}-dev = "${datadir}/nv_tegra/rollback"
-SYSTEMD_SERVICE_${PN} = "nv_update_verifier.service"
+SYSTEMD_SERVICE_${PN} = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'nv_update_verifier.service', '', d)}"
 SYSTEMD_SERVICE_${PN}_tegra210 = ""
 RDEPENDS_${PN}-nvbootctrl = "setup-nv-boot-control"
 RDEPENDS_${PN}-nvbootctrl_tegra210 = ""
 ALLOW_EMPTY_${PN}-nvbootctrl_tegra210 = "1"
-RDEPENDS_${PN} = "${PN}-nvbootctrl setup-nv-boot-control-service"
-RDEPENDS_${PN}_tegra210 = "setup-nv-boot-control-service python-argparse python-core python-subprocess python-textutils python-shell"
+RDEPENDS_${PN} = "${PN}-nvbootctrl ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'setup-nv-boot-control-service', '', d)}"
+RDEPENDS_${PN}_tegra210 = "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'setup-nv-boot-control-service', '', d)} \
+  python-argparse python-core python-subprocess python-textutils python-shell"
 INSANE_SKIP_${PN} = "ldflags"
 INSANE_SKIP_${PN}-nvbootctrl = "ldflags"
