@@ -1,6 +1,10 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
+inherit container-runtime-csv
+
+CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/gstreamer-1.0/*.so*"
+
 DEPENDS = "\
 	gstreamer1.0-plugins-base \
 	${@bb.utils.contains('DISTRO_FEATURES', ['x11', 'alsa'], 'virtual/libx11 alsa-lib', '', d)} \
