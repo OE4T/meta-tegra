@@ -1,0 +1,73 @@
+From 09acccbb24c551c4b05b8fd1be0d6c2ba22c68ef Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 16 Mar 2020 12:21:55 -0700
+Subject: [PATCH] Make plugin directory relative to $ORIGIN
+
+---
+ lib/libv4l2/v4l2-plugin.c | 39 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 38 insertions(+), 1 deletion(-)
+
+diff --git a/lib/libv4l2/v4l2-plugin.c b/lib/libv4l2/v4l2-plugin.c
+index fbf92d8..6bca645 100644
+--- a/lib/libv4l2/v4l2-plugin.c
++++ b/lib/libv4l2/v4l2-plugin.c
+@@ -21,6 +21,8 @@
+ #include <dlfcn.h>
+ #include <fcntl.h>
+ #include <glob.h>
++#include <limits.h>
++#include <string.h>
+ #include <sys/stat.h>
+ #include <sys/mman.h>
+ #include "libv4l2.h"
+@@ -47,6 +49,39 @@
+ */
+ 
+ #define PLUGINS_PATTERN LIBV4L2_PLUGIN_DIR "/*.so"
++static char *plugins_pattern;
++
++static void init_plugins_pattern(void)
++{
++	void *handle;
++	char buf[PATH_MAX];
++
++	if (plugins_pattern)
++		return;
++	handle = dlopen("libv4l2.so.0", RTLD_NOLOAD|RTLD_NOW);
++	if (handle) {
++		if (dlinfo(handle, RTLD_DI_ORIGIN, buf) < 0)
++			V4L2_LOG_ERR("cannot identify $ORIGIN for plugins: %s\n", dlerror());
++		else {
++			char *cp;
++			char patbuf[PATH_MAX];
++			ssize_t n;
++			n = snprintf(patbuf, sizeof(patbuf)-1, "%s/libv4l/plugins/*.so", buf);
++			if (n < 0)
++				V4L2_LOG_ERR("error formatting pattern buf for plugins\n");
++			else {
++				patbuf[n] = '\0';
++				plugins_pattern = strdup(patbuf);
++				dlclose(handle);
++				return;
++			}
++		}
++		dlclose(handle);
++	} else
++		V4L2_LOG_ERR("dlopen failed for $ORIGIN lookup: %s\n", dlerror());
++
++	plugins_pattern = strdup(PLUGINS_PATTERN);
++}
+ 
+ void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
+ 		      const struct libv4l_dev_ops **dev_ops_ret)
+@@ -61,7 +96,9 @@ void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
+ 	*plugin_lib_ret = NULL;
+ 	*plugin_priv_ret = NULL;
+ 
+-	glob_ret = glob(PLUGINS_PATTERN, 0, NULL, &globbuf);
++	init_plugins_pattern();
++
++	glob_ret = glob(plugins_pattern, 0, NULL, &globbuf);
+ 
+ 	if (glob_ret == GLOB_NOSPACE)
+ 		return;
