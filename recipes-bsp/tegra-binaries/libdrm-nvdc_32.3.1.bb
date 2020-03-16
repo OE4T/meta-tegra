@@ -22,10 +22,11 @@ do_install() {
     install -Dpm 644 tegra.conf ${D}${sysconfdir}/ld.so.conf.d/tegra.conf
 }
 
-FILES_${PN} = "${libdir}/tegra ${sysconfdir}/ld.so.conf.d"
+FILES_${PN} = "${libdir} ${sysconfdir}/ld.so.conf.d"
+FILES_${PN}-dev = ""
 PRIVATE_LIBS = "libdrm.so.2"
 RDEPENDS_${PN} = "tegra-libraries"
-INSANE_SKIP_${PN} = "ldflags"
+INSANE_SKIP_${PN} = "ldflags dev-so"
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
