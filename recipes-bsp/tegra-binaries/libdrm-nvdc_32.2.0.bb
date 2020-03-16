@@ -19,10 +19,11 @@ do_install() {
     ln -sf tegra/libdrm.so.2 ${D}${libdir}/libdrm_nvdc.so
 }
 
-FILES_${PN} = "${libdir}/tegra"
+FILES_${PN} = "${libdir} ${sysconfdir}/ld.so.conf.d"
+FILES_${PN}-dev = ""
 PRIVATE_LIBS = "libdrm.so.2"
 RDEPENDS_${PN} = "tegra-libraries"
-INSANE_SKIP_${PN} = "ldflags"
+INSANE_SKIP_${PN} = "ldflags dev-so"
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
