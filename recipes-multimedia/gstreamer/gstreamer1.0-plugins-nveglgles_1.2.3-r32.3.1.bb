@@ -24,7 +24,9 @@ PACKAGECONFIG[wayland] = "--with-wayland,--without-wayland,wayland,mesa"
 
 S = "${WORKDIR}/gstegl_src/gst-egl"
 
-inherit gettext gobject-introspection
+inherit gettext gobject-introspection container-runtime-csv
+
+CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/gstreamer-1.0/*.so*"
 
 do_configure_append() {
     rm -f ${S}/po/POTFILES.in
@@ -38,3 +40,16 @@ do_compile_prepend() {
 do_install_append() {
     sed -i -e's,${STAGING_INCDIR},${includedir},g' ${D}${libdir}/pkgconfig/gstreamer-egl-1.0.pc
 }
+
+python add_container_csv_dependency() {
+    features = d.getVar('DISTRO_FEATURES').split()
+    if 'virtualization' not in features:
+        return
+    for pkg in ['libgstegl-1.0', 'gstreamer1.0-plugins-nveglgles-nveglglessink']:
+        if d.getVar('RDEPENDS_%s' % pkg):
+            d.appendVar('RDEPENDS_%s' % pkg, ' ${CONTAINER_CSV_PKGNAME}')
+        else:
+            d.setVar('RDEPENDS_%s' % pkg, '${CONTAINER_CSV_PKGNAME}')
+}
+
+PACKAGESPLITFUNCS_append = " add_container_csv_dependency "
