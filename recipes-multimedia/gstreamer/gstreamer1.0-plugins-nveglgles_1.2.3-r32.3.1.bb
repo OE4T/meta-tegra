@@ -26,7 +26,9 @@ EXTRA_OECONF = "--disable-gtk-doc --disable-examples"
 
 S = "${WORKDIR}/gstegl_src/gst-egl"
 
-inherit autotools gettext gobject-introspection pkgconfig
+inherit autotools gettext gobject-introspection pkgconfig container-runtime-csv
+
+CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/gstreamer-1.0/*.so*"
 
 delete_pkg_m4_file() {
 	# This m4 file is out of date and is missing PKG_CONFIG_SYSROOT_PATH tweaks which we need for introspection
@@ -49,5 +51,19 @@ do_install_append() {
     sed -i -e's,${STAGING_INCDIR},${includedir},g' ${D}${libdir}/pkgconfig/gstreamer-egl-1.0.pc
 }
 
+
 PACKAGES_DYNAMIC = "^${PN}-.*"
 require recipes-multimedia/gstreamer/gstreamer1.0-plugins-packaging.inc
+
+python add_container_csv_dependency() {
+    features = d.getVar('DISTRO_FEATURES').split()
+    if 'virtualization' not in features:
+        return
+    for pkg in ['libgstegl-1.0', 'gstreamer1.0-plugins-nveglgles-nveglglessink']:
+        if d.getVar('RDEPENDS_%s' % pkg):
+            d.appendVar('RDEPENDS_%s' % pkg, ' ${CONTAINER_CSV_PKGNAME}')
+        else:
+            d.setVar('RDEPENDS_%s' % pkg, '${CONTAINER_CSV_PKGNAME}')
+}
+
+PACKAGESPLITFUNCS_append = " add_container_csv_dependency "

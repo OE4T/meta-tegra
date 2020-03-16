@@ -30,7 +30,9 @@ S = "${WORKDIR}/gstomx1_src/gst-omx1"
 CFLAGS += "-DHAVE_NVBUF_UTILS"
 LDFLAGS += "-lnvbuf_utils"
 
-inherit autotools pkgconfig gettext
+inherit autotools pkgconfig gettext container-runtime-csv
+
+CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 do_configure_append() {
     sed -i -e's,/usr/lib/.*/tegra/,${libdir}/,g' ${S}/gstomx_config.c
