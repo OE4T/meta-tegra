@@ -21,7 +21,9 @@ EXTRA_OEMAKE = "${@bb.utils.contains('PACKAGECONFIG', 'libv4l2', 'USE_LIBV4L2=1'
 
 S = "${WORKDIR}/gst-v4l2"
 
-inherit gettext pkgconfig
+inherit gettext pkgconfig container-runtime-csv
+
+CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 copy_headers() {
 	cp ${WORKDIR}/nvbuf_utils.h ${S}/
