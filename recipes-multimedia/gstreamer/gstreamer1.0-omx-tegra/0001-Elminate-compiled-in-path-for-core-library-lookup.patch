@@ -1,0 +1,128 @@
+From 1ed1e8d563441a30bb0b61790e18ebf4a67ef6fe Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 17 Mar 2020 06:37:20 -0700
+Subject: [PATCH] Elminate compiled-in path for core library lookup
+
+---
+ gst-omx1/gstomx_config.c | 24 ++++++++++++------------
+ gst-omx1/omx/gstomx.c    |  5 ++++-
+ 2 files changed, 16 insertions(+), 13 deletions(-)
+
+Index: gst-omx1/gstomx_config.c
+===================================================================
+--- gst-omx1.orig/gstomx_config.c
++++ gst-omx1/gstomx_config.c
+@@ -16,73 +16,73 @@
+ const char *default_config =\
+ "[omxmpeg4videodec]\n"
+ "type-name=GstOMXMPEG4VideoDec\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.mp4.decode\n"
+ "rank=266\n"
+ "\n"
+ "[omxh264dec]\n"
+ "type-name=GstOMXH264Dec\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.h264.decode\n"
+ "rank=266\n"
+ "\n"
+ "[omxh265dec]\n"
+ "type-name=GstOMXH265Dec\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.h265.decode\n"
+ "rank=266\n"
+ "\n"
+ "[omxvp8dec]\n"
+ "type-name=GstOMXVP8Dec\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.vp8.decode\n"
+ "rank=266\n"
+ "\n"
+ "[omxvp9dec]\n"
+ "type-name=GstOMXVP9Dec\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.vp9.decode\n"
+ "rank=266\n"
+ "\n"
+ "[omxmpeg2videodec]\n"
+ "type-name=GstOMXMPEG2VideoDec\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.mpeg2v.decode\n"
+ "rank=266\n"
+ "\n"
+ "[omxwmvdec]\n"
+ "type-name=GstOMXWMVDec\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.vc1.decode\n"
+ "rank=266\n"
+ "\n"
+ "[omxh264enc]\n"
+ "type-name=GstOMXH264Enc\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.h264.encoder\n"
+ "rank=266\n"
+ "\n"
+ "[omxh265enc]\n"
+ "type-name=GstOMXH265Enc\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.h265.encoder\n"
+ "rank=266\n"
+ "\n"
+ "[omxvp8enc]\n"
+ "type-name=GstOMXVP8Enc\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.vp8.encoder\n"
+ "rank=266\n"
+ "\n"
+ "[omxvp9enc]\n"
+ "type-name=GstOMXVP9Enc\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.vp9.encoder\n"
+ "rank=266\n"
+ "\n"
+ "[nvoverlaysink]\n"
+ "type-name=GstNvOverlaySink\n"
+-"core-name=/usr/lib/" ABI_DIR "/tegra/libnvomx.so\n"
++"core-name=libnvomx.so\n"
+ "component-name=OMX.Nvidia.std.iv_renderer.overlay.yuv420\n"
+ "rank=266";
+ #else
+Index: gst-omx1/omx/gstomx.c
+===================================================================
+--- gst-omx1.orig/omx/gstomx.c
++++ gst-omx1/omx/gstomx.c
+@@ -2846,6 +2846,7 @@ plugin_init (GstPlugin * plugin)
+ 
+   elements = g_key_file_get_groups (config, &n_elements);
+   for (i = 0; i < n_elements; i++) {
++    GModule *core_module;
+     GTypeQuery type_query;
+     GTypeInfo type_info = { 0, };
+     GType type, subtype;
+@@ -2889,12 +2890,14 @@ plugin_init (GstPlugin * plugin)
+       g_error_free (err);
+       continue;
+     }
+-    if (!g_file_test (core_name, G_FILE_TEST_IS_REGULAR)) {
++    core_module = g_module_open (core_name, G_MODULE_BIND_LAZY | G_MODULE_BIND_LOCAL);
++    if (core_module == NULL) {
+       GST_ERROR ("Core '%s' does not exist for element '%s'", core_name,
+           elements[i]);
+       g_free (core_name);
+       continue;
+     }
++    g_module_close(core_module);
+     g_free (core_name);
+ 
+     err = NULL;
