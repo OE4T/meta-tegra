@@ -20,6 +20,7 @@ unpack_tar_in_tar_append() {
 SRC_URI += "file://0001-use_lt_sysroot_when_parsing_gstconfig_header.patch \
 	    file://0003-add-missing-nviva-lib.patch \
             file://fix-h265enc-compilation-errors.patch \
+            file://0001-Elminate-compiled-in-path-for-core-library-lookup.patch \
 "
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=4fbd65380cdd255951079008b364516c \
@@ -35,7 +36,6 @@ inherit autotools pkgconfig gettext container-runtime-csv
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 do_configure_append() {
-    sed -i -e's,/usr/lib/.*/tegra/,${libdir}/,g' ${S}/gstomx_config.c
     touch ${S}/omx/gstnvivameta_api.h
 }
 
