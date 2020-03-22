@@ -30,7 +30,7 @@ do_install() {
 	install -m 0755 ${B}/usr/sbin/nv_update_engine ${D}${sbindir}
 	install -d ${D}${systemd_system_unitdir}
 	install -m 0644 ${B}/etc/systemd/system/nv_update_verifier.service ${D}${systemd_system_unitdir}
-	sed -i -e's,^After=nv\.service,After=nvstartup.service,' ${D}${systemd_system_unitdir}/nv_update_verifier.service
+	sed -i -e's,^After=nv\.service,After=nvstartup.service dev-disk-by\\x2dpartlabel-kernel.device,' ${D}${systemd_system_unitdir}/nv_update_verifier.service
 	install -d ${D}/opt/ota_package
 }
 

@@ -12,9 +12,9 @@ MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-imag
 MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev"
 MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu"
 
-INITRD_IMAGE ?=	"tegra-minimal-initramfs"
+INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
+INITRAMFS_IMAGE_BUNDLE ?= "1"
 IMAGE_CLASSES_append = " image_types_cboot"
-INITRD_FSTYPES ?= "cpio.gz.cboot cpio.gz.cboot.bup-payload"
 IMAGE_UBOOT ?= ""
 
 TEGRA_AUDIO_DEVICE ?= "tegrahdat194ref"

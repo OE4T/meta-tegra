@@ -21,7 +21,7 @@ TEGRA_SIGNING_EXTRA_DEPS ??= ""
 TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEGRA_BOARDREV};chiprev=${TEGRA_CHIPREV}"
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
-LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${INITRD_IMAGE}-${MACHINE}.cboot'}"
+LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${KERNEL_IMAGETYPE}-initramfs-${MACHINE}.cboot'}"
 LNXSIZE ?= "83886080"
 APPFILE ?= "${@'${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}' if d.getVar('TEGRA_SPIFLASH_BOOT') == '1' else '${IMAGE_BASENAME}.img'}"
 
