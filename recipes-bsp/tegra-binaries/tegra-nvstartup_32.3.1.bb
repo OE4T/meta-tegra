@@ -21,6 +21,6 @@ do_install() {
 inherit systemd update-rc.d
 
 INITSCRIPT_NAME = "nvstartup"
-INITSCRIPT_PARAMS = "defaults"
+INITSCRIPT_PARAMS = "defaults 00"
 SYSTEMD_SERVICE_${PN} = "nvstartup.service"
 RDEPENDS_${PN} = "tegra-configs-nvstartup"
