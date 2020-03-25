@@ -227,7 +227,7 @@ elif [ -n "$keyfile" ]; then
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
     BINSARGS="--bins \"$BINSARGS\""
-    flashername=nvtboot_recovery_cpu.bin
+    flashername=nvtboot_recovery_cpu_t194.bin
     BCT="--sdram_config"
     bctfilename=`echo $sdramcfg_files | cut -d, -f1`
     bctfile1name=`echo $sdramcfg_files | cut -d, -f2`
