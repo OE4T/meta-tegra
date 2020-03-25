@@ -33,6 +33,7 @@ TEGRA_CHIPREV ?= "2"
 # Extracted from l4t_generate_soc_bup.sh for BOARDID=2888 and board=jetson-xavier
 TEGRA_BUPGEN_SPECS ?= "fab=400;boardsku=0001;boardrev=H.0 \
                        fab=400;boardsku=0001;boardrev=J.0 \
+                       fab=400;boardsku=0001;boardrev=L.0 \
                        fab=400;boardsku=0004;boardrev=F.0"
 
 TEGRA_SIGNING_ENV = "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV}"
