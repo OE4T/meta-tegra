@@ -16,6 +16,7 @@ do_install() {
     install -d ${D}${includedir}
     cp -R --preserve=mode,timestamps ${S}/argus/include/Argus ${D}${includedir}
     cp -R --preserve=mode,timestamps ${S}/argus/include/EGLStream ${D}${includedir}
+    cp -R --preserve=mode,timestamps ${S}/include/libjpeg-8b ${D}${includedir}
     install -m 0644 ${S}/include/nvbuf_utils.h ${D}${includedir}/
     install -m 0644 ${S}/include/nvosd.h ${D}${includedir}/
 }
