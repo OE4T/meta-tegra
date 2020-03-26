@@ -1,0 +1,145 @@
+From 88dfdb79d6be639c222ef86d5debff41190f2c61 Mon Sep 17 00:00:00 2001
+From: Sascha Willems <webmaster@saschawillems.de>
+Date: Mon, 17 Feb 2020 21:09:27 +0100
+Subject: [PATCH] Centralize asset path handling
+
+Refs #470
+Refs #627
+---
+ base/VulkanTools.cpp                         | 11 +++++++++++
+ base/VulkanTools.h                           |  6 +-----
+ base/vulkanexamplebase.cpp                   | 14 --------------
+ base/vulkanexamplebase.h                     |  2 --
+ examples/computeheadless/computeheadless.cpp |  4 ++--
+ examples/imgui/main.cpp                      |  4 ++--
+ examples/renderheadless/renderheadless.cpp   |  8 ++++----
+ 7 files changed, 20 insertions(+), 29 deletions(-)
+
+diff --git a/base/VulkanTools.cpp b/base/VulkanTools.cpp
+index cfdeb82..29b558a 100644
+--- a/base/VulkanTools.cpp
++++ b/base/VulkanTools.cpp
+@@ -8,6 +8,17 @@
+ 
+ #include "VulkanTools.h"
+ 
++const std::string getAssetPath()
++{
++#if defined(VK_USE_PLATFORM_ANDROID_KHR)
++	return "";
++#elif defined(VK_EXAMPLE_DATA_DIR)
++	return VK_EXAMPLE_DATA_DIR;
++#else
++	return "./../data/";
++#endif
++}
++
+ namespace vks
+ {
+ 	namespace tools
+diff --git a/base/VulkanTools.h b/base/VulkanTools.h
+index 1da5a88..46ff411 100644
+--- a/base/VulkanTools.h
++++ b/base/VulkanTools.h
+@@ -59,11 +59,7 @@
+ }
+ #endif
+ 
+-#if defined(__ANDROID__)
+-#define ASSET_PATH ""
+-#else
+-#define ASSET_PATH "./../data/"
+-#endif
++const std::string getAssetPath();
+ 
+ namespace vks
+ {
+diff --git a/base/vulkanexamplebase.cpp b/base/vulkanexamplebase.cpp
+index 1ec8d6a..5d49a36 100644
+--- a/base/vulkanexamplebase.cpp
++++ b/base/vulkanexamplebase.cpp
+@@ -101,20 +101,6 @@ std::string VulkanExampleBase::getWindowTitle()
+ 	return windowTitle;
+ }
+ 
+-#if !(defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
+-// iOS & macOS: VulkanExampleBase::getAssetPath() implemented externally to allow access to Objective-C components
+-const std::string VulkanExampleBase::getAssetPath()
+-{
+-#if defined(VK_USE_PLATFORM_ANDROID_KHR)
+-	return "";
+-#elif defined(VK_EXAMPLE_DATA_DIR)
+-	return VK_EXAMPLE_DATA_DIR;
+-#else
+-	return "./../data/";
+-#endif
+-}
+-#endif
+-
+ bool VulkanExampleBase::checkCommandBuffers()
+ {
+ 	for (auto& cmdBuffer : drawCmdBuffers)
+diff --git a/base/vulkanexamplebase.h b/base/vulkanexamplebase.h
+index e84f4c9..f821d93 100644
+--- a/base/vulkanexamplebase.h
++++ b/base/vulkanexamplebase.h
+@@ -135,8 +135,6 @@ public:
+ 
+ 	/** @brief Last frame time measured using a high performance timer (if available) */
+ 	float frameTimer = 1.0f;
+-	/** @brief Returns os specific base asset path (for shaders, models, textures) */
+-	const std::string getAssetPath();
+ 
+ 	vks::Benchmark benchmark;
+ 
+diff --git a/examples/computeheadless/computeheadless.cpp b/examples/computeheadless/computeheadless.cpp
+index 9e6b13f..afdb0dd 100644
+--- a/examples/computeheadless/computeheadless.cpp
++++ b/examples/computeheadless/computeheadless.cpp
+@@ -365,9 +365,9 @@ public:
+ 			shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+ 			shaderStage.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+ #if defined(VK_USE_PLATFORM_ANDROID_KHR)
+-			shaderStage.module = vks::tools::loadShader(androidapp->activity->assetManager, ASSET_PATH "shaders/computeheadless/headless.comp.spv", device);
++			shaderStage.module = vks::tools::loadShader(androidapp->activity->assetManager, (getAssetPath() + "shaders/computeheadless/headless.comp.spv".c_str(), device);
+ #else
+-			shaderStage.module = vks::tools::loadShader(ASSET_PATH "shaders/computeheadless/headless.comp.spv", device);
++			shaderStage.module = vks::tools::loadShader((getAssetPath() + "shaders/computeheadless/headless.comp.spv").c_str(), device);
+ #endif
+ 			shaderStage.pName = "main";
+ 			shaderStage.pSpecializationInfo = &specializationInfo;
+diff --git a/examples/imgui/main.cpp b/examples/imgui/main.cpp
+index 4b6ae4a..25f5fd0 100644
+--- a/examples/imgui/main.cpp
++++ b/examples/imgui/main.cpp
+@@ -330,8 +330,8 @@ public:
+ 
+ 		pipelineCreateInfo.pVertexInputState = &vertexInputState;
+ 
+-		shaderStages[0] = example->loadShader(ASSET_PATH "shaders/imgui/ui.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+-		shaderStages[1] = example->loadShader(ASSET_PATH "shaders/imgui/ui.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
++		shaderStages[0] = example->loadShader(getAssetPath() + "shaders/imgui/ui.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
++		shaderStages[1] = example->loadShader(getAssetPath() + "shaders/imgui/ui.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+ 
+ 		VK_CHECK_RESULT(vkCreateGraphicsPipelines(device->logicalDevice, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipeline));
+ 	}
+diff --git a/examples/renderheadless/renderheadless.cpp b/examples/renderheadless/renderheadless.cpp
+index 9806be3..8d30d90 100644
+--- a/examples/renderheadless/renderheadless.cpp
++++ b/examples/renderheadless/renderheadless.cpp
+@@ -598,11 +598,11 @@ public:
+ 			shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+ 			shaderStages[1].pName = "main";
+ #if defined(VK_USE_PLATFORM_ANDROID_KHR)
+-			shaderStages[0].module = vks::tools::loadShader(androidapp->activity->assetManager, ASSET_PATH "shaders/renderheadless/triangle.vert.spv", device);
+-			shaderStages[1].module = vks::tools::loadShader(androidapp->activity->assetManager, ASSET_PATH "shaders/renderheadless/triangle.frag.spv", device);
++			shaderStages[0].module = vks::tools::loadShader(androidapp->activity->assetManager, (getAssetPath() + "shaders/renderheadless/triangle.vert.spv".c_str(), device);
++			shaderStages[1].module = vks::tools::loadShader(androidapp->activity->assetManager, (getAssetPath() + "shaders/renderheadless/triangle.frag.spv".c_str(), device);
+ #else
+-			shaderStages[0].module = vks::tools::loadShader(ASSET_PATH "shaders/renderheadless/triangle.vert.spv", device);
+-			shaderStages[1].module = vks::tools::loadShader(ASSET_PATH "shaders/renderheadless/triangle.frag.spv", device);
++			shaderStages[0].module = vks::tools::loadShader((getAssetPath() + "shaders/renderheadless/triangle.vert.spv").c_str(), device);
++			shaderStages[1].module = vks::tools::loadShader((getAssetPath() + "shaders/renderheadless/triangle.frag.spv").c_str(), device);
+ #endif
+ 			shaderModules = { shaderStages[0].module, shaderStages[1].module };
+ 			VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipeline));

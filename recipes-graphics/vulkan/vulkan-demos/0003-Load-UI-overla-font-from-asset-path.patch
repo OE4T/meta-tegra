@@ -1,0 +1,29 @@
+From 6b99c8c34665d7efa8707e336ebd71e094415c5e Mon Sep 17 00:00:00 2001
+From: Sascha Willems <webmaster@saschawillems.de>
+Date: Mon, 17 Feb 2020 21:09:43 +0100
+Subject: [PATCH] Load UI overla font from asset path
+
+Refs #627
+---
+ base/VulkanUIOverlay.cpp | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/base/VulkanUIOverlay.cpp b/base/VulkanUIOverlay.cpp
+index 4361edf..546bd38 100644
+--- a/base/VulkanUIOverlay.cpp
++++ b/base/VulkanUIOverlay.cpp
+@@ -1,3 +1,4 @@
++
+ /*
+ * UI overlay class using ImGui
+ *
+@@ -72,7 +73,8 @@ namespace vks
+ 			delete[] fontAsset;
+ 		}
+ #else
+-		io.Fonts->AddFontFromFileTTF("./../data/Roboto-Medium.ttf", 16.0f);
++		const std::string filename = getAssetPath() + "Roboto-Medium.ttf";
++		io.Fonts->AddFontFromFileTTF(filename.c_str(), 16.0f);
+ #endif		
+ 		io.Fonts->GetTexDataAsRGBA32(&fontData, &texWidth, &texHeight);
+ 		VkDeviceSize uploadSize = texWidth*texHeight * 4 * sizeof(char);
