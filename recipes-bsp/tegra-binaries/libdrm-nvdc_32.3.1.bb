@@ -22,6 +22,7 @@ do_install() {
     install -Dpm 644 tegra.conf ${D}${sysconfdir}/ld.so.conf.d/tegra.conf
 }
 
+DEBIAN_NOAUTONAME_${PN} = "1"
 FILES_${PN} = "${libdir} ${sysconfdir}/ld.so.conf.d"
 FILES_${PN}-dev = ""
 PRIVATE_LIBS = "libdrm.so.2"
