@@ -17,7 +17,7 @@ Also supported thanks to community support:
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: master
-LAYERSERIES_COMPAT: zeus
+LAYERSERIES_COMPAT: dunfell
 
 
 PLEASE NOTE
@@ -35,10 +35,6 @@ PLEASE NOTE
   (e.g., local.conf) to make them available to your bitbake
   builds.  This can be the NVIDIA SDK Manager downloads
   directory, `/home/$USER/Downloads/nvidia/sdkm_downloads`
-
-  **Note** Starting with L4T R32.3.1 and JetPack 4.3, The Tegra
-  Multimedia API kit has moved to JetPack, so **all builds**
-  now require you to set up an SDK Manager downloads area.
 
 * The SDK Manager downloads a different package of CUDA host-side
   tools depending on whether you are running Ubuntu 16.04
