@@ -20,7 +20,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 REQUIRED_DISTRO_FEATURES = "opengl"
 PROVIDES += "virtual/egl virtual/libgl virtual/libgles1 virtual/libgles2"
 
-DEPENDS = "tegra-mmapi-glheaders"
+DEPENDS = "l4t-nvidia-glheaders"
 
 inherit autotools pkgconfig
 
