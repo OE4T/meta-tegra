@@ -24,7 +24,7 @@ IMAGE_ROOTFS_ALIGNMENT ?= "4"
 TEGRA_BLBLOCKSIZE ?= "${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}"
 EXTRA_IMAGECMD_ext4 ?= "-i 4096 -b 4096"
 
-MACHINE_HWCODECS = "gstreamer1.0-omx-tegra"
+MACHINE_HWCODECS = "gstreamer1.0-omx-tegra gstreamer1.0-plugins-nvvideo4linux2"
 LICENSE_FLAGS_WHITELIST_append = " commercial_gstreamer1.0-omx-tegra"
 
 PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg"
