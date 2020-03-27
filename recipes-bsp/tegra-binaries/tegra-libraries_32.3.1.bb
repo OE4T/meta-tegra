@@ -38,7 +38,7 @@ do_install() {
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so.1
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so
     rm -f ${D}${libdir}/libdrm* ${D}${libdir}/libnvphsd* ${D}${libdir}/libnvgov*
-    rm -f ${D}${libdir}/libv4l2.so* ${D}${libdir}/libv4lconvert.so*
+    rm -f ${D}${libdir}/libv4l2.so* ${D}${libdir}/libv4lconvert.so* ${D}${libdir}/libnvv4l2.so ${D}${libdir}/libnvv4lconvert.so
     # argus and scf libraries hard-coded to use this path
     #install -d ${D}/usr/lib/aarch64-linux-gnu/tegra-egl
     #ln -sf ${libdir}/libEGL_nvidia.so.0 ${D}/usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0
