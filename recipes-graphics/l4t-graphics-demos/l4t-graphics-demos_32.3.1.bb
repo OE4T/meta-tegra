@@ -2,6 +2,7 @@ require recipes-bsp/tegra-binaries/tegra-binaries-${PV}.inc
 require recipes-bsp/tegra-binaries/tegra-shared-binaries.inc
 
 SRC_PKG_PATH  := "${S}/nv_tegra"
+SRC_PKG_PATH[vardepvalue] = ""
 S = "${WORKDIR}/graphics_demos"
 B = "${S}"
 
