@@ -106,7 +106,7 @@ do_install() {
 PACKAGES =+ "${PN}-samples"
 FILES_${PN}-samples = "${prefix}/src"
 
-RDEPENDS_${PN} += "libstdc++ cudnn cuda-cublas cuda-cudart cuda-command-line-tools-libnvtoolsext tegra-libraries libglvnd"
+RDEPENDS_${PN} += "libstdc++ cudnn cuda-cublas cuda-cudart cuda-nvtx tegra-libraries libglvnd"
 RDEPENDS_${PN}-samples += "tegra-libraries bash python3 libglvnd cudnn cuda-cudart cuda-cublas"
 RPROVIDES_${PN}-samples = "${PN}-examples"
 
