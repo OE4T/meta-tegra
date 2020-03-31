@@ -25,8 +25,6 @@ KERNEL_ARGS ?= "sdhci_tegra.en_boot_part_access=1"
 
 NVIDIA_CHIP = "0x21"
 
-DEB_PKG_EXTENSION = "arm64"
-
 CUDA_VERSION ?= "10.0"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_53 --gpu-code=sm_53"
 
