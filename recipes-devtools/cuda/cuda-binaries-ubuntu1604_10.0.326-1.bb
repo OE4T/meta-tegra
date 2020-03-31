@@ -1,6 +1,6 @@
 CUDA_REPO_EXTRA = "-10.0.326-410.108"
 
-require cuda-binaries-native-common.inc
+require cuda-binaries-common.inc
 
 inherit nvidia_devnet_downloads
 
@@ -12,3 +12,6 @@ SRC_URI = "${NVIDIA_DEVNET_MIRROR}/cuda-repo-ubuntu1604-10-0-local-10.0.326-410.
 SRC_URI[md5sum] = "07ff157a7980aed07d0eafeebe86d64a"
 SRC_URI[sha256sum] = "b476fa6a5b702ac55977a9d9cad4d1761a850fc3fd76bd7caf04eb4f15b288a3"
 do_unpack[depends] += "xz-native:do_populate_sysroot"
+
+COMPATIBLE_HOST = "(x86_64)"
+BBCLASSEXTEND = "native nativesdk"

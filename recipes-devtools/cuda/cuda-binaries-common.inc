@@ -2,16 +2,12 @@ SUMMARY = "NVIDIA L4T CUDA binaries"
 DESCRIPTION = "Downloads NVIDIA L4T binary-only CUDA packages for sharing with other recipes"
 SECTION = "dev"
 
-S = "${TMPDIR}/work-shared/cuda-binaries-${PV}-${PR}"
-B = "${WORKDIR}/build"
+require cuda-binaries-common-defs.inc
 
-INHIBIT_PACKAGE_STRIP = "1"
-INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
-
-WORKDIR = "${TMPDIR}/work-shared/cuda-binaries-${PV}-${PR}"
-SSTATE_SWSPEC = "sstate::cuda-binaries::${PV}:${PR}::${SSTATE_VERSION}:"
-STAMP = "${STAMPS_DIR}/work-shared/cuda-binaries-${PV}-${PR}"
-STAMPCLEAN = "${STAMPS_DIR}/work-shared/cuda-binaries-${PV}-*"
+WORKDIR = "${TMPDIR}/work-shared/${HOST_ARCH}/cuda-binaries-${PV}-${PR}"
+SSTATE_SWSPEC = "sstate::cuda-binaries-${HOST_ARCH}::${PV}:${PR}::${SSTATE_VERSION}:"
+STAMP = "${STAMPS_DIR}/work-shared/cuda-binaries-${HOST_ARCH}-${PV}-${PR}"
+STAMPCLEAN = "${STAMPS_DIR}/work-shared/cuda-binaries-${HOST_ARCH}-${PV}-*"
 
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS = ""
@@ -29,11 +25,9 @@ deltask do_package_qa
 deltask do_packagedata
 RM_WORK_EXCLUDE += "${PN}"
 
-CUDA_REPO_EXTRA ??= ""
-
 do_preconfigure() {
     CUDA_VERSION_DASHED=$(echo ${CUDA_VERSION} | sed s/\\./-/g)
-    dpkg-deb --extract ${S}/var/cuda-repo-${CUDA_VERSION_DASHED}-local${CUDA_REPO_EXTRA}/cuda-license-${CUDA_VERSION_DASHED}_${PV}_${DEB_PKG_EXTENSION}.deb ${S}
+    dpkg-deb --extract ${S}/var/cuda-repo-${CUDA_VERSION_DASHED}-local${CUDA_REPO_EXTRA}/cuda-license-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb ${S}
 }
 do_preconfigure[depends] += "dpkg-native:do_populate_sysroot"
 addtask preconfigure after do_patch
