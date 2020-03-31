@@ -10,54 +10,37 @@ CUDA_LDFLAGS = "\
   -Wl,-rpath,/usr/local/cuda-${CUDA_VERSION}/${baselib} \
 "
 
+LDFLAGS_prepend_cuda = "${TOOLCHAIN_OPTIONS} "
+LDFLAGS_append_cuda = " ${CUDA_LDFLAGS}"
+
+export CUDAHOSTCXX = "${@d.getVar('CXX').split()[0]}"
+export CUDAFLAGS = "${CUDA_NVCC_FLAGS} ${@' '.join(['-Xcompiler ' + arg for arg in d.getVar('CXX').split()[1:]])}"
+
+# The following are for the old-style FindCUDA.cmake module (pre-3.8)
 CUDA_EXTRA_OECMAKE = '\
   -DCUDA_TOOLKIT_TARGET_DIR=${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION} \
-  -DCUDA_TOOLKIT_TARGET_DIR_INTERNAL=${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION} \
   -DCUDA_TOOLKIT_ROOT_DIR=${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION} \
-  -DCUDA_TOOLKIT_ROOT_DIR_INTERNAL=${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION} \
   -DCUDA_NVCC_FLAGS="${CUDA_NVCC_FLAGS}" \
 '
+EXTRA_OECMAKE_append_cuda = " ${CUDA_EXTRA_OECMAKE}"
 
-CUDA_DEPENDS = "cuda-toolkit cuda-tools-native"
+CUDA_NATIVEDEPS = "cuda-compiler-native cuda-cudart-native"
+CUDA_NATIVEDEPS_class-native = ""
+CUDA_DEPENDS = "cuda-toolkit ${CUDA_NATIVEDEPS}"
 
 DEPENDS_append_cuda = " ${CUDA_DEPENDS}"
-LDFLAGS_append_cuda = " ${CUDA_LDFLAGS}"
-CXXFLAGS_append_cuda = " ${CUDA_CXXFLAGS}"
-EXTRA_OECMAKE_append_cuda = " ${CUDA_EXTRA_OECMAKE}"
 PATH_append_cuda = ":${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}/bin"
 
-def cuda_host_compiler_flags(d):
-    result = ["-Xcompiler {}".format(arg) for arg in d.getVar('CXXFLAGS').split()]
-    return ' '.join(result)
-
-OECMAKE_CUDA_COMPILER ?= "nvcc"
-OECMAKE_CUDA_FLAGS ?= "${CUDA_NVCC_FLAGS} ${@cuda_host_compiler_flags(d)}"
-OECMAKE_CUDA_LINK_FLAGS ?= "${OECMAKE_CXX_LINK_FLAGS}"
-OECMAKE_CUDA_LIBRARIES ?= "-lcudadevrt -lcudart_static -lrt -lpthread -ldl"
+# The following are for the new-style (CMake 3.8+) CUDA language support
+cmake_do_generate_toolchain_file_append_cuda() {
+    cat >> ${WORKDIR}/toolchain.cmake <<EOF
+set(CMAKE_CUDA_TOOLKIT_ROOT_DIR "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}" CACHE PATH "" FORCE)
+set(CMAKE_CUDA_TOOLKIT_TARGET_DIR "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}" CACHE PATH "" FORCE)
+set(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include" CACHE PATH "" FORCE)
+EOF
+}
 
 PACKAGE_ARCH_cuda = "${SOC_FAMILY_PKGARCH}"
 RDEPENDS_${PN}_append_tegra = " tegra-libraries"
 RRECOMMENDS_${PN}_append_tegra = " kernel-module-nvgpu"
 
-cmake_do_generate_toolchain_file_append_cuda() {
-    cat >> ${WORKDIR}/toolchain.cmake <<EOF
-set(CMAKE_CUDA_COMPILER "${OECMAKE_CUDA_COMPILER}")
-set(CMAKE_CUDA_HOST_COMPILER "${OECMAKE_CXX_COMPILER}")
-set(CMAKE_CUDA_FLAGS "${OECMAKE_CUDA_FLAGS}" CACHE STRING "CUDAFLAGS")
-set(CMAKE_CUDA_LINK_FLAGS "${OECMAKE_CUDA_LINK_FLAGS}" CACHE STRING "LDFLAGS")
-set(CMAKE_CUDA_LINK_EXECUTABLE "<CMAKE_CUDA_HOST_LINK_LAUNCHER> <CMAKE_CUDA_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES> ${OECMAKE_CUDA_LIBRARIES}")
-set(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include")
-set(CMAKE_CUDA_LINKER_WRAPPER_FLAG "-Xlinker" " ")
-set(CMAKE_CUDA_LINKER_WRAPPER_FLAG_SEP ",")
-if(NOT COMMAND find_host_package)
-  macro(find_host_package)
-    find_package(\${ARGN})
-  endmacro()
-endif()
-if(NOT COMMAND find_host_program)
-  macro(find_host_program)
-    find_program(\${ARGN})
-  endmacro()
-endif()
-EOF
-}
