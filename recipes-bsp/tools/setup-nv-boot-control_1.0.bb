@@ -48,4 +48,7 @@ SYSTEMD_SERVICE_${PN}-service = "setup-nv-boot-control.service"
 RDEPENDS_${PN}-service = "${PN}"
 RDEPENDS_${PN} = "tegra-nv-boot-control-config tegra-eeprom-tool-boardspec"
 
+FILES_${PN} = "${bindir}/setup-nv-boot-control"
+FILES_${PN}-service = "${sysconfdir} ${systemd_system_unitdir}"
+
 PACKAGE_ARCH = "${MACHINE_ARCH}"
