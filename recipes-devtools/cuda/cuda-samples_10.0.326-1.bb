@@ -8,10 +8,10 @@ COMPATIBLE_MACHINE = "(tegra)"
 do_fetch[noexec] = "1"
 do_unpack[depends] += "${MLPREFIX}cuda-binaries:do_preconfigure dpkg-native:do_populate_sysroot"
 
-PR = "r0"
+PR = "r1"
 
 unpack_samples() {
-    dpkg-deb --fsys-tarfile ${TMPDIR}/work-shared/cuda-binaries-${PV}-${PR}/var/cuda-repo-10-0-local-10.0.326/cuda-samples-10-0_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${TMPDIR}/work-shared/${HOST_ARCH}/cuda-binaries-${PV}-${PR}/var/cuda-repo-10-0-local-10.0.326/cuda-samples-10-0_${PV}_arm64.deb | \
         tar --strip-components=5 --exclude="*/doc/*" --exclude="*/bin/*" -x -f- -C ${S}
 }
 
@@ -88,7 +88,7 @@ do_install() {
         [ -e "$f" ] || continue
         install -m 0755 "$f" ${D}${bindir}/cuda-samples/
     done
-    dpkg-deb --fsys-tarfile ${TMPDIR}/work-shared/cuda-binaries-${PV}-${PR}/var/cuda-repo-10-0-local-10.0.326/cuda-samples-10-0_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${TMPDIR}/work-shared/${HOST_ARCH}/cuda-binaries-${PV}-${PR}/var/cuda-repo-10-0-local-10.0.326/cuda-samples-10-0_${PV}_arm64.deb | \
         tar --exclude="*usr/share*" -x -f- -C ${D}
 }
 
