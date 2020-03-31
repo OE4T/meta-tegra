@@ -26,8 +26,6 @@ NVIDIA_CHIP = "0x18"
 
 TEGRA_SIGNING_ENV ?= "BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB}"
 
-DEB_PKG_EXTENSION = "arm64"
-
 CUDA_VERSION ?= "10.0"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_62 --gpu-code=sm_62"
 
