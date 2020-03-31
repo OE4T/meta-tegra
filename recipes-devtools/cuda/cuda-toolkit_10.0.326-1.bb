@@ -10,7 +10,7 @@ CUDA_COMPONENTS = " \
     cuda-cusparse \
     cuda-npp \
     cuda-command-line-tools \
-    cuda-core \
+    cuda-compiler \
     cuda-cudart \
 "
 DEPENDS = "${CUDA_COMPONENTS}"
@@ -22,9 +22,10 @@ do_configure[noexec] = "1"
 do_compile[noexec] = "1"
 do_install[noexec] = "1"
 
-COMPATIBLE_MACHINE = "tegra"
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
+COMPATIBLE_MACHINE_class-target = "tegra"
+PACKAGE_ARCH_class-target = "${SOC_FAMILY_PKGARCH}"
 
 PACKAGES = "${PN} ${PN}-dev"
 ALLOW_EMPTY_${PN} = "1"
 RDEPENDS_${PN} = "${CUDA_COMPONENTS}"
+BBCLASSEXTEND = "native nativesdk"

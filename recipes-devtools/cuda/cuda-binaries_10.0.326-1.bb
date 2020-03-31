@@ -13,5 +13,5 @@ SRC_URI[md5sum] = "0e12b2f53c7cbe4233c2da73f7d8e6b4"
 SRC_URI[sha256sum] = "3a8bcbd19b102fc4daae6ea00648eae5e65c48e8656e93008072abd37341fd24"
 do_unpack[depends] += "xz-native:do_populate_sysroot"
 
-COMPATIBLE_MACHINE = "(tegra)"
+COMPATIBLE_HOST = "(aarch64)"
 
