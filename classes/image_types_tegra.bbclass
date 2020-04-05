@@ -574,6 +574,13 @@ oe_make_bup_payload() {
             cp $f .
 	done
     fi
+    if [ -n "${NVIDIA_BOARD_CFG}" ]; then
+        ln -s "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
+        boardcfg=board_config_${MACHINE}.xml
+    else
+        boardcfg=
+    fi
+    export boardcfg
     if [ "${SOC_FAMILY}" != "tegra210" ]; then
         rm -f ./slot_metadata.bin
 	cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
