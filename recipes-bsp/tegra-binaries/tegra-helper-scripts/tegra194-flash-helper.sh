@@ -212,10 +212,10 @@ bctargs="--uphy_config tegra194-mb1-uphy-lane-p2888-0000-p2822-0000.cfg \
 	      --device_config tegra19x-mb1-bct-device-sdmmc.cfg \
 	      --misc_config tegra194-mb1-bct-misc-flash.cfg \
 	      --misc_cold_boot_config $MISC_COLD_BOOT_CONFIG \
-	      --pinmux_config tegra19x-mb1-pinmux-p2888-0000-a04-p2822-0000-b01.cfg \
+	      --pinmux_config $PINMUX_CONFIG \
 	      --gpioint_config tegra194-mb1-bct-gpioint-p2888-0000-p2822-0000.cfg \
 	      --pmic_config $PMIC_CONFIG \
-	      --pmc_config tegra19x-mb1-padvoltage-p2888-0000-a00-p2822-0000-a00.cfg \
+	      --pmc_config $PMC_CONFIG \
 	      --prod_config tegra19x-mb1-prod-p2888-0000-p2822-0000.cfg \
 	      --scr_config tegra194-mb1-bct-scr-cbb-mini.cfg \
 	      --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
