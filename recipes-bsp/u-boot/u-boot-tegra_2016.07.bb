@@ -1,10 +1,16 @@
 UBOOT_BINARY ?= "u-boot-dtb.${UBOOT_SUFFIX}"
 
-require recipes-bsp/u-boot/u-boot-common.inc
-require recipes-bsp/u-boot/u-boot.inc
+require u-boot.inc
 require u-boot-tegra-common-${PV}.inc
 
+SECTION = "bootloaders"
+PE = "1"
+
+B = "${WORKDIR}/build"
+do_configure[cleandirs] = "${B}"
+
 PROVIDES += "u-boot"
+DEPENDS += "flex-native bison-native"
 DEPENDS += "dtc-native bc-native ${SOC_FAMILY}-flashtools-native"
 
 inherit image_types_tegra
