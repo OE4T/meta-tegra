@@ -12,19 +12,4 @@ PV .= "+git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
-KERNEL_ROOTSPEC ??= ""
-KERNEL_ARGS ??= ""
-
-def uboot_var(name):
-    return '${' + name + '}'
-
-UBOOT_EXTLINUX = "1"
-UBOOT_EXTLINUX_LABELS = "primary"
-UBOOT_EXTLINUX_KERNEL_IMAGE_primary = "../${KERNEL_IMAGETYPE}"
-UBOOT_EXTLINUX_FDTDIR_primary = ""
-UBOOT_EXTLINUX_FDT_primary = ""
-UBOOT_EXTLINUX_ROOT_primary = "${@uboot_var('cbootargs')} ${KERNEL_ROOTSPEC}"
-# Console setting comes from ${cbootargs}
-UBOOT_EXTLINUX_CONSOLE = ""
-UBOOT_EXTLINUX_KERNEL_ARGS_primary = "${@uboot_var('bootargs')}"
-UBOOT_EXTLINUX_INITRD_primary = "${@'../initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
+require u-boot-tegra-extlinux.inc

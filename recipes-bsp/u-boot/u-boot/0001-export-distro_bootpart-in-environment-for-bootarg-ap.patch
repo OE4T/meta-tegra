@@ -1,0 +1,76 @@
+From 69ea873163503577ecb0860ffb0fcbb4d37b8d6e Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 7 Apr 2020 07:57:45 -0700
+Subject: [PATCH] export distro_bootpart in environment for bootarg appends
+
+Temporarily add the decimal value of distro_bootpart to
+the environment during APPEND processing, so the root=
+kernel arg can include that variable on platforms that
+may have multiple rootfs partitions on a device.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+
+---
+ cmd/pxe_utils.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
+
+diff --git a/cmd/pxe_utils.c b/cmd/pxe_utils.c
+index a636346bb5..38dda6afeb 100644
+--- a/cmd/pxe_utils.c
++++ b/cmd/pxe_utils.c
+@@ -19,6 +19,9 @@
+ 
+ #include "menu.h"
+ #include "cli.h"
++#ifdef CONFIG_HUSH_PARSER
++#include "cli_hush.h"
++#endif
+ 
+ #include "pxe_utils.h"
+ 
+@@ -409,6 +412,10 @@ static int label_boot(cmd_tbl_t *cmdtp, struct pxe_label *label)
+ 	if ((label->ipappend & 0x3) || label->append) {
+ 		char bootargs[CONFIG_SYS_CBSIZE] = "";
+ 		char finalbootargs[CONFIG_SYS_CBSIZE];
++#ifdef CONFIG_HUSH_PARSER
++		char *distro_bootpart, *hush_bootpart;
++		char *env_devnum, *hush_devnum;
++#endif
+ 
+ 		if (strlen(label->append ?: "") +
+ 		    strlen(ip_str) + strlen(mac_str) + 1 > sizeof(bootargs)) {
+@@ -425,9 +432,34 @@ static int label_boot(cmd_tbl_t *cmdtp, struct pxe_label *label)
+ 		strcat(bootargs, ip_str);
+ 		strcat(bootargs, mac_str);
+ 
++#ifdef CONFIG_HUSH_PARSER
++		env_devnum = env_get("devnum");
++		hush_devnum = get_local_var("devnum");
++		if (hush_devnum && !env_devnum) {
++			char devnumstr[32];
++			unsigned long devnum = simple_strtoul(hush_devnum, NULL, 16);
++			snprintf(devnumstr, sizeof(devnumstr), "%lu", devnum);
++			env_set("devnum", devnumstr);
++		}
++		distro_bootpart = env_get("distro_bootpart");
++		hush_bootpart = get_local_var("distro_bootpart");
++		if (hush_bootpart && !distro_bootpart) {
++			char partnumstr[32];
++			unsigned long partnum = simple_strtoul(hush_bootpart, NULL, 16);
++			snprintf(partnumstr, sizeof(partnumstr), "%lu", partnum);
++			env_set("distro_bootpart", partnumstr);
++		}
++#endif
++
+ 		cli_simple_process_macros(bootargs, finalbootargs);
+ 		env_set("bootargs", finalbootargs);
+ 		printf("append: %s\n", finalbootargs);
++#ifdef CONFIG_HUSH_PARSER
++		if (hush_bootpart && !distro_bootpart)
++			env_set("distro_bootpart", NULL);
++		if (hush_devnum && !env_devnum)
++			env_set("devnum", NULL);
++#endif
+ 	}
+ 
+ 	bootm_argv[1] = env_get("kernel_addr_r");
