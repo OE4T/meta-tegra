@@ -1,9 +1,15 @@
 NVIDIA_DEVNET_MIRROR ??= "file://NOTDEFINED"
 SRC_URI[vardepsexclude] += "NVIDIA_DEVNET_MIRROR"
+NVIDIA_DEVNET_OPTIONAL ??= "0"
 
 python () {
+    if bb.utils.to_boolean(d.getVar('NVIDIA_DEVNET_OPTIONAL', False)):
+        if d.getVar('NVIDIA_DEVNET_MIRROR') == 'file://NOTDEFINED':
+            d.setVar('HAVE_DEVNET_MIRROR', '0')
+            return
     if d.getVar('NVIDIA_DEVNET_MIRROR') == 'file://NOTDEFINED':
         raise bb.parse.SkipRecipe("Recipe requires NVIDIA_DEVNET_MIRROR setup")
+    d.setVar('HAVE_DEVNET_MIRROR', '1')
     if not d.getVar('NVIDIA_DEVNET_MIRROR').startswith('file://'):
         return
     # XXX
