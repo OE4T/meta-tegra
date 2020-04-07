@@ -33,6 +33,14 @@ PLEASE NOTE
   (e.g., local.conf) to make them available to your bitbake
   builds.
 
+  For Jetson-TX2 builds, you must also **manually** download
+  the [Jetson Platform Fuse Burning and Secure Boot Documentation
+  and Tools](http://developer.nvidia.com/embedded/dlc/jetson-fuse-burning-secure-boot-32-1)
+  package, as this package is not distributed through the
+  NVIDIA SDK Manager. If NVIDIA_DEVNET_MIRROR is not set
+  in your build configuration, you can omit this step
+  and image signing support will be excluded.
+
 * The SDK Manager downloads a different package of CUDA host-side
   tools depending on whether you are running Ubuntu 16.04
   or 18.04. If you downloaded the Ubuntu 16.04 package, you

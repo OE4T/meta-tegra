@@ -3,7 +3,7 @@ LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=2cc00be68c1227a7c42ff3620ef75d05
                     file://nv_tegra/LICENSE.brcm_patchram_plus;md5=38fb07f0dacf4830bc57f40a0fb7532e"
 
 SRC_URI = "${L4T_URI_BASE}/${L4T_BSP_PREFIX}_Linux_R${PV}_aarch64.tbz2;name=l4t ${SRC_URI_SECUREBOOT}"
-SRC_URI_SECUREBOOT = "${NVIDIA_DEVNET_MIRROR}/secureboot_r32.1.tbz2;name=sb"
+SRC_URI_SECUREBOOT = "${@oe.utils.conditional('HAVE_DEVNET_MIRROR', '1', '${NVIDIA_DEVNET_MIRROR}/secureboot_r32.1.tbz2;name=sb', '', d)}"
 # L4T 32.1 does not support Jetson Nano/TX1 secureboot
 SRC_URI_SECUREBOOT_tegra210 = ""
 L4T_MD5SUM = "881fedee06a7446953a064b574227980"
@@ -17,7 +17,8 @@ SRC_URI[l4t.sha256sum] = "${L4T_SHA256SUM}"
 SRC_URI[sb.md5sum] = "${SB_MD5SUM}"
 SRC_URI[sb.sha256sum] = "${SB_SHA256SUM}"
 
-inherit l4t_bsp
+NVIDIA_DEVNET_OPTIONAL = "1"
+inherit l4t_bsp nvidia_devnet_downloads
 
 SRC_URI += "\
     file://nvargus-daemon.init \

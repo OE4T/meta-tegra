@@ -20,8 +20,7 @@ SRC_URI += "file://nvargus-daemon.init \
            file://tegra186-flash-helper.sh \
            file://tegra194-flash-helper.sh \
            file://tegra210-flash-helper.sh \
-           file://0001-Fix-skipuid-arg-usage-for-tx2-in-odmsign.func.patch \
-           file://0002-Update-l4t_bup_gen.func-to-handle-signed-encrypted-b.patch \
+           ${@oe.utils.conditional('HAVE_DEVNET_MIRROR', '1', 'file://0001-Fix-skipuid-arg-usage-for-tx2-in-odmsign.func.patch file://0002-Update-l4t_bup_gen.func-to-handle-signed-encrypted-b.patch', '', d)} \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
@@ -59,15 +58,17 @@ do_install() {
     install -m 0755 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}
     sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/rollback_parser.py
     install -m 0644 ${S}/bootloader/l4t_bup_gen.func ${D}${BINDIR}
-    install -m 0644 ${S}/bootloader/odmsign.func ${D}${BINDIR}
 
     install -m 0755 ${S}/bootloader/mkgpt ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mksparse ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mkbootimg ${D}${BINDIR}
-    install -d ${D}${BINDIR}/pkc
-    install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}/pkc/
-    install -m 0755 ${S}/pkc/nvsecuretool ${D}${BINDIR}/pkc/
-    install -m 0755 ${S}/bootloader/tegrakeyhash ${D}${BINDIR}
+    if ${@oe.utils.conditional('HAVE_DEVNET_MIRROR', '1', 'true', 'false', d)}; then
+        install -m 0644 ${S}/bootloader/odmsign.func ${D}${BINDIR}
+        install -d ${D}${BINDIR}/pkc
+        install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}/pkc/
+        install -m 0755 ${S}/pkc/nvsecuretool ${D}${BINDIR}/pkc/
+        install -m 0755 ${S}/bootloader/tegrakeyhash ${D}${BINDIR}
+    fi
     install -m 0755 ${S}/tegra186-flash-helper.sh ${D}${BINDIR}
     install -m 0755 ${S}/tegra194-flash-helper.sh ${D}${BINDIR}
 }
