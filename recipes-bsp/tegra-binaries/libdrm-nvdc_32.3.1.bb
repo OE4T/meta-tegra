@@ -23,6 +23,8 @@ do_install() {
 }
 
 DEBIAN_NOAUTONAME_${PN} = "1"
+DEBIAN_NOAUTONAME_${PN}-dev = "1"
+DEBIAN_NOAUTONAME_${PN}-dbg = "1"
 FILES_${PN} = "${libdir} ${sysconfdir}/ld.so.conf.d"
 FILES_${PN}-dev = ""
 PRIVATE_LIBS = "libdrm.so.2"
