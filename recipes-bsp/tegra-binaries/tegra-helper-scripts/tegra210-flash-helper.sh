@@ -133,7 +133,11 @@ if [ "$boardid" = "3448" ]; then
     done
 fi
 
-[ -n "$DTBFILE" ] || DTBFILE="$dtb_file"
+if [ -n "$DTBFILE" ]; then
+    dtb_file="$DTBFILE"
+else
+    DTBFILE="$dtb_file"
+fi
 
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
 
