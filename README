@@ -36,10 +36,6 @@ PLEASE NOTE
   builds.  This can be the NVIDIA SDK Manager downloads
   directory, `/home/$USER/Downloads/nvidia/sdkm_downloads`
 
-  **Note** Starting with L4T R32.3.1 and JetPack 4.3, The Tegra
-  Multimedia API kit has moved to JetPack, so **all builds**
-  now require you to set up an SDK Manager downloads area.
-
 * The SDK Manager downloads a different package of CUDA host-side
   tools depending on whether you are running Ubuntu 16.04
   or 18.04. If you downloaded the Ubuntu 16.04 package, you
