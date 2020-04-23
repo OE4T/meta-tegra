@@ -1,8 +1,4 @@
-DEPENDS_append_tegra = " dtc-native bc-native ${SOC_FAMILY}-flashtools-native"
-TEGRA_IMGTYPES = ""
-TEGRA_IMGTYPES_tegra = "image_types_tegra"
-
-inherit ${TEGRA_IMGTYPES}
+inherit image_types_tegra
 
 UBOOT_BOOTIMG_BOARD ?= "/dev/mmcblk0p1"
 
