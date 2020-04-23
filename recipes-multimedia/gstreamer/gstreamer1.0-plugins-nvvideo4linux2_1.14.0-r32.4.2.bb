@@ -3,8 +3,8 @@ HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 SECTION = "multimedia"
 LICENSE = "LGPLv2 & BSD-3-Clause & Proprietary"
 LIC_FILES_CHKSUM = "file://LICENSE.gst-nvvideo4linux2;md5=457fb5d7ae2d8cd8cabcc21789a37e5c \
-                    file://nvbuf_utils.h;endline=9;md5=66db9eb40c77d118dc0faa3d76da49a1 \
-                    file://v4l2_nv_extensions.h;endline=28;md5=0c212b6d1fa365e2998755b7032b6c04 \
+                    file://nvbuf_utils.h;endline=9;md5=afc209f3955d083a93f5009bc9a65a22 \
+                    file://v4l2_nv_extensions.h;endline=28;md5=19f9a856799e0d7b6b94659700291562 \
                     file://README.txt;endline=11;md5=71af624b03396c4f2c70c9c8684ff3d2 \
 "
 
