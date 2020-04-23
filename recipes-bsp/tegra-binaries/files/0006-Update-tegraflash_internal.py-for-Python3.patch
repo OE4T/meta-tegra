@@ -1,0 +1,44 @@
+From 478beb0a3f34e3bb4cb97418b992390305993225 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 25 Apr 2020 06:39:25 -0700
+Subject: [PATCH] Update tegraflash_internal.py for Python3
+
+---
+ bootloader/tegraflash_internal.py | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/bootloader/tegraflash_internal.py b/bootloader/tegraflash_internal.py
+index 49d2119..f803cb5 100755
+--- a/bootloader/tegraflash_internal.py
++++ b/bootloader/tegraflash_internal.py
+@@ -1857,10 +1857,10 @@ def tegraflash_oem_encrypt_and_sign_file(in_file, header , magic_id):
+         command.extend(['--chip', values['--chip'], values['--chip_major']])
+ 
+     command.extend(['--updatesigheader', signed_file, sig_file, sig_type])
+-    if sig_type is not "zerosbk":
++    if sig_type != "zerosbk":
+         if os.path.isfile(tegrasign_values['--pubkeyhash']):
+            command.extend(['--pubkeyhash', tegrasign_values['--pubkeyhash']])
+-    if sig_type is "oem-rsa":
++    if sig_type == "oem-rsa":
+         if os.path.isfile(tegrasign_values['--getmontgomeryvalues']):
+             command.extend(['--setmontgomeryvalues', tegrasign_values['--getmontgomeryvalues']])
+ 
+@@ -2291,7 +2291,7 @@ def tegraflash_boot_mb2_applet():
+     tegraflash_boot('recovery')
+ 
+     count = 30
+-    while count is not 0 and not check_ismb2():
++    while count != 0 and not check_ismb2():
+         time.sleep(1)
+         count = count - 1
+ 
+@@ -2300,7 +2300,7 @@ def tegraflash_poll_applet_bl():
+         return
+     count = 30;
+     enable_print = True;
+-    while count is not 0:
++    while count != 0:
+         time.sleep(1)
+         count = count - 1
+         if check_ismb1() or check_ismb2() or check_iscpubl():

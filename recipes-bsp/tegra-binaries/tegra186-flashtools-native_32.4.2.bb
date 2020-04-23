@@ -15,13 +15,14 @@ SRC_URI += "\
            file://0003-Convert-BUP_generator.py-to-Python3.patch \
            file://0004-Convert-gen_tos_part_img.py-to-Python3.patch \
            file://0005-Convert-rollback_parser.py-to-Python3.patch \
+           file://0006-Update-tegraflash_internal.py-for-Python3.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
 
 COMPATIBLE_MACHINE = ""
 
-PROVIDES = "tegra194-flashtools-native"
+PROVIDES += "tegra194-flashtools-native"
 
 inherit native
 
@@ -50,9 +51,7 @@ do_install() {
     sed -i -e's,^#!/usr/bin/perl,#!/usr/bin/env perl,' ${D}${BINDIR}/sw_memcfg_overlay.pl
     install -m 0755 ${S}/bootloader/nv_smd_generator ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/BUP_generator.py ${D}${BINDIR}
-    sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/BUP_generator.py
     install -m 0755 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}
-    sed -i -e's,^#!/usr/bin/python,#!/usr/bin/env python,' ${D}${BINDIR}/rollback_parser.py
     install -m 0644 ${S}/bootloader/l4t_bup_gen.func ${D}${BINDIR}
     install -m 0644 ${S}/bootloader/odmsign.func ${D}${BINDIR}
 

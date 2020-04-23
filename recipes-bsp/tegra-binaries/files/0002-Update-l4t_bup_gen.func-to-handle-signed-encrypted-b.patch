@@ -83,9 +83,9 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
 -			"$(ls multi_signed/*/${kernel_dtb_base}*_sigheader.dtb.${signed_ext})" "kernel"
 +			"$(ls multi_signed/*/${kernel_dtb_base}*_sigheader.dtb.${signed_ext_kernel})" "kernel"
  
+ 		_add_multi_bins "VER" "$(ls multi_signed/*/*_bootblob_ver.txt)"
  		_add_multi_bins "BCT" "$(ls multi_signed/*/br_bct*.bct)"
- 		_add_multi_bins "MB1_BCT" \
-@@ -236,13 +250,13 @@ _generate_bl_update_payload()
+@@ -237,13 +251,13 @@ _generate_bl_update_payload()
  
  	elif [ "${tegra_soc}" == "t19x" ]; then
  		local kernel_image_base=$(echo "${lnx_image}" | cut -f 1 -d '.')
@@ -105,17 +105,15 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
 +		ENTRY_LIST[kernel]="${subdir_kernel}/${kernel_image_base}_sigheader.img.${signed_ext_kernel} kernel 2 0 $_common_spec;"
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
- 			ENTRY_LIST[bl]+="signed/mb1_t194_dev_sigheader.bin.${signed_ext} mb1 2 1 $_common_spec; \
-@@ -252,11 +266,11 @@ _generate_bl_update_payload()
- 				signed/warmboot_t194_dev_sigheader.bin.${signed_ext} sc7 2 1 $_common_spec;"
+ 			ENTRY_LIST[bl]+="\
+@@ -254,10 +268,10 @@ _generate_bl_update_payload()
  		else
  			# fuselevel_production or any other level
--			ENTRY_LIST[bl]+="signed/mb1_t194_prod_sigheader.bin.${signed_ext} mb1 2 2 $_common_spec; \
+ 			ENTRY_LIST[bl]+="\
 -				signed/preboot_c10_prod_cr_sigheader.bin.${signed_ext} mts-preboot 2 2 $_common_spec; \
 -				signed/mce_c10_prod_cr_sigheader.bin.${signed_ext} mts-mce 2 2 $_common_spec; \
 -				signed/mts_c10_prod_cr_sigheader.bin.${signed_ext} mts-proper 2 2 $_common_spec; \
 -				signed/warmboot_t194_prod_sigheader.bin.${signed_ext} sc7 2 2 $_common_spec;"
-+			ENTRY_LIST[bl]+="${subdir}/mb1_t194_prod_sigheader.bin.${signed_ext} mb1 2 2 $_common_spec; \
 +				${subdir}/preboot_c10_prod_cr_sigheader.bin.${signed_ext} mts-preboot 2 2 $_common_spec; \
 +				${subdir}/mce_c10_prod_cr_sigheader.bin.${signed_ext} mts-mce 2 2 $_common_spec; \
 +				${subdir}/mts_c10_prod_cr_sigheader.bin.${signed_ext} mts-proper 2 2 $_common_spec; \
@@ -124,15 +122,15 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
  
  		# add multiple binaries into BUP
 @@ -270,7 +284,7 @@ _generate_bl_update_payload()
+ 		_add_multi_bins "bootloader-dtb" "${dtb_files}"
  
- 		local kernel_dtb_base=$(echo "${lnx_dtb}" | cut -f 1,2 -d '-')
- 		_add_multi_bins "kernel-dtb" \
--			"$(ls multi_signed/*/${kernel_dtb_base}*_sigheader.dtb.${signed_ext})" "kernel"
-+			"$(ls multi_signed/*/${kernel_dtb_base}*_sigheader.dtb.${signed_ext_kernel})" "kernel"
+ 		local kernel_dtb_base=$(echo "${lnx_dtb}" | cut -f 1 -d '-')
+-		dtb_files="$(ls multi_signed/*/${kernel_dtb_base}*_sigheader.dtb.${signed_ext} | sed -e '/bpmp/d')"
++		dtb_files="$(ls multi_signed/*/${kernel_dtb_base}*_sigheader.dtb.${signed_ext_kernel} | sed -e '/bpmp/d')"
+ 		_add_multi_bins "kernel-dtb" "${dtb_files}" "kernel"
  
- 		_add_multi_bins "BCT" "$(ls multi_signed/*/br_bct*.bct)"
- 		_add_multi_bins "MB1_BCT" \
-@@ -367,6 +381,7 @@ _sign_multi_images()
+ 		_add_multi_bins "VER" "$(ls multi_signed/*/*_bootblob_ver.txt)"
+@@ -370,6 +384,7 @@ _sign_multi_images()
  	local fuselevel="${3}"
  	local tegra_soc="${4}"
  	local result
@@ -140,7 +138,7 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
  
  	#
  	# Retrieve info from main
-@@ -381,16 +396,31 @@ _sign_multi_images()
+@@ -384,16 +399,31 @@ _sign_multi_images()
  	# xusb fw
  	xusb_fw="xusb_sil_rel_fw";
  
@@ -172,7 +170,7 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
  	echo ${cmd}
  	eval ${cmd}
  	if [ $? -eq 0 ];then
-@@ -412,9 +442,9 @@ _sign_multi_images()
+@@ -415,22 +445,22 @@ _sign_multi_images()
  
  		if [ "${tegra_soc}" != "t21x" ]; then
  			if [ "${fuselevel}" = "fuselevel_nofuse" ]; then
@@ -184,19 +182,24 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
  			fi
  		fi
  
-@@ -424,7 +454,10 @@ _sign_multi_images()
- 			mv "${OUT}"/*_bootblob_ver.txt "${OUT}"/multi_signed/"${_sw_spec}"/
+ 		if [ "${tegra_soc}" == "t19x" ]; then
+-			mv "${OUT}"/signed/mb1_t194*.bin.* "${OUT}"/multi_signed/"${_sw_spec}"/
++			mv "${OUT}"/${subdir}/mb1_t194*.bin.* "${OUT}"/multi_signed/"${_sw_spec}"/
+ 		fi
+ 
+ 		if [ "${tegra_soc}" == "t21x" ]; then
+-			mv "${OUT}"/signed/boot.img.* "${OUT}"/multi_signed/"${_sw_spec}"/
+-			mv "${OUT}"/signed/flash.xml.bin "${OUT}"/multi_signed/"${_sw_spec}"/
++			mv "${OUT}"/${subdir}/boot.img.* "${OUT}"/multi_signed/"${_sw_spec}"/
++			mv "${OUT}"/${subdir}/flash.xml.bin "${OUT}"/multi_signed/"${_sw_spec}"/
  		fi
  
 -		mv "${OUT}"/signed/*.dtb* "${OUT}"/signed/*bct* "${OUT}"/multi_signed/"${_sw_spec}"/
 +		mv "${OUT}"/${subdir}/*.dtb* "${OUT}"/${subdir}/*bct* "${OUT}"/multi_signed/"${_sw_spec}"/
-+		if [ "${subdir}" != "signed" ]; then
-+			mv "${OUT}"/signed/*.dtb* "${OUT}"/multi_signed/"${_sw_spec}"/
-+		fi
+ 		mv "${OUT}"/*_bootblob_ver.txt "${OUT}"/multi_signed/"${_sw_spec}"/
  
  		# xusb-fw
- 		if [ "${tegra_soc}" == "t19x" ]; then
-@@ -491,17 +524,17 @@ function l4t_bup_gen()
+@@ -498,17 +528,17 @@ function l4t_bup_gen()
  	fi;
  
  	# check signing key
