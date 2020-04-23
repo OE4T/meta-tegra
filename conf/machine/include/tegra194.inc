@@ -38,7 +38,6 @@ TEGRA_BUPGEN_SPECS ?= "fab=400;boardsku=0001;boardrev=H.0 \
 
 TEGRA_SIGNING_ENV = "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV}"
 
-CUDA_VERSION ?= "10.0"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_72 --gpu-code=sm_72"
 
 PREFERRED_PROVIDER_virtual/bootloader ?= "cboot-prebuilt"
