@@ -4,14 +4,15 @@ LICENSE = "MIT"
 CUDA_COMPONENTS = " \
     cuda-nvrtc \
     cuda-cusolver \
-    cuda-cublas \
+    libcublas \
     cuda-cufft \
     cuda-curand \
     cuda-cusparse \
     cuda-npp \
-    cuda-cudart \
+    cuda-command-line-tools \
+    cuda-compiler \
+    cuda-libraries \
 "
-DEPENDS = "${CUDA_COMPONENTS}"
 
 do_fetch[noexec] = "1"
 do_unpack[noexec] = "1"
@@ -25,5 +26,6 @@ PACKAGE_ARCH_class-target = "${TEGRA_PKGARCH}"
 
 PACKAGES = "${PN} ${PN}-dev"
 ALLOW_EMPTY_${PN} = "1"
-RDEPENDS_${PN} = "${CUDA_COMPONENTS} cuda-nvcc-headers"
+RDEPENDS_${PN} = "${CUDA_COMPONENTS}"
+RDEPENDS_${PN}-dev = "cuda-nvml-dev"
 BBCLASSEXTEND = "native nativesdk"
