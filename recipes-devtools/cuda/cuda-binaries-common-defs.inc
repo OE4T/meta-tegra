@@ -1,11 +1,12 @@
 COMPATIBLE_MACHINE_class-target = "(cuda)"
-CUDA_VERSION ??= "10.0"
-CUDA_REPO_EXTRA = "-10.0.326"
-CUDA_REPO_EXTRA_x86-64 = "-10.0.326-410.108"
+CUDA_VERSION ??= "10.2"
+CUDA_REPO_EXTRA = "-10.2.89"
+CUDA_REPO_EXTRA_x86-64 = "-10.2.89-440.40"
+CUDA_FULL_VERSION ?= "${PV}"
 
-S = "${TMPDIR}/work-shared/${HOST_ARCH}/cuda-binaries-${PV}-${PR}"
+S = "${TMPDIR}/work-shared/${HOST_ARCH}/cuda-binaries-${CUDA_FULL_VERSION}-${PR}"
 B = "${WORKDIR}/build"
-PR = "r1"
+PR = "r0"
 
 CUDA_DEB_PKGARCH = "${@cuda_deb_pkg_arch(d)}"
 

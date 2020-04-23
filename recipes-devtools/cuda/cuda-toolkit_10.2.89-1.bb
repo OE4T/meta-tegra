@@ -4,7 +4,7 @@ LICENSE = "MIT"
 CUDA_COMPONENTS = " \
     cuda-nvrtc \
     cuda-cusolver \
-    cuda-cublas \
+    libcublas \
     cuda-cufft \
     cuda-curand \
     cuda-cusparse \
@@ -28,4 +28,5 @@ PACKAGE_ARCH_class-target = "${SOC_FAMILY_PKGARCH}"
 PACKAGES = "${PN} ${PN}-dev"
 ALLOW_EMPTY_${PN} = "1"
 RDEPENDS_${PN} = "${CUDA_COMPONENTS}"
+RDEPENDS_${PN}-dev = "cuda-nvml-dev"
 BBCLASSEXTEND = "native nativesdk"
