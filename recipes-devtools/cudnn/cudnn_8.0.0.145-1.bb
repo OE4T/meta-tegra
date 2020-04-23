@@ -1,20 +1,17 @@
 SUMMARY = "NVIDIA CUDA Deep Neural Network library"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v7.h;endline=48;md5=b48d68d7e5eb6b858c229fdb89171636"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v8.h;endline=47;md5=55730a4c450a3c34d3734af620a7d6eb"
 
 inherit nvidia_devnet_downloads container-runtime-csv
 
 SRC_URI = "\
-    ${NVIDIA_DEVNET_MIRROR}/libcudnn7_${PV}+cuda10.0_arm64.deb;name=lib;subdir=cudnn \
-    ${NVIDIA_DEVNET_MIRROR}/libcudnn7-dev_${PV}+cuda10.0_arm64.deb;name=dev;subdir=cudnn \
-    ${NVIDIA_DEVNET_MIRROR}/libcudnn7-doc_${PV}+cuda10.0_arm64.deb;name=doc;subdir=cudnn \
+    ${NVIDIA_DEVNET_MIRROR}/libcudnn8_${PV}+cuda10.2_arm64.deb;name=lib;subdir=cudnn \
+    ${NVIDIA_DEVNET_MIRROR}/libcudnn8-dev_${PV}+cuda10.2_arm64.deb;name=dev;subdir=cudnn \
+    ${NVIDIA_DEVNET_MIRROR}/libcudnn8-doc_${PV}+cuda10.2_arm64.deb;name=doc;subdir=cudnn \
 "
-SRC_URI[lib.md5sum] = "e37d987c29bf9ef8ede082c19df12ad8"
-SRC_URI[lib.sha256sum] = "40ddff085ce25aa7468c2eec5d808b22bdd57546cb7bbe1707932e928afb44e9"
-SRC_URI[dev.md5sum] = "9aee6d3179cd6ae7cd0cb126f1781c94"
-SRC_URI[dev.sha256sum] = "96dca964b29c3ce5412158ad99b53f480fe8285747ebc82b13abc9570636e368"
-SRC_URI[doc.md5sum] = "4019391d5f31fabdfeca8487e4161bd3"
-SRC_URI[doc.sha256sum] = "f1e45aace86823cded6572ad14b13ea403785ffa5392adfb0d5fc4163d5660a9"
+SRC_URI[lib.sha256sum] = "b94c2f1b4c0bca009d579ccc6c4bab44617e9abdb88b85e6ca16afe82e4e02ad"
+SRC_URI[dev.sha256sum] = "1fbe66f176084d28e8bbf9fd8f1301be2fae57d1af6a823f4961a38e26a188c2"
+SRC_URI[doc.sha256sum] = "3a420a98261728306386521de6772b3bc4ed53a7fe6073659a429e94d0d57f49"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
@@ -40,8 +37,8 @@ do_install() {
     install -m 0644 ${S}/usr/include/aarch64-linux-gnu/*.h ${D}${includedir}
     ln -s cudnn_v7.h ${D}${includedir}/cudnn.h
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libcudnn.so.${BASEVER} ${D}${libdir}/
-    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libcudnn_static_v7.a ${D}${libdir}/
-    ln -s libcudnn.so.${BASEVER} ${D}${libdir}/libcudnn.so.7
+    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libcudnn_static_v8.a ${D}${libdir}/
+    ln -s libcudnn.so.${BASEVER} ${D}${libdir}/libcudnn.so.8
     ln -s libcudnn.so.${BASEVER} ${D}${libdir}/libcudnn.so
     ln -s libcudnn_static_v7.a ${D}${libdir}/libcudnn_static.a
     cp --preserve=mode,timestamps --recursive ${S}/usr/share/* ${D}${datadir}/
@@ -57,6 +54,6 @@ INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
-RDEPENDS_${PN}-samples = "cuda-cublas cuda-cublas-dev cuda-cudart"
+RDEPENDS_${PN}-samples = "libcublas libcublas-dev cuda-cudart"
 RPROVIDES_${PN}-samples = "${PN}-examples"
 INSANE_SKIP_${PN}-samples = "build-deps dev-deps ldflags staticdev"
