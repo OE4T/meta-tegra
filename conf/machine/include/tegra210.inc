@@ -28,9 +28,6 @@ NVIDIA_CHIP = "0x21"
 CUDA_VERSION ?= "10.0"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_53 --gpu-code=sm_53"
 
-PREFERRED_PROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
-PREFERRED_RPROVIDER_u-boot-fw-utils = "u-boot-fw-utils-tegra"
-
 require conf/machine/include/tegra-common.inc
 
 L4T_BSP_NAME = "t210ref_release_aarch64"
