@@ -6,21 +6,17 @@ inherit nvidia_devnet_downloads container-runtime-csv
 
 SRC_URI = "${NVIDIA_DEVNET_MIRROR}/libvisionworks-repo_${PV}_arm64.deb"
 
-SRC_URI[md5sum] = "e70d49ff115bc5782a3d07b572b5e3c0"
-SRC_URI[sha256sum] = "fb46f48965e78e031ba8e987ba0421c03dd5e2428572e5681f1e31c74aabff22"
+SRC_URI[sha256sum] = "a57d500397d2a36bfb2eb214e402db334fb2eebd25accbaed38b13361eb64b10"
 S = "${WORKDIR}"
 B = "${WORKDIR}/build"
 
-CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
-
-DEPENDS = "dpkg-native cuda-cudart patchelf-native"
+DEPENDS = "dpkg-native cuda-cudart"
 
 COMPATIBLE_MACHINE = "tegra"
 
 do_compile() {
     dpkg-deb --extract ${S}/var/visionworks-repo/libvisionworks_${PV}_arm64.deb ${B}
     dpkg-deb --extract ${S}/var/visionworks-repo/libvisionworks-dev_${PV}_all.deb ${B}
-    patchelf --set-rpath "${CUDAPATH}/${baselib}" ${B}/usr/lib/libvisionworks.so
 }
 
 do_install() {

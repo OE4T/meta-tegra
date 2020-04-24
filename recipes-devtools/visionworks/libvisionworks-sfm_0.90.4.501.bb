@@ -7,22 +7,18 @@ LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-sfm-repo/copyright;md5=9
 inherit nvidia_devnet_downloads container-runtime-csv
 
 SRC_URI = "${NVIDIA_DEVNET_MIRROR}/libvisionworks-sfm-repo_${PV}_arm64.deb"
-SRC_URI[md5sum] = "647b0ae86a00745fc6d211545a9fcefe"
-SRC_URI[sha256sum] = "b98bab05e6bc8d75cffbec477437bdfbb640e59503ff0e15c82a714ee43e70ce"
+SRC_URI[sha256sum] = "a833fa14db9f1126873066bca99b16565509be4da303ce5a2414e2bb0b8ee4b3"
 
 S = "${WORKDIR}"
 B = "${WORKDIR}/build"
 
-CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
-
-DEPENDS = "dpkg-native cuda-cudart patchelf-native libvisionworks"
+DEPENDS = "dpkg-native cuda-cudart libvisionworks"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 do_compile() {
     dpkg-deb --extract ${S}/var/visionworks-sfm-repo/libvisionworks-sfm_${PV}_arm64.deb ${B}
     dpkg-deb --extract ${S}/var/visionworks-sfm-repo/libvisionworks-sfm-dev_${PV}_arm64.deb ${B}
-    patchelf --set-rpath "${CUDAPATH}/${baselib}" ${B}/usr/lib/libvisionworks_sfm.so.${PV}
 }
 
 do_install() {
