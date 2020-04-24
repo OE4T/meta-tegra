@@ -2,23 +2,23 @@ DESCRIPTION = "NVIDIA TensorRT (GPU Inference Engine) for deep learning"
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
 
-inherit nvidia_devnet_downloads container-runtime-csv
+inherit l4t_deb_pkgfeed container-runtime-csv
 
-SUBDIR = "NoDLA/"
-SUBDIR_tegra194 = "DLA/"
-PREFIX = "${@d.getVar('SUBDIR').replace('/', '-')}"
+PREFIX = "NoDLA-"
+PREFIX_tegra194 = "DLA-"
 
-SRC_URI = "\
-    ${NVIDIA_DEVNET_MIRROR}/${SUBDIR}libnvinfer7_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer7_${PV}+cuda10.2_arm64.deb;name=lib;subdir=tensorrt \
-    ${NVIDIA_DEVNET_MIRROR}/${SUBDIR}libnvinfer-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer-dev_${PV}+cuda10.2_arm64.deb;name=dev;subdir=tensorrt \
-    ${NVIDIA_DEVNET_MIRROR}/${SUBDIR}libnvinfer-samples_${PV}+cuda10.2_all.deb;downloadfilename=${PREFIX}libnvinfer-samples_${PV}+cuda10.2_all.deb;name=samples;subdir=tensorrt \
-    ${NVIDIA_DEVNET_MIRROR}/${SUBDIR}libnvparsers7_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvparsers7_${PV}+cuda10.2_arm64.deb;name=nvp;subdir=tensorrt \
-    ${NVIDIA_DEVNET_MIRROR}/${SUBDIR}libnvparsers-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvparsers-dev_${PV}+cuda10.2_arm64.deb;name=nvpdev;subdir=tensorrt \
-    ${NVIDIA_DEVNET_MIRROR}/${SUBDIR}libnvonnxparsers7_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvonnxparsers7_${PV}+cuda10.2_arm64.deb;name=onnx;subdir=tensorrt \
-    ${NVIDIA_DEVNET_MIRROR}/${SUBDIR}libnvonnxparsers-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvonnxparsers-dev_${PV}+cuda10.2_arm64.deb;name=onnxdev;subdir=tensorrt \
-    ${NVIDIA_DEVNET_MIRROR}/${SUBDIR}libnvinfer-plugin7_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer-plugin7_${PV}+cuda10.2_arm64.deb;name=plugin;subdir=tensorrt \
-    ${NVIDIA_DEVNET_MIRROR}/${SUBDIR}libnvinfer-plugin-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer-plugin-dev_${PV}+cuda10.2_arm64.deb;name=plugindev;subdir=tensorrt \
+SRC_SOC_DEBS = "\
+    libnvinfer7_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer7_${PV}+cuda10.2_arm64.deb;name=lib;subdir=tensorrt \
+    libnvinfer-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer-dev_${PV}+cuda10.2_arm64.deb;name=dev;subdir=tensorrt \
+    libnvinfer-samples_${PV}+cuda10.2_all.deb;downloadfilename=${PREFIX}libnvinfer-samples_${PV}+cuda10.2_all.deb;name=samples;subdir=tensorrt \
+    libnvparsers7_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvparsers7_${PV}+cuda10.2_arm64.deb;name=nvp;subdir=tensorrt \
+    libnvparsers-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvparsers-dev_${PV}+cuda10.2_arm64.deb;name=nvpdev;subdir=tensorrt \
+    libnvonnxparsers7_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvonnxparsers7_${PV}+cuda10.2_arm64.deb;name=onnx;subdir=tensorrt \
+    libnvonnxparsers-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvonnxparsers-dev_${PV}+cuda10.2_arm64.deb;name=onnxdev;subdir=tensorrt \
+    libnvinfer-plugin7_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer-plugin7_${PV}+cuda10.2_arm64.deb;name=plugin;subdir=tensorrt \
+    libnvinfer-plugin-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer-plugin-dev_${PV}+cuda10.2_arm64.deb;name=plugindev;subdir=tensorrt \
 "
+
 LIBSHA256SUM = "1017dd614035f3a6e0d0582e994e8e0c7d45e474b1f76920aab739320deff052"
 DEVSHA256SUM = "2210f0442642cc1a3799840991513a5ce0e9939b1b6231414c09cb7548b1a3ff"
 SAMPSHA256SUM = "7a42428fdba65a4998ce347f124487ed0ebb48fd816cab1bd07c43cf84ba5843"
