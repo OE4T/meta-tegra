@@ -4,8 +4,12 @@ CUDA_REPO_EXTRA = "-10.2.89"
 CUDA_REPO_EXTRA_x86-64 = "-10.2.89-440.40"
 CUDA_FULL_VERSION ?= "${PV}"
 
-S = "${TMPDIR}/work-shared/${HOST_ARCH}/cuda-binaries-${CUDA_FULL_VERSION}-${PR}"
-B = "${WORKDIR}/build"
+S = "${WORKDIR}/${BP}"
+B = "${S}"
+
+S_x86-64 = "${TMPDIR}/work-shared/${HOST_ARCH}/cuda-binaries-${CUDA_FULL_VERSION}-${PR}"
+B_x86-64 = "${WORKDIR}/build"
+
 PR = "r0"
 
 CUDA_DEB_PKGARCH = "${@cuda_deb_pkg_arch(d)}"
