@@ -12,10 +12,15 @@ LIC_FILES_CHKSUM = " \
     file://bootloader/partner/common/drivers/display/tegrabl_display.c;endline=9;md5=c8ca1ecaf97ac64ea801dd20a81d463a \
 "
 
-TEGRA_SRC_SUBARCHIVE = "public_sources/cboot_src_t19x.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.2.3.inc
+inherit l4t_bsp
 
-SRC_URI += " file://0001-Convert-Python-scripts-to-Python3.patch"
+L4T_BSP_NAME = "${L4T_SRCS_NAME}"
+
+SRC_URI = "\
+    ${L4T_URI_BASE}/cboot_src_t19x.tbz2 \
+    file://0001-Convert-Python-scripts-to-Python3.patch \
+"
+SRC_URI[sha256sum] = "bab935f3a8c7644447864334f18296ee545e03c98399f0992101db40ba327c7f"
 
 require cboot-l4t.inc
 
