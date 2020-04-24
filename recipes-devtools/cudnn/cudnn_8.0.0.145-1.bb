@@ -2,12 +2,12 @@ SUMMARY = "NVIDIA CUDA Deep Neural Network library"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v8.h;endline=47;md5=55730a4c450a3c34d3734af620a7d6eb"
 
-inherit nvidia_devnet_downloads container-runtime-csv
+inherit l4t_deb_pkgfeed container-runtime-csv
 
-SRC_URI = "\
-    ${NVIDIA_DEVNET_MIRROR}/libcudnn8_${PV}+cuda10.2_arm64.deb;name=lib;subdir=cudnn \
-    ${NVIDIA_DEVNET_MIRROR}/libcudnn8-dev_${PV}+cuda10.2_arm64.deb;name=dev;subdir=cudnn \
-    ${NVIDIA_DEVNET_MIRROR}/libcudnn8-doc_${PV}+cuda10.2_arm64.deb;name=doc;subdir=cudnn \
+SRC_COMMON_DEBS = "\
+    libcudnn8_${PV}+cuda10.2_arm64.deb;name=lib;subdir=cudnn \
+    libcudnn8-dev_${PV}+cuda10.2_arm64.deb;name=dev;subdir=cudnn \
+    libcudnn8-doc_${PV}+cuda10.2_arm64.deb;name=doc;subdir=cudnn \
 "
 SRC_URI[lib.sha256sum] = "b94c2f1b4c0bca009d579ccc6c4bab44617e9abdb88b85e6ca16afe82e4e02ad"
 SRC_URI[dev.sha256sum] = "1fbe66f176084d28e8bbf9fd8f1301be2fae57d1af6a823f4961a38e26a188c2"
