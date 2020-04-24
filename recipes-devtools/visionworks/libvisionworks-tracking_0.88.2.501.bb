@@ -1,22 +1,26 @@
 SUMMARY = "NVIDIA VisionWorks target tools"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-tracking-repo/copyright;md5=99d8c0c1313afdf990f6407c07a88407"
+LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-tracking/copyright;md5=99d8c0c1313afdf990f6407c07a88407"
 
-inherit nvidia_devnet_downloads container-runtime-csv
+inherit l4t_deb_pkgfeed container-runtime-csv
 
-SRC_URI = "${NVIDIA_DEVNET_MIRROR}/libvisionworks-tracking-repo_${PV}_arm64.deb"
-SRC_URI[sha256sum] = "bbdf32fd6df40610390880eb6c87ba6a06aeb95465ec955d8d2994106b336887"
+SRC_COMMON_DEBS = "\
+    libvisionworks-tracking_${PV}_arm64.deb;subdir=${BPN};name=lib \
+    libvisionworks-tracking-dev_${PV}_arm64.deb;subdir=${BPN};name=dev \
+"
 
-S = "${WORKDIR}"
-B = "${WORKDIR}/build"
+SRC_URI[lib.sha256sum] = "2d4c9149f40948810a3731f17240167cb21e81aff720cc7454dc358b17ba5b98"
+SRC_URI[dev.sha256sum] = "55b4cd272ed5cb299d708e7fda9569f01e5c6e5ccc760005c20f456e5b6b6282"
 
-DEPENDS = "dpkg-native cuda-cudart libvisionworks"
+S = "${WORKDIR}/${BPN}"
+B = "${S}"
+
+DEPENDS = "cuda-cudart libvisionworks"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 do_compile() {
-    dpkg-deb --extract ${S}/var/visionworks-tracking-repo/libvisionworks-tracking_${PV}_arm64.deb ${B}
-    dpkg-deb --extract ${S}/var/visionworks-tracking-repo/libvisionworks-tracking-dev_${PV}_arm64.deb ${B}
+    :
 }
 
 do_install() {
