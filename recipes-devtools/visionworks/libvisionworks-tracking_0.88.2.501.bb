@@ -5,22 +5,18 @@ LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-tracking-repo/copyright;
 inherit nvidia_devnet_downloads container-runtime-csv
 
 SRC_URI = "${NVIDIA_DEVNET_MIRROR}/libvisionworks-tracking-repo_${PV}_arm64.deb"
-SRC_URI[md5sum] = "7630f0309c883cc6d8a1ab5a712938a5"
-SRC_URI[sha256sum] = "b1f529cf3e44be81f19544a148cbe80ba8ae91b57b0837bd7c84d4f6b1f0d822"
+SRC_URI[sha256sum] = "bbdf32fd6df40610390880eb6c87ba6a06aeb95465ec955d8d2994106b336887"
 
 S = "${WORKDIR}"
 B = "${WORKDIR}/build"
 
-CUDAPATH ?= "/usr/local/cuda-${CUDA_VERSION}"
-
-DEPENDS = "dpkg-native cuda-cudart patchelf-native libvisionworks"
+DEPENDS = "dpkg-native cuda-cudart libvisionworks"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 do_compile() {
     dpkg-deb --extract ${S}/var/visionworks-tracking-repo/libvisionworks-tracking_${PV}_arm64.deb ${B}
     dpkg-deb --extract ${S}/var/visionworks-tracking-repo/libvisionworks-tracking-dev_${PV}_arm64.deb ${B}
-    patchelf --set-rpath "${CUDAPATH}/${baselib}" ${B}/usr/lib/libvisionworks_tracking.so.${PV}
 }
 
 do_install() {
