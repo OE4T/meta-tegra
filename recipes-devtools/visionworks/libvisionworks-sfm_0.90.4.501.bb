@@ -2,23 +2,27 @@ DESCRIPTION = "NVIDIA VisionWorks Plus (SFM) contains platform specific optimize
                computer vision primitives and algorithms with framework optimizied for NVIDIA platforms built on top of \
                NVIDIA Visionworks and extends its API"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-sfm-repo/copyright;md5=99d8c0c1313afdf990f6407c07a88407"
+LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-sfm/copyright;md5=99d8c0c1313afdf990f6407c07a88407"
 
-inherit nvidia_devnet_downloads container-runtime-csv
+inherit l4t_deb_pkgfeed container-runtime-csv
 
-SRC_URI = "${NVIDIA_DEVNET_MIRROR}/libvisionworks-sfm-repo_${PV}_arm64.deb"
-SRC_URI[sha256sum] = "a833fa14db9f1126873066bca99b16565509be4da303ce5a2414e2bb0b8ee4b3"
+SRC_COMMON_DEBS = "\
+    libvisionworks-sfm_${PV}_arm64.deb;subdir=${BPN};name=lib \
+    libvisionworks-sfm-dev_${PV}_arm64.deb;subdir=${BPN};name=dev \
+"
 
-S = "${WORKDIR}"
-B = "${WORKDIR}/build"
+SRC_URI[lib.sha256sum] = "f0aa8309f87791c8766b5ac86d4f218692d91479d4109b90081579b0e635e9d3"
+SRC_URI[dev.sha256sum] = "3f7bb0b4130f21f7142b2560acc0357221646839629b90428f099c47a53d4ecc"
 
-DEPENDS = "dpkg-native cuda-cudart libvisionworks"
+S = "${WORKDIR}/${BPN}"
+B = "${S}"
+
+DEPENDS = "cuda-cudart libvisionworks"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 do_compile() {
-    dpkg-deb --extract ${S}/var/visionworks-sfm-repo/libvisionworks-sfm_${PV}_arm64.deb ${B}
-    dpkg-deb --extract ${S}/var/visionworks-sfm-repo/libvisionworks-sfm-dev_${PV}_arm64.deb ${B}
+    :
 }
 
 do_install() {
