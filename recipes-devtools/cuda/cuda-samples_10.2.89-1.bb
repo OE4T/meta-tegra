@@ -5,19 +5,22 @@ LIC_FILES_CHKSUM = "file://EULA.txt;md5=37774d0b88c5743e8fe8e5c10b057270"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-do_fetch[noexec] = "1"
-do_unpack[depends] += "${MLPREFIX}cuda-binaries:do_preconfigure dpkg-native:do_populate_sysroot"
+CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
+SRC_COMMON_DEBS = "${BPN}-${CUDA_VERSION_DASHED}_${PV}_arm64.deb;unpack=false"
+SRC_URI[sha256sum] = "121e273d8586bde904ceeab72a603a86d781f3bac6d3a21732703ca2ca9ec528"
 
-unpack_samples() {
-    dpkg-deb --fsys-tarfile ${TMPDIR}/work-shared/${HOST_ARCH}/cuda-binaries-${PV}-${PR}/var/cuda-repo-10-2-local-10.2.89/cuda-samples-10-2_${PV}_arm64.deb | \
+do_unpack_samples() {
+    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-10-2_${PV}_arm64.deb | \
         tar --strip-components=5 --exclude="*/doc/*" --exclude="*/bin/*" -x -f- -C ${S}
 }
 
-python do_unpack() {
-    bb.build.exec_func('unpack_samples', d)
-}
+do_unpack_samples[dirs] = "${S}"
+do_unpack_samples[cleandirs] = "${S}"
+do_unpack_samples[depends] += "dpkg-native:do_populate_sysroot"
 
-inherit cuda
+addtask unpack_samples after do_unpack before do_patch
+
+inherit l4t_deb_pkgfeed cuda
 
 CUDA_NVCC_ARCH_FLAGS ??= ""
 
@@ -86,7 +89,7 @@ do_install() {
         [ -e "$f" ] || continue
         install -m 0755 "$f" ${D}${bindir}/cuda-samples/
     done
-    dpkg-deb --fsys-tarfile ${TMPDIR}/work-shared/${HOST_ARCH}/cuda-binaries-${PV}-${PR}/var/cuda-repo-10-2-local-10.2.89/cuda-samples-10-2_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-10-2_${PV}_arm64.deb | \
         tar --exclude="*usr/share*" -x -f- -C ${D}
 }
 
