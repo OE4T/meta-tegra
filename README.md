@@ -2,16 +2,16 @@ OpenEmbedded/Yocto BSP layer for NVIDIA Jetson TX1/TX2/AGX Xavier/Nano
 ======================================================================
 
 Boards supported:
-* Jetson-TX1 development kit (Linux4Tegra R32.3.1, JetPack 4.3)
-* Jetson-TX2 development kit (Linux4Tegra R32.3.1, JetPack 4.3)
-* Jetson AGX Xavier development kit (Linux4Tegra R32.3.1, JetPack 4.3)
-* Jetson Nano development kit (Linux4Tegra R32.3.1, JetPack 4.3)
-* Jetson Nano eMMC module with rev B01 carrier board (L4T R32.3.1, JetPack 4.3)
+* Jetson-TX1 development kit (Linux4Tegra R32.4.2, JetPack 4.4DP)
+* Jetson-TX2 development kit (Linux4Tegra R32.4.2, JetPack 4.4DP)
+* Jetson AGX Xavier development kit (Linux4Tegra R32.4.2, JetPack 4.4DP)
+* Jetson Nano development kit (Linux4Tegra R32.4.2, JetPack 4.4DP)
+* Jetson Nano eMMC module with rev B01 carrier board (L4T R32.4.2, JetPack 4.4DP)
 
 Also supported thanks to community support:
-* Jetson-TX2i module (Linux4Tegra R32.3.1, JetPack 4.3)
-* Jetson-TX2 4GB module (Linux4Tegra R32.3.1, JetPack 4.3)
-* Jetson AGX Xavier 8GB module (Linux4Tegra R32.3.1, JetPack 4.3)
+* Jetson-TX2i module (Linux4Tegra R32.4.2, JetPack 4.4DP)
+* Jetson-TX2 4GB module (Linux4Tegra R32.4.2, JetPack 4.4DP)
+* Jetson AGX Xavier 8GB module (Linux4Tegra R32.4.2, JetPack 4.4DP)
 
 
 This layer depends on:
@@ -23,12 +23,17 @@ LAYERSERIES_COMPAT: dunfell
 PLEASE NOTE
 -----------
 
-* Starting with JetPack 4.2, packages outside the L4T BSP can
-  only be downloaded with an NVIDIA Developer Network login.
-  So to use CUDA 10, cuDNN, and any other packages that require
-  a Devnet login, you **must** create a Devnet account and
-  download the JetPack packages you need for your builds using
-  NVIDIA SDK Manager.
+* NVIDIA recommends using L4T R32.3.1/JetPack 4.3 for
+  production use. The JetPack release supported here
+  is labeled a "developer preview".
+
+* Some packages outside the L4T BSP can only be downloaded
+  with an NVIDIA Developer Network login - in particular,
+  the CUDA host-side tools.
+
+  To use any packages that require a Devnet login, you must
+  create a Devnet account and download the JetPack packages
+  you need for your builds using NVIDIA SDK Manager.
 
   You must then set the variable NVIDIA_DEVNET_MIRROR to
   "file://path/to/the/downloads" in your build configuration
@@ -47,29 +52,16 @@ PLEASE NOTE
   them. Otherwise, the recipes will default to looking for
   the Ubuntu 18.04 package.
 
-* The TensorRT 6.0.1 packages for Xavier are different from
-  those for TX1/TX2, even though the deb files have the same
-  name. To prevent mixups during the build, the recipe here
-  expects to find the Xavier packages in a `DLA` subdirectory
-  under `${NVIDIA_DEVNET_MIRROR}`, and non-Xavier packages
-  in a `NoDLA` subdirectory.
+* CUDA 10.2 supports up through gcc 8 only. Pre-built binaries
+  in the BSP appear to be compatible with gcc 7 and 8 **only**.
+  So use only gcc 7 or gcc 8 if you intend to use CUDA.
+  Recipes for gcc 8 have been imported from the OE-Core warrior branch
+  (the last version of OE-Core to supply gcc 8) to make it easier
+  to use this older toolchain.
 
-  If you need to include TensorRT in your builds, you **must**
-  create the subdirectory and move all of the TensorRT packages
-  downloaded by the SDK Manager there. Xavier example:
-
-      $ cd ~/Downloads/nvidia/sdkm_downloads
-      $ mkdir DLA
-      $ mv tensorrt*.deb libnvinfer*.deb DLA/
-
-* CUDA 10 supports up through gcc 7 only, and some NVIDIA-provided
-  binary libraries appear to be compiled with g++ 7 and cause linker
-  failures when building applications with g++ 6, so **only** gcc 7
-  should be used if you intend to use CUDA. See the following wiki
-  pages for instructions on including gcc 7 in your builds:
-
-  * [Using gcc7 from the contrib layer](https://github.com/madisongh/meta-tegra/wiki/Using-gcc7-from-the-contrib-layer)
-  * [Using linaro gcc7 for CUDA support](https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
+  See [this wiki page](https://github.com/madisongh/meta-tegra/wiki/Using-gcc-from-the-contrib-layer)
+  for information on adding the `meta-tegra/contrib` layer to your
+  builds and configuring them for GCC 8.
 
 
 Contributing
