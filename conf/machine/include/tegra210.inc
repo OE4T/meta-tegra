@@ -32,6 +32,7 @@ require conf/machine/include/tegra-common.inc
 L4T_BSP_NAME = "t210ref_release_aarch64"
 L4T_SRCS_NAME = "Sources/T210"
 L4T_BSP_PREFIX = "Tegra210"
+L4T_DEB_SOCNAME = "t210"
 
 NVPMODEL ?= "nvpmodel_t210"
 TEGRA_BOARDID ?= "2180"
