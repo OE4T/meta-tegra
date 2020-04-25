@@ -6,7 +6,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
 -#!/usr/bin/python
 +#!/usr/bin/env python3
  #
- # Copyright (c) 2019, NVIDIA CORPORATION.  All rights reserved.
+ # Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
  #
 @@ -16,11 +16,7 @@ import struct
  import subprocess
@@ -86,7 +86,21 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                               "    Input version: " + format(self.blob_header_dict['version'], "#010x") + "\r\n" \
                               " Expected version: " + format(self.version, "#010x") + "\r\n" \
                               "       Input type: " + str(self.blob_header_dict['type']) + "\r\n" \
-@@ -286,7 +282,7 @@ class system_info(object):
+@@ -197,10 +193,10 @@ class system_info(object):
+         self.system_spec = self._get_system_prop("COMPATIBLE_SPEC")
+         if self.system_spec == '':
+             self.system_spec = self._get_system_prop("TNSPEC")
+-            print "SPEC: " + self.system_spec + "\n"
++            print("SPEC: " + self.system_spec + "\n")
+         else:
+-            print "SPEC: " + self._get_system_prop("TNSPEC")
+-            print "Compatible SPEC: " + self.system_spec + "\n"
++            print("SPEC: " + self._get_system_prop("TNSPEC"))
++            print("Compatible SPEC: " + self.system_spec + "\n")
+         self.system_op_mode = self._get_system_op_mode()
+         self.system_boot_dev_info = self._get_system_boot_dev_info()
+         self.system_boot_partition_info = self._get_system_boot_partition_info()
+@@ -292,7 +288,7 @@ class system_info(object):
  
          main_boot_dev_path = boot_dev_info['main']['dev_path']
  
@@ -95,7 +109,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
              main_boot_dev = open(main_boot_dev_path, 'rb')
  
              boot_block_size_log_2 = self._get_bct_prop(bct_device=main_boot_dev, bct_base_offset=0, bct_property="boot_block_size_log_2")
-@@ -352,7 +348,7 @@ class system_info(object):
+@@ -358,7 +354,7 @@ class system_info(object):
              if boot_partition_table[dev] is not None:
                  boot_partition_info['name_list'] += list(boot_partition_table[dev].keys())
  
@@ -104,16 +118,39 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                      boot_partition_info['dev_dict'].update({part_name: dev})
                      boot_partition_info['offset_dict'].update({part_name: offset_size_tuple[0]})
                      boot_partition_info['size_dict'].update({part_name: offset_size_tuple[1]})
-@@ -379,16 +375,16 @@ class system_info(object):
+@@ -368,15 +364,15 @@ class system_info(object):
+     def print_nv2(self, nv2):
+         for line in nv2:
+             if "BOARDID=" in line:
+-                print line
++                print(line)
+                 break
+-            print line
++            print(line)
+ 
+     def print_nv3_and_plus(self, nv):
+         for line in nv:
+             if "BYTES:" in line:
+                 break
+-            print line
++            print(line)
+ 
+     def print_current_ver(self):
+         ver_partition_boot_dev = self.system_boot_partition_info['dev_dict']['VER']
+@@ -396,10 +392,10 @@ class system_info(object):
+         # NV2
+         # #R32 (release), REVISION: 2.0, GCID: , BOARD: t210ref, EABI: aarch64, DATE: xxxx
          # BOARDID=3448 BOARDSKU=0000 FAB=100
+-        print "Version:"
++        print("Version:")
          ver = ver_data.splitlines();
          if ver[0] == 'NV1' or 'NV' not in ver[0]:
 -            print "NV1"
 +            print("NV1")
+         elif ver[0] == 'NV2':
+             self.print_nv2(nv2=ver)
          else:
--            print ver[1]
-+            print(ver[1])
- 
+@@ -408,9 +404,9 @@ class system_info(object):
  class install_update_payload(update_type_payload, system_info):
      def __init__(self, arg):
          super(install_update_payload, self).__init__(arg)
@@ -125,7 +162,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
          for i in range(len(self.blob_entry_max_width_list)):
              self.blob_entry_max_width_list[i] = len(self.entry_name_tuple[i])
  
-@@ -420,8 +416,8 @@ class install_update_payload(update_type
+@@ -442,8 +438,8 @@ class install_update_payload(update_type
          for idx, boot_entry in enumerate(self.blob_entry_list):
              try:
                  blob_entry_tuple = struct.unpack(self.entry_packing, self.blob_file.read(struct.calcsize(self.entry_packing)))
@@ -136,7 +173,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
  
                  blob_entry_spec = blob_entry_dict['tnspec']
                  if len(blob_entry_spec) > 0:
-@@ -440,6 +436,10 @@ class install_update_payload(update_type
+@@ -462,6 +458,10 @@ class install_update_payload(update_type
  
          return updatable
  
@@ -147,7 +184,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
      def _check_tnspec(self, tnspec):
          ent_spec = tnspec.split('-')
          sys_spec = self.system_spec.split('-')
-@@ -464,9 +464,9 @@ class install_update_payload(update_type
+@@ -486,9 +486,9 @@ class install_update_payload(update_type
          for idx, boot_entry in enumerate(self.blob_entry_list):
              try:
                  blob_entry_tuple = struct.unpack(self.entry_packing, self.blob_file.read(struct.calcsize(self.entry_packing)))
@@ -160,7 +197,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                  blob_entry_dict['updatable'] = True
                  blob_entry_dict['intra_part_offset'] = 0 # offset within a partition
  
-@@ -485,8 +485,12 @@ class install_update_payload(update_type
+@@ -507,8 +507,12 @@ class install_update_payload(update_type
                  # finding max column width for blob entry table print out
                  for n in range(len(self.blob_entry_max_width_list)):
                      try:
@@ -175,7 +212,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                      except:
                          pass
              except:
-@@ -534,12 +538,12 @@ class install_update_payload(update_type
+@@ -556,12 +560,12 @@ class install_update_payload(update_type
          else:
              sys.stderr.write("Warning. Un-supported platform.\r\n")
  
@@ -191,7 +228,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
  
          # find last BCT "BCT_L"
          last_bct_num = 64
-@@ -604,16 +608,17 @@ class install_update_payload(update_type
+@@ -626,16 +630,17 @@ class install_update_payload(update_type
                          part_name_base = kfs_name
                          break
  
@@ -213,7 +250,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                  # all entries in "boot_part_name_update_order_list" containing "BCT" become
                  # aliases of the one updatable BCT entry in the payload, each BCT alias will
                  # simply have a different intra_part_offset so that the same payload image
-@@ -621,7 +626,7 @@ class install_update_payload(update_type
+@@ -643,7 +648,7 @@ class install_update_payload(update_type
                  blob_entry = copy.deepcopy(blob_entry)
                  blob_entry['intra_part_offset'] = bct_offset
                  blob_entry['part_name'] = part_name
@@ -222,7 +259,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                  # similarily for "NVC_R" or "NVC-1" or "BFS-1" or "KFS-1" or VER_b,
                  # they will be an alias to the one updatable payload entry
                  # and will be copied to the system under the those partition if one exists
-@@ -691,7 +696,7 @@ class install_update_payload(update_type
+@@ -713,7 +718,7 @@ class install_update_payload(update_type
  
      def _check_nvc_part(self):
          # get NVC part data
@@ -231,7 +268,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
          nvc_data = self._read_partition_data(nvc_entry)
  
          # get NVC-1 part data
-@@ -699,7 +704,7 @@ class install_update_payload(update_type
+@@ -721,7 +726,7 @@ class install_update_payload(update_type
              nvc_name = 'NVC_R'
          else:
              nvc_name = 'NVC-1'
@@ -240,7 +277,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
          nvc_1_data = self._read_partition_data(nvc_1_entry)
  
          if nvc_data == nvc_1_data and nvc_data != "":
-@@ -713,7 +718,7 @@ class install_update_payload(update_type
+@@ -735,7 +740,7 @@ class install_update_payload(update_type
  
          ver_entry = dict()
          ver_entry['part_name'] = 'VER'
@@ -249,7 +286,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
          ver_info = ver_data.splitlines()
  
          # has CRC32 lines in VER, it's >=32.3, should do version check
-@@ -740,7 +745,7 @@ class install_update_payload(update_type
+@@ -762,7 +767,7 @@ class install_update_payload(update_type
          return False
  
      def _validate_ver_part(self, ver_entry):
@@ -258,7 +295,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
          ver_info = ver_data.splitlines()
  
          # find out the CRC line "BYTES:57 CRC32:3711412171"
-@@ -759,7 +764,7 @@ class install_update_payload(update_type
+@@ -781,7 +786,7 @@ class install_update_payload(update_type
  
          # calculate the CRC32 of the VER partition
          cmd = 'echo \"%s\" | cksum' % ver_data[0:int(num_bytes) - 1]
@@ -267,7 +304,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
          if ret == 0:
              cksum = cksum.split()[0]
          else:
-@@ -770,11 +775,11 @@ class install_update_payload(update_type
+@@ -792,11 +797,11 @@ class install_update_payload(update_type
              return ver_info[1]
          else:
              # the crc32 of VER partition is invalid
@@ -281,7 +318,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
          ver_info = ver_data.splitlines()
  
          # find out the CRC line "BYTES:57 CRC32:3711412171"
-@@ -791,7 +796,7 @@ class install_update_payload(update_type
+@@ -813,7 +818,7 @@ class install_update_payload(update_type
      def _check_ver(self):
          try:
              # get version number from VER partition
@@ -290,7 +327,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
          except:
              # can't get VER in the blob,
              # it mean the blob is not for bootloader, such as xusb_only_payload
-@@ -804,37 +809,37 @@ class install_update_payload(update_type
+@@ -826,37 +831,37 @@ class install_update_payload(update_type
              ver_num = int(ver_list[1][1:3]) * 10000 + int(ver_list[4][0]) * 100 + int(ver_list[4][2])
          else:
              ver_num = 0
@@ -335,7 +372,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                  return False
  
              # if the crc values in VER and VER_b are same,
-@@ -842,8 +847,8 @@ class install_update_payload(update_type
+@@ -864,8 +869,8 @@ class install_update_payload(update_type
              # check if NVC and NVC-1 partitions matched before a fresh OTA,
              # if not matched, it means the redundancy path may corrupt,  must re-flash the device.
              if ((ver_crc32 == ver_b_crc32) and (self._check_nvc_part() is False)):
@@ -346,7 +383,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                  return False
  
              return True
-@@ -854,9 +859,9 @@ class install_update_payload(update_type
+@@ -876,9 +881,9 @@ class install_update_payload(update_type
                  if (ver_num <= blob_ver_num):
                      return True
                  else:
@@ -358,7 +395,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                      return False
              elif (ver_b_num != 0):
                  # this case means the previous OTA may corrupt at any partitions except VER_b,
-@@ -864,9 +869,9 @@ class install_update_payload(update_type
+@@ -886,9 +891,9 @@ class install_update_payload(update_type
                  if (blob_ver_num == ver_b_num):
                      return True
                  else:
@@ -370,7 +407,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
                      return False
              else:
                  # this case means VER and VER_b are both corrupted, should not come to here
-@@ -886,7 +891,7 @@ class install_update_payload(update_type
+@@ -908,7 +913,7 @@ class install_update_payload(update_type
              if blob_entry['updatable'] == False:
                  continue
  
@@ -379,7 +416,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
  
              part_name_base = part_name
              if 'BCT' in part_name:
-@@ -956,13 +961,13 @@ class install_update_payload(update_type
+@@ -978,13 +983,13 @@ class install_update_payload(update_type
          return
  
      def _skip_boot_parts(self):
@@ -395,7 +432,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
  
          block_dev.seek(block_dev_offset, os.SEEK_SET)
          block_dev.write(bin_data)
-@@ -974,15 +979,15 @@ class install_update_payload(update_type
+@@ -996,15 +1001,15 @@ class install_update_payload(update_type
          if block_dev_size % 1024 != 0:
              return
  
@@ -414,7 +451,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
  
          block_dev.seek(block_dev_offset, os.SEEK_SET)
          system_bin_data = block_dev.read(bin_data_size)
-@@ -998,9 +1003,9 @@ class install_update_payload(update_type
+@@ -1020,9 +1025,9 @@ class install_update_payload(update_type
                  boot_partition_wr_en = open(self.system_boot_dev_info[dev]['write_en_path'], 'rb+')
  
                  if write_enable == True:
@@ -426,7 +463,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
  
                  boot_partition_wr_en.close()
              except Exception:
-@@ -1008,55 +1013,55 @@ class install_update_payload(update_type
+@@ -1030,55 +1035,55 @@ class install_update_payload(update_type
                  sys.exit(1)
  
      def print_blob_header(self):
@@ -512,7 +549,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
          return
  
      def install_binaries(self):
-@@ -1074,7 +1079,7 @@ class install_update_payload(update_type
+@@ -1096,7 +1101,7 @@ class install_update_payload(update_type
  
              skip_write = False
  
@@ -521,7 +558,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
              dev_offset = 0
  
              part_name_base = part_name
-@@ -1130,9 +1135,9 @@ class install_update_payload(update_type
+@@ -1152,9 +1157,9 @@ class install_update_payload(update_type
                  update_bin_data *= block0_bct_cpy
                  update_bin_data_size *= block0_bct_cpy
                  if block0_bct_cpy > 1:
@@ -533,7 +570,7 @@ Index: build/usr/sbin/l4t_payload_updater_t210
              pre_update_system_bin_data = self._read_partition(bin_data_size=update_bin_data_size, block_dev=system_partition_device, block_dev_offset=dev_offset)
              total_bytes_updatable += update_bin_data_size
              total_parts_updatable += 1
-@@ -1157,21 +1162,21 @@ class install_update_payload(update_type
+@@ -1179,21 +1184,21 @@ class install_update_payload(update_type
  
                  post_update_system_bin_data = self._read_partition(bin_data_size=update_bin_data_size, block_dev=system_partition_device, block_dev_offset=dev_offset)
                  if post_update_system_bin_data == update_bin_data:
