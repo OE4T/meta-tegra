@@ -8,7 +8,7 @@ DEPENDS = "libedit"
 SRC_REPO ?= "github.com/madisongh/tegra-eeprom-tool"
 SRCBRANCH ?= "master"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
-SRCREV = "${AUTOREV}"
+SRCREV = "39f3569d128b80efd1ab12c040639f506f35ae9c"
 PV = "1.1+git${SRCPV}"
 
 S = "${WORKDIR}/git"
