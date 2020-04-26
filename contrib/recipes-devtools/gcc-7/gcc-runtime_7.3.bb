@@ -1,4 +1,4 @@
-require recipes-devtools/gcc/gcc-${PV}.inc
+require gcc-${PV}.inc
 require gcc-runtime.inc
 
 FILES_libgomp-dev += "\
