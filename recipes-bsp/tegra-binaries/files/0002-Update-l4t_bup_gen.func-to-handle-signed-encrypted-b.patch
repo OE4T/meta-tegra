@@ -1,16 +1,16 @@
-From a25cb8629864cc917330b40559aa168903ba1e41 Mon Sep 17 00:00:00 2001
+From 2b7b7861ccf14f4920959aeb6363b30f7857200f Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 26 Oct 2019 09:06:48 -0700
 Subject: [PATCH] Update l4t_bup_gen.func to handle signed+encrypted bootloader
 
 ---
- bootloader/l4t_bup_gen.func | 103 ++++++++++++++++++++++++------------
- 1 file changed, 68 insertions(+), 35 deletions(-)
+ bootloader/l4t_bup_gen.func | 107 +++++++++++++++++++++++-------------
+ 1 file changed, 70 insertions(+), 37 deletions(-)
 
-Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
-===================================================================
---- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
-+++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
+diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
+index ce10f49..052c1f9 100644
+--- a/bootloader/l4t_bup_gen.func
++++ b/bootloader/l4t_bup_gen.func
 @@ -109,14 +109,28 @@ _generate_bl_update_payload()
  	local zerosbk_signing="${3}"
  	local tegra_soc="${4}"
@@ -170,7 +170,7 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
  	echo ${cmd}
  	eval ${cmd}
  	if [ $? -eq 0 ];then
-@@ -415,22 +445,22 @@ _sign_multi_images()
+@@ -415,22 +445,25 @@ _sign_multi_images()
  
  		if [ "${tegra_soc}" != "t21x" ]; then
  			if [ "${fuselevel}" = "fuselevel_nofuse" ]; then
@@ -196,10 +196,13 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
  
 -		mv "${OUT}"/signed/*.dtb* "${OUT}"/signed/*bct* "${OUT}"/multi_signed/"${_sw_spec}"/
 +		mv "${OUT}"/${subdir}/*.dtb* "${OUT}"/${subdir}/*bct* "${OUT}"/multi_signed/"${_sw_spec}"/
++		if [ "${subdir}" != "signed" ]; then
++			mv "${OUT}"/signed/*.dtb* "${OUT}"/multi_signed/"${_sw_spec}"/
++		fi
  		mv "${OUT}"/*_bootblob_ver.txt "${OUT}"/multi_signed/"${_sw_spec}"/
  
  		# xusb-fw
-@@ -498,17 +528,17 @@ function l4t_bup_gen()
+@@ -498,17 +531,17 @@ function l4t_bup_gen()
  	fi;
  
  	# check signing key
