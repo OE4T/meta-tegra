@@ -19,7 +19,7 @@ TEGRA_AUDIO_DEVICE ?= "tegrahda"
 
 SERIAL_CONSOLE = "115200 ttyS0"
 
-KERNEL_MODULE_AUTOLOAD = "nvgpu"
+KERNEL_MODULE_AUTOLOAD =+ "nvgpu"
 
 KERNEL_ARGS ?= "sdhci_tegra.en_boot_part_access=1"
 
