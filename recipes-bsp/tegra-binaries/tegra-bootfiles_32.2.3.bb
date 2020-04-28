@@ -103,8 +103,8 @@ do_install() {
         install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/$f ${D}${datadir}/tegraflash
     done
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
-    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/flash_${MACHINE}.xml
-    [ -z "${SDCARD_PARTITION_FILE}" ] || install -m 0644 ${SDCARD_PARTITION_FILE} ${D}${datadir}/tegraflash/sdcard_${MACHINE}.xml
+    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
+    [ -z "${SDCARD_PARTITION_FILE}" ] || install -m 0644 ${SDCARD_PARTITION_FILE} ${D}${datadir}/tegraflash/${SDCARD_LAYOUT_TEMPLATE}
     [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
 }
 
