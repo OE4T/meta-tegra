@@ -108,7 +108,7 @@ tegraflash_create_flash_config_tegra210() {
     # in the L4T flash.sh script.  Some of the substitutions apply only to
     # the redundant-boot layout, some apply only to the non-redundant layout.
     # Note that these are for Tegra210 based systems only.
-    cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
+    cat "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | sed \
         -e"s,EBTFILE,cboot.bin," -e"s,EBTSIZE,$ebtsize," \
         -e"s,LNXFILE,${LNXFILE}," \
         -e"/NCTFILE/d" -e"s,NCTTYPE,data," \
@@ -131,7 +131,7 @@ tegraflash_create_flash_config_tegra210() {
 	-e"s,APPUUID,," \
         > $destdir/flash.xml.in
     if [ "${TEGRA_SPIFLASH_BOOT}" = "1" ]; then
-        cat "${STAGING_DATADIR}/tegraflash/sdcard_${MACHINE}.xml" | sed \
+        cat "${STAGING_DATADIR}/tegraflash/${SDCARD_LAYOUT_TEMPLATE}" | sed \
             -e"s,EBTFILE,cboot.bin," -e"s,EBTSIZE,$ebtsize," \
             -e"s,LNXFILE,${LNXFILE}," \
             -e"/NCTFILE/d" -e"s,NCTTYPE,data," \
@@ -166,7 +166,7 @@ tegraflash_create_flash_config_tegra186() {
 
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra186-specific.
-    cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
+    cat "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | sed \
         -e"s,LNXFILE,$lnxfile," \
         -e"s,LNXSIZE,${LNXSIZE}," -e"s,LNXNAME,kernel," \
         -e"/SOSFILE/d" \
@@ -201,7 +201,7 @@ tegraflash_create_flash_config_tegra194() {
     # in the L4T flash.sh script.  Tegra194-specific.
     # Note that the blank before DTB_FILE is important, to
     # prevent BPFDTB_FILE from being matched.
-    cat "${STAGING_DATADIR}/tegraflash/flash_${MACHINE}.xml" | sed \
+    cat "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | sed \
         -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
         -e"s,TEGRABOOT,nvtboot_t194.bin," \
         -e"s,MTSPREBOOT,preboot_c10_prod_cr.bin," \
