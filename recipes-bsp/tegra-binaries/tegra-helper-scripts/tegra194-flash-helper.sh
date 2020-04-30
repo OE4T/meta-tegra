@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 bup_build=
 keyfile=
 sbk_keyfile=
@@ -85,7 +86,7 @@ if [ -z "$CHIPREV" ]; then
     skipuid="--skipuid"
 fi
 
-if [ -z "$FAB" -o -z "$BOARDID" -o \( "$BOARDID" = "2888" -a -z "$BOARDSKU" -o \( "$BOARDSKU" != "0004" -a -z "$BOARDREV" \) \) ]; then
+if [ -z "$FAB" -o -z "$BOARDID" -o \( "$BOARDID" = "2888" -a \( -z "$BOARDSKU" -o \( "$BOARDSKU" != "0004" -a -z "$BOARDREV" \) \) \) ]; then
     if ! python $flashappname --chip 0x19 --applet mb1_t194_prod.bin $skipuid --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
 		 --bins "mb2_applet nvtboot_applet_t194.bin" --cmd "dump eeprom boardinfo ${cvm_bin};reboot recovery"; then
 	echo "ERR: could not retrieve EEPROM board information" >&2
@@ -126,52 +127,62 @@ TOREV="a01"
 BPFDTBREV="a01"
 PMICREV="a01"
 
-if [ "$boardid" = "2888" ]; then
-    case $board_version in
-	[01][0-9][0-9])
+case "$boardid" in
+    2888)
+	case $board_version in
+	    [01][0-9][0-9])
+	    ;;
+	    2[0-9][0-9])
+		TOREV="a02"
+		PMICREV="a02"
+		BPFDTBREV="a02"
+		;;
+	    [34][0-9][0-9])
+		TOREV="a02"
+		PMICREV="a04"
+		BPFDTBREV="a02"
+		if [ "$board_sku" = "0006" ]; then
+		    BPFDTBREV="0006-a04"
+		elif [ "$board_sku" = "0004" ] || [ $board_version -gt 300 -a `expr "$board_revision" \> "D.0"` -eq 1 ]; then
+		    PMICREV="a04-E-0"
+		    BPFDTBREV="a04"
+		fi
+		;;
+	    *)
+		echo "ERR: unrecognized board version $board_version" >&2
+		exit 1
+		;;
+	esac
 	;;
-	2[0-9][0-9])
-	    TOREV="a02"
-	    PMICREV="a02"
-	    BPFDTBREV="a02"
-	    ;;
-	[34][0-9][0-9])
-	    TOREV="a02"
-	    PMICREV="a04"
-	    BPFDTBREV="a02"
-	    if [ "$board_sku" = "0004" ] || [ $board_version -gt 300 -a `expr "$board_revision" \> "D.0"` -eq 1 ]; then
-		PMICREV="a04-E-0"
-		BPFDTBREV="a04"
-	    fi
-	    ;;
-	*)
-	    echo "ERR: unrecognized board version $board_version" >&2
-	    exit 1
-	    ;;
-    esac
-elif [ "$boardid" = "3660" ]; then
-    case $board_version in
-	[01][0-9][0-9])
-	    TOREV="a02"
-	    PMICREV="a02"
-	    ;;
-	*)
-	    echo "ERR: unrecognized board version $board_version" >&2
-	    exit 1
-	    ;;
-    esac
-else
-    echo "ERR: unrecognized board ID $boardid" >&2
-    exit 1
-fi
+    3660)
+	case $board_version in
+	    [01][0-9][0-9])
+		TOREV="a02"
+		PMICREV="a02"
+		;;
+	    *)
+		echo "ERR: unrecognized board version $board_version" >&2
+		exit 1
+		;;
+	esac
+	;;
+    3668)
+	# No revision-specific settings
+	;;
+    *)
+	echo "ERR: unrecognized board ID $boardid" >&2
+	exit 1
+	;;
+esac
 
 for var in $FLASHVARS; do
     eval pat=$`echo $var`
-    if [ -z "$pat" ]; then
+    if [ -z "${pat+definedmaybeempty}" ]; then
 	echo "ERR: missing variable: $var" >&2
 	exit 1
+    elif [ -n "$pat" ]; then
+	eval $var=`echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@BOARDREV@,$TOREV," -e"s,@PMICREV@,$PMICREV," -e"s,@CHIPREV@,$CHIPREV,"`
     fi
-    eval $var=`echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@BOARDREV@,$TOREV," -e"s,@PMICREV@,$PMICREV," -e"s,@CHIPREV@,$CHIPREV,"`
 done
 
 [ -n "$BOARDID" ] || BOARDID=2888
@@ -201,19 +212,25 @@ tlk tos-trusty_t194.img; \
 eks eks.img; \
 bootloader_dtb $dtb_file"
 
-bctargs="--uphy_config tegra194-mb1-uphy-lane-p2888-0000-p2822-0000.cfg \
-	      --device_config tegra19x-mb1-bct-device-sdmmc.cfg \
+if [ -n "$UPHY_CONFIG" ]; then
+    bctargs="--uphy_config $UPHY_CONFIG"
+else
+    bctargs=
+fi
+
+bctargs="$bctargs \
+	      --device_config $DEVICE_CONFIG \
 	      --misc_config tegra194-mb1-bct-misc-flash.cfg \
 	      --misc_cold_boot_config $MISC_COLD_BOOT_CONFIG \
 	      --pinmux_config $PINMUX_CONFIG \
-	      --gpioint_config tegra194-mb1-bct-gpioint-p2888-0000-p2822-0000.cfg \
+	      --gpioint_config $GPIOINT_CONFIG \
 	      --pmic_config $PMIC_CONFIG \
 	      --pmc_config $PMC_CONFIG \
-	      --prod_config tegra19x-mb1-prod-p2888-0000-p2822-0000.cfg \
-	      --scr_config tegra194-mb1-bct-scr-cbb-mini.cfg \
+	      --prod_config $PROD_CONFIG \
+	      --scr_config $SCR_CONFIG \
 	      --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
-	      --br_cmd_config tegra194-mb1-bct-reset-p2888-0000-p2822-0000.cfg \
-	      --dev_params tegra194-br-bct-sdmmc.cfg"
+	      --br_cmd_config $BR_CMD_CONFIG \
+	      --dev_params $DEV_PARAMS"
 
 if [ "$bup_build" = "yes" ]; then
     tfcmd=sign
