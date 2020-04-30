@@ -494,34 +494,29 @@ oe_make_bup_payload() {
     done
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     . ./flashvars
-    for var in $FLASHVARS; do
-        eval pat=$`echo $var`
-        if [ -z "$pat" ]; then
-            echo "ERR: missing variable: $var" >&2
-            exit 1
-        fi
-	case "${SOC_FAMILY}" in
-	    tegra186)
-		fnglob=`echo $pat | sed -e"s,@BPFDTBREV@,\*," -e"s,@BOARDREV@,\*," -e"s,@PMICREV@,\*," -e"s,@CHIPREV@,\*,"`
-		for fname in ${STAGING_DATADIR}/tegraflash/$fnglob; do
-                    if [ ! -e $fname ]; then
-                        bbfatal "$var file(s) not found"
-                    fi
-                    ln -sf $fname ./
-		done
-		;;
-            tegra194)
-		for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
-                    ln -sf $f .
-		done
-		for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
-                    ln -sf $f .
-		done
-		;;
-	    *)
-		;;
-        esac
-    done
+    if [ "${SOC_FAMILY}" = "tegra186" ]; then
+        for var in $FLASHVARS; do
+            eval pat=$`echo $var`
+            if [ -z "$pat" ]; then
+                echo "ERR: missing variable: $var" >&2
+                exit 1
+            fi
+	    fnglob=`echo $pat | sed -e"s,@BPFDTBREV@,\*," -e"s,@BOARDREV@,\*," -e"s,@PMICREV@,\*," -e"s,@CHIPREV@,\*,"`
+	    for fname in ${STAGING_DATADIR}/tegraflash/$fnglob; do
+                if [ ! -e $fname ]; then
+                    bbfatal "$var file(s) not found"
+                fi
+                ln -sf $fname ./
+	    done
+	done
+    elif [ "${SOC_FAMILY}" = "tegra194" ]; then
+        for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
+            ln -sf $f .
+	done
+	for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
+            ln -sf $f .
+	done
+    fi
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
         ln -s "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         boardcfg=board_config_${MACHINE}.xml
