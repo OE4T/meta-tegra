@@ -1,5 +1,3 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
-
 SRC_URI_append_tegra = " \
     file://l4t.schema.in \
     file://usbgx-overrides.conf \

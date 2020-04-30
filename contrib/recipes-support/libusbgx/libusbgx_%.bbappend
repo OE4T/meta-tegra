@@ -1,5 +1,3 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
-
 SRC_URI_append_tegra = " \
     file://usb-gadget.target \
 "
