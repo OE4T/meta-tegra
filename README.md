@@ -1,17 +1,23 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Jetson TX1/TX2/AGX Xavier/Nano
 ======================================================================
 
+Linux4Tegra release: R32.4.2
+JetPack release:     4.4 Developer Preview
+
 Boards supported:
-* Jetson-TX1 development kit (Linux4Tegra R32.4.2, JetPack 4.4DP)
-* Jetson-TX2 development kit (Linux4Tegra R32.4.2, JetPack 4.4DP)
-* Jetson AGX Xavier development kit (Linux4Tegra R32.4.2, JetPack 4.4DP)
-* Jetson Nano development kit (Linux4Tegra R32.4.2, JetPack 4.4DP)
-* Jetson Nano eMMC module with rev B01 carrier board (L4T R32.4.2, JetPack 4.4DP)
+* Jetson-TX1 development kit
+* Jetson-TX2 development kit
+* Jetson AGX Xavier development kit
+* Jetson Nano development kit
+* Jetson Nano eMMC module with rev B01 carrier board
+
+Experimental support:
+* Jetson Xavier NX eMMC module in Nano carrier board
 
 Also supported thanks to community support:
-* Jetson-TX2i module (Linux4Tegra R32.4.2, JetPack 4.4DP)
-* Jetson-TX2 4GB module (Linux4Tegra R32.4.2, JetPack 4.4DP)
-* Jetson AGX Xavier 8GB module (Linux4Tegra R32.4.2, JetPack 4.4DP)
+* Jetson-TX2i module
+* Jetson-TX2 4GB module
+* Jetson AGX Xavier 8GB module
 
 
 This layer depends on:
