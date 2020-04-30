@@ -13,6 +13,12 @@ do_compile[noexec] = "1"
 do_install() {
     install -d ${D}${sbindir}
     sed -e's,\(sudo bash .*\),: #\1,' -e'/^# Ensure libglx/,$d' ${B}/etc/systemd/nv.sh >${D}${sbindir}/nvstartup
+    cat <<EOF >> ${D}${sbindir}/nvstartup
+# Disable lazy vfree pages
+if [ -e /proc/sys/vm/lazy_vfree_pages ]; then
+	echo 0 > /proc/sys/vm/lazy_vfree_pages
+fi
+EOF
     chmod 0755 ${D}${sbindir}/nvstartup
     install -d ${D}/${sysconfdir}/udev/rules.d
     install -m 0644 ${B}/etc/udev/rules.d/99-tegra-devices.rules ${D}${sysconfdir}/udev/rules.d
