@@ -352,6 +352,11 @@ create_tegraflash_pkg_tegra186() {
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
+    rm -f ./slot_metadata.bin
+    cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
+    rm -rf ./rollback
+    mkdir ./rollback
+    ln -snf ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     . ./flashvars
     for var in $FLASHVARS; do
@@ -420,6 +425,11 @@ create_tegraflash_pkg_tegra194() {
     for f in ${BOOTFILES}; do
         ln -s "${STAGING_DATADIR}/tegraflash/$f" .
     done
+    rm -f ./slot_metadata.bin
+    cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
+    rm -rf ./rollback
+    mkdir ./rollback
+    ln -snf ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
         ln -s $f .
@@ -450,7 +460,7 @@ IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
 do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_populate_sysroot \
                                  ${SOC_FAMILY}-flashtools-native:do_populate_sysroot gptfdisk-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
-                                 virtual/kernel:do_deploy \
+                                 tegra-redundant-boot-base:do_populate_sysroot virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''} \
                                  cboot:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
