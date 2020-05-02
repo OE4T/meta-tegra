@@ -21,13 +21,13 @@ TEGRA_SIGNING_EXTRA_DEPS ??= ""
 TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEGRA_BOARDREV};chiprev=${TEGRA_CHIPREV}"
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
-LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${KERNEL_IMAGETYPE}-initramfs-${MACHINE}.cboot'}"
+LNXFILE ?= "boot.img"
 LNXSIZE ?= "83886080"
 APPFILE ?= "${@'${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}' if d.getVar('TEGRA_SPIFLASH_BOOT') == '1' else '${IMAGE_BASENAME}.img'}"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
-IMAGE_TEGRAFLASH_KERNEL ?= "${DEPLOY_DIR_IMAGE}/${LNXFILE}"
+IMAGE_TEGRAFLASH_KERNEL ?= "${DEPLOY_DIR_IMAGE}/${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${KERNEL_IMAGETYPE}-initramfs-${MACHINE}.cboot'}"
 
 BL_IS_CBOOT = "${@'1' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '0'}"
 TEGRA_SPIFLASH_BOOT ??= ""
