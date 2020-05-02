@@ -3,6 +3,9 @@ bup_build=
 keyfile=
 sbk_keyfile=
 no_flash=0
+flash_cmd=
+imgfile=
+
 ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash" -o "u:v:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
@@ -45,6 +48,8 @@ dtb_file="$2"
 sdramcfg_file="$3"
 odmdata="$4"
 kernfile="$5"
+imgfile="$6"
+shift 6
 
 here=$(readlink -f $(dirname "$0"))
 flashappname="tegraflash.py"
@@ -147,7 +152,20 @@ date "+%Y%m%d%H%M%S" >>${MACHINE}_bootblob_ver.txt
 bytes=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f2`
 cksum=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1`
 echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
-sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB-FILE,$BPFDTB_FILE," "$flash_in" > flash.xml
+appfile_sed=
+if [ "$bup_build" = "yes" ]; then
+    appfile_sed="-e/APPFILE/d"
+elif [ $no_flash -eq 0 ]; then
+    if [ -n "$imgfile" -a -e "$imgfile" ]; then
+	appfile_sed="-es,APPFILE,$imgfile,"
+    else
+	echo "ERR: rootfs image not specified or missing: $imgfile" >&2
+	exit 1
+    fi
+else
+    touch APPFILE
+fi
+sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB-FILE,$BPFDTB_FILE," $appfile_sed "$flash_in" > flash.xml
 
 BINSARGS="mb2_bootloader nvtboot_recovery.bin; \
 mts_preboot preboot_d15_prod_cr.bin; \
@@ -188,7 +206,7 @@ elif [ -n "$keyfile" ]; then
     SOSARGS="--applet mb1_recovery_prod.bin "
     BCTARGS="$bctargs"
     . "$here/odmsign.func"
-    odmsign_ext || exit 1
+    (odmsign_ext) || exit 1
     if [ $no_flash -ne 0 ]; then
 	if [ -f flashcmd.txt ]; then
 	    chmod +x flashcmd.txt
@@ -196,6 +214,7 @@ elif [ -n "$keyfile" ]; then
 	else
 	    echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
 	fi
+	rm APPFILE
     fi
     exit 0
 else
