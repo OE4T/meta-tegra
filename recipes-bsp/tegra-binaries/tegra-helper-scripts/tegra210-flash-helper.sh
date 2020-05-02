@@ -1,7 +1,7 @@
 #!/bin/bash
 bup_build=
 keyfile=
-no_flash=
+no_flash=0
 sdcard=
 make_sdcard_args=
 imgfile=
@@ -21,7 +21,7 @@ while true; do
 	    shift
 	    ;;
 	--no-flash)
-	    no_flash=yes
+	    no_flash=1
 	    shift
 	    ;;
 	--sdcard)
@@ -153,24 +153,27 @@ date "+%Y%m%d%H%M%S" >>${MACHINE}_bootblob_ver.txt
 bytes=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f2`
 cksum=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1`
 echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
-if [ -z "$bup_build" ]; then
-    if [ -z "$sdcard" ]; then
-	appfile=$(echo $(basename "$imgfile") | cut -d. -f1).img
-    else
-	appfile="$imgfile"
-    fi
+if [ -z "$sdcard" ]; then
+    appfile=$(echo $(basename "$imgfile") | cut -d. -f1).img
 else
-    # ignore rootfs for BUP builds
-    appfile=APPFILE
+    appfile="$imgfile"
 fi
-sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,DTBFILE,$DTBFILE," -e"s,APPFILE,$appfile," "$flash_in" > flash.xml
+appfile_sed=
+if [ -n "$bup_build" ]; then
+    appfile_sed="-e/APPFILE/d"
+elif [ $no_flash -eq 0 ]; then
+    appfile_sed="-es,APPFILE,$appfile,"
+else
+    touch APPFILE
+fi
+sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,DTBFILE,$DTBFILE," $appfile_sed "$flash_in" > flash.xml
 boardcfg=
 [ -z "$boardcfg_file" ] || boardcfg="--boardconfig $boardcfg_file"
 if [ "$bup_build" = "yes" -o "$sdcard" = "yes" ]; then
     cmd="sign"
     binargs=
 else
-    if [ -z "$sdcard" ]; then
+    if [ -z "$sdcard" -a $no_flash -eq 0 ]; then
 	rm -f "$appfile"
 	$here/mksparse -b ${blocksize} -v --fillpattern=0 "$imgfile"  "$appfile" || exit 1
     fi
@@ -185,14 +188,19 @@ else
 	BCT="--bct"
 	bctfilename="$sdramcfg_file"
 	. "$here/odmsign.func"
-	odmsign_ext || exit 1
-	if [ -n "$no_flash" ]; then
-	    if [ -f flashcmd.txt ]; then
-		chmod +x flashcmd.txt
-		cp flashcmd.txt ./secureflash.sh
-	    else
-		echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
+	(odmsign_ext) || exit 1
+	if [ $no_flash -ne 0 ]; then
+	    rm -f flashcmd.txt
+	    echo "#!/bin/sh" > flashcmd.txt
+	    if [ "$boardid" = "3448" ]; then
+		binargs="--bins \"EBT cboot.bin.signed;DTB ${dtb_file}.signed\""
 	    fi
+	    echo "python $flashapp --bl cboot.bin.signed --bct \"$sdramcfg_file\" --odmdata $odmdata \
+--bldtb \"${dtb_file}.signed\" --applet rcm_1_signed.rcm --cfg flash.xml --chip 0x21 \
+--cmd \"secureflash;reboot\" $binargs" > flashcmd.txt
+	    chmod +x flashcmd.txt
+	    ln -sf flashcmd.txt ./secureflash.sh
+	    rm APPFILE
 	fi
 	exit 0
     else
