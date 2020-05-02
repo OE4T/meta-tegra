@@ -23,7 +23,6 @@ TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEG
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 LNXFILE ?= "boot.img"
 LNXSIZE ?= "83886080"
-APPFILE ?= "${@'${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}' if d.getVar('TEGRA_SPIFLASH_BOOT') == '1' else '${IMAGE_BASENAME}.img'}"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
@@ -50,6 +49,24 @@ tegraflash_custom_pre() {
     :
 }
 
+tegraflash_post_sign_pkg() {
+    :
+}
+
+tegraflash_post_sign_pkg_tegra210() {
+    mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
+    [ "${TEGRA_SPIFLASH_BOOT}" = "1" ] || rm -f ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," flash.xml
+}
+
+tegraflash_post_sign_pkg_tegra186() {
+    sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
+}
+
+tegraflash_post_sign_pkg_tegra194() {
+    sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
+}
+
 # Override these functions to run a custom code signing
 # step, such as packaging the flash/BUP contents and
 # sending them to a remote code signing server.
@@ -69,6 +86,7 @@ tegraflash_custom_sign_pkg() {
         rm doflash.sh
         mv flashcmd.txt doflash.sh
         chmod +x doflash.sh
+        tegraflash_post_sign_pkg
     fi
 }
 
@@ -93,15 +111,7 @@ tegraflash_create_flash_config() {
 tegraflash_create_flash_config_tegra210() {
     local destdir="$1"
     local lnxfile="$2"
-    local rootfsimg="$3"
-    local bupgen="$4"
-    local apptag
 
-    if [ -n "$bupgen" ]; then
-        apptag="/APPFILE/d"
-    else
-	apptag="s,APPFILE,$3,"
-    fi
     cat "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | sed \
         -e"s,EBTFILE,${CBOOTFILENAME}," \
         -e"s,LNXFILE,$lnxfile," \
@@ -117,7 +127,7 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,EXS,EKS," -e"s,EKSFILE,eks.img," \
         -e"s,FBTYPE,data," -e"/FBFILE/d" \
         -e"s,DXB,DTB," \
-        -e"$apptag" -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,TXC,TBC," -e"s,TBCTYPE,bootloader," -e"s,TBCFILE,nvtboot_cpu.bin," \
         -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
@@ -129,15 +139,6 @@ tegraflash_create_flash_config_tegra210() {
 tegraflash_create_flash_config_tegra186() {
     local destdir="$1"
     local lnxfile="$2"
-    local rootfsimg="$3"
-    local bupgen="$4"
-    local apptag
-
-    if [ -n "$bupgen" ]; then
-        apptag="/APPFILE/d"
-    else
-	apptag="s,APPFILE,$3,"
-    fi
 
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra186-specific.
@@ -162,7 +163,7 @@ tegraflash_create_flash_config_tegra186() {
         -e"s,EKSFILE,eks.img," \
         -e"s,FBTYPE,data," -e"s,FBSIGN,false," -e"/FBFILE/d" \
         -e"s,KERNELDTB-NAME,kernel-dtb," -e"s,KERNELDTB-FILE,${DTBFILE}," \
-        -e"$apptag" -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,PPTSIZE,2097152," \
@@ -173,15 +174,6 @@ tegraflash_create_flash_config_tegra186() {
 tegraflash_create_flash_config_tegra194() {
     local destdir="$1"
     local lnxfile="$2"
-    local rootfsimg="$3"
-    local bupgen="$4"
-    local apptag
-
-    if [ -n "$bupgen" ]; then
-        apptag="/APPFILE/d"
-    else
-	apptag="s,APPFILE,$3,"
-    fi
 
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra194-specific.
@@ -206,7 +198,7 @@ tegraflash_create_flash_config_tegra194() {
         -e"s,CBOOTOPTION_FILE,cbo.dtb," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
-        -e"$apptag" -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
@@ -306,20 +298,19 @@ create_tegraflash_pkg_tegra210() {
     [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" = "1" ] || cp -R ${STAGING_BINDIR_NATIVE}/tegra210-flash/* .
     tegraflash_custom_pre
     ln -s "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
-    # for tegra210, the flash helper script puts APPFILE in the XML
-    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE} APPFILE
+    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
 
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra210-flash-helper.sh -B ${TEGRA_BLBLOCKSIZE} flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" ${LNXFILE} "${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" "\$@"
+MACHINE=${MACHINE} ./tegra210-flash-helper.sh -B ${TEGRA_BLBLOCKSIZE} flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
     chmod +x doflash.sh
     if [ "${TEGRA_SPIFLASH_BOOT}" = "1" ]; then
         rm -f dosdcard.sh
         cat > dosdcard.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra210-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" ${LNXFILE} "${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}" "\$@"
+MACHINE=${MACHINE} ./tegra210-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x dosdcard.sh
     fi
@@ -380,17 +371,17 @@ create_tegraflash_pkg_tegra186() {
     fi
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
-    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE} ${APPFILE}
+    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra186-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${LNXFILE} "\$@"
+MACHINE=${MACHINE} ./tegra186-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.img "\$@"
 END
     chmod +x doflash.sh
     if [ -e ./odmfuse_pkc.xml ]; then
         cat > burnfuses.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra186-flash-helper.sh --burnfuses flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${LNXFILE} "\$@"
+MACHINE=${MACHINE} ./tegra186-flash-helper.sh --burnfuses flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.img "\$@"
 END
 	chmod +x burnfuses.sh
     fi
@@ -440,11 +431,11 @@ create_tegraflash_pkg_tegra194() {
     [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" = "1" ] || cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
-    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE} ${APPFILE}
+    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra194-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} ${LNXFILE} "\$@"
+MACHINE=${MACHINE} ./tegra194-flash-helper.sh flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.img "\$@"
 END
     chmod +x doflash.sh
     tegraflash_custom_post
@@ -480,8 +471,7 @@ oe_make_bup_payload() {
     # BUP generator really wants to use 'boot.img' for the LNX
     # partition contents
     ln -sf $1 ./boot.img
-    # We don't replace APPFILE for BUP payloads
-    tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img APPFILE bupgen
+    tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img
     ln -sf "${STAGING_DATADIR}/tegraflash/bsp_version" .
     ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
