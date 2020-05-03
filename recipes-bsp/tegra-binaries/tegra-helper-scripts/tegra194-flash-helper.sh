@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 bup_build=
 keyfile=
 sbk_keyfile=
@@ -121,7 +120,7 @@ else
     board_sku=`$here/chkbdinfo -k ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z]`
     BOARDSKU="$board_sku"
 fi
-if [ -n "$BOARDREV" ]; then
+if [ "${BOARDREV+isset}" = "isset" ]; then
     board_revision="$BOARDREV"
 else
     board_revision=`$here/chkbdinfo -r ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z]`
