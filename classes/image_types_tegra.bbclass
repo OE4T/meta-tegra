@@ -295,7 +295,10 @@ create_tegraflash_pkg_tegra210() {
         boardcfg=
     fi
 
-    [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" = "1" ] || cp -R ${STAGING_BINDIR_NATIVE}/tegra210-flash/* .
+    if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
+        cp -R ${STAGING_BINDIR_NATIVE}/tegra210-flash/* .
+        tegraflash_generate_bupgen_script
+    fi
     tegraflash_custom_pre
     ln -s "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
@@ -364,7 +367,11 @@ create_tegraflash_pkg_tegra186() {
             ln -sf $fname ./
         done
     done
-    [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" = "1" ] || cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
+    if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
+        cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
+        mv ./rollback_parser.py ./rollback/
+        tegraflash_generate_bupgen_script
+    fi
     dd if=/dev/zero of=badpage.bin bs=4096 count=1
     if [ -e ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ]; then
         cp ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ./odmfuse_pkc.xml
@@ -428,7 +435,11 @@ create_tegraflash_pkg_tegra194() {
     for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
         ln -s $f .
     done
-    [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" = "1" ] || cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
+    if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
+        cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
+        mv ./rollback_parser.py ./rollback/
+        tegraflash_generate_bupgen_script
+    fi
     tegraflash_custom_pre
     mksparse -v --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
@@ -446,6 +457,35 @@ END
     cd $oldwd
 }
 create_tegraflash_pkg[vardepsexclude] += "DATETIME"
+
+tegraflash_generate_bupgen_script() {
+    local outfile="${1:-./generate_bup_payload.sh}"
+    local spec__ sdramcfg fab boardsku boardrev
+    rm -f $outfile
+    cat <<EOF > $outfile
+#!/bin/bash
+rm -rf signed multi_signed rollback.bin ${BUP_PAYLOAD_DIR}
+export BOARDID=${TEGRA_BOARDID}
+export fuselevel=fuselevel_production
+export localbootfile=${LNXFILE}
+export CHIPREV=${TEGRA_CHIPREV}
+EOF
+    if [ "${SOC_FAMILY}" = "tegra194" ]; then
+        sdramcfg="${MACHINE}.cfg,${MACHINE}-override.cfg"
+    else
+        sdramcfg="${MACHINE}.cfg"
+    fi
+    fab="${TEGRA_FAB}"
+    boardsku="${TEGRA_BOARDSKU}"
+    boardrev="${TEGRA_BOARDREV}"
+    for spec__ in ${@' '.join(['"%s"' % entry for entry in d.getVar('TEGRA_BUPGEN_SPECS').split()])}; do
+	eval $spec__
+        cat <<EOF >> $outfile
+MACHINE=${MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" ./${SOC_FAMILY}-flash-helper.sh --bup ./flash.xml.in ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
+EOF
+    done
+    chmod +x $outfile
+}
 
 IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
 do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_populate_sysroot \
@@ -528,28 +568,7 @@ oe_make_bup_payload() {
         ln -sf ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/${SOC_FAMILY}-flash-helper.sh ./
         sed -e 's,^function ,,' ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/l4t_bup_gen.func > ./l4t_bup_gen.func
         ln -sf ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/*.py .
-        rm -f ./doflash.sh
-        cat <<EOF > ./doflash.sh
-export BOARDID=${TEGRA_BOARDID}
-export fuselevel=fuselevel_production
-export localbootfile=${LNXFILE}
-export CHIPREV=${TEGRA_CHIPREV}
-EOF
-        if [ "${SOC_FAMILY}" = "tegra194" ]; then
-            sdramcfg="${MACHINE}.cfg,${MACHINE}-override.cfg"
-        else
-            sdramcfg="${MACHINE}.cfg"
-        fi
-	fab="${TEGRA_FAB}"
-	boardsku="${TEGRA_BOARDSKU}"
-	boardrev="${TEGRA_BOARDREV}"
-	for spec__ in ${@' '.join(['"%s"' % entry for entry in d.getVar('TEGRA_BUPGEN_SPECS').split()])}; do
-	    eval $spec__
-            cat <<EOF >>./doflash.sh
-MACHINE=${MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" ./${SOC_FAMILY}-flash-helper.sh --bup ./flash.xml.in ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
-EOF
-	done
-        chmod +x ./doflash.sh
+	tegraflash_generate_bupgen_script ./doflash.sh
     fi
     tegraflash_custom_sign_bup
     mv ${WORKDIR}/bup-payload/${BUP_PAYLOAD_DIR}/* .
