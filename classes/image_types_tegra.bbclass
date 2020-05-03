@@ -587,6 +587,12 @@ create_bup_payload_image() {
     oe_make_bup_payload ${IMGDEPLOYDIR}/${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.${type}
     install -m 0644 ${WORKDIR}/bup-payload/bl_update_payload ${IMGDEPLOYDIR}/${IMAGE_NAME}.bup-payload
     ln -sf ${IMAGE_NAME}.bup-payload ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.bup-payload
+    for f in ${WORKDIR}/bup-payload/*_only_payload; do
+	[ -e $f ] || continue
+	sfx=$(basename $f _payload)
+	install -m 0644 $f ${IMAGEDEPLOYDIR}/${IMAGE_NAME}.$sfx.bup-payload
+	ln -sf ${IMAGENAME}.$sfx.bup-payload ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.$sfx.bup-payload
+    done
 }
 create_bup_payload_image[vardepsexclude] += "DATETIME"
 
