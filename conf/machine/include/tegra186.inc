@@ -6,6 +6,7 @@ require conf/machine/include/soc-family.inc
 require conf/machine/include/arm/arch-armv8a.inc
 
 KERNEL_IMAGETYPE = "Image"
+KERNEL_ARGS ?= "console=ttyS0,115200 console=tty0 fbcon=map:0 isolcpus=1-2"
 
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'kernel-devicetree kernel-image u-boot'}"
