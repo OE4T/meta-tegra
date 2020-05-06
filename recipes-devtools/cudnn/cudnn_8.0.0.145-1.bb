@@ -20,7 +20,12 @@ def extract_basever(d):
     components = ver.split('.')
     return '%s.%s.%s' % (components[0], components[1], components[2])
 
+def extract_majver(d):
+    ver = d.getVar('PV').split('-')[0]
+    return ver.split('.')[0]
+
 BASEVER = "${@extract_basever(d)}"
+MAJVER = "${@extract_majver(d)}"
 
 S = "${WORKDIR}/cudnn"
 
@@ -35,12 +40,13 @@ do_compile() {
 do_install() {
     install -d ${D}${includedir} ${D}${libdir} ${D}${datadir} ${D}${prefix}/src
     install -m 0644 ${S}/usr/include/aarch64-linux-gnu/*.h ${D}${includedir}
-    ln -s cudnn_v7.h ${D}${includedir}/cudnn.h
-    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libcudnn.so.${BASEVER} ${D}${libdir}/
-    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libcudnn_static_v8.a ${D}${libdir}/
-    ln -s libcudnn.so.${BASEVER} ${D}${libdir}/libcudnn.so.8
-    ln -s libcudnn.so.${BASEVER} ${D}${libdir}/libcudnn.so
-    ln -s libcudnn_static_v7.a ${D}${libdir}/libcudnn_static.a
+    for f in ${S}/usr/lib/aarch64-linux-gnu/*.so.${BASEVER}; do
+	libname=$(basename $f .so.${BASEVER})
+	install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/${libname}.so.${BASEVER} ${D}${libdir}/
+	install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/${libname}_static_v${MAJVER}.a ${D}${libdir}/
+	ln -s ${libname}.so.${BASEVER} ${D}${libdir}/${libname}.so.${MAJVER}
+	ln -s ${libname}.so.${BASEVER} ${D}${libdir}/${libname}.so
+    done
     cp --preserve=mode,timestamps --recursive ${S}/usr/share/* ${D}${datadir}/
     rm -rf ${D}${datadir}/lintian
     cp --preserve=mode,timestamps --recursive ${S}/usr/src/* ${D}${prefix}/src/
