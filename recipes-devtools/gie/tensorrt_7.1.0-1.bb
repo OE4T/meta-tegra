@@ -17,6 +17,7 @@ SRC_SOC_DEBS = "\
     libnvonnxparsers-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvonnxparsers-dev_${PV}+cuda10.2_arm64.deb;name=onnxdev;subdir=tensorrt \
     libnvinfer-plugin7_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer-plugin7_${PV}+cuda10.2_arm64.deb;name=plugin;subdir=tensorrt \
     libnvinfer-plugin-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer-plugin-dev_${PV}+cuda10.2_arm64.deb;name=plugindev;subdir=tensorrt \
+    libnvinfer-bin_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer-bin_${PN}+cuda10.2_arm64.deb;name=bin;subdir=tensorrt \
 "
 
 LIBSHA256SUM = "1017dd614035f3a6e0d0582e994e8e0c7d45e474b1f76920aab739320deff052"
@@ -28,6 +29,7 @@ ONNXSHA256SUM = "a1bb1f4c6d8acf38a153781b18609b603c984e53fdaf55d23c15d0380934197
 ONNXDEVSHA256SUM = "cdd3fc5ac80ebf1a3fb9b33e0d852e28bd316f93bf00151e73393cb2da01a24e"
 PLUGINSHA256SUM = "76a927d0ba90253e7c6013d980248de33d6c5ddfb81190e145bae6cdce43f8c4"
 PLUGINDEVSHA256SUM = "3860dc02e0177ba029608d040bd97e67e2f1e282a60064361632dec8286d7e58"
+BINSHA256SUM = "6cc7e52b327d80c5e6438a69f81a9d53ac290b6224df855a6ce74abff4e6c80e"
 
 LIBSHA256SUM_tegra194 = "4de8ac65bd22a431d1419884ab85b6f80d283a56c9771f71775126bb97375fcb"
 DEVSHA256SUM_tegra194 = "64fcd6113b5ab1b828ace5dd69d0a7c5ccde3cbc8a01fe2d0973a67a79c97596"
@@ -38,6 +40,7 @@ ONNXSHA256SUM_tegra194 = "bfefcd92b774ccf2f90dfb69ba29df69abbc595850b559dd8c6299
 ONNXDEVSHA256SUM_tegra194 = "6498b8f6881e4e98ba0d2e843a10d522b570da0c0b724ed1540f329239753480"
 PLUGINSHA256SUM_tegra194 = "3dfc5ce48d9d5bde3719e22951bd0b1e7eee63fcb6ad06154baf29667f11f536"
 PLUGINDEVSHA256SUM_tegra194 = "f33f4120644abeaf2ab5cb942e97dc9b9373bace1ea34c28a2d2cb7b1b681f79"
+BINSHA256SUM_tegra194 = "f532c4b23dbca1478f6c23561913fb3f57c07564f58493dd8ad38eb34836ffd9"
 
 SRC_URI[lib.sha256sum] = "${LIBSHA256SUM}"
 SRC_URI[dev.sha256sum] = "${DEVSHA256SUM}"
@@ -48,6 +51,7 @@ SRC_URI[onnx.sha256sum] = "${ONNXSHA256SUM}"
 SRC_URI[onnxdev.sha256sum] = "${ONNXDEVSHA256SUM}"
 SRC_URI[plugin.sha256sum] = "${PLUGINSHA256SUM}"
 SRC_URI[plugindev.sha256sum] = "${PLUGINDEVSHA256SUM}"
+SRC_URI[bin.sha256sum] = "${BINSHA256SUM}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
@@ -73,10 +77,11 @@ do_install() {
     install -d ${D}${prefix}/src
     cp --preserve=mode,timestamps --recursive ${S}/usr/src/tensorrt ${D}${prefix}/src/
 }
-PACKAGES =+ "${PN}-samples"
+PACKAGES += "${PN}-samples"
+FILES_${PN} += "${prefix}/src/tensorrt/bin"
 FILES_${PN}-samples = "${prefix}/src"
 
-RDEPENDS_${PN} += "libstdc++ cudnn libcublas cuda-cudart cuda-nvtx tegra-libraries libglvnd"
+RDEPENDS_${PN} += "libstdc++ cudnn libcublas cuda-cudart cuda-nvrtc cuda-nvtx tegra-libraries libglvnd"
 RDEPENDS_${PN}-samples += "tegra-libraries bash python3 libglvnd cudnn cuda-cudart libcublas"
 RPROVIDES_${PN}-samples = "${PN}-examples"
 
