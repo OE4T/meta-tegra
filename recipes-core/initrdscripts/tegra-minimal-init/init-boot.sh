@@ -7,6 +7,7 @@ mount -t sysfs sysfs /sys
 rootdev=""
 opt="rw"
 wait=""
+fstype="auto"
 
 [ ! -f /etc/platform-preboot ] || . /etc/platform-preboot
 
@@ -16,6 +17,7 @@ if [ -z "$rootdev" ]; then
 	    root=*) rootdev="${bootarg##root=}" ;;
 	    ro) opt="ro" ;;
 	    rootwait) wait="yes" ;;
+        rootfstype=*) fstype="${bootarg##rootfstype=}" ;;
 	esac
     done
 fi
@@ -30,7 +32,7 @@ if [ -n "$wait" -a ! -b "${rootdev}" ]; then
     done
 fi
 echo "Mounting ${rootdev}..."
-mount -t ext4 -o "$opt" "${rootdev}" /mnt || exec sh
+mount -t "${fstype}" -o "${opt}" "${rootdev}" /mnt || exec sh
 echo "Switching to rootfs on ${rootdev}..."
 mount --move /sys  /mnt/sys
 mount --move /proc /mnt/proc
