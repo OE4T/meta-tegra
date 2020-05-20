@@ -4,33 +4,33 @@ DESCRIPTION = "Linux kernel from sources provided by Nvidia for Tegra processors
 LICENSE = "GPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 
-inherit kernel
+inherit l4t_bsp
+require recipes-kernel/linux/linux-yocto.inc
 
-PV .= "+git${SRCPV}"
+LINUX_VERSION ?= "4.9.140"
+PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
-EXTRA_OEMAKE += 'LIBGCC=""'
 
-L4T_VERSION = "l4t-r32.3.1"
+LINUX_VERSION_EXTENSION ?= "-l4t-r${L4T_VERSION}"
 SCMVERSION ??= "y"
-export LOCALVERSION = ""
 
-SRCBRANCH = "patches-${L4T_VERSION}"
+SRCBRANCH = "patches${LINUX_VERSION_EXTENSION}"
 SRCREV = "47e7e1cb0b492487faa6258a4f3efe91676568b7"
-KERNEL_REPO = "github.com/madisongh/linux-tegra-4.9"
-SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
+KBRANCH = "${SRCBRANCH}"
+SRC_REPO = "github.com/madisongh/linux-tegra-4.9"
+KERNEL_REPO = "${SRC_REPO}"
+SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
 	   file://defconfig \
+	   ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
 "
-S = "${WORKDIR}/git"
 
-do_configure_prepend() {
-    localversion="-${L4T_VERSION}"
-    if [ "${SCMVERSION}" = "y" ]; then
-	head=`git --git-dir=${S}/.git rev-parse --verify --short HEAD 2> /dev/null`
-        [ -z "$head" ] || localversion="${localversion}+g${head}"
+set_scmversion() {
+    if [ "${SCMVERSION}" = "y" -a -d "${S}/.git" ]; then
+        head=$(git --git-dir=${S}/.git rev-parse --verify --short HEAD 2>/dev/null || true)
+        [ -z "$head" ] || echo "+g$head" > ${S}/.scmversion
     fi
-    sed -e"s,^CONFIG_LOCALVERSION=.*$,CONFIG_LOCALVERSION=\"${localversion}\"," \
-	< ${WORKDIR}/defconfig > ${B}/.config
 }
+do_kernel_checkout[postfuncs] += "set_scmversion"
 
 bootimg_from_bundled_initramfs() {
     if [ ! -z "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" = "1" ]; then
