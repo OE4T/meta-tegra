@@ -23,6 +23,7 @@ TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEG
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 LNXFILE ?= "boot.img"
 LNXSIZE ?= "83886080"
+RECROOTFSSIZE ?= "314572800"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
@@ -154,6 +155,7 @@ tegraflash_create_flash_config_tegra210() {
         -e"s,EFISIZE,67108864," -e"/EFIFILE/d" \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"s,PPTSIZE,16896," \
+	-e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
         -e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
@@ -189,6 +191,7 @@ tegraflash_create_flash_config_tegra186() {
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,PPTSIZE,2097152," \
+	-e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
         -e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
@@ -221,6 +224,7 @@ tegraflash_create_flash_config_tegra194() {
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+	-e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
         -e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
