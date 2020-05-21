@@ -27,7 +27,7 @@ do_install_append_tegra194() {
     install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda-galen.conf ${D}${datadir}/alsa/cards/
     install -m 0644 ${B}/usr/share/alsa/cards/jetson-xaviernx.conf ${D}${datadir}/alsa/cards/
 }
-do_install_append_jetson-xavier-nx-devkit-emmc() {
+do_install_append_xavier-nx() {
     if [ "${TEGRA_AUDIO_DEVICE}" = "tegrahdat194ref" ]; then
         sed -i -e's!,8!,7!g' ${D}${sysconfdir}/asound.conf
     fi
