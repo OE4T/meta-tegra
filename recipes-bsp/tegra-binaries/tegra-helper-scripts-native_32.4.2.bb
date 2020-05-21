@@ -23,4 +23,6 @@ do_install() {
     install -m 0755 ${S}/tegra210-flash-helper.sh ${D}${bindir}/tegra210-flash/
     install -m 0755 ${S}/nvflashxmlparse.py ${D}${bindir}/tegra210-flash/nvflashxmlparse
     install -m 0755 ${S}/make-sdcard.sh ${D}${bindir}/tegra210-flash/make-sdcard
+    install -m 0755 ${S}/nvflashxmlparse.py ${D}${bindir}/tegra186-flash/nvflashxmlparse
+    install -m 0755 ${S}/make-sdcard.sh ${D}${bindir}/tegra186-flash/make-sdcard
 }
