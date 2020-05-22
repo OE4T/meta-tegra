@@ -42,6 +42,16 @@ BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
 FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
 FLASHTOOLS_DIR_tegra194 = "tegra186-flash"
 
+TEGRAFLASH_PACKAGE_FORMAT ??= "tar"
+TEGRAFLASH_PACKAGE_FORMATS = "tar zip"
+
+python() {
+    pt = d.getVar('TEGRAFLASH_PACKAGE_FORMAT')
+    valid_types = d.getVar('TEGRAFLASH_PACKAGE_FORMATS').split()
+    if pt not in valid_types:
+        bb.fatal("TEGRAFLASH_PACKAGE_FORMAT %s not recognized, supported types are: %s" % (pt, ', '.join(valid_types)))
+}
+
 # Override this function if you need to add
 # customization after the default files are
 # copied/symlinked into the working directory
@@ -105,6 +115,18 @@ tegraflash_custom_sign_bup() {
 # but before the zip package is created.
 tegraflash_custom_post() {
     :
+}
+
+tegraflash_finalize_pkg() {
+    if [ "${TEGRAFLASH_PACKAGE_FORMAT}" = "zip" ]; then
+        rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip
+        zip -r ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip .
+        ln -sf ${IMAGE_NAME}.tegraflash.zip ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.tegraflash.zip
+    else
+        rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.tar.gz
+        ${IMAGE_CMD_TAR} --sparse --numeric-owner --transform="s,^\./,," -cf- . | gzip -f -9 -n -c --rsyncable > ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.tar.gz
+        ln -sf ${IMAGE_NAME}.tegraflash.tar.gz ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.tegraflash.tar.gz
+    fi
 }
 
 tegraflash_create_flash_config() {
@@ -276,9 +298,9 @@ create_tegraflash_pkg_tegra210() {
     mkdir -p "${WORKDIR}/tegraflash"
     oldwd=`pwd`
     cd "${WORKDIR}/tegraflash"
-    ln -sf "${STAGING_DATADIR}/tegraflash/bsp_version" .
-    ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
-    ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
+    cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
+    cp "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
+    cp "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     for f in ${KERNEL_DEVICETREE}; do
 	dtbf=`basename $f`
@@ -289,13 +311,13 @@ create_tegraflash_pkg_tegra210() {
             fdtput -d ./$dtbf /chosen bootargs
 	fi
     done
-    ln -sf "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
-    ln -sf "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${BOOTFILES}; do
-        ln -s "${STAGING_DATADIR}/tegraflash/$f" .
+        cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
-        ln -s "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
+        cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         boardcfg=board_config_${MACHINE}.xml
     else
         boardcfg=
@@ -306,7 +328,7 @@ create_tegraflash_pkg_tegra210() {
         tegraflash_generate_bupgen_script
     fi
     tegraflash_custom_pre
-    ln -s "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
 
     rm -f doflash.sh
@@ -319,15 +341,13 @@ END
         rm -f dosdcard.sh
         cat > dosdcard.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra210-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} ./tegra210-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} "$boardcfg" ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x dosdcard.sh
     fi
     tegraflash_custom_post
     tegraflash_custom_sign_pkg
-    rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip
-    zip -r ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip .
-    ln -sf ${IMAGE_NAME}.tegraflash.zip ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.tegraflash.zip
+    tegraflash_finalize_pkg
     cd $oldwd
 }
 
@@ -338,25 +358,25 @@ create_tegraflash_pkg_tegra186() {
     mkdir -p "${WORKDIR}/tegraflash"
     oldwd=`pwd`
     cd "${WORKDIR}/tegraflash"
-    ln -sf "${STAGING_DATADIR}/tegraflash/bsp_version" .
-    ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
-    ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
+    cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
+    cp "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
+    cp "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
     cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     if [ -n "${KERNEL_ARGS}" ]; then
         fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
     elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
         fdtput -d ./${DTBFILE} /chosen bootargs
     fi
-    ln -sf "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
-    ln -sf "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${BOOTFILES}; do
-        ln -s "${STAGING_DATADIR}/tegraflash/$f" .
+        cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     rm -f ./slot_metadata.bin
     cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
     rm -rf ./rollback
     mkdir ./rollback
-    ln -snf ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
+    cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     . ./flashvars
     for var in $FLASHVARS; do
@@ -370,7 +390,7 @@ create_tegraflash_pkg_tegra186() {
             if [ ! -e $fname ]; then
                bbfatal "$var file(s) not found"
             fi
-            ln -sf $fname ./
+            cp $fname ./
         done
     done
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
@@ -400,9 +420,7 @@ END
     fi
     tegraflash_custom_post
     tegraflash_custom_sign_pkg
-    rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip
-    zip -r ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip .
-    ln -sf ${IMAGE_NAME}.tegraflash.zip ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.tegraflash.zip
+    tegraflash_finalize_pkg
     cd $oldwd
 }
 
@@ -413,33 +431,33 @@ create_tegraflash_pkg_tegra194() {
     mkdir -p "${WORKDIR}/tegraflash"
     oldwd=`pwd`
     cd "${WORKDIR}/tegraflash"
-    ln -sf "${STAGING_DATADIR}/tegraflash/bsp_version" .
-    ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
-    ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
-    ln -s "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
+    cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
+    cp "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
+    cp "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
+    cp "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
     if [ -n "${KERNEL_ARGS}" ]; then
         cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
         bootargs="`fdtget ./${DTBFILE} /chosen bootargs 2>/dev/null`"
         fdtput -t s ./${DTBFILE} /chosen bootargs "$bootargs ${KERNEL_ARGS}"
     else
-        ln -s "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+        cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     fi
-    ln -sf "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
-    ln -sf "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${BOOTFILES}; do
-        ln -s "${STAGING_DATADIR}/tegraflash/$f" .
+        cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     rm -f ./slot_metadata.bin
     cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
     rm -rf ./rollback
     mkdir ./rollback
-    ln -snf ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
+    cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
-        ln -s $f .
+        cp $f .
     done
     for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
-        ln -s $f .
+        cp $f .
     done
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
@@ -447,7 +465,7 @@ create_tegraflash_pkg_tegra194() {
         tegraflash_generate_bupgen_script
     fi
     tegraflash_custom_pre
-    ln -s "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
     rm -f doflash.sh
     cat > doflash.sh <<END
@@ -459,15 +477,13 @@ END
         rm -f dosdcard.sh
         cat > dosdcard.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra194-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra194-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x dosdcard.sh
     fi
     tegraflash_custom_post
     tegraflash_custom_sign_pkg
-    rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip
-    zip -r ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip .
-    ln -sf ${IMAGE_NAME}.tegraflash.zip ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.tegraflash.zip
+    tegraflash_finalize_pkg
     cd $oldwd
 }
 create_tegraflash_pkg[vardepsexclude] += "DATETIME"
@@ -502,7 +518,8 @@ EOF
 }
 
 IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
-do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_populate_sysroot \
+TEGRAFLASH_PKG_DEPENDS = "${@'zip-native:do_populate_sysroot' if d.getVar('TEGRAFLASH_PACKAGE_FORMAT') == 'zip' else '${CONVERSION_DEPENDS_gz}:do_populate_sysroot'}"
+do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populate_sysroot \
                                  ${SOC_FAMILY}-flashtools-native:do_populate_sysroot gptfdisk-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
                                  tegra-redundant-boot-base:do_populate_sysroot virtual/kernel:do_deploy \
@@ -524,12 +541,12 @@ oe_make_bup_payload() {
     fi
     # BUP generator really wants to use 'boot.img' for the LNX
     # partition contents
-    ln -sf $1 ./boot.img
+    cp $1 ./boot.img
     tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img
-    ln -sf "${STAGING_DATADIR}/tegraflash/bsp_version" .
-    ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
+    cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
+    cp "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
-        ln -s "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
+        cp "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
     fi
     for dtb in ${KERNEL_DEVICETREE}; do
 	dtbf=`basename $dtb`
@@ -541,10 +558,10 @@ oe_make_bup_payload() {
             fdtput -d ./$dtbf /chosen bootargs
         fi
     done
-    ln -s "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./$cbootfilename
-    ln -s "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./$tosimgfilename
+    cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./$cbootfilename
+    cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./$tosimgfilename
     for f in ${BOOTFILES}; do
-        ln -s "${STAGING_DATADIR}/tegraflash/$f" .
+        cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     . ./flashvars
@@ -560,19 +577,19 @@ oe_make_bup_payload() {
                 if [ ! -e $fname ]; then
                     bbfatal "$var file(s) not found"
                 fi
-                ln -sf $fname ./
+                cp $fname ./
 	    done
 	done
     elif [ "${SOC_FAMILY}" = "tegra194" ]; then
         for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
-            ln -sf $f .
+            cp $f .
 	done
 	for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
-            ln -sf $f .
+            cp $f .
 	done
     fi
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
-        ln -s "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
+        cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         boardcfg=board_config_${MACHINE}.xml
     else
         boardcfg=
@@ -582,13 +599,13 @@ oe_make_bup_payload() {
         rm -f ./slot_metadata.bin
 	cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
 	mkdir ./rollback
-	ln -snf ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
+	cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
     fi
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
-	[ "${SOC_FAMILY}" = "tegra210" ] || ln -sf ${STAGING_BINDIR_NATIVE}/tegra186-flash/rollback_parser.py ./rollback/
-        ln -sf ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/${SOC_FAMILY}-flash-helper.sh ./
+	[ "${SOC_FAMILY}" = "tegra210" ] || cp ${STAGING_BINDIR_NATIVE}/tegra186-flash/rollback_parser.py ./rollback/
+        cp ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/${SOC_FAMILY}-flash-helper.sh ./
         sed -e 's,^function ,,' ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/l4t_bup_gen.func > ./l4t_bup_gen.func
-        ln -sf ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/*.py .
+        cp ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/*.py .
 	tegraflash_generate_bupgen_script ./doflash.sh
     fi
     tegraflash_custom_sign_bup
