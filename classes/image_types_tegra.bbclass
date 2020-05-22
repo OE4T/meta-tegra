@@ -42,7 +42,7 @@ BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
 FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
 FLASHTOOLS_DIR_tegra194 = "tegra186-flash"
 
-TEGRAFLASH_PACKAGE_FORMAT ??= "zip"
+TEGRAFLASH_PACKAGE_FORMAT ??= "tar"
 TEGRAFLASH_PACKAGE_FORMATS = "tar zip"
 
 python() {
@@ -477,7 +477,7 @@ create_tegraflash_pkg_tegra194() {
         cp ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ./odmfuse_pkc.xml
     fi
     tegraflash_custom_pre
-    ln -s "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
     rm -f doflash.sh
     cat > doflash.sh <<END
@@ -496,7 +496,7 @@ END
         rm -f dosdcard.sh
         cat > dosdcard.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra194-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra194-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x dosdcard.sh
     fi
