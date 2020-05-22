@@ -12,7 +12,8 @@ Boards supported:
 * Jetson Nano eMMC module with rev B01 carrier board
 
 Experimental support:
-* Jetson Xavier NX eMMC module in Nano carrier board
+* Jetson Xavier NX Development Kit
+* Jetson Xavier NX eMMC module in dev kit or Nano carrier board
 
 Also supported thanks to community support:
 * Jetson-TX2i module
