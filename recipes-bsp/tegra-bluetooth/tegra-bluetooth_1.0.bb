@@ -11,6 +11,8 @@ SRC_URI = "\
 
 COMPATIBLE_MACHINE = "tegra"
 
+TEGRA_BT_SUPPORT_PACKAGE ??= "tegra-brcm-patchram"
+
 S = "${WORKDIR}"
 
 inherit systemd
@@ -29,6 +31,6 @@ do_install() {
 ALLOW_EMPTY_${PN} = "1"
 SYSTEMD_SERVICE_${PN} = "${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', 'tegra-bluetooth.service', '', d)}"
 FILES_${PN} += "${nonarch_base_libdir}/udev/rules.d"
-RDEPENDS_${PN} = "${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', 'tegra-brcm-patchram', '', d)}"
+RDEPENDS_${PN} = "${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', '${TEGRA_BT_SUPPORT_PACKAGE}', '', d)}"
 RRECOMMENDS_${PN} = "kernel-module-bluedroid-pm"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
