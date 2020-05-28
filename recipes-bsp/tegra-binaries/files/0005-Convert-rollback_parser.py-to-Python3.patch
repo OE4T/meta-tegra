@@ -1,0 +1,60 @@
+From eeb744f1dd5c2f7f3f3352b864d9d85528502199 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 25 Apr 2020 05:15:47 -0700
+Subject: [PATCH] Convert rollback_parser.py to Python3
+
+---
+ bootloader/rollback/rollback_parser.py | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/bootloader/rollback/rollback_parser.py b/bootloader/rollback/rollback_parser.py
+index 9794660..78ea465 100755
+--- a/bootloader/rollback/rollback_parser.py
++++ b/bootloader/rollback/rollback_parser.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/env python3
+ #
+ # Copyright (c) 2017, NVIDIA CORPORATION.  All rights reserved.
+ #
+@@ -13,7 +13,7 @@ import sys
+ import os
+ import string
+ import struct
+-import ConfigParser
++import configparser
+ import argparse
+ 
+ params = {}
+@@ -31,7 +31,7 @@ def parse_args():
+     params = parser.parse_args()
+ 
+ def main():
+-    rollback = ConfigParser.ConfigParser()
++    rollback = configparser.ConfigParser()
+     rollback.read(params.config)
+ 
+     rlbk_list = ['mb1_ratchet_level', 'mts_ratchet_level', 'rollback_fuse_level']
+@@ -39,19 +39,19 @@ def main():
+                     'rollback_fuse_level': '=B'}
+ 
+     blob = open(params.output, "wb")
+-    print 'rollback info is parsed and saved in', params.output
++    print('rollback info is parsed and saved in', params.output)
+ 
+     for e in rlbk_list:
+         try:
+             level = rollback.getint(params.target, e)
+         except:
+-            print 'WARNING: failed to find rollback config for \"', params.target, '\"'
++            print('WARNING: failed to find rollback config for \"', params.target, '\"')
+             break
+         bin_value = struct.pack(packing_list[e], level)
+         blob.write(bin_value)
+ 
+     # pad zeros
+-    print 'pad ZEROs to the end of', params.output
++    print('pad ZEROs to the end of', params.output)
+     pad_value = struct.pack("=B", 0)
+     for i in range(blob.tell(), ROLLBACK_BIN_SIZE):
+         blob.write(pad_value)
