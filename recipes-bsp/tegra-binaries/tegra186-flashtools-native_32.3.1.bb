@@ -14,6 +14,7 @@ SRC_URI += "\
            file://0002-Update-l4t_bup_gen.func-to-handle-signed-encrypted-b.patch \
            file://0003-Convert-BUP_generator.py-to-Python3.patch \
            file://0004-Convert-gen_tos_part_img.py-to-Python3.patch \
+           file://0005-Convert-rollback_parser.py-to-Python3.patch \
            file://0009-Update-tegraflash_internal.py-for-Python-3.9.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
