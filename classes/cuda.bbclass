@@ -24,6 +24,10 @@ CUDA_EXTRA_OECMAKE = '\
 '
 EXTRA_OECMAKE_append_cuda = " ${CUDA_EXTRA_OECMAKE}"
 
+export CUDA_TOOLKIT_ROOT = "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}"
+export CUDA_NVCC_EXECUTABLE = "${CUDA_TOOLKIT_ROOT}/bin/nvcc"
+export CUDA_PATH = "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}"
+
 CUDA_NATIVEDEPS = "cuda-compiler-native cuda-cudart-native"
 CUDA_NATIVEDEPS_class-native = ""
 CUDA_DEPENDS = "cuda-toolkit ${CUDA_NATIVEDEPS}"
