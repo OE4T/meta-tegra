@@ -48,3 +48,5 @@ RCONFLICTS_${PN} = "libegl libgl ligbles1 libgles2"
 RCONFLICTS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
 RREPLACES_${PN} = "libegl libgl libgles1 ligbles2"
 RREPLACESS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
+
+RRECOMMENDS_${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'egl-wayland', '', d)}"
