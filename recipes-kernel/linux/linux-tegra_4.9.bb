@@ -20,9 +20,11 @@ KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/madisongh/linux-tegra-4.9"
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
-	   file://defconfig \
 	   ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
 "
+
+KBUILD_DEFCONFIG = "tegra_defconfig"
+KCONFIG_MODE = "--alldefconfig"
 
 set_scmversion() {
     if [ "${SCMVERSION}" = "y" -a -d "${S}/.git" ]; then
