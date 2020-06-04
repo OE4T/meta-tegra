@@ -1,0 +1,26 @@
+From 601292e9c37be53e2bf40df88562ca220fb5fb8c Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 4 Jun 2020 08:03:35 -0700
+Subject: [PATCH] Fix location of libcublas in CUDA 10.1 and later
+
+---
+ Modules/FindCUDA.cmake | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/Modules/FindCUDA.cmake b/Modules/FindCUDA.cmake
+index 50cfbeb..e0fdb72 100644
+--- a/Modules/FindCUDA.cmake
++++ b/Modules/FindCUDA.cmake
+@@ -958,7 +958,11 @@ if(CUDA_VERSION VERSION_LESS "3.1")
+   find_cuda_helper_libs(cublasemu)
+ endif()
+ find_cuda_helper_libs(cufft)
+-find_cuda_helper_libs(cublas)
++if(CUDA_VERSION VERSION_LESS "10.1")
++  find_cuda_helper_libs(cublas)
++else()
++  find_library(CUDA_cublas_LIBRARY NAMES cublas DOC "\"cublas\" library")
++endif()
+ if(NOT CUDA_VERSION VERSION_LESS "3.2")
+   # cusparse showed up in version 3.2
+   find_cuda_helper_libs(cusparse)
