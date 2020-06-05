@@ -7,6 +7,7 @@ here=$(readlink -f $(dirname "$0"))
 declare -a PARTS
 FINALPART=
 DEVNAME=
+PARTSEP=
 OUTSYSBLK=
 HAVEBMAPTOOL=
 
@@ -136,7 +137,7 @@ write_partitions_to_device() {
 	    echo "ERR: cannot find file $partfile for partition $partnumber" >&2
 	    return 1
 	fi
-	dest="/dev/$DEVNAME$partnumber"
+	dest="/dev/$DEVNAME$PARTSEP$partnumber"
 	if [ ! -b "$dest" ]; then
 	    echo "ERR: cannot locate block device $dest" >&2
 	    return 1
@@ -154,7 +155,7 @@ write_partitions_to_device() {
 	    echo "ERR: cannot find file $partfile for partition $partnumber" >&2
 	    return 1
 	fi
-	dest="/dev/$DEVNAME$partnumber"
+	dest="/dev/$DEVNAME$PARTSEP$partnumber"
 	if [ ! -b "$dest" ]; then
 	    echo "ERR: cannot locate block device $dest" >&2
 	    return 1
@@ -290,6 +291,8 @@ if [ -b "$output" ]; then
 	echo "ERR: $output does not appear to be an appropriate device" >&2
 	exit 1
     fi
+    enddigits=$(echo "$DEVNAME" | sed -r -e's,[a-z]+([0-9]*),\1,')
+    [ -z "$enddigits" ] || PARTSEP="p"
     OUTSYSBLK="/sys/block/$DEVNAME"
     outsize=$(cat "$OUTSYSBLK/size")
     [ -n "$preconfirmed" ] || confirm "$output"
