@@ -14,8 +14,8 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_fi
 LINUX_VERSION_EXTENSION ?= "-l4t-r${L4T_VERSION}"
 SCMVERSION ??= "y"
 
-SRCBRANCH = "patches-l4t-r${L4T_VERSION}"
-SRCREV = "a26c322c04284824ebba4e21b371243eabe767a7"
+SRCBRANCH = "patches${LINUX_VERSION_EXTENSION}"
+SRCREV = "ae1d5fb896b6fdffc061cf000130b5ff39d7f9f4"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/madisongh/linux-tegra-4.9"
 KERNEL_REPO = "${SRC_REPO}"
