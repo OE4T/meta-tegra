@@ -56,3 +56,5 @@ do_install() {
     install -m 0755 ${S}/bootloader/chkbdinfo ${D}${BINDIR}
     install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}
 }
+
+INHIBIT_SYSROOT_STRIP = "1"
