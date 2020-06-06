@@ -38,10 +38,12 @@ do_compile() {
 do_install() {
     install -d ${D}${includedir} ${D}${libdir} ${D}${datadir} ${D}${prefix}/src
     install -m 0644 ${S}/usr/include/aarch64-linux-gnu/*.h ${D}${includedir}
+    ln -s cudnn_v7.h ${D}${includedir}/cudnn.h
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libcudnn.so.${BASEVER} ${D}${libdir}/
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libcudnn_static_v7.a ${D}${libdir}/
     ln -s libcudnn.so.${BASEVER} ${D}${libdir}/libcudnn.so.7
     ln -s libcudnn.so.${BASEVER} ${D}${libdir}/libcudnn.so
+    ln -s libcudnn_static_v7.a ${D}${libdir}/libcudnn_static.a
     cp --preserve=mode,timestamps --recursive ${S}/usr/share/* ${D}${datadir}/
     rm -rf ${D}${datadir}/lintian
     cp --preserve=mode,timestamps --recursive ${S}/usr/src/* ${D}${prefix}/src/
