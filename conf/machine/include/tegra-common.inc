@@ -39,9 +39,5 @@ PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg"
 XSERVER = "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-module-libwfb"
 
 CUDA_VERSION ?= "10.2"
-PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
-PREFERRED_VERSION_cuda-shared-binaries-native = "${CUDA_VERSION}%"
-PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
-PREFERRED_VERSION_cuda-toolkit-native = "${CUDA_VERSION}%"
 # Tegra specific version of libnvidia-container
 PREFERRED_VERSION_libnvidia-container-tools = "0.9.0"
