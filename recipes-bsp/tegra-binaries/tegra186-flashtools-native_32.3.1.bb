@@ -63,3 +63,5 @@ do_install() {
 
     install -m 0755 ${S}/nv_tegra/tos-scripts/gen_tos_part_img.py ${D}${BINDIR}
 }
+
+INHIBIT_SYSROOT_STRIP = "1"
