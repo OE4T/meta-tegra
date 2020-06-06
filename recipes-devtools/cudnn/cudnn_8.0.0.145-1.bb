@@ -40,12 +40,17 @@ do_compile() {
 do_install() {
     install -d ${D}${includedir} ${D}${libdir} ${D}${datadir} ${D}${prefix}/src
     install -m 0644 ${S}/usr/include/aarch64-linux-gnu/*.h ${D}${includedir}
+    for f in ${D}${includedir}/*_v${MAJVER}.h; do
+	incname=$(basename $f)
+	ln -s ${incname} ${D}${includedir}/$(basename ${incname} _v${MAJVER}.h).h
+    done
     for f in ${S}/usr/lib/aarch64-linux-gnu/*.so.${BASEVER}; do
 	libname=$(basename $f .so.${BASEVER})
 	install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/${libname}.so.${BASEVER} ${D}${libdir}/
 	install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/${libname}_static_v${MAJVER}.a ${D}${libdir}/
 	ln -s ${libname}.so.${BASEVER} ${D}${libdir}/${libname}.so.${MAJVER}
 	ln -s ${libname}.so.${BASEVER} ${D}${libdir}/${libname}.so
+	ln -s ${libname}_static_v${MAJVER}.a ${D}${libdir}/${libname}_static.a
     done
     cp --preserve=mode,timestamps --recursive ${S}/usr/share/* ${D}${datadir}/
     rm -rf ${D}${datadir}/lintian
