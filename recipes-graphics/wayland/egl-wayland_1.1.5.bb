@@ -5,11 +5,10 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=cfa5a0f49cb081823fc5d965566e8298"
 DEPENDS = "eglexternalplatform virtual/egl wayland wayland-protocols wayland-native"
 
 SRC_URI = "git://github.com/NVIDIA/egl-wayland"
-# tag 1.1.3
-SRCREV = "d70ead930d458b4e0bcec4ef493f7d54e9fd5435"
+# tag 1.1.5
+SRCREV = "f08e1a570eee30cbaed4c49e761830667f5ba29e"
 SRC_URI += " \
-    file://0001-Zero-the-wl_eglstream_display-struct-in-wl_eglstream.patch \
-    file://0002-Fix-wayland-eglstream-protocols-pc-file.patch \
+    file://0001-Fix-wayland-eglstream-protocols-pc-file.patch \
     file://nvidia_wayland.json \
 "
 
