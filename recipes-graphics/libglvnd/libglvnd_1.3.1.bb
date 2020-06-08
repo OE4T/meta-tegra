@@ -1,19 +1,14 @@
 DESCRIPTION = "libglvnd is a vendor-neutral dispatch layer for arbitrating OpenGL API calls between multiple vendors."
-HOMEPAGE = "https://github.com/NVIDIA/libglvnd"
+HOMEPAGE = "https://gitlab.freedesktop.org/glvnd/libglvnd"
 LICENSE = "MIT & BSD & GPL-3.0-with-autoconf-exception"
-LIC_FILES_CHKSUM = "file://README.md;beginline=310;md5=f98ec0fbe6c0d2fbbd0298b5d9e664d3"
+LIC_FILES_CHKSUM = "file://README.md;beginline=323;md5=f98ec0fbe6c0d2fbbd0298b5d9e664d3"
 
-SRC_URI = "https://github.com/NVIDIA/${BPN}/releases/download/v${PV}/${BP}.tar.gz \
-    file://0001-include-install-GL-headers-when-GL-is-enabled.patch \
-    file://0002-Add-a-configure-option-to-disable-glesv1-or-glesv2.patch \
-    file://0003-egl-Sync-with-Khronos.patch \
-    file://0004-Update-GL-gl.h-to-match-Mesa.patch \
-    file://0005-Add-EGL-and-GLES2-extensions-for-Tegra.patch \
-    file://0006-Make-Wayland-support-configurable.patch \
-    file://0007-Define-EGL_NO_X11-if-X11-support-is-disabled.patch \
+SRC_REPO = "gitlab.freedesktop.org/glvnd/libglvnd.git;protocol=https"
+SRC_URI = "git://${SRC_REPO} \
+    file://0001-Add-EGL-and-GLES2-extensions-for-Tegra.patch \
+    file://0002-Make-Wayland-support-configurable.patch \
     "
-SRC_URI[md5sum] = "59068b27ff62bf2ad31a028673ab58da"
-SRC_URI[sha256sum] = "2dacbcfa47b7ffb722cbddc0a4f1bc3ecd71d2d7bb461bceb8e396dc6b81dc6d"
+SRCREV = "1c32de07074fee8edcb274899948b6551081ed54"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
@@ -22,7 +17,9 @@ PROVIDES += "virtual/egl virtual/libgl virtual/libgles1 virtual/libgles2"
 
 DEPENDS = "l4t-nvidia-glheaders"
 
-inherit autotools pkgconfig features_check
+inherit autotools pkgconfig features_check python3native
+
+S = "${WORKDIR}/git"
 
 PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
 
