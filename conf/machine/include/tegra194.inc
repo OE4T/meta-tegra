@@ -14,7 +14,6 @@ MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu"
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 INITRAMFS_IMAGE_BUNDLE ?= "1"
-IMAGE_CLASSES_append = " image_types_cboot"
 IMAGE_UBOOT ?= ""
 
 TEGRA_AUDIO_DEVICE ?= "tegrahdat194ref"
