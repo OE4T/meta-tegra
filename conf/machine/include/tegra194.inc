@@ -13,7 +13,6 @@ MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvs
 MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu"
 
 INITRD_IMAGE ?=	"tegra-minimal-initramfs"
-IMAGE_CLASSES_append = " image_types_cboot"
 INITRD_FSTYPES ?= "cpio.gz.cboot cpio.gz.cboot.bup-payload"
 IMAGE_UBOOT ?= ""
 
