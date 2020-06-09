@@ -31,6 +31,8 @@ PREFERRED_PROVIDER_v4l-utils = "${@'v4l-utils' if 'openembedded-layer' in d.getV
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
 TEGRA_BLBLOCKSIZE ?= "${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}"
 EXTRA_IMAGECMD_ext4 ?= "-i 4096 -b 4096"
+IMAGE_CLASSES += "image_types_tegra"
+IMAGE_FSTYPES ?= "tegraflash"
 
 MACHINE_HWCODECS = "gstreamer1.0-omx-tegra gstreamer1.0-plugins-nvvideo4linux2"
 LICENSE_FLAGS_WHITELIST_append = " commercial_gstreamer1.0-omx-tegra"
