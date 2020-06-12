@@ -14,7 +14,7 @@ require conf/machine/include/tegra194.inc
 KERNEL_DEVICETREE ?= "_ddot_/_ddot_/_ddot_/_ddot_/nvidia/platform/t19x/jakku/kernel-dts/tegra194-p3668-all-p3509-0000.dtb"
 KERNEL_ARGS ?= "console=ttyTCU0,115200 console=tty0 fbcon=map:0"
 
-MACHINE_FEATURES += "ext2 ext3 vfat wifi bluetooth"
+MACHINE_FEATURES += "wifi bluetooth"
 MACHINE_EXTRA_RRECOMMENDS += "kernel-module-rtk-btusb kernel-module-rtl8822ce tegra-firmware-rtl8822"
 TEGRA_BT_SUPPORT_PACKAGE = ""
 
