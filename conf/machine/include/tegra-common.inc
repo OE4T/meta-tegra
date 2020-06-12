@@ -35,7 +35,7 @@ IMAGE_CLASSES += "image_types_tegra"
 IMAGE_FSTYPES ?= "tegraflash"
 
 TEGRA_ESSENTIAL_EXTRA_RDEPENDS ??= ""
-MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
+MACHINE_FEATURES = "alsa usbhost pci rtc cuda ext2"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${TEGRA_ESSENTIAL_EXTRA_RDEPENDS}"
 MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev"
 MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu kernel-module-tegra-udrm"
