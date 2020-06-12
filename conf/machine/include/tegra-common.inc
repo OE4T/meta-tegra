@@ -35,6 +35,8 @@ IMAGE_CLASSES += "image_types_tegra"
 IMAGE_FSTYPES ?= "tegraflash"
 
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
+MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev"
+MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu kernel-module-tegra-udrm"
 MACHINE_HWCODECS = "gstreamer1.0-omx-tegra gstreamer1.0-plugins-nvvideo4linux2"
 LICENSE_FLAGS_WHITELIST_append = " commercial_gstreamer1.0-omx-tegra"
 
