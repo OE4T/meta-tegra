@@ -8,7 +8,7 @@ require conf/machine/include/arm/arch-armv8a.inc
 KERNEL_IMAGETYPE = "Image"
 
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
-MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image u-boot"
+MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware kernel-devicetree kernel-image u-boot-extlinux"
 MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev"
 MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu kernel-module-tegra-udrm"
 
