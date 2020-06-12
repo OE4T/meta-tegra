@@ -9,8 +9,6 @@ KERNEL_IMAGETYPE = "Image"
 KERNEL_ARGS ?= "console=ttyS0,115200 console=tty0 fbcon=map:0 isolcpus=1-2"
 
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'kernel-devicetree kernel-image u-boot-extlinux'}"
-MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev"
-MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu kernel-module-tegra-udrm"
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 TEGRA_INITRAMFS_INITRD ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '1'}"
