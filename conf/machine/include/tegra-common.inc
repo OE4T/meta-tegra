@@ -34,6 +34,7 @@ EXTRA_IMAGECMD_ext4 ?= "-i 4096 -b 4096"
 IMAGE_CLASSES += "image_types_tegra"
 IMAGE_FSTYPES ?= "tegraflash"
 
+MACHINE_FEATURES = "alsa usbhost pci rtc cuda"
 MACHINE_HWCODECS = "gstreamer1.0-omx-tegra gstreamer1.0-plugins-nvvideo4linux2"
 LICENSE_FLAGS_WHITELIST_append = " commercial_gstreamer1.0-omx-tegra"
 
