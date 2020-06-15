@@ -28,7 +28,7 @@ do_compile() {
 do_install() {
     install -d ${D}${prefix} ${D}${libdir} ${D}${datadir}
     cp -R --preserve=mode,timestamps ${B}/usr/include ${D}${prefix}/
-    cp -R --preserve=mode,timestamps ${B}/usr/lib/* ${D}${libdir}/
+    cp -R --preserve=mode,timestamps,links --no-dereference ${B}/usr/lib/* ${D}${libdir}/
     cp -R --preserve=mode,timestamps ${B}/usr/share/visionworks-sfm ${D}${datadir}/
 }
 
@@ -37,7 +37,7 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
 PACKAGES += "${PN}-samples"
-FILES_${PN}-dev += "${libdir}/pkgconfig ${datadir}/visionworks-sfm/cmake"
+FILES_${PN}-dev += "${datadir}/visionworks-sfm/cmake"
 FILES_${PN}-doc += "${datadir}/visionworks-sfm/docs"
 FILES_${PN}-samples += "${datadir}/visionworks-sfm/sources"
 RDEPENDS_${PN} = "libstdc++"
