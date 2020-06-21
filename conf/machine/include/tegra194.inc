@@ -10,6 +10,7 @@ KERNEL_IMAGETYPE = "Image"
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 INITRAMFS_IMAGE_BUNDLE ?= "1"
 IMAGE_UBOOT ?= ""
+INITRAMFS_FSTYPES_append = "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot cpio.gz.cboot.bup-payload'}"
 
 TEGRA_AUDIO_DEVICE ?= "tegrahdat194ref"
 
