@@ -60,9 +60,9 @@ do_deploy_append_tegra194() {
     bootimg_from_bundled_initramfs
 }
 
-EXTRADEPLOYDEPS = ""
-EXTRADEPLOYDEPS_tegra186 = "tegra186-flashtools-native:do_populate_sysroot"
-EXTRADEPLOYDEPS_tegra194 = "tegra186-flashtools-native:do_populate_sysroot"
+EXTRADEPLOYDEPS = "gzip-native:do_populate_sysroot"
+EXTRADEPLOYDEPS_append_tegra186 = " tegra186-flashtools-native:do_populate_sysroot"
+EXTRADEPLOYDEPS_append_tegra194 = " tegra186-flashtools-native:do_populate_sysroot"
 do_deploy[depends] += "${EXTRADEPLOYDEPS}"
 
 COMPATIBLE_MACHINE = "(tegra)"
