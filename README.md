@@ -53,7 +53,7 @@ PLEASE NOTE
   or 18.04. If you downloaded the Ubuntu 16.04 package, you
   should add
 
-      CUDA_BINARIES_NATIVE = "cuda-binaries-ubuntu1604-native"
+      CUDA_BINARIES = "cuda-binaries-ubuntu1604"
 
   to your build configuration so the CUDA recipes can find
   them. Otherwise, the recipes will default to looking for
