@@ -4,6 +4,7 @@ REPLACE_STUBS ?= "1"
 require cuda-binaries-common-defs.inc
 
 L4T_DEB_GROUP ?= "cuda"
+L4T_DEB_FEED_BASE ??= "file://"
 SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb;name=%s;subdir=${BP}' \
                                 % (pkg, 'dev' if pkg.endswith('-dev') else 'main') for pkg in d.getVar('CUDA_PKG').split()])} \
 		   cuda-license-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
@@ -18,13 +19,22 @@ DESCRIPTION = "CUDA package ${PN}"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/local/cuda-10.2/LICENSE;md5=659d2cacdb888a4ed2aa29014ed0302a \
 	            file://usr/local/cuda-10.2/doc/EULA.txt;md5=37774d0b88c5743e8fe8e5c10b057270"
-CUDA_BINARIES_NATIVE_DEFAULT = ""
-CUDA_BINARIES_NATIVE_DEFAULT_x86-64 = "cuda-binaries-ubuntu1804-native"
-CUDA_BINARIES_NATIVE ??= "${CUDA_BINARIES_NATIVE_DEFAULT}"
-CUDABINDEP = ""
-CUDABINDEP_x86-64 = "${CUDA_BINARIES_NATIVE}:do_preconfigure dpkg-native:do_populate_sysroot"
-do_configure[depends] += "${CUDABINDEP}"
-do_populate_lic[depends] += "${CUDABINDEP}"
+CUDA_BINARIES_DEFAULT = ""
+CUDA_BINARIES_DEFAULT_x86-64 = "cuda-binaries-ubuntu1804"
+CUDA_BINARIES ??= "${CUDA_BINARIES_DEFAULT}"
+
+def cuda_binaries_deps(d):
+    cuda_binaries = d.getVar('CUDA_BINARIES')
+    if not cuda_binaries:
+        return ''
+    if bb.data.inherits_class('native', d):
+        cuda_binaries += '-native'
+    elif bb.data.inherits_class('nativesdk', d):
+        cuda_binaries = 'nativesdk-' + cuda_binaries
+    return cuda_binaries + ':do_preconfigure dpkg-native:do_populate_sysroot'
+
+do_configure[depends] += "${@cuda_binaries_deps(d)}"
+do_populate_lic[depends] += "${@cuda_binaries_deps(d)}"
 
 DEPENDS ?= "cuda-cudart"
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
