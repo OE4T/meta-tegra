@@ -19,6 +19,8 @@ do_unpack_from_tarfile[depends] += "tegra-binaries:do_preconfigure"
 
 addtask unpack_from_tarfile before do_configure do_populate_lic
 
+inherit features_check
+
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 do_install() {

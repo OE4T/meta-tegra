@@ -10,6 +10,9 @@ SRC_URI = "\
 "
 
 COMPATIBLE_MACHINE = "(tegra)"
+
+inherit features_check
+
 REQUIRED_DISTRO_FEATURES = "systemd"
 
 S = "${WORKDIR}"
