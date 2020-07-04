@@ -5,8 +5,9 @@ no_flash=0
 sdcard=
 make_sdcard_args=
 imgfile=
+dataimg=
 blocksize=4096
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard" -o "u:s:b:B:y" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,datafile:" -o "u:s:b:B:y" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -27,6 +28,10 @@ while true; do
 	--sdcard)
 	    sdcard=yes
 	    shift
+	    ;;
+	--datafile)
+	    dataimg="$2"
+	    shift 2
 	    ;;
 	-u)
 	    keyfile="$2"
@@ -154,16 +159,25 @@ bytes=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f2`
 cksum=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1`
 echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
 if [ -z "$sdcard" ]; then
-    appfile=$(echo $(basename "$imgfile") | cut -d. -f1).img
+    appfile=$(basename "$imgfile").img
+    if [ -n "$dataimg" ]; then
+	datafile=$(basename "$dataimg").img
+    fi
 else
     appfile="$imgfile"
+    datafile="$dataimg"
 fi
 appfile_sed=
 if [ -n "$bup_build" ]; then
-    appfile_sed="-e/APPFILE/d"
-elif [ $no_flash -eq 0 ]; then
-    appfile_sed="-es,APPFILE,$appfile,"
+    appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
+elif [ $no_flash -eq 0 -a -z "$sdcard" ]; then
+    appfile_sed="-es,APPFILE,$appfile, -es,DATAFILE,$datafile,"
 else
+    pre_sdcard_sed="-es,APPFILE,$appfile,"
+    if [ -n "$datafile" ]; then
+	pre_sdcard_sed="$pre_sdcard_sed -es,DATAFILE,$datafile,"
+	touch DATAFILE
+    fi
     touch APPFILE
 fi
 sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,DTBFILE,$DTBFILE," $appfile_sed "$flash_in" > flash.xml
@@ -175,7 +189,11 @@ if [ "$bup_build" = "yes" -o "$sdcard" = "yes" ]; then
 else
     if [ -z "$sdcard" -a $no_flash -eq 0 ]; then
 	rm -f "$appfile"
-	$here/mksparse -b ${blocksize} -v --fillpattern=0 "$imgfile"  "$appfile" || exit 1
+	$here/mksparse -b ${blocksize} --fillpattern=0 "$imgfile"  "$appfile" || exit 1
+	if [ -n "$datafile" ]; then
+	    rm -f "$datafile"
+	    $here/mksparse -b ${blocksize} --fillpattern=0 "$dataimg" "$datafile" || exit 1
+	fi
     fi
     if [ -n "$keyfile" ]; then
 	dbmaster=$(readlink -f "$keyfile")
@@ -206,7 +224,7 @@ else
 --cmd \"secureflash;reboot\" $binargs" > flashcmd.txt
 	    chmod +x flashcmd.txt
 	    ln -sf flashcmd.txt ./secureflash.sh
-	    rm APPFILE
+	    rm -f APPFILE DATAFILE
 	fi
 	exit 0
     else
@@ -235,6 +253,11 @@ if [ "$bup_build" = "yes" ]; then
 else
     eval "$flashcmd" || exit 1
     if [ -n "$sdcard" ]; then
+	if [ -n "$pre_sdcard_sed" ]; then
+	    rm -f signed/flash.xml.in
+	    mv signed/flash.xml signed/flash.xml.in
+	    sed $pre_sdcard_sed  signed/flash.xml.in > signed/flash.xml
+	fi
 	$here/make-sdcard $make_sdcard_args signed/flash.xml "$@"
     fi
 fi
