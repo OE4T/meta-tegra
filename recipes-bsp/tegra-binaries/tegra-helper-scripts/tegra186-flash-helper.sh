@@ -5,8 +5,9 @@ sbk_keyfile=
 no_flash=0
 flash_cmd=
 imgfile=
+dataimg=
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash" -o "u:v:c:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,datafile:" -o "u:v:c:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -23,6 +24,10 @@ while true; do
 	--no-flash)
 	    no_flash=1
 	    shift
+	    ;;
+	--datafile)
+	    dataimg="$2"
+	    shift 2
 	    ;;
 	-u)
 	    keyfile="$2"
@@ -158,16 +163,17 @@ cksum=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1`
 echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
 appfile_sed=
 if [ "$bup_build" = "yes" ]; then
-    appfile_sed="-e/APPFILE/d"
+    appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
 elif [ $no_flash -eq 0 ]; then
     if [ -n "$imgfile" -a -e "$imgfile" ]; then
-	appfile_sed="-es,APPFILE,$imgfile,"
+	appfile_sed="-es,APPFILE,$imgfile, -es,DATAFILE,$dataimg,"
     else
 	echo "ERR: rootfs image not specified or missing: $imgfile" >&2
 	exit 1
     fi
 else
     touch APPFILE
+    [ -z "$dataimg" ] || touch DATAFILE
 fi
 sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB-FILE,$BPFDTB_FILE," $appfile_sed "$flash_in" > flash.xml
 
@@ -218,7 +224,7 @@ elif [ -n "$keyfile" ]; then
 	else
 	    echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
 	fi
-	rm APPFILE
+	rm -f APPFILE DATAFILE
     fi
     exit 0
 else
