@@ -130,7 +130,10 @@ write_partitions_to_device() {
 	    continue
 	fi
 	eval "$pline"
-	[ -n "$partfile" ] || continue
+	if [ -z "$partfile" ]; then
+	    i=$(expr $i + 1)
+	    continue
+	fi
 	if [ -e "signed/$partfile" ]; then
 	    partfile="signed/$partfile"
 	elif [ ! -e "$partfile" ]; then
