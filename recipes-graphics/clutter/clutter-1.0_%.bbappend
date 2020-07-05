@@ -1,1 +1,0 @@
-DEBIAN_NOAUTONAME_${PN} = "1"
