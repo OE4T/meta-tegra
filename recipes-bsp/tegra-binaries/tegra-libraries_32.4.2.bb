@@ -41,6 +41,8 @@ do_install() {
     rm -f ${D}${libdir}/libv4l2.so* ${D}${libdir}/libv4lconvert.so* ${D}${libdir}/libnvv4l2.so ${D}${libdir}/libnvv4lconvert.so
     fatbinsoname=$(readelf -d ${D}${libdir}/libnvidia-fatbinaryloader.so.${PV} | grep SONAME | sed -r -e 's,^.*soname: \[(libnvidia-fatbinaryloader\.so\.[0-9]+\.[0-9]+)\].*$,\1,')
     [ -e ${D}${libdir}/$fatbinsoname ] || ln -s libnvidia-fatbinaryloader.so.${PV} ${D}${libdir}/$fatbinsoname
+    ptxjitsoname=$(readelf -d ${D}${libdir}/libnvidia-ptxjitcompiler.so.${PV} | grep SONAME | sed -r -e 's!^.*soname: \[(libnvidia-ptxjitcompiler\.so\.[0-9]+(\.[0-9]+){0,1})\].*$!\1!')
+    [ -e ${D}${libdir}/$ptxjitsoname ] || ln -s libnvidia-ptxjitcompiler.so.${PV} ${D}${libdir}/$ptxjitsoname
     install -d ${D}${sbindir}
     install -m755 ${B}/usr/sbin/nvargus-daemon ${D}${sbindir}/
     install -d ${D}${datadir}/glvnd/egl_vendor.d
