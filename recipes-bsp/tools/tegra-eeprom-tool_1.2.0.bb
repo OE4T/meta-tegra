@@ -5,15 +5,12 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=c4bff80c7e9a90aa351e9062b5572544"
 
 DEPENDS = "libedit"
 
-SRC_REPO ?= "github.com/OE4T/tegra-eeprom-tool"
-SRCBRANCH ?= "master"
-SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
-SRCREV = "39f3569d128b80efd1ab12c040639f506f35ae9c"
-PV = "1.1+git${SRCPV}"
-
-S = "${WORKDIR}/git"
+SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
+SRC_URI[sha256sum] = "e65452e4abb682063d6b2b37e12596a3e8494bb5325e9fa94e65db078e855c3d"
 
 inherit autotools pkgconfig
+
+RRECOMMENDS_${PN} += "kernel-module-at24"
 
 PACKAGES =+ "${PN}-boardspec"
 FILES_${PN}-boardspec = "${bindir}/tegra-boardspec"
