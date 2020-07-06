@@ -1,0 +1,80 @@
+From 0ce31deb9c233d3ec0326c02ed4063c791bf3b68 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 6 Jul 2020 12:26:06 -0700
+Subject: [PATCH] Update check functions in BUP_generator.py for Python 3
+
+---
+ bootloader/BUP_generator.py | 57 ++++++-------------------------------
+ 1 file changed, 9 insertions(+), 48 deletions(-)
+
+diff --git a/bootloader/BUP_generator.py b/bootloader/BUP_generator.py
+index 0356608..284fe84 100755
+--- a/bootloader/BUP_generator.py
++++ b/bootloader/BUP_generator.py
+@@ -513,57 +513,18 @@ class inspect_update_payload(update_payload):
+         print("Checking entry table ...")
+ 
+         # Find out all partitions that have tnspec
++        part_names = set([e['part_name'].decode('utf-8').strip(' \t\n\0') for e in self.blob_entry_list if len(e['tnspec'].decode('utf-8').strip(' \t\n\0')) > 0])
+         # Find out all tnspec
+-        part_name_list = list()
+-        spec_info_list = list()
+-        for blob_entry in self.blob_entry_list:
+-            part_name = str(blob_entry['part_name']).strip(' \t\n\0')
+-            tnspec = str(blob_entry['tnspec']).strip(' \t\n\0')
+-
+-            if tnspec == "":
+-                continue
+-
+-            if len(part_name_list):
+-                for idx, name in enumerate(part_name_list):
+-                    if name == part_name:
+-                        break
+-                    else:
+-                        if idx == (len(part_name_list) - 1):
+-                            part_name_list.append(part_name)
+-                            break
+-            else:
+-                part_name_list.append(part_name)
+-
+-            if len(spec_info_list):
+-                for idx, spec in enumerate(spec_info_list):
+-                    if spec == tnspec:
+-                        break
+-                    else:
+-                        if idx == (len(spec_info_list) - 1):
+-                            spec_info_list.append(tnspec)
+-                            break
+-            else:
+-                spec_info_list.append(tnspec)
++        spec_names = set([e['tnspec'].decode('utf-8').strip(' \t\n\0') for e in self.blob_entry_list if len(e['tnspec'].decode('utf-8').strip(' \t\n\0')) > 0])
+ 
+-        # Verify every entry in spec_info_list must have an entry in part_name_list
+         valid = True
+-        for part in part_name_list:
+-            blob_entry = filter(lambda entry: (str(entry['part_name']).strip(' \t\n\0') == part), self.blob_entry_list)
+-            blob_entry = copy.deepcopy(blob_entry)
+-
+-            for spec in spec_info_list:
+-                found = False
+-                for idx, entry in enumerate(blob_entry):
+-                    e_spec = str(entry['tnspec']).strip(' \t\n\0')
+-                    if spec == e_spec:
+-                        found = True
+-                        blob_entry.remove(blob_entry[idx])
+-                        break
+-                if (found == False):
+-                    valid = False
+-                    sys.stderr.write("Error: " + "The " + part + " missed SPEC " + spec + ".\r\n")
+-
+-        if (valid == False):
++        for part in part_names:
++            missing = spec_names - set([e['tnspec'].decode('utf-8').strip(' \t\n\0') for e in self.blob_entry_list if e['part_name'].decode('utf-8').strip(' \t\n\0') == part])
++            if len(missing) > 0:
++                print("Error: partition {} missing for SPECs {}".format(part, ', '.join(sorted(missing))), file=sys.stderr)
++                valid = False
++
++        if not valid:
+             sys.exit(1)
+         else:
+             print("Check entry table successful")
