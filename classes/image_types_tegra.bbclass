@@ -653,6 +653,10 @@ oe_make_bup_payload() {
         tegraflash_generate_bupgen_script ./doflash.sh
     fi
     tegraflash_custom_sign_bup
+    for bup in ${WORKDIR}/bup-payload/${BUP_PAYLOAD_DIR}/*; do
+	[ -e $bup ] || continue
+	BUP_generator.py --contents --check $bup
+    done
     mv ${WORKDIR}/bup-payload/${BUP_PAYLOAD_DIR}/* .
     cd "$oldwd"
 }
