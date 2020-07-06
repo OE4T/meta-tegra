@@ -16,6 +16,7 @@ SRC_URI += "\
            file://0004-Convert-gen_tos_part_img.py-to-Python3.patch \
            file://0005-Convert-rollback_parser.py-to-Python3.patch \
            file://0006-Update-tegraflash_internal.py-for-Python3.patch \
+           file://0007-Update-check-functions-in-BUP_generator.py-for-Pytho.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
