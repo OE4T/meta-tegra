@@ -1,8 +1,8 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Jetson TX1/TX2/AGX Xavier/Nano
 ======================================================================
 
-Linux4Tegra release: R32.4.2
-JetPack release:     4.4 Developer Preview
+Linux4Tegra release: R32.4.3
+JetPack release:     4.4
 
 Boards supported:
 * Jetson-TX1 development kit
@@ -24,15 +24,11 @@ Also supported thanks to community support:
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: master
-LAYERSERIES_COMPAT: dunfell
+LAYERSERIES_COMPAT: dunfell gatesgarth
 
 
 PLEASE NOTE
 -----------
-
-* NVIDIA recommends using L4T R32.3.1/JetPack 4.3 for
-  production use. The JetPack release supported here
-  is labeled a "developer preview".
 
 * Some packages outside the L4T BSP can only be downloaded
   with an NVIDIA Developer Network login - in particular,
