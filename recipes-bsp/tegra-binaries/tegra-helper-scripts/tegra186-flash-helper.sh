@@ -1,5 +1,5 @@
 #!/bin/bash
-bup_build=
+bup_blob=0
 keyfile=
 sbk_keyfile=
 no_flash=0
@@ -18,7 +18,7 @@ unset ARGS
 while true; do
     case "$1" in
 	--bup)
-	    bup_build=yes
+	    bup_blob=1
 	    shift
 	    ;;
 	--no-flash)
@@ -162,7 +162,7 @@ bytes=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f2`
 cksum=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1`
 echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
 appfile_sed=
-if [ "$bup_build" = "yes" ]; then
+if [ $bup_blob -ne 0 ]; then
     appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
 elif [ $no_flash -eq 0 ]; then
     if [ -n "$imgfile" -a -e "$imgfile" ]; then
@@ -198,10 +198,7 @@ bctargs="--misc_config $MISC_CONFIG \
 	      --br_cmd_config $BOOTROM_CONFIG \
 	      --dev_params $DEV_PARAMS"
 skipuid=""
-if [ "$bup_build" = "yes" ]; then
-    tfcmd=sign
-    skipuid="--skipuid"
-elif [ -n "$keyfile" ]; then
+if [ -n "$keyfile" ]; then
     CHIPID="0x18"
     tegraid="$CHIPID"
     localcfgfile="flash.xml"
@@ -226,7 +223,13 @@ elif [ -n "$keyfile" ]; then
 	fi
 	rm -f APPFILE DATAFILE
     fi
-    exit 0
+    [ $bup_blob -ne 0 ] || exit 0
+    touch odmsign.func
+fi
+
+if [ $bup_blob -ne 0 ]; then
+    tfcmd=sign
+    skipuid="--skipuid"
 else
     tfcmd=${flash_cmd:-"flash;reboot"}
 fi
@@ -239,7 +242,7 @@ flashcmd="python3 $flashappname --chip 0x18 --bl nvtboot_recovery_cpu.bin \
 	      $bctargs \
 	      --bins \"$BINSARGS\""
 
-if [ "$bup_build" = "yes" ]; then
+if [ $bup_blob -ne 0 ]; then
     [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
     [ -z "$sbk_keyfile" ] || flashcmd="${flashcmd} --encrypt_key \"$sbk_keyfile\""
     support_multi_spec=1
@@ -250,7 +253,7 @@ if [ "$bup_build" = "yes" ]; then
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
     spec="${BOARDID}-${FAB}-${BOARDSKU}--1-0-${MACHINE}-${BOOTDEV}"
-    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" 0x18 || exit 1
+    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" "$sbk_keyfile" 0x18 || exit 1
 else
     eval $flashcmd || exit 1
 fi
