@@ -22,15 +22,13 @@ do_install() {
 
 do_install_append_tegra186() {
     install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda.conf ${D}${datadir}/alsa/cards/
+    install -m 0644 ${B}/usr/share/alsa/cards/tegra-snd-t186r.conf ${D}${datadir}/alsa/cards/
 }
 do_install_append_tegra194() {
     install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda-galen.conf ${D}${datadir}/alsa/cards/
+    install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda-xnx.conf ${D}${datadir}/alsa/cards/
     install -m 0644 ${B}/usr/share/alsa/cards/jetson-xaviernx.conf ${D}${datadir}/alsa/cards/
-}
-do_install_append_xavier-nx() {
-    if [ "${TEGRA_AUDIO_DEVICE}" = "tegrahdat194ref" ]; then
-        sed -i -e's!,8!,7!g' ${D}${sysconfdir}/asound.conf
-    fi
+    install -m 0644 ${B}/usr/share/alsa/cards/tegra-snd-t19x-.conf ${D}${datadir}/alsa/cards/
 }
 
 FILES_${PN} = "${sysconfdir} ${datadir}/alsa"

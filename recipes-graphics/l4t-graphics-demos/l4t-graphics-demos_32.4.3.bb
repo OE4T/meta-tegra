@@ -7,7 +7,7 @@ S = "${WORKDIR}/graphics_demos"
 B = "${S}"
 
 LICENSE = "MIT & Proprietary"
-LIC_FILES_CHKSUM = "file://README;endline=21;md5=21846d899fa13550ba5f4090f7408e21 \
+LIC_FILES_CHKSUM = "file://README;endline=21;md5=9344f9b3e882bebae9422f515711d756 \
                     file://gears-cube/Makefile;endline=8;md5=a2d67caf4241d62192371ef03b193fea"
 
 do_unpack_from_tarfile() {

@@ -2,10 +2,10 @@ HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD"
 
 L4T_DEB_GROUP = "nvidia-l4t-jetson-multimedia-api"
-SRC_SOC_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}-20200408182620_arm64.deb;subdir=tegra-mmapi"
-SRC_SOC_DEBS_tegra210 = "nvidia-l4t-jetson-multimedia-api_${PV}-20200408182156_arm64.deb;subdir=tegra-mmapi"
-SRC_SHA256SUM = "b9f85647eda45afca4883d28b0d36fedceb2dc8c978bb1d07db0f371a39783e1"
-SRC_SHA256SUM_tegra210 = "ea918f039c66b5c86980090e1ac7dbb8b9bc66efb138620cb3e451076bc03494"
+SRC_SOC_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}-20200625213407_arm64.deb;subdir=tegra-mmapi"
+SRC_SOC_DEBS_tegra210 = "nvidia-l4t-jetson-multimedia-api_${PV}-20200625213809_arm64.deb;subdir=tegra-mmapi"
+SRC_SHA256SUM = "a639090aa97441790f59e6946cdd558e8d2873678421b4cf6fdee77adfb22d1d"
+SRC_SHA256SUM_tegra210 = "d5ae20bd5d220cbe2af3e54d3047c18b558c6e59a46ec06215dc08bf4e87609f"
 SRC_URI[sha256sum] = "${SRC_SHA256SUM}"
 
 inherit l4t_deb_pkgfeed
