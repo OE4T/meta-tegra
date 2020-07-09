@@ -1,0 +1,22 @@
+From 4d4872dca3a44f391fdbe72219c8c96b64ac50b0 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 9 Jul 2020 08:40:37 -0700
+Subject: [PATCH] Fix typo in l4t_bup_gen.func
+
+---
+ bootloader/l4t_bup_gen.func | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
+index 4b25774..82cf6e3 100644
+--- a/bootloader/l4t_bup_gen.func
++++ b/bootloader/l4t_bup_gen.func
+@@ -426,7 +426,7 @@ _sign_multi_images()
+ 	fi
+ 
+ 	mv "${OUT}"/"${signed_dir}"/*.dtb* "${OUT}"/"${signed_dir}"/*bct* "${OUT}"/multi_signed/"${_sw_spec}"/
+-	mv "${OUT}"/"${kenel_signed_dir}"/*.dtb* "${OUT}"/multi_signed/"${_sw_spec}"/
++	mv "${OUT}"/"${kernel_signed_dir}"/*.dtb* "${OUT}"/multi_signed/"${_sw_spec}"/
+ 	mv "${OUT}"/*_bootblob_ver.txt "${OUT}"/multi_signed/"${_sw_spec}"/
+ 
+ 	# xusb-fw

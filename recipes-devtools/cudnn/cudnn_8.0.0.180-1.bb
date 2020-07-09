@@ -9,9 +9,9 @@ SRC_COMMON_DEBS = "\
     libcudnn8-dev_${PV}+cuda10.2_arm64.deb;name=dev;subdir=cudnn \
     libcudnn8-doc_${PV}+cuda10.2_arm64.deb;name=doc;subdir=cudnn \
 "
-SRC_URI[lib.sha256sum] = "b94c2f1b4c0bca009d579ccc6c4bab44617e9abdb88b85e6ca16afe82e4e02ad"
-SRC_URI[dev.sha256sum] = "1fbe66f176084d28e8bbf9fd8f1301be2fae57d1af6a823f4961a38e26a188c2"
-SRC_URI[doc.sha256sum] = "3a420a98261728306386521de6772b3bc4ed53a7fe6073659a429e94d0d57f49"
+SRC_URI[lib.sha256sum] = "899405cf41d55e11b9000a25ac70c5523307b06eaad90ef603468bc08c7e0ddb"
+SRC_URI[dev.sha256sum] = "4b581303d1515d9a204b6639dd0bfee3b27571602f289abe707350abbe3a268d"
+SRC_URI[doc.sha256sum] = "dc9c550a0bd3160917f1bf2921f8542a4c8cb52ba8c0ebe789c2076ab8b7f242"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
