@@ -1,5 +1,5 @@
 #!/bin/bash
-bup_build=
+bup_blob=0
 keyfile=
 no_flash=0
 sdcard=
@@ -18,7 +18,7 @@ unset ARGS
 while true; do
     case "$1" in
 	--bup)
-	    bup_build=yes
+	    bup_blob=1
 	    shift
 	    ;;
 	--no-flash)
@@ -168,7 +168,7 @@ else
     datafile="$dataimg"
 fi
 appfile_sed=
-if [ -n "$bup_build" ]; then
+if [ $bup_blob -ne 0 ]; then
     appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
 elif [ $no_flash -eq 0 -a -z "$sdcard" ]; then
     appfile_sed="-es,APPFILE,$appfile, -es,DATAFILE,$datafile,"
@@ -183,7 +183,7 @@ fi
 sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,DTBFILE,$DTBFILE," $appfile_sed "$flash_in" > flash.xml
 boardcfg=
 [ -z "$boardcfg_file" ] || boardcfg="--boardconfig $boardcfg_file"
-if [ "$bup_build" = "yes" -o "$sdcard" = "yes" ]; then
+if [ $bup_blob -ne 0 -o "$sdcard" = "yes" ]; then
     cmd="sign"
     binargs=
 else
@@ -195,51 +195,52 @@ else
 	    $here/mksparse -b ${blocksize} --fillpattern=0 "$dataimg" "$datafile" || exit 1
 	fi
     fi
-    if [ -n "$keyfile" ]; then
-	dbmaster=$(readlink -f "$keyfile")
-	fusetype="PKC"
-	CHIPID="0x21"
-	tegraid="$CHIPID"
-	localcfgfile="flash.xml"
-	BINSARGS=
-	DTBARGS="--bldtb $dtb_file "
-	SOSARGS=" --applet nvtboot_recovery.bin "
-	dtbfilename="$dtb_file"
-	localbootfile="$kernfile"
-	flashername="cboot.bin"
-	bootloadername="cboot.bin"
-	BCT="--bct"
-	bctfilename="$sdramcfg_file"
-	flashappname=$(basename "$flashapp")
-	. "$here/odmsign.func"
-	(odmsign_ext) || exit 1
-	if [ $no_flash -ne 0 ]; then
-	    rm -f flashcmd.txt
-	    echo "#!/bin/sh" > flashcmd.txt
-	    if [ "$boardid" = "3448" ]; then
-		binargs="--bins \"EBT cboot.bin.signed;DTB ${dtb_file}.signed\""
-	    fi
-	    echo "python3 $flashapp --bl cboot.bin.signed --bct \"$sdramcfg_file\" --odmdata $odmdata \
+    cmd="flash;reboot"
+    if [ "$boardid" = "3448" ]; then
+	binargs="--bins \"EBT cboot.bin;DTB $dtb_file\""
+    fi
+fi
+
+if [ -n "$keyfile" ]; then
+    dbmaster=$(readlink -f "$keyfile")
+    fusetype="PKC"
+    CHIPID="0x21"
+    tegraid="$CHIPID"
+    localcfgfile="flash.xml"
+    BINSARGS=
+    DTBARGS="--bldtb $dtb_file "
+    SOSARGS=" --applet nvtboot_recovery.bin "
+    dtbfilename="$dtb_file"
+    localbootfile="$kernfile"
+    flashername="cboot.bin"
+    bootloadername="cboot.bin"
+    BCT="--bct"
+    bctfilename="$sdramcfg_file"
+    flashappname=$(basename "$flashapp")
+    . "$here/odmsign.func"
+    (odmsign_ext) || exit 1
+    if [ $no_flash -ne 0 ]; then
+	rm -f flashcmd.txt
+	echo "#!/bin/sh" > flashcmd.txt
+	if [ "$boardid" = "3448" ]; then
+	    binargs="--bins \"EBT cboot.bin.signed;DTB ${dtb_file}.signed\""
+	fi
+	echo "python3 $flashapp --bl cboot.bin.signed --bct \"$sdramcfg_file\" --odmdata $odmdata \
 --bldtb \"${dtb_file}.signed\" --applet rcm_1_signed.rcm --cfg flash.xml --chip 0x21 \
 --cmd \"secureflash;reboot\" $binargs" > flashcmd.txt
-	    chmod +x flashcmd.txt
-	    ln -sf flashcmd.txt ./secureflash.sh
-	    rm -f APPFILE DATAFILE
-	fi
-	exit 0
-    else
-	cmd="flash;reboot"
-	if [ "$boardid" = "3448" ]; then
-	    binargs="--bins \"EBT cboot.bin;DTB $dtb_file\""
-	fi
+	chmod +x flashcmd.txt
+	ln -sf flashcmd.txt ./secureflash.sh
+	rm -f APPFILE DATAFILE
     fi
+    [ $bup_blob -ne 0 ] || exit 0
+    touch odmsign.func
 fi
 
 flashcmd="python3 $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $odmdata \
  --bldtb \"$dtb_file\" --applet nvtboot_recovery.bin \
  $boardcfg --cfg flash.xml --chip 0x21 --cmd \"$cmd\" $binargs"
 
-if [ "$bup_build" = "yes" ]; then
+if [ $bup_blob -ne 0 ]; then
     [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
     support_multi_spec=1
     clean_up=0
@@ -249,7 +250,7 @@ if [ "$bup_build" = "yes" ]; then
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
     spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-0-${MACHINE}-${BOOTDEV}"
-    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t210ref "$keyfile" 0x21 || exit 1
+    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t210ref "$keyfile" "" 0x21 || exit 1
 else
     eval "$flashcmd" || exit 1
     if [ -n "$sdcard" ]; then
