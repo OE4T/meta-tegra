@@ -7,6 +7,7 @@ TEGRA_FAB ?= "200"
 TEGRA_BOARDREV ?= "G.0"
 TEGRA_CHIPREV ?= "2"
 NVPMODEL ?= "nvpmodel_t194_p3668"
+TEGRA_AUDIO_DEVICE ?= "tegrahdaxaviernx"
 
 MACHINEOVERRIDES = "xavier-nx:${MACHINE}"
 require conf/machine/include/tegra194.inc

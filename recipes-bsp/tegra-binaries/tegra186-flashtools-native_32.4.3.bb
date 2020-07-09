@@ -11,7 +11,7 @@ STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-*"
 
 SRC_URI += "\
            file://0001-Fix-skipuid-arg-usage-for-tx2-in-odmsign.func.patch \
-           file://0002-Update-l4t_bup_gen.func-to-handle-signed-encrypted-b.patch \
+           file://0002-Fix-typo-in-l4t_bup_gen.func.patch \
            file://0003-Convert-BUP_generator.py-to-Python3.patch \
            file://0004-Convert-gen_tos_part_img.py-to-Python3.patch \
            file://0005-Convert-rollback_parser.py-to-Python3.patch \
