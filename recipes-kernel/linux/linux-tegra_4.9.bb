@@ -15,7 +15,7 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')
 SCMVERSION ??= "y"
 
 SRCBRANCH = "patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "5b457252af43f63fa2b83cf9b30a6a4c087ca319"
+SRCREV = "6b8c2349e173e2ca138ea49ee605cecf2b8b1376"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/madisongh/linux-tegra-4.9"
 KERNEL_REPO = "${SRC_REPO}"
