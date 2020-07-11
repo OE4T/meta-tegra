@@ -11,7 +11,7 @@ REVISION = "r1"
 
 RDEPENDS_${PN} = "\
 cuda-driver \
-cuda-toolkit \
+cuda-libraries \
 libnvidia-container-tools \
 docker-ce \
 "
