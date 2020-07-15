@@ -11,7 +11,7 @@ TEGRA_SIGNING_ARGS ??= ""
 TEGRA_SIGNING_ENV ??= ""
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
-LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${INITRD_IMAGE}-${MACHINE}.cboot'}"
+LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${INITRD_IMAGE}-${MACHINE}.cboot' if '${INITRD_IMAGE}' != '' else '${KERNEL_IMAGETYPE}-initramfs-${MACHINE}.cboot'}"
 LNXSIZE ?= "67108864"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
@@ -531,7 +531,7 @@ END
 }
 create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
-TEGRAFLASHDEPS = ""
+TEGRAFLASHDEPS = "cboot:do_deploy"
 TEGRAFLASHDEPS_tegra210 = "nv-tegra-release:do_populate_sysroot"
 IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
 do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_populate_sysroot \
@@ -539,8 +539,7 @@ do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_po
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
                                  virtual/kernel:do_deploy ${TEGRAFLASHDEPS} \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
-                                 ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''} \
-                                 ${@'cboot:do_deploy' if d.getVar('IMAGE_UBOOT') != '' and d.getVar('SOC_FAMILY') == 'tegra186' else  ''}"
+                                 ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 
 oe_make_bup_payload() {
