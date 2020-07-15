@@ -11,7 +11,7 @@ TEGRA_SIGNING_ARGS ??= ""
 TEGRA_SIGNING_ENV ??= ""
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
-LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${INITRD_IMAGE}-${MACHINE}.cboot'}"
+LNXFILE ?= "${@'${IMAGE_UBOOT}-${MACHINE}.bin' if '${IMAGE_UBOOT}' != '' else '${KERNEL_IMAGETYPE}-initramfs-${MACHINE}.cboot'}"
 LNXSIZE ?= "67108864"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
@@ -540,7 +540,7 @@ do_image_tegraflash[depends] += "zip-native:do_populate_sysroot dtc-native:do_po
                                  virtual/kernel:do_deploy ${TEGRAFLASHDEPS} \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''} \
-                                 ${@'cboot:do_deploy' if d.getVar('IMAGE_UBOOT') != '' and d.getVar('SOC_FAMILY') == 'tegra186' else  ''}"
+                                 ${@'cboot:do_deploy' if d.getVar('IMAGE_UBOOT') != '' and d.getVar('SOC_FAMILY') != 'tegra210' else  ''}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 
 oe_make_bup_payload() {
