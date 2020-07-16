@@ -1,0 +1,76 @@
+From e0ebc42e239fb58ea2eb17fa646782af2c6db8db Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 16 Jul 2020 10:43:09 -0700
+Subject: [PATCH] Clean up compiler warnings
+
+from a compilation pass with -Wall -Wpedantic.
+---
+ gstnvv4l2camerasrc.cpp | 18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
+
+diff --git a/gstnvv4l2camerasrc.cpp b/gstnvv4l2camerasrc.cpp
+index 26ad70c..9f4303f 100644
+--- a/gstnvv4l2camerasrc.cpp
++++ b/gstnvv4l2camerasrc.cpp
+@@ -116,11 +116,11 @@ GType gst_nv_memory_allocator_get_type (void);
+ #define GST_TYPE_NV_MEMORY_ALLOCATOR   (gst_nv_memory_allocator_get_type())
+ 
+ #define gst_nvv4l2camera_buffer_pool_parent_class bpool_parent_class
+-G_DEFINE_TYPE (GstNvV4l2CameraBufferPool, gst_nvv4l2camera_buffer_pool, GST_TYPE_BUFFER_POOL);
++G_DEFINE_TYPE_WITH_PRIVATE (GstNvV4l2CameraBufferPool, gst_nvv4l2camera_buffer_pool, GST_TYPE_BUFFER_POOL)
+ 
+ #define gst_nv_v4l2_camera_src_parent_class parent_class
+-G_DEFINE_TYPE (GstNvV4l2CameraSrc, gst_nv_v4l2_camera_src, GST_TYPE_BASE_SRC);
+-G_DEFINE_TYPE (GstNVV4l2MemoryAllocator, gst_nv_memory_allocator, GST_TYPE_ALLOCATOR);
++G_DEFINE_TYPE (GstNvV4l2CameraSrc, gst_nv_v4l2_camera_src, GST_TYPE_BASE_SRC)
++G_DEFINE_TYPE (GstNVV4l2MemoryAllocator, gst_nv_memory_allocator, GST_TYPE_ALLOCATOR)
+ 
+ #define GST_NVMEMORY_ALLOCATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_NV_MEMORY_ALLOCATOR,GstNVV4l2MemoryAllocator))
+ 
+@@ -469,9 +469,7 @@ static void gst_nvv4l2camera_buffer_pool_free_buffer (GstBufferPool *bpool,
+ 
+ static void gst_nvv4l2camera_buffer_pool_init (GstNvV4l2CameraBufferPool *pool)
+ {
+-  pool->priv =
+-      G_TYPE_INSTANCE_GET_PRIVATE (pool, GST_TYPE_NVV4L2CAMERA_BUFFER_POOL,
+-      GstNvV4l2CameraBufferPoolPrivate);
++  pool->priv = (GstNvV4l2CameraBufferPoolPrivate*) gst_nvv4l2camera_buffer_pool_get_instance_private(pool);
+ 
+   memset (pool->priv, 0, sizeof(GstNvV4l2CameraBufferPoolPrivate));
+ 
+@@ -582,7 +580,7 @@ wrong_video_caps:
+   {
+     GST_OBJECT_UNLOCK (pool);
+     GST_WARNING_OBJECT (pool,
+-        "failed getting video info from caps %" GST_PTR_FORMAT, caps);
++      "failed getting video info from caps %" GST_PTR_FORMAT, (void *) caps);
+     return FALSE;
+   }
+ }
+@@ -622,8 +620,6 @@ gst_nvv4l2camera_buffer_pool_class_init (GstNvV4l2CameraBufferPoolClass *klass)
+   gstbufferpool_class->acquire_buffer = gst_nvv4l2camera_buffer_pool_acquire_buffer;
+   gstbufferpool_class->release_buffer = gst_nvv4l2camera_buffer_pool_release_buffer;
+ 
+-  g_type_class_add_private (klass, sizeof (GstNvV4l2CameraBufferPoolPrivate));
+-
+   GST_DEBUG_CATEGORY_INIT (gst_nv_v4l2_camera_src_debug, "nvv4l2camerapool", 0,
+         "nvv4l2camera buffer pool object");
+ }
+@@ -661,7 +657,7 @@ static gboolean gst_nv_v4l2_camera_set_caps (GstBaseSrc *base, GstCaps *caps)
+   GstNvV4l2CameraSrc *src = GST_NVV4L2CAMERASRC (base);
+   GstStructure *structure = NULL;
+ 
+-  GST_DEBUG_OBJECT (src, "Received caps %" GST_PTR_FORMAT, caps);
++  GST_DEBUG_OBJECT (src, "Received caps %" GST_PTR_FORMAT, (void*) caps);
+ 
+   if (!gst_video_info_from_caps (&info, caps))
+   {
+@@ -780,7 +776,7 @@ static gboolean gst_nv_v4l2_camera_set_caps (GstBaseSrc *base, GstCaps *caps)
+   FD_SET(src->video_fd, &(src->read_set));
+ 
+   /* Setting timeout value of select to 5, this can be configured as required */
+-  src->tv = (struct timeval){ 0 };
++  memset(&src->tv, 0, sizeof(src->tv));
+   src->tv.tv_sec = DEQUE_TIMEOUT;
+ 
+   return TRUE;
