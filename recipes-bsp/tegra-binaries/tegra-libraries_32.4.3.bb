@@ -31,7 +31,7 @@ do_install() {
     done
     ln -sf libcuda.so.1.1 ${D}${libdir}/libcuda.so
     ln -sf libcuda.so.1.1 ${D}${libdir}/libcuda.so.1
-    for libname in nvbuf_fdmap nvbufsurface nvbufsurftransform nvbuf_utils; do
+    for libname in nvdsbufferpool nvbuf_fdmap nvbufsurface nvbufsurftransform nvbuf_utils; do
 	ln -sf lib$libname.so.1.0.0 ${D}${libdir}/lib$libname.so.1
 	ln -sf lib$libname.so.1.0.0 ${D}${libdir}/lib$libname.so
     done
