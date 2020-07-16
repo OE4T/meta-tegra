@@ -8,7 +8,10 @@ inherit l4t_bsp
 
 unpack_tar_in_tar() {
     cd ${WORKDIR}
-    tar -x -j -f ${SRC_ARCHIVE} ${TEGRA_SRC_SUBARCHIVE} --to-command="tar -x -j --no-same-owner -f-"
+    tar -x -j -f ${SRC_ARCHIVE} ${TEGRA_SRC_SUBARCHIVE} --to-command="tar -x -j --no-same-owner -f- ${TEGRA_SRC_SUBARCHIVE_OPTS}"
+    if [ -n "${TEGRA_SRC_EXTRA_SUBARCHIVE}" ]; then
+        tar -x -j -f ${SRC_ARCHIVE} ${TEGRA_SRC_EXTRA_SUBARCHIVE} --to-command="tar -x -j --no-same-owner -f- ${TEGRA_SRC_EXTRA_SUBARCHIVE_OPTS}"
+    fi
 }
 
 python do_unpack() {
@@ -23,8 +26,9 @@ python do_unpack() {
     except bb.fetch2.BBFetchException as e:
         raise bb.build.FuncFailed(e)
 
-    d.setVar('SRC_ARCHIVE', urldata.localpath)
-    bb.build.exec_func("unpack_tar_in_tar", d)
+    if urldata.localpath.endswith(".tbz2"):
+        d.setVar('SRC_ARCHIVE', urldata.localpath)
+        bb.build.exec_func("unpack_tar_in_tar", d)
 }
 
 COMPATIBLE_MACHINE = "tegra"
