@@ -12,7 +12,10 @@ require recipes-bsp/tegra-sources/tegra-sources-32.4.3.inc
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libx11 libxext"
 
-SRC_URI += "file://0001-Fix-compiler-warnings.patch"
+SRC_URI += "\
+    file://0001-Fix-compiler-warnings.patch \
+    file://0002-Fix-stringop-truncation-warning.patch \
+"
 
 S = "${WORKDIR}/nvgstapps_src"
 B = "${WORKDIR}/build"
