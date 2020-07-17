@@ -20,7 +20,7 @@ SRC_URI = "\
     ${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-${PV}.tbz2;subdir=${BP} \
     file://0001-Convert-Python-scripts-to-Python3.patch \
 "
-SRC_URI[sha256sum] = "851a2c3b3dcfc7ed718050d55ce5941b2385e81bdc6d2d4cb6f324606dd5efe2"
+SRC_URI[sha256sum] = "2e053ef1f0931ad670c3f5ae75aba60ce7cbde8436d1fd4c2be3cdd2b60f1b88"
 
 require cboot-l4t.inc
 
