@@ -1,0 +1,24 @@
+From 31e7d2e8ed2448425bdc4985366177a9870e727a Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 17 Jul 2020 05:12:44 -0700
+Subject: [PATCH] Fix compiler warnings
+
+---
+ nvgst_sample_apps/nvgstplayer-1.0/nvgst_asound_common.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/nvgst_sample_apps/nvgstplayer-1.0/nvgst_asound_common.c b/nvgst_sample_apps/nvgstplayer-1.0/nvgst_asound_common.c
+index 708950b..5cb8ca1 100644
+--- a/nvgst_sample_apps/nvgstplayer-1.0/nvgst_asound_common.c
++++ b/nvgst_sample_apps/nvgstplayer-1.0/nvgst_asound_common.c
+@@ -15,8 +15,8 @@ char *
+ nvgst_asound_get_device ()
+ {
+   int card_num = -1, device_num = -1;
+-  char ctl_name[8];
+-  char dev_name[16];
++  char ctl_name[32];
++  char dev_name[64];
+   snd_ctl_t *ctl;
+   snd_pcm_t *handle;
+ 
