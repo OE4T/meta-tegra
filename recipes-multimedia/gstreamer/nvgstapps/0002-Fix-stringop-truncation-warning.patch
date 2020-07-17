@@ -1,0 +1,23 @@
+From 6a31377f6e394c7da4d7e0fc8f3495dbb3d8440c Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 17 Jul 2020 13:10:53 -0700
+Subject: [PATCH] Fix stringop-truncation warning
+
+---
+ nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c b/nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c
+index 3b38b3f..44c67d1 100644
+--- a/nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c
++++ b/nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c
+@@ -3394,7 +3394,8 @@ get_next_command (attrs_s * t, gchar * buffer, gint buf_size, gboolean reuse)
+ 
+   } else {
+     sCm *cm = (sCm *) cml->data;
+-    strncpy (buffer, cm->id, buf_size);
++    strncpy (buffer, cm->id, buf_size-1);
++    buffer[buf_size-1] = '\0';
+   }
+ 
+   if (!reuse) {
