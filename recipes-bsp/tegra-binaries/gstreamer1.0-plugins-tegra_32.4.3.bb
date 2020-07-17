@@ -18,18 +18,7 @@ do_compile[noexec] = "1"
 
 LIBROOT = "${B}/usr/lib/aarch64-linux-gnu"
 
-NVGSTCAPTURE = "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'nvgstcapture', '', d)}"
-NVGSTPLAYER = "${@bb.utils.contains('DISTRO_FEATURES', ['x11', 'alsa'], 'nvgstplayer', '', d)}"
-
 do_install() {
-    if [ -n "${NVGSTCAPTURE}" ]; then
-        install -d ${D}${bindir}
-        install -m 0755 ${B}/usr/bin/nvgstcapture-1.0 ${D}${bindir}
-    fi
-    if [ -n "${NVGSTPLAYER}" ]; then
-        install -d ${D}${bindir}
-        install -m 0755 ${B}/usr/bin/nvgstplayer-1.0 ${D}${bindir}
-    fi
     install -d ${D}${libdir}/gstreamer-1.0
     install -m 0644 ${LIBROOT}/libgstnvegl-1.0.so.0 ${D}${libdir}
     install -m 0644 ${LIBROOT}/libgstnvivameta.so ${D}${libdir}
@@ -47,11 +36,8 @@ do_install() {
     rm -f ${D}${libdir}/gstreamer-1.0/libgstomx.so*
 }
 
-PACKAGES = "${NVGSTCAPTURE} ${NVGSTPLAYER} ${PN}-nvcompositor ${PN}"
-FILES_nvgstcapture = "${bindir}/nvgstcapture-1.0"
-RDEPENDS_nvgstcapture = "${PN} libgstapp-1.0 tegra-libraries-argus"
-FILES_nvgstplayer = "${bindir}/nvgstplayer-1.0"
-RDEPENDS_nvgstplayer = "${PN}"
+FILES_SOLIBSDEV = ""
+PACKAGES =+ "${PN}-nvcompositor"
 FILES_${PN}-nvcompositor = "${libdir}/gstreamer-1.0/libgstnvcompositor.so"
 FILES_${PN} = "${libdir}"
 DEBIAN_NOAUTONAME_${PN} = "1"
@@ -61,9 +47,6 @@ INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INSANE_SKIP_${PN}-nvcompositor = "dev-so ldflags build-deps"
 INSANE_SKIP_${PN} = "dev-so ldflags build-deps"
-INSANE_SKIP_${PN}-dev = "ldflags build-deps"
-INSANE_SKIP_nvgstcapture = "ldflags build-deps"
-INSANE_SKIP_nvgstplayer = "ldflags build-deps"
-RDEPENDS_${PN} = "gstreamer1.0 libgstvideo-1.0 tegra-libraries libdrm"
+RDEPENDS_${PN} = "gstreamer1.0 libgstvideo-1.0 glib-2.0 libegl tegra-libraries libdrm"
 RRECOMMENDS_${PN} = "gstreamer1.0-plugins-nvarguscamerasrc gstreamer1.0-plugins-nvv4l2camerasrc"
-RDEPENDS_${PN}-nvcompositor = "gstreamer1.0 libgstbadbase-1.0 libgstbadvideo-1.0 libgstvideo-1.0 tegra-libraries"
+RDEPENDS_${PN}-nvcompositor = "gstreamer1.0 libgstbadbase-1.0 libgstbadvideo-1.0 libgstvideo-1.0 glib-2.0 tegra-libraries"
