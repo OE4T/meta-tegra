@@ -12,7 +12,7 @@ sdramcfg_files="$3"
 odmdata="$4"
 
 here=$(readlink -f $(dirname "$0"))
-flashapp=$(which tegraflash.py)
+flashapp="$here/tegraflash.py"
 
 if [ ! -e ./flashvars ]; then
     echo "ERR: missing flash variables file" >&2
@@ -34,7 +34,7 @@ if [ -n "$FAB" -a -n "$CHIPREV" ]; then
     boardrev="$FAB"
     BOARDID="2888"
 else
-    chipid=`tegrarcm_v2 --uid | grep BR_CID | cut -d' ' -f2`
+    chipid=`$here/tegrarcm_v2 --uid | grep BR_CID | cut -d' ' -f2`
     if [ -z "$chipid" ]; then
 	echo "ERR: could not retrieve chip ID" >&2
 	exit 1
@@ -50,8 +50,8 @@ else
     CHIPREV="${chipid:5:1}"
     if python "$flashapp" --chip 0x19 --applet mb1_t194_prod.bin --skipuid --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
 		 --bins "mb2_applet nvtboot_applet_t194.bin" --cmd "dump eeprom boardinfo cvm.bin;reboot recovery"; then
-	BOARDID=`chkbdinfo -i cvm.bin | tr -d ' '`
-	boardrev=`chkbdinfo -f cvm.bin | tr -d ' '`
+	BOARDID=`$here/chkbdinfo -i cvm.bin | tr -d ' '`
+	boardrev=`$here/chkbdinfo -f cvm.bin | tr -d ' '`
 	boardrev=`echo $boardrev | tr [a-z] [A-Z]`
     else
 	echo "ERR: could not retrieve EEPROM board information" >&2
