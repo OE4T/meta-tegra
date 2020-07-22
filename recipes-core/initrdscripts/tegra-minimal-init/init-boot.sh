@@ -33,6 +33,9 @@ if [ -n "$wait" -a ! -b "${rootdev}" ]; then
 fi
 echo "Mounting ${rootdev}..."
 mount -t "${fstype}" -o "${opt}" "${rootdev}" /mnt || exec sh
+
+[ ! -f /etc/platform-pre-switchroot ] || . /etc/platform-pre-switchroot
+
 echo "Switching to rootfs on ${rootdev}..."
 mount --move /sys  /mnt/sys
 mount --move /proc /mnt/proc
