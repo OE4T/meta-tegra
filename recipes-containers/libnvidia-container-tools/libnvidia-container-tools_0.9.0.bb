@@ -17,15 +17,13 @@ DEPENDS = " \
     libtirpc \
     ldconfig-native \
 "
-LICENSE = "GPLv3 & Proprietary"
+LICENSE = "BSD-3-Clause & GPLv3 & Proprietary"
 
 LIC_FILES_CHKSUM = "\
     file://LICENSE;md5=06cff45c51018e430083a716510821b7 \
     file://COPYING;md5=1ebbd3e34237af26da5dc08a4e440464 \
     file://COPYING.LESSER;md5=3000208d539ec061b899bce1d9ce9404 \
 "
-
-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}-${PV}:"
 
 PR = "r1"
 
@@ -71,4 +69,4 @@ do_install () {
     oe_runmake install DESTDIR=${D}
 }
 
-INSANE_SKIP_${PN}_append = "already-stripped"
+INSANE_SKIP_${PN} = "already-stripped"
