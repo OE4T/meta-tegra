@@ -24,7 +24,7 @@ DEPENDS = "l4t-nvidia-glheaders"
 
 inherit autotools pkgconfig
 
-PACKAGE_ARCH_tegra = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
 
 PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
