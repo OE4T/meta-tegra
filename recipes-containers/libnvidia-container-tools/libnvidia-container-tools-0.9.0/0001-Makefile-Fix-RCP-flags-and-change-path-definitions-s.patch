@@ -1,17 +1,17 @@
-From 1e37d6f57b8cbbf6ab6b9b3b8bcf19a3231d1b9a Mon Sep 17 00:00:00 2001
+From f9756aeb7e5095f17cfbe6ec6cfac9ccf63554a5 Mon Sep 17 00:00:00 2001
 From: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
 Date: Thu, 6 Feb 2020 00:10:41 +0000
-Subject: [PATCH 1/2] Makefile: Fix RCP flags and change path definitions signs
+Subject: [PATCH] Makefile: Fix RCP flags and change path definitions signs
 
 Add RCP -ltirpc flag and fix equal signs on paths definitions.
 
 Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
 ---
- Makefile | 31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ Makefile | 33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 8f7f3b4..d5187b8 100644
+index 8f7f3b4..6150129 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -13,14 +13,14 @@ WITH_SECCOMP ?= yes
@@ -37,17 +37,23 @@ index 8f7f3b4..d5187b8 100644
  
  export PKG_DIR     ?= $(CURDIR)/pkg
  export TESTS_DIR   ?= $(CURDIR)/test
-@@ -118,7 +118,8 @@ CFLAGS   := -std=gnu11 -O0 -g3 -fdata-sections -ffunction-sections -fstack-prote
+@@ -114,11 +114,14 @@ LIB_PKGCFG  := $(LIB_NAME).pc
+ 
+ # Common flags
+ CPPFLAGS := -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 -g3 -D JETSON=$(JETSON) $(CPPFLAGS)
++CCNAME := $(shell $(CC) -v 2>&1 | grep -q "clang version" && echo clang || echo gcc)
++CPPFLAGS := -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 -g3 -D JETSON=$(JETSON) -DHOST_LIBDIR=$(libdir) $(CPPFLAGS)
+ CFLAGS   := -std=gnu11 -O0 -g3 -fdata-sections -ffunction-sections -fstack-protector -fno-strict-aliasing -fvisibility=hidden \
              -Wall -Wextra -Wcast-align -Wpointer-arith -Wmissing-prototypes -Wnonnull \
              -Wwrite-strings -Wlogical-op -Wformat=2 -Wmissing-format-attribute -Winit-self -Wshadow \
              -Wstrict-prototypes -Wunreachable-code -Wconversion -Wsign-conversion \
 -            -Wno-unknown-warning-option -Wno-format-extra-args -Wno-gnu-alignof-expression $(CFLAGS)
-+            -Wno-unknown-warning-option -Wno-format-extra-args -Wno-gnu-alignof-expression \
-+	    -I/usr/include/tirpc $(CFLAGS)
++            -Wno-format-extra-args $(if $(filter clang,$(CCNAME)),-Wno-unknown-warning-option -Wno-gnu-alignof-expression,) \
++	    -I=/usr/include/tirpc $(CFLAGS)
  LDFLAGS  := -Wl,-zrelro -Wl,-znow -Wl,-zdefs -Wl,--gc-sections $(LDFLAGS)
  LDLIBS   := $(LDLIBS)
  
-@@ -127,7 +128,7 @@ LIB_CPPFLAGS       = -DNV_LINUX -isystem $(DEPS_DIR)$(includedir) -include $(BUI
+@@ -127,7 +130,7 @@ LIB_CPPFLAGS       = -DNV_LINUX -isystem $(DEPS_DIR)$(includedir) -include $(BUI
  LIB_CFLAGS         = -fPIC
  LIB_LDFLAGS        = -L$(DEPS_DIR)$(libdir) -shared -Wl,-soname=$(LIB_SONAME)
  LIB_LDLIBS_STATIC  = -l:libnvidia-modprobe-utils.a
@@ -56,7 +62,7 @@ index 8f7f3b4..d5187b8 100644
  ifeq ($(WITH_LIBELF), yes)
  LIB_CPPFLAGS       += -DWITH_LIBELF
  LIB_LDLIBS_SHARED  += -lelf
-@@ -156,6 +157,10 @@ BIN_CFLAGS         = -I$(SRCS_DIR) -fPIE -flto $(CFLAGS)
+@@ -156,6 +159,10 @@ BIN_CFLAGS         = -I$(SRCS_DIR) -fPIE -flto $(CFLAGS)
  BIN_LDFLAGS        = -L. -pie $(LDFLAGS) -Wl,-rpath='$$ORIGIN/../$$LIB'
  BIN_LDLIBS         = -l:$(LIB_SHARED) -lcap $(LDLIBS)
  
@@ -67,7 +73,7 @@ index 8f7f3b4..d5187b8 100644
  $(word 1,$(LIB_RPC_SRCS)): RPCGENFLAGS=-h
  $(word 2,$(LIB_RPC_SRCS)): RPCGENFLAGS=-c
  $(word 3,$(LIB_RPC_SRCS)): RPCGENFLAGS=-m
-@@ -226,12 +231,12 @@ static: $(LIB_STATIC)($(LIB_STATIC_OBJ))
+@@ -226,12 +233,12 @@ static: $(LIB_STATIC)($(LIB_STATIC_OBJ))
  deps: export DESTDIR:=$(DEPS_DIR)
  deps: $(LIB_RPC_SRCS) $(BUILD_DEFS)
  	$(MKDIR) -p $(DEPS_DIR)
@@ -83,6 +89,3 @@ index 8f7f3b4..d5187b8 100644
  endif
  
  install: all
--- 
-2.23.0
-
