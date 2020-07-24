@@ -19,7 +19,7 @@ SRC_URI[sb.sha256sum] = "${SB_SHA256SUM}"
 
 inherit l4t_bsp
 
-S = "${TMPDIR}/work-shared/L4T-${SOC_FAMILY}-${PV}-${PR}/Linux_for_Tegra"
+S = "${TMPDIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-${PR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
 
 INHIBIT_PACKAGE_STRIP = "1"

@@ -39,3 +39,6 @@ PREFERRED_VERSION_cuda-binaries-native = "${CUDA_VERSION}%"
 PREFERRED_VERSION_cuda-toolkit-native = "${CUDA_VERSION}%"
 # Tegra specific version of libnvidia-container
 PREFERRED_VERSION_libnvidia-container-tools = "0.9.0"
+
+L4T_BSP_ARCH = "tegra"
+L4T_BSP_PKGARCH = "${TEGRA_PKGARCH}"

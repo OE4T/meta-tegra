@@ -31,4 +31,4 @@ python do_unpack() {
 }
 
 COMPATIBLE_MACHINE = "tegra"
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH = "${L4T_BSP_PKGARCH}"
