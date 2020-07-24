@@ -13,7 +13,7 @@ SRC_URI[lib.sha256sum] = "899405cf41d55e11b9000a25ac70c5523307b06eaad90ef603468b
 SRC_URI[dev.sha256sum] = "4b581303d1515d9a204b6639dd0bfee3b27571602f289abe707350abbe3a268d"
 SRC_URI[doc.sha256sum] = "dc9c550a0bd3160917f1bf2921f8542a4c8cb52ba8c0ebe789c2076ab8b7f242"
 COMPATIBLE_MACHINE = "(tegra)"
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
 def extract_basever(d):
     ver = d.getVar('PV').split('-')[0]
