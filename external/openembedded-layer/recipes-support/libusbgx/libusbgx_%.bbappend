@@ -15,4 +15,4 @@ FILES_${PN}-examples = "${bindir}/gadget-acm-ecm ${bindir}/gadget-export ${bindi
                         ${bindir}/gadget-hid ${bindir}/gadget-midi ${bindir}/gadget-ms \
                         ${bindir}/gadget-rndis-os-desc ${bindir}/gadget-uac2"
 RRECOMMENDS_${PN}_append_tegra = " kernel-module-tegra-xudc"
-PACKAGE_ARCH_tegra = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
