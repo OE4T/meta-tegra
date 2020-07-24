@@ -28,4 +28,4 @@ do_install() {
 }
 
 FILES_${PN} = "/environment-setup.d"
-PACKAGE_ARCH_tegra = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"

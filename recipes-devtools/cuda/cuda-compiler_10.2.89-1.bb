@@ -14,7 +14,7 @@ do_compile[noexec] = "1"
 do_install[noexec] = "1"
 
 COMPATIBLE_MACHINE_class-target = "tegra"
-PACKAGE_ARCH_class-target = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_class-target = "${TEGRA_PKGARCH}"
 
 PACKAGES = "${PN} ${PN}-dev"
 ALLOW_EMPTY_${PN} = "1"
