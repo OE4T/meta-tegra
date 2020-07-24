@@ -1,5 +1,3 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
-
 PACKAGE_ARCH_tegra = "${MACHINE_ARCH}"
 
 do_install_append_tegra() {
@@ -7,7 +5,5 @@ do_install_append_tegra() {
     rmdir ${D}${sysconfdir} 2>/dev/null || true
 }
 
-RCONFDEPS = ""
-RCONFDEPS_tegra = "tegra-configs-alsa"
-RDEPENDS_${PN} += "${RCONFDEPS}"
-ALLOW_EMPTY_${PN} = "1"
+RDEPENDS_${PN}_append_tegra = " tegra-configs-alsa"
+ALLOW_EMPTY_${PN}_tegra = "1"
