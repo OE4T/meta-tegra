@@ -32,4 +32,4 @@ FILES_libv4l-dev += "${includedir} ${libdir}/pkgconfig \
 RDEPENDS_libv4l = " ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', '${CONTAINER_CSV_PKGNAME}', '', d)}"
 RDEPENDS_${PN}_remove = " ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', '${CONTAINER_CSV_PKGNAME}', '', d)}"
 RRECOMMENDS_libv4l = "tegra-libraries-libv4l-plugins"
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH = "${TEGRA_PKGARCH}"
