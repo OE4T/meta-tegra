@@ -37,4 +37,4 @@ INHIBIT_SYSROOT_STRIP = "1"
 
 FILES_${PN}-dev += "${datadir}/visionworks"
 RDEPENDS_${PN} = "libstdc++"
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH = "${TEGRA_PKGARCH}"
