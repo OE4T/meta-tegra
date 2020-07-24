@@ -4,10 +4,10 @@ SECTION = "base"
 
 require tegra-binaries-${PV}.inc
 
-WORKDIR = "${TMPDIR}/work-shared/L4T-${SOC_FAMILY}-${PV}-${PR}"
+WORKDIR = "${TMPDIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-${PR}"
 SSTATE_SWSPEC = "sstate:tegra-binaries::${PV}:${PR}::${SSTATE_VERSION}:"
-STAMP = "${STAMPS_DIR}/work-shared/L4T-${SOC_FAMILY}-${PV}-${PR}"
-STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-${SOC_FAMILY}-${PV}-*"
+STAMP = "${STAMPS_DIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-${PR}"
+STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-*"
 
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS = ""
