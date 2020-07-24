@@ -136,4 +136,4 @@ inherit container-runtime-csv
 CONTAINER_CSV_FILES = "${prefix}/local/*"
 
 COMPATIBLE_MACHINE_class-target = "(tegra)"
-PACKAGE_ARCH_class-target = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_class-target = "${TEGRA_PKGARCH}"
