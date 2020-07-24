@@ -21,7 +21,7 @@ inherit autotools pkgconfig features_check python3native
 
 S = "${WORKDIR}/git"
 
-PACKAGE_ARCH_tegra = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
 
 PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
