@@ -28,4 +28,5 @@ do_install() {
 }
 
 FILES_${PN} = "/environment-setup.d"
+RDEPENDS_${PN} = "tegra-cmake-overrides"
 PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"

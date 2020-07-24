@@ -32,10 +32,11 @@ CUDA_NATIVEDEPS = "cuda-compiler-native cuda-cudart-native"
 CUDA_NATIVEDEPS_class-native = ""
 CUDA_DEPENDS = "cuda-toolkit ${CUDA_NATIVEDEPS}"
 
-DEPENDS_append_cuda = " ${CUDA_DEPENDS}"
+DEPENDS_append_cuda = " ${CUDA_DEPENDS} ${@'tegra-cmake-overrides' if bb.data.inherits_class('cmake', d) else ''}"
 PATH_append_cuda = ":${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}/bin"
 
-# The following are for the new-style (CMake 3.8+) CUDA language support
+# The following are for the new-style (CMake 3.8+) CUDA language
+# support and to hook in our override of FindCUDA.cmake.
 cmake_do_generate_toolchain_file_append_cuda() {
     cat >> ${WORKDIR}/toolchain.cmake <<EOF
 set(CMAKE_CUDA_TOOLKIT_ROOT_DIR "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}" CACHE PATH "" FORCE)
