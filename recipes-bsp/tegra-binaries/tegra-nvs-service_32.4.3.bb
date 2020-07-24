@@ -26,4 +26,4 @@ INITSCRIPT_PARAMS = "defaults"
 SYSTEMD_SERVICE_${PN} = "nvs-service.service"
 RDEPENDS_${PN} = "tegra-nvs-base"
 
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH = "${TEGRA_PKGARCH}"
