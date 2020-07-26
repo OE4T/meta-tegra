@@ -3,7 +3,7 @@ CUDA_NVCC_PATH_FLAGS ??= "--include-path ${STAGING_DIR_HOST}/usr/local/cuda-${CU
 CUDA_NVCC_EXTRA_FLAGS ??= ""
 CUDA_NVCC_FLAGS ?= "${CUDA_NVCC_ARCH_FLAGS} ${CUDA_NVCC_COMPAT_FLAGS} ${CUDA_NVCC_PATH_FLAGS} ${CUDA_NVCC_EXTRA_FLAGS}"
 
-CUDA_CXXFLAGS = "-I=/usr/local/cuda-${CUDA_VERSION}/include"
+CUDA_CXXFLAGS = "-I${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}/include -I=/usr/local/cuda-${CUDA_VERSION}/include"
 CUDA_LDFLAGS = "\
    -L=/usr/local/cuda-${CUDA_VERSION}/${baselib} -L=/usr/local/cuda-${CUDA_VERSION}/${baselib}/stubs \
   -Wl,-rpath-link,${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/${baselib} \
@@ -30,7 +30,7 @@ export CUDA_PATH = "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}"
 
 CUDA_NATIVEDEPS = "cuda-compiler-native cuda-cudart-native"
 CUDA_NATIVEDEPS_class-native = ""
-CUDA_DEPENDS = "cuda-toolkit ${CUDA_NATIVEDEPS}"
+CUDA_DEPENDS = "cuda-libraries ${CUDA_NATIVEDEPS}"
 
 DEPENDS_append_cuda = " ${CUDA_DEPENDS} ${@'tegra-cmake-overrides' if bb.data.inherits_class('cmake', d) else ''}"
 PATH_append_cuda = ":${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}/bin"
@@ -41,7 +41,7 @@ cmake_do_generate_toolchain_file_append_cuda() {
     cat >> ${WORKDIR}/toolchain.cmake <<EOF
 set(CMAKE_CUDA_TOOLKIT_ROOT_DIR "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}" CACHE PATH "" FORCE)
 set(CMAKE_CUDA_TOOLKIT_TARGET_DIR "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}" CACHE PATH "" FORCE)
-set(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include" CACHE PATH "" FORCE)
+set(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES "${CMAKE_CUDA_TOOLKIT_ROOT_DIR}/include ${CMAKE_CUDA_TOOLKIT_TARGET_DIR}/include" CACHE PATH "" FORCE)
 EOF
 }
 
