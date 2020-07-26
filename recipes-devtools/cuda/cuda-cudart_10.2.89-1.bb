@@ -1,4 +1,4 @@
-DEPENDS = "cuda-driver cuda-misc-headers"
+DEPENDS = "cuda-driver cuda-misc-headers cuda-nvcc-headers"
 
 require cuda-shared-binaries-${PV}.inc
 
@@ -26,5 +26,5 @@ FILES_${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*.a \
                     ${@' ${prefix}/local/cuda-${CUDA_VERSION}/lib64' if d.getVar('baselib') != 'lib64' and d.getVar('SITEINFO_BITS') == '64' else ''}"
 FILES_${PN}-staticdev = ""
 INSANE_SKIP_${PN}-dev += "staticdev"
-RDEPENDS_${PN}-dev_append_class-target = " cuda-target-environment"
+RDEPENDS_${PN}-dev_append_class-target = " cuda-nvcc-headers cuda-target-environment"
 BBCLASSEXTEND = "native nativesdk"
