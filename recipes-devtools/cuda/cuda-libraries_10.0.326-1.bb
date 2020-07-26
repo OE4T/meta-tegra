@@ -1,11 +1,17 @@
 DESCRIPTION = "Dummy recipe for bringing in CUDA tools and libraries"
 LICENSE = "MIT"
 
-DEPENDS = " \
-    cuda-command-line-tools \
-    cuda-compiler \
-    cuda-libraries \
+CUDA_COMPONENTS = " \
+    cuda-nvrtc \
+    cuda-cusolver \
+    cuda-cublas \
+    cuda-cufft \
+    cuda-curand \
+    cuda-cusparse \
+    cuda-npp \
+    cuda-cudart \
 "
+DEPENDS = "${CUDA_COMPONENTS}"
 
 do_fetch[noexec] = "1"
 do_unpack[noexec] = "1"
@@ -19,6 +25,5 @@ PACKAGE_ARCH_class-target = "${TEGRA_PKGARCH}"
 
 PACKAGES = "${PN} ${PN}-dev"
 ALLOW_EMPTY_${PN} = "1"
-RDEPENDS_${PN} = "cuda-command-line-tools cuda-compiler cuda-libraries-dev"
-INSANE_SKIP_${PN} = "dev-deps"
+RDEPENDS_${PN} = "${CUDA_COMPONENTS} cuda-nvcc-headers"
 BBCLASSEXTEND = "native nativesdk"
