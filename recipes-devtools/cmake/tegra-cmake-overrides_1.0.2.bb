@@ -3,7 +3,14 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=d171e3bbe1251b3bc6c85aa9c5bf36f5"
 
 SRC_URI = "https://github.com/madisongh/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
-SRC_URI[sha256sum] = "fd8e1da492fb1a3124525c52e789d3c70a310f4dfee7b3d18372e3db72ca7ad2"
+SRC_URI[sha256sum] = "0d87debfa1050a2867143e2bf32cd824e90aec1ca2f9690d27b261da7a8134de"
+
+DEPENDS = "cmake-native"
+
+do_configure() {
+    ./configure
+    [ -e Makefile ] || bberror "configure script failed"
+}
 
 do_install() {
     oe_runmake install DESTDIR="${D}"
