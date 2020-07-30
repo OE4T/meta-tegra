@@ -9,7 +9,7 @@ imgfile=
 dataimg=
 blocksize=4096
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,datafile:" -o "u:v:s:b:B:y" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,datafile:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
