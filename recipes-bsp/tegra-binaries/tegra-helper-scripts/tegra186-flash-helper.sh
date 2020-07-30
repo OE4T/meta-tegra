@@ -7,7 +7,7 @@ flash_cmd=
 imgfile=
 dataimg=
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,datafile:" -o "u:v:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,datafile:" -o "u:v:c:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
