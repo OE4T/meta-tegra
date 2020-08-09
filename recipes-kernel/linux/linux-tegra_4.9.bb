@@ -7,6 +7,9 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 inherit l4t_bsp
 require recipes-kernel/linux/linux-yocto.inc
 
+DEPENDS_remove = "kern-tools-native"
+DEPENDS_append = " kern-tools-tegra-native"
+
 LINUX_VERSION ?= "4.9.140"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
@@ -15,13 +18,15 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')
 SCMVERSION ??= "y"
 
 SRCBRANCH = "patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "0be1a57448010ae60505acf4e2153638455cee7c"
+SRCREV = "a58470bb0f05f9189781448eb64599cc4aac49af"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/madisongh/linux-tegra-4.9"
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
 	   ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
 "
+
+PATH_prepend = "${STAGING_BINDIR_NATIVE}/kern-tools-tegra:"
 
 KBUILD_DEFCONFIG = "tegra_defconfig"
 KCONFIG_MODE = "--alldefconfig"
@@ -33,6 +38,10 @@ set_scmversion() {
     fi
 }
 do_kernel_checkout[postfuncs] += "set_scmversion"
+
+python do_kernel_configcheck_prepend() {
+    os.environ['KERNEL_OVERLAYS'] = d.expand("${S}/nvidia ${S}/nvidia/nvgpu")
+}
 
 bootimg_from_bundled_initramfs() {
     if [ ! -z "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" = "1" ]; then
