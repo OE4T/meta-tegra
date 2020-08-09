@@ -1,0 +1,123 @@
+From 9914732447d02e9ebd423aa9ca37f7216848bdbf Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 8 Aug 2020 08:48:13 -0700
+Subject: [PATCH] Add kernel overlays support to kconfiglib
+
+---
+ Kconfiglib/kconfiglib.py | 41 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 39 insertions(+), 2 deletions(-)
+
+diff --git a/Kconfiglib/kconfiglib.py b/Kconfiglib/kconfiglib.py
+index c67895c..df80f0f 100644
+--- a/Kconfiglib/kconfiglib.py
++++ b/Kconfiglib/kconfiglib.py
+@@ -815,6 +815,7 @@ class Kconfig(object):
+         "_functions",
+         "_set_match",
+         "_srctree_prefix",
++        "_overlays",
+         "_unset_match",
+         "_warn_assign_no_prompt",
+         "choices",
+@@ -967,6 +968,8 @@ class Kconfig(object):
+         # because it assumes symlink/../foo is the same as foo/.
+         self._srctree_prefix = realpath(self.srctree) + os.sep
+ 
++        self._overlays = [self._srctree_prefix] + [realpath(o) + os.sep for o in os.getenv("KERNEL_OVERLAYS", "").split()]
++
+         self.warn = warn
+         self.warn_to_stderr = warn_to_stderr
+         self.warn_assign_undef = os.getenv("KCONFIG_WARN_UNDEF_ASSIGN") == "y"
+@@ -2971,7 +2974,13 @@ class Kconfig(object):
+                 # - Sort the glob results to ensure a consistent ordering of
+                 #   Kconfig symbols, which indirectly ensures a consistent
+                 #   ordering in e.g. .config files
+-                filenames = sorted(iglob(join(self._srctree_prefix, pattern)))
++                #
++                # - With overlays, apply the sort per-overlay, and keep the
++                #   order by overlay so a Kconfig in one overlay can 'append'
++                #   to files seen in earlier trees
++                filenames = []
++                for prefix in self._overlays:
++                    filenames += sorted(iglob(join(prefix, pattern)))
+ 
+                 if not filenames and t0 in _OBL_SOURCE_TOKENS:
+                     raise KconfigError(
+@@ -3030,6 +3039,29 @@ class Kconfig(object):
+ 
+                 prev.next = prev = node
+ 
++            elif t0 is _T_APPEND_MENU:
++                prompt = (self._expect_str_and_eol(), self.y)
++                found = None
++                for node in self.menus:
++                    if node.prompt == prompt:
++                        found = node
++                        break
++                if found is None:
++                    raise KconfigError("append_menu for non-existent menu '{}' in {}".format(prompt, self.filename))
++                node = found
++                node._node_stack += [(node.kconfig, node.visibility, node.parent, node.filename, node.linenr, node.include_path)]
++                node.kconfig = self
++                node.visibility = self.y
++                node.parent = parent
++                node.filename = self.filename
++                node.linenr = self.linenr
++                node.include_path = self._include_path
++
++                self._parse_props(node)
++                self._parse_block(_T_ENDMENU, node, node)
++
++                prev.next = prev = node
++
+             elif t0 is _T_COMMENT:
+                 node = MenuNode()
+                 node.kconfig = self
+@@ -5622,6 +5654,7 @@ class MenuNode(object):
+         "parent",
+         "prompt",
+         "visibility",
++        "_node_stack",
+ 
+         # Properties
+         "defaults",
+@@ -5638,6 +5671,7 @@ class MenuNode(object):
+         self.selects = []
+         self.implies = []
+         self.ranges = []
++        self._node_stack = []
+ 
+     @property
+     def orig_prompt(self):
+@@ -6851,6 +6885,7 @@ except AttributeError:
+ (
+     _T_ALLNOCONFIG_Y,
+     _T_AND,
++    _T_APPEND_MENU,
+     _T_BOOL,
+     _T_CHOICE,
+     _T_CLOSE_PAREN,
+@@ -6899,13 +6934,14 @@ except AttributeError:
+     _T_TRISTATE,
+     _T_UNEQUAL,
+     _T_VISIBLE,
+-) = range(1, 51)
++) = range(1, 52)
+ 
+ # Keyword to token map, with the get() method assigned directly as a small
+ # optimization
+ _get_keyword = {
+     "---help---":     _T_HELP,
+     "allnoconfig_y":  _T_ALLNOCONFIG_Y,
++    "append_menu":    _T_APPEND_MENU,
+     "bool":           _T_BOOL,
+     "boolean":        _T_BOOL,
+     "choice":         _T_CHOICE,
+@@ -7021,6 +7057,7 @@ _DEF_TOKEN_TO_TYPE = {
+ # these tokens. _T_CHOICE is included to avoid symbols being registered for
+ # named choices.
+ _STRING_LEX = frozenset({
++    _T_APPEND_MENU,
+     _T_BOOL,
+     _T_CHOICE,
+     _T_COMMENT,
