@@ -9,3 +9,5 @@ SRC_URI += " \
 S = "${WORKDIR}/trusty"
 
 require trusty-l4t.inc
+
+EXCLUDE_FROM_WORLD = "1"
