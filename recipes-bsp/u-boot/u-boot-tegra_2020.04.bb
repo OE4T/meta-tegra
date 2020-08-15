@@ -7,7 +7,7 @@ COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 
 DEPENDS += "bc-native dtc-native ${SOC_FAMILY}-flashtools-native"
 
-SRC_REPO ?= "github.com/madisongh/u-boot-tegra.git;protocol=https"
+SRC_REPO ?= "github.com/OE4T/u-boot-tegra.git;protocol=https"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 SRCBRANCH ?= "patches-v2020.04"
 SRCREV = "e9ee05aa8e07b7da360a63a24ed85f1b6a40b8bb"
