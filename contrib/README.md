@@ -9,12 +9,12 @@ gcc toolchain that is compatible with the version
 of the CUDA toolkit for the Jetson platforms.
 
 For more information, see
-[this wiki page](https://github.com/madisongh/meta-tegra/wiki/Using-gcc8-from-the-contrib-layer).
+[this wiki page](https://github.com/OE4T/meta-tegra/wiki/Using-gcc8-from-the-contrib-layer).
 
 
 Contributing
 ------------
 
-Please use GitHub (https://github.com/madisongh/meta-tegra) to submit
+Please use GitHub (https://github.com/OE4T/meta-tegra) to submit
 issues or pull requests, or add to the documentation on the wiki.
 Contributions are welcome!

@@ -68,13 +68,13 @@ PLEASE NOTE
   should be used if you intend to use CUDA. See the following wiki
   pages for instructions on including gcc 7 in your builds:
 
-  * [Using gcc7 from the contrib layer](https://github.com/madisongh/meta-tegra/wiki/Using-gcc7-from-the-contrib-layer)
-  * [Using linaro gcc7 for CUDA support](https://github.com/madisongh/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
+  * [Using gcc7 from the contrib layer](https://github.com/OE4T/meta-tegra/wiki/Using-gcc7-from-the-contrib-layer)
+  * [Using linaro gcc7 for CUDA support](https://github.com/OE4T/meta-tegra/wiki/Using-linaro-gcc7-for-CUDA-support)
 
 
 Contributing
 ------------
 
-Please use GitHub (https://github.com/madisongh/meta-tegra) to submit
+Please use GitHub (https://github.com/OE4T/meta-tegra) to submit
 issues or pull requests, or add to the documentation on the wiki.
 Contributions are welcome!
