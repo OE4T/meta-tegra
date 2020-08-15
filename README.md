@@ -62,7 +62,7 @@ PLEASE NOTE
   (the last version of OE-Core to supply gcc 8) to make it easier
   to use this older toolchain.
 
-  See [this wiki page](https://github.com/madisongh/meta-tegra/wiki/Using-gcc8-from-the-contrib-layer)
+  See [this wiki page](https://github.com/OE4T/meta-tegra/wiki/Using-gcc8-from-the-contrib-layer)
   for information on adding the `meta-tegra/contrib` layer to your
   builds and configuring them for GCC 8.
 
@@ -70,6 +70,6 @@ PLEASE NOTE
 Contributing
 ------------
 
-Please use GitHub (https://github.com/madisongh/meta-tegra) to submit
+Please use GitHub (https://github.com/OE4T/meta-tegra) to submit
 issues or pull requests, or add to the documentation on the wiki.
 Contributions are welcome!
