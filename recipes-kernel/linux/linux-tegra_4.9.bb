@@ -17,7 +17,7 @@ SCMVERSION ??= "y"
 SRCBRANCH = "patches${LINUX_VERSION_EXTENSION}"
 SRCREV = "0be1a57448010ae60505acf4e2153638455cee7c"
 KBRANCH = "${SRCBRANCH}"
-SRC_REPO = "github.com/madisongh/linux-tegra-4.9"
+SRC_REPO = "github.com/OE4T/linux-tegra-4.9"
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
 	   ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
