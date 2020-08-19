@@ -47,7 +47,8 @@ INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
-RDEPENDS_${PN} = "glib-2.0 gstreamer1.0 libgstvideo-1.0 libgstrtspserver-1.0 libgstapp-1.0 json-glib"
+RDEPENDS_${PN} = "glib-2.0 gstreamer1.0 libgstvideo-1.0 libgstrtspserver-1.0 libgstapp-1.0 json-glib \
+	          libvisionworks"
 RDEPENDS_${PN}-samples = "bash json-glib"
 RDEPENDS_${PN}-sources = "bash"
 
