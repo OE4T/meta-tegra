@@ -1,17 +1,18 @@
-From 4fb8438d09685b62fe9542bc08dc96ebaa820dc9 Mon Sep 17 00:00:00 2001
+From 75afa574e33befbe7f7f67f828d5d38f498d39fa Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Sat, 6 Jun 2020 06:33:34 -0700
+Date: Wed, 19 Aug 2020 04:53:27 -0700
 Subject: [PATCH] Fix search paths in FindCUDNN.cmake
 
-- CuDNN libraries are not located in CUDA toolkit
-- CuDNN version info is in cudnn_version.h, not cudnn.h,
-  starting with version 8
+CuDNN libraries are not located in the CUDA toolkit
+for Tegra platforms.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- cmake/FindCUDNN.cmake | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ cmake/FindCUDNN.cmake | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/cmake/FindCUDNN.cmake b/cmake/FindCUDNN.cmake
-index e115f80347..9efee59385 100644
+index 90d8b2ea78..9efee59385 100644
 --- a/cmake/FindCUDNN.cmake
 +++ b/cmake/FindCUDNN.cmake
 @@ -41,9 +41,12 @@ The following cache variables will be set if cuDNN was found. They may also be s
@@ -30,16 +31,6 @@ index e115f80347..9efee59385 100644
  endif()
  
  # find the include
-@@ -65,7 +68,11 @@ endif()
- 
- # extract version from the include
- if(CUDNN_INCLUDE_DIR)
--  file(READ "${CUDNN_INCLUDE_DIR}/cudnn.h" CUDNN_H_CONTENTS)
-+  if(EXISTS "${CUDNN_INCLUDE_DIR}/cudnn_version.h")
-+    file(READ "${CUDNN_INCLUDE_DIR}/cudnn_version.h" CUDNN_H_CONTENTS)
-+  else()
-+    file(READ "${CUDNN_INCLUDE_DIR}/cudnn.h" CUDNN_H_CONTENTS)
-+  endif()
- 
-   string(REGEX MATCH "define CUDNN_MAJOR ([0-9]+)" _ "${CUDNN_H_CONTENTS}")
-   set(CUDNN_MAJOR_VERSION ${CMAKE_MATCH_1} CACHE INTERNAL "")
+-- 
+2.25.1
+
