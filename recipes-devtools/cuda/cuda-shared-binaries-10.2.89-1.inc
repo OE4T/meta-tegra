@@ -19,9 +19,11 @@ DESCRIPTION = "CUDA package ${PN}"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/local/cuda-10.2/LICENSE;md5=659d2cacdb888a4ed2aa29014ed0302a \
 	            file://usr/local/cuda-10.2/doc/EULA.txt;md5=37774d0b88c5743e8fe8e5c10b057270"
-CUDA_BINARIES_DEFAULT = ""
-CUDA_BINARIES_DEFAULT_x86-64 = "cuda-binaries-ubuntu1804"
+
+CUDA_BINARIES_DEFAULT = "cuda-binaries-ubuntu1804"
+CUDA_BINARIES_DEFAULT_aarch64 = ""
 CUDA_BINARIES ??= "${CUDA_BINARIES_DEFAULT}"
+CUDA_BINARIES_aarch64 = ""
 
 def cuda_binaries_deps(d):
     cuda_binaries = d.getVar('CUDA_BINARIES')
