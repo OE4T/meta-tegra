@@ -2,7 +2,7 @@ DESCRIPTION = "NVIDIA Deepstream SDK"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/share/doc/deepstream-5.0/copyright;md5=f635f9f375e764ce281a2070599e2457"
 
-SRC_URI="https://repo.download.nvidia.com/jetson/common/pool/main/d/deepstream-5.0/deepstream-5.0_5.0.0-1_arm64.deb;subdir=deepstream-${PV}"
+SRC_URI="https://repo.download.nvidia.com/jetson/common/pool/main/d/deepstream-5.0/deepstream-5.0_5.0.0-1_arm64.deb;subdir=${BPN}"
 SRC_URI[sha256sum] = "a7a7015515883ac88c7587c7a2acfcf78510e539b84b702afd05f4f330faa55e"
 
 COMPATIBLE_MACHINE = "(tegra)"
@@ -12,7 +12,9 @@ DEPENDS = "gstreamer1.0 gstreamer1.0-rtsp-server tensorrt cudnn libcublas cuda-c
 
 inherit pkgconfig
 
+S = "${WORKDIR}/${BPN}"
 B = "${WORKDIR}/build"
+
 DEEPSTREAM_PATH = "/opt/nvidia/deepstream/deepstream-5.0"
 SYSROOT_DIRS += "${DEEPSTREAM_PATH}/lib/"
 
