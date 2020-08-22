@@ -1,4 +1,4 @@
-DESCRIPTION = "cboot bootloader for Tegra194"
+DESCRIPTION = "cboot bootloader for Tegra186/Tegra194"
   
 LICENSE = "MIT & BSD-2-Clause & BSD-3-Clause & Apache-2.0 & Zlib & Proprietary"
 LIC_FILES_CHKSUM = " \
@@ -16,14 +16,23 @@ inherit l4t_bsp
 
 L4T_BSP_NAME = "${L4T_SRCS_NAME}"
 
+
+SRC_TARBALL = "INVALID"
+SRC_TARBALL_tegra186 = "cboot_src_t18x"
+SRC_TARBALL_tegra194 = "cboot_src_t19x"
+
 SRC_URI = "\
-    ${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-${PV}.tbz2;subdir=${BP} \
+    ${L4T_URI_BASE}/${SRC_TARBALL}.tbz2;downloadfilename=${SRC_TARBALL}-${PV}.tbz2;subdir=${BP} \
     file://0001-Convert-Python-scripts-to-Python3.patch \
 "
-SRC_URI[sha256sum] = "2e053ef1f0931ad670c3f5ae75aba60ce7cbde8436d1fd4c2be3cdd2b60f1b88"
+
+SRC_SHA256SUM = "INVALID"
+SRC_SHA256SUM_tegra194 = "2e053ef1f0931ad670c3f5ae75aba60ce7cbde8436d1fd4c2be3cdd2b60f1b88"
+SRC_SHA256SUM_tegra186 = "8391b7c5c7d43d5e3af47aa486dbb9b108333a2914bbded24bedaa1cb070408c"
+SRC_URI[sha256sum] = "${SRC_SHA256SUM}"
 
 require cboot-l4t.inc
 
-COMPATIBLE_MACHINE = "(tegra194)"
+COMPATIBLE_MACHINE = "(tegra186|tegra194)"
 
 S = "${WORKDIR}/${BP}"
