@@ -16,6 +16,24 @@ LDFLAGS_append_cuda = " ${CUDA_LDFLAGS}"
 export CUDAHOSTCXX = "${@d.getVar('CXX').split()[0]}"
 export CUDAFLAGS = "${CUDA_NVCC_FLAGS} ${@' '.join(['-Xcompiler ' + arg for arg in d.getVar('CXX').split()[1:]])}"
 
+# meson uses 'CUFLAGS' for flags to pass to nvcc
+# and requires all nvcc, compiler, and linker flags to be
+# bundled into that one environment variable.
+#
+# Linker flags are passed via nvcc through directly to ld rather
+# than the gcc/g++ driver, so we have to scan through LDFLAGS
+# looking for linker options and strip them of the -Wl, prefix.
+def cuda_meson_ldflags(d):
+    linkargs = []
+    args = (d.getVar('LDFLAGS') or '').split()
+    for arg in args:
+        if arg.startswith('-Wl,'):
+            linkargs += [sub for sub in arg[4:].split(',')]
+        elif arg.startswith('--sysroot='):
+            linkargs.append(arg)
+    return '-Xlinker ' + ','.join(linkargs)
+CUFLAGS = "-ccbin ${@d.getVar('CXX').split()[0]} ${CUDAFLAGS} ${@' '.join(['-Xcompiler ' + arg for arg in d.getVar('CXXFLAGS').split()])} ${@cuda_meson_ldflags(d)}"
+
 # The following are for the old-style FindCUDA.cmake module (pre-3.8)
 CUDA_EXTRA_OECMAKE = '\
   -DCUDA_TOOLKIT_TARGET_DIR=${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION} \
@@ -45,7 +63,20 @@ set(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES "${CMAKE_CUDA_TOOLKIT_ROOT_DIR}/inclu
 EOF
 }
 
+meson_cuda_cross_config() {
+    cat >${WORKDIR}/meson-cuda.cross <<EOF
+[binaries]
+cuda = 'nvcc'
+EOF
+}
+MESON_CROSS_FILE_append_cuda_class-target = " --cross-file ${WORKDIR}/meson-cuda.cross"
+
 PACKAGE_ARCH_cuda = "${SOC_FAMILY_PKGARCH}"
 RDEPENDS_${PN}_append_tegra = " tegra-libraries"
 RRECOMMENDS_${PN}_append_tegra = " kernel-module-nvgpu"
 
+python() {
+    if bb.data.inherits_class('meson', d) and 'cuda' in d.getVar('OVERRIDES').split(':') and d.getVar('CLASSOVERRIDE') == 'class-target':
+        d.appendVarFlag('do_write_config', 'postfuncs', ' meson_cuda_cross_config')
+        d.setVarFlag('CUFLAGS', 'export', '1')
+}
