@@ -2,6 +2,7 @@ DESCRIPTION = "NVIDIA VisionWorks Plus (SFM) contains platform specific optimize
                computer vision primitives and algorithms with framework optimizied for NVIDIA platforms built on top of \
                NVIDIA Visionworks and extends its API"
 LICENSE = "Proprietary"
+HOMEPAGE = "https://developer.nvidia.com/embedded/visionworks"
 LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-sfm-repo/copyright;md5=99d8c0c1313afdf990f6407c07a88407"
 
 inherit nvidia_devnet_downloads container-runtime-csv

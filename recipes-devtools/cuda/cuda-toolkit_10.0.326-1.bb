@@ -1,5 +1,6 @@
 DESCRIPTION = "Dummy recipe for bringing in CUDA tools and libraries"
 LICENSE = "MIT"
+HOMEPAGE = "https://github.com/OE4T/meta-tegra"
 
 CUDA_COMPONENTS = " \
     cuda-nvrtc \

@@ -1,6 +1,7 @@
 DESCRIPTION = "CUDA sample programs"
 SRC_URI = ""
 LICENSE = "Proprietary"
+HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 LIC_FILES_CHKSUM = "file://EULA.txt;md5=049f8f2a31b8c3cc436cc63f0a72c9c9"
 
 COMPATIBLE_MACHINE = "(tegra)"

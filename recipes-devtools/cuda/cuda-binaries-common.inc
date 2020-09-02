@@ -1,5 +1,6 @@
 SUMMARY = "NVIDIA L4T CUDA binaries"
 DESCRIPTION = "Downloads NVIDIA L4T binary-only CUDA packages for sharing with other recipes"
+HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 SECTION = "dev"
 
 require cuda-binaries-common-defs.inc

@@ -1,5 +1,6 @@
 DESCRIPTION = "Dummy recipe for bringing in CUDA compilation tools"
 LICENSE = "MIT"
+HOMEPAGE = "https://github.com/OE4T/meta-tegra"
 
 PR = "r1"
 

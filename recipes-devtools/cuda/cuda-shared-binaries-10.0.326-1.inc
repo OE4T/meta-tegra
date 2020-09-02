@@ -13,6 +13,7 @@ deltask do_patch
 DESCRIPTION = "CUDA package ${PN}"
 SRC_URI = ""
 LICENSE = "Proprietary"
+HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 LIC_FILES_CHKSUM = "file://usr/local/cuda-10.0/LICENSE;md5=dfb2d23fe5070ac47b201fbf1e497891 \
 	            file://usr/local/cuda-10.0/doc/EULA.txt;md5=049f8f2a31b8c3cc436cc63f0a72c9c9"
 CUDA_BINARIES_NATIVE ??= "cuda-binaries-ubuntu1804-native"

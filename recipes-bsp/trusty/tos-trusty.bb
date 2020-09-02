@@ -1,5 +1,6 @@
 DESCRIPTION = "Construct a trusted OS image with ATF and Trusty"
 LICENSE = "MIT"
+HOMEPAGE = "https://github.com/OE4T/meta-tegra"
 
 COMPATIBLE_MACHINE = "(tegra186|tegra194)"
 
