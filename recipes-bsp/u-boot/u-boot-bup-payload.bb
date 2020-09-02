@@ -1,5 +1,6 @@
 DESCRIPTION = "Generates a bootloader update payload for use with nv_update_engine when using U-Boot on tegra186 platforms."
 LICENSE = "MIT"
+HOMEPAGE = "https://github.com/OE4T/meta-tegra"
 
 COMPATIBLE_MACHINE = "(tegra)"
 

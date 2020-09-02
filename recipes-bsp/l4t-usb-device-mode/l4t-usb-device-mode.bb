@@ -1,6 +1,7 @@
 DESCRIPTION = "Configuration for setting up L4T USB device mode gadgets"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+HOMEPAGE = "https://github.com/OE4T/meta-tegra"
 
 SRC_URI = "\
     file://70-l4t-usb-gadget.network \

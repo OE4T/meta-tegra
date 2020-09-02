@@ -1,5 +1,6 @@
 DESCRIPTION = "Minimal initramfs image for Tegra platforms"
 LICENSE = "MIT"
+HOMEPAGE = "https://github.com/OE4T/meta-tegra"
 
 TEGRA_INITRD_INSTALL ??= ""
 INITRD_FSTYPES ??= "${INITRAMFS_FSTYPES}"

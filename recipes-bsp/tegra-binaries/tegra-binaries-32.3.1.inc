@@ -1,4 +1,5 @@
 LICENSE = "Proprietary"
+HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=2cc00be68c1227a7c42ff3620ef75d05 \
                     file://nv_tegra/LICENSE.brcm_patchram_plus;md5=38fb07f0dacf4830bc57f40a0fb7532e"
 

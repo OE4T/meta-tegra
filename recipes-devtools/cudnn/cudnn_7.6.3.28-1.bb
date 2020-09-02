@@ -1,5 +1,6 @@
 SUMMARY = "NVIDIA CUDA Deep Neural Network library"
 LICENSE = "Proprietary"
+HOMEPAGE = "https://developer.nvidia.com/cudnn"
 LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v7.h;endline=48;md5=b48d68d7e5eb6b858c229fdb89171636"
 
 inherit nvidia_devnet_downloads container-runtime-csv

@@ -1,5 +1,6 @@
 DESCRIPTION = "NVIDIA VisionWorks Toolkit is a CUDA accelerated software development package for computer vision (CV) and image processing."
 LICENSE = "Proprietary"
+HOMEPAGE = "https://developer.nvidia.com/embedded/visionworks"
 LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-repo/copyright;md5=55bbad78645f10682903c530636cf1a9"
 
 inherit nvidia_devnet_downloads container-runtime-csv

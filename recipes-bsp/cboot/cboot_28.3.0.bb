@@ -1,6 +1,8 @@
 DESCRIPTION = "cboot bootloader for Tegra186"
 
 LICENSE = "MIT & BSD-2-Clause & BSD-3-Clause & Apache-2.0 & Zlib & Proprietary"
+HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
+
 LIC_FILES_CHKSUM = " \
     file://bootloader/partner/t18x/cboot/target/init.c;endline=22;md5=59dc0a752bc93e442d4ec3de8b1d8614 \
     file://bootloader/partner/t18x/cboot/kernel/semaphore.c;endline=15;md5=ff935df987c4efa30f6c5462f708f1a4 \
