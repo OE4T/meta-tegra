@@ -1,5 +1,4 @@
 DESCRIPTION = "NVIDIA v4l2camerasrc GStreamer plugin"
-HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 SECTION = "multimedia"
 LICENSE = "BSD-3-Clause & Proprietary"
 LIC_FILES_CHKSUM = "file://nvbuf_utils.h;endline=9;md5=afc209f3955d083a93f5009bc9a65a22 \

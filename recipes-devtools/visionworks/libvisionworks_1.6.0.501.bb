@@ -4,6 +4,8 @@ LIC_FILES_CHKSUM = "file://usr/share/doc/${BPN}/copyright;md5=55bbad78645f106829
 
 inherit l4t_deb_pkgfeed container-runtime-csv
 
+HOMEPAGE = "https://developer.nvidia.com/embedded/visionworks"
+
 SRC_COMMON_DEBS = "\
     libvisionworks_${PV}_arm64.deb;subdir=${BPN};name=lib \
     libvisionworks-dev_${PV}_all.deb;subdir=${BPN};name=dev \

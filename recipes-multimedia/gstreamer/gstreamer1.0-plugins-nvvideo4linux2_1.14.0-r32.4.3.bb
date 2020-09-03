@@ -1,5 +1,4 @@
 DESCRIPTION = "NVIDIA v4l2 GStreamer plugin"
-HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 SECTION = "multimedia"
 LICENSE = "LGPLv2 & BSD-3-Clause & Proprietary"
 LIC_FILES_CHKSUM = "file://LICENSE.gst-nvvideo4linux2;md5=457fb5d7ae2d8cd8cabcc21789a37e5c \

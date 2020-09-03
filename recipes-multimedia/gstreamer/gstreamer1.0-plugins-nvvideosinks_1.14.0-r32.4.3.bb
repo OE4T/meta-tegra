@@ -1,5 +1,4 @@
 DESCRIPTION = "NVIDIA video sinks GStreamer plugin"
-HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 SECTION = "multimedia"
 LICENSE = "LGPLv2 & Proprietary"
 LIC_FILES_CHKSUM = "file://LICENSE.libgstnvvideosinks;md5=86ed1f32df3aaa376956e408540c024b \
