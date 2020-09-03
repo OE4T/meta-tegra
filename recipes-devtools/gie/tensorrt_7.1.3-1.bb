@@ -1,8 +1,9 @@
 DESCRIPTION = "NVIDIA TensorRT (GPU Inference Engine) for deep learning"
-HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
 
 inherit l4t_deb_pkgfeed container-runtime-csv
+
+HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 
 PREFIX = "NoDLA-"
 PREFIX_tegra194 = "DLA-"

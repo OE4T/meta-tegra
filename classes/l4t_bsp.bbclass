@@ -1,3 +1,4 @@
+HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 L4T_BSP_NAME ??= "t186ref_release_aarch64"
 L4T_SRCS_NAME ??= "sources/T186"
 L4T_BSP_PREFIX ??= "Tegra186"

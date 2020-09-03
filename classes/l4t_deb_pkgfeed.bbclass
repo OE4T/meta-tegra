@@ -1,3 +1,4 @@
+HOMEPAGE = "https://developer.nvidia.com/embedded/jetpack"
 L4T_DEB_GROUP ?= "${BPN}"
 L4T_DEB_FEED_BASE ??= "https://repo.download.nvidia.com/jetson"
 

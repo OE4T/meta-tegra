@@ -1,4 +1,5 @@
 SUMMARY = "NVIDIA CUDA Deep Neural Network library"
+HOMEPAGE = "https://developer.nvidia.com/cudnn"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v8.h;endline=47;md5=55730a4c450a3c34d3734af620a7d6eb"
 

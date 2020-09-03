@@ -6,6 +6,8 @@ LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-sfm/copyright;md5=99d8c0
 
 inherit l4t_deb_pkgfeed container-runtime-csv
 
+HOMEPAGE = "https://developer.nvidia.com/embedded/visionworks"
+
 SRC_COMMON_DEBS = "\
     libvisionworks-sfm_${PV}_arm64.deb;subdir=${BPN};name=lib \
     libvisionworks-sfm-dev_${PV}_arm64.deb;subdir=${BPN};name=dev \
