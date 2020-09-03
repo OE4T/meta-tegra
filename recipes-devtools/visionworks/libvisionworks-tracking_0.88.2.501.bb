@@ -4,6 +4,8 @@ LIC_FILES_CHKSUM = "file://usr/share/doc/libvisionworks-tracking/copyright;md5=9
 
 inherit l4t_deb_pkgfeed container-runtime-csv
 
+HOMEPAGE = "https://developer.nvidia.com/embedded/visionworks"
+
 SRC_COMMON_DEBS = "\
     libvisionworks-tracking_${PV}_arm64.deb;subdir=${BPN};name=lib \
     libvisionworks-tracking-dev_${PV}_arm64.deb;subdir=${BPN};name=dev \

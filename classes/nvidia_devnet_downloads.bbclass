@@ -1,4 +1,5 @@
 NVIDIA_DEVNET_MIRROR ??= "file://NOTDEFINED"
+HOMEPAGE = "https://developer.nvidia.com/embedded/jetpack"
 SRC_URI[vardepsexclude] += "NVIDIA_DEVNET_MIRROR"
 
 python () {

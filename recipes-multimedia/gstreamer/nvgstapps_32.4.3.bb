@@ -1,5 +1,4 @@
 DESCRIPTION = "NVIDIA GStreamer applications"
-HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 SECTION = "multimedia"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://nvgst_sample_apps/nvgstcapture-1.0/nvgstcapture-1.0_README.txt;endline=21;md5=1e4984aeb6db6056fdde4cd672eb1f6f \
