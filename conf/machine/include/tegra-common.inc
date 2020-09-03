@@ -41,7 +41,6 @@ MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${TEGRA_ESSENTIAL_EXTRA_RDEPE
 MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev"
 MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu kernel-module-tegra-udrm"
 MACHINE_HWCODECS = "gstreamer1.0-omx-tegra gstreamer1.0-plugins-nvvideo4linux2"
-LICENSE_FLAGS_WHITELIST_append = " commercial_gstreamer1.0-omx-tegra"
 
 PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg"
 XSERVER = "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-module-libwfb"
