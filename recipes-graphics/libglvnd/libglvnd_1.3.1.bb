@@ -49,4 +49,5 @@ RCONFLICTS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
 RREPLACES_${PN} = "libegl libgl libgles1 ligbles2"
 RREPLACESS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
 
+RDEPENDS_${PN}_append_tegra = " tegra-libraries"
 RRECOMMENDS_${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'egl-wayland', '', d)}"
