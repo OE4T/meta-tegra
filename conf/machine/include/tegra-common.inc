@@ -28,7 +28,6 @@ IMAGE_CLASSES += "image_types_tegra"
 IMAGE_FSTYPES ?= "tegraflash"
 
 MACHINE_HWCODECS = "gstreamer1.0-omx-tegra gstreamer1.0-plugins-nvvideo4linux2"
-LICENSE_FLAGS_WHITELIST_append = " commercial_gstreamer1.0-omx-tegra"
 
 PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg"
 XSERVER = "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-module-libwfb"
