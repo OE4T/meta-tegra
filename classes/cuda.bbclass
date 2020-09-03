@@ -48,5 +48,4 @@ EOF
 
 PACKAGE_ARCH_cuda = "${SOC_FAMILY_PKGARCH}"
 RDEPENDS_${PN}_append_tegra = " tegra-libraries"
-RRECOMMENDS_${PN}_append_tegra = " kernel-module-nvgpu"
 
