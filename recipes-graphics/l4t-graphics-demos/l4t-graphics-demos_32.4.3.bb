@@ -46,15 +46,15 @@ do_compile() {
 	ldflags="-ldl"
         case $winsys in
 	    egldevice)
-	        cflags="$cflags `pkg-config --cflags libdrm`"
+	        cflags="$cflags -DEGL_NO_X11 `pkg-config --cflags libdrm`"
 		ldflags="$ldflags `pkg-config --libs libdrm`"
 		;;
             x11)
-	        cflags="$cflags `pkg-config --cflags x11`"
+	        cflags="$cflags -DX11 `pkg-config --cflags x11`"
                 ldflags="$ldflags `pkg-config --libs x11`"
 		;;
 	    wayland)
-	        cflags="$cflags `pkg-config --cflags xkbcommon wayland-client wayland-egl libffi`"
+	        cflags="$cflags -DEGL_NO_X11 -DWAYLAND `pkg-config --cflags xkbcommon wayland-client wayland-egl libffi`"
 		ldflags="$ldflags `pkg-config --libs xkbcommon wayland-client wayland-egl libffi`"
 		;;
 	esac
@@ -81,4 +81,5 @@ FILES_${PN}-x11 = "${bindir}/${BPN}/x11"
 FILES_${PN}-wayland = "${bindir}/${BPN}/wayland"
 FILES_${PN}-egldevice = "${bindir}/${BPN}/egldevice"
 ALLOW_EMPTY_${PN} = "1"
+RDEPENDS_${PN}-egldevice = "libdrm"
 RDEPENDS_${PN} = "${PN}-egldevice ${@' '.join(['${PN}-%s' % p for p in d.getVar('PACKAGECONFIG').split()])}"
