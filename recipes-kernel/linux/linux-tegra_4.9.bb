@@ -21,6 +21,7 @@ SRC_REPO = "github.com/OE4T/linux-tegra-4.9"
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
            ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
+           ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
 "
 
 KBUILD_DEFCONFIG = "tegra_defconfig"
