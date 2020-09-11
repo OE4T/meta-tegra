@@ -1,4 +1,4 @@
-From 0ed7d25672cf8a2e16f84e336568970e069e0930 Mon Sep 17 00:00:00 2001
+From 88dd51dc16f7a377fcb4ea5bbbd4de5d91376da0 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Tue, 1 Mar 2016 22:19:14 +0100
 Subject: [PATCH 4/6] backend-drm: Gracefully handle vblank and flip invalid
@@ -21,7 +21,7 @@ Reviewed-by: Andy Ritger <aritger@nvidia.com>
  1 file changed, 25 insertions(+), 3 deletions(-)
 
 diff --git a/libweston/backend-drm/drm.c b/libweston/backend-drm/drm.c
-index e0b1cbd7..bbce70e5 100644
+index 2780f3bd..94a2bf2a 100644
 --- a/libweston/backend-drm/drm.c
 +++ b/libweston/backend-drm/drm.c
 @@ -4,6 +4,7 @@
@@ -32,7 +32,7 @@ index e0b1cbd7..bbce70e5 100644
   *
   * Permission is hereby granted, free of charge, to any person obtaining
   * a copy of this software and associated documentation files (the
-@@ -318,6 +319,19 @@ drm_output_update_complete(struct drm_output *output, uint32_t flags,
+@@ -319,6 +320,19 @@ drm_output_update_complete(struct drm_output *output, uint32_t flags,
  
  	ts.tv_sec = sec;
  	ts.tv_nsec = usec * 1000;
@@ -52,7 +52,7 @@ index e0b1cbd7..bbce70e5 100644
  	weston_output_finish_frame(&output->base, &ts, flags);
  
  	/* We can't call this from frame_notify, because the output's
-@@ -525,8 +539,16 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
+@@ -555,8 +569,16 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
  	vbl.request.type |= drm_waitvblank_pipe(output);
  	ret = drmWaitVBlank(backend->drm.fd, &vbl);
  
@@ -71,7 +71,7 @@ index e0b1cbd7..bbce70e5 100644
  		ts.tv_sec = vbl.reply.tval_sec;
  		ts.tv_nsec = vbl.reply.tval_usec * 1000;
  
-@@ -547,7 +569,7 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
+@@ -577,7 +599,7 @@ drm_output_start_repaint_loop(struct weston_output *output_base)
  		}
  	}
  
@@ -81,5 +81,5 @@ index e0b1cbd7..bbce70e5 100644
  	 */
  
 -- 
-2.20.1
+2.25.1
 

@@ -1,4 +1,4 @@
-From e4f2e3aa56b3f8801dc056f9e015a7ec7e347113 Mon Sep 17 00:00:00 2001
+From 7aa3d8b22cf09f2b4bc40fb56bb2f909c45884b3 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 18 May 2017 14:35:36 -0700
 Subject: [PATCH 6/6] compositor: Process stream attach requests with
@@ -39,10 +39,10 @@ Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
  5 files changed, 182 insertions(+), 54 deletions(-)
 
 diff --git a/compositor/meson.build b/compositor/meson.build
-index e1334d6a..5fffeda8 100644
+index 9dc95f3f..0d35aa53 100644
 --- a/compositor/meson.build
 +++ b/compositor/meson.build
-@@ -9,6 +9,7 @@ srcs_weston = [
+@@ -10,6 +10,7 @@ srcs_weston = [
  	input_method_unstable_v1_protocol_c,
  	weston_screenshooter_server_protocol_h,
  	weston_screenshooter_protocol_c,
@@ -51,10 +51,10 @@ index e1334d6a..5fffeda8 100644
  deps_weston = [
  	dep_libshared,
 diff --git a/include/libweston/libweston.h b/include/libweston/libweston.h
-index dc54b170..3b3ffb41 100644
+index d036c5bb..b83c04f5 100644
 --- a/include/libweston/libweston.h
 +++ b/include/libweston/libweston.h
-@@ -912,6 +912,10 @@ struct weston_renderer {
+@@ -919,6 +919,10 @@ struct weston_renderer {
  	void (*query_dmabuf_modifiers)(struct weston_compositor *ec,
  				int format, uint64_t **modifiers,
  				int *num_modifiers);
@@ -66,7 +66,7 @@ index dc54b170..3b3ffb41 100644
  
  enum weston_capability {
 diff --git a/libweston/compositor.c b/libweston/compositor.c
-index dbc64927..f316902b 100644
+index 7fd4cc1e..ef1318b5 100644
 --- a/libweston/compositor.c
 +++ b/libweston/compositor.c
 @@ -3,6 +3,7 @@
@@ -85,7 +85,7 @@ index dbc64927..f316902b 100644
  
  #include "weston-log-internal.h"
  
-@@ -6911,6 +6913,80 @@ bind_presentation(struct wl_client *client,
+@@ -7042,6 +7044,80 @@ bind_presentation(struct wl_client *client,
  	wp_presentation_send_clock_id(resource, compositor->presentation_clock);
  }
  
@@ -166,17 +166,17 @@ index dbc64927..f316902b 100644
  static void
  compositor_bind(struct wl_client *client,
  		void *data, uint32_t version, uint32_t id)
-@@ -7278,6 +7354,8 @@ weston_compositor_create(struct wl_display *display,
+@@ -7392,6 +7468,8 @@ weston_compositor_create(struct wl_display *display,
  			      ec, bind_presentation))
  		goto fail;
  
 +	init_eglstream_controller(ec->wl_display);
 +
- 	if (weston_log_ctx_compositor_setup(ec, log_ctx) < 0)
+ 	if (weston_input_init(ec) != 0)
  		goto fail;
  
 diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
-index c081d1e5..4430bc4b 100644
+index 7204d687..7f75194b 100644
 --- a/libweston/renderer-gl/gl-renderer.c
 +++ b/libweston/renderer-gl/gl-renderer.c
 @@ -1,7 +1,7 @@
@@ -188,7 +188,7 @@ index c081d1e5..4430bc4b 100644
   *
   * Permission is hereby granted, free of charge, to any person obtaining
   * a copy of this software and associated documentation files (the
-@@ -2547,18 +2547,9 @@ gl_renderer_attach_dmabuf(struct weston_surface *surface,
+@@ -2639,18 +2639,9 @@ gl_renderer_attach_dmabuf(struct weston_surface *surface,
  	gs->shader = image->shader;
  }
  
@@ -210,7 +210,7 @@ index c081d1e5..4430bc4b 100644
  {
  #ifdef EGL_NV_stream_attrib
  	struct weston_compositor *ec = es->compositor;
-@@ -2567,65 +2558,110 @@ gl_renderer_attach_stream_texture(struct weston_surface *es,
+@@ -2659,65 +2650,110 @@ gl_renderer_attach_stream_texture(struct weston_surface *es,
  	EGLStreamKHR stream = EGL_NO_STREAM_KHR;
  	EGLAttrib stream_attribs[] = {
  #ifdef EGL_WL_wayland_eglstream
@@ -362,15 +362,15 @@ index c081d1e5..4430bc4b 100644
  	}
  
  	/* At this point we should have a valid stream handle */
-@@ -3796,6 +3832,8 @@ gl_renderer_display_create(struct weston_compositor *ec,
+@@ -3861,6 +3897,8 @@ gl_renderer_display_create(struct weston_compositor *ec,
+ 	gr->base.surface_get_content_size =
  		gl_renderer_surface_get_content_size;
  	gr->base.surface_copy_content = gl_renderer_surface_copy_content;
- 	gr->platform = platform;
 +	gr->base.attach_eglstream_consumer =
 +		gl_renderer_attach_eglstream_consumer;
- 	gr->egl_display = NULL;
  
- 	/* extension_suffix is supported */
+ 	if (gl_renderer_setup_egl_display(gr, options->egl_native_display,
+ 					  options->egl_platform_attribs) < 0)
 diff --git a/protocol/meson.build b/protocol/meson.build
 index 25cea5a8..1a42ee64 100644
 --- a/protocol/meson.build
@@ -404,5 +404,5 @@ index 25cea5a8..1a42ee64 100644
  		base_file = proto_name
  		xml_path = '@0@/stable/@1@/@1@.xml'.format(dir_wp_base, base_file)
 -- 
-2.20.1
+2.25.1
 

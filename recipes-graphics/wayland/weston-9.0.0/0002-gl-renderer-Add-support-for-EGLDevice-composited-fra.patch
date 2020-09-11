@@ -1,4 +1,4 @@
-From 0bc696502b2cf1266e30dfc35146d85282eaa629 Mon Sep 17 00:00:00 2001
+From d770a2849f17b36299f3202e4361113ee934e0e8 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 16:34:01 +0200
 Subject: [PATCH 2/6] gl-renderer: Add support for EGLDevice composited frame
@@ -41,18 +41,27 @@ Reviewed-by: Andy Ritger <aritger@nvidia.com>
 Reviewed-by: Adam Cheney <acheney@nvidia.com>
 Reviewed-by: James Jones <jajones@nvidia.com>
 ---
- libweston/renderer-gl/egl-glue.c             |  37 ++++
+ libweston/renderer-gl/egl-glue.c             |  41 +++
  libweston/renderer-gl/gl-renderer-internal.h |  22 ++
- libweston/renderer-gl/gl-renderer.c          | 199 ++++++++++++++++++-
+ libweston/renderer-gl/gl-renderer.c          | 259 ++++++++++++++++++-
  libweston/renderer-gl/gl-renderer.h          |  15 ++
- shared/weston-egl-ext.h                      |  40 ++++
- 5 files changed, 308 insertions(+), 5 deletions(-)
+ shared/weston-egl-ext.h                      |  40 +++
+ 5 files changed, 372 insertions(+), 5 deletions(-)
 
 diff --git a/libweston/renderer-gl/egl-glue.c b/libweston/renderer-gl/egl-glue.c
-index d96efeae..24d647b8 100644
+index 28be4ffe..a8206c65 100644
 --- a/libweston/renderer-gl/egl-glue.c
 +++ b/libweston/renderer-gl/egl-glue.c
-@@ -504,6 +504,19 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
+@@ -503,6 +503,8 @@ platform_to_extension(EGLenum platform)
+ 		return "x11";
+ 	case EGL_PLATFORM_SURFACELESS_MESA:
+ 		return "surfaceless";
++	case EGL_PLATFORM_DEVICE_EXT:
++		return "device";
+ 	default:
+ 		assert(0 && "bad EGL platform enum");
+ 	}
+@@ -600,6 +602,19 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
  		(void *) eglGetProcAddress("eglQueryWaylandBufferWL");
  	gr->set_damage_region =
  		(void *) eglGetProcAddress("eglSetDamageRegionKHR");
@@ -72,7 +81,7 @@ index d96efeae..24d647b8 100644
  
  	extensions =
  		(const char *) eglQueryString(gr->egl_display, EGL_EXTENSIONS);
-@@ -593,6 +606,30 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
+@@ -689,5 +704,31 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
  			   "to missing EGL_KHR_wait_sync extension\n");
  	}
  
@@ -100,16 +109,17 @@ index d96efeae..24d647b8 100644
 +	if (weston_check_egl_extension(extensions, "EGL_EXT_stream_acquire_mode"))
 +		gr->has_egl_stream_acquire_mode = true;
 +
- 	renderer_setup_egl_client_extensions(gr);
- 
++	gl_renderer_setup_egl_client_extensions(gr);
++
  	return 0;
+ }
 diff --git a/libweston/renderer-gl/gl-renderer-internal.h b/libweston/renderer-gl/gl-renderer-internal.h
-index 00f617a9..b7c374a2 100644
+index 529cb2f9..e122f64a 100644
 --- a/libweston/renderer-gl/gl-renderer-internal.h
 +++ b/libweston/renderer-gl/gl-renderer-internal.h
-@@ -87,6 +87,28 @@ struct gl_renderer {
- 	bool has_dmabuf_import;
+@@ -91,6 +91,28 @@ struct gl_renderer {
  	struct wl_list dmabuf_images;
+ 	struct wl_list dmabuf_formats;
  
 +	PFNEGLGETOUTPUTLAYERSEXTPROC get_output_layers;
 +	PFNEGLQUERYOUTPUTLAYERATTRIBEXTPROC query_output_layer_attrib;
@@ -137,7 +147,7 @@ index 00f617a9..b7c374a2 100644
  
  	struct gl_shader texture_shader_rgba;
 diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
-index 4bf95e60..fe4f1087 100644
+index 0c9e197a..26156e14 100644
 --- a/libweston/renderer-gl/gl-renderer.c
 +++ b/libweston/renderer-gl/gl-renderer.c
 @@ -91,6 +91,8 @@ struct gl_output_state {
@@ -149,7 +159,7 @@ index 4bf95e60..fe4f1087 100644
  	struct weston_matrix output_matrix;
  
  	EGLSyncKHR begin_render_sync, end_render_sync;
-@@ -1514,6 +1516,38 @@ gl_renderer_repaint_output(struct weston_output *output,
+@@ -1521,6 +1523,38 @@ gl_renderer_repaint_output(struct weston_output *output,
  	update_buffer_release_fences(compositor, output);
  }
  
@@ -188,7 +198,7 @@ index 4bf95e60..fe4f1087 100644
  static int
  gl_renderer_read_pixels(struct weston_output *output,
  			       pixman_format_code_t format, void *pixels,
-@@ -3142,9 +3176,93 @@ gl_renderer_create_window_surface(struct gl_renderer *gr,
+@@ -3238,9 +3272,93 @@ gl_renderer_create_window_surface(struct gl_renderer *gr,
  	return egl_surface;
  }
  
@@ -283,7 +293,7 @@ index 4bf95e60..fe4f1087 100644
  {
  	struct gl_output_state *go;
  	int i;
-@@ -3154,6 +3272,7 @@ gl_renderer_output_create(struct weston_output *output,
+@@ -3250,6 +3368,7 @@ gl_renderer_output_create(struct weston_output *output,
  		return -1;
  
  	go->egl_surface = surface;
@@ -291,7 +301,7 @@ index 4bf95e60..fe4f1087 100644
  
  	for (i = 0; i < BUFFER_DAMAGE_COUNT; i++)
  		pixman_region32_init(&go->buffer_damage[i]);
-@@ -3190,7 +3309,7 @@ gl_renderer_output_window_create(struct weston_output *output,
+@@ -3283,7 +3402,7 @@ gl_renderer_output_window_create(struct weston_output *output,
  		return -1;
  	}
  
@@ -300,7 +310,7 @@ index 4bf95e60..fe4f1087 100644
  	if (ret < 0)
  		weston_platform_destroy_egl_surface(gr->egl_display, egl_surface);
  
-@@ -3232,13 +3351,41 @@ gl_renderer_output_pbuffer_create(struct weston_output *output,
+@@ -3322,13 +3441,41 @@ gl_renderer_output_pbuffer_create(struct weston_output *output,
  		return -1;
  	}
  
@@ -343,7 +353,7 @@ index 4bf95e60..fe4f1087 100644
  static void
  gl_renderer_output_destroy(struct weston_output *output)
  {
-@@ -3268,6 +3415,9 @@ gl_renderer_output_destroy(struct weston_output *output)
+@@ -3358,6 +3505,9 @@ gl_renderer_output_destroy(struct weston_output *output)
  	if (go->end_render_sync != EGL_NO_SYNC_KHR)
  		gr->destroy_sync(gr->egl_display, go->end_render_sync);
  
@@ -353,30 +363,90 @@ index 4bf95e60..fe4f1087 100644
  	free(go);
  }
  
-@@ -3402,6 +3552,8 @@ platform_to_extension(EGLenum platform)
- 		return "x11";
- 	case EGL_PLATFORM_SURFACELESS_MESA:
- 		return "surfaceless";
-+	case EGL_PLATFORM_DEVICE_EXT:
-+		return "device";
- 	default:
- 		assert(0 && "bad EGL platform enum");
- 	}
-@@ -3530,7 +3682,8 @@ gl_renderer_display_create(struct weston_compositor *ec,
+@@ -3422,6 +3572,68 @@ gl_renderer_destroy(struct weston_compositor *ec)
+ 	free(gr);
+ }
+ 
++/** Checks whether a platform EGL client extension is supported
++ *
++ * \param ec The weston compositor
++ * \param extension_suffix The EGL client extension suffix
++ * \return 1 if supported, 0 if using fallbacks, -1 unsupported
++ *
++ * This function checks whether a specific platform_* extension is supported
++ * by EGL.
++ *
++ * The extension suffix should be the suffix of the platform extension (that
++ * specifies a platform argument as defined in EGL_EXT_platform_base). For
++ * example, passing "foo" will check whether either "EGL_KHR_platform_foo",
++ * "EGL_EXT_platform_foo", or "EGL_MESA_platform_foo" is supported.
++ *
++ * The return value is 1:
++ *   - if the supplied EGL client extension is supported.
++ * The return value is 0:
++ *   - if the platform_base client extension isn't supported so will
++ *     fallback to eglGetDisplay and friends.
++ * The return value is -1:
++ *   - if the supplied EGL client extension is not supported.
++ */
++static int
++gl_renderer_supports(struct weston_compositor *ec,
++		     const char *extension_suffix)
++{
++	static const char *extensions = NULL;
++	char s[64];
++
++	if (!extensions) {
++		extensions = (const char *) eglQueryString(
++			EGL_NO_DISPLAY, EGL_EXTENSIONS);
++
++		if (!extensions)
++			return 0;
++
++		gl_renderer_log_extensions("EGL client extensions",
++					   extensions);
++	}
++
++	if (!weston_check_egl_extension(extensions, "EGL_EXT_platform_base"))
++		return 0;
++
++	snprintf(s, sizeof s, "EGL_KHR_platform_%s", extension_suffix);
++	if (weston_check_egl_extension(extensions, s))
++		return 1;
++
++	snprintf(s, sizeof s, "EGL_EXT_platform_%s", extension_suffix);
++	if (weston_check_egl_extension(extensions, s))
++		return 1;
++
++	snprintf(s, sizeof s, "EGL_MESA_platform_%s", extension_suffix);
++	if (weston_check_egl_extension(extensions, s))
++		return 1;
++
++	/* at this point we definitely have some platform extensions but
++	 * haven't found the supplied platform, so chances are it's
++	 * not supported. */
++
++	return -1;
++}
++
+ static void
+ output_handle_destroy(struct wl_listener *listener, void *data)
+ {
+@@ -3503,7 +3715,8 @@ gl_renderer_display_create(struct weston_compositor *ec,
  	if (gl_renderer_setup_egl_extensions(ec) < 0)
  		goto fail_with_error;
  
 -	if (!gr->has_configless_context) {
 +	if (!gr->has_configless_context ||
-+	    platform == EGL_PLATFORM_DEVICE_EXT) {
- 		if (!gr->has_surfaceless_context)
- 			egl_surface_type |= EGL_PBUFFER_BIT;
++	    gr->platform == EGL_PLATFORM_DEVICE_EXT) {
+ 		EGLint egl_surface_type = options->egl_surface_type;
  
-@@ -3550,6 +3703,38 @@ gl_renderer_display_create(struct weston_compositor *ec,
+ 		if (!gr->has_surfaceless_context)
+@@ -3526,6 +3739,38 @@ gl_renderer_display_create(struct weston_compositor *ec,
  	if (gr->has_native_fence_sync && gr->has_wait_sync)
  		ec->capabilities |= WESTON_CAP_EXPLICIT_SYNC;
  
-+	if (platform == EGL_PLATFORM_DEVICE_EXT) {
++	if (gr->platform == EGL_PLATFORM_DEVICE_EXT) {
 +		if (!gr->has_egl_output_base ||
 +		    !gr->has_egl_output_drm ||
 +		    !gr->has_egl_stream ||
@@ -411,7 +481,7 @@ index 4bf95e60..fe4f1087 100644
  	wl_list_init(&gr->dmabuf_images);
  	if (gr->has_dmabuf_import) {
  		gr->base.import_dmabuf = gl_renderer_import_dmabuf;
-@@ -3914,9 +4099,13 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
+@@ -3892,9 +4137,13 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
  	.display_create = gl_renderer_display_create,
  	.output_window_create = gl_renderer_output_window_create,
  	.output_pbuffer_create = gl_renderer_output_pbuffer_create,
@@ -427,12 +497,12 @@ index 4bf95e60..fe4f1087 100644
 +	.output_stream_flip = gl_renderer_output_stream_flip
  };
 diff --git a/libweston/renderer-gl/gl-renderer.h b/libweston/renderer-gl/gl-renderer.h
-index b60a6463..ecf7368d 100644
+index 80c3379b..f46c21c6 100644
 --- a/libweston/renderer-gl/gl-renderer.h
 +++ b/libweston/renderer-gl/gl-renderer.h
-@@ -163,6 +163,9 @@ struct gl_renderer_interface {
- 				     const uint32_t *drm_formats,
- 				     unsigned drm_formats_count);
+@@ -179,6 +179,9 @@ struct gl_renderer_interface {
+ 	int (*output_pbuffer_create)(struct weston_output *output,
+ 				     const struct gl_renderer_pbuffer_options *options);
  
 +	int (*output_stream_create)(struct weston_output *output,
 +				    uint32_t plane_id, uint32_t crtc_id);
@@ -440,7 +510,7 @@ index b60a6463..ecf7368d 100644
  	void (*output_destroy)(struct weston_output *output);
  
  	/* Sets the output border.
-@@ -210,4 +213,16 @@ struct gl_renderer_interface {
+@@ -226,4 +229,16 @@ struct gl_renderer_interface {
  
  	int (*get_drm_device_file)(EGLDeviceEXT device,
  				   const char **drm_device_file);
@@ -516,5 +586,5 @@ index 4a757c8b..dc07c04a 100644
  #endif /* ENABLE_EGL */
  
 -- 
-2.20.1
+2.25.1
 

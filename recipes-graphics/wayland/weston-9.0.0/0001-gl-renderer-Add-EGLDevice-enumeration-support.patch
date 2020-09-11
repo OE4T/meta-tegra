@@ -1,4 +1,4 @@
-From e1cb3214647b044f1ba39fa8b0eff02a26bb894a Mon Sep 17 00:00:00 2001
+From 2c1ad32f151afdc6ee82f3ba6398cb19165828ec Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 15:56:37 +0200
 Subject: [PATCH 1/6] gl-renderer: Add EGLDevice enumeration support
@@ -21,10 +21,10 @@ Reviewed-by: James Jones <jajones@nvidia.com>
  2 files changed, 94 insertions(+)
 
 diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
-index 6c435507..4bf95e60 100644
+index d5bfe830..0c9e197a 100644
 --- a/libweston/renderer-gl/gl-renderer.c
 +++ b/libweston/renderer-gl/gl-renderer.c
-@@ -3826,6 +3826,90 @@ gl_renderer_setup(struct weston_compositor *ec, EGLSurface egl_surface)
+@@ -3804,6 +3804,90 @@ gl_renderer_setup(struct weston_compositor *ec, EGLSurface egl_surface)
  	return 0;
  }
  
@@ -115,7 +115,7 @@ index 6c435507..4bf95e60 100644
  WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
  	.display_create = gl_renderer_display_create,
  	.output_window_create = gl_renderer_output_window_create,
-@@ -3833,4 +3917,6 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
+@@ -3811,4 +3895,6 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
  	.output_destroy = gl_renderer_output_destroy,
  	.output_set_border = gl_renderer_output_set_border,
  	.create_fence_fd = gl_renderer_create_fence_fd,
@@ -123,7 +123,7 @@ index 6c435507..4bf95e60 100644
 +	.get_drm_device_file = gl_renderer_get_drm_device_file
  };
 diff --git a/libweston/renderer-gl/gl-renderer.h b/libweston/renderer-gl/gl-renderer.h
-index 2bca2d00..b60a6463 100644
+index 1430bb14..80c3379b 100644
 --- a/libweston/renderer-gl/gl-renderer.h
 +++ b/libweston/renderer-gl/gl-renderer.h
 @@ -40,6 +40,7 @@
@@ -134,7 +134,7 @@ index 2bca2d00..b60a6463 100644
  typedef void *EGLDisplay;
  typedef void *EGLSurface;
  typedef void *EGLConfig;
-@@ -202,4 +203,11 @@ struct gl_renderer_interface {
+@@ -218,4 +219,11 @@ struct gl_renderer_interface {
  	 * EGL_ANDROID_native_fence_sync extension.
  	 */
  	int (*create_fence_fd)(struct weston_output *output);
@@ -147,5 +147,5 @@ index 2bca2d00..b60a6463 100644
 +				   const char **drm_device_file);
  };
 -- 
-2.20.1
+2.25.1
 
