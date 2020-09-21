@@ -3,7 +3,7 @@
 SOC_FAMILY = "tegra194"
 
 require conf/machine/include/soc-family.inc
-DEFAULTTUNE ?= "armv8a"
+DEFAULTTUNE ?= "armv8a-crc"
 require conf/machine/include/arm/arch-armv8-2a.inc
 
 KERNEL_IMAGETYPE = "Image"
