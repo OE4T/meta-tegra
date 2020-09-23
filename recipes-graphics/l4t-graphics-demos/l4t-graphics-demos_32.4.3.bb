@@ -1,23 +1,8 @@
-require recipes-bsp/tegra-binaries/tegra-binaries-${PV}.inc
-require recipes-bsp/tegra-binaries/tegra-shared-binaries.inc
-
-SRC_PKG_PATH  := "${S}/nv_tegra"
-SRC_PKG_PATH[vardepvalue] = ""
-S = "${WORKDIR}/graphics_demos"
-B = "${S}"
+require l4t-graphics-demos.inc
 
 LICENSE = "MIT & Proprietary"
 LIC_FILES_CHKSUM = "file://README;endline=21;md5=9344f9b3e882bebae9422f515711d756 \
                     file://gears-cube/Makefile;endline=8;md5=a2d67caf4241d62192371ef03b193fea"
-
-do_unpack_from_tarfile() {
-    tar -C ${WORKDIR} -x --strip-components=3 --exclude "*/include/*" -f ${SRC_PKG_PATH}/graphics_demos.tbz2
-}
-do_unpack_from_tarfile[dirs] = "${WORKDIR}"
-do_unpack_from_tarfile[cleandirs] = "${S}"
-do_unpack_from_tarfile[depends] += "tegra-binaries:do_preconfigure"
-
-addtask unpack_from_tarfile before do_configure do_populate_lic
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
