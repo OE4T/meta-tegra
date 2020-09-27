@@ -36,6 +36,7 @@ SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;name=libnvidia;branch
            file://0001-Makefile-Fix-RCP-flags-and-change-path-definitions-s.patch \
            file://0002-common.mk-Set-JETSON-variable-if-not-set-before.patch \
            file://0003-Fix-mapping-of-library-paths-for-jetson-mounts.patch \
+           file://0004-Fix-build.h-generation-for-cross-builds.patch \
            "
 
 SRC_URI[modprobe.md5sum] = "f82b649e7a0f1d1279264f9494e7cf43"
@@ -49,11 +50,19 @@ SRCREV_modprobe = "d97c08af5061f1516fb2e3a26508936f69d6d71d"
 S = "${WORKDIR}/git"
 
 PACKAGECONFIG ??= ""
-PACKAGECONFIG[seccomp] = " WITH_SECCOMP=yes , WITH_SECCOMP=no ,libseccomp"
+PACKAGECONFIG[seccomp] = "WITH_SECCOMP=yes,WITH_SECCOMP=no,libseccomp"
+
+def build_date(d):
+    import datetime
+    epoch = d.getVar('SOURCE_DATE_EPOCH')
+    if epoch:
+        dt = datetime.datetime.fromtimestamp(int(epoch), tz=datetime.timezone.utc)
+        return 'DATE=' + dt.isoformat(timespec='minutes')
+    return ''
 
 # We need to link with libelf, otherwise we need to
 # include bmake-native which does not exist at the moment.
-EXTRA_OEMAKE_append = " WITH_LIBELF=yes JETSON=TRUE ${PACKAGECONFIG_CONFARGS}"
+EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} JETSON=TRUE WITH_LIBELF=yes ${@build_date(d)} ${PACKAGECONFIG_CONFARGS}"
 
 CFLAGS_prepend = " -I=/usr/include/tirpc "
 
