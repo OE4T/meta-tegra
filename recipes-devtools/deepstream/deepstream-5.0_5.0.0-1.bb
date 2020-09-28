@@ -68,3 +68,6 @@ FILES_${PN}-samples = "${bindir}/* ${DEEPSTREAM_PATH}/samples \
 		       ${DEEPSTREAM_PATH}/sources/apps/sample_apps/deepstream-test5/configs/"
 
 FILES_${PN}-sources = "${DEEPSTREAM_PATH}/sources"
+
+INSANE_SKIP_${PN} = "ldflags"
+INSANE_SKIP_${PN}-samples = "ldflags"
