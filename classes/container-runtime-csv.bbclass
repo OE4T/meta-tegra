@@ -1,4 +1,5 @@
 CONTAINER_CSV_FILES ??= "${libdir}/*.so*"
+CONTAINER_CSV_EXCLUDE_FILES ??= ""
 CONTAINER_CSV_BASENAME ??= "${PN}"
 CONTAINER_CSV_PKGNAME ?= "${CONTAINER_CSV_BASENAME}-container-csv"
 CONTAINER_CSV_EXTRA ??= ""
@@ -23,6 +24,19 @@ python populate_container_csv() {
             entries.update([entry[2:] for entry in globbed])
         else:
             entries.update([csvglob[2:]])
+    excludeglobs = (d.getVar('CONTAINER_CSV_EXCLUDE_FILES') or '').split()
+    for csvglob in excludeglobs:
+        if os.path.isabs(csvglob):
+            csvglob = '.' + csvglob
+        if not csvglob.startswith('./'):
+            csvglob = './' + csvglob
+        globbed = glob.glob(csvglob)
+        if globbed and globbed != [ csvglob ]:
+            for entry in globbed:
+                entries.discard(entry[2:])
+        else:
+            for entry in globbed:
+                entries.discard(csvglob[2:])
     csvlines = (d.getVar('CONTAINER_CSV_EXTRA') or '').split('\n')
     for entry in entries:
         if os.path.isdir(entry):
