@@ -26,7 +26,7 @@ ROOTFSPART_SIZE ?= "15032385536"
 ODMDATA ?= "0xB8190000"
 EMMC_BCT ?= "tegra194-mb1-bct-memcfg-p3668-0001-a00.cfg"
 EMMC_BCT_OVERRIDE ?= "tegra194-memcfg-sw-override.cfg"
-NVIDIA_BOARD ?= "t186ref"
+NVIDIA_BOARD ?= "tegra194"
 
 OTABOOTDEV ?= "/dev/mtdblock0"
 OTAGPTDEV ?= "/dev/mtdblock0"
