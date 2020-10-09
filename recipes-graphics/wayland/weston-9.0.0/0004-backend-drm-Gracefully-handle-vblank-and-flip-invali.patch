@@ -1,4 +1,4 @@
-From 88dd51dc16f7a377fcb4ea5bbbd4de5d91376da0 Mon Sep 17 00:00:00 2001
+From b897295ffd88f1046e7150a084d57c41ced4cb9e Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Tue, 1 Mar 2016 22:19:14 +0100
 Subject: [PATCH 4/6] backend-drm: Gracefully handle vblank and flip invalid

@@ -1,4 +1,4 @@
-From fc26ac234ad5d0f39575fe203536ff4dd996439d Mon Sep 17 00:00:00 2001
+From a7fc52ddd8d7f6c212caeb29dc1df5b4b8b74bd3 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 29 Mar 2018 00:15:49 -0700
 Subject: [PATCH 3/6] gl-renderer: Add EGL client support for EGLStream frame
@@ -27,14 +27,14 @@ Signed-off-by: Erik Kurzinger <ekurzinger@nvidia.com>
 Reviewed-by: Adam Cheney <acheney@nvidia.com>
 Reviewed-by: James Jones <jajones@nvidia.com>
 ---
- libweston/renderer-gl/egl-glue.c             |  11 ++
+ libweston/renderer-gl/egl-glue.c             |   5 +
  libweston/renderer-gl/gl-renderer-internal.h |   6 +
  libweston/renderer-gl/gl-renderer.c          | 167 +++++++++++++++++++
  shared/weston-egl-ext.h                      |   5 +
- 4 files changed, 189 insertions(+)
+ 4 files changed, 183 insertions(+)
 
 diff --git a/libweston/renderer-gl/egl-glue.c b/libweston/renderer-gl/egl-glue.c
-index a8206c65..8a0c1333 100644
+index 60cebd8f..abe10b46 100644
 --- a/libweston/renderer-gl/egl-glue.c
 +++ b/libweston/renderer-gl/egl-glue.c
 @@ -607,14 +607,19 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
@@ -57,19 +57,6 @@ index a8206c65..8a0c1333 100644
  
  	extensions =
  		(const char *) eglQueryString(gr->egl_display, EGL_EXTENSIONS);
-@@ -728,6 +733,12 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
- 	if (weston_check_egl_extension(extensions, "EGL_EXT_stream_acquire_mode"))
- 		gr->has_egl_stream_acquire_mode = true;
- 
-+	if (weston_check_egl_extension(extensions, "EGL_KHR_stream_consumer_gltexture"))
-+		gr->has_egl_stream_consumer_gltexture = true;
-+
-+	if (weston_check_egl_extension(extensions, "EGL_WL_wayland_eglstream"))
-+		gr->has_egl_wayland_eglstream = true;
-+
- 	gl_renderer_setup_egl_client_extensions(gr);
- 
- 	return 0;
 diff --git a/libweston/renderer-gl/gl-renderer-internal.h b/libweston/renderer-gl/gl-renderer-internal.h
 index e122f64a..5b0bd4b5 100644
 --- a/libweston/renderer-gl/gl-renderer-internal.h
@@ -100,7 +87,7 @@ index e122f64a..5b0bd4b5 100644
  
  	struct gl_shader texture_shader_rgba;
 diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
-index 26156e14..97e90a5c 100644
+index 6fc469ba..f834a7cb 100644
 --- a/libweston/renderer-gl/gl-renderer.c
 +++ b/libweston/renderer-gl/gl-renderer.c
 @@ -196,6 +196,9 @@ struct gl_surface_state {
@@ -302,7 +289,7 @@ index 26156e14..97e90a5c 100644
  	pixman_region32_init(&gs->texture_damage);
  	surface->renderer_state = gs;
  
-@@ -3766,6 +3923,16 @@ gl_renderer_display_create(struct weston_compositor *ec,
+@@ -3704,6 +3861,16 @@ gl_renderer_display_create(struct weston_compositor *ec,
  			goto fail_terminate;
  		}
  

@@ -1,4 +1,4 @@
-From 7aa3d8b22cf09f2b4bc40fb56bb2f909c45884b3 Mon Sep 17 00:00:00 2001
+From 0e3bba550aa51972f92a78ae9b9cbfd0a7adc126 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Thu, 18 May 2017 14:35:36 -0700
 Subject: [PATCH 6/6] compositor: Process stream attach requests with
@@ -33,10 +33,10 @@ Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
 ---
  compositor/meson.build              |   1 +
  include/libweston/libweston.h       |   4 +
- libweston/compositor.c              |  78 +++++++++++++++
+ libweston/compositor.c              |  80 ++++++++++++++-
  libweston/renderer-gl/gl-renderer.c | 146 ++++++++++++++++++----------
  protocol/meson.build                |   7 ++
- 5 files changed, 182 insertions(+), 54 deletions(-)
+ 5 files changed, 183 insertions(+), 55 deletions(-)
 
 diff --git a/compositor/meson.build b/compositor/meson.build
 index 9dc95f3f..0d35aa53 100644
@@ -66,7 +66,7 @@ index d036c5bb..b83c04f5 100644
  
  enum weston_capability {
 diff --git a/libweston/compositor.c b/libweston/compositor.c
-index 7fd4cc1e..ef1318b5 100644
+index 7fd4cc1e..e1cf4338 100644
 --- a/libweston/compositor.c
 +++ b/libweston/compositor.c
 @@ -3,6 +3,7 @@
@@ -166,17 +166,19 @@ index 7fd4cc1e..ef1318b5 100644
  static void
  compositor_bind(struct wl_client *client,
  		void *data, uint32_t version, uint32_t id)
-@@ -7392,6 +7468,8 @@ weston_compositor_create(struct wl_display *display,
+@@ -7392,7 +7468,9 @@ weston_compositor_create(struct wl_display *display,
  			      ec, bind_presentation))
  		goto fail;
  
+-	if (weston_input_init(ec) != 0)
 +	init_eglstream_controller(ec->wl_display);
 +
- 	if (weston_input_init(ec) != 0)
++        if (weston_input_init(ec) != 0)
  		goto fail;
  
+ 	wl_list_init(&ec->view_list);
 diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
-index 7204d687..7f75194b 100644
+index 19a2e730..56a6c052 100644
 --- a/libweston/renderer-gl/gl-renderer.c
 +++ b/libweston/renderer-gl/gl-renderer.c
 @@ -1,7 +1,7 @@
@@ -362,15 +364,15 @@ index 7204d687..7f75194b 100644
  	}
  
  	/* At this point we should have a valid stream handle */
-@@ -3861,6 +3897,8 @@ gl_renderer_display_create(struct weston_compositor *ec,
+@@ -3799,6 +3835,8 @@ gl_renderer_display_create(struct weston_compositor *ec,
  	gr->base.surface_get_content_size =
  		gl_renderer_surface_get_content_size;
  	gr->base.surface_copy_content = gl_renderer_surface_copy_content;
 +	gr->base.attach_eglstream_consumer =
-+		gl_renderer_attach_eglstream_consumer;
++	    gl_renderer_attach_eglstream_consumer;
  
- 	if (gl_renderer_setup_egl_display(gr, options->egl_native_display,
- 					  options->egl_platform_attribs) < 0)
+ 	if (gl_renderer_setup_egl_display(gr,
+ 					  options->egl_native_display,
 diff --git a/protocol/meson.build b/protocol/meson.build
 index 25cea5a8..1a42ee64 100644
 --- a/protocol/meson.build

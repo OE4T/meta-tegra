@@ -1,4 +1,4 @@
-From d770a2849f17b36299f3202e4361113ee934e0e8 Mon Sep 17 00:00:00 2001
+From e3914a22b9dfb64705b2bcc8d497ebb464fa2fc7 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 16:34:01 +0200
 Subject: [PATCH 2/6] gl-renderer: Add support for EGLDevice composited frame
@@ -41,15 +41,15 @@ Reviewed-by: Andy Ritger <aritger@nvidia.com>
 Reviewed-by: Adam Cheney <acheney@nvidia.com>
 Reviewed-by: James Jones <jajones@nvidia.com>
 ---
- libweston/renderer-gl/egl-glue.c             |  41 +++
- libweston/renderer-gl/gl-renderer-internal.h |  22 ++
- libweston/renderer-gl/gl-renderer.c          | 259 ++++++++++++++++++-
+ libweston/renderer-gl/egl-glue.c             |  45 +++++
+ libweston/renderer-gl/gl-renderer-internal.h |  22 +++
+ libweston/renderer-gl/gl-renderer.c          | 197 ++++++++++++++++++-
  libweston/renderer-gl/gl-renderer.h          |  15 ++
- shared/weston-egl-ext.h                      |  40 +++
- 5 files changed, 372 insertions(+), 5 deletions(-)
+ shared/weston-egl-ext.h                      |  40 ++++
+ 5 files changed, 314 insertions(+), 5 deletions(-)
 
 diff --git a/libweston/renderer-gl/egl-glue.c b/libweston/renderer-gl/egl-glue.c
-index 28be4ffe..a8206c65 100644
+index 28be4ffe..60cebd8f 100644
 --- a/libweston/renderer-gl/egl-glue.c
 +++ b/libweston/renderer-gl/egl-glue.c
 @@ -503,6 +503,8 @@ platform_to_extension(EGLenum platform)
@@ -57,7 +57,7 @@ index 28be4ffe..a8206c65 100644
  	case EGL_PLATFORM_SURFACELESS_MESA:
  		return "surfaceless";
 +	case EGL_PLATFORM_DEVICE_EXT:
-+		return "device";
++	    return "device";
  	default:
  		assert(0 && "bad EGL platform enum");
  	}
@@ -81,7 +81,7 @@ index 28be4ffe..a8206c65 100644
  
  	extensions =
  		(const char *) eglQueryString(gr->egl_display, EGL_EXTENSIONS);
-@@ -689,5 +704,31 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
+@@ -689,5 +704,35 @@ gl_renderer_setup_egl_extensions(struct weston_compositor *ec)
  			   "to missing EGL_KHR_wait_sync extension\n");
  	}
  
@@ -109,7 +109,11 @@ index 28be4ffe..a8206c65 100644
 +	if (weston_check_egl_extension(extensions, "EGL_EXT_stream_acquire_mode"))
 +		gr->has_egl_stream_acquire_mode = true;
 +
-+	gl_renderer_setup_egl_client_extensions(gr);
++	if (weston_check_egl_extension(extensions, "EGL_KHR_stream_consumer_gltexture"))
++		gr->has_egl_stream_consumer_gltexture = true;
++
++	if (weston_check_egl_extension(extensions, "EGL_WL_wayland_eglstream"))
++		gr->has_egl_wayland_eglstream = true;
 +
  	return 0;
  }
@@ -147,7 +151,7 @@ index 529cb2f9..e122f64a 100644
  
  	struct gl_shader texture_shader_rgba;
 diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
-index 0c9e197a..26156e14 100644
+index 0c9e197a..6fc469ba 100644
 --- a/libweston/renderer-gl/gl-renderer.c
 +++ b/libweston/renderer-gl/gl-renderer.c
 @@ -91,6 +91,8 @@ struct gl_output_state {
@@ -363,90 +367,21 @@ index 0c9e197a..26156e14 100644
  	free(go);
  }
  
-@@ -3422,6 +3572,68 @@ gl_renderer_destroy(struct weston_compositor *ec)
- 	free(gr);
- }
- 
-+/** Checks whether a platform EGL client extension is supported
-+ *
-+ * \param ec The weston compositor
-+ * \param extension_suffix The EGL client extension suffix
-+ * \return 1 if supported, 0 if using fallbacks, -1 unsupported
-+ *
-+ * This function checks whether a specific platform_* extension is supported
-+ * by EGL.
-+ *
-+ * The extension suffix should be the suffix of the platform extension (that
-+ * specifies a platform argument as defined in EGL_EXT_platform_base). For
-+ * example, passing "foo" will check whether either "EGL_KHR_platform_foo",
-+ * "EGL_EXT_platform_foo", or "EGL_MESA_platform_foo" is supported.
-+ *
-+ * The return value is 1:
-+ *   - if the supplied EGL client extension is supported.
-+ * The return value is 0:
-+ *   - if the platform_base client extension isn't supported so will
-+ *     fallback to eglGetDisplay and friends.
-+ * The return value is -1:
-+ *   - if the supplied EGL client extension is not supported.
-+ */
-+static int
-+gl_renderer_supports(struct weston_compositor *ec,
-+		     const char *extension_suffix)
-+{
-+	static const char *extensions = NULL;
-+	char s[64];
-+
-+	if (!extensions) {
-+		extensions = (const char *) eglQueryString(
-+			EGL_NO_DISPLAY, EGL_EXTENSIONS);
-+
-+		if (!extensions)
-+			return 0;
-+
-+		gl_renderer_log_extensions("EGL client extensions",
-+					   extensions);
-+	}
-+
-+	if (!weston_check_egl_extension(extensions, "EGL_EXT_platform_base"))
-+		return 0;
-+
-+	snprintf(s, sizeof s, "EGL_KHR_platform_%s", extension_suffix);
-+	if (weston_check_egl_extension(extensions, s))
-+		return 1;
-+
-+	snprintf(s, sizeof s, "EGL_EXT_platform_%s", extension_suffix);
-+	if (weston_check_egl_extension(extensions, s))
-+		return 1;
-+
-+	snprintf(s, sizeof s, "EGL_MESA_platform_%s", extension_suffix);
-+	if (weston_check_egl_extension(extensions, s))
-+		return 1;
-+
-+	/* at this point we definitely have some platform extensions but
-+	 * haven't found the supplied platform, so chances are it's
-+	 * not supported. */
-+
-+	return -1;
-+}
-+
- static void
- output_handle_destroy(struct wl_listener *listener, void *data)
- {
-@@ -3503,7 +3715,8 @@ gl_renderer_display_create(struct weston_compositor *ec,
+@@ -3503,7 +3653,8 @@ gl_renderer_display_create(struct weston_compositor *ec,
  	if (gl_renderer_setup_egl_extensions(ec) < 0)
  		goto fail_with_error;
  
 -	if (!gr->has_configless_context) {
 +	if (!gr->has_configless_context ||
-+	    gr->platform == EGL_PLATFORM_DEVICE_EXT) {
++	    options->egl_platform == EGL_PLATFORM_DEVICE_EXT) {
  		EGLint egl_surface_type = options->egl_surface_type;
  
  		if (!gr->has_surfaceless_context)
-@@ -3526,6 +3739,38 @@ gl_renderer_display_create(struct weston_compositor *ec,
+@@ -3526,6 +3677,38 @@ gl_renderer_display_create(struct weston_compositor *ec,
  	if (gr->has_native_fence_sync && gr->has_wait_sync)
  		ec->capabilities |= WESTON_CAP_EXPLICIT_SYNC;
  
-+	if (gr->platform == EGL_PLATFORM_DEVICE_EXT) {
++	if (options->egl_platform == EGL_PLATFORM_DEVICE_EXT) {
 +		if (!gr->has_egl_output_base ||
 +		    !gr->has_egl_output_drm ||
 +		    !gr->has_egl_stream ||
@@ -481,7 +416,7 @@ index 0c9e197a..26156e14 100644
  	wl_list_init(&gr->dmabuf_images);
  	if (gr->has_dmabuf_import) {
  		gr->base.import_dmabuf = gl_renderer_import_dmabuf;
-@@ -3892,9 +4137,13 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
+@@ -3892,9 +4075,13 @@ WL_EXPORT struct gl_renderer_interface gl_renderer_interface = {
  	.display_create = gl_renderer_display_create,
  	.output_window_create = gl_renderer_output_window_create,
  	.output_pbuffer_create = gl_renderer_output_pbuffer_create,

@@ -1,4 +1,4 @@
-From 2c1ad32f151afdc6ee82f3ba6398cb19165828ec Mon Sep 17 00:00:00 2001
+From 3cf008cf8b11488e07f3008ab32ce1d43b004914 Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 2 May 2016 15:56:37 +0200
 Subject: [PATCH 1/6] gl-renderer: Add EGLDevice enumeration support

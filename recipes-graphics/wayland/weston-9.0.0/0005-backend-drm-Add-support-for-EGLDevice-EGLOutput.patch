@@ -1,4 +1,4 @@
-From 7bc80e9f4f5ab723f0a2e3eeb6cb6ede3ae20825 Mon Sep 17 00:00:00 2001
+From 8f9701ca16c53caa96edbdf0d0e5fc5cd6f6efbe Mon Sep 17 00:00:00 2001
 From: "Miguel A. Vico" <mvicomoya@nvidia.com>
 Date: Mon, 26 Aug 2019 09:48:49 -0700
 Subject: [PATCH 5/6] backend-drm: Add support for EGLDevice+EGLOutput
@@ -24,39 +24,44 @@ Reviewed-by: Andy Ritger <aritger@nvidia.com>
 Reviewed-by: Adam Cheney <acheney@nvidia.com>
 Reviewed-by: James Jones <jajones@nvidia.com>
 ---
- compositor/main.c                            |   2 +
+ compositor/main.c                            |   4 +-
  include/libweston/backend-drm.h              |   4 +
- libweston/backend-drm/drm-gbm.c              | 180 +++++++++++++++----
- libweston/backend-drm/drm-internal.h         |  14 ++
+ libweston/backend-drm/drm-gbm.c              | 262 +++++++++++++------
+ libweston/backend-drm/drm-internal.h         |  14 +
  libweston/backend-drm/drm.c                  |  15 +-
- libweston/backend-drm/kms.c                  |  23 ++-
+ libweston/backend-drm/kms.c                  |  23 +-
+ libweston/backend-headless/headless.c        |   1 +
+ libweston/backend-wayland/wayland.c          |   1 +
+ libweston/backend-x11/x11.c                  |   1 +
  libweston/renderer-gl/egl-glue.c             |   5 +-
- libweston/renderer-gl/gl-renderer-internal.h |   3 +-
- libweston/renderer-gl/gl-renderer.c          |   3 +-
- libweston/renderer-gl/gl-renderer.h          |   3 +
+ libweston/renderer-gl/gl-renderer-internal.h |   4 +-
+ libweston/renderer-gl/gl-renderer.c          |   4 +-
+ libweston/renderer-gl/gl-renderer.h          |   2 +
  shared/weston-egl-ext.h                      |   9 +
- 11 files changed, 218 insertions(+), 43 deletions(-)
+ 14 files changed, 259 insertions(+), 90 deletions(-)
 
 diff --git a/compositor/main.c b/compositor/main.c
-index 65da9dbc..e5893655 100644
+index 65da9dbc..2361cc63 100644
 --- a/compositor/main.c
 +++ b/compositor/main.c
-@@ -676,6 +676,7 @@ usage(int error_code)
- 		"  --tty=TTY\t\tThe tty to use\n"
+@@ -677,7 +677,8 @@ usage(int error_code)
  		"  --drm-device=CARD\tThe DRM device to use, e.g. \"card0\".\n"
  		"  --use-pixman\t\tUse the pixman (CPU) renderer\n"
-+		"  --use-egldevice\tUse EGLDevice and EGLOutput with the GL renderer\n"
  		"  --current-mode\tPrefer current KMS mode over EDID preferred mode\n"
- 		"  --continue-without-input\tAllow the compositor to start without input devices\n\n");
+-		"  --continue-without-input\tAllow the compositor to start without input devices\n\n");
++		"  --continue-without-input\tAllow the compositor to start without input devices\n\n"
++		"  --use-egldevice\tUse EGLDevice and EGLOutput with the GL renderer\n");
  #endif
-@@ -2524,6 +2525,7 @@ load_drm_backend(struct weston_compositor *c,
- 		{ WESTON_OPTION_STRING, "drm-device", 0, &config.specific_device },
+ 
+ #if defined(BUILD_FBDEV_COMPOSITOR)
+@@ -2525,6 +2526,7 @@ load_drm_backend(struct weston_compositor *c,
  		{ WESTON_OPTION_BOOLEAN, "current-mode", 0, &wet->drm_use_current_mode },
  		{ WESTON_OPTION_BOOLEAN, "use-pixman", 0, &config.use_pixman },
-+		{ WESTON_OPTION_BOOLEAN, "use-egldevice", 0, &config.use_egldevice },
  		{ WESTON_OPTION_BOOLEAN, "continue-without-input", 0, &config.continue_without_input },
++		{ WESTON_OPTION_BOOLEAN, "use-egldevice", 0, &config.use_egldevice },
  	};
  
+ 	parse_options(options, ARRAY_LENGTH(options), argc, argv);
 diff --git a/include/libweston/backend-drm.h b/include/libweston/backend-drm.h
 index 350eeb0d..8916f98d 100644
 --- a/include/libweston/backend-drm.h
@@ -73,10 +78,22 @@ index 350eeb0d..8916f98d 100644
  	 *
  	 * If seat_id is NULL, the seat is taken from XDG_SEAT environment
 diff --git a/libweston/backend-drm/drm-gbm.c b/libweston/backend-drm/drm-gbm.c
-index 30609e3e..56c8f741 100644
+index 30609e3e..04a9f89b 100644
 --- a/libweston/backend-drm/drm-gbm.c
 +++ b/libweston/backend-drm/drm-gbm.c
-@@ -68,6 +68,40 @@ create_gbm_device(int fd)
+@@ -51,11 +51,6 @@ create_gbm_device(int fd)
+ {
+ 	struct gbm_device *gbm;
+ 
+-	gl_renderer = weston_load_module("gl-renderer.so",
+-					 "gl_renderer_interface");
+-	if (!gl_renderer)
+-		return NULL;
+-
+ 	/* GBM will load a dri driver, but even though they need symbols from
+ 	 * libglapi, in some version of Mesa they are not linked to it. Since
+ 	 * only the gl-renderer module links to it, the call above won't make
+@@ -68,6 +63,40 @@ create_gbm_device(int fd)
  	return gbm;
  }
  
@@ -117,34 +134,47 @@ index 30609e3e..56c8f741 100644
  /* When initializing EGL, if the preferred buffer format isn't available
   * we may be able to substitute an ARGB format for an XRGB one.
   *
-@@ -98,6 +132,12 @@ drm_backend_create_gl_renderer(struct drm_backend *b)
+@@ -98,33 +127,57 @@ drm_backend_create_gl_renderer(struct drm_backend *b)
  		fallback_format_for(b->gbm_format),
  		0,
  	};
+-	struct gl_renderer_display_options options = {
+-		.egl_platform = EGL_PLATFORM_GBM_KHR,
+-		.egl_native_display = b->gbm,
+-		.egl_surface_type = EGL_WINDOW_BIT,
+-		.drm_formats = format,
+-		.drm_formats_count = 2,
 +
 +	EGLint device_platform_attribs[] = {
-+		EGL_DRM_MASTER_FD_EXT, b->drm.fd,
-+		EGL_NONE
-+	};
++	    EGL_DRM_MASTER_FD_EXT, b->drm.fd,
++	    EGL_NONE
+ 	};
+ 
++	struct gl_renderer_display_options options;
++	if (b->use_egldevice) {
++	    options.egl_platform = EGL_PLATFORM_DEVICE_EXT;
++	    options.egl_native_display = b->egldevice;
++	    options.egl_surface_type = EGL_STREAM_BIT_KHR;
++	    options.egl_platform_attribs = device_platform_attribs;
++	    options.drm_formats = format;
++	    options.drm_formats_count = 2;
++	} else {
++	    options.egl_platform = EGL_PLATFORM_GBM_KHR;
++	    options.egl_native_display = b->gbm;
++	    options.egl_surface_type = EGL_WINDOW_BIT;
++	    options.egl_platform_attribs = NULL;
++	    options.drm_formats = format;
++	    options.drm_formats_count = 2;
++	}
 +
- 	struct gl_renderer_display_options options = {
- 		.egl_platform = EGL_PLATFORM_GBM_KHR,
- 		.egl_native_display = b->gbm,
-@@ -109,22 +149,39 @@ drm_backend_create_gl_renderer(struct drm_backend *b)
  	if (format[1])
  		options.drm_formats_count = 3;
  
-+	if (b->use_egldevice) {
-+		options.egl_platform = EGL_PLATFORM_DEVICE_EXT;
-+		options.egl_native_display = b->egldevice;
-+		options.egl_platform_attribs = device_platform_attribs;
-+		options.egl_surface_type = EGL_STREAM_BIT_KHR;
-+	}
-+
- 	if (gl_renderer->display_create(b->compositor, &options) < 0)
- 		return -1;
+-	if (gl_renderer->display_create(b->compositor, &options) < 0)
+-		return -1;
 -
 -	return 0;
++	return gl_renderer->display_create(b->compositor, &options);
  }
  
  int
@@ -176,63 +206,142 @@ index 30609e3e..56c8f741 100644
  		return -1;
  	}
  
-@@ -177,9 +234,9 @@ err:
- 	return -1;
- }
- 
--/* Init output state that depends on gl or gbm */
--int
--drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
-+/* Init output state that depends on gbm */
-+static int
-+drm_output_init_egl_gbm(struct drm_output *output, struct drm_backend *b)
+@@ -181,71 +234,98 @@ err:
+ int
+ drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
  {
- 	uint32_t format[2] = {
+-	uint32_t format[2] = {
++	if (b->use_egldevice) {
++		int w = output->base.current_mode->width;
++		int h = output->base.current_mode->height;
++
++		/* Create a black dumb fb for modesetting */
++		output->dumb[0] = drm_fb_create_dumb(b, w, h,
++						     DRM_FORMAT_XRGB8888);
++		if (!output->dumb[0]) {
++			weston_log("failed to create dumb framebuffer\n");
++			return -1;
++		}
++		memset(output->dumb[0]->map, 0, output->dumb[0]->size);
++
++		if (gl_renderer->output_stream_create(&output->base, ~0u,
++						      output->crtc_id) < 0) {
++			weston_log("failed to create gl renderer output stream "
++				   "state\n");
++			drm_fb_unref(output->dumb[0]);
++			output->dumb[0] = NULL;
++			return -1;
++		}
++
++		/* FIXME: Add hw planes and cursors for EGL device when supported */
++		b->sprites_are_broken = 1;
++		b->cursors_are_broken = 1;
++	} else {
++	    uint32_t format[2] = {
  		output->gbm_format,
-@@ -244,8 +301,41 @@ drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
+ 		fallback_format_for(output->gbm_format),
+-	};
+-	struct gl_renderer_output_options options = {
++	    };
++	    struct gl_renderer_output_options options = {
+ 		.drm_formats = format,
+ 		.drm_formats_count = 1,
+-	};
+-	struct weston_mode *mode = output->base.current_mode;
+-	struct drm_plane *plane = output->scanout_plane;
+-	unsigned int i;
++	    };
++	    struct weston_mode *mode = output->base.current_mode;
++	    struct drm_plane *plane = output->scanout_plane;
++	    unsigned int i;
+ 
+-	assert(output->gbm_surface == NULL);
++	    assert(output->gbm_surface == NULL);
+ 
+-	for (i = 0; i < plane->count_formats; i++) {
++	    for (i = 0; i < plane->count_formats; i++) {
+ 		if (plane->formats[i].format == output->gbm_format)
+-			break;
+-	}
++		    break;
++	    }
+ 
+-	if (i == plane->count_formats) {
++	    if (i == plane->count_formats) {
+ 		weston_log("format 0x%x not supported by output %s\n",
+ 			   output->gbm_format, output->base.name);
+ 		return -1;
+-	}
++	    }
+ 
+ #ifdef HAVE_GBM_MODIFIERS
+-	if (plane->formats[i].count_modifiers > 0) {
++	    if (plane->formats[i].count_modifiers > 0) {
+ 		output->gbm_surface =
+-			gbm_surface_create_with_modifiers(b->gbm,
+-							  mode->width,
+-							  mode->height,
+-							  output->gbm_format,
+-							  plane->formats[i].modifiers,
+-							  plane->formats[i].count_modifiers);
+-	}
+-
+-	/* If allocating with modifiers fails, try again without. This can
+-	 * happen when the KMS display device supports modifiers but the
+-	 * GBM driver does not, e.g. the old i915 Mesa driver. */
+-	if (!output->gbm_surface)
++		    gbm_surface_create_with_modifiers(b->gbm,
++						      mode->width,
++						      mode->height,
++						      output->gbm_format,
++						      plane->formats[i].modifiers,
++						      plane->formats[i].count_modifiers);
++	    }
++
++	    /* If allocating with modifiers fails, try again without. This can
++	     * happen when the KMS display device supports modifiers but the
++	     * GBM driver does not, e.g. the old i915 Mesa driver. */
++	    if (!output->gbm_surface)
+ #endif
+-	{
++	    {
+ 		output->gbm_surface =
+ 		    gbm_surface_create(b->gbm, mode->width, mode->height,
+ 				       output->gbm_format,
+ 				       output->gbm_bo_flags);
+-	}
++	    }
+ 
+-	if (!output->gbm_surface) {
++	    if (!output->gbm_surface) {
+ 		weston_log("failed to create gbm surface\n");
+ 		return -1;
+-	}
++	    }
+ 
+-	if (options.drm_formats[1])
++	    if (options.drm_formats[1])
+ 		options.drm_formats_count = 2;
+-	options.window_for_legacy = (EGLNativeWindowType) output->gbm_surface;
+-	options.window_for_platform = output->gbm_surface;
+-	if (gl_renderer->output_window_create(&output->base, &options) < 0) {
++	    options.window_for_legacy = (EGLNativeWindowType) output->gbm_surface;
++	    options.window_for_platform = output->gbm_surface;
++	    if (gl_renderer->output_window_create(&output->base, &options) < 0) {
+ 		weston_log("failed to create gl renderer output state\n");
+ 		gbm_surface_destroy(output->gbm_surface);
  		output->gbm_surface = NULL;
  		return -1;
- 	}
-+}
-+
-+/* Init output state that depends on gl or gbm */
-+int
-+drm_output_init_egl(struct drm_output *output, struct drm_backend *b)
-+{
-+	int w, h;
-+
-+	if (!b->use_egldevice)
-+		return drm_output_init_egl_gbm(output, b);
-+
-+	w = output->base.current_mode->width;
-+	h = output->base.current_mode->height;
-+
-+	/* Create a black dumb fb for modesetting */
-+	output->dumb[0] = drm_fb_create_dumb(b, w, h,
-+					     DRM_FORMAT_XRGB8888);
-+	if (!output->dumb[0]) {
-+		weston_log("failed to create dumb framebuffer\n");
-+		return -1;
-+	}
-+	memset(output->dumb[0]->map, 0, output->dumb[0]->size);
-+
-+	if (gl_renderer->output_stream_create(&output->base, ~0u,
-+					      output->crtc_id) < 0) {
-+		weston_log("failed to create gl renderer output stream "
-+			   "state\n");
-+		drm_fb_unref(output->dumb[0]);
-+		output->dumb[0] = NULL;
-+		return -1;
-+	}
+-	}
++	    }
  
 -	drm_output_init_cursor_egl(output, b);
-+	/* FIXME: Add hw planes and cursors for EGL device when supported */
-+	b->sprites_are_broken = 1;
-+	b->cursors_are_broken = 1;
++	    drm_output_init_cursor_egl(output, b);
++	}
  
  	return 0;
  }
-@@ -258,14 +348,23 @@ drm_output_fini_egl(struct drm_output *output)
+@@ -258,14 +338,23 @@ drm_output_fini_egl(struct drm_output *output)
  	/* Destroying the GBM surface will destroy all our GBM buffers,
  	 * regardless of refcount. Ensure we destroy them here. */
  	if (!b->shutting_down &&
@@ -260,20 +369,11 @@ index 30609e3e..56c8f741 100644
  	drm_output_fini_cursor_egl(output);
  }
  
-@@ -279,22 +378,25 @@ drm_output_render_gl(struct drm_output_state *state, pixman_region32_t *damage)
+@@ -279,22 +368,25 @@ drm_output_render_gl(struct drm_output_state *state, pixman_region32_t *damage)
  
  	output->base.compositor->renderer->repaint_output(&output->base,
  							  damage);
-+	if (b->use_egldevice)
-+		ret = drm_fb_ref(output->dumb[0]);
-+	else {
-+		bo = gbm_surface_lock_front_buffer(output->gbm_surface);
-+		if (!bo) {
-+			weston_log("failed to lock front buffer: %s\n",
-+				   strerror(errno));
-+			return NULL;
-+		}
- 
+-
 -	bo = gbm_surface_lock_front_buffer(output->gbm_surface);
 -	if (!bo) {
 -		weston_log("failed to lock front buffer: %s\n",
@@ -287,6 +387,16 @@ index 30609e3e..56c8f741 100644
 -		weston_log("failed to get drm_fb for bo\n");
 -		gbm_surface_release_buffer(output->gbm_surface, bo);
 -		return NULL;
++	if (b->use_egldevice)
++		ret = drm_fb_ref(output->dumb[0]);
++	else {
++		bo = gbm_surface_lock_front_buffer(output->gbm_surface);
++		if (!bo) {
++			weston_log("failed to lock front buffer: %s\n",
++				   strerror(errno));
++			return NULL;
++		}
++	
 +		/* The renderer always produces an opaque image. */
 +		ret = drm_fb_get_from_bo(bo, b, true, BUFFER_GBM_SURFACE);
 +		if (!ret) {
@@ -300,7 +410,7 @@ index 30609e3e..56c8f741 100644
  
  	return ret;
  }
-@@ -315,11 +417,20 @@ switch_to_gl_renderer(struct drm_backend *b)
+@@ -315,11 +407,20 @@ switch_to_gl_renderer(struct drm_backend *b)
  
  	weston_log("Switching to GL renderer\n");
  
@@ -316,7 +426,7 @@ index 30609e3e..56c8f741 100644
 +				   "Aborting renderer switch\n");
 +			return;
 +		}
-+	} else {
++	} else {	
 +		b->gbm = create_gbm_device(b->drm.fd);
 +		if (!b->gbm) {
 +			weston_log("Failed to create gbm device. "
@@ -326,7 +436,7 @@ index 30609e3e..56c8f741 100644
  	}
  
  	wl_list_for_each(output, &b->compositor->output_list, base.link)
-@@ -328,7 +439,8 @@ switch_to_gl_renderer(struct drm_backend *b)
+@@ -328,7 +429,8 @@ switch_to_gl_renderer(struct drm_backend *b)
  	b->compositor->renderer->destroy(b->compositor);
  
  	if (drm_backend_create_gl_renderer(b) < 0) {
@@ -456,8 +566,44 @@ index c91e3810..0033dba2 100644
  		ret = drmGetCap(b->drm.fd, DRM_CAP_CRTC_IN_VBLANK_EVENT, &cap);
  		if (ret != 0)
  			cap = 0;
+diff --git a/libweston/backend-headless/headless.c b/libweston/backend-headless/headless.c
+index c312a0f2..94f4e998 100644
+--- a/libweston/backend-headless/headless.c
++++ b/libweston/backend-headless/headless.c
+@@ -396,6 +396,7 @@ headless_gl_renderer_init(struct headless_backend *b)
+ 		.egl_platform = EGL_PLATFORM_SURFACELESS_MESA,
+ 		.egl_native_display = EGL_DEFAULT_DISPLAY,
+ 		.egl_surface_type = EGL_PBUFFER_BIT,
++		.egl_platform_attribs = NULL,
+ 		.drm_formats = headless_formats,
+ 		.drm_formats_count = ARRAY_LENGTH(headless_formats),
+ 	};
+diff --git a/libweston/backend-wayland/wayland.c b/libweston/backend-wayland/wayland.c
+index 60d42bf3..a8bca921 100644
+--- a/libweston/backend-wayland/wayland.c
++++ b/libweston/backend-wayland/wayland.c
+@@ -2781,6 +2781,7 @@ wayland_backend_create(struct weston_compositor *compositor,
+ 			.egl_platform = EGL_PLATFORM_WAYLAND_KHR,
+ 			.egl_native_display = b->parent.wl_display,
+ 			.egl_surface_type = EGL_WINDOW_BIT,
++			.egl_platform_attribs = NULL,
+ 			.drm_formats = wayland_formats,
+ 			.drm_formats_count = ARRAY_LENGTH(wayland_formats),
+ 		};
+diff --git a/libweston/backend-x11/x11.c b/libweston/backend-x11/x11.c
+index 387e97a4..46af8f02 100644
+--- a/libweston/backend-x11/x11.c
++++ b/libweston/backend-x11/x11.c
+@@ -1806,6 +1806,7 @@ init_gl_renderer(struct x11_backend *b)
+ 		.egl_platform = EGL_PLATFORM_X11_KHR,
+ 		.egl_native_display = b->dpy,
+ 		.egl_surface_type = EGL_WINDOW_BIT,
++		.egl_platform_attribs = NULL,
+ 		.drm_formats = x11_formats,
+ 		.drm_formats_count = ARRAY_LENGTH(x11_formats),
+ 	};
 diff --git a/libweston/renderer-gl/egl-glue.c b/libweston/renderer-gl/egl-glue.c
-index 8a0c1333..41e5d8aa 100644
+index abe10b46..c1fa17d8 100644
 --- a/libweston/renderer-gl/egl-glue.c
 +++ b/libweston/renderer-gl/egl-glue.c
 @@ -457,7 +457,8 @@ gl_renderer_get_egl_config(struct gl_renderer *gr,
@@ -466,7 +612,7 @@ index 8a0c1333..41e5d8aa 100644
  gl_renderer_setup_egl_display(struct gl_renderer *gr,
 -			      void *native_display)
 +			      void *native_display,
-+			      const EGLint * const platform_attribs)
++			      const EGLint *attribs)
  {
  	gr->egl_display = NULL;
  
@@ -475,40 +621,42 @@ index 8a0c1333..41e5d8aa 100644
  		gr->egl_display = gr->get_platform_display(gr->platform,
  							   native_display,
 -							   NULL);
-+							   platform_attribs);
++							   attribs);
  
  	if (!gr->egl_display) {
  		weston_log("warning: either no EGL_EXT_platform_base "
 diff --git a/libweston/renderer-gl/gl-renderer-internal.h b/libweston/renderer-gl/gl-renderer-internal.h
-index 5b0bd4b5..a17348d1 100644
+index 5b0bd4b5..ae76a81e 100644
 --- a/libweston/renderer-gl/gl-renderer-internal.h
 +++ b/libweston/renderer-gl/gl-renderer-internal.h
-@@ -171,7 +171,8 @@ gl_renderer_get_egl_config(struct gl_renderer *gr,
+@@ -171,7 +171,9 @@ gl_renderer_get_egl_config(struct gl_renderer *gr,
  			   unsigned drm_formats_count);
  
  int
 -gl_renderer_setup_egl_display(struct gl_renderer *gr, void *native_display);
-+gl_renderer_setup_egl_display(struct gl_renderer *gr, void *native_display,
-+			      const EGLint * const platform_attribs);
++gl_renderer_setup_egl_display(struct gl_renderer *gr,
++			      void *native_display,
++			      const EGLint *attribs);
  
  int
  gl_renderer_setup_egl_client_extensions(struct gl_renderer *gr);
 diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
-index 97e90a5c..7204d687 100644
+index f834a7cb..19a2e730 100644
 --- a/libweston/renderer-gl/gl-renderer.c
 +++ b/libweston/renderer-gl/gl-renderer.c
-@@ -3862,7 +3862,8 @@ gl_renderer_display_create(struct weston_compositor *ec,
+@@ -3800,7 +3800,9 @@ gl_renderer_display_create(struct weston_compositor *ec,
  		gl_renderer_surface_get_content_size;
  	gr->base.surface_copy_content = gl_renderer_surface_copy_content;
  
 -	if (gl_renderer_setup_egl_display(gr, options->egl_native_display) < 0)
-+	if (gl_renderer_setup_egl_display(gr, options->egl_native_display,
++	if (gl_renderer_setup_egl_display(gr,
++					  options->egl_native_display,
 +					  options->egl_platform_attribs) < 0)
  		goto fail;
  
  	log_egl_info(gr->egl_display);
 diff --git a/libweston/renderer-gl/gl-renderer.h b/libweston/renderer-gl/gl-renderer.h
-index f46c21c6..b03c52f9 100644
+index f46c21c6..8ad069d9 100644
 --- a/libweston/renderer-gl/gl-renderer.h
 +++ b/libweston/renderer-gl/gl-renderer.h
 @@ -49,6 +49,7 @@ typedef intptr_t EGLNativeWindowType;
@@ -519,15 +667,14 @@ index f46c21c6..b03c52f9 100644
  
  #endif /* ENABLE_EGL */
  
-@@ -69,6 +70,8 @@ struct gl_renderer_display_options {
- 	EGLenum egl_platform;
- 	/** The native display corresponding to the given EGL platform */
+@@ -71,6 +72,7 @@ struct gl_renderer_display_options {
  	void *egl_native_display;
-+	/** EGL platform attributes list */
-+	const EGLint *egl_platform_attribs;
  	/** EGL_SURFACE_TYPE bits for the base EGLConfig */
  	EGLint egl_surface_type;
++	const EGLint *egl_platform_attribs;
  	/** Array of DRM pixel formats acceptable for the base EGLConfig */
+ 	const uint32_t *drm_formats;
+ 	/** The \c drm_formats array length */
 diff --git a/shared/weston-egl-ext.h b/shared/weston-egl-ext.h
 index d348a5c0..30e4eaba 100644
 --- a/shared/weston-egl-ext.h
