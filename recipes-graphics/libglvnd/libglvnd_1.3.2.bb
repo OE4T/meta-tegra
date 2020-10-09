@@ -8,7 +8,7 @@ SRC_URI = "git://${SRC_REPO} \
     file://0001-Add-EGL-and-GLES2-extensions-for-Tegra.patch \
     file://0002-Make-Wayland-support-configurable.patch \
     "
-SRCREV = "1c32de07074fee8edcb274899948b6551081ed54"
+SRCREV = "da0edd9728d6d33aa0d058037b694ee91a7ecad5"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
