@@ -22,7 +22,7 @@ PROVIDES += "virtual/egl virtual/libgl virtual/libgles1 virtual/libgles2"
 
 DEPENDS = "l4t-nvidia-glheaders"
 
-inherit autotools pkgconfig
+inherit autotools pkgconfig features_check
 
 PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
 
