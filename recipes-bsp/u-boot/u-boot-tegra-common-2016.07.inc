@@ -8,7 +8,7 @@ HOMEPAGE = "https://github.com/OE4T/u-boot-tegra"
 UBOOT_TEGRA_REPO ?= "github.com/OE4T/u-boot-tegra.git"
 SRCBRANCH ?= "patches-l4t-r32.3.1-v2016.07"
 SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
-SRCREV = "565a18c42c8389916639f8225163942b559bb5f2"
+SRCREV = "a8c48a2aadb115ef9eb01fa5ab496a24fce65a25"
 PV .= "+git${SRCPV}"
 
 S = "${WORKDIR}/git"
