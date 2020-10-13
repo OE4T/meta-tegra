@@ -26,6 +26,7 @@ EXTRA_OECMAKE_append_cuda = " ${CUDA_EXTRA_OECMAKE}"
 
 export CUDA_TOOLKIT_ROOT = "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}"
 export CUDA_NVCC_EXECUTABLE = "${CUDA_TOOLKIT_ROOT}/bin/nvcc"
+export CUDACXX = "${CUDA_TOOLKIT_ROOT}/bin/nvcc"
 export CUDA_PATH = "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}"
 
 CUDA_NATIVEDEPS = "cuda-compiler-native cuda-cudart-native"
@@ -33,7 +34,7 @@ CUDA_NATIVEDEPS_class-native = ""
 CUDA_DEPENDS = "cuda-libraries ${CUDA_NATIVEDEPS}"
 
 DEPENDS_append_cuda = " ${CUDA_DEPENDS} ${@'tegra-cmake-overrides' if bb.data.inherits_class('cmake', d) else ''}"
-PATH_append_cuda = ":${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}/bin"
+PATH_prepend_cuda = "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}/bin:"
 
 # The following are for the new-style (CMake 3.8+) CUDA language
 # support and to hook in our override of FindCUDA.cmake.
