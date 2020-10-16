@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = " \
     file://opt/nvidia/deepstream/deepstream-5.0/LICENSE.txt;md5=c614b345088f989a9c05a7393419bf55 \
     file://opt/nvidia/deepstream/deepstream-5.0/doc/nvidia-tegra/LICENSE.iothub_client;md5=4f8c6347a759d246b5f96281726b8611 \
     file://opt/nvidia/deepstream/deepstream-5.0/doc/nvidia-tegra/LICENSE.nvds_amqp_protocol_adaptor;md5=8b4b651fa4090272b2e08e208140a658"
+HOMEPAGE = "https://developer.nvidia.com/deepstream-sdk"
 
 inherit l4t_deb_pkgfeed
 
