@@ -16,8 +16,6 @@ PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-rtsp-server tensorrt cudnn libcublas cuda-cudart tegra-libraries"
 
-inherit pkgconfig
-
 S = "${WORKDIR}/${BPN}"
 B = "${WORKDIR}/build"
 
