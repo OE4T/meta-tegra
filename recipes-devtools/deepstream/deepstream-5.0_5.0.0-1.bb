@@ -12,7 +12,7 @@ SRC_COMMON_DEBS = "${BPN}_${PV}_arm64.deb;subdir=${BPN}"
 SRC_URI[sha256sum] = "a7a7015515883ac88c7587c7a2acfcf78510e539b84b702afd05f4f330faa55e"
 
 COMPATIBLE_MACHINE = "(tegra)"
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-rtsp-server tensorrt cudnn libcublas cuda-cudart tegra-libraries"
 
