@@ -36,8 +36,8 @@ do_install() {
     install -d ${D}${DEEPSTREAM_PATH}/lib/tensorflow
     install -m 0644 ${S}${DEEPSTREAM_PATH}/lib/tensorflow/* ${D}${DEEPSTREAM_PATH}/lib/tensorflow
 
-    install -d ${D}/etc/ld.so.conf.d/
-    echo "${DEEPSTREAM_PATH}/lib" > ${D}/etc/ld.so.conf.d/deepstream.conf
+    install -d ${D}/${sysconfdir}/ld.so.conf.d/
+    echo "${DEEPSTREAM_PATH}/lib" > ${D}/${sysconfdir}/ld.so.conf.d/deepstream.conf
 
     install -d ${D}${libdir}/gstreamer-1.0/deepstream
     install -m 0644 ${S}${DEEPSTREAM_PATH}/lib/gst-plugins/* ${D}${libdir}/gstreamer-1.0/deepstream/
@@ -61,7 +61,7 @@ RDEPENDS_${PN}-sources = "bash"
 
 PACKAGES += "${PN}-samples ${PN}-sources"
 
-FILES_${PN} = "/etc/ld.so.conf.d/  \
+FILES_${PN} = "${sysconfdir}/ld.so.conf.d/  \
 	       ${libdir}/gstreamer-1.0/deepstream \
 	       ${DEEPSTREAM_PATH}/lib \
 	      "
