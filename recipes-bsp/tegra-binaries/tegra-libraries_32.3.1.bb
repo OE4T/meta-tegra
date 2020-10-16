@@ -72,6 +72,7 @@ RDEPENDS_${PN} = "libasound"
 RDEPENDS_${PN}-argus = "tegra-argus-daemon"
 RDEPENDS_${PN}-argus-daemon-base = "${PN} libglvnd"
 RDEPENDS_${PN}-libnvosd = "${PN} pango cairo glib-2.0"
+RRECOMMENDS_${PN}-libnvosd = "liberation-fonts"
 RRECOMMENDS_${PN} = "kernel-module-nvgpu"
 
 INSANE_SKIP_${PN}-libv4l-plugins = "dev-so textrel ldflags build-deps"
