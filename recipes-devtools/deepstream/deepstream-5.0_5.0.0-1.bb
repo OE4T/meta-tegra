@@ -34,7 +34,7 @@ do_install() {
     done
     
     install -d ${D}${DEEPSTREAM_PATH}/lib/tensorflow
-    install -m 0644 ${S}${DEEPSTREAM_PATH}/lib/tensorflow/* ${D}${DEEPSTREAM_PATH}/lib/tensorflow
+    cp --preserve=mode,timestamps,links --no-dereference ${S}${DEEPSTREAM_PATH}/lib/tensorflow/* ${D}${DEEPSTREAM_PATH}/lib/tensorflow
 
     install -d ${D}/${sysconfdir}/ld.so.conf.d/
     echo "${DEEPSTREAM_PATH}/lib" > ${D}/${sysconfdir}/ld.so.conf.d/deepstream.conf
@@ -74,5 +74,5 @@ FILES_${PN}-samples = "${bindir}/* ${DEEPSTREAM_PATH}/samples \
 
 FILES_${PN}-sources = "${DEEPSTREAM_PATH}/sources"
 
-INSANE_SKIP_${PN} = "ldflags"
+INSANE_SKIP_${PN} = "dev-so ldflags"
 INSANE_SKIP_${PN}-samples = "ldflags"
