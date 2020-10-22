@@ -418,7 +418,7 @@ END
     if [ -e ./odmfuse_pkc.xml ]; then
         cat > burnfuses.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra186-flash-helper.sh --burnfuses flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.img "\$@"
+MACHINE=${MACHINE} ./tegra186-flash-helper.sh -c "burnfuses odmfuse_pkc.xml" flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.img "\$@"
 END
 	chmod +x burnfuses.sh
     fi
