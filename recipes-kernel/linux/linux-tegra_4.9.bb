@@ -17,8 +17,8 @@ FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_fi
 LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[:2])}"
 SCMVERSION ??= "y"
 
-SRCBRANCH = "patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "a58470bb0f05f9189781448eb64599cc4aac49af"
+SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
+SRCREV = "0ba19fe31443d4fbfe705ef9878e376f271b812e"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-tegra-4.9"
 KERNEL_REPO = "${SRC_REPO}"

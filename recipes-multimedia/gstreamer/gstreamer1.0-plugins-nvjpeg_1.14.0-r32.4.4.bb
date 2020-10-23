@@ -4,7 +4,7 @@ LICENSE = "LGPLv2"
 LIC_FILES_CHKSUM = "file://COPYING;md5=a6f89e2100d9b6cdffcea4f398e37343"
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstjpeg_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.4.3.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.4.4.inc
 
 SRC_URI += "file://use-nvjpeg-for-plugin-name.patch"
 

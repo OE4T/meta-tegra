@@ -1,0 +1,37 @@
+From e870ae2ce011fab43ac861446a7f4cc749fc46fe Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 23 Oct 2020 11:47:28 -0700
+Subject: [PATCH] Skip qspi-sd-specific entries for other t210 BUP payloads
+
+With the 32.4.4 version of the script, we now get
+errors when the entries specific to the P3448
+SKU 0000 don't exist, so just skip them altogether
+when building a BUP payload for other targets.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+
+---
+ bootloader/l4t_bup_gen.func | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
+index bea0027..97d1729 100644
+--- a/bootloader/l4t_bup_gen.func
++++ b/bootloader/l4t_bup_gen.func
+@@ -286,8 +286,16 @@ _generate_bl_update_payload()
+ 		ENTRY_LIST[xusb]+=""${signed_dir}"/${xusb_fw} xusb-fw 2 0 $_common_spec;"
+ 
+ 	elif [ "${tegra_soc}" == "t21x" ]; then
++		local board=$(echo "${_sw_spec}" | cut -d- -f1)
++		local sku=$(echo "${_sw_spec}" | cut -d- -f3)
+ 		for part in "${partitions_t210ref[@]}"; do
+ 			eval "${part}"
++			if [ -z "${part_file}" ]; then
++				if [ "${board}" != "3448" -o "${sku}" != "0000" ]; then
++					echo "Skipping non-existent files for: ${part}"
++					continue
++				fi
++			fi
+ 			local type_array=(${part_type//,/ })
+ 
+ 			for t in "${type_array[@]}"; do
