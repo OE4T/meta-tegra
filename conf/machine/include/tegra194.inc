@@ -41,8 +41,8 @@ PREFERRED_PROVIDER_tos-trusty ?= "tos-prebuilt"
 
 require conf/machine/include/tegra-common.inc
 
-L4T_BSP_NAME = "t186ref_release_aarch64"
-L4T_SRCS_NAME = "sources/T186"
+L4T_BSP_NAME = "T186"
+L4T_SRCS_NAME = "Sources/T186"
 L4T_BSP_PREFIX = "Tegra186"
 L4T_DEB_SOCNAME = "t194"
 

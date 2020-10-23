@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=73a5855a8119deb017f5f13cf327095d \
                     file://ext/eglgles/gstegladaptation.c;beginline=9;endline=25;md5=51eafe984c428127773b6a95eb959d0b"
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstegl_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.4.3.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.4.4.inc
 
 SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0002-fix-libtool-references.patch \
