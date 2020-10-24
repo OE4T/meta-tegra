@@ -100,7 +100,11 @@ make_partitions() {
     done
     eval "${PARTS[$FINALPART]}"
     echo -n "$partname..."
-    sgdisk "$output" --largest-new=$partnumber --typecode=$partnumber:8300 -c $partnumber:$partname >/dev/null 2>&1
+    if [ $partfilltoend -eq 1 ]; then
+	sgdisk "$output" --largest-new=$partnumber --typecode=$partnumber:8300 -c $partnumber:$partname >/dev/null 2>&1
+    else
+	sgdisk "$output" --new=$partnumber:0:+$partsize --typecode=$partnumber:8300 -c $partnumber:$partname >/dev/null 2>&1
+    fi
 }
 
 copy_to_device() {
