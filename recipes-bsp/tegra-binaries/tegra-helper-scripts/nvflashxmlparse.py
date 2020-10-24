@@ -30,10 +30,10 @@ def validate_guid(guid):
     return guid
 
 class Partition(object):
-    def __init__(self, element, sector_size):
+    def __init__(self, element, sector_size, partnum=None):
         self.name = element.get('name')
-        self.id = element.get('id')
         self.type = element.get('type')
+        self.id = element.get('id', (None if self.is_partition_table() else partnum))
         self.oem_sign = element.get('oemsign', 'false') == 'true'
         guid = element.find('unique_guid')
         self.partguid = "" if guid is None else validate_guid(guid.text.strip())
@@ -70,8 +70,12 @@ class Device(object):
         self.sector_size = int(element.get('sector_size', '512'), 0)
         self.num_sectors = int(element.get('num_sectors', '0'), 0)
         self.partitions = []
+        nextpart = 1
         for partnode in element.findall('./partition'):
-            self.partitions.append(Partition(partnode, self.sector_size))
+            part = Partition(partnode, self.sector_size, partnum=nextpart)
+            self.partitions.append(part)
+            if not part.is_partition_table():
+                nextpart = int(part.id) + 1
 
 class PartitionLayout(object):
     def __init__(self, configfile):
@@ -142,7 +146,7 @@ Extracts partition information from an NVIDIA flash.xml file
         for n, part in enumerate(partitions):
             print("blksize={};partnumber={};partname=\"{}\";start_location={};partsize={};"
                   "partfile=\"{}\";partguid=\"{}\";partfilltoend={}".format(blksize,
-                                                                            n+1,
+                                                                            part.id,
                                                                             part.name,
                                                                             part.start_location,
                                                                             part.size,
