@@ -18,7 +18,7 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "0ba19fe31443d4fbfe705ef9878e376f271b812e"
+SRCREV = "87e09c14b15ad302b451f40f4237bb14f553c1e0"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-tegra-4.9"
 KERNEL_REPO = "${SRC_REPO}"
