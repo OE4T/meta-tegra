@@ -1,0 +1,59 @@
+From 22c18dfbd0afdaa916e900d70c42ad2a922bcb25 Mon Sep 17 00:00:00 2001
+From: Nathan Barrett-Morrison <nathan.morrison@timesys.com>
+Date: Mon, 12 Oct 2020 15:24:30 -0400
+Subject: [PATCH] Add in -u argument for fusing board that has already been
+ secured
+
+---
+ odmfuse.sh | 14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/odmfuse.sh b/odmfuse.sh
+index 9c462f9..80de09b 100755
+--- a/odmfuse.sh
++++ b/odmfuse.sh
+@@ -926,7 +926,7 @@ get_board_version_cmd ()
+ noburn=0;
+ testmode=0;
+ jtag_disable="yes";
+-while getopts "c:d:i:jk:l:o:pr:s:D:H:S:X:-:" OPTION
++while getopts "c:d:i:jk:l:o:pr:s:u:D:H:S:X:-:" OPTION
+ do
+ 	case $OPTION in
+ 	c) Ctype=${OPTARG}; pkcopt+="-f ${Ctype} "; ;;
+@@ -939,6 +939,7 @@ do
+ 	p) set_productionmode="yes"; ;;
+ 	r) sw_reserved="${OPTARG}"; ;;
+ 	s) sku=${OPTARG}; pkcopt+="-s ${sku} "; ;;
++	u) SECUREFILE="${OPTARG}"; ;;
+ 	D) DKFILE="${OPTARG}"; ;;
+ 	H) HASHFILE=${OPTARG}; ;;
+ 	S) SBKFILE="${OPTARG}"; ;;
+@@ -1219,7 +1220,7 @@ if [ "${XFILE}" != "" ]; then
+ 		cp -f ardbeg/fastboot.bin .;
+ 		fcmd="./nvflash --writefuse ${fusecfg} --bl fastboot.bin --go";
+ 	elif [ "${tid}" = "0x21" ]; then
+-		fcmd="./tegraflash.py --chip ${tid} --applet nvtboot_recovery.bin ";
++		fcmd="./tegraflash.py --chip ${tid} --applet nvtboot_recovery.bin";
+ 		fcmd+="--cmd \"blowfuses ${fusecfg};\"";
+ 	elif [ "${tid}" = "0x18" ]; then
+ 		fcmd="./tegraflash.py ${FUSEARGS} ";
+@@ -1596,7 +1597,14 @@ elif [ "${tid}" = "0x21" ]; then
+ 		echo "Test mode: removing all lines with '<fuse name=' so no fuses will be burned.";
+ 		sed -i '/<fuse name=/d' "${fusecfg}";
+ 	fi;
+-	fcmd="./tegraflash.py --chip ${tid} --applet nvtboot_recovery.bin ";
++
++	if [ -z $SECUREFILE ]; then
++		KEY=""
++	else
++		KEY="--key ${SECUREFILE}"
++	fi
++
++	fcmd="./tegraflash.py --chip ${tid} --applet nvtboot_recovery.bin ${KEY} ";
+ 	fcmd+="--cmd \"blowfuses ${fusecfg};\"";
+ elif [ "${tid}" = "0x18" -o "${tid}" = "0x19" ]; then
+ 	fcmd="./tegraflash.py ${FUSEARGS} ";
+-- 
+2.11.0
+
