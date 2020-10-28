@@ -96,7 +96,14 @@ if [ -z "$BOARDID" -a -z "$FAB" ]; then
 	echo "ERR: chip does not identify as tegra210 ($chipid)" >&2
 	exit 1
     fi
-    if python3 $flashapp --chip 0x21 --skipuid --applet nvtboot_recovery.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+
+    if [ -z $keyfile ]; then
+	KEY=""
+    else
+	KEY="--key ${keyfile}"
+    fi
+
+    if python3 $flashapp --chip 0x21 --skipuid --applet nvtboot_recovery.bin --cmd "dump eeprom boardinfo ${cvm_bin}" ${KEY}; then
 	boardid=`$here/chkbdinfo -i ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z]`
 	BOARDID="$boardid"
 	boardver=`$here/chkbdinfo -f ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z]`
@@ -216,24 +223,30 @@ if [ -n "$keyfile" ]; then
     bootloadername="cboot.bin"
     BCT="--bct"
     bctfilename="$sdramcfg_file"
+    bctfilename_cmd=$(echo $sdramcfg_file | sed 's/\.cfg/\.bct/g')
     flashappname=$(basename "$flashapp")
     . "$here/odmsign.func"
     (odmsign_ext) || exit 1
-    if [ $no_flash -ne 0 ]; then
 	rm -f flashcmd.txt
 	echo "#!/bin/sh" > flashcmd.txt
 	if [ "$boardid" = "3448" ]; then
 	    binargs="--bins \"EBT cboot.bin.signed;DTB ${dtb_file}.signed\""
 	fi
-	echo "python3 $flashapp --bl cboot.bin.signed --bct \"$sdramcfg_file\" --odmdata $odmdata \
+	echo "python3 $flashapp --bl cboot.bin.signed --bct \"$bctfilename_cmd\" --odmdata $odmdata \
 --bldtb \"${dtb_file}.signed\" --applet rcm_1_signed.rcm --cfg flash.xml --chip 0x21 \
---cmd \"secureflash;reboot\" $binargs" > flashcmd.txt
+--cmd \"secureflash;reboot\" $binargs --key $keyfile" > flashcmd.txt
 	chmod +x flashcmd.txt
 	ln -sf flashcmd.txt ./secureflash.sh
 	rm -f APPFILE DATAFILE
+    if [ $bup_blob -ne 0 ]; then
+	exit 0
+    else
+	if [ $no_flash -eq 0 ]; then
+		./secureflash.sh
+	fi
     fi
-    [ $bup_blob -ne 0 ] || exit 0
     touch odmsign.func
+    exit 0
 fi
 
 flashcmd="python3 $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $odmdata \
