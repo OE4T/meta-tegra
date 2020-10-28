@@ -30,3 +30,12 @@ deltask do_packagedata
 RM_WORK_EXCLUDE += "${PN}"
 
 addtask preconfigure after do_patch
+
+do_deploy_tarball(){
+	cd ${WORKDIR}/Linux_for_Tegra
+	tar -czf efuses.tar.gz *
+	mv efuses.tar.gz ${DEPLOY_DIR_IMAGE}/efuses.tar.gz
+}
+
+addtask deploy_tarball after do_patch before do_preconfigure
+
