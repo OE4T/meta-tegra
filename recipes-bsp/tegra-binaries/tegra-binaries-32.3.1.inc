@@ -17,6 +17,15 @@ SB_SHA256SUM_tegra210 = "6151e15d47a0b92a6851d422000cf442bae3801c68241c12d1a1980
 SRC_URI[sb.md5sum] = "${SB_MD5SUM}"
 SRC_URI[sb.sha256sum] = "${SB_SHA256SUM}"
 
+FILESEXTRAPATHS_prepend := "${THISDIR}/tegra-binaries:"
+
+SRC_URI += " \
+	file://nvtboot.bin \
+	file://nvtboot_recovery.bin \
+	file://nvtboot_cpu.bin \
+	file://nvtboot_recovery_cpu.bin \
+"
+
 inherit l4t_bsp
 
 S = "${TMPDIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-${PR}/Linux_for_Tegra"
@@ -30,3 +39,12 @@ COMPATIBLE_MACHINE = "tegra"
 do_preconfigure() {
     :
 }
+
+do_fixup_binaries(){
+	cp ${WORKDIR}/nvtboot.bin ${WORKDIR}/Linux_for_Tegra/bootloader/t210ref/nvtboot.bin
+	cp ${WORKDIR}/nvtboot_recovery.bin ${WORKDIR}/Linux_for_Tegra/bootloader/nvtboot_recovery.bin
+	cp ${WORKDIR}/nvtboot_cpu.bin ${WORKDIR}/Linux_for_Tegra/bootloader/nvtboot_cpu.bin
+	cp ${WORKDIR}/nvtboot_recovery_cpu.bin ${WORKDIR}/Linux_for_Tegra/bootloader/nvtboot_recovery_cpu.bin
+}
+
+addtask fixup_binaries after do_unpack before do_patch
