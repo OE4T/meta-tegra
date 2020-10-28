@@ -4,6 +4,10 @@ SECTION = "base"
 
 require tegra-binaries-${PV}.inc
 
+SRC_URI += " \
+	file://0001-Add-in-u-argument-for-fusing-board-that-has-already.patch \
+"
+
 WORKDIR = "${TMPDIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-${PR}"
 SSTATE_SWSPEC = "sstate:tegra-binaries::${PV}:${PR}::${SSTATE_VERSION}:"
 STAMP = "${STAMPS_DIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-${PR}"
