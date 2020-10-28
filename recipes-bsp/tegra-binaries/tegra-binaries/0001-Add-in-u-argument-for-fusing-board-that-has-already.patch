@@ -1,0 +1,49 @@
+From 4eb9155f73be6545aa29009f861198735591b4f9 Mon Sep 17 00:00:00 2001
+From: Nathan Barrett-Morrison <nathan.morrison@timesys.com>
+Date: Wed, 28 Oct 2020 08:15:12 -0400
+Subject: [PATCH] Add in -u argument for fusing board that has already been
+ secured
+
+---
+ odmfuse.sh | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/odmfuse.sh b/odmfuse.sh
+index cc60c71..ead70d8 100755
+--- a/odmfuse.sh
++++ b/odmfuse.sh
+@@ -847,7 +847,7 @@ get_board_version ()
+ 
+ noburn=0;
+ jtag_disable="yes";
+-while getopts "c:d:i:jk:l:o:pr:s:D:H:S:X:-:" OPTION
++while getopts "c:d:i:jk:l:o:pr:s:u:D:H:S:X:-:" OPTION
+ do
+ 	case $OPTION in
+ 	c) Ctype=${OPTARG}; pkcopt+="-f ${Ctype} "; ;;
+@@ -860,6 +860,7 @@ do
+ 	p) set_productionmode="yes"; ;;
+ 	r) sw_reserved="${OPTARG}"; ;;
+ 	s) sku=${OPTARG}; pkcopt+="-s ${sku} "; ;;
++	u) SECUREFILE="${OPTARG}"; ;;
+ 	D) DKFILE="${OPTARG}"; ;;
+ 	H) HASHFILE=${OPTARG}; ;;
+ 	S) SBKFILE="${OPTARG}"; ;;
+@@ -1424,7 +1425,13 @@ if [ "${tid}" = "0x40" ]; then
+ 	cp -f ardbeg/fastboot.bin .;
+ 	fcmd="./nvflash --writefuse ${fusecfg} --bl fastboot.bin --go";
+ elif [ "${tid}" = "0x21" ]; then
+-	fcmd="./tegraflash.py --chip ${tid} --applet nvtboot_recovery.bin ";
++	if [ -z $SECUREFILE ]; then
++		KEY=""
++	else
++		KEY="--key ${SECUREFILE}"
++	fi
++
++	fcmd="./tegraflash.py --chip ${tid} --applet nvtboot_recovery.bin ${KEY} ";
+ 	fcmd+="--cmd \"blowfuses ${fusecfg};\"";
+ elif [ "${tid}" = "0x18" -o "${tid}" = "0x19" ]; then
+ 	fcmd="./tegraflash.py ${FUSEARGS} ";
+-- 
+2.11.0
+
