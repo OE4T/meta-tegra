@@ -10,6 +10,7 @@ Boards supported:
 * Jetson AGX Xavier development kit
 * Jetson Nano development kit
 * Jetson Nano eMMC module with rev B01 carrier board
+* Jetson Nanon 2GB development kit
 * Jetson Xavier NX Development Kit
 * Jetson Xavier NX eMMC module in dev kit or Nano carrier board
 
