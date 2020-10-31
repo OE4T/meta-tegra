@@ -273,6 +273,7 @@ elif [ -n "$keyfile" ]; then
     bctfilename=`echo $sdramcfg_files | cut -d, -f1`
     bctfile1name=`echo $sdramcfg_files | cut -d, -f2`
     SOSARGS="--applet mb1_t194_prod.bin "
+    NV_ARGS="--soft_fuses tegra194-mb1-soft-fuses-l4t.cfg "
     BCTARGS="$bctargs"
     . "$here/odmsign.func"
     (odmsign_ext) || exit 1
