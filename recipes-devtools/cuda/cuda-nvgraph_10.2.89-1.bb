@@ -1,3 +1,4 @@
+DEPENDS = "cuda-curand cuda-cusolver"
 
 require cuda-shared-binaries-${PV}.inc
 
