@@ -2,6 +2,7 @@
 bup_blob=0
 keyfile=
 sbk_keyfile=
+spi_only=
 sdcard=
 no_flash=0
 flash_cmd=
@@ -9,7 +10,7 @@ imgfile=
 dataimg=
 blocksize=4096
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,datafile:" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only,datafile:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -29,6 +30,10 @@ while true; do
 	    ;;
 	--sdcard)
 	    sdcard=yes
+	    shift
+	    ;;
+	--spi-only)
+	    spi_only=yes
 	    shift
 	    ;;
 	--datafile)
@@ -255,7 +260,18 @@ else
     fi
     touch APPFILE
 fi
-sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," $appfile_sed "$flash_in" > flash.xml
+
+if [ "$spi_only" = "yes" ]; then
+    if [ ! -e "$here/nvflashxmlparse" ]; then
+	echo "ERR: missing nvflashxmlparse script" >&2
+	exit 1
+    fi
+    "$here/nvflashxmlparse" --extract -t spi -o flash.xml.tmp "$flash_in" || exit 1
+else
+    cp "$flash_in" flash.xml.tmp
+fi
+sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," $appfile_sed flash.xml.tmp > flash.xml
+rm flash.xml.tmp
 
 BINSARGS="mb2_bootloader nvtboot_recovery_t194.bin; \
 mts_preboot preboot_c10_prod_cr.bin; \
