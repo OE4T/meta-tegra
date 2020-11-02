@@ -1,12 +1,13 @@
 #!/bin/bash
 bup_build=
 keyfile=
+spi_only=
 no_flash=0
 sdcard=
 make_sdcard_args=
 imgfile=
 blocksize=4096
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard" -o "u:s:b:B:y" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only" -o "u:s:b:B:y" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -26,6 +27,10 @@ while true; do
 	    ;;
 	--sdcard)
 	    sdcard=yes
+	    shift
+	    ;;
+	--spi-only)
+	    spi_only=yes
 	    shift
 	    ;;
 	-u)
@@ -166,7 +171,17 @@ elif [ $no_flash -eq 0 ]; then
 else
     touch APPFILE
 fi
-sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,DTBFILE,$DTBFILE," $appfile_sed "$flash_in" > flash.xml
+if [ "$spi_only" = "yes" ]; then
+    if [ ! -e "$here/nvflashxmlparse" ]; then
+	echo "ERR: missing nvflashxmlparse script" >&2
+	exit 1
+    fi
+    "$here/nvflashxmlparse" --extract -t spi -o flash.xml.tmp "$flash_in" || exit 1
+else
+    cp "$flash_in" flash.xml.tmp
+fi
+sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,DTBFILE,$DTBFILE," $appfile_sed flash.xml.tmp > flash.xml
+rm flash.xml.tmp
 boardcfg=
 [ -z "$boardcfg_file" ] || boardcfg="--boardconfig $boardcfg_file"
 if [ "$bup_build" = "yes" -o "$sdcard" = "yes" ]; then
