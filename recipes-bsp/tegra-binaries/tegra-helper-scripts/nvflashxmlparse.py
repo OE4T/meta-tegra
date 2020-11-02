@@ -91,6 +91,18 @@ class PartitionLayout(object):
             self.device_count += 1
             self.devtypes.append(dev.type)
 
+
+def extract_layout(infile, devtype, outf):
+    import xml.etree.ElementTree as ET
+    tree = ET.parse(infile)
+    root = tree.getroot()
+    for dev in root.findall('device'):
+        if dev.get('type') != devtype:
+            root.remove(dev)
+    tree.write(outf, encoding='unicode', xml_declaration=True)
+    outf.write("\n")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="""
@@ -98,6 +110,8 @@ Extracts partition information from an NVIDIA flash.xml file
 """)
     parser.add_argument('-t', '--type', help='device type to extract information for', action='store')
     parser.add_argument('-l', '--list-types', help='list the device types described in the file', action='store_true')
+    parser.add_argument('-e', '--extract', help='generate a new XML file extracting just the specified device type', action='store_true')
+    parser.add_argument('-o', '--output', help='file to write output to', action='store')
     parser.add_argument('filename', help='name of the XML file to parse', action='store')
 
     args = parser.parse_args()
@@ -109,17 +123,31 @@ Extracts partition information from an NVIDIA flash.xml file
         if layout.device_count > 1:
             raise RuntimeError("Must specify --type for layouts with multiple devices")
         args.type = layout.devtypes[0]
-    partitions = [part for part in layout.devices[args.type].partitions if not part.is_partition_table()]
-    blksize = layout.devices[args.type].sector_size
-    for n, part in enumerate(partitions):
-        print("blksize={};partnumber={};partname=\"{}\";partsize={};"
-              "partfile=\"{}\";partguid=\"{}\";partfilltoend={}".format(blksize,
-                                                                        n+1,
-                                                                        part.name,
-                                                                        part.size,
-                                                                        part.filename,
-                                                                        part.partguid,
-                                                                        1 if part.filltoend() else 0))
+    else:
+        if args.type not in layout.devices:
+            raise RuntimeError("Device type '{}' not present; available types: {}".format(args.type,
+                                                                                          ', '.join(list(layout.devices.keys()))))
+    if args.output:
+        outf = open(args.output, "w")
+    else:
+        outf = sys.stdout
+
+    if args.extract:
+        extract_layout(args.filename, args.type, outf)
+    else:
+        partitions = [part for part in layout.devices[args.type].partitions if not part.is_partition_table()]
+        blksize = layout.devices[args.type].sector_size
+        for n, part in enumerate(partitions):
+            print("blksize={};partnumber={};partname=\"{}\";partsize={};"
+                  "partfile=\"{}\";partguid=\"{}\";partfilltoend={}".format(blksize,
+                                                                            n+1,
+                                                                            part.name,
+                                                                            part.size,
+                                                                            part.filename,
+                                                                            part.partguid,
+                                                                            1 if part.filltoend() else 0),
+                  file=outf)
+    outf.close()
 
 if __name__ == '__main__':
     try:
