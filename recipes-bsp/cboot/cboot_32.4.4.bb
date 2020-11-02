@@ -12,10 +12,10 @@ LIC_FILES_CHKSUM = " \
     file://LICENSE.cboot.txt;md5=972762a86d83ebd2df0b07be8d084935 \
 "
 
+
 inherit l4t_bsp
 
-L4T_BSP_NAME = "${L4T_SRCS_NAME}"
-
+L4T_URI_BASE = "https://developer.download.nvidia.com/embedded/L4T/r32_Release_v4.4"
 
 SRC_TARBALL = "INVALID"
 SRC_TARBALL_tegra186 = "cboot_src_t18x"
@@ -27,8 +27,8 @@ SRC_URI = "\
 "
 
 SRC_SHA256SUM = "INVALID"
-SRC_SHA256SUM_tegra194 = "2e053ef1f0931ad670c3f5ae75aba60ce7cbde8436d1fd4c2be3cdd2b60f1b88"
-SRC_SHA256SUM_tegra186 = "8391b7c5c7d43d5e3af47aa486dbb9b108333a2914bbded24bedaa1cb070408c"
+SRC_SHA256SUM_tegra194 = "64acfe1f18d1541e2eb63cb0d38a73c7b85272740e2b073d02ff2100305b5659"
+SRC_SHA256SUM_tegra186 = "c0921202b563089cd9d1e1860a6822e16729b08ce4b5e1fa5950ab784723cc3c"
 SRC_URI[sha256sum] = "${SRC_SHA256SUM}"
 
 require cboot-l4t.inc
