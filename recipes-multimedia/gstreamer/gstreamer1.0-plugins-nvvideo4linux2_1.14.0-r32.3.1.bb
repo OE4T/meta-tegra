@@ -12,6 +12,10 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvvideo4linux2_src.tbz
 require recipes-bsp/tegra-sources/tegra-sources-32.3.1.inc
 
 SRC_URI += "file://build-fixups.patch"
+# https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requests/649
+SRC_URI += "file://0001-v4l2videoenc-Fix-negotiation-caps-leak.patch"
+SRC_URI += "file://0002-v4l2allocator-Fix-data-offset-bytesused-size-validat.patch"
+SRC_URI += "file://0003-v4l2bufferpool-Avoid-set_flushing-warning.patch"
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries"
 
