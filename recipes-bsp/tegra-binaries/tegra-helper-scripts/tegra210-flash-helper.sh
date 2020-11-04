@@ -1,6 +1,7 @@
 #!/bin/bash
 bup_build=
 keyfile=
+keyfile_args=
 spi_only=
 no_flash=0
 sdcard=
@@ -35,6 +36,7 @@ while true; do
 	    ;;
 	-u)
 	    keyfile="$2"
+	    keyfile_args="--key \"$keyfile\""
 	    shift 2
 	    ;;
 	-s)
@@ -96,7 +98,7 @@ if [ -z "$BOARDID" -a -z "$FAB" ]; then
 	echo "ERR: chip does not identify as tegra210 ($chipid)" >&2
 	exit 1
     fi
-    if python3 $flashapp --chip 0x21 --skipuid --applet nvtboot_recovery.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    if python3 $flashapp --chip 0x21 --skipuid $keyfile_args --applet nvtboot_recovery.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
 	boardid=`$here/chkbdinfo -i ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z]`
 	BOARDID="$boardid"
 	boardver=`$here/chkbdinfo -f ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z]`
@@ -192,44 +194,49 @@ else
 	rm -f "$appfile"
 	$here/mksparse -b ${blocksize} -v --fillpattern=0 "$imgfile"  "$appfile" || exit 1
     fi
-    if [ -n "$keyfile" ]; then
-	dbmaster=$(readlink -f "$keyfile")
-	fusetype="PKC"
-	CHIPID="0x21"
-	tegraid="$CHIPID"
-	localcfgfile="flash.xml"
-	BINSARGS=
-	DTBARGS="--bldtb $dtb_file "
-	SOSARGS=" --applet nvtboot_recovery.bin "
-	dtbfilename="$dtb_file"
-	localbootfile="$kernfile"
-	flashername="cboot.bin"
-	bootloadername="cboot.bin"
-	BCT="--bct"
-	bctfilename="$sdramcfg_file"
-	flashappname=$(basename "$flashapp")
-	. "$here/odmsign.func"
-	(odmsign_ext) || exit 1
-	if [ $no_flash -ne 0 ]; then
-	    rm -f flashcmd.txt
-	    echo "#!/bin/sh" > flashcmd.txt
-	    if [ "$boardid" = "3448" ]; then
-		binargs="--bins \"EBT cboot.bin.signed;DTB ${dtb_file}.signed\""
-	    fi
-	    echo "python3 $flashapp --bl cboot.bin.signed --bct \"$sdramcfg_file\" --odmdata $odmdata \
+fi
+
+if [ -n "$keyfile" ]; then
+    dbmaster=$(readlink -f "$keyfile")
+    fusetype="PKC"
+    CHIPID="0x21"
+    tegraid="$CHIPID"
+    localcfgfile="flash.xml"
+    BINSARGS=
+    DTBARGS="--bldtb $dtb_file "
+    SOSARGS=" --applet nvtboot_recovery.bin "
+    dtbfilename="$dtb_file"
+    localbootfile="$kernfile"
+    flashername="cboot.bin"
+    bootloadername="cboot.bin"
+    BCT="--bct"
+    bctfilename="$sdramcfg_file"
+    flashappname=$(basename "$flashapp")
+    . "$here/odmsign.func"
+    (odmsign_ext) || exit 1
+    binargs=
+    if [ "$boardid" = "3448" ]; then
+	binargs="--bins \"EBT cboot.bin.signed;DTB ${dtb_file}.signed\""
+    fi
+    if [ $no_flash -ne 0 ]; then
+	rm -f flashcmd.txt
+	echo "#!/bin/sh" > flashcmd.txt
+	echo "python3 $flashapp --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
 --bldtb \"${dtb_file}.signed\" --applet rcm_1_signed.rcm --cfg flash.xml --chip 0x21 \
 --cmd \"secureflash;reboot\" $binargs" > flashcmd.txt
-	    chmod +x flashcmd.txt
-	    ln -sf flashcmd.txt ./secureflash.sh
-	    rm APPFILE
-	fi
+	chmod +x flashcmd.txt
+	ln -sf flashcmd.txt ./secureflash.sh
+	rm -f APPFILE
 	exit 0
-    else
-	cmd="flash;reboot"
-	if [ "$boardid" = "3448" ]; then
-	    binargs="--bins \"EBT cboot.bin;DTB $dtb_file\""
-	fi
     fi
+    if [ "$bup_build" != "yes" -a "$sdcard" != "yes" ]; then
+	flashcmd="python3 $flashapp --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
+--bldtb \"${dtb_file}.signed\" --applet rcm_1_signed.rcm --cfg flash.xml --chip 0x21 \
+--cmd \"secureflash;reboot\" $binargs"
+	eval "$flashcmd" || exit 1
+	exit 0
+    fi
+    touch odmsign.func
 fi
 
 flashcmd="python3 $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $odmdata \
@@ -237,7 +244,7 @@ flashcmd="python3 $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $o
  $boardcfg --cfg flash.xml --chip 0x21 --cmd \"$cmd\" $binargs"
 
 if [ "$bup_build" = "yes" ]; then
-    [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
+    [ -z "$keyfile" ] || flashcmd="${flashcmd} $keyfile_args"
     support_multi_spec=1
     clean_up=0
     dtbfilename="$dtb_file"
@@ -248,7 +255,9 @@ if [ "$bup_build" = "yes" ]; then
     spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-0-${MACHINE}-${BOOTDEV}"
     l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t210ref "$keyfile" 0x21 || exit 1
 else
-    eval "$flashcmd" || exit 1
+    if [ -z "$keyfile" ]; then
+	eval "$flashcmd" || exit 1
+    fi
     if [ -n "$sdcard" ]; then
 	$here/make-sdcard $make_sdcard_args signed/flash.xml "$@"
     fi
