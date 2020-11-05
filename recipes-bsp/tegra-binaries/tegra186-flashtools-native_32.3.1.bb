@@ -12,6 +12,7 @@ STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-*"
 SRC_URI += "\
            file://0001-Fix-skipuid-arg-usage-for-tx2-in-odmsign.func.patch \
            file://0002-Update-l4t_bup_gen.func-to-handle-signed-encrypted-b.patch \
+           file://0009-Update-tegraflash_internal.py-for-Python-3.9.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
