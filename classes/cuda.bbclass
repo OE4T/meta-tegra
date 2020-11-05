@@ -41,7 +41,7 @@ def cuda_meson_ldflags(d):
         elif arg.startswith('--sysroot='):
             linkargs.append(arg)
     return '-Xlinker ' + ','.join(linkargs)
-CUFLAGS = "-ccbin ${@d.getVar('CXX').split()[0]} ${CUDAFLAGS} ${@' '.join(['-Xcompiler ' + arg for arg in d.getVar('CXXFLAGS').split()])} ${@cuda_meson_ldflags(d)}"
+CUFLAGS = "-ccbin ${@cuda_extract_compiler('CXX', d)[0]} ${CUDAFLAGS} ${@cuda_extract_compiler('CXX', d)[1]} ${@cuda_meson_ldflags(d)}"
 
 # The following are for the old-style FindCUDA.cmake module (pre-3.8)
 CUDA_EXTRA_OECMAKE = '\
