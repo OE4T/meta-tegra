@@ -3,7 +3,8 @@ require tegra-shared-binaries.inc
 
 inherit container-runtime-csv
 
-CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/libv4l/plugins/* ${datadir}/glvnd/egl_vendor.d/* ${sysconfdir}/vulkan/icd.d/*"
+CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/libv4l/plugins/* ${datadir}/glvnd/egl_vendor.d/* ${sysconfdir}/vulkan/icd.d/* \
+                      /usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json"
 CONTAINER_CSV_EXTRA = "lib, /usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0"
 
 do_configure() {
@@ -47,8 +48,10 @@ do_install() {
     install -m755 ${B}/usr/sbin/nvargus-daemon ${D}${sbindir}/
     install -d ${D}${datadir}/glvnd/egl_vendor.d
     install -m644 ${DRVROOT}/tegra-egl/nvidia.json ${D}${datadir}/glvnd/egl_vendor.d/10-nvidia.json
+    install -d ${D}/usr/lib/aarch64-linux-gnu/tegra
+    install -m644 ${DRVROOT}/tegra/nvidia_icd.json ${D}/usr/lib/aarch64-linux-gnu/tegra/
     install -d ${D}${sysconfdir}/vulkan/icd.d
-    install -m644 ${DRVROOT}/tegra/nvidia_icd.json ${D}${sysconfdir}/vulkan/icd.d/
+    ln -sf /usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json ${D}${sysconfdir}/vulkan/icd.d/
     rm ${D}${libdir}/libnvidia-egl-wayland*
 }
 
@@ -64,7 +67,8 @@ FILES_${PN}-libv4l-plugins = "${libdir}/libv4l"
 FILES_${PN}-argus = "${libdir}/libnvargus*"
 FILES_${PN}-argus-daemon-base = "${sbindir}/nvargus-daemon"
 FILES_${PN}-libnvosd = "${libdir}/libnvosd*"
-FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir} ${datadir}"
+FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir} ${datadir} \
+               /usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json"
 FILES_${PN}-dev = "${libdir}/lib*GL*.so"
 RDEPENDS_${PN} = "libasound"
 RDEPENDS_${PN}-argus = "tegra-argus-daemon"
