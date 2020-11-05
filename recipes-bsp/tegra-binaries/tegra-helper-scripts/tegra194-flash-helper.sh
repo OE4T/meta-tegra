@@ -117,10 +117,14 @@ if [ -z "$CHIPREV" ]; then
 	echo "ERR: chip ID mismatch for Xavier" >&2
 	exit 1
     fi
-    if [ "${chipid:2:1}" != "8" ]; then
-	echo "ERR: non-production chip found" >&2
-	exit 1
-    fi
+    case "${chipid:2:1}" in
+	8|9|d)
+	    ;;
+	*)
+	    echo "ERR: non-production chip found" >&2
+	    exit 1
+	    ;;
+    esac
     CHIPREV="${chipid:5:1}"
     skipuid="--skipuid"
 fi
