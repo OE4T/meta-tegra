@@ -13,8 +13,17 @@ CUDA_LDFLAGS = "\
 LDFLAGS_prepend_cuda = "${TOOLCHAIN_OPTIONS} "
 LDFLAGS_append_cuda = " ${CUDA_LDFLAGS}"
 
-export CUDAHOSTCXX = "${@d.getVar('CXX').split()[0]}"
-export CUDAFLAGS = "${CUDA_NVCC_FLAGS} ${@' '.join(['-Xcompiler ' + arg for arg in d.getVar('CXX').split()[1:]])}"
+def cuda_extract_compiler(compiler, d, prefix='-Xcompiler '):
+    args = d.getVar(compiler).split()
+    if args[0] == "ccache":
+        return args[1], ' '.join([prefix + arg for arg in args[2:]])
+    return args[0], ' '.join([prefix + arg for arg in args[1:]])
+
+export CUDAHOSTCXX = "${@cuda_extract_compiler('CXX', d)[0]}"
+export CUDAFLAGS = "${CUDA_NVCC_FLAGS} ${@cuda_extract_compiler('CXX', d)[1]}"
+OECMAKE_CUDA_COMPILER_LAUNCHER ?= "${CCACHE}"
+OECMAKE_CUDA_COMPILER ?= "nvcc"
+CUDA_CCACHE_COMPILERCHECK ?= "cuda-compiler-check %compiler%"
 
 # The following are for the old-style FindCUDA.cmake module (pre-3.8)
 CUDA_EXTRA_OECMAKE = '\
@@ -26,7 +35,7 @@ EXTRA_OECMAKE_append_cuda = " ${CUDA_EXTRA_OECMAKE}"
 
 export CUDA_TOOLKIT_ROOT = "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}"
 export CUDA_NVCC_EXECUTABLE = "${CUDA_TOOLKIT_ROOT}/bin/nvcc"
-export CUDACXX = "${CUDA_TOOLKIT_ROOT}/bin/nvcc"
+export CUDACXX = "${CCACHE}${CUDA_TOOLKIT_ROOT}/bin/nvcc"
 export CUDA_PATH = "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}"
 
 CUDA_NATIVEDEPS = "cuda-compiler-native cuda-cudart-native"
@@ -43,9 +52,17 @@ cmake_do_generate_toolchain_file_append_cuda() {
 set(CMAKE_CUDA_TOOLKIT_ROOT_DIR "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}" CACHE PATH "" FORCE)
 set(CMAKE_CUDA_TOOLKIT_TARGET_DIR "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}" CACHE PATH "" FORCE)
 set(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES "\${CMAKE_CUDA_TOOLKIT_ROOT_DIR}/include" "\${CMAKE_CUDA_TOOLKIT_TARGET_DIR}/include" CACHE PATH "" FORCE)
+set(CMAKE_CUDA_COMPILER ${OECMAKE_CUDA_COMPILER})
+set(CMAKE_CUDA_COMPILER_LAUNCHER ${OECMAKE_CUDA_COMPILER_LAUNCHER})
 EOF
 }
 
 PACKAGE_ARCH_cuda = "${SOC_FAMILY_PKGARCH}"
 RDEPENDS_${PN}_append_tegra = " tegra-libraries"
 
+python() {
+    if bb.data.inherits_class('ccache', d):
+        d.appendVar('DEPENDS', ' cuda-compiler-check-native')
+        if (d.getVar('CCACHE_COMPILERCHECK') or '') != '':
+            d.prependVar('CCACHE_COMPILERCHECK', '${CUDA_CCACHE_COMPILERCHECK} ')
+}
