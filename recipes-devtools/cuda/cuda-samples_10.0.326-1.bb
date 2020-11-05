@@ -40,8 +40,8 @@ S = "${WORKDIR}/${BP}"
 B = "${S}"
 
 CUDA_PATH = "/usr/local/cuda-${CUDA_VERSION}"
-CC_FIRST = "${@d.getVar('CC').split()[0]}"
-CC_REST = "${@' '.join(d.getVar('CC').split()[1:])}"
+CC_FIRST = "${@cuda_extract_compiler('CC', d)[0]}"
+CC_REST = "${@cuda_extract_compiler('CC', d, prefix='')[1]}"
 CFLAGS += "-I=${CUDA_PATH}/include"
 EXTRA_NVCCFLAGS = "-I${STAGING_DIR_HOST}${CUDA_PATH}/include"
 
