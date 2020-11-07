@@ -1,16 +1,17 @@
 #!/bin/bash
-set -x
 bup_blob=0
 keyfile=
 keyfile_args=
 spi_only=
 no_flash=0
+flash_cmd=
 sdcard=
 make_sdcard_args=
 imgfile=
 dataimg=
 blocksize=4096
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only,datafile:" -o "u:s:b:B:y" -- "$@")
+
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only,datafile:" -o "u:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -60,6 +61,10 @@ while true; do
 	-y)
 	    make_sdcard_args="$make_sdcard_args -y"
 	    shift
+	    ;;
+	-c)
+	    flash_cmd="$2"
+	    shift 2
 	    ;;
 	--)
 	    shift
@@ -213,7 +218,7 @@ else
 	    $here/mksparse -b ${blocksize} --fillpattern=0 "$dataimg" "$datafile" || exit 1
 	fi
     fi
-    cmd="flash;reboot"
+    cmd=${flash_cmd:-"flash;reboot"}
     if [ "$boardid" = "3448" ]; then
 	binargs="--bins \"EBT cboot.bin;DTB $dtb_file\""
     fi
