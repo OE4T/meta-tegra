@@ -85,6 +85,9 @@ BASEVER = "${@d.getVar('PV').split('-')[0]}"
 
 S = "${WORKDIR}/tensorrt"
 
+DEPENDS = "libcublas cudnn cuda-cudart cuda-nvrtc libglvnd"
+DEPENDS_append_tegra194 = " tegra-libraries"
+
 CONTAINER_CSV_FILES = "${libdir}/*.so* /usr/src/*"
 
 do_configure() {
