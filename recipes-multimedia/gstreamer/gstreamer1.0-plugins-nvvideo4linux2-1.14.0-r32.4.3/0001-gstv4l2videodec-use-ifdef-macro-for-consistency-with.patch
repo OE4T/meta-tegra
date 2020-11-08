@@ -1,0 +1,36 @@
+From 9a51231d30e67a1a3e52cae44b5f14db49e12a1d Mon Sep 17 00:00:00 2001
+From: Jose Quaresma <quaresma.jose@gmail.com>
+Date: Sun, 8 Nov 2020 01:53:55 +0000
+Subject: [PATCH 1/2] gstv4l2videodec: use ifdef macro for consistency with
+ the rest of the code
+
+Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
+---
+ gstv4l2videodec.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/gstv4l2videodec.c b/gstv4l2videodec.c
+index 3a6188c..6daf863 100644
+--- a/gstv4l2videodec.c
++++ b/gstv4l2videodec.c
+@@ -593,7 +593,7 @@ gst_v4l2_video_dec_start (GstVideoDecoder * decoder)
+   gst_v4l2_object_unlock (self->v4l2output);
+   g_atomic_int_set (&self->active, TRUE);
+   self->output_flow = GST_FLOW_OK;
+-#if USE_V4L2_TARGET_NV
++#ifdef USE_V4L2_TARGET_NV
+   self->decoded_picture_cnt = 0;
+ #endif
+ 
+@@ -1178,7 +1178,7 @@ gst_v4l2_video_dec_loop (GstVideoDecoder * decoder)
+       gst_caps_unref(reference);
+     }
+ 
+-#if USE_V4L2_TARGET_NV
++#ifdef USE_V4L2_TARGET_NV
+ 
+     if (!gst_buffer_copy_into (frame->output_buffer, frame->input_buffer,
+           (GstBufferCopyFlags)GST_BUFFER_COPY_METADATA, 0, -1)) {
+-- 
+2.29.2
+
