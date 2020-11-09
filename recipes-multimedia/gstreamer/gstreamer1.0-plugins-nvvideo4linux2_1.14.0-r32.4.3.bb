@@ -11,6 +11,7 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvvideo4linux2_src.tbz
 require recipes-bsp/tegra-sources/tegra-sources-32.4.3.inc
 
 SRC_URI += "file://build-fixups.patch"
+SRC_URI += "file://0001-gstv4l2videodec-fix-assertion-in-allocation-query.patch"
 # https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requests/649
 SRC_URI += "file://0001-v4l2videoenc-Fix-negotiation-caps-leak.patch"
 SRC_URI += "file://0002-v4l2allocator-Fix-data-offset-bytesused-size-validat.patch"
