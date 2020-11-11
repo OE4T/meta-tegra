@@ -6,8 +6,9 @@ no_flash=0
 flash_cmd=
 imgfile=
 dataimg=
+inst_args=""
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,datafile:" -o "u:v:c:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,datafile:,usb-instance:" -o "u:v:c:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -27,6 +28,11 @@ while true; do
 	    ;;
 	--datafile)
 	    dataimg="$2"
+	    shift 2
+	    ;;
+	--usb-instance)
+	    usb_instance="$2"
+	    inst_args="--instance ${usb_instance}"
 	    shift 2
 	    ;;
 	-u)
@@ -80,7 +86,7 @@ fi
 cvm_bin=$(mktemp cvm.bin.XXXXX)
 
 if [ -z "$BOARDID" -o -z "$FAB" ]; then
-    if ! python3 "$flashappname" --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    if ! python3 "$flashappname" ${inst_args} --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
 	echo "ERR: could not retrieve EEPROM board information" >&2
 	exit 1
     fi
@@ -234,7 +240,7 @@ else
     tfcmd=${flash_cmd:-"flash;reboot"}
 fi
 
-flashcmd="python3 $flashappname --chip 0x18 --bl nvtboot_recovery_cpu.bin \
+flashcmd="python3 $flashappname ${inst_args} --chip 0x18 --bl nvtboot_recovery_cpu.bin \
 	      $cfgappargs \
 	      --odmdata $odmdata \
 	      --cmd \"$tfcmd\" $skipuid \

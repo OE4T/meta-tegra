@@ -9,9 +9,10 @@ sdcard=
 make_sdcard_args=
 imgfile=
 dataimg=
+inst_args=""
 blocksize=4096
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only,datafile:" -o "u:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only,datafile:,usb-instance:" -o "u:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -39,6 +40,11 @@ while true; do
 	    ;;
 	--datafile)
 	    dataimg="$2"
+	    shift 2
+	    ;;
+	--usb-instance)
+	    usb_instance="$2"
+	    inst_args="--instance ${usb_instance}"
 	    shift 2
 	    ;;
 	-u)
@@ -109,7 +115,7 @@ if [ -z "$BOARDID" -a -z "$FAB" ]; then
 	echo "ERR: chip does not identify as tegra210 ($chipid)" >&2
 	exit 1
     fi
-    if python3 $flashapp --chip 0x21 --skipuid $keyfile_args --applet nvtboot_recovery.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    if python3 $flashapp ${inst_args} --chip 0x21 --skipuid $keyfile_args --applet nvtboot_recovery.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
 	boardid=`$here/chkbdinfo -i ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z]`
 	BOARDID="$boardid"
 	boardver=`$here/chkbdinfo -f ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z]`
@@ -249,7 +255,7 @@ if [ -n "$keyfile" ]; then
     if [ $no_flash -ne 0 ]; then
 	rm -f flashcmd.txt
 	echo "#!/bin/sh" > flashcmd.txt
-	echo "python3 $flashapp --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
+	echo "python3 $flashapp ${inst_args} --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
 --bldtb \"${dtb_file}.signed\" --applet rcm_1_signed.rcm --cfg flash.xml --chip 0x21 \
 --cmd \"secureflash;reboot\" $binargs" > flashcmd.txt
 	chmod +x flashcmd.txt
@@ -258,7 +264,7 @@ if [ -n "$keyfile" ]; then
 	exit 0
     fi
     if [ $bup_blob -eq 0 -a "$sdcard" != "yes" ]; then
-	flashcmd="python3 $flashapp --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
+	flashcmd="python3 $flashapp ${inst_args} --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
 --bldtb \"${dtb_file}.signed\" --applet rcm_1_signed.rcm --cfg flash.xml --chip 0x21 \
 --cmd \"secureflash;reboot\" $binargs"
 	eval "$flashcmd" || exit 1
@@ -267,7 +273,7 @@ if [ -n "$keyfile" ]; then
     touch odmsign.func
 fi
 
-flashcmd="python3 $flashapp --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $odmdata \
+flashcmd="python3 $flashapp ${inst_args} --bl cboot.bin --bct \"$sdramcfg_file\" --odmdata $odmdata \
  --bldtb \"$dtb_file\" --applet nvtboot_recovery.bin \
  $boardcfg --cfg flash.xml --chip 0x21 --cmd \"$cmd\" $binargs"
 
