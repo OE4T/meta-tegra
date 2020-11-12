@@ -7,9 +7,10 @@ no_flash=0
 flash_cmd=
 imgfile=
 dataimg=
+inst_args=""
 blocksize=4096
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,datafile:" -o "u:v:c:s:b:B:y" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only,datafile:,usb-instance:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -33,6 +34,11 @@ while true; do
 	    ;;
 	--datafile)
 	    dataimg="$2"
+	    shift 2
+	    ;;
+	--usb-instance)
+	    usb_instance="$2"
+	    inst_args="--instance ${usb_instance}"
 	    shift 2
 	    ;;
 	-u)
@@ -125,7 +131,7 @@ if [ -z "$CHIPREV" ]; then
 fi
 
 if [ -z "$FAB" -o -z "$BOARDID" -o \( "$BOARDID" = "2888" -a \( -z "$BOARDSKU" -o \( "$BOARDSKU" != "0004" -a -z "$BOARDREV" \) \) \) ]; then
-    if ! python3 $flashappname --chip 0x19 --applet mb1_t194_prod.bin $skipuid --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
+    if ! python3 $flashappname ${inst_args} --chip 0x19 --applet mb1_t194_prod.bin $skipuid --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
 		 --bins "mb2_applet nvtboot_applet_t194.bin" --cmd "dump eeprom boardinfo ${cvm_bin};reboot recovery"; then
 	echo "ERR: could not retrieve EEPROM board information" >&2
 	exit 1
@@ -338,7 +344,7 @@ if [ -n "$keyfile" ]; then
     touch odmsign.func
 fi
 
-flashcmd="python3 $flashappname --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
+flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
 	      --sdram_config $sdramcfg_files \
 	      --odmdata $odmdata \
 	      --applet mb1_t194_prod.bin \
