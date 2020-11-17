@@ -4,6 +4,7 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-$
            file://0001-Convert-Python-scripts-to-Python3.patch \
            file://0002-macros.mk-fix-GNU-make-4.3-compatibility.patch \
            file://0003-t194-l4t.mk-make-some-build-options-configurable.patch \
+           file://0004-Support-A-B-slot-for-kernel-on-SDcards-and-USB-devic.patch \
 "
 
 SRC_URI[sha256sum] = "2e053ef1f0931ad670c3f5ae75aba60ce7cbde8436d1fd4c2be3cdd2b60f1b88"
