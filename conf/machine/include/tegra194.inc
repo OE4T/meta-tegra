@@ -36,7 +36,7 @@ TEGRA_SIGNING_ENV = "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEG
 
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_72 --gpu-code=sm_72"
 
-PREFERRED_PROVIDER_virtual/bootloader ?= "cboot-prebuilt"
+PREFERRED_PROVIDER_virtual/bootloader ?= "cboot-t19x"
 PREFERRED_PROVIDER_tos-trusty ?= "tos-prebuilt"
 
 require conf/machine/include/tegra-common.inc
