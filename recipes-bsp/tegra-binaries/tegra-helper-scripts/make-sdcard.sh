@@ -328,6 +328,7 @@ if ! sgdisk "$output" --verify >/dev/null 2>&1; then
     exit 1
 fi
 if [ -b "$output" ]; then
+    sleep 1
     if ! $SUDO partprobe "$output" >/dev/null 2>&1; then
 	echo "ERR: partprobe failed after partitioning $output" >&2
 	exit 1
