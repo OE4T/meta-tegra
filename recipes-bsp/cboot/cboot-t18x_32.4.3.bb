@@ -2,6 +2,7 @@ DESCRIPTION = "cboot bootloader for Tegra186"
 
 SRC_URI = "${L4T_URI_BASE}/cboot_src_t18x.tbz2;downloadfilename=cboot_src_t18x-${PV}.tbz2;subdir=${BP} \
            file://0001-Convert-Python-scripts-to-Python3.patch \
+           file://0002-macros.mk-fix-GNU-make-4.3-compatibility.patch \
 "
 SRC_URI[sha256sum] = "8391b7c5c7d43d5e3af47aa486dbb9b108333a2914bbded24bedaa1cb070408c"
 
