@@ -3,6 +3,7 @@ DESCRIPTION = "cboot bootloader for Tegra194"
 SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-${PV}.tbz2;subdir=${BP} \
            file://0001-Convert-Python-scripts-to-Python3.patch \
            file://0002-macros.mk-fix-GNU-make-4.3-compatibility.patch \
+           file://0003-Restore-version-number-to-L4T-builds.patch \
            file://0003-t194-l4t.mk-make-some-build-options-configurable.patch \
            file://0004-Support-A-B-slot-for-kernel-on-SDcards-and-USB-devic.patch \
 "
