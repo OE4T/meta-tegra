@@ -70,6 +70,7 @@ PLEASE NOTE
 Contributing
 ------------
 
-Please use GitHub (https://github.com/OE4T/meta-tegra) to submit
-issues or pull requests, or add to the documentation on the wiki.
+Please see the contributor wiki page at
+[this link](https://github.com/OE4T/meta-tegra/wiki/OE4T-Contributor-Guide).
+
 Contributions are welcome!
