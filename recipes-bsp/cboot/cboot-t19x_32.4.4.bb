@@ -6,6 +6,7 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-$
            file://0003-Restore-version-number-to-L4T-builds.patch \
            file://0003-t194-l4t.mk-make-some-build-options-configurable.patch \
            file://0004-Support-A-B-slot-for-kernel-on-SDcards-and-USB-devic.patch \
+           file://0005-usb_sd_boot-fix-unused-label-warning-when-extlinux-i.patch \
 "
 
 SRC_URI[sha256sum] = "64acfe1f18d1541e2eb63cb0d38a73c7b85272740e2b073d02ff2100305b5659"
