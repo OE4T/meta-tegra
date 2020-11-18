@@ -44,6 +44,7 @@ do_configure() {
               -e's,^(BUILD_VERSION :=).*,BUILD_VERSION := ${CBOOT_VERSION},' \
         ${S}/bootloader/partner/t18x/cboot/build/version.mk
 }
+do_configure[cleandirs] = "${B}"
 
 do_compile() {
     LIBGCC=`${CC} -print-libgcc-file-name`
