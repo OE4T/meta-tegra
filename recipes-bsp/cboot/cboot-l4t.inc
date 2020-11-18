@@ -12,8 +12,7 @@ LIC_FILES_CHKSUM = " \
 
 inherit l4t_bsp
 
-L4T_URI_BASE = "https://developer.download.nvidia.com/embedded/L4T/r32_Release_v4.4"
-SRC_TARBALL ??= "INVALID"
+L4T_BSP_NAME = "${L4T_SRCS_NAME}"
 
 PROVIDES += "cboot"
 
