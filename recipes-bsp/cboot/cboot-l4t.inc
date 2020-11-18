@@ -33,12 +33,16 @@ CBOOT_SYMLINK ?= "cboot-${MACHINE}.bin"
 
 inherit python3native deploy nopackages
 
-def cboot_pseudo_branch(d):
+def cboot_version_number(d):
     ver = d.getVar('PV').split('.')
-    return '%02d.%02d' % (int(ver[0]), int(ver[1]))
+    return '%02d.%02d.%02d' % (int(ver[0]), int(ver[1]), int(ver[2]))
+
+CBOOT_VERSION ?= "${@cboot_version_number(d)}${TARGET_VENDOR}"
 
 do_configure() {
-    sed -i -r -e's,^(BUILD_BRANCH :=).*,BUILD_BRANCH := ${@cboot_pseudo_branch(d)},' ${S}/bootloader/partner/t18x/cboot/build/version.mk
+    sed -i -r -e'/^BUILD_BRANCH/d' -e'/^BUILD_DATE/d' \
+              -e's,^(BUILD_VERSION :=).*,BUILD_VERSION := ${CBOOT_VERSION},' \
+        ${S}/bootloader/partner/t18x/cboot/build/version.mk
 }
 
 do_compile() {
