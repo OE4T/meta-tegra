@@ -10,5 +10,7 @@ SRC_URI[sha256sum] = "18002a9a09262b2167d97b4c77ec3ed304f6244383a36b63ba20c1503b
 
 inherit autotools pkgconfig
 
+RRECOMMENDS_${PN} += "kernel-module-at24"
+
 PACKAGES =+ "${PN}-boardspec"
 FILES_${PN}-boardspec = "${bindir}/tegra-boardspec"
