@@ -470,12 +470,11 @@ create_tegraflash_pkg_tegra194() {
         cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
         DATAARGS="--datafile ${DATAFILE}"
     fi
+    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     if [ -n "${KERNEL_ARGS}" ]; then
-        cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-        bootargs="`fdtget ./${DTBFILE} /chosen bootargs 2>/dev/null`"
-        fdtput -t s ./${DTBFILE} /chosen bootargs "$bootargs ${KERNEL_ARGS}"
-    else
-        cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
+    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
+        fdtput -d ./${DTBFILE} /chosen bootargs
     fi
     cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
