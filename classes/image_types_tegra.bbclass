@@ -462,7 +462,7 @@ create_tegraflash_pkg_tegra194() {
     fi
     if [ -n "${KERNEL_ARGS}" ]; then
         cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-        bootargs="`fdtget ./${DTBFILE} /chosen bootargs 2>/dev/null`"
+        bootargs="`fdtget -d '' ./${DTBFILE} /chosen bootargs 2>/dev/null`"
         fdtput -t s ./${DTBFILE} /chosen bootargs "$bootargs ${KERNEL_ARGS}"
     else
         cp "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
