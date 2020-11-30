@@ -37,6 +37,8 @@ class Partition(object):
         self.oem_sign = element.get('oemsign', 'false') == 'true'
         guid = element.find('unique_guid')
         self.partguid = "" if guid is None else validate_guid(guid.text.strip())
+        startloc = element.find('start_location')
+        self.start_location = "" if startloc is None else str(int(startloc.text.strip(), base=0))
         aa = element.find('allocation_attribute')
         if aa is None:
             self.alloc_attr = 0
@@ -142,10 +144,11 @@ Extracts partition information from an NVIDIA flash.xml file
         partitions = [part for part in layout.devices[args.type].partitions if not part.is_partition_table()]
         blksize = layout.devices[args.type].sector_size
         for n, part in enumerate(partitions):
-            print("blksize={};partnumber={};partname=\"{}\";partsize={};"
+            print("blksize={};partnumber={};partname=\"{}\";start_location={};partsize={};"
                   "partfile=\"{}\";partguid=\"{}\";partfilltoend={}".format(blksize,
                                                                             part.id,
                                                                             part.name,
+                                                                            part.start_location,
                                                                             part.size,
                                                                             part.filename,
                                                                             part.partguid,
