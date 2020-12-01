@@ -47,3 +47,5 @@ RDEPENDS_${PN}-nv-update-engine = "${PN}-updater ${PN}"
 RPROVIDES_${PN}-nv-update-engine = "tegra-redundant-boot-base"
 RREPLACES_${PN}-nv-update-engine = "tegra-redundant-boot-base"
 RCONFLICTS_${PN}-nv-update-engine = "tegra-redundant-boot-base"
+
+PACKAGE_ARCH = "${MACHINE_ARCH}"
