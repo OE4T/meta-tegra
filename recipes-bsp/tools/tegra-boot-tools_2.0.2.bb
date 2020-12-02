@@ -28,3 +28,5 @@ RDEPENDS_${PN}-lateboot = "${PN}"
 FILES_${PN}-updater = "${bindir}/tegra-bootloader-update"
 RDEPENDS_${PN}-updater = "${PN}"
 FILES_${PN} += "${libdir}/tmpfiles.d"
+
+PACKAGE_ARCH = "${MACHINE_ARCH}"
