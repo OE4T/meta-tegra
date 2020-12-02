@@ -1,3 +1,5 @@
+UBOOT_INITIAL_ENV ?= "u-boot-initial-env"
+
 require recipes-bsp/u-boot/u-boot-common.inc
 require recipes-bsp/u-boot/u-boot.inc
 
