@@ -6,11 +6,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=7a9217de7f233011b127382da9a035a1"
 DEPENDS = "zlib systemd tegra-eeprom-tool"
 
 SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
-<<<<<<< HEAD:recipes-bsp/tools/tegra-boot-tools_2.0.3.bb
-SRC_URI[sha256sum] = "3c0244bc06d53965a026b61e3829f0e487010ae9270a8e9d441bee7f4a579794"
-=======
-SRC_URI[sha256sum] = "f69851e449b80e91df9a7ab577ae3808ee36035c3850ac37b4b860973997e525"
->>>>>>> 71230986 (tegra-boot-tools: update to 2.1.0):recipes-bsp/tools/tegra-boot-tools_2.1.0.bb
+SRC_URI[sha256sum] = "86acc4493bd1b72399391e781199f8c4bbe905ae302c1475b660c4249fec61b3"
 
 OTABOOTDEV ??= "/dev/mmcblk0boot0"
 OTAGPTDEV ??= "/dev/mmcblk0boot1"
@@ -41,10 +37,8 @@ FILES_${PN}-updater = "${bindir}/tegra-bootloader-update"
 RDEPENDS_${PN}-updater = "${PN}"
 
 FILES_${PN} += "${libdir}/tmpfiles.d"
-<<<<<<< HEAD:recipes-bsp/tools/tegra-boot-tools_2.0.3.bb
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
-=======
 RDEPENDS_${PN} = "tegra-bootpart-config"
 
 FILES_${PN}-nvbootctrl = "${sbindir}/nvbootctrl"
@@ -57,4 +51,3 @@ RDEPENDS_${PN}-nv-update-engine = "${PN}-updater ${PN}"
 RPROVIDES_${PN}-nv-update-engine = "tegra-redundant-boot-base"
 RREPLACES_${PN}-nv-update-engine = "tegra-redundant-boot-base"
 RCONFLICTS_${PN}-nv-update-engine = "tegra-redundant-boot-base"
->>>>>>> 71230986 (tegra-boot-tools: update to 2.1.0):recipes-bsp/tools/tegra-boot-tools_2.1.0.bb
