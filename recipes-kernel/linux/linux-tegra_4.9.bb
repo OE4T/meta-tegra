@@ -17,7 +17,7 @@ SCMVERSION ??= "y"
 SRCBRANCH = "patches${LINUX_VERSION_EXTENSION}"
 SRCREV = "b103804ffb36f836308428688dd7fd668877266e"
 KBRANCH = "${SRCBRANCH}"
-SRC_REPO = "github.com/OE4T/linux-tegra-4.9"
+SRC_REPO = "github.com/OE4T/linux-tegra-4.9;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
 	   file://defconfig \
