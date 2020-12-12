@@ -1,42 +1,77 @@
-Thank you for contributing to the OE4T project!  Your contributions are greatly appreciated!
+Thank you for contributing to the OE4T project!  Your contributions are greatly
+appreciated!
 
-# Submitting Issues
+# Getting Help
 
-Use the Issues tab in [meta-tegra](https://github.com/OE4T/meta-tegra/issues) for issues specific to the meta-tegra layer.
-For general build issues or questions about getting started with your build setup please use the issues tab on [tegra-demo-distro](https://github.com/OE4T/tegra-demo-distro/issues).  For mender specific issues, use [OE4T's meta-mender-community](https://github.com/OE4T/meta-mender-community/issues) repo.
+For general build issues or questions about getting started with your build
+setup please use the
+[Discussions](https://github.com/OE4T/meta-tegra/discussions) tab of the
+meta-tegra repository:
 
-When reporting build or runtime issues, please include as much information about your environment as you can. For example, the target
-hardware you are building for, branch/version information, etc.
+* Use the Ideas category for anything you'd like to see included in meta-tegra,
+Wiki content, or the
+[tegra-demo-distro](https://github.com/OE4T/tegra-demo-distro/issues).
+* Use the Q&A category for questions about how to build or modify your Tegra
+target based on the content here.
+* Use the "Show and Tell" category for any projects you'd like to share which
+are related to meta-tegra.
+* Use the General channel for anything that doesn't fit well into the categories
+above, and which doesn't relate to a build or runtime issue with Tegra yocto
+builds.
+
+# Reporting Issues
+
+Use the [Issues tab in meta-tegra](https://github.com/OE4T/meta-tegra/issues)
+for reporting build or runtime issues with Tegra yocto build targets.  When
+reporting build or runtime issues, please include as much information about your
+environment as you can. For example, the target hardware you are building for,
+branch/version information, etc.  Please fill in the provided bug template when
+reporting issues.
 
 # Submitting Code Changes
-The OE4T project repositories follow the [OpenEmbedded Guidelines](https://www.openembedded.org/wiki/Commit_Patch_Message_Guidelines#Patch_Headers_and_Commit_Messages) so please review these when proposing your Pull Request.  A few highlights and additional requirements:
-* Please submit issues or pull requests through Github.
-* Only rebase and squash commits are used for PRs, so if you have a PR that is outstanding for a long time, please keep your
-  branch up to date by rebasing your changes, rather than merging.
-* Group commits based on their functionality and components changed.  For the first line, use something
-  like `component: Short Summary` to describe your change where `component` refers to a specific software
-  component being changed.
-* Please try to make incremental changes with multiple commits, rather than "big bang" single commits with changes spread across
-  multiple components.
-* Add a `Signed-off-by:` line to your commit, using `git commit -s` or a pre-commit hook like the one setup with [this script](https://github.com/OE4T/tegra-demo-distro/blob/master/scripts-setup/setup-git-hooks), using your real name and e-mail address
-(no anonymous contributions, please). This indicates that you have the right to submit the patch per the Developer's Certificate
-of Origin in the next section.
+The OE4T project repositories follow the [OpenEmbedded
+Guidelines](https://www.openembedded.org/wiki/Commit_Patch_Message_Guidelines#Patch_Headers_and_Commit_Messages).
+Please review these when proposing your Pull Request.  A few highlights and
+additional requirements:
+* Please submit issues or pull requests through Github.  Only rebase and squash
+commits are used for PRs, so if you have a PR that is outstanding for a long
+time, please keep your branch up to date by rebasing your changes, rather than
+merging.
+* Group commits based on their functionality and components changed.  For the
+first line, use something like `component: Short Summary` to describe your
+change where `component` refers to a specific software component being changed.
+* Please try to make incremental changes with multiple commits, rather than "big
+bang" single commits with changes spread across multiple components.
+* Add a `Signed-off-by:` line to your commit, using `git commit -s` or a
+pre-commit hook like the one setup with [this script](https://github.com/OE4T/tegra-demo-distro/blob/master/scripts-setup/setup-git-hooks),
+using your real name and e-mail address (no anonymous contributions, please).
+This indicates that you have the right to submit the patch per the
+Developer's Certificate of Origin in the next section.
+* Target the master branch for pull requests unless your change is specific
+to an earlier branch.
 
 ## Developer's Certificate of Origin
 By making a contribution to this project, I certify that:
-1. The contribution was created in whole or in part by me and I have the right to submit it under the open source
-   license indicated in the file; or
-2. The contribution is based upon previous work that, to the best of my knowledge, is covered under an
-   appropriate open source license and I have the right under that license to submit that work with modifications,
-   whether created in whole or in part by me, under the same open source license (unless I am permitted to submit
-   under a different license), as indicated in the file; or
-3. The contribution was provided directly to me by some other person who certified (1), (2) or (3) and I have not modified it.
-4. I understand and agree that this project and the contribution are public and that a record of the contribution
-   (including all personal information I submit with it, including my sign-off) is maintained indefinitely and may be
-   redistributed consistent with this project or the open source license(s) involved.
+1. The contribution was created in whole or in part by me and I have the right
+to submit it under the open source license indicated in the file; or
+2. The contribution is based upon previous work that, to the best of my
+knowledge, is covered under an appropriate open source license and I have the
+right under that license to submit that work with modifications, whether
+created in whole or in part by me, under the same open source license
+(unless I am permitted to submit under a different license),
+as indicated in the file; or
+3. The contribution was provided directly to me by some other person who
+certified (1), (2) or (3) and I have not modified it.
+4. I understand and agree that this project and the contribution are public and
+that a record of the contribution (including all personal information I submit
+with it, including my sign-off) is maintained indefinitely and may be
+redistributed consistent with this project or the open source license(s)
+involved.
 
 (Adapted from the [Linux kernel's certificate of origin](https://www.kernel.org/doc/html/latest/process/submitting-patches.html#developer-s-certificate-of-origin-1-1).)
 
 # Submitting Documentation Changes
-Wikis are enabled on the [meta-tegra](https://github.com/OE4T/meta-tegra) and [tegra-demo-distro](https://github.com/OE4T/tegra-demo-distro)
-repositories.  Please feel free to make appropriate changes to pages as needed, adding an edit message to describe your change.
+Wikis are enabled on the [meta-tegra](https://github.com/OE4T/meta-tegra) and
+[tegra-demo-distro](https://github.com/OE4T/tegra-demo-distro) repositories.
+Please feel free to make appropriate changes to pages as needed, adding an edit
+message to describe your change.
