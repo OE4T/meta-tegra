@@ -66,10 +66,40 @@ PLEASE NOTE
   builds and configuring them for GCC 8.
 
 
+Getting Help
+-----------
+
+For general build issues or questions about getting started with your build
+setup please use the
+[Discussions](https://github.com/OE4T/meta-tegra/discussions) tab of the
+meta-tegra repository:
+
+* Use the Ideas category for anything you'd like to see included in meta-tegra,
+Wiki content, or the
+[tegra-demo-distro](https://github.com/OE4T/tegra-demo-distro/issues).
+* Use the Q&A category for questions about how to build or modify your Tegra
+target based on the content here.
+* Use the "Show and Tell" category for any projects you'd like to share which
+are related to meta-tegra.
+* Use the General channel for anything that doesn't fit well into the categories
+above, and which doesn't relate to a build or runtime issue with Tegra yocto
+builds.
+
+
+Reporting Issues
+-----------
+
+Use the [Issues tab in meta-tegra](https://github.com/OE4T/meta-tegra/issues)
+for reporting build or runtime issues with Tegra yocto build targets.  When
+reporting build or runtime issues, please include as much information about your
+environment as you can. For example, the target hardware you are building for,
+branch/version information, etc.  Please fill in the provided bug template when
+reporting issues.
+
+
 Contributing
 ------------
 
-Please see the contributor wiki page at
-[this link](https://github.com/OE4T/meta-tegra/wiki/OE4T-Contributor-Guide).
+Please see [CONTRIBUTING.md](CONTRIBUTING.md)
 
 Contributions are welcome!
