@@ -1,0 +1,75 @@
+From 3774aaf6bebd07bdafc8ba68303f6bb37383956b Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 14 Dec 2020 08:13:25 -0800
+Subject: [PATCH] Fix compatibility with GNU Make 4.3
+
+See https://bugs.gentoo.org/705974
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ common/glib-gen.mak             | 4 +++-
+ common/gst-glib-gen.mak         | 6 ++++--
+ libs/gst/controller/Makefile.am | 4 +++-
+ 3 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/common/glib-gen.mak b/common/glib-gen.mak
+index ef93a5f..2aef8f8 100644
+--- a/common/glib-gen.mak
++++ b/common/glib-gen.mak
+@@ -1,11 +1,13 @@
+ # these are the variables your Makefile.am should set
+ # the example is based on the colorbalance interface
+ 
++H := \#
++
+ #glib_enum_headers=$(colorbalance_headers)
+ #glib_enum_define=GST_COLOR_BALANCE
+ #glib_enum_prefix=gst_color_balance
+ 
+-enum_headers=$(foreach h,$(glib_enum_headers),\n\#include \"$(h)\")
++enum_headers=$(foreach h,$(glib_enum_headers),\n$(H)include \"$(h)\")
+ 
+ # these are all the rules generating the relevant files
+ %-marshal.h: %-marshal.list
+diff --git a/common/gst-glib-gen.mak b/common/gst-glib-gen.mak
+index 1028b21..112caba 100644
+--- a/common/gst-glib-gen.mak
++++ b/common/gst-glib-gen.mak
+@@ -1,14 +1,16 @@
+ # these are the variables your Makefile.am should set
+ # the example is based on the colorbalance interface
+ 
++H := \#
++
+ #glib_enum_headers=$(colorbalance_headers)
+ #glib_enum_define=GST_COLOR_BALANCE
+ #glib_gen_prefix=gst_color_balance
+ #glib_gen_basename=colorbalance
+ #glib_gen_decl_banner=GST_EXPORT
+-#glib_gen_decl_include=\#include <gst/foo/foo-prelude.h>
++#glib_gen_decl_include=$(H)include <gst/foo/foo-prelude.h>
+ 
+-enum_headers=$(foreach h,$(glib_enum_headers),\n\#include \"$(h)\")
++enum_headers=$(foreach h,$(glib_enum_headers),\n$(H)include \"$(h)\")
+ 
+ # these are all the rules generating the relevant files
+ $(glib_gen_basename)-marshal.h: $(glib_gen_basename)-marshal.list
+diff --git a/libs/gst/controller/Makefile.am b/libs/gst/controller/Makefile.am
+index b1675c7..a700b2d 100644
+--- a/libs/gst/controller/Makefile.am
++++ b/libs/gst/controller/Makefile.am
+@@ -4,11 +4,13 @@ glib_enum_headers= \
+ 	gstinterpolationcontrolsource.h \
+ 	gstlfocontrolsource.h
+ 
++H := \#
++
+ glib_enum_define = GST_CONTROLLER
+ glib_gen_prefix = gst
+ glib_gen_basename = controller
+ glib_gen_decl_banner=GST_CONTROLLER_API
+-glib_gen_decl_include=\#include <gst/controller/controller-prelude.h>
++glib_gen_decl_include=$(H)include <gst/controller/controller-prelude.h>
+ 
+ built_sources = controller-enumtypes.c
+ built_headers = controller-enumtypes.h

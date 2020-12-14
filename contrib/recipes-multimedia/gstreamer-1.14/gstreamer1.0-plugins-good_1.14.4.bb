@@ -6,6 +6,7 @@ SRC_URI = " \
             file://avoid-including-sys-poll.h-directly.patch \
             file://ensure-valid-sentinel-for-gst_structure_get.patch \
             file://0001-introspection.m4-prefix-pkgconfig-paths-with-PKG_CON.patch \
+            file://0001-Fix-compatibility-with-GNU-Make-4.3.patch \
             "
 
 SRC_URI[md5sum] = "6e3b247097366cf2639f22abfece7113"
