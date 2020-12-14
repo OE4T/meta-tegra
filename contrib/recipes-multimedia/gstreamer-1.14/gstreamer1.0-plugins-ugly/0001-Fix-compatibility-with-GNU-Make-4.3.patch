@@ -1,0 +1,29 @@
+From ff84efacf23e1f763e86c2b3205ff63dd551c354 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 14 Dec 2020 09:04:04 -0800
+Subject: [PATCH] Fix compatibility with GNU Make 4.3
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ common/glib-gen.mak | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/common/glib-gen.mak b/common/glib-gen.mak
+index ef93a5f..2aef8f8 100644
+--- a/common/glib-gen.mak
++++ b/common/glib-gen.mak
+@@ -1,11 +1,13 @@
+ # these are the variables your Makefile.am should set
+ # the example is based on the colorbalance interface
+ 
++H := \#
++
+ #glib_enum_headers=$(colorbalance_headers)
+ #glib_enum_define=GST_COLOR_BALANCE
+ #glib_enum_prefix=gst_color_balance
+ 
+-enum_headers=$(foreach h,$(glib_enum_headers),\n\#include \"$(h)\")
++enum_headers=$(foreach h,$(glib_enum_headers),\n$(H)include \"$(h)\")
+ 
+ # these are all the rules generating the relevant files
+ %-marshal.h: %-marshal.list
