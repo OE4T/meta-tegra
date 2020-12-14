@@ -9,6 +9,7 @@ LICENSE_FLAGS = "commercial"
 SRC_URI = " \
             http://gstreamer.freedesktop.org/src/gst-plugins-ugly/gst-plugins-ugly-${PV}.tar.xz \
             file://0001-introspection.m4-prefix-pkgconfig-paths-with-PKG_CON.patch \
+            file://0001-Fix-compatibility-with-GNU-Make-4.3.patch \
             "
 SRC_URI[md5sum] = "90768a0074db071175ce980064d9a1ac"
 SRC_URI[sha256sum] = "ac02d837f166c35ff6ce0738e281680d0b90052cfb1f0255dcf6aaca5f0f6d23"
