@@ -9,6 +9,7 @@ SRC_URI = " \
     file://0001-introspection.m4-prefix-pkgconfig-paths-with-PKG_CON.patch \
     file://0001-Makefile.am-don-t-hardcode-libtool-name-when-running.patch \
     file://vulkan-Drop-use-of-VK_RESULT_BEGIN_RANGE.patch \
+    file://0001-Fix-compatibility-with-GNU-Make-4.3.patch \
 "
 SRC_URI[md5sum] = "5d20a91d027708abcf924f6c1279dd25"
 SRC_URI[sha256sum] = "910b4e0e2e897e8b6d06767af1779d70057c309f67292f485ff988d087aa0de5"
