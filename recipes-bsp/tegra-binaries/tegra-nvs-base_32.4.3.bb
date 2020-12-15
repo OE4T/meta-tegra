@@ -20,5 +20,3 @@ PACKAGES = "${PN}"
 FILES_${PN} = "${sbindir} ${sysconfdir}"
 RDEPENDS_${PN} = "bash tegra-libraries"
 INSANE_SKIP_${PN} = "ldflags"
-
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
