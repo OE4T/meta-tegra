@@ -16,4 +16,6 @@ def l4t_deb_src_uri(d):
     return ' '.join(["${L4T_DEB_FEED_BASE}/common/pool/main/%s/%s/%s" % (subdir, group, pkg) for pkg in common_debs] +
                     ["${L4T_DEB_FEED_BASE}/%s/pool/main/%s/%s/%s" % (soc, subdir, group, pkg) for pkg in soc_debs])
 
+l4t_deb_src_uri[vardepsexclude] += "L4T_DEB_SOCNAME"
+
 SRC_URI = "${@l4t_deb_src_uri(d)}"
