@@ -15,7 +15,9 @@ EXTRA_OECONF = "--with-systemdsystemunitdir=${systemd_system_unitdir} \
                 --with-machine-name=${MACHINE} \
                 --with-bootdev=${OTABOOTDEV} --with-gptdev=${OTAGPTDEV}"
 
-inherit autotools pkgconfig systemd
+inherit autotools pkgconfig systemd features_check
+
+REQUIRED_DISTRO_FEATURES = "systemd"
 
 SYSTEMD_PACKAGES = "${PN}-earlyboot ${PN}-lateboot"
 PACKAGES =+ "libtegra-boot-tools ${PN}-earlyboot ${PN}-lateboot ${PN}-updater"
