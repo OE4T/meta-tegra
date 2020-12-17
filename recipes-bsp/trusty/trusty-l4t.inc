@@ -15,6 +15,8 @@ LIC_FILES_CHKSUM = "\
 
 DEPENDS = "gcc-linaro-baremetal-arm-native"
 
+EXCLUDE_FROM_WORLD = "1"
+
 B = "${WORKDIR}/build"
 
 CFLAGS[unexport] = "1"
