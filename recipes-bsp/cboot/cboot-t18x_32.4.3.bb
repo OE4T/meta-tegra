@@ -14,6 +14,6 @@ PACKAGECONFIG[recovery] = "CONFIG_ENABLE_L4T_RECOVERY=1,,"
 
 TARGET_SOC = "t186"
 COMPATIBLE_MACHINE = "(tegra186)"
-PROVIDES_append = "${@' virtual/bootloader' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
+PROVIDES_append = "${@' virtual/bootloader' if (d.getVar('PREFERRED_PROVIDER_virtual/bootloader') or '').startswith('cboot') else ''}"
 
 require cboot-l4t.inc
