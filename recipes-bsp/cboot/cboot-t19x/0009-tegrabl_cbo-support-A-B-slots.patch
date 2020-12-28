@@ -1,0 +1,64 @@
+From 4c01a6c6b5b7bdcdc6881deaf31d0d8b8ca107c6 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 17 Nov 2020 07:51:45 -0800
+Subject: [PATCH 09/12] tegrabl_cbo: support A/B slots
+
+Flash layouts include two CPUBL-CFG partitions for A/B support,
+so update the code to handle this.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/partner/common/lib/cbo/tegrabl_cbo.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/bootloader/partner/common/lib/cbo/tegrabl_cbo.c b/bootloader/partner/common/lib/cbo/tegrabl_cbo.c
+index 031d608..eb7ae0b 100644
+--- a/bootloader/partner/common/lib/cbo/tegrabl_cbo.c
++++ b/bootloader/partner/common/lib/cbo/tegrabl_cbo.c
+@@ -17,6 +17,9 @@
+ #include <tegrabl_partition_manager.h>
+ #include <tegrabl_cbo.h>
+ #include <string.h>
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++#include <tegrabl_a_b_boot_control.h>
++#endif
+ 
+ #define NVIDIA_BOOT_PARTITION_GUID	"6637b54f-c21b-48a7-952e-a8d071029d6b"
+ #define CBO_DT_SIZE					(4 * 1024) /* 4KB */
+@@ -53,10 +56,14 @@ static struct boot_devices g_boot_devices[] = {
+ 
+ tegrabl_error_t tegrabl_read_cbo(char *part_name)
+ {
++	char cbo_partname[MAX_PARTITION_NAME];
+ 	tegrabl_error_t err = TEGRABL_NO_ERROR;
+ 	void *cbo_buf = NULL;
+ 	struct tegrabl_partition partition;
+ 	uint64_t partition_size;
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++	char slot_suffix[MAX_PARTITION_NAME];
++#endif
+ 
+ 	pr_debug("%s: Entry\n", __func__);
+ 
+@@ -65,10 +72,16 @@ tegrabl_error_t tegrabl_read_cbo(char *part_name)
+ 		err = TEGRABL_ERROR(TEGRABL_ERR_INVALID, 0);
+ 		goto fail;
+ 	}
++	strcpy(cbo_partname, part_name);
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++	if (tegrabl_a_b_get_bootslot_suffix(slot_suffix, false) == TEGRABL_NO_ERROR) {
++		strcat(cbo_partname, slot_suffix);
++	}
++#endif
+ 
+-	err = tegrabl_partition_open(part_name, &partition);
++	err = tegrabl_partition_open(cbo_partname, &partition);
+ 	if (err != TEGRABL_NO_ERROR) {
+-		pr_error("%s: Failed to open %s partition\n", __func__, part_name);
++		pr_error("%s: Failed to open %s partition\n", __func__, cbo_partname);
+ 		goto fail;
+ 	}
+ 	partition_size = partition.partition_info->total_size;
+-- 
+2.27.0
+

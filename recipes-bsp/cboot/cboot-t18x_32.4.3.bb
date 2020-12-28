@@ -4,13 +4,19 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t18x.tbz2;downloadfilename=cboot_src_t18x-$
            file://0001-Convert-Python-scripts-to-Python3.patch \
            file://0002-macros.mk-fix-GNU-make-4.3-compatibility.patch \
            file://0003-Restore-version-number-to-L4T-builds.patch \
-           file://0003-t186-l4t.mk-make-some-build-options-configurable.patch \
+           file://0004-Fix-spurious-console-none-warning.patch \
+           file://0005-Add-bootinfo-module-definition-to-tegrabl_error.patch \
+           file://0006-Add-bootinfo-module.patch \
+           file://0007-t186-l4t.mk-make-some-build-options-configurable.patch \
+           file://0008-t186-add-bootinfo-to-build.patch \
+           file://0009-Add-machine-ID-to-kernel-command-line.patch \
 "
 SRC_URI[sha256sum] = "8391b7c5c7d43d5e3af47aa486dbb9b108333a2914bbded24bedaa1cb070408c"
 
 PACKAGECONFIG ??= "display recovery"
 PACKAGECONFIG[display] = "CONFIG_ENABLE_DISPLAY=1,,"
 PACKAGECONFIG[recovery] = "CONFIG_ENABLE_L4T_RECOVERY=1,,"
+PACKAGECONFIG[machine-id] = "CONFIG_ENABLE_MACHINE_ID=1,,"
 
 TARGET_SOC = "t186"
 COMPATIBLE_MACHINE = "(tegra186)"
