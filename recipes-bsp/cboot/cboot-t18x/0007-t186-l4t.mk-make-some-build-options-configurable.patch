@@ -1,7 +1,7 @@
-From e87411d0ae296226ba68129c5011bc19c01325ad Mon Sep 17 00:00:00 2001
+From 36e9410daca494317df175063179aa5a3eb54f42 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 17 Nov 2020 06:23:04 -0800
-Subject: [PATCH] t186/l4t.mk: make some build options configurable
+Subject: [PATCH 7/9] t186/l4t.mk: make some build options configurable
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -34,5 +34,5 @@ index 4ce060a..64c0e80 100644
 +
  # 0-DSI, 1-HDMI, 2-DP, 3-EDP
 -- 
-2.25.1
+2.27.0
 

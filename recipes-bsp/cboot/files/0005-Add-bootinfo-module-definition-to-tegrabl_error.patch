@@ -1,0 +1,42 @@
+From 69b7b0d439562abdbd09389b1faa0fcc27a4f366 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 28 Dec 2020 06:10:05 -0800
+Subject: [PATCH 05/12] Add bootinfo module definition to tegrabl_error
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/partner/common/include/tegrabl_error.h           | 3 ++-
+ bootloader/partner/common/lib/tegrabl_error/tegrabl_error.c | 1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/bootloader/partner/common/include/tegrabl_error.h b/bootloader/partner/common/include/tegrabl_error.h
+index 19e9c01..ed8028f 100644
+--- a/bootloader/partner/common/include/tegrabl_error.h
++++ b/bootloader/partner/common/include/tegrabl_error.h
+@@ -317,9 +317,10 @@ typedef uint32_t tegrabl_err_reason_t;
+ #define TEGRABL_ERR_USBMSD 0x7CU
+ #define TEGRABL_ERR_CBO 0x7DU
+ #define TEGRABL_ERR_SHELL 0x7EU
++#define TEGRABL_ERR_BOOTINFO 0x7FU
+ 
+ /**** This should be last ****/
+-#define TEGRABL_ERR_MODULE_END 0x7FU
++#define TEGRABL_ERR_MODULE_END 0x80U
+ #define TEGRABL_ERR_MODULE_MAX 0xffU
+ 
+ typedef uint32_t tegrabl_err_module_t;
+diff --git a/bootloader/partner/common/lib/tegrabl_error/tegrabl_error.c b/bootloader/partner/common/lib/tegrabl_error/tegrabl_error.c
+index 0c210be..60d04ee 100644
+--- a/bootloader/partner/common/lib/tegrabl_error/tegrabl_error.c
++++ b/bootloader/partner/common/lib/tegrabl_error/tegrabl_error.c
+@@ -230,6 +230,7 @@ const char *module_strings[TEGRABL_ERR_MODULE_END] = {
+ 	ADD_ERROR_MODULE(CONFIG_STORAGE),
+ 	ADD_ERROR_MODULE(USBMSD),
+ 	ADD_ERROR_MODULE(CBO),
++	ADD_ERROR_MODULE(BOOTINFO),
+ };
+ 
+ /**
+-- 
+2.27.0
+
