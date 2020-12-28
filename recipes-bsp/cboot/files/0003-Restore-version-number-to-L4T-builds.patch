@@ -1,7 +1,7 @@
-From ae140a4b488e24d8fe08f513dc51e936dc0b391f Mon Sep 17 00:00:00 2001
+From c7c79b61c94b4d7b1349bffe3d6366b925e6fbcd Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 18 Nov 2020 05:02:56 -0800
-Subject: [PATCH] Restore version number to L4T builds
+Subject: [PATCH 03/12] Restore version number to L4T builds
 
 The stock makefiles omit the version number for L4T builds,
 since they default to using a git hash that isn't available
@@ -34,5 +34,5 @@ index 3053c7f..cd14f27 100644
  $(OUTELF).hex: $(OUTELF)
  	@echo generating hex file: $@
 -- 
-2.25.1
+2.27.0
 

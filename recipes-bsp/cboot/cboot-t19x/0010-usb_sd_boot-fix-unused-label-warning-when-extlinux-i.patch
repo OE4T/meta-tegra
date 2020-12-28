@@ -1,7 +1,7 @@
-From f71e34fda5232c6bed3cd7d4c53e333f905a33be Mon Sep 17 00:00:00 2001
+From 7a644be5b0c40d97d112d480d334fbfb3cb2d32c Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 18 Nov 2020 05:54:03 -0800
-Subject: [PATCH] usb_sd_boot: fix unused-label warning when extlinux is
+Subject: [PATCH 10/12] usb_sd_boot: fix unused-label warning when extlinux is
  disabled
 
 Signed-off-by: Matt Madison <matt@madison.systems>
@@ -25,5 +25,5 @@ index 76ad17e..e15e018 100644
  		/* No partitions found */
  		err = TEGRABL_ERROR(TEGRABL_ERR_NOT_FOUND, 0);
 -- 
-2.25.1
+2.27.0
 

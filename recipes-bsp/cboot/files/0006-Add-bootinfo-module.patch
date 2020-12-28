@@ -1,0 +1,438 @@
+From 191a2ae1edaacd86e433d39418419eae3213123d Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 28 Dec 2020 05:58:46 -0800
+Subject: [PATCH 06/12] Add bootinfo module
+
+for accessing variables that can be set via the tegra-bootinfo
+utility in tegra-boot-tools.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../common/include/lib/tegrabl_bootinfo.h     |  34 ++
+ .../partner/common/lib/bootinfo/rules.mk      |  34 ++
+ .../common/lib/bootinfo/tegrabl_bootinfo.c    | 331 ++++++++++++++++++
+ 3 files changed, 399 insertions(+)
+ create mode 100644 bootloader/partner/common/include/lib/tegrabl_bootinfo.h
+ create mode 100644 bootloader/partner/common/lib/bootinfo/rules.mk
+ create mode 100644 bootloader/partner/common/lib/bootinfo/tegrabl_bootinfo.c
+
+diff --git a/bootloader/partner/common/include/lib/tegrabl_bootinfo.h b/bootloader/partner/common/include/lib/tegrabl_bootinfo.h
+new file mode 100644
+index 0000000..1653916
+--- /dev/null
++++ b/bootloader/partner/common/include/lib/tegrabl_bootinfo.h
+@@ -0,0 +1,34 @@
++#ifndef tegrabl_bootinfo_h__
++#define tegrabl_bootinfo_h__
++/*
++ * Copyright (c) 2019-2021, Matthew Madison
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining
++ * a copy of this software and associated documentation files
++ * (the "Software"), to deal in the Software without restriction,
++ * including without limitation the rights to use, copy, modify, merge,
++ * publish, distribute, sublicense, and/or sell copies of the Software,
++ * and to permit persons to whom the Software is furnished to do so,
++ * subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be
++ * included in all copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
++ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
++ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
++ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
++ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ */
++#include <string.h>
++#include <tegrabl_error.h>
++
++struct devinfo_context;
++
++tegrabl_error_t tegrabl_bootinfo_open(struct devinfo_context **ctxp);
++void tegrabl_bootinfo_close(struct devinfo_context *ctx);
++tegrabl_error_t tegrabl_bootinfo_getvar(struct devinfo_context *ctx, const char *name, char *buf, size_t bufsiz);
++
++#endif /* tegrabl_bootinfo_h__ */
+diff --git a/bootloader/partner/common/lib/bootinfo/rules.mk b/bootloader/partner/common/lib/bootinfo/rules.mk
+new file mode 100644
+index 0000000..c81824d
+--- /dev/null
++++ b/bootloader/partner/common/lib/bootinfo/rules.mk
+@@ -0,0 +1,34 @@
++#
++# Copyright (c) 2019-2021, Matthew Madison
++#
++# Permission is hereby granted, free of charge, to any person obtaining
++# a copy of this software and associated documentation files
++# (the "Software"), to deal in the Software without restriction,
++# including without limitation the rights to use, copy, modify, merge,
++# publish, distribute, sublicense, and/or sell copies of the Software,
++# and to permit persons to whom the Software is furnished to do so,
++# subject to the following conditions:
++#
++# The above copyright notice and this permission notice shall be
++# included in all copies or substantial portions of the Software.
++#
++# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
++# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
++# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
++# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
++# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++#
++
++LOCAL_DIR := $(GET_LOCAL_DIR)
++
++MODULE := $(LOCAL_DIR)
++
++GLOBAL_INCLUDES += \
++	$(LOCAL_DIR)
++
++MODULE_SRCS += \
++	$(LOCAL_DIR)/tegrabl_bootinfo.c
++
++include make/module.mk
+diff --git a/bootloader/partner/common/lib/bootinfo/tegrabl_bootinfo.c b/bootloader/partner/common/lib/bootinfo/tegrabl_bootinfo.c
+new file mode 100644
+index 0000000..85640f8
+--- /dev/null
++++ b/bootloader/partner/common/lib/bootinfo/tegrabl_bootinfo.c
+@@ -0,0 +1,331 @@
++/*
++ * bootinfo.c - boot info variables from tegra-boot-tools
++ *
++ * Copyright (c) 2019-2021, Matthew Madison
++ *
++ * Permission is hereby granted, free of charge, to any person obtaining
++ * a copy of this software and associated documentation files
++ * (the "Software"), to deal in the Software without restriction,
++ * including without limitation the rights to use, copy, modify, merge,
++ * publish, distribute, sublicense, and/or sell copies of the Software,
++ * and to permit persons to whom the Software is furnished to do so,
++ * subject to the following conditions:
++ *
++ * The above copyright notice and this permission notice shall be
++ * included in all copies or substantial portions of the Software.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
++ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
++ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
++ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
++ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
++ */
++
++#define MODULE TEGRABL_ERR_BOOTINFO
++
++#include <string.h>
++#include <stdint.h>
++#include <tegrabl_bootinfo.h>
++#include <tegrabl_blockdev.h>
++#include <tegrabl_malloc.h>
++#include <tegrabl_error.h>
++#include <tegrabl_debug.h>
++#include <zlib.h>
++
++static const char DEVICE_MAGIC[8] = {'B', 'O', 'O', 'T', 'I', 'N', 'F', 'O'};
++#define DEVICE_MAGIC_SIZE sizeof(DEVICE_MAGIC)
++
++static const uint16_t DEVINFO_VERSION_OLDER = 1;
++static const uint16_t DEVINFO_VERSION_OLD = 2;
++static const uint16_t DEVINFO_VERSION_CURRENT = 3;
++
++#define DEVINFO_BLOCK_SIZE 512
++
++struct device_info {
++	unsigned char magic[DEVICE_MAGIC_SIZE];
++	uint16_t devinfo_version;
++	uint8_t  flags;
++	uint8_t  failed_boots;
++	uint32_t crcsum;
++	uint8_t  sernum;
++	uint8_t  unused__;
++	uint16_t ext_sectors;
++} __attribute__((packed));
++#define DEVINFO_HDR_SIZE sizeof(struct device_info)
++#define EXTENSION_SIZE (511*512)
++#define VARSPACE_SIZE (DEVINFO_BLOCK_SIZE+EXTENSION_SIZE-(DEVINFO_HDR_SIZE+sizeof(uint32_t)))
++/*
++ * Maximum size for a variable value is all of the variable space minus two bytes
++ * for null terminators (for name and value) and one byte for a name, plus one
++ * byte for the null character terminating the variable list.
++ */
++#define MAX_VALUE_SIZE (VARSPACE_SIZE-4)
++
++struct devinfo_context {
++	tegrabl_bdev_t *bdev;
++	int valid[2];
++	int current;
++	size_t extsize[2];
++	uint8_t infobuf[2][DEVINFO_BLOCK_SIZE+EXTENSION_SIZE];
++};
++
++/*
++ * We stash the info at the end of mmcblk0boot1.
++ * On tegra186/194 platforms, it goes just
++ * in front of the pseudo-GPT that NVIDIA puts at the
++ * very end. On tegra210 platforms, it goes at the
++ * very end. Two copies are stored, with one 512 byte
++ * sector each for the base, plus extended storage
++ * for variables of one or more sectors (configurable
++ * at build time). On tegra186/194 platforms, the two
++ * copies are located together, while on tegra210 platforms,
++ * the second copy is located between VER_b and VER.
++ *
++ * We look for these using SEEK_END, so the offsets
++ * must be negative. The pseudo-GPT occupies the
++ * last 34 sectors of the partition, and we leave two
++ * additional sectors as buffer (on t186/t194).
++ *
++ * Note that 4 bytes are reserved at the end of
++ * each of the extended storage blocks for a CRC
++ * checksum for the block, which is maintained
++ * separately from the CRC checksum for the base
++ * block for compatibility with older versions of
++ * this tool that did not support the extensions.
++ *
++ * Example layout on t186/t194 with 256KiB (1 base sector
++ * plus 511 extension sectors) per storage copy:
++ *
++ *  sector                                          offset (hex)
++ *  7132         +---------------------------------+  37B800
++ *               |       extended var store B      |
++ *               +---------------------------------+
++ *  7643         +---------------------------------+  3BB600
++ *               |       extended var store A      |
++ *               +---------------------------------+
++ *  8154         =       base devinfo copy B       =  3FB400
++ *  8155         =       base devinfo copy A       =  3FB600
++ *               ~---------- buffer ---------------~  3FB800
++ *  8159         +---------------------------------+
++ *               |           pseudo-GPT            |
++ *  8192         +---------------------------------+
++ *
++ * Example layout on t210 (eMMC) with 8Kib (1 base sector
++ * plus 15 extension sectors) per storage copy:
++ *
++ *  sector                                          offset (hex)
++ *  7936         +---------------------------------+  3E0000
++ *               |          VER_b                  |
++ *               +---------------------------------+
++ *  8047         +---------------------------------+  3EDE00
++ *               |       extended var store B      |
++ *               +---------------------------------+
++ *  8063         =       base devinfo copy B       =  3EFE00
++ *  8064         +---------------------------------+  3F0000
++ *               |          VER                    |
++ *               +---------------------------------+
++ *  8175         +---------------------------------+  3FDE00
++ *               |       extended var store A      |
++ *               +---------------------------------+
++ *  8191         =       base devinfo copy A       =  3FFE00
++ *
++ */
++#define OFFSET_COUNT 2
++static const off_t devinfo_offset[OFFSET_COUNT] = {
++	[0] = -((36 + 1) * 512),
++	[1] = -((36 + 2) * 512),
++};
++
++/*
++ * tegrabl_bootinfo_open
++ *
++ * Tries to find a valid bootinfo block, and initializes a context
++ * if one is found.
++ *
++ */
++tegrabl_error_t
++tegrabl_bootinfo_open (struct devinfo_context **ctxp)
++{
++	struct devinfo_context *ctx;
++	struct device_info *dp;
++	tegrabl_bdev_t *bdev, *bdev_mmcboot, *bdev_spiflash;
++	tegrabl_error_t err;
++	int i;
++
++	*ctxp = NULL;
++
++	bdev_mmcboot = bdev_spiflash = NULL;
++	for (bdev = tegrabl_blockdev_next_device(NULL);
++	     bdev != NULL;
++	     bdev = tegrabl_blockdev_next_device(bdev)) {
++		if (tegrabl_blockdev_get_storage_type(bdev) == TEGRABL_STORAGE_SDMMC_BOOT)
++			bdev_mmcboot = bdev;
++		else if (tegrabl_blockdev_get_storage_type(bdev) == TEGRABL_STORAGE_QSPI_FLASH)
++			bdev_spiflash = bdev;
++	}
++
++	if (bdev_mmcboot == NULL && bdev_spiflash == NULL)
++		return TEGRABL_ERROR(TEGRABL_ERR_NOT_FOUND, 0);
++	
++	ctx = tegrabl_calloc(1, sizeof(struct devinfo_context));
++	if (ctx == NULL)
++		return TEGRABL_ERROR(TEGRABL_ERR_NO_MEMORY, 0);
++
++	ctx->bdev = bdev_mmcboot == NULL ? bdev_spiflash : bdev_mmcboot;
++	pr_debug("%s: bootinfo device: 0x%x\n", __func__, ctx->bdev->device_id);
++	
++	for (i = 0; i < OFFSET_COUNT; i++) {
++		off_t start = (off_t) ctx->bdev->size;
++		/*
++		 * Read base block
++		 */
++		pr_debug("%s: end of device = %lld, devinfo_offset[%d] = %lld\n", __func__,
++			(long long)start, i, (long long)devinfo_offset[i]);
++		start += devinfo_offset[i];
++		err = tegrabl_blockdev_read(ctx->bdev, &ctx->infobuf[i][0], start, DEVINFO_BLOCK_SIZE);
++		if (err != TEGRABL_NO_ERROR)
++			continue;
++
++		dp = (struct device_info *)(ctx->infobuf[i]);
++
++		if (memcmp(dp->magic, DEVICE_MAGIC, DEVICE_MAGIC_SIZE) != 0)
++			continue;
++		pr_debug("%s: found magic for %d\n", __func__, i);
++		/*
++		 * Automatically convert older layouts to current:
++		 *
++		 * V1 was one sector with different structure and no variable space
++		 * V2 was one sector with variables but no extension space
++		 */
++		if (dp->devinfo_version == DEVINFO_VERSION_OLDER)
++			continue;
++
++		if (dp->devinfo_version == DEVINFO_VERSION_OLD) {
++			uint32_t crcsum = dp->crcsum;
++			dp->crcsum = 0;
++			if (crc32(0, ctx->infobuf[i], DEVINFO_BLOCK_SIZE) != crcsum)
++				continue;
++			ctx->valid[i] = 1;
++			memset(ctx->infobuf[i] + DEVINFO_BLOCK_SIZE, 0, EXTENSION_SIZE);
++			dp->ext_sectors = 0;
++			ctx->extsize[i] = 0;
++			pr_debug("%s: found old devinfo version for %d\n", __func__, i);
++			continue;
++		}
++		if (dp->devinfo_version >= DEVINFO_VERSION_CURRENT) {
++			uint32_t crcsum;
++			size_t extsize;
++
++			extsize = dp->ext_sectors * 512;
++			pr_debug("%s: found current devinfo version for %d, extsize=%u\n", __func__, i, extsize);
++			/*
++			 * Read extension block:
++			 *    first sits just above the second base devinfo block
++			 *    second sits above the first
++			 */
++			start = (off_t) ctx->bdev->size + devinfo_offset[1] - (extsize * (i + 1));
++			pr_debug("%s: extension offset[%d] = %lld\n", __func__, i, (long long)start);
++			err = tegrabl_blockdev_read(ctx->bdev, &ctx->infobuf[i][DEVINFO_BLOCK_SIZE], start, extsize);
++			if (err != TEGRABL_NO_ERROR)
++				continue;
++			crcsum = *(uint32_t *)(&ctx->infobuf[i][DEVINFO_BLOCK_SIZE+extsize-sizeof(uint32_t)]);
++			if (crc32(0, &ctx->infobuf[i][DEVINFO_BLOCK_SIZE], extsize-sizeof(uint32_t)) != crcsum)
++				continue;
++			ctx->extsize[i] = extsize;
++		} else
++			continue; /* unrecognized version */
++		pr_debug("%s: devinfo[%d] is valid\n", __func__, i);
++		ctx->valid[i] = 1;
++	}
++	if (!(ctx->valid[0] || ctx->valid[1])) {
++		tegrabl_free(ctx);
++		return TEGRABL_ERROR(TEGRABL_ERR_NOT_FOUND, 0);
++	}
++
++	*ctxp = ctx;
++	if (ctx->valid[0] && !ctx->valid[1])
++		ctx->current = 0;
++	else if (!ctx->valid[0] && ctx->valid[1])
++		ctx->current = 1;
++	else {
++		/* both valid */
++		struct device_info *dp1 = (struct device_info *)(ctx->infobuf[1]);
++		dp = (struct device_info *)(ctx->infobuf[0]);
++		if (dp->sernum == 255 && dp1->sernum == 0)
++			ctx->current = 1;
++		else if (dp1->sernum == 255 && dp->sernum == 0)
++			ctx->current = 0;
++		else if (dp1->sernum > dp->sernum)
++			ctx->current = 1;
++		else
++			ctx->current = 0;
++	}
++
++	return TEGRABL_NO_ERROR;
++
++} /* tegrabl_bootinfo_open */
++
++
++/*
++ * tegrabl_bootinfo_close
++ *
++ * Cleans up a context, freeing memory and closing open channels.
++ */
++void
++tegrabl_bootinfo_close (struct devinfo_context *ctx)
++{
++	if (ctx != NULL)
++		tegrabl_free(ctx);
++
++} /* tegrabl_bootinfo_close */
++
++
++/*
++ * tegrabl_bootinfo_getvar
++ *
++ * returns the value of a bootinfo variable
++ */
++tegrabl_error_t
++tegrabl_bootinfo_getvar (struct devinfo_context *ctx, const char *name,
++			 char *buf, size_t bufsiz)
++{
++	char *cp, *endp, *valp;
++	ssize_t remain, varbytes;
++
++	if (ctx == NULL || name == NULL)
++		return TEGRABL_ERROR(TEGRABL_ERR_INVALID, 0);
++
++	pr_debug("%s: enter\n", __func__);
++	for (cp = (char *)(ctx->infobuf[ctx->current] + DEVINFO_HDR_SIZE),
++		     remain = (ssize_t) ctx->extsize + DEVINFO_BLOCK_SIZE - (DEVINFO_HDR_SIZE+sizeof(uint32_t));
++	     remain > 0 && *cp != '\0';
++	     cp += varbytes, remain -= varbytes) {
++		for (endp = cp + 1, varbytes = 1;
++		     varbytes < remain && *endp != '\0';
++		     endp++, varbytes++);
++		if (varbytes >= remain)
++			break;
++		for (valp = endp + 1, varbytes += 1;
++		     varbytes < remain && *valp != '\0';
++		     valp++, varbytes++);
++		if (varbytes >= remain)
++			break;
++		pr_debug("%s: var=%s, val=%s\n", __func__, cp, endp+1);
++		if (strcmp(cp, name) == 0) {
++			size_t valsize = valp - (endp + 1);
++			if (valsize >= bufsiz)
++				valsize = bufsiz - 1;
++			memcpy(buf, endp + 1, valsize);
++			buf[valsize] = '\0';
++			pr_debug("%s: valsize=%u\n", __func__, valsize);
++			return TEGRABL_NO_ERROR;
++		}
++		varbytes += 1; /* for trailing null at end of value */
++	}
++	pr_debug("%s: %s not found\n", __func__, name);
++
++	return TEGRABL_ERROR(TEGRABL_ERR_NOT_FOUND, 0);
++
++} /* tegrabl_bootinfo_getvar */
+-- 
+2.27.0
+
