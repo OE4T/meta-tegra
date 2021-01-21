@@ -536,7 +536,17 @@ tegraflash_generate_bupgen_script() {
     local outfile="${1:-./generate_bup_payload.sh}"
     local spec__ sdramcfg fab boardsku boardrev
     rm -f $outfile
-    cat <<EOF > $outfile
+
+    if [ ! -z "${TEGRA_BUPGEN_STRIP_IMG_NAMES}" ]; then
+        stripped="" 
+        for i in $(echo ${TEGRA_BUPGEN_STRIP_IMG_NAMES} | tr "," "\n")
+        do
+        	stripped="${stripped} -e'/${i}/d' " 
+        done
+        echo "sed -i ${stripped} ./flash.xml.in" > $outfile
+    fi 
+
+    cat <<EOF >> $outfile
 #!/bin/bash
 rm -rf signed multi_signed rollback.bin ${BUP_PAYLOAD_DIR}
 export BOARDID=${TEGRA_BOARDID}
