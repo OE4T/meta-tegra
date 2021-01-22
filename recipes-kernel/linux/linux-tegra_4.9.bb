@@ -10,7 +10,7 @@ require recipes-kernel/linux/linux-yocto.inc
 DEPENDS_remove = "kern-tools-native"
 DEPENDS_append = " kern-tools-tegra-native"
 
-LINUX_VERSION ?= "4.9.140"
+LINUX_VERSION ?= "4.9.201"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
@@ -18,7 +18,7 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "a28ca7b3779d65b032aecf80b58be4d8458a2ded"
+SRCREV = "e443483e8c9c25d878caf33e7b97193eee22fef2"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-tegra-4.9;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
