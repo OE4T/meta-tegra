@@ -1,5 +1,5 @@
 SOC_FAMILY = "tegra186"
-L4T_BSP_NAME = "t186ref_release_aarch64"
+L4T_BSP_NAME = "T186"
 L4T_BSP_PREFIX = "Tegra186"
 
 require tegra-binaries-${PV}.inc
@@ -17,7 +17,6 @@ SRC_URI += "\
            file://0005-Convert-rollback_parser.py-to-Python3.patch \
            file://0006-Update-tegraflash_internal.py-for-Python3.patch \
            file://0007-Update-check-functions-in-BUP_generator.py-for-Pytho.patch \
-           file://0009-Update-tegraflash_internal.py-for-Python-3.9.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"

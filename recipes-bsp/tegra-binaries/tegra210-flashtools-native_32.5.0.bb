@@ -1,5 +1,5 @@
 SOC_FAMILY = "tegra210"
-L4T_BSP_NAME = "t210ref_release_aarch64"
+L4T_BSP_NAME = "T210"
 L4T_BSP_PREFIX = "Tegra210"
 
 require tegra-binaries-${PV}.inc
@@ -19,7 +19,7 @@ SRC_URI += "\
            file://0003-Convert-BUP_generator.py-to-Python3.patch \
            file://0006-Update-tegraflash_internal.py-for-Python3.patch \
            file://0007-Update-check-functions-in-BUP_generator.py-for-Pytho.patch \
-           file://0009-Update-tegraflash_internal.py-for-Python-3.9.patch \
+           file://0008-Skip-qspi-sd-specific-entries-for-other-t210-BUP-pay.patch \
            "
 
 S = "${WORKDIR}/Linux_for_Tegra"
