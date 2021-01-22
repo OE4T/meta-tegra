@@ -18,7 +18,10 @@ TEGRA_SIGNING_ARGS ??= ""
 TEGRA_SIGNING_ENV ??= ""
 TEGRA_SIGNING_EXCLUDE_TOOLS ??= ""
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
+
 TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEGRA_BOARDREV};chiprev=${TEGRA_CHIPREV}"
+TEGRA_BUPGEN_STRIP_IMG_NAMES ??= ""
+TEGRA_BUPGEN_STRIP_CMD ??= ""
 
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 LNXFILE ?= "boot.img"
@@ -532,22 +535,25 @@ END
 }
 create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
+python () {
+    images = d.getVar('TEGRA_BUPGEN_STRIP_IMG_NAMES', '').split(' ')
+    if len(images):
+        sed_cmd = 'sed '
+        for name in images:
+            sed_cmd += '-e\'/{}/d\' '.format(name)
+        sed_cmd += './flash.xml.in > ./flash.xml.in.stripped'
+        d.setVar('TEGRA_BUPGEN_STRIP_CMD', sed_cmd)
+    else:
+        d.setVar('TEGRA_BUPGEN_STRIP_CMD', "cp ./flash.xml.in  ./flash.xml.in.stripped")
+}
+
 tegraflash_generate_bupgen_script() {
     local outfile="${1:-./generate_bup_payload.sh}"
     local spec__ sdramcfg fab boardsku boardrev
     rm -f $outfile
-
-    if [ ! -z "${TEGRA_BUPGEN_STRIP_IMG_NAMES}" ]; then
-        stripped="" 
-        for i in $(echo ${TEGRA_BUPGEN_STRIP_IMG_NAMES} | tr "," "\n")
-        do
-        	stripped="${stripped} -e'/${i}/d' " 
-        done
-        echo "sed -i ${stripped} ./flash.xml.in" > $outfile
-    fi 
-
+    echo '#!/bin/bash' > $outfile
+    echo "${TEGRA_BUPGEN_STRIP_CMD}" >> $outfile
     cat <<EOF >> $outfile
-#!/bin/bash
 rm -rf signed multi_signed rollback.bin ${BUP_PAYLOAD_DIR}
 export BOARDID=${TEGRA_BOARDID}
 export fuselevel=fuselevel_production
@@ -565,7 +571,7 @@ EOF
     for spec__ in ${@' '.join(['"%s"' % entry for entry in d.getVar('TEGRA_BUPGEN_SPECS').split()])}; do
         eval $spec__
         cat <<EOF >> $outfile
-MACHINE=${MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" ./${SOC_FAMILY}-flash-helper.sh --bup ./flash.xml.in ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
+MACHINE=${MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" ./${SOC_FAMILY}-flash-helper.sh --bup ./flash.xml.in.stripped ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
 EOF
     done
     chmod +x $outfile
