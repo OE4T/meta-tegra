@@ -1,0 +1,50 @@
+From da3483580b0190d1616274637769e2dcae4a3155 Mon Sep 17 00:00:00 2001
+From: Edison Fernandez <edison.fernandez@ridgerun.com>
+Date: Mon, 25 Jan 2021 15:57:56 -0600
+Subject: [PATCH] Fix cuda dependency for nveglgles
+
+---
+ gst-egl/configure.ac            | 8 ++++++++
+ gst-egl/ext/eglgles/Makefile.am | 3 ++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 02ef912..dc9c7a2 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -242,6 +242,14 @@ PKG_CHECK_MODULES(GMODULE_EXPORT, gmodule-export-2.0, HAVE_GMODULE_EXPORT=yes, H
+ dnl Needed by plugins that use g_module_*() API
+ PKG_CHECK_MODULES(GMODULE_NO_EXPORT, gmodule-no-export-2.0)
+ 
++dnl Cuda
++PKG_CHECK_MODULES(CUDART, cudart-10.2, HAVE_CUDART=yes, HAVE_CUDART=no)
++PKG_CHECK_MODULES(CUDA, cuda-10.2, HAVE_CUDA=yes, HAVE_CUDA=no)
++AC_SUBST(CUDA_LIBS)
++AC_SUBST(CUDA_CFLAGS)
++AC_SUBST(CUDART_LIBS)
++AC_SUBST(CUDART_CFLAGS)
++
+ dnl Orc
+ ORC_CHECK([0.4.17])
+ 
+diff --git a/ext/eglgles/Makefile.am b/ext/eglgles/Makefile.am
+index d7a8447..c6233b9 100644
+--- a/ext/eglgles/Makefile.am
++++ b/ext/eglgles/Makefile.am
+@@ -10,6 +10,7 @@ libgstnveglglessink_la_CFLAGS = $(GST_PLUGINS_BAD_CFLAGS) \
+                               $(GST_BASE_CFLAGS) \
+                               $(GST_CFLAGS) \
+                               $(EGL_CFLAGS) \
++                              $(CUDART_CFLAGS) $(CUDA_CFLAGS) \
+                               $(EGLGLES_CFLAGS) -DUSE_EGL_TEGRA
+ libgstnveglglessink_la_OBJCFLAGS = $(GST_PLUGINS_BAD_OBJCFLAGS) \
+                                  $(GST_PLUGINS_BASE_OBJCFLAGS) \
+@@ -19,7 +20,7 @@ libgstnveglglessink_la_OBJCFLAGS = $(GST_PLUGINS_BAD_OBJCFLAGS) \
+                                  -fobjc-abi-version=2 -fobjc-legacy-dispatch
+ 
+ libgstnveglglessink_la_LIBADD = $(GST_LIBS) $(GST_BASE_LIBS) \
+-	$(GST_PLUGINS_BASE_LIBS) $(EGL_LIBS) $(EGLGLES_LIBS) \
++	$(GST_PLUGINS_BASE_LIBS) $(EGL_LIBS) $(CUDART_LIBS) $(CUDA_LIBS) $(EGLGLES_LIBS) \
+ 	-lgstvideo-$(GST_API_VERSION) $(GST_EGL_LIBS)
+ 
+ libgstnveglglessink_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
