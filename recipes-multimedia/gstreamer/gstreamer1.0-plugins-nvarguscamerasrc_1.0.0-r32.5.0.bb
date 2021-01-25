@@ -8,11 +8,12 @@ LIC_FILES_CHKSUM = "file://nvbuf_utils.h;endline=9;md5=afc209f3955d083a93f5009bc
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvarguscamera_src.tbz2"
 TEGRA_SRC_SUBARCHIVE_OPTS = "--exclude=3rdpartyheaders.tbz2"
 
-require recipes-bsp/tegra-sources/tegra-sources-32.4.3.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.5.0.inc
 
 SRC_URI += "\
     file://0001-Build-fixups.patch \
     file://0002-Remove-dependencies-on-tegra-mmapi-sample-code.patch \
+    file://0003-Fix-nvarguscamerasrc-build-errors.patch \
 "
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries tegra-mmapi"
