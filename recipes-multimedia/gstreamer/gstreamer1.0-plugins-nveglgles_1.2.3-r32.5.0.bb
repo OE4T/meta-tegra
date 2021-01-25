@@ -6,7 +6,9 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=73a5855a8119deb017f5f13cf327095d \
                     file://ext/eglgles/gstegladaptation.c;beginline=9;endline=25;md5=51eafe984c428127773b6a95eb959d0b"
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstegl_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.4.3.inc
+TEGRA_SRC_EXTRA_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvarguscamera_src.tbz2"
+TEGRA_SRC_EXTRA_SUBARCHIVE_OPTS = "-C ${S}/ext/eglgles/ --strip-components=1 gst-nvarguscamera/nvbufsurface.h"
+require recipes-bsp/tegra-sources/tegra-sources-32.5.0.inc
 
 SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0002-fix-libtool-references.patch \
@@ -14,9 +16,10 @@ SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0004-make-x11-optional.patch \
 	    file://fix-missing-gstegljitter.patch \
 	    file://make-wayland-configurable.patch \
+	    file://0006-Fix-cuda-dependency-for-nveglgles.patch \
 "
 
-DEPENDS = "gstreamer1.0 glib-2.0-native gstreamer1.0-plugins-base virtual/egl virtual/libgles2"
+DEPENDS = "gstreamer1.0 glib-2.0-native gstreamer1.0-plugins-base virtual/egl virtual/libgles2 cuda-cudart tegra-libraries"
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11 wayland', d)}"
 PACKAGECONFIG[x11] = "--with-x11 --with-egl-window-system=x11,--without-x11 --with-egl-window-system=auto,libx11 libxext"
