@@ -1,0 +1,60 @@
+Index: gst-nvarguscamera/gstnvarguscamerasrc.cpp
+===================================================================
+--- gst-nvarguscamera.orig/gstnvarguscamerasrc.cpp
++++ gst-nvarguscamera/gstnvarguscamerasrc.cpp
+@@ -302,7 +302,7 @@ bool StreamConsumer::threadExecute(GstNv
+   src->frameInfo->fd = -1;
+   while (true)
+   {
+-    Status frame_status;
++    Argus::Status frame_status;
+     GError *error = NULL;
+     Event* event = NULL;
+     IEvent* iEvent = NULL;
+@@ -323,7 +323,7 @@ bool StreamConsumer::threadExecute(GstNv
+     if (!iEvent)
+     {
+       src->argus_in_error = true;
+-      ORIGINATE_ERROR("Failed to get IEvent interface");
++      GST_ERROR_OBJECT (src, "Failed to get IEvent interface");
+     }
+ 
+     if (iEvent->getEventType() == EVENT_TYPE_ERROR)
+@@ -333,8 +333,8 @@ bool StreamConsumer::threadExecute(GstNv
+ 
+       src->argus_in_error = TRUE;
+       const IEventError* iEventError = interface_cast<const IEventError>(event);
+-      Status argusStatus = iEventError->getStatus();
+-      error = g_error_new (domain, argusStatus, getStatusString(argusStatus));
++      Argus::Status argusStatus = iEventError->getStatus();
++      error = g_error_new (domain, argusStatus, "%s", getStatusString(argusStatus));
+       GstMessage *message = gst_message_new_error (GST_OBJECT(src), error, "Argus Error Status");
+       gst_element_post_message (GST_ELEMENT_CAST(src), message);
+       g_mutex_lock (&src->argus_buffers_queue_lock);
+@@ -356,7 +356,7 @@ bool StreamConsumer::threadExecute(GstNv
+         if (!src->timeout_complete)
+         {
+           src->argus_in_error = true;
+-          error = g_error_new (domain, frame_status, getStatusString(frame_status));
++          error = g_error_new (domain, frame_status, "%s", getStatusString(frame_status));
+           GstMessage *message = gst_message_new_error (GST_OBJECT(src), error, "Argus Error Status");
+           gst_element_post_message (GST_ELEMENT_CAST(src), message);
+           g_mutex_lock (&src->argus_buffers_queue_lock);
+@@ -673,7 +673,7 @@ static bool execute(int32_t cameraIndex,
+   src->iCaptureSession_ptr = iCaptureSession;
+   IEventProvider *iEventProvider = interface_cast<IEventProvider>(captureSession);
+   if (!iEventProvider)
+-    ORIGINATE_ERROR("Failed to create Event Provider");
++    GST_ERROR_OBJECT (src, "Failed to create Event Provider");
+ 
+   src->iEventProvider_ptr = iEventProvider;
+ 
+@@ -686,7 +686,7 @@ static bool execute(int32_t cameraIndex,
+   src->queue = UniqueObj<EventQueue>(iEventProvider->createEventQueue(eventTypes));
+   IEventQueue *iQueue = interface_cast<IEventQueue>(src->queue);
+   if (!iQueue)
+-    ORIGINATE_ERROR("EventQ interface is NULL");
++    GST_ERROR_OBJECT (src, "EventQ interface is NULL");
+ 
+   src->iEventQueue_ptr = iQueue;
+ 
