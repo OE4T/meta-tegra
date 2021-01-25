@@ -1,11 +1,11 @@
 SUMMARY = "OpenMAX IL plugins for GStreamer (Nvidia-specific)"
 SECTION = "multimedia"
 LICENSE = "LGPLv2.1"
-DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-nveglgles gstreamer1.0-plugins-tegra"
+DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-nveglgles gstreamer1.0-plugins-tegra-binaryonly"
 DEPENDS += "tegra-libraries"
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstomx1_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.4.3.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.5.0.inc
 
 # Plugin needs a couple of header files that it does not include, but
 # they are present in the V4L2 plugin source package, so extract them
