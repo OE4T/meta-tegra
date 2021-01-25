@@ -1,5 +1,5 @@
 SOC_FAMILY = "tegra186"
-L4T_BSP_NAME = "t186ref_release_aarch64"
+L4T_BSP_NAME = "T186"
 L4T_BSP_PREFIX = "Tegra186"
 
 require tegra-binaries-${PV}.inc
