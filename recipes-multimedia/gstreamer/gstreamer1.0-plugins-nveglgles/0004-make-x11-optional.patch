@@ -68,7 +68,7 @@ Index: gst-egl/ext/eglgles/gsteglglessink.c
 ===================================================================
 --- gst-egl.orig/ext/eglgles/gsteglglessink.c
 +++ gst-egl/ext/eglgles/gsteglglessink.c
-@@ -105,7 +105,9 @@
+@@ -107,7 +107,9 @@
  #include <gst/video/gstvideopool.h>
  #include <gst/video/videooverlay.h>
  
@@ -78,19 +78,3 @@ Index: gst-egl/ext/eglgles/gsteglglessink.c
  
  #include "gstegladaptation.h"
  #include "video_platform_wrapper.h"
-@@ -806,6 +808,7 @@ gst_eglglessink_videooverlay_init (GstVi
- static gpointer
- gst_eglglessink_event_thread (GstEglGlesSink * eglglessink)
- {
-+#ifdef USE_EGL_X11
-   XEvent e;
-   X11WindowData *data = (eglglessink->own_window_data);
-   Atom wm_delete;
-@@ -824,6 +827,7 @@ gst_eglglessink_event_thread (GstEglGles
-     }
-     g_usleep (G_USEC_PER_SEC / 20);
-   }
-+#endif
-   return NULL;
- }
- 
