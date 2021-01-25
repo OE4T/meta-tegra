@@ -1,0 +1,42 @@
+From adf61ee3f1cd94c32a4134e3ffeca1b1b4c8a5b0 Mon Sep 17 00:00:00 2001
+From: Jose Quaresma <quaresma.jose@gmail.com>
+Date: Mon, 9 Nov 2020 22:10:29 +0000
+Subject: [PATCH] nvv4l2decoder: fix assertion in allocation query
+
+Avoid run the allocation query on the decoder source pad if the caps has not yet been negotiated.
+Runs the the allocation query with a null caps causes an assert and this patch fix this.
+
+It is intended to fix the following:
+
+export G_DEBUG=fatal-criticals GST_DEBUG=7 GST_DEBUG_FILE=/tmp/gst.log
+gst-launch-1.0 --gst-debug-no-color videotestsrc ! nvvidconv ! nvv4l2h264enc ! h264parse ! nvv4l2decoder ! nvvidconv ! fakesink
+
+(gst-launch-1.0:4720): GStreamer-CRITICAL **: 16:00:27.748: gst_mini_object_unref: assertion 'mini_object != NULL' failed
+Trace/breakpoint trap
+
+Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
+---
+ gstv4l2videodec.c | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/gstv4l2videodec.c b/gstv4l2videodec.c
+index 76a8f99..a6b8e8b 100644
+--- a/gstv4l2videodec.c
++++ b/gstv4l2videodec.c
+@@ -674,10 +674,12 @@ gst_v4l2_video_dec_set_format (GstVideoDecoder * decoder,
+      * block. */
+     {
+       GstCaps *caps = gst_pad_get_current_caps (decoder->srcpad);
+-      GstQuery *query = gst_query_new_allocation (caps, FALSE);
+-      gst_pad_peer_query (decoder->srcpad, query);
+-      gst_query_unref (query);
+-      gst_caps_unref (caps);
++      if (caps) {
++        GstQuery *query = gst_query_new_allocation (caps, FALSE);
++        gst_pad_peer_query (decoder->srcpad, query);
++        gst_query_unref (query);
++        gst_caps_unref (caps);
++      }
+     }
+ 
+     gst_v4l2_object_stop (self->v4l2capture);
