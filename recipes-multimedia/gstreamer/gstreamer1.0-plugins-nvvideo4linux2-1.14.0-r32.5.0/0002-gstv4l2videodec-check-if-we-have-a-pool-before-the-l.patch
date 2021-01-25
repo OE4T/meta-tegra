@@ -23,33 +23,33 @@ Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
  1 file changed, 9 insertions(+), 7 deletions(-)
 
 diff --git a/gstv4l2videodec.c b/gstv4l2videodec.c
-index 6daf863..76a8f99 100644
+index fd80d68..ea64b38 100644
 --- a/gstv4l2videodec.c
 +++ b/gstv4l2videodec.c
-@@ -684,14 +684,16 @@ gst_v4l2_video_dec_set_format (GstVideoDecoder * decoder,
-     self->output_flow = GST_FLOW_OK;
- 
+@@ -743,14 +743,16 @@ gst_v4l2_video_dec_set_format (GstVideoDecoder * decoder,
  #ifdef USE_V4L2_TARGET_NV
--    g_mutex_lock (&self->v4l2capture->cplane_stopped_lock);
--    while (self->v4l2capture->capture_plane_stopped != TRUE)
--    {
--        g_cond_wait (&self->v4l2capture->cplane_stopped_cond,
--                &self->v4l2capture->cplane_stopped_lock);
-+    if (self->v4l2capture->pool ) {
-+        g_mutex_lock (&self->v4l2capture->cplane_stopped_lock);
-+        while (self->v4l2capture->capture_plane_stopped != TRUE)
-+        {
-+            g_cond_wait (&self->v4l2capture->cplane_stopped_cond,
-+                    &self->v4l2capture->cplane_stopped_lock);
-+        }
-+        self->v4l2capture->capture_plane_stopped = FALSE;
-+        g_mutex_unlock (&self->v4l2capture->cplane_stopped_lock);
-     }
--    self->v4l2capture->capture_plane_stopped = FALSE;
--    g_mutex_unlock (&self->v4l2capture->cplane_stopped_lock);
-     gst_v4l2_object_close (self->v4l2output);
-     gst_v4l2_object_close (self->v4l2capture);
-     gst_v4l2_object_open (self->v4l2output);
+     if (self->is_drc == TRUE)
+     {
+-        g_mutex_lock (&self->v4l2capture->cplane_stopped_lock);
+-        while (self->v4l2capture->capture_plane_stopped != TRUE)
+-        {
+-            g_cond_wait (&self->v4l2capture->cplane_stopped_cond,
+-                    &self->v4l2capture->cplane_stopped_lock);
++      if (self->v4l2capture->pool ) {
++          g_mutex_lock (&self->v4l2capture->cplane_stopped_lock);
++          while (self->v4l2capture->capture_plane_stopped != TRUE)
++          {
++              g_cond_wait (&self->v4l2capture->cplane_stopped_cond,
++                      &self->v4l2capture->cplane_stopped_lock);
++          }
++          self->v4l2capture->capture_plane_stopped = FALSE;
++          g_mutex_unlock (&self->v4l2capture->cplane_stopped_lock);
+         }
+-        self->v4l2capture->capture_plane_stopped = FALSE;
+-        g_mutex_unlock (&self->v4l2capture->cplane_stopped_lock);
+         gst_v4l2_object_close (self->v4l2output);
+         gst_v4l2_object_close (self->v4l2capture);
+         gst_v4l2_object_open (self->v4l2output);
 -- 
 2.29.2
 
