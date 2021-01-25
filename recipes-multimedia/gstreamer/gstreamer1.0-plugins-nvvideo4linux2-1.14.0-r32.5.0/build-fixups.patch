@@ -1,0 +1,116 @@
+From 8a9e5579c1dd9fd66cbb7ad8c962fca6ffb5edbf Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 22 Nov 2018 09:48:57 -0800
+
+---
+ Makefile           | 37 +++++++++++++++----------------------
+ gstv4l2allocator.c |  4 ++--
+ gstv4l2videoenc.h  |  1 +
+ 3 files changed, 18 insertions(+), 24 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 5a309bf..d4213a0 100644
+--- a/Makefile
++++ b/Makefile
+@@ -12,21 +12,7 @@
+ 
+ SO_NAME := libgstnvvideo4linux2.so
+ 
+-TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
+-
+-NVDS_VERSION:=4.0
+-
+-ifeq ($(TARGET_DEVICE),aarch64)
+-  GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
+-  LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-  CFLAGS:=
+-  LIBS:= -lnvbuf_utils -lnvbufsurface
+-else
+-  GST_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/gst-plugins/
+-  LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/
+-  CFLAGS:= -DUSE_V4L2_TARGET_NV_CODECSDK=1
+-  LIBS:= -lnvbufsurface
+-endif
++LIBS:= -lnvbuf_utils -lnvbufsurface
+ 
+ SRCS := $(wildcard *.c)
+ 
+@@ -36,22 +22,28 @@ PKGS := gstreamer-1.0 \
+ 	gstreamer-base-1.0 \
+ 	gstreamer-video-1.0 \
+ 	gstreamer-allocators-1.0 \
+-	glib-2.0 \
+-	libv4l2
++	glib-2.0
++
++ifeq ($(USE_LIBV4L2),1)
++PKGS += libv4l2
++endif
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+ CFLAGS += -fPIC \
+ 	-DEXPLICITLY_ADDED=1 \
+         -DGETTEXT_PACKAGE=1 \
+-        -DHAVE_LIBV4L2=1 \
+         -DUSE_V4L2_TARGET_NV=1
+ 
+-CFLAGS += `pkg-config --cflags $(PKGS)`
++ifeq ($(USE_LIBV4L2),1)
++CFLAGS += -DHAVE_LIBV4L2=1
++endif
++
++CFLAGS += $(shell pkg-config --cflags $(PKGS))
+ 
+-LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
++LDFLAGS += -Wl,--no-undefined
+ 
+-LIBS += `pkg-config --libs $(PKGS)`
++LIBS += $(shell pkg-config --libs $(PKGS))
+ 
+ all: $(SO_NAME)
+ 
+@@ -63,7 +55,8 @@ $(SO_NAME): $(OBJS)
+ 
+ .PHONY: install
+ install: $(SO_NAME)
+-	cp -vp $(SO_NAME) $(GST_INSTALL_DIR)
++	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
++	install -m 0644 $(SO_NAME) $(DESTDIR)$(libdir)/gstreamer-1.0/
+ 
+ .PHONY: clean
+ clean:
+diff --git a/gstv4l2allocator.c b/gstv4l2allocator.c
+index 2263f6b..c6b717e 100644
+--- a/gstv4l2allocator.c
++++ b/gstv4l2allocator.c
+@@ -856,7 +856,7 @@ gst_v4l2_allocator_alloc_mmap (GstV4l2Allocator * allocator)
+       expbuf.plane = i;
+       expbuf.flags = O_CLOEXEC | O_RDWR;
+ 
+-      if (v4l2_ioctl (obj->video_fd, VIDIOC_EXPBUF, &expbuf) < 0)
++      if (obj->ioctl (obj->video_fd, VIDIOC_EXPBUF, &expbuf) < 0)
+         GST_ERROR_OBJECT (allocator, "expbuf_failed");
+ 
+       if ((!V4L2_TYPE_IS_OUTPUT (obj->type)) &&
+@@ -1411,7 +1411,7 @@ gst_v4l2_allocator_dqbuf (GstV4l2Allocator * allocator,
+  /* TODO: This could a possible bug in library */
+   while (1)
+   {
+-    if (v4l2_ioctl (obj->video_fd, VIDIOC_DQBUF, &buffer) == 0)
++    if (obj->ioctl (obj->video_fd, VIDIOC_DQBUF, &buffer) == 0)
+       break;
+     else if (errno == EPIPE)
+       goto error;
+diff --git a/gstv4l2videoenc.h b/gstv4l2videoenc.h
+index df322d0..13365c2 100644
+--- a/gstv4l2videoenc.h
++++ b/gstv4l2videoenc.h
+@@ -30,6 +30,7 @@
+ 
+ #include <gstv4l2object.h>
+ #include <gstv4l2bufferpool.h>
++#include <stdio.h>
+ 
+ G_BEGIN_DECLS
+ #define GST_TYPE_V4L2_VIDEO_ENC \
