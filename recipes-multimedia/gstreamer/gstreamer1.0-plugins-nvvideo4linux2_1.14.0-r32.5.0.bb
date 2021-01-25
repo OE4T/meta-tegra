@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "file://LICENSE.gst-nvvideo4linux2;md5=457fb5d7ae2d8cd8cabcc2
 "
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvvideo4linux2_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.4.4.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.5.0.inc
 
 SRC_URI += "file://build-fixups.patch"
 SRC_URI += "file://0001-gstv4l2videodec-fix-assertion-in-allocation-query.patch"
