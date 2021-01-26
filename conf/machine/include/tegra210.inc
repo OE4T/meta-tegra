@@ -26,8 +26,8 @@ CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_53 --gpu-code=sm_53"
 
 require conf/machine/include/tegra-common.inc
 
-L4T_BSP_NAME = "t210ref_release_aarch64"
-L4T_SRCS_NAME = "sources/T210"
+L4T_BSP_NAME = "T210"
+L4T_SRCS_NAME = "Sources/T210"
 L4T_BSP_PREFIX = "Tegra210"
 L4T_DEB_SOCNAME = "t210"
 L4T_BSP_ARCH = "tegra210"
