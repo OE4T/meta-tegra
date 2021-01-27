@@ -24,6 +24,7 @@ do_install_append_tegra210() {
 		   NETB_img.bin pmu_bl.bin pmu_sig.bin; do
 	mv "$GPUFWDIR/../tegra21x/$f" "$GPUFWDIR"
     done
+    rm "${D}${nonarch_base_libdir}/firmware/adsp.elf"
     cd "$oldwd"
 }
 
