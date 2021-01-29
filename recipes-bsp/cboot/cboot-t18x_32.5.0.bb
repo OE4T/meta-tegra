@@ -12,7 +12,7 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t18x.tbz2;downloadfilename=cboot_src_t18x-$
            file://0008-t186-add-bootinfo-to-build.patch \
            file://0009-Add-machine-ID-to-kernel-command-line.patch \
 "
-SRC_URI[sha256sum] = "c0921202b563089cd9d1e1860a6822e16729b08ce4b5e1fa5950ab784723cc3c"
+SRC_URI[sha256sum] = "6da8ad60d302d222c09d56bc8f7e90e08592a0471f8bcbadb30268b3b0ad320f"
 
 PACKAGECONFIG ??= "display recovery"
 PACKAGECONFIG[display] = "CONFIG_ENABLE_DISPLAY=1,,"

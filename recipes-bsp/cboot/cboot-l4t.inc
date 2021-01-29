@@ -10,9 +10,9 @@ LIC_FILES_CHKSUM = " \
     file://LICENSE.cboot.txt;md5=972762a86d83ebd2df0b07be8d084935 \
 "
 
+L4T_BSP_NAME = "${L4T_SRCS_NAME}"
 inherit l4t_bsp
 
-L4T_URI_BASE = "https://developer.download.nvidia.com/embedded/L4T/r32_Release_v4.4"
 SRC_TARBALL ??= "INVALID"
 
 PROVIDES += "cboot"

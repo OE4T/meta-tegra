@@ -1,7 +1,7 @@
-From c7c79b61c94b4d7b1349bffe3d6366b925e6fbcd Mon Sep 17 00:00:00 2001
+From 5f8151c2d58959c251627f42ddb301dd15a86333 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 18 Nov 2020 05:02:56 -0800
-Subject: [PATCH 03/12] Restore version number to L4T builds
+Subject: [PATCH 3/9] Restore version number to L4T builds
 
 The stock makefiles omit the version number for L4T builds,
 since they default to using a git hash that isn't available
