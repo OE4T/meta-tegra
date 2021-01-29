@@ -1,7 +1,7 @@
-From 4440375389ef68c223d8488c444d69a2ffa2e9cb Mon Sep 17 00:00:00 2001
+From b5fc2ebf61edd263825efe942a2efddb0587720d Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 28 Dec 2020 05:59:33 -0800
-Subject: [PATCH 11/12] t194: add bootinfo to build
+Subject: [PATCH 10/11] t194: add bootinfo to build
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 1 insertion(+)
 
 diff --git a/bootloader/partner/t18x/cboot/platform/t194/rules.mk b/bootloader/partner/t18x/cboot/platform/t194/rules.mk
-index d1e944e..8e2b9d3 100644
+index 9ce98b7..2789d2a 100644
 --- a/bootloader/partner/t18x/cboot/platform/t194/rules.mk
 +++ b/bootloader/partner/t18x/cboot/platform/t194/rules.mk
-@@ -74,6 +74,7 @@ MODULE_DEPS += \
+@@ -76,6 +76,7 @@ MODULE_DEPS += \
  	$(LOCAL_DIR)/../../../../common/drivers/pwm \
  	$(LOCAL_DIR)/../../../../common/drivers/display \
  	$(LOCAL_DIR)/../../../../common/lib/cbo \

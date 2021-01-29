@@ -1,7 +1,7 @@
-From 8f9928eed9d7a7b30c1d666b5b7c49223f2682b6 Mon Sep 17 00:00:00 2001
+From 12b3460fda8600622f70fdd1b8cee21a3cf916cf Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Thu, 19 Nov 2020 07:32:29 -0800
-Subject: [PATCH 04/12] Fix spurious console=none warning
+Subject: [PATCH 4/9] Fix spurious console=none warning
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/bootloader/partner/common/lib/linuxboot/dtb_update.c b/bootloader/partner/common/lib/linuxboot/dtb_update.c
-index 7275590..60aa749 100644
+index 16fb54a..b99f7f1 100644
 --- a/bootloader/partner/common/lib/linuxboot/dtb_update.c
 +++ b/bootloader/partner/common/lib/linuxboot/dtb_update.c
-@@ -349,9 +349,9 @@ static tegrabl_error_t add_bootarg_info(void *fdt, int nodeoffset)
+@@ -402,9 +402,9 @@ static tegrabl_error_t add_bootarg_info(void *fdt, int nodeoffset)
  	err = tegrabl_linuxboot_helper_get_info(
  						TEGRABL_LINUXBOOT_INFO_DEBUG_CONSOLE, NULL, &console);
  	if (((err == TEGRABL_NO_ERROR) && (console == TEGRABL_LINUXBOOT_DEBUG_CONSOLE_NONE)) || odm_config_set) {

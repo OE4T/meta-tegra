@@ -1,7 +1,7 @@
-From 69b7b0d439562abdbd09389b1faa0fcc27a4f366 Mon Sep 17 00:00:00 2001
+From 7a91b4dcc587e0793355604a07648143dc66048b Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 28 Dec 2020 06:10:05 -0800
-Subject: [PATCH 05/12] Add bootinfo module definition to tegrabl_error
+Subject: [PATCH 5/9] Add bootinfo module definition to tegrabl_error
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -10,18 +10,18 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  2 files changed, 3 insertions(+), 1 deletion(-)
 
 diff --git a/bootloader/partner/common/include/tegrabl_error.h b/bootloader/partner/common/include/tegrabl_error.h
-index 19e9c01..ed8028f 100644
+index 3139f82..773a3e7 100644
 --- a/bootloader/partner/common/include/tegrabl_error.h
 +++ b/bootloader/partner/common/include/tegrabl_error.h
-@@ -317,9 +317,10 @@ typedef uint32_t tegrabl_err_reason_t;
- #define TEGRABL_ERR_USBMSD 0x7CU
+@@ -318,9 +318,10 @@ typedef uint32_t tegrabl_err_reason_t;
  #define TEGRABL_ERR_CBO 0x7DU
  #define TEGRABL_ERR_SHELL 0x7EU
-+#define TEGRABL_ERR_BOOTINFO 0x7FU
+ #define TEGRABL_ERR_PCIE 0x7FU
++#define TEGRABL_ERR_BOOTINFO 0x80U
  
  /**** This should be last ****/
--#define TEGRABL_ERR_MODULE_END 0x7FU
-+#define TEGRABL_ERR_MODULE_END 0x80U
+-#define TEGRABL_ERR_MODULE_END 0x80U
++#define TEGRABL_ERR_MODULE_END 0x81U
  #define TEGRABL_ERR_MODULE_MAX 0xffU
  
  typedef uint32_t tegrabl_err_module_t;
