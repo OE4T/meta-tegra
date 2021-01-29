@@ -10,12 +10,11 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-$
            file://0007-t194-l4t.mk-make-some-build-options-configurable.patch \
            file://0008-Support-A-B-slot-for-kernel-on-SDcards-and-USB-devic.patch \
            file://0009-tegrabl_cbo-support-A-B-slots.patch \
-           file://0010-usb_sd_boot-fix-unused-label-warning-when-extlinux-i.patch \
-           file://0011-t194-add-bootinfo-to-build.patch \
-           file://0012-Add-machine-ID-to-kernel-command-line.patch \
+           file://0010-t194-add-bootinfo-to-build.patch \
+           file://0011-Add-machine-ID-to-kernel-command-line.patch \
 "
 
-SRC_URI[sha256sum] = "2e053ef1f0931ad670c3f5ae75aba60ce7cbde8436d1fd4c2be3cdd2b60f1b88"
+SRC_URI[sha256sum] = "80a5b0491d75ea8f2d5f49e93e6d5b4986c739ff29f62133585c2fe7880e8fa9"
 
 PACKAGECONFIG ??= "bootdev-select ethernet display shell recovery extlinux"
 PACKAGECONFIG[bootdev-select] = "CONFIG_ENABLE_BOOT_DEVICE_SELECT=1,,"
