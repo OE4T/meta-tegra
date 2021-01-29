@@ -1,7 +1,7 @@
-From 191a2ae1edaacd86e433d39418419eae3213123d Mon Sep 17 00:00:00 2001
+From 4fbf6da003dcc6386c86ce3f28673edd413fce64 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 28 Dec 2020 05:58:46 -0800
-Subject: [PATCH 06/12] Add bootinfo module
+Subject: [PATCH 6/9] Add bootinfo module
 
 for accessing variables that can be set via the tegra-bootinfo
 utility in tegra-boot-tools.
@@ -98,7 +98,7 @@ index 0000000..c81824d
 +include make/module.mk
 diff --git a/bootloader/partner/common/lib/bootinfo/tegrabl_bootinfo.c b/bootloader/partner/common/lib/bootinfo/tegrabl_bootinfo.c
 new file mode 100644
-index 0000000..85640f8
+index 0000000..cd679c3
 --- /dev/null
 +++ b/bootloader/partner/common/lib/bootinfo/tegrabl_bootinfo.c
 @@ -0,0 +1,331 @@
@@ -323,7 +323,7 @@ index 0000000..85640f8
 +			size_t extsize;
 +
 +			extsize = dp->ext_sectors * 512;
-+			pr_debug("%s: found current devinfo version for %d, extsize=%u\n", __func__, i, extsize);
++			pr_debug("%s: found current devinfo version for %d, extsize=%u\n", __func__, i, (unsigned int) extsize);
 +			/*
 +			 * Read extension block:
 +			 *    first sits just above the second base devinfo block
@@ -423,7 +423,7 @@ index 0000000..85640f8
 +				valsize = bufsiz - 1;
 +			memcpy(buf, endp + 1, valsize);
 +			buf[valsize] = '\0';
-+			pr_debug("%s: valsize=%u\n", __func__, valsize);
++			pr_debug("%s: valsize=%u\n", __func__, (unsigned int) valsize);
 +			return TEGRABL_NO_ERROR;
 +		}
 +		varbytes += 1; /* for trailing null at end of value */

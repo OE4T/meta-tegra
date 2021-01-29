@@ -1,7 +1,7 @@
-From 172396c6a6beabca7709d2b64f13ffce179f4878 Mon Sep 17 00:00:00 2001
+From 68d7196175346f70b5f386e4917d9879b10bd08b Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 15 Nov 2020 08:39:41 -0800
-Subject: [PATCH 08/12] Support A/B slot for kernel on SDcards and USB devices
+Subject: [PATCH 08/11] Support A/B slot for kernel on SDcards and USB devices
 
 The kernel and DTB loader for USB and SDcard devices
 wasn't checking for A/B slot, and just hard-coded the
@@ -9,13 +9,13 @@ partition names to load if extlinux isn't in use.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- .../common/lib/linuxboot/usb_sd_boot.c        | 21 +++++++++++++++----
+ .../common/lib/linuxboot/removable_boot.c     | 21 +++++++++++++++----
  1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff --git a/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c b/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c
-index add52bb..76ad17e 100644
---- a/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c
-+++ b/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c
+diff --git a/bootloader/partner/common/lib/linuxboot/removable_boot.c b/bootloader/partner/common/lib/linuxboot/removable_boot.c
+index adc81ef..a10cb35 100644
+--- a/bootloader/partner/common/lib/linuxboot/removable_boot.c
++++ b/bootloader/partner/common/lib/linuxboot/removable_boot.c
 @@ -27,6 +27,10 @@
  #if defined(CONFIG_ENABLE_EXTLINUX_BOOT)
  #include <extlinux_boot.h>
@@ -24,7 +24,7 @@ index add52bb..76ad17e 100644
 +#include <string.h>
 +#include <tegrabl_a_b_boot_control.h>
 +#endif
- #include <usb_sd_boot.h>
+ #include <removable_boot.h>
  
  static tegrabl_error_t load_from_partition(struct tegrabl_fm_handle *fm_handle,
 @@ -36,6 +40,15 @@ static tegrabl_error_t load_from_partition(struct tegrabl_fm_handle *fm_handle,

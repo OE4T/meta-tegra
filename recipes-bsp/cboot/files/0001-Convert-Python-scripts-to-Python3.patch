@@ -1,7 +1,7 @@
-From 7c3802ac05c22ae1ed7cd4efb1a7dc46f6bee881 Mon Sep 17 00:00:00 2001
+From a76fd13d99bf2694aca3eabf03ed040cc44048b3 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 22 Jan 2020 06:57:17 -0800
-Subject: [PATCH 01/12] Convert Python scripts to Python3
+Subject: [PATCH 1/9] Convert Python scripts to Python3
 
 ---
  bootloader/partner/t18x/cboot/build/get_branch_name.py    | 4 ++--

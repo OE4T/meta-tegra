@@ -1,7 +1,7 @@
-From f520ce1f498dfd0341b1becd1f9b9fb4805957ef Mon Sep 17 00:00:00 2001
+From 118578b2172ea2503c55ad0580e62cf91cdb8518 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 17 Nov 2020 05:36:58 -0800
-Subject: [PATCH 07/12] t194/l4t.mk: make some build options configurable
+Subject: [PATCH 07/11] t194/l4t.mk: make some build options configurable
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
