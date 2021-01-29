@@ -17,3 +17,4 @@ def l4t_deb_src_uri(d):
                     ["${L4T_DEB_FEED_BASE}/%s/pool/main/%s/%s/%s" % (soc, subdir, group, pkg) for pkg in soc_debs])
 
 SRC_URI = "${@l4t_deb_src_uri(d)}"
+do_unpack[depends] += "zstd-native:do_populate_sysroot"
