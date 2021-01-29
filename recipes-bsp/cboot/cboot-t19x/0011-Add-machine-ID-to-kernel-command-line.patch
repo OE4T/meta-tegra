@@ -1,7 +1,7 @@
-From c49ed879b88194bb6ae337fd5a5372fc2d1a8d19 Mon Sep 17 00:00:00 2001
+From 7e635f085e74b68bb42009edbe8894835a1fb68c Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 28 Dec 2020 06:25:49 -0800
-Subject: [PATCH 12/12] Add machine ID to kernel command line
+Subject: [PATCH 11/11] Add machine ID to kernel command line
 
 Set CONFIG_ENABLE_MACHINE_ID during the build
 to enable.
@@ -21,7 +21,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 48 insertions(+)
 
 diff --git a/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c b/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c
-index 65884cd..aea7395 100644
+index 505c74d..56cf6e5 100644
 --- a/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c
 +++ b/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c
 @@ -54,6 +54,10 @@
@@ -35,7 +35,7 @@ index 65884cd..aea7395 100644
  #if defined(CONFIG_ENABLE_ANDROID_BOOTREASON)
  #include <arpmc_impl.h>
  #include <tegrabl_pmic.h>
-@@ -426,6 +430,47 @@ static int add_vbmeta_info(char *cmdline, int len, char *param, void *priv)
+@@ -425,6 +429,47 @@ static int add_vbmeta_info(char *cmdline, int len, char *param, void *priv)
  }
  #endif
  
@@ -83,7 +83,7 @@ index 65884cd..aea7395 100644
  #if defined(CONFIG_ENABLE_A_B_SLOT)
  static int add_boot_slot_suffix(char *, int, char *, void *) __attribute__ ((unused));
  static int add_boot_slot_suffix(char *cmdline, int len, char *param, void *priv)
-@@ -566,6 +611,9 @@ static struct tegrabl_linuxboot_param extra_params[] = {
+@@ -565,6 +610,9 @@ static struct tegrabl_linuxboot_param extra_params[] = {
  	{ "sdhci_tegra.en_boot_part_access", tegrabl_linuxboot_add_string, "1" },
  #if defined(CONFIG_ENABLE_NVDEC)
  	{ "nvdec_enabled", tegrabl_linuxboot_add_nvdec_enabled_info, NULL },
