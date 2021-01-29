@@ -19,7 +19,7 @@ SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0006-Fix-cuda-dependency-for-nveglgles.patch \
 "
 
-DEPENDS = "gstreamer1.0 glib-2.0-native gstreamer1.0-plugins-base virtual/egl virtual/libgles2 cuda-cudart"
+DEPENDS = "gstreamer1.0 glib-2.0-native gstreamer1.0-plugins-base virtual/egl virtual/libgles2 cuda-cudart tegra-libraries"
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11 wayland', d)}"
 PACKAGECONFIG[x11] = "--with-x11 --with-egl-window-system=x11,--without-x11 --with-egl-window-system=auto,libx11 libxext"
