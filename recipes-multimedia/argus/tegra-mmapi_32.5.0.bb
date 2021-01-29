@@ -19,6 +19,8 @@ do_install() {
     cp -R --preserve=mode,timestamps ${S}/include/libjpeg-8b ${D}${includedir}
     install -m 0644 ${S}/include/nvbuf_utils.h ${D}${includedir}/
     install -m 0644 ${S}/include/nvosd.h ${D}${includedir}/
+#    install -m 0644 ${WORKDIR}/nvbufsurface.h ${D}${includedir}/
+#    install -m 0644 ${WORKDIR}/nvbufsurftransform.h ${D}${includedir}/
 }
 
 PACKAGES = "${PN}-dev ${PN}"
