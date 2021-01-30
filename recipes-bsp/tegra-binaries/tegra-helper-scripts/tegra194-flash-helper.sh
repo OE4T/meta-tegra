@@ -225,7 +225,8 @@ for var in $FLASHVARS; do
 	echo "ERR: missing variable: $var" >&2
 	exit 1
     elif [ -n "$pat" ]; then
-	eval $var=`echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@BOARDREV@,$TOREV," -e"s,@PMICREV@,$PMICREV," -e"s,@CHIPREV@,$CHIPREV,"`
+	val=$(echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@BOARDREV@,$TOREV," -e"s,@PMICREV@,$PMICREV," -e"s,@CHIPREV@,$CHIPREV,")
+	eval $var='$val'
     fi
 done
 
@@ -278,25 +279,19 @@ tlk tos-trusty_t194.img; \
 eks eks.img; \
 bootloader_dtb $dtb_file"
 
-if [ -n "$UPHY_CONFIG" ]; then
-    bctargs="--uphy_config $UPHY_CONFIG"
-else
-    bctargs=
-fi
-
-bctargs="$bctargs \
-	      --device_config $DEVICE_CONFIG \
-	      --misc_config tegra194-mb1-bct-misc-flash.cfg \
-	      --misc_cold_boot_config $MISC_COLD_BOOT_CONFIG \
-	      --pinmux_config $PINMUX_CONFIG \
-	      --gpioint_config $GPIOINT_CONFIG \
-	      --pmic_config $PMIC_CONFIG \
-	      --pmc_config $PMC_CONFIG \
-	      --prod_config $PROD_CONFIG \
-	      --scr_config $SCR_CONFIG \
-	      --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
-	      --br_cmd_config $BR_CMD_CONFIG \
-	      --dev_params $DEV_PARAMS"
+bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG $TRIM_BPMP_DTB \
+         --device_config $DEVICE_CONFIG \
+         --misc_config tegra194-mb1-bct-misc-flash.cfg \
+         --misc_cold_boot_config $MISC_COLD_BOOT_CONFIG \
+         --pinmux_config $PINMUX_CONFIG \
+         --gpioint_config $GPIOINT_CONFIG \
+         --pmic_config $PMIC_CONFIG \
+         --pmc_config $PMC_CONFIG \
+         --prod_config $PROD_CONFIG \
+         --scr_config $SCR_CONFIG \
+         --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
+         --br_cmd_config $BR_CMD_CONFIG \
+         --dev_params $DEV_PARAMS"
 
 
 if [ $bup_blob -ne 0 -o "$sdcard" = "yes" ]; then
