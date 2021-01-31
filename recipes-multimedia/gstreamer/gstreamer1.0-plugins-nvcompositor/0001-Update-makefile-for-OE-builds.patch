@@ -1,0 +1,74 @@
+From 4a6fd5367fb2610193a96419fe688fd9e39d278d Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 31 Jan 2021 06:30:53 -0800
+Subject: [PATCH] Update makefile for OE builds
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile | 23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index c09880d..3ebbd27 100644
+--- a/Makefile
++++ b/Makefile
+@@ -25,25 +25,23 @@
+ # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+-SO_NAME := libgstnvcompositor.so
++prefix ?= /usr
++exec_prefix ?= $(prefix)
++libdir ?= $(exec_prefix)/lib
+ 
+-CC := gcc
++SO_NAME := libgstnvcompositor.so
+ 
+-GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
+-LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-CFLAGS:=
+ LIBS:= -lnvbuf_utils
+ 
+ SRCS := $(wildcard *.c)
+ 
+-INCLUDES += -I./
+-
+ PKGS := gstreamer-1.0 \
+ 	gstreamer-base-1.0 \
+ 	gstreamer-bad-video-1.0 \
+ 	gstreamer-video-1.0 \
+ 	gstreamer-allocators-1.0 \
+-	glib-2.0
++	glib-2.0 \
++	egl
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+@@ -52,22 +50,23 @@ CFLAGS += -fPIC \
+ 
+ CFLAGS += `pkg-config --cflags $(PKGS)`
+ 
+-LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
++LDFLAGS += -Wl,--no-undefined
+ 
+ LIBS += `pkg-config --libs $(PKGS)`
+ 
+ all: $(SO_NAME)
+ 
+ %.o: %.c
+-	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
++	$(CC) -c $< $(CFLAGS) -o $@
+ 
+ $(SO_NAME): $(OBJS)
+ 	$(CC) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
+ 
+ .PHONY: install
+-DEST_DIR?= $(GST_INSTALL_DIR)
++
+ install: $(SO_NAME)
+-	cp -vp $(SO_NAME) $(DEST_DIR)
++	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
++	install -m 0644 $(SO_NAME) $(DESTDIR)$(libdir)/gstreamer-1.0/
+ 
+ .PHONY: clean
+ clean:
