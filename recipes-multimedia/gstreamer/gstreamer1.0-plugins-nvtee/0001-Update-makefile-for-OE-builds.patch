@@ -1,0 +1,67 @@
+From 62a6b887b89b9eef054c246047afbe442a7cffbc Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 31 Jan 2021 06:05:24 -0800
+Subject: [PATCH] Update makefile for OE builds
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile | 24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 0cd8ec8..480271c 100644
+--- a/Makefile
++++ b/Makefile
+@@ -25,13 +25,12 @@
+ # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+-SO_NAME := libgstnvtee.so
++prefix ?= /usr
++exec_prefix ?= $(prefix)
++libdir ?= $(exec_prefix)/lib
+ 
+-CC := g++
++SO_NAME := libgstnvtee.so
+ 
+-GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
+-LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-CFLAGS:=
+ LIBS:=
+ 
+ SRCS := $(wildcard *.cpp)
+@@ -46,26 +45,27 @@ PKGS := gstreamer-1.0 \
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+-CFLAGS += -fPIC
++CXXFLAGS += -fPIC
+ 
+-CFLAGS += `pkg-config --cflags $(PKGS)`
++CXXFLAGS += `pkg-config --cflags $(PKGS)`
+ 
+-LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
++LDFLAGS += -Wl,--no-undefined
+ 
+ LIBS += `pkg-config --libs $(PKGS)`
+ 
+ all: $(SO_NAME)
+ 
+ %.o: %.cpp
+-	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
++	$(CXX) -c $< $(CXXFLAGS) -o $@
+ 
+ $(SO_NAME): $(OBJS)
+-	$(CC) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
++	$(CXX) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
+ 
+ .PHONY: install
+-DEST_DIR?= $(GST_INSTALL_DIR)
++
+ install: $(SO_NAME)
+-	cp -vp $(SO_NAME) $(DEST_DIR)
++	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
++	install -m 0644 $(SO_NAME) $(DESTDIR)$(libdir)/gstreamer-1.0/
+ 
+ .PHONY: clean
+ clean:
