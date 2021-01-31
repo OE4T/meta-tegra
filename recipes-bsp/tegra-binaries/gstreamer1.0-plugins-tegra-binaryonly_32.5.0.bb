@@ -34,11 +34,13 @@ do_install() {
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvideo4linux2.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvideosinks.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstomx.so*
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstnvtee*
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstnvdrmvideo*
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstnvcomposit*
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvidconv*
 }
 
 FILES_SOLIBSDEV = ""
-PACKAGES =+ "${PN}-nvcompositor"
-FILES_${PN}-nvcompositor = "${libdir}/gstreamer-1.0/libgstnvcompositor.so"
 FILES_${PN} = "${libdir}"
 DEBIAN_NOAUTONAME_${PN} = "1"
 
@@ -49,4 +51,3 @@ INSANE_SKIP_${PN}-nvcompositor = "dev-so ldflags build-deps"
 INSANE_SKIP_${PN} = "dev-so ldflags build-deps"
 RDEPENDS_${PN} = "gstreamer1.0 libgstvideo-1.0 glib-2.0 libegl tegra-libraries libdrm"
 RRECOMMENDS_${PN} = "gstreamer1.0-plugins-nvarguscamerasrc gstreamer1.0-plugins-nvv4l2camerasrc"
-RDEPENDS_${PN}-nvcompositor = "gstreamer1.0 libgstbadbase-1.0 libgstbadvideo-1.0 libgstvideo-1.0 glib-2.0 tegra-libraries"
