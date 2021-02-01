@@ -26,7 +26,7 @@ TEGRA_BOARDSKU ?= "0001"
 TEGRA_BOARDREV ?= "H.0"
 TEGRA_CHIPREV ?= "2"
 TEGRA_MINRATCHET_CONFIG ?= "tegra194-mb1-bct-ratchet-p2888-0000-p2822-0000.cfg"
-# Extracted from l4t_generate_soc_bup.sh for BOARDID=2888 and board=jetson-xavier
+# Extracted from l4t_generate_soc_bup.sh for BOARDID=2888 and board=jetson-agx-xavier-devkit
 TEGRA_BUPGEN_SPECS ?= "fab=400;boardsku=0001;boardrev=H.0 \
                        fab=400;boardsku=0001;boardrev=J.0 \
                        fab=400;boardsku=0001;boardrev=L.0 \
