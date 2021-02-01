@@ -12,7 +12,8 @@ do_compile[noexec] = "1"
 
 do_install() {
     install -d ${D}${sbindir}
-    sed -e's,\(sudo bash .*\),: #\1,' -e'/^# Ensure libglx/,$d' ${B}/etc/systemd/nv.sh >${D}${sbindir}/nvstartup
+    sed -e's,\(sudo bash .*\),: #\1,' -e'/^# Ensure libglx/,$d' \
+	-e's,\(addgroup "lightdm".*\),: #\1,' ${B}/etc/systemd/nv.sh >${D}${sbindir}/nvstartup
     cat <<EOF >> ${D}${sbindir}/nvstartup
 # Disable lazy vfree pages
 if [ -e /proc/sys/vm/lazy_vfree_pages ]; then
@@ -23,6 +24,7 @@ EOF
     install -d ${D}/${sysconfdir}/udev/rules.d
     install -m 0644 ${B}/etc/udev/rules.d/99-tegra-devices.rules ${D}${sysconfdir}/udev/rules.d
     install -m 0644 ${B}/etc/udev/rules.d/99-tegra-mmc-ra.rules ${D}${sysconfdir}/udev/rules.d
+    install -m 0644 ${B}/etc/udev/rules.d/99-nv-l4t-usb-host-config.rules ${D}${sysconfdir}/udev/rules.d
 
     install -d ${D}${sysconfdir}/X11
 
