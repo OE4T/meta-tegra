@@ -1,9 +1,9 @@
 HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
-L4T_BSP_NAME ??= "t186ref_release_aarch64"
+L4T_BSP_NAME ??= "T186"
 L4T_SRCS_NAME ??= "sources/T186"
 L4T_BSP_PREFIX ??= "Tegra186"
 
-L4T_VERSION ?= "32.4.3"
+L4T_VERSION ?= "32.5.0"
 
 def l4t_release_dir(d):
     verparts = d.getVar('L4T_VERSION').split('.')
