@@ -15,6 +15,29 @@ do_compile[noexec] = "1"
 
 DRVROOT = "${B}/usr/lib/aarch64-linux-gnu"
 
+soname_fixup() {
+    local libbasename="$1"
+    local location="$2"
+    local count=$(ls -1 "$location"/$libbasename.so.*.* | wc -l 2>/dev/null)
+
+    if [ -z "$count" -o $count -eq 0 ]; then
+        bberror "Cannot locate $libbasename for soname fixup"
+        return 1
+    fi
+    if [ $count -gt 1 ]; then
+        bberror "Cannot perform soname fixup for $libbasename: multiple shared objects with name"
+        return 1
+    fi
+    local libpath=$(ls -1 "$location"/$libbasename.so.*.*)
+    local libname=$(basename "$libpath")
+    local soname=$(readelf -d "$libpath" | grep SONAME | sed -r -e 's,^.*\[(.+)\].*$,\1,')
+    if [ -e "$location"/$soname ]; then
+        bbnote "$(basename $soname) already exists, no need for soname fixup"
+        return 0
+    fi
+    ln -s $libname "$location"/$soname
+}
+
 do_install() {
     install -d ${D}${localstatedir}
     cp -R ${B}/var/nvidia ${D}${localstatedir}/
@@ -40,10 +63,8 @@ do_install() {
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so
     rm -f ${D}${libdir}/libdrm* ${D}${libdir}/libnvphsd* ${D}${libdir}/libnvgov*
     rm -f ${D}${libdir}/libv4l2.so* ${D}${libdir}/libv4lconvert.so* ${D}${libdir}/libnvv4l2.so ${D}${libdir}/libnvv4lconvert.so
-    fatbinsoname=$(readelf -d ${D}${libdir}/libnvidia-fatbinaryloader.so.${PV} | grep SONAME | sed -r -e 's,^.*soname: \[(libnvidia-fatbinaryloader\.so\.[0-9]+\.[0-9]+)\].*$,\1,')
-    [ -e ${D}${libdir}/$fatbinsoname ] || ln -s libnvidia-fatbinaryloader.so.${PV} ${D}${libdir}/$fatbinsoname
-    ptxjitsoname=$(readelf -d ${D}${libdir}/libnvidia-ptxjitcompiler.so.${PV} | grep SONAME | sed -r -e 's!^.*soname: \[(libnvidia-ptxjitcompiler\.so\.[0-9]+(\.[0-9]+){0,1})\].*$!\1!')
-    [ -e ${D}${libdir}/$ptxjitsoname ] || ln -s libnvidia-ptxjitcompiler.so.${PV} ${D}${libdir}/$ptxjitsoname
+    soname_fixup libnvidia-fatbinaryloader ${D}${libdir}
+    soname_fixup libnvidia-ptxjitcompiler ${D}${libdir}
     install -d ${D}${sbindir}
     install -m755 ${B}/usr/sbin/nvargus-daemon ${D}${sbindir}/
     install -d ${D}${datadir}/glvnd/egl_vendor.d
