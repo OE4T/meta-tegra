@@ -10,13 +10,15 @@ DEPENDS += "bc-native dtc-native ${SOC_FAMILY}-flashtools-native"
 SRC_REPO ?= "github.com/OE4T/u-boot-tegra.git;protocol=https"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 SRCBRANCH ?= "patches-v2020.10"
-SRCREV = "24abfbe6dbdb758be8d0ab0da457aa2af07ba55a"
+SRCREV = "22e451a804a63e74be31c6310996fdef1b0d87bb"
 
 PV .= "+g${SRCPV}"
 
 SRC_URI += "\
     file://fw_env.config \
 "
+
+EXTRA_OEMAKE += "DTC=dtc"
 
 PROVIDES += "u-boot"
 
