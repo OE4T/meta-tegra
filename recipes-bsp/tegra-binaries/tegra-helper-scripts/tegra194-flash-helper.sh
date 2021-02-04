@@ -2,6 +2,8 @@
 bup_blob=0
 keyfile=
 sbk_keyfile=
+user_keyfile=
+spi_only=
 sdcard=
 no_flash=0
 flash_cmd=
@@ -10,7 +12,7 @@ dataimg=
 inst_args=""
 blocksize=4096
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only,datafile:,usb-instance:" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -39,6 +41,10 @@ while true; do
 	--usb-instance)
 	    usb_instance="$2"
 	    inst_args="--instance ${usb_instance}"
+	    shift 2
+	    ;;
+	--user_key)
+	    user_keyfile="$2"
 	    shift 2
 	    ;;
 	-u)
@@ -266,7 +272,25 @@ else
     fi
     touch APPFILE
 fi
-sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," $appfile_sed "$flash_in" > flash.xml
+
+dtb_file_basename=$(basename "$dtb_file")
+kernel_dtbfile="kernel_$dtb_file_basename"
+rm -f "$kernel_dtbfile"
+cp "$dtb_file" "$kernel_dtbfile"
+
+if [ "$spi_only" = "yes" ]; then
+    if [ ! -e "$here/nvflashxmlparse" ]; then
+	echo "ERR: missing nvflashxmlparse script" >&2
+	exit 1
+    fi
+    "$here/nvflashxmlparse" --extract -t spi -o flash.xml.tmp "$flash_in" || exit 1
+else
+    cp "$flash_in" flash.xml.tmp
+fi
+sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," \
+    -e"s,TBCDTB-FILE,$dtb_file," -e"s, DTB_FILE,$kernel_dtbfile," \
+    $appfile_sed flash.xml.tmp > flash.xml
+rm flash.xml.tmp
 
 BINSARGS="mb2_bootloader nvtboot_recovery_t194.bin; \
 mts_preboot preboot_c10_prod_cr.bin; \
@@ -309,11 +333,45 @@ else
     tfcmd=${flash_cmd:-"flash;reboot"}
 fi
 
+temp_user_dir=
 if [ -n "$keyfile" ]; then
+    if [ -n "$sbk_keyfile" ]; then
+	if [ -z "$user_keyfile" ]; then
+	    rm -f "null_user_key.txt"
+	    echo "0x00000000 0x00000000 0x00000000 0x00000000" > null_user_key.txt
+	    user_keyfile=$(readlink -f null_user_key.txt)
+	fi
+	rm -rf signed_bootimg_dir
+	mkdir signed_bootimg_dir
+	cp "$kernfile" "$kernel_dtbfile" signed_bootimg_dir/
+	oldwd="$PWD"
+	cd signed_bootimg_dir
+	if [ -x $here/l4t_sign_image.sh ]; then
+	    signimg="$here/l4t_sign_image.sh";
+	else
+	    hereparent=$(readlink -f "$here/.." 2>/dev/null)
+	    if [ -n "$hereparent" -a -x "$hereparent/l4t_sign_image.sh" ]; then
+		signimg="$hereparent/l4t_sign_image.sh"
+	    fi
+	fi
+	if [ -z "$signimg" ]; then
+	    echo "ERR: missing l4t_sign_image script" >&2
+	    exit 1
+	fi
+	"$signimg" --file "$kernfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False &&
+	    "$signimg" --file "$kernel_dtbfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False
+	rc=$?
+	cd "$oldwd"
+	if [ $rc -ne 0 ]; then
+	    echo "Error signing kernel image or device tree" >&2
+	    exit 1
+	fi
+	temp_user_dir=signed_bootimg_dir
+    fi
     CHIPID="0x19"
     tegraid="$CHIPID"
     localcfgfile="flash.xml"
-    dtbfilename="$dtb_file"
+    dtbfilename="$kernel_dtbfile"
     tbcdtbfilename="$dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
@@ -324,6 +382,9 @@ if [ -n "$keyfile" ]; then
     bctfile1name=`echo $sdramcfg_files | cut -d, -f2`
     SOSARGS="--applet mb1_t194_prod.bin "
     BCTARGS="$bctargs"
+    rootfs_ab=0
+    rcm_boot=0
+    external_device=0
     . "$here/odmsign.func"
     (odmsign_ext) || exit 1
     if [ $no_flash -ne 0 ]; then
@@ -333,9 +394,15 @@ if [ -n "$keyfile" ]; then
 	else
 	    echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
 	fi
-	rm -f APPFILE DATAFILE
+	rm -f APPFILE DATAFILE null_user_key.txt
     fi
-    [ $bup_blob -ne 0 ] || exit 0
+    if [ $bup_blob -eq 0 ]; then
+	if [ -n "$temp_user_dir" ]; then
+	    cp "$temp_user_dir"/*.encrypt.signed .
+	    rm -rf "$temp_user_dir"
+	fi
+	exit 0
+    fi
     touch odmsign.func
 fi
 
@@ -354,7 +421,7 @@ if [ $bup_blob -ne 0 ]; then
     [ -z "$sbk_keyfile" ] || flashcmd="${flashcmd} --encrypt_key \"$sbk_keyfile\""
     support_multi_spec=1
     clean_up=0
-    dtbfilename="$dtb_file"
+    dtbfilename="$kernel_dtbfile"
     tbcdtbfilename="$dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
