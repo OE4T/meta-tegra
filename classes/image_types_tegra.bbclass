@@ -197,14 +197,14 @@ tegraflash_create_flash_config_tegra186() {
         -e"s,BPFFILE,bpmp.bin," -e"s,BPFNAME,bpmp-fw," -e"s,BPFSIGN,true," \
         -e"s,BPFDTB-NAME,bpmp-fw-dtb," -e"s,BPMPDTB-SIGN,true," \
         -e"s,TBCFILE,${CBOOTFILENAME}," -e"s,TBCTYPE,bootloader," -e"s,TBCNAME,cpu-bootloader," \
-        -e"s,TBCDTB-NAME,bootloader-dtb," -e"s,TBCDTB-FILE,${DTBFILE}," \
+        -e"s,TBCDTB-NAME,bootloader-dtb," \
         -e"s,SCEFILE,camera-rtcpu-sce.img," -e"s,SCENAME,sce-fw," -e"s,SCESIGN,true," \
         -e"s,SPEFILE,spe.bin," -e"s,SPENAME,spe-fw," -e"s,SPETYPE,spe_fw," \
         -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,SC7NAME,sc7," \
         -e"s,TOSFILE,${TOSIMGFILENAME}," -e"s,TOSNAME,secure-os," \
         -e"s,EKSFILE,eks.img," \
         -e"s,FBTYPE,data," -e"s,FBSIGN,false," -e"/FBFILE/d" \
-        -e"s,KERNELDTB-NAME,kernel-dtb," -e"s,KERNELDTB-FILE,${DTBFILE}," \
+        -e"s,KERNELDTB-NAME,kernel-dtb," \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
@@ -220,8 +220,6 @@ tegraflash_create_flash_config_tegra194() {
 
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra194-specific.
-    # Note that the blank before DTB_FILE is important, to
-    # prevent BPFDTB_FILE from being matched.
     cat "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | sed \
         -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
         -e"s,TEGRABOOT,nvtboot_t194.bin," \
@@ -231,13 +229,11 @@ tegraflash_create_flash_config_tegra194() {
         -e"s,MB1FILE,mb1_t194_prod.bin," \
         -e"s,BPFFILE,bpmp_t194.bin," \
         -e"s,TBCFILE,${CBOOTFILENAME}," \
-        -e"s,TBCDTB-FILE,${DTBFILE}," \
         -e"s,CAMERAFW,camera-rtcpu-rce.img," \
         -e"s,SPEFILE,spe_t194.bin," \
         -e"s,WB0BOOT,warmboot_t194_prod.bin," \
         -e"s,TOSFILE,${TOSIMGFILENAME}," \
         -e"s,EKSFILE,eks.img," \
-        -e"s, DTB_FILE, ${DTBFILE}," \
         -e"s,CBOOTOPTION_FILE,cbo.dtb," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
