@@ -65,6 +65,9 @@ do_install() {
     install -m 0755 ${S}/bootloader/tegrakeyhash ${D}${BINDIR}
 
     install -m 0755 ${S}/nv_tegra/tos-scripts/gen_tos_part_img.py ${D}${BINDIR}
+
+    install -m 0755 ${S}/l4t_sign_image.sh ${D}${BINDIR}
+    sed -i -e's,^\(L4T_BOOTLOADER_DIR=.*\)/bootloader,\1,' ${D}${BINDIR}/l4t_sign_image.sh
 }
 
 INHIBIT_SYSROOT_STRIP = "1"
