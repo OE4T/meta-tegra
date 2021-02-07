@@ -19,7 +19,8 @@ do_compile() {
 
 do_compile_tegra210() {
     nvflashxmlparse -t ${BOOTDEVNAME} ${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} > ${B}/layout.tmp
-    sed -e 's,NXC,NVC,g' -e's,TXC,TBC,g' -e's,WX0,WB0,g' -e 's,BXF,BPF,g' ${B}/layout.tmp > ${B}/layout.txt
+    sed -e 's,NXC,NVC,g' -e's,TXC,TBC,g' -e's,WX0,WB0,g' -e 's,BXF,BPF,g' \
+        -e 's,TXS,TOS,g' -e's,DXB,DTB,g' ${B}/layout.tmp > ${B}/layout.txt
     cursize=0
     rm -f ${B}/layout.conf
     touch ${B}/layout.conf
