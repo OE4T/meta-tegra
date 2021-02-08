@@ -19,4 +19,5 @@ def l4t_deb_src_uri(d):
 l4t_deb_src_uri[vardepsexclude] += "L4T_DEB_SOCNAME"
 
 SRC_URI = "${@l4t_deb_src_uri(d)}"
-do_unpack[depends] += "zstd-native:do_populate_sysroot"
+do_unpack[depends] += "zstd-l4t-workaround-native:do_populate_sysroot"
+EXTRANATIVEPATH += "zstd-l4t-workaround-native"
