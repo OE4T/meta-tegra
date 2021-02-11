@@ -9,7 +9,7 @@ TEGRA_CHIPREV ?= "2"
 NVPMODEL ?= "nvpmodel_t194_p3668"
 TEGRA_AUDIO_DEVICE ?= "tegrahdaxaviernx"
 
-MACHINEOVERRIDES = "xavier-nx:${MACHINE}"
+MACHINEOVERRIDES =. "xavier-nx:"
 require conf/machine/include/tegra194.inc
 
 KERNEL_DEVICETREE ?= "_ddot_/_ddot_/_ddot_/_ddot_/nvidia/platform/t19x/jakku/kernel-dts/tegra194-p3668-all-p3509-0000.dtb"
