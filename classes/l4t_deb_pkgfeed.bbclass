@@ -25,6 +25,8 @@ do_unpack[depends] += "tar-l4t-workaround-native:do_populate_sysroot"
 EXTRANATIVEPATH_append_task-unpack = " tar-l4t-workaround-native"
 
 do_unpack_prepend() {
-    subpath = ':'.join([p for p in d.getVar('PATH').split(':') if 'tar-l4t-workaround-native' not in p])
+    path = d.getVar('PATH')
+    subpath = ':'.join([p for p in path.split(':') if 'tar-l4t-workaround-native' not in p])
     os.environ['TAR_WRAPPER_STRIPPED_PATH'] = subpath
+    os.environ['PATH'] = path
 }
