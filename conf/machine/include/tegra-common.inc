@@ -12,7 +12,7 @@ UBOOT_EXTLINUX_ROOT ?= "${cbootargs} ${KERNEL_ROOTSPEC}"
 # Console setting comes from ${cbootargs}
 UBOOT_EXTLINUX_CONSOLE = ""
 UBOOT_EXTLINUX_KERNEL_ARGS ?= "${bootargs}"
-UBOOT_EXTLINUX_INITRD ?= "${@'../initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
+UBOOT_EXTLINUX_INITRD ?= "${@'../initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1' else ''}"
 
 TNSPEC_BOOTDEV ??= "mmcblk0p1"
 TNSPEC ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-${TEGRA_BOARDSKU}-${TEGRA_BOARDREV}-1-${TEGRA_CHIPREV}-${MACHINE}-${TNSPEC_BOOTDEV}"
