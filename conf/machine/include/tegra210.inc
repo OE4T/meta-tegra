@@ -10,7 +10,6 @@ KERNEL_IMAGETYPE = "Image"
 TEGRA_ESSENTIAL_EXTRA_RDEPENDS = "kernel-image u-boot-extlinux"
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
-TEGRA_INITRAMFS_INITRD ?= "1"
 
 TEGRA_AUDIO_DEVICE ?= "tegrahda"
 
