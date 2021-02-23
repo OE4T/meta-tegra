@@ -12,7 +12,6 @@ def tegra_default_rootfs_size(d):
 IMAGE_ROOTFS_SIZE ?= "${@tegra_default_rootfs_size(d)}"
 
 IMAGE_UBOOT ??= "u-boot"
-INITRD_IMAGE ??= ""
 KERNEL_ARGS ??= ""
 TEGRA_SIGNING_ARGS ??= ""
 TEGRA_SIGNING_ENV ??= ""
@@ -30,6 +29,15 @@ RECROOTFSSIZE ?= "314572800"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
+
+def tegra_initrd_image(d):
+    if d.getVar('IMAGE_UBOOT'):
+        return ''
+    if d.getVar('INITRAMFS_IMAGE'):
+        return '' if bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')) else '${INITRAMFS_IMAGE}'
+    return ''
+
+INITRD_IMAGE ?= "${@tegra_initrd_image(d)}"
 
 def tegra_kernel_image(d):
     if d.getVar('IMAGE_UBOOT'):
