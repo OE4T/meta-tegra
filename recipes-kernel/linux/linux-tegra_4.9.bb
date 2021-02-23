@@ -52,6 +52,22 @@ bootimg_from_bundled_initramfs() {
             chmod 0644 $deployDir/${initramfs_base_name}.cboot
             ln -sf ${initramfs_base_name}.cboot $deployDir/${initramfs_symlink_name}.cboot
         done
+    elif [  -z "${INITRAMFS_IMAGE}" ]; then
+        rm -f ${WORKDIR}/initrd
+        touch ${WORKDIR}/initrd
+        for imageType in ${KERNEL_IMAGETYPES} ; do
+            if [ "$imageType" = "fitImage" ] ; then
+                continue
+            fi
+	    baseName=$imageType-${KERNEL_IMAGE_NAME}
+            ${STAGING_BINDIR_NATIVE}/tegra186-flash/mkbootimg \
+                                    --kernel $deployDir/${baseName}.bin \
+                                    --ramdisk ${WORKDIR}/initrd \
+                                    --output $deployDir/${baseName}.cboot
+            chmod 0644 $deployDir/${baseName}.cboot
+            ln -sf ${baseName}.cboot $deployDir/$imageType-${KERNEL_IMAGE_LINK_NAME}.cboot
+            ln -sf ${baseName}.cboot $deployDir/$imageType.cboot
+        done
     fi
 }
 do_deploy_append_tegra186() {
