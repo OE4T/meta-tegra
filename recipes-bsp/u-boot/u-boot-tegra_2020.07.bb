@@ -10,7 +10,7 @@ DEPENDS += "bc-native dtc-native ${SOC_FAMILY}-flashtools-native"
 SRC_REPO ?= "github.com/OE4T/u-boot-tegra.git;protocol=https"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 SRCBRANCH ?= "patches-v2020.07"
-SRCREV = "5a8a51f2f4338c6f161ae695c8571fe30fdd7b54"
+SRCREV = "98fa11e411d1c76151c0163f832c933b19992141"
 
 PV .= "+g${SRCPV}"
 
