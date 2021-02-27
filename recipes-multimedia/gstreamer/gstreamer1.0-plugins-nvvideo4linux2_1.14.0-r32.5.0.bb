@@ -10,15 +10,16 @@ LIC_FILES_CHKSUM = "file://LICENSE.gst-nvvideo4linux2;md5=457fb5d7ae2d8cd8cabcc2
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvvideo4linux2_src.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-32.5.0.inc
 
-SRC_URI += "file://build-fixups.patch"
-SRC_URI += "file://0001-gstv4l2videodec-fix-assertion-in-allocation-query.patch"
-# https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requests/649
-SRC_URI += "file://0001-v4l2videoenc-Fix-negotiation-caps-leak.patch"
-SRC_URI += "file://0002-v4l2allocator-Fix-data-offset-bytesused-size-validat.patch"
-SRC_URI += "file://0003-v4l2bufferpool-Avoid-set_flushing-warning.patch"
-# https://github.com/OE4T/meta-tegra/issues/486
-SRC_URI += "file://0001-gstv4l2videodec-use-ifdef-macro-for-consistency-with.patch"
-SRC_URI += "file://0002-gstv4l2videodec-check-if-we-have-a-pool-before-the-l.patch"
+SRC_URI += "\
+    file://0000-build-fixups.patch \
+    file://0001-gstv4l2videodec-fix-assertion-in-allocation-query.patch \
+    file://0002-v4l2videoenc-Fix-negotiation-caps-leak.patch \
+    file://0003-v4l2allocator-Fix-data-offset-bytesused-size-validat.patch \
+    file://0004-v4l2bufferpool-Avoid-set_flushing-warning.patch \
+    file://0005-gstv4l2videodec-use-ifdef-macro-for-consistency-with.patch \
+    file://0006-gstv4l2videodec-check-if-we-have-a-pool-before-the-l.patch \
+    file://0007-Import-gstv4l2bufferpool-patch-from-R32.5.1.patch \
+"
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries"
 
