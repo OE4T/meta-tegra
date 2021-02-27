@@ -1,0 +1,47 @@
+From 93f6d87c54985525a34c88b9e92426802dbbb8fd Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 27 Feb 2021 05:02:24 -0800
+Subject: [PATCH] Import gstv4l2bufferpool patch from R32.5.1
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ gstv4l2bufferpool.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/gstv4l2bufferpool.c b/gstv4l2bufferpool.c
+index c3cb2b3..4a7eadc 100644
+--- a/gstv4l2bufferpool.c
++++ b/gstv4l2bufferpool.c
+@@ -261,9 +261,9 @@ gst_v4l2_buffer_pool_copy_buffer (GstV4l2BufferPool * pool, GstBuffer * dest,
+   {
+     GstV4l2Memory *inmemory = NULL;
+     GstMapInfo inmap = { NULL, (GstMapFlags) 0, NULL, 0, 0, };
+-#ifndef USE_V4L2_TARGET_NV_X86
+-    gint input_dmabuf_fd = -1;
+     if (is_cuvid == FALSE) {
++#ifndef USE_V4L2_TARGET_NV_X86
++      gint input_dmabuf_fd = -1;
+       NvBufferTransformParams transform_params;
+ 
+       memset(&transform_params, 0, sizeof(NvBufferTransformParams));
+@@ -296,8 +296,8 @@ gst_v4l2_buffer_pool_copy_buffer (GstV4l2BufferPool * pool, GstBuffer * dest,
+       }
+ 
+       gst_buffer_unmap(src, &inmap);
++#endif
+     }
+-#else
+     if (is_cuvid == TRUE){
+       NvBufSurface *src_bufsurf = NULL;
+       NvBufSurface *dst_bufsurf = NULL;
+@@ -322,7 +322,6 @@ gst_v4l2_buffer_pool_copy_buffer (GstV4l2BufferPool * pool, GstBuffer * dest,
+       }
+       gst_buffer_unmap(src, &inmap);
+     }
+-#endif
+   }
+ #endif
+ 
+-- 
+2.27.0
+
