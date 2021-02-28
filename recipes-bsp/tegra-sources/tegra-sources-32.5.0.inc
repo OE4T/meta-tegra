@@ -1,5 +1,5 @@
 L4T_BSP_NAME = "${L4T_SRCS_NAME}"
-SRC_URI = "${L4T_URI_BASE}/public_sources.tbz2;downloadfilename=${L4T_BSP_PREFIX}-public_sources-${L4T_VERSION}.tbz2"
+SRC_URI = "${L4T_ALT_URI_BASE}/public_sources.tbz2;downloadfilename=${L4T_BSP_PREFIX}-public_sources-${L4T_ALT_VERSION}.tbz2"
 SRC_SHA256SUM = "76c4ad91f26f66ed8f657a630cd0af62008d724b0070f00214c5278a6d6b7d3e"
 SRC_SHA256SUM_tegra210 = "985276f9df525f7bdb8a02a5f2cfcc03cc399f2c5f0c2c2944955d4ebc120cec"
 SRC_URI[sha256sum] = "${SRC_SHA256SUM}"
