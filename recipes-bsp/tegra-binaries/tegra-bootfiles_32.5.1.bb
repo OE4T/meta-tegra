@@ -78,6 +78,7 @@ do_compile_append_tegra186() {
     ${STAGING_BINDIR_NATIVE}/tegra186-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
 }
 
+
 do_compile_append_tegra194() {
     ${STAGING_BINDIR_NATIVE}/tegra186-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
     dtc -I dts -O dtb -o ${B}/cbo.dtb ${CBOOTOPTION_FILE}
@@ -100,10 +101,15 @@ do_install() {
 do_install_append_tegra186() {
     install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra186* ${D}${datadir}/tegraflash/
-    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra186-a02-bpmp*dtb ${D}${datadir}/tegraflash/
+    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra186*bpmp*dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/minimal_scr.cfg ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/mobile_scr.cfg ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/emmc.cfg ${D}${datadir}/tegraflash/
+}
+
+do_install_append_jetson-xavier-nx-devkit-tx2-nx() {
+    # XXX only 16GiB eMMC on tx2-nx
+    sed -i -e's,num_sectors="61071360",num_sectors="30777344",' ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
 }
 
 do_install_append_tegra194() {
