@@ -143,6 +143,10 @@ elif [ "$boardid" = "3489" ]; then
     if [[ "$board_version" < "300" ]]; then
         BPFDTBREV="evt"
     fi
+elif [ "$boardid" = "3636" ]; then
+    TOREV="a00"
+    PMICREV="a00"
+    BPFDTBREV="a00";
 else
     echo "ERR: unsupported board id: $boardid" >&2
     exit 1
@@ -159,7 +163,6 @@ done
 
 [ -n "$BOARDID" ] || BOARDID=3310
 [ -n "$BOARDSKU" ] || BOARDSKU=1000
-[ -n "$FAB" ] || FAB=B02
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 [ -n "${BOOTDEV}" ] || BOOTDEV="mmcblk0p1"
 
