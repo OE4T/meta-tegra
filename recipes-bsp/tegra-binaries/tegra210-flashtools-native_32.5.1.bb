@@ -1,6 +1,6 @@
 SOC_FAMILY = "tegra210"
 L4T_BSP_NAME = "T210"
-L4T_BSP_PREFIX = "Tegra210"
+L4T_BSP_PREFIX = "Jetson-210"
 
 require tegra-binaries-${PV}.inc
 
@@ -15,7 +15,7 @@ STAMP = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-${PR}"
 STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-*"
 
 SRC_URI += "${L4T_URI_BASE}/${L4T_BSP_PREFIX}_Linux_R${PV}_aarch64.tbz2;name=l4t \
-           ${L4T_URI_BASE}/secureboot_R${PV}_aarch64.tbz2;downloadfilename=${L4T_BSP_PREFIX}_secureboot_${PV}.tbz2;name=sb \
+           ${L4T_ALT_URI_BASE}/secureboot_R${L4T_ALT_VERSION}_aarch64.tbz2;downloadfilename=Tegra210_secureboot_${PV}.tbz2;name=sb \
            file://0002-Fix-typo-in-l4t_bup_gen.func.patch \
            file://0003-Convert-BUP_generator.py-to-Python3.patch \
            file://0006-Update-tegraflash_internal.py-for-Python3.patch \
