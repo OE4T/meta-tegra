@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://EULA.txt;md5=37774d0b88c5743e8fe8e5c10b057270"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
+L4T_DEB_GROUP = "cuda-samples"
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
 SRC_COMMON_DEBS = "${BPN}-${CUDA_VERSION_DASHED}_${PV}_arm64.deb;unpack=false"
 SRC_URI[sha256sum] = "121e273d8586bde904ceeab72a603a86d781f3bac6d3a21732703ca2ca9ec528"
