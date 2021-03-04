@@ -8,6 +8,8 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 PREFIX = "NoDLA-"
 PREFIX_tegra194 = "DLA-"
 
+L4T_DEB_GROUP = "tensorrt"
+
 SRC_SOC_DEBS = "\
     libnvinfer7_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer7_${PV}+cuda10.2_arm64.deb;name=lib;subdir=tensorrt \
     libnvinfer-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=${PREFIX}libnvinfer-dev_${PV}+cuda10.2_arm64.deb;name=dev;subdir=tensorrt \
