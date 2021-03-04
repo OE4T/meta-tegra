@@ -1,7 +1,6 @@
 HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD"
 
-L4T_DEB_GROUP = "nvidia-l4t-jetson-multimedia-api"
 SRC_SOC_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}-20210115151051_arm64.deb;subdir=tegra-mmapi"
 SRC_SOC_DEBS_tegra210 = "nvidia-l4t-jetson-multimedia-api_${PV}-20210115145440_arm64.deb;subdir=tegra-mmapi"
 SRC_SHA256SUM = "6b1059873492834a3b7fb89ef31d2fb393a15c39f7ff545506eee50a215853c8"
