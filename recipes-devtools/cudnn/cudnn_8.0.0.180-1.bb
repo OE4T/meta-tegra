@@ -5,6 +5,8 @@ LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v8.h;endline=47;m
 
 inherit l4t_deb_pkgfeed container-runtime-csv
 
+L4T_DEB_GROUP = "cudnn"
+
 SRC_COMMON_DEBS = "\
     libcudnn8_${PV}+cuda10.2_arm64.deb;name=lib;subdir=cudnn \
     libcudnn8-dev_${PV}+cuda10.2_arm64.deb;name=dev;subdir=cudnn \
