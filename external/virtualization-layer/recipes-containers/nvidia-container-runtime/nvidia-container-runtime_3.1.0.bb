@@ -22,6 +22,7 @@ SRCREV = "027d6c876ad8c163f53e75cbd5a6a54776985e5c"
 
 GO_IMPORT = "github.com/NVIDIA/${BPN}"
 GO_INSTALL = "${GO_IMPORT}/runtime/src"
+export GO111MODULE = "off"
 
 S = "${WORKDIR}/git"
 
