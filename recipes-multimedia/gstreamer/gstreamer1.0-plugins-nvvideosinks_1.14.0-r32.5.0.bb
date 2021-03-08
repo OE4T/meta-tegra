@@ -14,9 +14,11 @@ DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl \
            tegra-libraries gstreamer1.0-plugins-nveglgles tegra-mmapi \
            nvbufsurface-headers"
 
+REQUIRED_DISTRO_FEATURES = "x11"
+
 S = "${WORKDIR}/gst-plugins-nv-video-sinks"
 
-inherit gettext pkgconfig container-runtime-csv cuda
+inherit gettext pkgconfig container-runtime-csv cuda features_check
 
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
