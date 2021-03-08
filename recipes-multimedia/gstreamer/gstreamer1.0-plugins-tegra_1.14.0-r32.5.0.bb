@@ -11,7 +11,7 @@ PLUGINS = "\
     gstreamer1.0-plugins-nvv4l2camerasrc \
     gstreamer1.0-plugins-nvvidconv \
     gstreamer1.0-plugins-nvvideo4linux2 \
-    gstreamer1.0-plugins-nvvideosinks \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'gstreamer1.0-plugins-nvvideosinks', '', d)} \
     gstreamer1.0-plugins-tegra-binaryonly \
 "
 DEPENDS = "${PLUGINS}"
