@@ -1,48 +1,44 @@
-From 1bb003664a82cc085d491b047cb6ba10f1b33e3d Mon Sep 17 00:00:00 2001
+From a0fd3692ff010976135091c5cfc718106212e5c5 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 31 Jan 2021 09:51:46 -0800
 Subject: [PATCH] Use filter function for fixating caps
 
 To fix SIGSEGVs during caps negotiation.
+
 ---
- gstnvvconv.c | 57 ++++++++++++++++++++++++++++++++--------------------
- 1 file changed, 35 insertions(+), 22 deletions(-)
+ gstnvvconv.c | 51 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 28 insertions(+), 23 deletions(-)
 
 diff --git a/gstnvvconv.c b/gstnvvconv.c
-index 2019c11..929bd3e 100644
+index 2019c11..d5774b4 100644
 --- a/gstnvvconv.c
 +++ b/gstnvvconv.c
-@@ -2094,6 +2094,24 @@ gst_nvvconv_get_unit_size (GstBaseTransform * btrans, GstCaps * caps,
+@@ -2094,6 +2094,23 @@ gst_nvvconv_get_unit_size (GstBaseTransform * btrans, GstCaps * caps,
    return ret;
  }
  
-+struct filter_context {
-+  GstCapsFeatures *ift;
-+  gboolean found_nvfeature;
-+};
-+
 +static gboolean nvmm_filter (GstCapsFeatures *features,
 +                             GstStructure *structure,
 +                             gpointer user_data)
 +{
-+  struct filter_context *ctx = user_data;
++  return gst_caps_features_contains(features, GST_CAPS_FEATURE_MEMORY_NVMM);
++}
 +
-+  if (gst_caps_features_is_equal(features, ctx->ift)) {
-+    ctx->found_nvfeature = TRUE;
-+    return TRUE;
-+  }
-+  return FALSE;
++static gboolean nvmm_find (GstCapsFeatures *features,
++                           GstStructure *structure,
++                           gpointer user_data)
++{
++  gboolean *have_nvmm = (gboolean *) user_data;
++  if (features && gst_caps_features_contains(features, GST_CAPS_FEATURE_MEMORY_NVMM))
++    *have_nvmm = TRUE;
++  return TRUE;
 +}
 +
  /**
    * Given the pad in direction and the given caps,
    * fixate the caps on the other pad.
-@@ -2119,29 +2137,21 @@ gst_nvvconv_fixate_caps (GstBaseTransform * btrans,
-   gint n, i, index = 0;
-   GstCapsFeatures *features = NULL;
+@@ -2121,28 +2138,13 @@ gst_nvvconv_fixate_caps (GstBaseTransform * btrans,
    gboolean have_nvfeature = FALSE;
-+  struct filter_context filter_context;
-+  GstCapsFeatures *ift = gst_caps_features_new (GST_CAPS_FEATURE_MEMORY_NVMM, NULL);
  
    space = GST_NVVCONV (btrans);
 -  GstCapsFeatures *ift = NULL;
@@ -66,21 +62,18 @@ index 2019c11..929bd3e 100644
 -
 -  othercaps = gst_caps_truncate (othercaps);
 -  othercaps = gst_caps_make_writable (othercaps);
-+  GST_DEBUG_OBJECT (btrans, "%s: othercaps size = %u\n", __func__, gst_caps_get_size (othercaps));
+-
++  GST_DEBUG_OBJECT (space, "checking othercaps for NVMM: %" GST_PTR_FORMAT, othercaps);
 +  if (!gst_caps_is_writable(othercaps))
 +    othercaps = gst_caps_make_writable (othercaps);
-+  filter_context.found_nvfeature = FALSE;
-+  filter_context.ift = ift;
-+  gst_caps_filter_and_map_in_place (othercaps, nvmm_filter, &filter_context);
-+  GST_DEBUG_OBJECT (btrans, "%s: after filtering othercaps size = %u (found=%d)\n",
-+                    __func__, gst_caps_get_size (othercaps), filter_context.found_nvfeature);
-+  gst_object_unref(ift);
-+  if (filter_context.found_nvfeature)
-+    othercaps = gst_caps_truncate (othercaps);
- 
++  gst_caps_foreach (othercaps, nvmm_find, &have_nvfeature);
++  GST_DEBUG_OBJECT (space, "othercaps has NVMM: %u", have_nvfeature);
++  if (have_nvfeature)
++    gst_caps_filter_and_map_in_place (othercaps, nvmm_filter, NULL);
    GST_DEBUG_OBJECT (space, "trying to fixate othercaps %" GST_PTR_FORMAT
        " based on caps %" GST_PTR_FORMAT, othercaps, caps);
-@@ -2215,7 +2225,10 @@ gst_nvvconv_fixate_caps (GstBaseTransform * btrans,
+ 
+@@ -2215,7 +2217,10 @@ gst_nvvconv_fixate_caps (GstBaseTransform * btrans,
      gint numerator, denominator;
  
      /* from_pix_ar should be fixed */
@@ -92,6 +85,3 @@ index 2019c11..929bd3e 100644
  
      f_par_n = gst_value_get_fraction_numerator (from_pix_ar);
      f_par_d = gst_value_get_fraction_denominator (from_pix_ar);
--- 
-2.27.0
-

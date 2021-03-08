@@ -15,6 +15,8 @@ SRCREV = "60f165ad6901f85b0c3acbf7ce2c66cd759c4fb8"
 GO_IMPORT = "github.com/NVIDIA/${BPN}"
 GO_INSTALL = "${GO_IMPORT}/${BPN}"
 
+export GO111MODULE = "off"
+
 S = "${WORKDIR}/git"
 
 REQUIRED_DISTRO_FEATURES = "virtualization"
