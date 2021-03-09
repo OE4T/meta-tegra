@@ -211,7 +211,6 @@ confirm() {
 		    ;;
 		*)
 		    echo "Please answer 'yes' or' no'."
-		    break;
 		    ;;
 	    esac
 	else
