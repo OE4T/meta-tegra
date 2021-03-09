@@ -429,7 +429,7 @@ if [ $bup_blob -ne 0 ]; then
     spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}-${BOOTDEV}"
     l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" "$sbk_keyfile" 0x19 || exit 1
 else
-    eval $flashcmd || exit 1
+    eval $flashcmd < /dev/null || exit 1
     if [ -n "$sdcard" ]; then
 	if [ -n "$pre_sdcard_sed" ]; then
 	    rm -f signed/flash.xml.tmp.in
