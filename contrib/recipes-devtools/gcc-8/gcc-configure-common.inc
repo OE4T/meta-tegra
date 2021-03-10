@@ -34,6 +34,7 @@ EXTRA_OECONF = "\
     --enable-c99 \
     --enable-long-long \
     --enable-symvers=gnu \
+    --disable-install-libiberty \
     --enable-libstdcxx-pch \
     --program-prefix=${TARGET_PREFIX} \
     --without-local-prefix \
