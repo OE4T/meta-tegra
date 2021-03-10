@@ -32,7 +32,6 @@ RUNTIMETARGET = "${RUNTIMELIBSSP} libstdc++-v3 libgomp libatomic ${RUNTIMELIBITM
 "
 
 # libiberty
-# libmudflap
 # libgfortran needs separate recipe due to libquadmath dependency
 
 SLIB = "${TMPDIR}/work-shared/gcc-${PV}-${PR}/gcc-${PV}"
@@ -77,6 +76,11 @@ do_install () {
 		cd ${B}/${TARGET_SYS}/$d/
 		oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/${TARGET_SYS}/$d/ install
 	done
+	if [ -d ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include ]; then
+		install -d ${D}${libdir}/${TARGET_SYS}/${BINV}/include 
+		mv ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/* ${D}${libdir}/${TARGET_SYS}/${BINV}/include
+		rmdir --ignore-fail-on-non-empty -p ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include
+	fi
 	rm -rf ${D}${infodir}/libgomp.info ${D}${infodir}/dir
 	rm -rf ${D}${infodir}/libitm.info ${D}${infodir}/dir
 	rm -rf ${D}${infodir}/libquadmath.info ${D}${infodir}/dir
@@ -86,10 +90,6 @@ do_install () {
 	if [ -d ${D}${infodir} ]; then
 		rmdir --ignore-fail-on-non-empty -p ${D}${infodir}
 	fi
-	if [ "${TARGET_VENDOR_MULTILIB_ORIGINAL}" != "" -a "${TARGET_VENDOR}" != "${TARGET_VENDOR_MULTILIB_ORIGINAL}" ]; then
-		ln -s ${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR_MULTILIB_ORIGINAL}-${TARGET_OS}
-	fi
-
 }
 
 do_install_append_class-target () {
@@ -98,20 +98,33 @@ do_install_append_class-target () {
 	fi
 
 	if [ "${TARGET_OS}" = "linux-gnun32" ]; then
-		if [ "${MULTILIBS}" != "" ]; then
-			mkdir ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}-pokymllib64-linux
-			ln -s ../${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}-pokymllib64-linux/32
+		if [ "${TARGET_VENDOR_MULTILIB_ORIGINAL}" != "" -a "${TARGET_VENDOR}" != "${TARGET_VENDOR_MULTILIB_ORIGINAL}" ]; then
+			mkdir ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR_MULTILIB_ORIGINAL}-linux
+			ln -s ../${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR_MULTILIB_ORIGINAL}-linux/32
+		elif [ "${MULTILIB_VARIANTS}" != "" ]; then
+			mkdir ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR}-linux
+			ln -s ../${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR}-linux/32
 		else
 			ln -s ${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR}-linux
 		fi
+	elif [ "${TARGET_OS}" = "linux-gnux32" ]; then
+		if [ "${TARGET_VENDOR_MULTILIB_ORIGINAL}" != "" -a "${TARGET_VENDOR}" != "${TARGET_VENDOR_MULTILIB_ORIGINAL}" ]; then
+			mkdir ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR_MULTILIB_ORIGINAL}-linux
+			ln -s ../${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR_MULTILIB_ORIGINAL}-linux/x32
+		elif [ "${MULTILIB_VARIANTS}" != "" ]; then
+			mkdir ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR}-linux
+			ln -s ../${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR}-linux/32
+		else
+			ln -s ${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR}-linux
+		fi
+	elif [ "${TARGET_VENDOR_MULTILIB_ORIGINAL}" != "" -a "${TARGET_VENDOR}" != "${TARGET_VENDOR_MULTILIB_ORIGINAL}" ]; then
+		mkdir ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR_MULTILIB_ORIGINAL}-${TARGET_OS}
+		ln -s ../${TARGET_SYS}/bits ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR_MULTILIB_ORIGINAL}-${TARGET_OS}/bits
+		ln -s ../${TARGET_SYS}/ext ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR_MULTILIB_ORIGINAL}-${TARGET_OS}/ext
 	fi
-	if [ "${TARGET_OS}" = "linux-gnux32" ]; then
-		if [ "${MULTILIBS}" != "" ]; then
-			mkdir ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}-poky-linux
-			ln -s ../${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}-poky-linux/x32
-		else
-			ln -s ${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR}-linux
-		fi
+
+	if [ "${TARGET_ARCH}" == "x86_64" -a "${MULTILIB_VARIANTS}" != "" ];then
+		ln -sf ../${X86ARCH32}${TARGET_VENDOR}-${TARGET_OS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR}-${TARGET_OS}/32
 	fi
 
 	if [ "${TCLIBC}" != "glibc" ]; then
@@ -142,9 +155,6 @@ PACKAGES = "\
     libssp \
     libssp-dev \
     libssp-staticdev \
-    libmudflap \
-    libmudflap-dev \
-    libmudflap-staticdev \
     libquadmath \
     libquadmath-dev \
     libquadmath-staticdev \
@@ -163,7 +173,7 @@ RRECOMMENDS_${PN}-dbg = ""
 
 # include python debugging scripts
 FILES_${PN}-dbg += "\
-    ${libdir}/libstdc++.so.*-gdb.py \
+    ${libdir}/libstdc++.*-gdb.py \
     ${datadir}/gcc-${BINV}/python/libstdcxx \
 "
 
@@ -200,7 +210,7 @@ FILES_libssp-dev = "\
     ${libdir}/libssp*.so \
     ${libdir}/libssp*_nonshared.a \
     ${libdir}/libssp*.la \
-    ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/ssp \
+    ${libdir}/${TARGET_SYS}/${BINV}/include/ssp \
 "
 SUMMARY_libssp-dev = "GNU stack smashing protection library - development files"
 FILES_libssp-staticdev = "${libdir}/libssp*.a"
@@ -209,7 +219,7 @@ SUMMARY_libssp-staticdev = "GNU stack smashing protection library - static devel
 FILES_libquadmath = "${libdir}/libquadmath*.so.*"
 SUMMARY_libquadmath = "GNU quad-precision math library"
 FILES_libquadmath-dev = "\
-    ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/quadmath* \
+    ${libdir}/${TARGET_SYS}/${BINV}/include/quadmath* \
     ${libdir}/libquadmath*.so \
     ${libdir}/libquadmath.la \
 "
@@ -217,24 +227,15 @@ SUMMARY_libquadmath-dev = "GNU quad-precision math library - development files"
 FILES_libquadmath-staticdev = "${libdir}/libquadmath.a"
 SUMMARY_libquadmath-staticdev = "GNU quad-precision math library - static development files"
 
-# NOTE: mudflap has been removed as of gcc 4.9 and has been superseded by the address sanitiser
-FILES_libmudflap = "${libdir}/libmudflap*.so.*"
-SUMMARY_libmudflap = "Pointer debugging library for gcc"
-FILES_libmudflap-dev = "\
-    ${libdir}/libmudflap*.so \
-    ${libdir}/libmudflap.la \
-"
-SUMMARY_libmudflap-dev = "Pointer debugging library for gcc - development files"
-FILES_libmudflap-staticdev = "${libdir}/libmudflap.a"
-SUMMARY_libmudflap-staticdev = "Pointer debugging library for gcc - static development files"
-
 FILES_libgomp = "${libdir}/libgomp*${SOLIBS}"
 SUMMARY_libgomp = "GNU OpenMP parallel programming library"
 FILES_libgomp-dev = "\
     ${libdir}/libgomp*${SOLIBSDEV} \
     ${libdir}/libgomp*.la \
     ${libdir}/libgomp.spec \
-    ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/omp.h \
+    ${libdir}/${TARGET_SYS}/${BINV}/include/acc_prof.h \
+    ${libdir}/${TARGET_SYS}/${BINV}/include/omp.h \
+    ${libdir}/${TARGET_SYS}/${BINV}/include/openacc.h \
 "
 SUMMARY_libgomp-dev = "GNU OpenMP parallel programming library - development files"
 FILES_libgomp-staticdev = "${libdir}/libgomp*.a"
