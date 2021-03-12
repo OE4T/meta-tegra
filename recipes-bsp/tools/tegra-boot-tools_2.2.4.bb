@@ -1,12 +1,16 @@
 DESCRIPTION = "Boot-related tools for Tegra platforms"
 HOMEPAGE = "https://github.com/OE4T/tegra-boot-tools"
 LICENSE = "MIT & BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=f547d56278324f08919c3805e5fb8df9"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=7a9217de7f233011b127382da9a035a1"
 
 DEPENDS = "zlib systemd tegra-eeprom-tool"
 
 SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
+<<<<<<< HEAD:recipes-bsp/tools/tegra-boot-tools_2.2.2.bb
 SRC_URI[sha256sum] = "0aa2c985015aed6dfa2051d6fd75051562be7e906698d4dc418703ac4d544243"
+=======
+SRC_URI[sha256sum] = "c77a1d5e1d2b77022581e32e2a79cd1fe2d158e0ca4ade332e482e92e0b544f7"
+>>>>>>> c177774... tegra-boot-tools: update to v2.2.4:recipes-bsp/tools/tegra-boot-tools_2.2.4.bb
 
 OTABOOTDEV ??= "/dev/mmcblk0boot0"
 OTAGPTDEV ??= "/dev/mmcblk0boot1"
