@@ -1,0 +1,37 @@
+From 4c5deca5cd63663e440f76bea2bcae0f1d5dc3dd Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Thu, 11 Mar 2021 23:24:56 +0000
+Subject: [PATCH] vpi-config: allow to compute the installation prefix.
+
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ usr/share/vpi1/cmake/vpi-config.cmake | 13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/usr/share/vpi1/cmake/vpi-config.cmake b/usr/share/vpi1/cmake/vpi-config.cmake
+index 638a97d..b6d6213 100644
+--- a/usr/share/vpi1/cmake/vpi-config.cmake
++++ b/usr/share/vpi1/cmake/vpi-config.cmake
+@@ -41,8 +41,17 @@ unset(_targetsNotDefined)
+ unset(_expectedTargets)
+ 
+ 
+-# The installation prefix configured by this project.
+-set(_IMPORT_PREFIX "/opt/nvidia/vpi1")
++# Compute the installation prefix relative to this file.
++get_filename_component(PKG_PREFIX_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../.." ABSOLUTE)
++
++macro(set_and_check _var _dir)
++  set(${_var} "${_dir}")
++  if(NOT EXISTS "${_dir}")
++    message(FATAL_ERROR "File or directory ${_dir} referenced by variable ${_var} does not exist !")
++  endif()
++endmacro()
++
++set_and_check(_IMPORT_PREFIX "${PKG_PREFIX_DIR}/opt/nvidia/vpi1")
+ 
+ # Create imported target vpi
+ add_library(vpi SHARED IMPORTED)
+-- 
+2.17.1
+
