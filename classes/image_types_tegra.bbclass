@@ -56,6 +56,7 @@ IMAGE_TEGRAFLASH_DATA ??= ""
 
 BL_IS_CBOOT = "${@'1' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '0'}"
 TEGRA_SPIFLASH_BOOT ??= ""
+TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD ??=""
 
 CBOOTFILENAME = "cboot.bin"
 CBOOTFILENAME_tegra194 = "cboot_t194.bin"
@@ -69,6 +70,7 @@ FLASHTOOLS_DIR_tegra194 = "tegra186-flash"
 
 TEGRAFLASH_PACKAGE_FORMAT ??= "tar"
 TEGRAFLASH_PACKAGE_FORMATS = "tar zip"
+TEGRAFLASH_SDCARD_SIZE ??= "16G"
 
 python() {
     pt = d.getVar('TEGRAFLASH_PACKAGE_FORMAT')
@@ -108,9 +110,9 @@ tegraflash_post_sign_pkg_tegra186() {
 
 tegraflash_post_sign_pkg_tegra194() {
     mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
-    [ "${TEGRA_SPIFLASH_BOOT}" = "1" ] || rm -f ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    [ "${TEGRA_SPIFLASH_BOOT}" = "1" -o "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ] || rm -f ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
-    if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" ]; then
+    if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" -a "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" != "1" ]; then
         mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_DATA}" ${DATAFILE}.img
         sed -i -e"s,DATAFILE,${DATAFILE}.img," secureflash.xml
     fi
@@ -541,6 +543,21 @@ END
         cat > dosdcard.sh <<END
 #!/bin/sh
 MACHINE=${MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra194-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+END
+        chmod +x dosdcard.sh
+    elif [ "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ]; then
+        rm -f doflash.sh
+        cat > doflash.sh <<END
+#!/bin/sh
+./nvflashxmlparse --split=flash-sdcard.xml.in --output=flash-mmc.xml.in --sdcard-size=${TEGRAFLASH_SDCARD_SIZE} flash.xml.in
+MACHINE=${MACHINE} ./tegra194-flash-helper.sh $DATAARGS flash-mmc.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+END
+        chmod +x doflash.sh
+        rm -f dosdcard.sh
+        cat > dosdcard.sh <<END
+#!/bin/sh
+./nvflashxmlparse --split=flash-sdcard.xml.in --output=flash-mmc.xml.in --sdcard-size=${TEGRAFLASH_SDCARD_SIZE} flash.xml.in
+MACHINE=${MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} BOARDREV=\${BOARDREV:-${TEGRA_BOARDREV}} ./tegra194-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash-sdcard.xml.in ${DTBFILE} ${MACHINE}.cfg,${MACHINE}-override.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x dosdcard.sh
     fi
