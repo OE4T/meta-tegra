@@ -109,6 +109,59 @@ def extract_layout(infile, devtype, outf):
     outf.write("\n")
 
 
+def split_layout(infile, mmcf, sdcardf, sdcard_sectors):
+    import xml.etree.ElementTree as ET
+    sdcard_parts = ['APP', 'APP_b', 'UDA', 'kernel', 'kernel_b', 'kernel-dtb', 'kernel-dtb_b']
+    mmctree = ET.parse(infile)
+    sdcardtree = ET.parse(infile)
+    root = mmctree.getroot()
+    for dev in root.findall('device'):
+        if dev.get('type') == 'sdmmc_user':
+            for partnode in dev.findall('partition'):
+                partname = partnode.get('name')
+                if partname in sdcard_parts:
+                    dev.remove(partnode)
+    root = sdcardtree.getroot()
+    for dev in root.findall('device'):
+        if dev.get('type') == 'sdmmc_user':
+            dev.set('type', 'sdcard')
+            dev.set('instance', '0')
+            dev.set('num_sectors', str(sdcard_sectors))
+            for partnode in dev.findall('partition'):
+                partname = partnode.get('name')
+                if partname not in sdcard_parts + ['master_boot_record', 'primary_gpt', 'secondary_gpt']:
+                    dev.remove(partnode)
+        else:
+            root.remove(dev)
+    mmctree.write(mmcf, encoding='unicode', xml_declaration=True)
+    mmcf.write("\n")
+    sdcardtree.write(sdcardf, encoding='unicode', xml_declaration=True)
+    sdcardf.write("\n")
+
+
+def size_to_sectors(sizespec):
+    suffix = sizespec[-1:]
+    if suffix in ['G', 'K', 'M']:
+        sizespec = sizespec[:-1]
+    try:
+        size = int(sizespec)
+    except ValueError:
+        raise RuntimeError("SDcard size must be integral number of sectors, or suffixed with G, K, or M")
+
+    if suffix == 'K':
+        size *= 1000
+    elif suffix == 'M':
+        size *= 1000 * 1000
+    elif suffix == 'G':
+        size *= 1000 * 1000 * 1000
+    else:
+        return size
+
+    # For suffixed specs, convert bytes to sectors,
+    # reserving 1% for overhead
+    return int(int(size * 99 / 100 + 511) / 512)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="""
@@ -117,6 +170,8 @@ Extracts partition information from an NVIDIA flash.xml file
     parser.add_argument('-t', '--type', help='device type to extract information for', action='store')
     parser.add_argument('-l', '--list-types', help='list the device types described in the file', action='store_true')
     parser.add_argument('-e', '--extract', help='generate a new XML file extracting just the specified device type', action='store_true')
+    parser.add_argument('-s', '--split', help='SDCard XML output file for MMC/SDCard split on Jetson AGX Xavier', action='store')
+    parser.add_argument('-S', '--sdcard-size', help='SDCard size for use with --split', action='store', default="33554432")
     parser.add_argument('-o', '--output', help='file to write output to', action='store')
     parser.add_argument('filename', help='name of the XML file to parse', action='store')
 
@@ -125,6 +180,15 @@ Extracts partition information from an NVIDIA flash.xml file
     if args.list_types:
         print("Device types:\n{}".format('\n'.join(['    ' + t for t in layout.devtypes])))
         return 0
+    if args.split:
+        sdcardf = open(args.split, "w")
+        if args.output:
+            outf = open(args.output, "w")
+        else:
+            outf = sys.stdout
+        split_layout(args.filename, outf, sdcardf, size_to_sectors(args.sdcard_size))
+        return 0
+
     if not args.type:
         if layout.device_count > 1:
             raise RuntimeError("Must specify --type for layouts with multiple devices")
