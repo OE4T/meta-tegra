@@ -63,6 +63,7 @@ CBOOTFILENAME_tegra194 = "cboot_t194.bin"
 TOSIMGFILENAME = "tos-trusty.img"
 TOSIMGFILENAME_tegra194 = "tos-trusty_t194.img"
 TOSIMGFILENAME_tegra210 = "tos-mon-only.img"
+BMPBLOBFILENAME = "bmp.blob"
 
 BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
 FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
@@ -267,7 +268,6 @@ tegraflash_create_flash_config_tegra194() {
 
 BOOTFILES = ""
 BOOTFILES_tegra210 = "\
-    bmp.blob \
     eks.img \
     nvtboot_recovery.bin \
     nvtboot.bin \
@@ -278,7 +278,6 @@ BOOTFILES_tegra210 = "\
 "
 BOOTFILES_tegra186 = "\
     adsp-fw.bin \
-    bmp.blob \
     bpmp.bin \
     camera-rtcpu-sce.img \
     dram-ecc.bin \
@@ -301,7 +300,6 @@ BOOTFILES_tegra186 = "\
 
 BOOTFILES_tegra194 = "\
     adsp-fw.bin \
-    bmp.blob \
     bpmp_t194.bin \
     camera-rtcpu-rce.img \
     eks.img \
@@ -351,6 +349,7 @@ create_tegraflash_pkg_tegra210() {
     done
     cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/bootlogo-${MACHINE}.blob" ./${BMPBLOBFILENAME}
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
@@ -417,6 +416,7 @@ create_tegraflash_pkg_tegra186() {
     fi
     cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/bootlogo-${MACHINE}.blob" ./${BMPBLOBFILENAME}
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
@@ -499,6 +499,7 @@ create_tegraflash_pkg_tegra194() {
     fi
     cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/bootlogo-${MACHINE}.blob" ./${BMPBLOBFILENAME}
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
@@ -613,13 +614,14 @@ do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populat
                                  tegra-redundant-boot-rollback:do_populate_sysroot virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''} \
-                                 cboot:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
+                                 cboot:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 
 oe_make_bup_payload() {
     PATH="${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}:${PATH}"
     export cbootfilename=${CBOOTFILENAME}
     export tosimgfilename=${TOSIMGFILENAME}
+    export bmpblobfilename=${BMPBLOBFILENAME}
     rm -rf ${WORKDIR}/bup-payload
     mkdir ${WORKDIR}/bup-payload
     oldwd="$PWD"
@@ -648,6 +650,7 @@ oe_make_bup_payload() {
     done
     cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./$cbootfilename
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./$tosimgfilename
+    cp "${DEPLOY_DIR_IMAGE}/bootlogo-${MACHINE}.blob" ./$bmpblobfilename
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
@@ -720,6 +723,6 @@ create_bup_payload_image() {
 create_bup_payload_image[vardepsexclude] += "DATETIME"
 
 CONVERSIONTYPES += "bup-payload"
-CONVERSION_DEPENDS_bup-payload = "${SOC_FAMILY}-flashtools-native coreutils-native tegra-bootfiles tegra-redundant-boot-rollback dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
+CONVERSION_DEPENDS_bup-payload = "${SOC_FAMILY}-flashtools-native coreutils-native tegra-bootfiles tegra-redundant-boot-rollback dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
 CONVERSION_CMD_bup-payload = "create_bup_payload_image ${type}"
 IMAGE_TYPES += "cpio.gz.cboot.bup-payload"
