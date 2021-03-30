@@ -15,7 +15,6 @@ ODMFUSE_FILE ?= ""
 
 BOOTBINS_tegra186 = "\
     adsp-fw.bin \
-    bmp.blob \
     bpmp.bin \
     camera-rtcpu-sce.img \
     dram-ecc.bin \
@@ -31,7 +30,6 @@ BOOTBINS_tegra186 = "\
 "
 BOOTBINS_tegra194 = "\
     adsp-fw.bin \
-    bmp.blob \
     bpmp_t194.bin \
     camera-rtcpu-rce.img \
     eks.img \
@@ -50,7 +48,6 @@ BOOTBINS_tegra194 = "\
 "
 
 BOOTBINS_tegra210 = "\
-    bmp.blob \
     eks.img \
     nvtboot_cpu.bin \
     nvtboot_recovery.bin \
