@@ -1,0 +1,55 @@
+From 310686635f504f45bef1217b0a5d5377f7ad7b92 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Thu, 1 Apr 2021 08:29:25 -0700
+Subject: [PATCH] bmp: support A/B slots
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ .../t18x/cboot/app/kernel_boot/kernel_boot.c  | 21 +++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+
+diff --git a/bootloader/partner/t18x/cboot/app/kernel_boot/kernel_boot.c b/bootloader/partner/t18x/cboot/app/kernel_boot/kernel_boot.c
+index 79bd566..93f845e 100644
+--- a/bootloader/partner/t18x/cboot/app/kernel_boot/kernel_boot.c
++++ b/bootloader/partner/t18x/cboot/app/kernel_boot/kernel_boot.c
+@@ -234,6 +234,10 @@ static status_t kernel_boot(void)
+ 	bool is_enter_fastboot = false;
+ #endif
+ 
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++	uint32_t slot = BOOT_SLOT_A;
++#endif
++
+ #if defined(IS_T186)
+ 	tegrabl_error_t ret = TEGRABL_NO_ERROR;
+ 	bool is_skip_menu = true;
+@@ -284,9 +288,26 @@ static status_t kernel_boot(void)
+ #endif
+ 
+ #if defined(CONFIG_ENABLE_DISPLAY) && defined(CONFIG_ENABLE_NVBLOB)
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++	err = tegrabl_a_b_get_active_slot(NULL, &slot);
++	if (err != TEGRABL_NO_ERROR) {
++		if (TEGRABL_ERROR_REASON(err) == TEGRABL_ERR_NOT_FOUND) {
++			/*
++			 * No slot number has been set by MB1
++			 * Device is handled as non A/B system
++			 */
++		} else {
++			pr_warn("Select a/b slot for bmp blob failed\n");
++		}
++	}
++	err = tegrabl_load_bmp_blob((slot == BOOT_SLOT_A ) ? "BMP" : "BMP_b");
++	if (err != TEGRABL_NO_ERROR)
++		pr_warn("Loading bmp blob to memory failed\n");
++#else
+ 	err = tegrabl_load_bmp_blob("BMP");
+ 	if (err != TEGRABL_NO_ERROR)
+ 		pr_warn("Loading bmp blob to memory failed\n");
++#endif
+ 
+ #if defined(IS_T186)
+ 	tegrabl_profiler_record("Load BMP blob", 0, DETAILED);
+-- 
+2.29.2
+
