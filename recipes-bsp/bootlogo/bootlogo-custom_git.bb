@@ -1,17 +1,19 @@
 DESCRIPTION = "Deploy a custom boot screen for L4T bootloader"
-LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+LICENSE = "CC0-1.0"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=0ceb3372c9595f0a8067e55da801e4a1"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-DEPENDS = "tegra186-flashtools-native lz4-native"
+SOC_FAMILY ??= "tegra186"
+DEPENDS = "${SOC_FAMILY}-flashtools-native lz4-native"
 
 inherit deploy nopackages
 
 PROVIDES += "virtual/bootlogo"
 
 SRC_URI = "git://github.com/OE4T/bootlogo-oe4t;protocol=https"
-SRCREV = "a8bb17ae9932645c5f562f8922e82565b964a7c4"
+SRCREV = "c42fb2aec00f6151dab2bb5577c8a8d934a3a981"
+PV = "1.0+git${SRCPV}"
 
 S = "${WORKDIR}/git"
 
