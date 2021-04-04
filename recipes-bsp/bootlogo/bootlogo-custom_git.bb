@@ -34,6 +34,9 @@ BMP_SYMLINK = "bootlogo-${MACHINE}.blob"
 
 include bootlogo.inc
 
+FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
+FLASHTOOLS_DIR_tegra194 = "tegra186-flash"
+
 do_compile() {
 
     LIST=""
@@ -62,7 +65,7 @@ do_compile() {
     rm -f ${B}/bmp.blob
     rm -f ${B}/bmp-compressed.blob
 
-    OUT=${B} ${STAGING_BINDIR_NATIVE}/tegra186-flash/BMP_generator_L4T.py -t bmp -e "${LIST}" -v 0
+    OUT=${B} ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/BMP_generator_L4T.py -t bmp -e "${LIST}" -v 0
 
     if [ ! -s ${B}/bmp.blob ]; then
         bbfatal "BMP_generator_L4T.py failed to create bmp.blob"
