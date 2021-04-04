@@ -62,6 +62,9 @@ do_install() {
     install -m 0755 ${S}/bootloader/mkbctpart ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/chkbdinfo ${D}${BINDIR}
     install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}
+
+    install -m 0755 ${S}/tools/bmp-splash/BMP_generator_L4T.py ${D}${BINDIR}
+
 }
 
 INHIBIT_SYSROOT_STRIP = "1"
