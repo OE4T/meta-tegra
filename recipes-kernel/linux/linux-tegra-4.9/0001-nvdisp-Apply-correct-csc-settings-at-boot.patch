@@ -1,0 +1,41 @@
+From f27d1a289cdbefe414f0dfc88a05d7152123ccc2 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Wed, 7 Apr 2021 20:30:09 -0700
+Subject: [PATCH 1/1] nvdisp: Apply correct csc settings at boot
+
+This enables seemless display transition in concert with changes
+to bootloader to configure a limited range display mode by default.
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ nvidia/drivers/video/tegra/dc/nvdisp/nvdisp.c | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/nvidia/drivers/video/tegra/dc/nvdisp/nvdisp.c b/nvidia/drivers/video/tegra/dc/nvdisp/nvdisp.c
+index 3626f39885f83..14476847fb68b 100644
+--- a/nvidia/drivers/video/tegra/dc/nvdisp/nvdisp.c
++++ b/nvidia/drivers/video/tegra/dc/nvdisp/nvdisp.c
+@@ -1373,12 +1373,6 @@ void tegra_nvdisp_set_ocsc(struct tegra_dc *dc, struct tegra_dc_mode *mode)
+ {
+ 	u32 csc2_control;
+ 
+-	/* If mode is not dirty, then set user cached csc2 values */
+-	if (!dc->mode_dirty) {
+-		csc2_control = dc->cached_settings.csc2_control;
+-		goto write_reg;
+-	}
+-
+ 	if (mode->vmode & FB_VMODE_BYPASS) {
+ 		/* Use rgb ocsc and disable range scaling for yuv bypass. */
+ 		csc2_control = nvdisp_csc2_control_output_color_sel_rgb_f() |
+@@ -1421,7 +1415,6 @@ void tegra_nvdisp_set_ocsc(struct tegra_dc *dc, struct tegra_dc_mode *mode)
+ 	/* Set user data cache */
+ 	dc->cached_settings.csc2_control = csc2_control;
+ 
+-write_reg:
+ 	tegra_dc_writel(dc, csc2_control, nvdisp_csc2_control_r());
+ }
+ 
+-- 
+2.29.2
+
