@@ -1,0 +1,82 @@
+From e750298e345281ae54c286910a184f650b682246 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Wed, 7 Apr 2021 20:42:49 -0700
+Subject: [PATCH 1/1] display: nvdisp/sor: enable seamless display transition
+
+When the CMU is enabled in the bootloader, the Linux tegra display
+drivers will set up a limited range output by default. This caused
+a discontinuity in the image when the range changed from cboot's
+default full range output.
+
+Additionally, the gamma correction was broken. Although an sRGB
+ouput gamma is applied through the CMU on the display as a sane
+default, the window settings weren't applying an sRGB degamma to
+the framebuffer, so gamma was getting applied twice.
+
+This change fixes both problems, enabling a truly seamless display
+transition to Linux.
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ .../common/drivers/display/nvdisp/tegrabl_nvdisp_cmu.c   | 9 +++++++++
+ .../common/drivers/display/nvdisp/tegrabl_nvdisp_win.c   | 4 ++++
+ .../partner/common/drivers/display/sor/tegrabl_sor.c     | 9 +++++++--
+ 3 files changed, 20 insertions(+), 2 deletions(-)
+
+diff --git a/bootloader/partner/common/drivers/display/nvdisp/tegrabl_nvdisp_cmu.c b/bootloader/partner/common/drivers/display/nvdisp/tegrabl_nvdisp_cmu.c
+index 1bb3076..5e4b22c 100644
+--- a/bootloader/partner/common/drivers/display/nvdisp/tegrabl_nvdisp_cmu.c
++++ b/bootloader/partner/common/drivers/display/nvdisp/tegrabl_nvdisp_cmu.c
+@@ -275,5 +275,14 @@ void nvdisp_cmu_set(struct tegrabl_nvdisp *nvdisp, struct nvdisp_cmu *cmu)
+ 								 DISABLE, val);
+ 	nvdisp_writel(nvdisp, DISP_DISP_COLOR_CONTROL, val);
+ 
++	val = nvdisp_readl(nvdisp, DISP_CSC2_CONTROL);
++	if (nvdisp->flags & NVDISP_FLAG_CMU_ENABLE)
++		val = NV_FLD_SET_DRF_DEF(DC, DISP_CSC2_CONTROL, LIMIT_RGB_COLOR,
++								 ENABLE, val);
++	else
++		val = NV_FLD_SET_DRF_DEF(DC, DISP_CSC2_CONTROL, LIMIT_RGB_COLOR,
++								 DISABLE, val);
++	nvdisp_writel(nvdisp, DISP_CSC2_CONTROL, val);
++
+ 	pr_debug("%s: exit\n", __func__);
+ }
+diff --git a/bootloader/partner/common/drivers/display/nvdisp/tegrabl_nvdisp_win.c b/bootloader/partner/common/drivers/display/nvdisp/tegrabl_nvdisp_win.c
+index ea7dd12..a6b060d 100644
+--- a/bootloader/partner/common/drivers/display/nvdisp/tegrabl_nvdisp_win.c
++++ b/bootloader/partner/common/drivers/display/nvdisp/tegrabl_nvdisp_win.c
+@@ -186,6 +186,10 @@ void nvdisp_win_config(struct tegrabl_nvdisp *nvdisp, uint32_t win_id)
+ 					 win->pitch / NVDISP_PITCH_UNIT);
+ 	nvdisp_writel(nvdisp, WIN_A_WINDOW_SET_PLANAR_STORAGE, val);
+ 
++	val = nvdisp_readl(nvdisp, WIN_A_WINDOW_SET_PARAMS);
++	val = NV_FLD_SET_DRF_DEF(DC, WIN_A_WINDOW_SET_PARAMS, A_DE_GAMMA, SRGB, val);
++	nvdisp_writel(nvdisp, WIN_A_WINDOW_SET_PARAMS, val);
++
+ 	val = nvdisp_readl(nvdisp, WIN_A_WIN_OPTIONS);
+ 	val = NV_FLD_SET_DRF_DEF(DC, WIN_A_WIN_OPTIONS, A_WIN_ENABLE, ENABLE, val);
+ 	nvdisp_writel(nvdisp, WIN_A_WIN_OPTIONS, val);
+diff --git a/bootloader/partner/common/drivers/display/sor/tegrabl_sor.c b/bootloader/partner/common/drivers/display/sor/tegrabl_sor.c
+index 90d8368..61aeb1c 100644
+--- a/bootloader/partner/common/drivers/display/sor/tegrabl_sor.c
++++ b/bootloader/partner/common/drivers/display/sor/tegrabl_sor.c
+@@ -499,8 +499,13 @@ static void sor_config_panel(struct sor_data *sor, bool is_lvds)
+ 
+ 	sor_writel(sor, SOR_NV_PDISP_SOR_STATE1_0, r_val);
+ 
+-	/* Skipping programming NV_HEAD_STATE0, assuming:
+-	   interlacing: PROGRESSIVE, dynamic range: VESA, colorspace: RGB */
++	/* Program NV_HEAD_STATE0 to match linux defaults */
++	if (sor->nvdisp->flags & NVDISP_FLAG_CMU_ENABLE) {
++		r_val = sor_readl(sor, SOR_NV_PDISP_HEAD_STATE0_0 + sor->nvdisp->instance);
++		r_val = NV_FLD_SET_DRF_DEF(SOR_NV_PDISP, HEAD_STATE0, RANGECOMPRESS, ENABLE, r_val);
++		r_val = NV_FLD_SET_DRF_DEF(SOR_NV_PDISP, HEAD_STATE0, DYNRANGE, CEA, r_val);
++		sor_writel(sor, SOR_NV_PDISP_HEAD_STATE0_0 + sor->nvdisp->instance, r_val);
++	}
+ 
+ 	vtotal = nvdisp_mode->v_sync_width + nvdisp_mode->v_back_porch +
+ 		nvdisp_mode->v_active + nvdisp_mode->v_front_porch;
+-- 
+2.29.2
+
