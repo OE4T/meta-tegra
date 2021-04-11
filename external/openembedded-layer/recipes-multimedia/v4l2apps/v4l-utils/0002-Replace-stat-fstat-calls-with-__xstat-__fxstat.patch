@@ -1,0 +1,47 @@
+From 5182f0b73262eaad3c7fba695d823e2fb37c266d Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 11 Apr 2021 06:48:54 -0700
+Subject: [PATCH] Replace stat/fstat calls with __xstat/__fxstat
+
+The stat-family syscalls were reworked in
+glibc 2.33, so make the libv4lconvert plugin
+compatible with the older glibc used in L4T
+containers.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+
+---
+ lib/libv4lconvert/control/libv4lcontrol.c | 4 ++--
+ utils/media-ctl/libmediactl.c             | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
+index 0b0a346..15e4146 100644
+--- a/lib/libv4lconvert/control/libv4lcontrol.c
++++ b/lib/libv4lconvert/control/libv4lcontrol.c
+@@ -370,10 +370,10 @@ static int v4lcontrol_get_usb_info(struct v4lcontrol_data *data,
+ 	    "%s/sys/class/video4linux", sysfs_prefix);
+ 
+ 	/* Check for sysfs mounted before trying to search */
+-	if (stat(sysfs_name, &st) != 0)
++	if (__xstat(0, sysfs_name, &st) != 0)
+ 		return 0; /* Not found, sysfs not mounted? */
+ 
+-	if (fstat(data->fd, &st) || !S_ISCHR(st.st_mode))
++	if (__fxstat(0, data->fd, &st) || !S_ISCHR(st.st_mode))
+ 		return 0; /* Should never happen */
+ 
+ 	/* <Sigh> find ourselve in sysfs */
+diff --git a/utils/media-ctl/libmediactl.c b/utils/media-ctl/libmediactl.c
+index 1fd6525..4fc1bed 100644
+--- a/utils/media-ctl/libmediactl.c
++++ b/utils/media-ctl/libmediactl.c
+@@ -486,7 +486,7 @@ static int media_get_devname_sysfs(struct media_entity *entity)
+ 	} else {
+ 		sprintf(devname, "/dev/%s", p + 1);
+ 	}
+-	ret = stat(devname, &devstat);
++	ret = __xstat(0, devname, &devstat);
+ 	if (ret < 0)
+ 		return -errno;
+ 
