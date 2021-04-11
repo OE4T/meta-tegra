@@ -11,11 +11,10 @@ inherit deploy nopackages
 
 PROVIDES += "virtual/bootlogo"
 
-SRC_URI = "git://github.com/OE4T/bootlogo-oe4t;protocol=https"
-SRCREV = "c42fb2aec00f6151dab2bb5577c8a8d934a3a981"
-PV = "1.0+git${SRCPV}"
+SRC_URI = "https://github.com/OE4T/bootlogo-oe4t/releases/download/v${PV}/bootlogo-oe4t-${PV}.tar.gz"
+SRC_URI[sha256sum] = "f53ded9fc40c4146ddaf3aa6118cde0c7ed57452795e80fb9df436c13a0248da"
 
-S = "${WORKDIR}/git"
+S = "${WORKDIR}/bootlogo-oe4t-${PV}"
 
 # One of 'raw' or 'cooked'
 PACKAGECONFIG ?= "cooked"
