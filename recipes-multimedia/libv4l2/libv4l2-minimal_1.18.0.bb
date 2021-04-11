@@ -6,7 +6,9 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS = "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'virtual/libx11', '', d)}"
 
-SRC_URI = "http://linuxtv.org/downloads/v4l-utils/v4l-utils-${PV}.tar.bz2"
+SRC_URI = "http://linuxtv.org/downloads/v4l-utils/v4l-utils-${PV}.tar.bz2 \
+           file://0001-Replace-stat-fstat-calls-with-__xstat-__fxstat.patch \
+           "
 SRC_URI[md5sum] = "18996bd5e9d83d47055c05de376708cd"
 SRC_URI[sha256sum] = "6cb60d822eeed20486a03cc23e0fc65956fbc1e85e0c1a7477f68bbd9802880d"
 
