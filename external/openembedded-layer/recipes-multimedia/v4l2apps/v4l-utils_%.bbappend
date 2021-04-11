@@ -1,5 +1,8 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"
-SRC_URI_append_tegra = " file://0001-Make-plugin-directory-relative-to-ORIGIN.patch"
+SRC_URI_append_tegra = " \
+    file://0001-Make-plugin-directory-relative-to-ORIGIN.patch \
+    file://0002-Replace-stat-fstat-calls-with-__xstat-__fxstat.patch \
+"
 
 EXTRA_OECONF_tegra = " --without-jpeg"
 DEPENDS_remove_tegra = "jpeg"
