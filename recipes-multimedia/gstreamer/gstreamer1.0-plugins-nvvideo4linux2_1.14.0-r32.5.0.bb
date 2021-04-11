@@ -19,6 +19,7 @@ SRC_URI += "\
     file://0005-gstv4l2videodec-use-ifdef-macro-for-consistency-with.patch \
     file://0006-gstv4l2videodec-check-if-we-have-a-pool-before-the-l.patch \
     file://0007-Import-gstv4l2bufferpool-patch-from-R32.5.1.patch \
+    file://0008-Replace-stat-call-with-__xstat.patch \
 "
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries"
@@ -35,11 +36,13 @@ CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 copy_headers() {
 	cp ${WORKDIR}/nvbuf_utils.h ${S}/
+	cp ${WORKDIR}/nvbufsurface.h ${S}/
 	cp ${WORKDIR}/v4l2_nv_extensions.h ${S}/
 }
 
 do_unpack_append() {
-    bb.build.exec_func("copy_headers", d)
+    if not bb.data.inherits_class("externalsrc", d):
+        bb.build.exec_func("copy_headers", d)
 }
 
 do_install() {
