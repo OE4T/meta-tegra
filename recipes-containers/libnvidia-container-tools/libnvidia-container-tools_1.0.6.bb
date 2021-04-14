@@ -34,8 +34,8 @@ ELF_TOOLCHAIN_VERSION = "0.7.1"
 LIBTIRPC_VERSION = "1.1.4"
 
 SRC_URI = " \
-    git://github.com/NVIDIA/libnvidia-container.git;name=libnvidia \
-    git://github.com/NVIDIA/nvidia-modprobe.git;name=modprobe;destsuffix=git/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} \
+    git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=libnvidia \
+    git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=git/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} \
     file://0001-Makefile-Fix-RCP-flags-and-change-prefix.patch \
 "
 
