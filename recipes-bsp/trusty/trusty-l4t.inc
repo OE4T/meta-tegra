@@ -47,13 +47,28 @@ do_configure() {
     make_tc_wrappers ${B}/bin-${BUILD_ARCH} as cpp gcc ld ld.bfd
 }
 
+def extract_version(i, d):
+    pv = d.getVar('PV').split('.')
+    if i < len(pv):
+        return pv[i]
+    return ''
+
+def generate_build_timestamp(d):
+    from datetime import datetime
+    sde = d.getVar('SOURCE_DATE_EPOCH')
+    if sde:
+        return 'BUILDTIMESTAMP="\\\"{}\\\""'.format(datetime.utcfromtimestamp(int(sde)).strftime('%Y-%m-%d %H:%M:%S'))
+    return ''
+
+VERSION_DEFS ?= "VERSION_MAJOR=${@extract_version(0, d)} VERSION_MINOR=${@extract_version(1, d)}"
+BUILDTIMESTAMP ?= "${@generate_build_timestamp(d)}"
 
 EXTRA_OEMAKE = 'PROJECT=t186 TARGET=t186 BUILDROOT=${B} \
                 TOOLCHAIN_PREFIX="${TARGET_PREFIX}" ARCH_arm64_TOOLCHAIN_PREFIX="${TARGET_PREFIX}" \
 		ARCH_arm_TOOLCHAIN_PREFIX="arm-eabi-" \
 	        DEBUG=0 DEBUG_LVL=0 V=0 DEFAULT_OTE_APP_DEBUGLEVEL=1 NOECHO=@ \
 		TRUSTY_VARIANT=l4t-public TRUSTY_MULTI_GUEST_CONFIGURATION= \
-		TARGET_SOC=${TARGET_SOC}'
+		TARGET_SOC=${TARGET_SOC} ${VERSION_DEFS} ${BUILDTIMESTAMP}'
 
 do_compile() {
     oe_runmake -C ${S} t186
