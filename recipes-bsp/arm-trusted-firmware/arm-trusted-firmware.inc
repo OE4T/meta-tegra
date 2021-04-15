@@ -25,10 +25,22 @@ LD[unexport] = "1"
 TARGET_SOC = "t186"
 TARGET_SOC_tegra194 = "t194"
 
-do_configure[noexec] = "1"
+def generate_build_timestamp(d):
+    from datetime import datetime
+    sde = d.getVar('SOURCE_DATE_EPOCH')
+    if sde:
+        return 'BUILD_MESSAGE_TIMESTAMP="\\\"{}\\\""'.format(datetime.utcfromtimestamp(int(sde)).strftime('%Y-%m-%d %H:%M:%S'))
+    return ''
+
+BUILDTIMESTAMP ?= "${@generate_build_timestamp(d)}"
+BUILD_STRING ??= ""
 
 EXTRA_OEMAKE = 'BUILD_BASE=${B} CROSS_COMPILE="${TARGET_PREFIX}" PLAT=tegra \
-	        DEBUG=0 LOG_LEVEL=20 V=0 TARGET_SOC=${TARGET_SOC} ${PACKAGECONFIG_CONFARGS}'
+	        DEBUG=0 LOG_LEVEL=20 V=0 TARGET_SOC=${TARGET_SOC} ${BUILDTIMESTAMP} ${BUILD_STRING} ${PACKAGECONFIG_CONFARGS}'
+
+do_configure_append() {
+	oe_runmake -C ${S} clean
+}
 
 do_compile() {
 	oe_runmake -C ${S} all
