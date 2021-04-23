@@ -34,7 +34,7 @@ ELF_TOOLCHAIN_VERSION = "0.7.1"
 LIBTIRPC_VERSION = "1.1.4"
 
 SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;name=libnvidia;branch=jetson \
-           git://github.com/NVIDIA/nvidia-modprobe.git;name=modprobe;destsuffix=git/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} \
+           git://github.com/NVIDIA/nvidia-modprobe.git;branch=396;name=modprobe;destsuffix=git/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} \
            file://0001-Makefile-Fix-RCP-flags-and-change-path-definitions-s.patch \
            file://0002-common.mk-Set-JETSON-variable-if-not-set-before.patch \
            file://0003-Fix-mapping-of-library-paths-for-jetson-mounts.patch \
