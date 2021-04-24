@@ -8,10 +8,14 @@ L4T_DEB_FEED_BASE ??= "file://"
 SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb;name=%s;subdir=${BP}' \
                                 % (pkg, 'dev' if pkg.endswith('-dev') else 'main') for pkg in d.getVar('CUDA_PKG').split()])} \
 		   cuda-license-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
-SRC_URI[lic.sha256sum] = "8a862acbff5b33904bfe7ec3e92a553a8312da1db9f651b6cfe14db137a139ce"
+
+SRC_URI[main.sha256sum] = "${MAINSUM}"
+SRC_URI[dev.sha256sum] = "${DEVSUM}"
+LICSUM = "8a862acbff5b33904bfe7ec3e92a553a8312da1db9f651b6cfe14db137a139ce"
+LICSUM_x86-64 = "daf3f9891b290b64ae1130546aaadabd6631b44d08c69a76a74e94a111b6ecec"
+SRC_URI[lic.sha256sum] = "${LICSUM}"
 
 CUDA_DL_CLASS = "l4t_deb_pkgfeed"
-CUDA_DL_CLASS_x86-64 = "nvidia_devnet_downloads"
 
 inherit ${CUDA_DL_CLASS}
 
@@ -20,50 +24,10 @@ LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/local/cuda-10.2/LICENSE;md5=659d2cacdb888a4ed2aa29014ed0302a \
 	            file://usr/local/cuda-10.2/doc/EULA.txt;md5=37774d0b88c5743e8fe8e5c10b057270"
 
-CUDA_BINARIES_DEFAULT = "cuda-binaries-ubuntu1804"
-CUDA_BINARIES_DEFAULT_aarch64 = ""
-CUDA_BINARIES ??= "${CUDA_BINARIES_DEFAULT}"
-CUDA_BINARIES_aarch64 = ""
-
-def cuda_binaries_deps(d):
-    cuda_binaries = d.getVar('CUDA_BINARIES')
-    if not cuda_binaries:
-        return ''
-    if bb.data.inherits_class('native', d):
-        cuda_binaries += '-native'
-    elif bb.data.inherits_class('nativesdk', d):
-        cuda_binaries = 'nativesdk-' + cuda_binaries
-    return cuda_binaries + ':do_preconfigure dpkg-native:do_populate_sysroot'
-
-do_configure[depends] += "${@cuda_binaries_deps(d)}"
-do_populate_lic[depends] += "${@cuda_binaries_deps(d)}"
-
 DEPENDS ?= "cuda-cudart"
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
 
 CUDA_PKGNAMES ?= "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb' % pkg for pkg in d.getVar('CUDA_PKG').split()])}"
-
-python() {
-    if d.getVar('HOST_ARCH') == 'x86_64':
-        d.setVarFlag('do_fetch', 'noexec', '1')
-        bb.build.deltask('do_unpack', d)
-        bb.build.deltask('do_patch', d)
-        d.setVar('SRC_URI', '')
-        d.setVarFlag('do_compile', 'cleandirs', "${B}")
-}
-
-do_compile_prepend_x86-64() {
-    extracted=""
-    for pkg in ${CUDA_PKGNAMES}; do
-	if [ -f ${S}/var/cuda-repo-${CUDA_VERSION_DASHED}-local${CUDA_REPO_EXTRA}/$pkg ]; then
-            dpkg-deb --extract ${S}/var/cuda-repo-${CUDA_VERSION_DASHED}-local${CUDA_REPO_EXTRA}/$pkg ${B}
-	    extracts="yes"
-	fi
-    done
-    if [ -z "$extracts" ]; then
-        bbwarn "No packages extracted for ${PN}"
-    fi
-}
 
 do_compile() {
     rm -f ${B}/usr/local/cuda-${CUDA_VERSION}/lib64
