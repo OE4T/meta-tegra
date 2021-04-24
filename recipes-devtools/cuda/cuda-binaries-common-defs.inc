@@ -1,15 +1,10 @@
 COMPATIBLE_MACHINE_class-target = "(cuda)"
 COMPATIBLE_HOST = "(x86_64|aarch64)"
 CUDA_VERSION ??= "10.2"
-CUDA_REPO_EXTRA = "-10.2.89"
-CUDA_REPO_EXTRA_x86-64 = "-10.2.89-440.40"
 CUDA_FULL_VERSION ?= "${PV}"
 
 S = "${WORKDIR}/${BP}"
 B = "${S}"
-
-S_x86-64 = "${TMPDIR}/work-shared/${HOST_ARCH}/cuda-binaries-${CUDA_FULL_VERSION}-${PR}"
-B_x86-64 = "${WORKDIR}/build"
 
 PR = "r0"
 
