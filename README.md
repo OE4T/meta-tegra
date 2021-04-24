@@ -29,31 +29,6 @@ LAYERSERIES_COMPAT: gatesgarth
 PLEASE NOTE
 -----------
 
-* Some packages outside the L4T BSP can only be downloaded
-  with an NVIDIA Developer Network login - in particular,
-  the CUDA host-side tools.
-
-  To use any packages that require a Devnet login, you must
-  create a Devnet account and download the JetPack packages
-  you need for your builds using NVIDIA SDK Manager.
-
-  You must then set the variable NVIDIA_DEVNET_MIRROR to
-  "file://path/to/the/downloads" in your build configuration
-  (e.g., local.conf) to make them available to your bitbake
-  builds.  This can be the NVIDIA SDK Manager downloads
-  directory, `/home/$USER/Downloads/nvidia/sdkm_downloads`
-
-* The SDK Manager downloads a different package of CUDA host-side
-  tools depending on whether you are running Ubuntu 16.04
-  or 18.04. If you downloaded the Ubuntu 16.04 package, you
-  should add
-
-      CUDA_BINARIES = "cuda-binaries-ubuntu1604"
-
-  to your build configuration so the CUDA recipes can find
-  them. Otherwise, the recipes will default to looking for
-  the Ubuntu 18.04 package.
-
 * CUDA 10.2 supports up through gcc 8 only. Pre-built binaries
   in the BSP appear to be compatible with gcc 7 and 8 **only**.
   So use only gcc 7 or gcc 8 if you intend to use CUDA.
