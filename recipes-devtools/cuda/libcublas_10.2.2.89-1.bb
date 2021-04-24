@@ -7,8 +7,10 @@ L4T_DEB_GROUP = "cublas"
 SRC_COMMON_DEBS = "libcublas10_10.2.2.89-1_${CUDA_DEB_PKGARCH}.deb;name=main;subdir=${BP} \
                    libcublas-dev_10.2.2.89-1_${CUDA_DEB_PKGARCH}.deb;name=dev;subdir=${BP}"
 SRC_URI_append = " ${L4T_DEB_FEED_BASE}/common/pool/main/c/cuda/cuda-license-${CUDA_VERSION_DASHED}_10.2.89-1_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
-SRC_URI[main.sha256sum] = "d0299b139a163136432dfb2c028769944b6c5636ad9238614860c196a1c91aea"
-SRC_URI[dev.sha256sum] = "5fa7e3e8fe266fdea7e91778610b7e8d3d85d8950875a4915ce3626c9e564365"
+MAINSUM = "d0299b139a163136432dfb2c028769944b6c5636ad9238614860c196a1c91aea"
+MAINSUM_x86-64 = "e28a243120d72ddb4dd75dfa3894330394318df87ebe5f1d4611b0ca0e8ade2b"
+DEVSUM = "5fa7e3e8fe266fdea7e91778610b7e8d3d85d8950875a4915ce3626c9e564365"
+DEVSUM_x86-64 = "2d36e90ca3c1835577bdea35db5980058c3eb35b24961c8764cdd2fa607cad7d"
 
 do_compile_append() {
     mv ${B}/usr/${baselib}/${HOST_ARCH}-linux-gnu/lib* ${B}/usr/${baselib}/
