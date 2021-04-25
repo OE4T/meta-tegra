@@ -1,0 +1,110 @@
+From bb2211099c411c31ac21e8531760f4163a5412c8 Mon Sep 17 00:00:00 2001
+From: Erik Kurzinger <ekurzinger@nvidia.com>
+Date: Wed, 3 Mar 2021 11:56:41 +0100
+Subject: [PATCH 3/4] xwayland: Add check_flip() glamor backend function
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This is preliminary work for hardware accelerated rendering with the
+NVIDIA driver.
+
+This exposes a new glamor backend function, check_flip, which can be
+used to control whether flipping is supported for the given pixmap.
+
+Reviewed-by: Michel Dänzer <mdaenzer@redhat.com>
+Acked-by: Olivier Fourdan <ofourdan@redhat.com>
+Signed-off-by: Erik Kurzinger <ekurzinger@nvidia.com>
+---
+ hw/xwayland/xwayland-glamor-eglstream.c |  7 +++++++
+ hw/xwayland/xwayland-glamor-gbm.c       |  1 +
+ hw/xwayland/xwayland-glamor.c           | 11 +++++++++++
+ hw/xwayland/xwayland-glamor.h           |  6 ++++++
+ 4 files changed, 25 insertions(+)
+
+diff --git a/hw/xwayland/xwayland-glamor-eglstream.c b/hw/xwayland/xwayland-glamor-eglstream.c
+index 9b2c2c43f..ccaa59cbe 100644
+--- a/hw/xwayland/xwayland-glamor-eglstream.c
++++ b/hw/xwayland/xwayland-glamor-eglstream.c
+@@ -633,6 +633,12 @@ xwl_glamor_eglstream_post_damage(struct xwl_window *xwl_window,
+     pixmap->refcnt++;
+ }
+ 
++static Bool
++xwl_glamor_eglstream_check_flip(PixmapPtr pixmap)
++{
++    return FALSE;
++}
++
+ static void
+ xwl_eglstream_display_handle_caps(void *data,
+                                   struct wl_eglstream_display *disp,
+@@ -942,6 +948,7 @@ xwl_glamor_init_eglstream(struct xwl_screen *xwl_screen)
+     xwl_screen->eglstream_backend.get_wl_buffer_for_pixmap = xwl_glamor_eglstream_get_wl_buffer_for_pixmap;
+     xwl_screen->eglstream_backend.post_damage = xwl_glamor_eglstream_post_damage;
+     xwl_screen->eglstream_backend.allow_commits = xwl_glamor_eglstream_allow_commits;
++    xwl_screen->eglstream_backend.check_flip = xwl_glamor_eglstream_check_flip;
+     xwl_screen->eglstream_backend.is_available = TRUE;
+     xwl_screen->eglstream_backend.backend_flags = XWL_EGL_BACKEND_NO_FLAG;
+ }
+diff --git a/hw/xwayland/xwayland-glamor-gbm.c b/hw/xwayland/xwayland-glamor-gbm.c
+index 455b755ca..1b1d517da 100644
+--- a/hw/xwayland/xwayland-glamor-gbm.c
++++ b/hw/xwayland/xwayland-glamor-gbm.c
+@@ -967,6 +967,7 @@ xwl_glamor_init_gbm(struct xwl_screen *xwl_screen)
+     xwl_screen->gbm_backend.init_egl = xwl_glamor_gbm_init_egl;
+     xwl_screen->gbm_backend.init_screen = xwl_glamor_gbm_init_screen;
+     xwl_screen->gbm_backend.get_wl_buffer_for_pixmap = xwl_glamor_gbm_get_wl_buffer_for_pixmap;
++    xwl_screen->gbm_backend.check_flip = NULL;
+     xwl_screen->gbm_backend.is_available = TRUE;
+     xwl_screen->gbm_backend.backend_flags = XWL_EGL_BACKEND_HAS_PRESENT_FLIP |
+                                             XWL_EGL_BACKEND_NEEDS_BUFFER_FLUSH |
+diff --git a/hw/xwayland/xwayland-glamor.c b/hw/xwayland/xwayland-glamor.c
+index d8bf1bd5d..060471f01 100644
+--- a/hw/xwayland/xwayland-glamor.c
++++ b/hw/xwayland/xwayland-glamor.c
+@@ -79,6 +79,17 @@ glamor_egl_screen_init(ScreenPtr screen, struct glamor_context *glamor_ctx)
+     xwl_screen->glamor_ctx = glamor_ctx;
+ }
+ 
++Bool
++xwl_glamor_check_flip(PixmapPtr pixmap)
++{
++    struct xwl_screen *xwl_screen = xwl_screen_get(pixmap->drawable.pScreen);
++
++    if (xwl_screen->egl_backend->check_flip)
++        return xwl_screen->egl_backend->check_flip(pixmap);
++
++    return TRUE;
++}
++
+ Bool
+ xwl_glamor_is_modifier_supported(struct xwl_screen *xwl_screen,
+                                  uint32_t format, uint64_t modifier)
+diff --git a/hw/xwayland/xwayland-glamor.h b/hw/xwayland/xwayland-glamor.h
+index 1637a0733..a86b30b40 100644
+--- a/hw/xwayland/xwayland-glamor.h
++++ b/hw/xwayland/xwayland-glamor.h
+@@ -92,6 +92,11 @@ struct xwl_egl_backend {
+      * callback is optional.
+      */
+     Bool (*allow_commits)(struct xwl_window *xwl_window);
++
++    /* Called by Xwayland to check whether the given pixmap can be
++     * presented by xwl_present_flip. If not implemented, assumed TRUE.
++     */
++    Bool (*check_flip)(PixmapPtr pixmap);
+ };
+ 
+ #ifdef XWL_HAS_GLAMOR
+@@ -127,6 +132,7 @@ Bool xwl_glamor_get_formats(ScreenPtr screen,
+                             CARD32 *num_formats, CARD32 **formats);
+ Bool xwl_glamor_get_modifiers(ScreenPtr screen, uint32_t format,
+                               uint32_t *num_modifiers, uint64_t **modifiers);
++Bool xwl_glamor_check_flip(PixmapPtr pixmap);
+ 
+ #ifdef XV
+ /* glamor Xv Adaptor */
+-- 
+2.27.0
+
