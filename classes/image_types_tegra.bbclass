@@ -696,6 +696,7 @@ oe_make_bup_payload() {
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* ./
         sed -i -e 's,^function ,,' ./l4t_bup_gen.func
+        sed -i -e 's,^#!/.*,#!/usr/bin/env python3,' ./tegraflash.py
         tegraflash_generate_bupgen_script ./doflash.sh
     fi
     tegraflash_custom_sign_bup
