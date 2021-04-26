@@ -170,6 +170,7 @@ echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
 appfile_sed=
 if [ $bup_blob -ne 0 ]; then
     appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
+    kernfile="${kernfile:-boot.img}"
 elif [ $no_flash -eq 0 ]; then
     if [ -n "$imgfile" -a -e "$imgfile" ]; then
 	appfile_sed="-es,APPFILE,$imgfile, -es,DATAFILE,$dataimg,"
