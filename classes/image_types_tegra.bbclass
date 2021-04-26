@@ -694,10 +694,8 @@ oe_make_bup_payload() {
         cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
     fi
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
-        [ "${SOC_FAMILY}" = "tegra210" ] || cp ${STAGING_BINDIR_NATIVE}/tegra186-flash/rollback_parser.py ./rollback/
-        cp ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/${SOC_FAMILY}-flash-helper.sh ./
-        sed -e 's,^function ,,' ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/l4t_bup_gen.func > ./l4t_bup_gen.func
-        cp ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/*.py .
+        cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* ./
+        sed -i -e 's,^function ,,' ./l4t_bup_gen.func
         tegraflash_generate_bupgen_script ./doflash.sh
     fi
     tegraflash_custom_sign_bup
