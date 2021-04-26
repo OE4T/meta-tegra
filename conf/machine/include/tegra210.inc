@@ -21,6 +21,8 @@ KERNEL_ARGS ?= "sdhci_tegra.en_boot_part_access=1"
 
 NVIDIA_CHIP = "0x21"
 
+TEGRA_SIGNING_ENV ?= "BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV}"
+
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_53 --gpu-code=sm_53"
 
 require conf/machine/include/tegra-common.inc
