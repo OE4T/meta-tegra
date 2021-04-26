@@ -265,6 +265,7 @@ else
 fi
 appfile_sed=
 if [ $bup_blob -ne 0 ]; then
+    kernfile="${kernfile:-boot.img}"
     appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
 elif [ $no_flash -eq 0 -a -z "$sdcard" ]; then
     appfile_sed="-es,APPFILE,$appfile, -es,DATAFILE,$datafile,"
