@@ -1,0 +1,599 @@
+Index: build/usr/sbin/l4t_payload_updater_t210
+===================================================================
+--- build.orig/usr/sbin/l4t_payload_updater_t210
++++ build/usr/sbin/l4t_payload_updater_t210
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/env python3
+ #
+ # Copyright (c) 2019-2020, NVIDIA CORPORATION.  All rights reserved.
+ #
+@@ -16,11 +16,7 @@ import struct
+ import subprocess
+ import sys
+ import textwrap
+-import commands
+-
+-if sys.hexversion < 0x02070000:
+-  print >> sys.stderr, "Python 2.7 or newer is required."
+-  sys.exit(1)
++import subprocess
+ 
+ def parse_args():
+     parser = argparse.ArgumentParser(description=textwrap.dedent('''\
+@@ -55,34 +51,34 @@ def print_VER(arg):
+ def install_BUP(arg):
+     if arg.blob is None:
+         try:
+-            arg.blob=open("/opt/ota_package/bl_update_payload")
++            arg.blob=open("/opt/ota_package/bl_update_payload", "rb")
+         except:
+             sys.stderr.write("Error. Missing default blob /opt/ota_package/bl_update_payload\r\n")
+             sys.stderr.write("Or last argument must be a path to a valid blob file.\r\n")
+             sys.stderr.write("Exiting...\r\n")
+             sys.exit(1)
+ 
+-    print "BLOB PATH:"
+-    print os.path.realpath(arg.blob.name)
+-    print
++    print("BLOB PATH:")
++    print(os.path.realpath(arg.blob.name))
++    print()
+ 
+     payload_obj = install_update_payload(arg)
+ 
+     payload_obj.print_blob_header()
+-    print
++    print()
+     payload_obj.print_entry_table()
+-    print
+-    print "Beginning update."
+-    print
++    print()
++    print("Beginning update.")
++    print()
+     payload_obj.install_binaries()
+-    print "Update successful."
++    print("Update successful.")
+ 
+     arg.blob.close()
+ 
+ class payload(object):
+     def __init__(self, arg):
+         super(payload, self).__init__(arg)
+-        self.magic = 'NVIDIA__BLOB__V2'
++        self.magic = b'NVIDIA__BLOB__V2'
+         self.version = 0x00020000
+         self.header_packing = '=16sIIIIII'
+ 
+@@ -99,7 +95,7 @@ class update_type_payload(payload):
+         self.blob_file = arg.blob
+ 
+         self.blob_header_tuple = struct.unpack(self.header_packing, self.blob_file.read(struct.calcsize(self.header_packing)))
+-        self.blob_header_dict = dict(zip(self.header_name_tuple, self.blob_header_tuple))
++        self.blob_header_dict = dict(list(zip(self.header_name_tuple, self.blob_header_tuple)))
+ 
+         # Detect if optional accessory field (8 bytes) is present
+         if self.blob_header_dict['header_size'] > struct.calcsize(self.header_packing):
+@@ -108,8 +104,8 @@ class update_type_payload(payload):
+ 
+         if not self._valid():
+             sys.stderr.write("Error. Invalid input blob file.\r\n" \
+-                             "      Input magic: " + self.blob_header_dict['magic'] + "\r\n" \
+-                             "   Expected magic: " + self.magic + "\r\n" \
++                             "      Input magic: " + self.blob_header_dict['magic'].decode('utf-8') + "\r\n" \
++                             "   Expected magic: " + self.magic.decode('utf-8') + "\r\n" \
+                              "    Input version: " + format(self.blob_header_dict['version'], "#010x") + "\r\n" \
+                              " Expected version: " + format(self.version, "#010x") + "\r\n" \
+                              "       Input type: " + str(self.blob_header_dict['type']) + "\r\n" \
+@@ -197,10 +193,10 @@ class system_info(object):
+         self.system_spec = self._get_system_prop("COMPATIBLE_SPEC")
+         if self.system_spec == '':
+             self.system_spec = self._get_system_prop("TNSPEC")
+-            print "SPEC: " + self.system_spec + "\n"
++            print("SPEC: " + self.system_spec + "\n")
+         else:
+-            print "SPEC: " + self._get_system_prop("TNSPEC")
+-            print "Compatible SPEC: " + self.system_spec + "\n"
++            print("SPEC: " + self._get_system_prop("TNSPEC"))
++            print("Compatible SPEC: " + self.system_spec + "\n")
+         self.system_op_mode = self._get_system_op_mode()
+         self.system_boot_dev_info = self._get_system_boot_dev_info()
+         self.system_boot_partition_info = self._get_system_boot_partition_info()
+@@ -292,7 +288,7 @@ class system_info(object):
+ 
+         main_boot_dev_path = boot_dev_info['main']['dev_path']
+ 
+-        if main_boot_dev_path is not "":
++        if main_boot_dev_path != "":
+             main_boot_dev = open(main_boot_dev_path, 'rb')
+ 
+             boot_block_size_log_2 = self._get_bct_prop(bct_device=main_boot_dev, bct_base_offset=0, bct_property="boot_block_size_log_2")
+@@ -358,7 +354,7 @@ class system_info(object):
+             if boot_partition_table[dev] is not None:
+                 boot_partition_info['name_list'] += list(boot_partition_table[dev].keys())
+ 
+-                for part_name, offset_size_tuple in boot_partition_table[dev].iteritems():
++                for part_name, offset_size_tuple in boot_partition_table[dev].items():
+                     boot_partition_info['dev_dict'].update({part_name: dev})
+                     boot_partition_info['offset_dict'].update({part_name: offset_size_tuple[0]})
+                     boot_partition_info['size_dict'].update({part_name: offset_size_tuple[1]})
+@@ -368,15 +364,15 @@ class system_info(object):
+     def print_nv2(self, nv2):
+         for line in nv2:
+             if "BOARDID=" in line:
+-                print line
++                print(line)
+                 break
+-            print line
++            print(line)
+ 
+     def print_nv3_and_plus(self, nv):
+         for line in nv:
+             if "BYTES:" in line:
+                 break
+-            print line
++            print(line)
+ 
+     def print_current_ver(self):
+         ver_partition_boot_dev = self.system_boot_partition_info['dev_dict']['VER']
+@@ -396,10 +392,10 @@ class system_info(object):
+         # NV2
+         # #R32 (release), REVISION: 2.0, GCID: , BOARD: t210ref, EABI: aarch64, DATE: xxxx
+         # BOARDID=3448 BOARDSKU=0000 FAB=100
+-        print "Version:"
++        print("Version:")
+         ver = ver_data.splitlines();
+         if ver[0] == 'NV1' or 'NV' not in ver[0]:
+-            print "NV1"
++            print("NV1")
+         elif ver[0] == 'NV2':
+             self.print_nv2(nv2=ver)
+         else:
+@@ -408,9 +404,9 @@ class system_info(object):
+ class install_update_payload(update_type_payload, system_info):
+     def __init__(self, arg):
+         super(install_update_payload, self).__init__(arg)
+-        self.blob_entry_list = range(self.blob_header_dict['entry_count'])
++        self.blob_entry_list = list(range(self.blob_header_dict['entry_count']))
+ 
+-        self.blob_entry_max_width_list = range(len(self.entry_name_tuple))
++        self.blob_entry_max_width_list = list(range(len(self.entry_name_tuple)))
+         for i in range(len(self.blob_entry_max_width_list)):
+             self.blob_entry_max_width_list[i] = len(self.entry_name_tuple[i])
+ 
+@@ -442,8 +438,8 @@ class install_update_payload(update_type
+         for idx, boot_entry in enumerate(self.blob_entry_list):
+             try:
+                 blob_entry_tuple = struct.unpack(self.entry_packing, self.blob_file.read(struct.calcsize(self.entry_packing)))
+-                blob_entry_dict = dict(zip(self.entry_name_tuple, blob_entry_tuple))
+-                blob_entry_dict['tnspec'] = blob_entry_dict['tnspec'].strip(' \t\n\0')
++                blob_entry_dict = dict(list(zip(self.entry_name_tuple, blob_entry_tuple)))
++                blob_entry_dict['tnspec'] = blob_entry_dict['tnspec'].decode('utf-8').strip(' \t\n\0')
+ 
+                 blob_entry_spec = blob_entry_dict['tnspec']
+                 if len(blob_entry_spec) > 0:
+@@ -462,6 +458,10 @@ class install_update_payload(update_type
+ 
+         return updatable
+ 
++    def _blob_entries_for_partname(self, part_name, check_updatable=False):
++        return [entry for entry in self.blob_entry_list if entry['part_name'] == part_name and \
++                (not check_updatable or entry['updatable'])]
++
+     def _check_tnspec(self, tnspec):
+         ent_spec = tnspec.split('-')
+         sys_spec = self.system_spec.split('-')
+@@ -486,9 +486,9 @@ class install_update_payload(update_type
+         for idx, boot_entry in enumerate(self.blob_entry_list):
+             try:
+                 blob_entry_tuple = struct.unpack(self.entry_packing, self.blob_file.read(struct.calcsize(self.entry_packing)))
+-                blob_entry_dict = dict(zip(self.entry_name_tuple, blob_entry_tuple))
+-                blob_entry_dict['part_name'] = blob_entry_dict['part_name'].strip(' \t\n\0')
+-                blob_entry_dict['tnspec'] = blob_entry_dict['tnspec'].strip(' \t\n\0')
++                blob_entry_dict = dict(list(zip(self.entry_name_tuple, blob_entry_tuple)))
++                blob_entry_dict['part_name'] = blob_entry_dict['part_name'].decode('utf-8').strip(' \t\n\0')
++                blob_entry_dict['tnspec'] = blob_entry_dict['tnspec'].decode('utf-8').strip(' \t\n\0')
+                 blob_entry_dict['updatable'] = True
+                 blob_entry_dict['intra_part_offset'] = 0 # offset within a partition
+ 
+@@ -507,8 +507,12 @@ class install_update_payload(update_type
+                 # finding max column width for blob entry table print out
+                 for n in range(len(self.blob_entry_max_width_list)):
+                     try:
+-                        if len(str(blob_entry_tuple[n]).strip(' \t\n\0')) > self.blob_entry_max_width_list[n]:
+-                            self.blob_entry_max_width_list[n] = len(str(blob_entry_tuple[n]).strip(' \t\n\0'))
++                        if n in [0, 5]:
++                            val = blob_entry_tuple[n].decode('utf-8')
++                        else:
++                            val = str(blob_entry_tuple[n])
++                        if len(val.strip(' \t\n\0')) > self.blob_entry_max_width_list[n]:
++                            self.blob_entry_max_width_list[n] = len(val.strip(' \t\n\0'))
+                     except:
+                         pass
+             except:
+@@ -556,12 +560,12 @@ class install_update_payload(update_type
+         else:
+             sys.stderr.write("Warning. Un-supported platform.\r\n")
+ 
+-        try:
+-            bct_entry = filter(lambda blob_entry: (blob_entry['part_name'] == 'BCT') and (blob_entry['updatable'] is True), self.blob_entry_list)[0]
+-        except:
++        bct_entries = self._blob_entries_for_partname('BCT', check_updatable=True)
++        if len(bct_entries) == 0:
+             # quietly skip BCT and NVC updates if no updatable entries exist in the payload for those partitions
+             self._skip_boot_parts()
+             return
++        bct_entry = bct_entries[0]
+ 
+         # find last BCT "BCT_L"
+         last_bct_num = 64
+@@ -626,16 +630,17 @@ class install_update_payload(update_type
+                         part_name_base = kfs_name
+                         break
+ 
+-            try:
+-                blob_entry = filter(lambda entry: (entry['part_name'] == part_name_base) and (entry['updatable'] is True), self.blob_entry_list)[0]
+-            except:
++            blob_entries = self._blob_entries_for_partname(part_name_base, check_updatable=True)
++            if len(blob_entries) == 0:
+                 sys.stderr.write("Warning. " + part_name_base + " entry not found in payload.\r\n" \
+                                 "Skipping boot partition updates.\r\n\r\n" \
+                                 )
+                 self._skip_boot_parts()
+                 continue
+ 
+-            if part_name_base is 'BCT' and part_name is not 'BCT':
++            blob_entry = blob_entries[0]
++
++            if part_name_base == 'BCT' and part_name != 'BCT':
+                 # all entries in "boot_part_name_update_order_list" containing "BCT" become
+                 # aliases of the one updatable BCT entry in the payload, each BCT alias will
+                 # simply have a different intra_part_offset so that the same payload image
+@@ -643,7 +648,7 @@ class install_update_payload(update_type
+                 blob_entry = copy.deepcopy(blob_entry)
+                 blob_entry['intra_part_offset'] = bct_offset
+                 blob_entry['part_name'] = part_name
+-            elif part_name is 'NVC_R' or part_name is 'NVC-1' or part_name is 'VER_b' or part_name in BFS1_list or part_name in KFS1_list:
++            elif part_name in ['NVC_R', 'NVC-1', 'VER_b'] or part_name in BFS1_list or part_name in KFS1_list:
+                 # similarily for "NVC_R" or "NVC-1" or "BFS-1" or "KFS-1" or VER_b,
+                 # they will be an alias to the one updatable payload entry
+                 # and will be copied to the system under the those partition if one exists
+@@ -713,7 +718,7 @@ class install_update_payload(update_type
+ 
+     def _check_nvc_part(self):
+         # get NVC part data
+-        nvc_entry = filter(lambda entry: (entry['part_name'] == 'NVC'), self.blob_entry_list)[0]
++        nvc_entry = self._blob_entries_for_partname('NVC')[0]
+         nvc_data = self._read_partition_data(nvc_entry)
+ 
+         # get NVC-1 part data
+@@ -721,7 +726,7 @@ class install_update_payload(update_type
+             nvc_name = 'NVC_R'
+         else:
+             nvc_name = 'NVC-1'
+-        nvc_1_entry = filter(lambda entry: (entry['part_name'] == nvc_name), self.blob_entry_list)[0]
++        nvc_1_entry = self._blob_entries_for_partname(nvc_name)[0]
+         nvc_1_data = self._read_partition_data(nvc_1_entry)
+ 
+         if nvc_data == nvc_1_data and nvc_data != "":
+@@ -735,7 +740,7 @@ class install_update_payload(update_type
+ 
+         ver_entry = dict()
+         ver_entry['part_name'] = 'VER'
+-        ver_data = self._read_partition_data(ver_entry)
++        ver_data = self._read_partition_data(ver_entry).decode('iso-8859-1')
+         ver_info = ver_data.splitlines()
+ 
+         # has CRC32 lines in VER, it's >=32.3, should do version check
+@@ -762,7 +767,7 @@ class install_update_payload(update_type
+         return False
+ 
+     def _validate_ver_part(self, ver_entry):
+-        ver_data = self._read_partition_data(ver_entry)
++        ver_data = self._read_partition_data(ver_entry).decode('iso-8859-1')
+         ver_info = ver_data.splitlines()
+ 
+         # find out the CRC line "BYTES:57 CRC32:3711412171"
+@@ -781,7 +786,7 @@ class install_update_payload(update_type
+ 
+         # calculate the CRC32 of the VER partition
+         cmd = 'echo \"%s\" | cksum' % ver_data[0:int(num_bytes) - 1]
+-        ret,cksum = commands.getstatusoutput(cmd)
++        ret,cksum = subprocess.getstatusoutput(cmd)
+         if ret == 0:
+             cksum = cksum.split()[0]
+         else:
+@@ -792,11 +797,11 @@ class install_update_payload(update_type
+             return ver_info[1]
+         else:
+             # the crc32 of VER partition is invalid
+-            print "crc32: " + crc32 + " cksum: " + cksum
++            print("crc32: " + crc32 + " cksum: " + cksum)
+             return ''
+ 
+     def _get_ver_part_crc(self, ver_entry):
+-        ver_data = self._read_partition_data(ver_entry)
++        ver_data = self._read_partition_data(ver_entry).decode('iso-8859-1')
+         ver_info = ver_data.splitlines()
+ 
+         # find out the CRC line "BYTES:57 CRC32:3711412171"
+@@ -813,7 +818,7 @@ class install_update_payload(update_type
+     def _check_ver(self):
+         try:
+             # get version number from VER partition
+-            ver_entry = filter(lambda entry: (entry['part_name'] == 'VER'), self.blob_entry_list)[0]
++            ver_entry = self._blob_entries_for_partname('VER')[0]
+         except:
+             # can't get VER in the blob,
+             # it mean the blob is not for bootloader, such as xusb_only_payload
+@@ -826,37 +831,37 @@ class install_update_payload(update_type
+             ver_num = int(ver_list[1][1:3]) * 10000 + int(ver_list[4][0]) * 100 + int(ver_list[4][2])
+         else:
+             ver_num = 0
+-        print "VER number: %d " % ver_num
++        print("VER number: %d " % ver_num)
+ 
+         ver_crc32 = self._get_ver_part_crc(ver_entry)
+ 
+         # get version number from VER_b partition
+-        ver_b_entry = filter(lambda entry: (entry['part_name'] == 'VER_b'), self.blob_entry_list)[0]
++        ver_b_entry = self._blob_entries_for_partname('VER_b')[0]
+         ver_b = self._validate_ver_part(ver_b_entry)
+         if (ver_b):
+             ver_b_list = ver_b.split()
+             ver_b_num = int(ver_b_list[1][1:3]) * 10000 + int(ver_b_list[4][0]) * 100 + int(ver_b_list[4][2])
+         else:
+             ver_b_num = 0
+-        print "VER_b number: %d" % ver_b_num
++        print("VER_b number: %d" % ver_b_num)
+ 
+         ver_b_crc32 = self._get_ver_part_crc(ver_b_entry)
+ 
+         # get version number from blob file
+         self.blob_file.seek(int(ver_entry['offset']), os.SEEK_SET)
+         blob_ver_size = int(ver_entry['part_size'])
+-        blob_ver_data = self.blob_file.read(blob_ver_size)
++        blob_ver_data = self.blob_file.read(blob_ver_size).decode('utf-8')
+ 
+         blob_ver = blob_ver_data.splitlines()
+         blob_ver_list = blob_ver[1].split()
+         blob_ver_num = int(blob_ver_list[1][1:3]) * 10000 + int(blob_ver_list[4][0]) * 100+ int(blob_ver_list[4][2])
+-        print "blob ver number: %d" % blob_ver_num
++        print("blob ver number: %d" % blob_ver_num)
+ 
+         if ((ver_num == ver_b_num) and (ver_num != 0)):
+             if (ver_num > blob_ver_num):
+-                print("The device bootloader version is "\
++                print(("The device bootloader version is "\
+                       + ver_list[1][1:3] + "." +  ver_list[4][0] + "." + ver_list[4][2] +\
+-                      ", please use higher version to update!")
++                      ", please use higher version to update!"))
+                 return False
+ 
+             # if the crc values in VER and VER_b are same,
+@@ -864,8 +869,8 @@ class install_update_payload(update_type
+             # check if NVC and NVC-1 partitions matched before a fresh OTA,
+             # if not matched, it means the redundancy path may corrupt,  must re-flash the device.
+             if ((ver_crc32 == ver_b_crc32) and (self._check_nvc_part() is False)):
+-                print "NVC and NVC redundancy partition are potentially corrupt."
+-                print "Please re-flash the device before OTA!"
++                print("NVC and NVC redundancy partition are potentially corrupt.")
++                print("Please re-flash the device before OTA!")
+                 return False
+ 
+             return True
+@@ -876,9 +881,9 @@ class install_update_payload(update_type
+                 if (ver_num <= blob_ver_num):
+                     return True
+                 else:
+-                    print("The device bootloader version is "\
++                    print(("The device bootloader version is "\
+                           + ver_list[1][1:3] + "." +  ver_list[4][0] + "." + ver_list[4][2] +\
+-                          ", please use higher version to continue the last update!")
++                          ", please use higher version to continue the last update!"))
+                     return False
+             elif (ver_b_num != 0):
+                 # this case means the previous OTA may corrupt at any partitions except VER_b,
+@@ -886,9 +891,9 @@ class install_update_payload(update_type
+                 if (blob_ver_num == ver_b_num):
+                     return True
+                 else:
+-                    print("Please use "\
++                    print(("Please use "\
+                           + ver_b_list[1][1:3] + "." +  ver_b_list[4][0] + "." + ver_b_list[4][2] +\
+-                          " to continue the last update!")
++                          " to continue the last update!"))
+                     return False
+             else:
+                 # this case means VER and VER_b are both corrupted, should not come to here
+@@ -908,7 +913,7 @@ class install_update_payload(update_type
+             if blob_entry['updatable'] == False:
+                 continue
+ 
+-            part_name = str(blob_entry['part_name'])
++            part_name = blob_entry['part_name']
+ 
+             part_name_base = part_name
+             if 'BCT' in part_name:
+@@ -978,13 +983,13 @@ class install_update_payload(update_type
+         return
+ 
+     def _skip_boot_parts(self):
+-        filtered_blob_entry_list = filter(lambda blob_entry: (blob_entry['part_name'] in self.system_boot_partition_info['name_list']) and (blob_entry['updatable'] is True), self.blob_entry_list)
++        filtered_blob_entry_list = [blob_entry for blob_entry in self.blob_entry_list if (blob_entry['part_name'] in self.system_boot_partition_info['name_list']) and (blob_entry['updatable'] is True)]
+ 
+         for filtered_entry in filtered_blob_entry_list:
+             self.blob_entry_list[self.blob_entry_list.index(filtered_entry)]['updatable'] = False
+ 
+     def _write_partition(self, bin_data, block_dev, block_dev_offset=0):
+-        print "[W]riting" + " {:,}".format(len(bin_data)) + " bytes to " + block_dev.name + " at offset" + " {:,}".format(block_dev_offset)
++        print("[W]riting" + " {:,}".format(len(bin_data)) + " bytes to " + block_dev.name + " at offset" + " {:,}".format(block_dev_offset))
+ 
+         block_dev.seek(block_dev_offset, os.SEEK_SET)
+         block_dev.write(bin_data)
+@@ -996,15 +1001,15 @@ class install_update_payload(update_type
+         if block_dev_size % 1024 != 0:
+             return
+ 
+-        print "[E]rasing" + " {:,}".format(block_dev_size) + " bytes to " + block_dev.name + " at offset" + " {:,}".format(block_dev_offset)
++        print("[E]rasing" + " {:,}".format(block_dev_size) + " bytes to " + block_dev.name + " at offset" + " {:,}".format(block_dev_offset))
+         block_dev.seek(block_dev_offset, os.SEEK_SET)
+         for i in range(block_dev_size// 1024):
+-            block_dev.write('\0' * 1024)
++            block_dev.write(b'\0' * 1024)
+         return
+ 
+ 
+     def _read_partition(self, bin_data_size, block_dev, block_dev_offset=0):
+-        print "[R]eading" + " {:,}".format(bin_data_size) + " bytes of " + block_dev.name + " at offset" + " {:,}".format(block_dev_offset)
++        print("[R]eading" + " {:,}".format(bin_data_size) + " bytes of " + block_dev.name + " at offset" + " {:,}".format(block_dev_offset))
+ 
+         block_dev.seek(block_dev_offset, os.SEEK_SET)
+         system_bin_data = block_dev.read(bin_data_size)
+@@ -1020,9 +1025,9 @@ class install_update_payload(update_type
+                 boot_partition_wr_en = open(self.system_boot_dev_info[dev]['write_en_path'], 'rb+')
+ 
+                 if write_enable == True:
+-                    boot_partition_wr_en.write(str(0))
++                    boot_partition_wr_en.write(b'0')
+                 elif write_enable == False:
+-                    boot_partition_wr_en.write(str(1))
++                    boot_partition_wr_en.write(b'1')
+ 
+                 boot_partition_wr_en.close()
+             except Exception:
+@@ -1030,55 +1035,55 @@ class install_update_payload(update_type
+                 sys.exit(1)
+ 
+     def print_blob_header(self):
+-        print "BLOB HEADER:"
+-        print "       Magic: " + self.blob_header_dict['magic']
+-        print "     Version: " + format(self.blob_header_dict['version'], "#010x")
+-        print "   Blob Size: " + "{:,}".format(self.blob_header_dict['blob_size']) + " bytes"
+-        print " Header Size: " + "{:,}".format(self.blob_header_dict['header_size']) + " bytes"
+-        print " Entry Count: " + str(self.blob_header_dict['entry_count']) + " partition(s)"
+-        print "        Type: " + str(self.blob_header_dict['type']) + " (0 for update, 1 for BMP)"
+-        print "Uncompressed\r\n" \
+-              "   Blob Size: " + "{:,}".format(self.blob_header_dict['uncomp_blob_size']) + " bytes"
+-        print "   Accessory:",
++        print("BLOB HEADER:")
++        print("       Magic: " + self.blob_header_dict['magic'].decode('utf-8'))
++        print("     Version: " + format(self.blob_header_dict['version'], "#010x"))
++        print("   Blob Size: " + "{:,}".format(self.blob_header_dict['blob_size']) + " bytes")
++        print(" Header Size: " + "{:,}".format(self.blob_header_dict['header_size']) + " bytes")
++        print(" Entry Count: " + str(self.blob_header_dict['entry_count']) + " partition(s)")
++        print("        Type: " + str(self.blob_header_dict['type']) + " (0 for update, 1 for BMP)")
++        print("Uncompressed\r\n" \
++              "   Blob Size: " + "{:,}".format(self.blob_header_dict['uncomp_blob_size']) + " bytes")
++        print("   Accessory:", end=' ')
+         if self.accessory_present == True:
+-            print format(self.blob_header_dict['accessory'], "#018x")
++            print(format(self.blob_header_dict['accessory'], "#018x"))
+         else:
+-            print "Not Present"
++            print("Not Present")
+         return
+ 
+     def print_entry_table(self):
+-        print "ENTRY TABLE:"
+-        print "|",
++        print("ENTRY TABLE:")
++        print("|", end=' ')
+         for idx, entry_name in enumerate(self.entry_name_tuple):
+-            if entry_name is "intra_part_offset":
++            if entry_name == "intra_part_offset":
+                 continue
+-            elif (entry_name is "updatable") and (self.print_all is False):
++            elif (entry_name == "updatable") and (self.print_all is False):
+                 continue
+             else:
+-                print entry_name.center(self.blob_entry_max_width_list[idx]) + " |",
+-        print
++                print(entry_name.center(self.blob_entry_max_width_list[idx]) + " |", end=' ')
++        print()
+         for blob_entry in self.blob_entry_list:
+             if (blob_entry['updatable'] is True) or (self.print_all is True):
+-                print "|",
++                print("|", end=' ')
+                 try:
+-                    print str(blob_entry['part_name']).rjust(self.blob_entry_max_width_list[0]) + " |",
+-                    print str(blob_entry['offset']).rjust(self.blob_entry_max_width_list[1]) + " |",
+-                    print str(blob_entry['part_size']).rjust(self.blob_entry_max_width_list[2]) + " |",
+-                    print str(blob_entry['version']).center(self.blob_entry_max_width_list[3]) + " |",
+-                    print str(blob_entry['op_mode']).center(self.blob_entry_max_width_list[4]) + " |",
+-                    print str(blob_entry['tnspec']).ljust(self.blob_entry_max_width_list[5]) + " |",
++                    print(blob_entry['part_name'].rjust(self.blob_entry_max_width_list[0]) + " |", end=' ')
++                    print(str(blob_entry['offset']).rjust(self.blob_entry_max_width_list[1]) + " |", end=' ')
++                    print(str(blob_entry['part_size']).rjust(self.blob_entry_max_width_list[2]) + " |", end=' ')
++                    print(str(blob_entry['version']).center(self.blob_entry_max_width_list[3]) + " |", end=' ')
++                    print(str(blob_entry['op_mode']).center(self.blob_entry_max_width_list[4]) + " |", end=' ')
++                    print(blob_entry['tnspec'].ljust(self.blob_entry_max_width_list[5]) + " |", end=' ')
+                     if self.print_all is True:
+-                        print str(blob_entry['updatable']).ljust(self.blob_entry_max_width_list[6]) + " |"
++                        print(str(blob_entry['updatable']).ljust(self.blob_entry_max_width_list[6]) + " |")
+                     else:
+-                        print ""
++                        print("")
+                 except:
+-                    print "SKIPPED".center(sum(self.blob_entry_max_width_list) + (len(self.blob_entry_max_width_list)*2) + 3) + " |"
++                    print("SKIPPED".center(sum(self.blob_entry_max_width_list) + (len(self.blob_entry_max_width_list)*2) + 3) + " |")
+                     pass
+ 
+         if self.print_all is False:
+-            print "Note: only partitions updatable on this system are shown, use \"-p\" to show all partitions in payload."
++            print("Note: only partitions updatable on this system are shown, use \"-p\" to show all partitions in payload.")
+ 
+-        print "Note: partitions are written to system top down in the order shown above."
++        print("Note: partitions are written to system top down in the order shown above.")
+         return
+ 
+     def install_binaries(self):
+@@ -1096,7 +1101,7 @@ class install_update_payload(update_type
+ 
+             skip_write = False
+ 
+-            part_name = str(blob_entry['part_name'])
++            part_name = blob_entry['part_name']
+             dev_offset = 0
+ 
+             part_name_base = part_name
+@@ -1152,9 +1157,9 @@ class install_update_payload(update_type
+                 update_bin_data *= block0_bct_cpy
+                 update_bin_data_size *= block0_bct_cpy
+                 if block0_bct_cpy > 1:
+-                    print "Note: BCT in block-0 is " + str(block0_bct_cpy) + " times the usual size as it holds " + str(block0_bct_cpy) + " copies."
++                    print("Note: BCT in block-0 is " + str(block0_bct_cpy) + " times the usual size as it holds " + str(block0_bct_cpy) + " copies.")
+ 
+-            print "Updating partition: " + part_name
++            print("Updating partition: " + part_name)
+             pre_update_system_bin_data = self._read_partition(bin_data_size=update_bin_data_size, block_dev=system_partition_device, block_dev_offset=dev_offset)
+             total_bytes_updatable += update_bin_data_size
+             total_parts_updatable += 1
+@@ -1179,21 +1184,21 @@ class install_update_payload(update_type
+ 
+                 post_update_system_bin_data = self._read_partition(bin_data_size=update_bin_data_size, block_dev=system_partition_device, block_dev_offset=dev_offset)
+                 if post_update_system_bin_data == update_bin_data:
+-                    print "Verification successful."
++                    print("Verification successful.")
+                 else:
+                     sys.stderr.write("Error. Verification failed. Exiting...\r\n")
+                     sys.exit(1)
+ 
+-                print
++                print()
+ 
+             system_partition_device.close()
+ 
+         if len(self.system_boot_partition_info['name_list']) > 0:
+             self._set_boot_part_write_en(write_enable=False)
+ 
+-        print "Total data updatable for system: " + str(total_parts_updatable) + " partitions, {:,}".format(total_bytes_updatable) + " bytes."
+-        print "   Total data written to system: " + str(total_parts_written) + " partitions, {:,}".format(total_bytes_written) + " bytes."
+-        print ""
++        print("Total data updatable for system: " + str(total_parts_updatable) + " partitions, {:,}".format(total_bytes_updatable) + " bytes.")
++        print("   Total data written to system: " + str(total_parts_written) + " partitions, {:,}".format(total_bytes_written) + " bytes.")
++        print("")
+ 
+         return
+ 

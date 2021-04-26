@@ -1,0 +1,25 @@
+From 4a1560c114aaa46f01dece848eaf60e9084a78b4 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 28 Dec 2020 07:48:50 -0800
+Subject: [PATCH 8/9] t186: add bootinfo to build
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/partner/t18x/cboot/platform/t186/rules.mk | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/bootloader/partner/t18x/cboot/platform/t186/rules.mk b/bootloader/partner/t18x/cboot/platform/t186/rules.mk
+index 049adac..8569cc8 100644
+--- a/bootloader/partner/t18x/cboot/platform/t186/rules.mk
++++ b/bootloader/partner/t18x/cboot/platform/t186/rules.mk
+@@ -56,6 +56,7 @@ MODULE_DEPS += \
+ 	$(LOCAL_DIR)/../../../../common/drivers/pmic \
+ 	$(LOCAL_DIR)/../../../../common/drivers/pmic/max77620 \
+ 	$(LOCAL_DIR)/../../../../common/drivers/regulator \
++	$(LOCAL_DIR)/../../../../common/lib/bootinfo \
+ 	$(LOCAL_DIR)/../../../../common/lib/storage
+ 
+ GLOBAL_INCLUDES += \
+-- 
+2.27.0
+

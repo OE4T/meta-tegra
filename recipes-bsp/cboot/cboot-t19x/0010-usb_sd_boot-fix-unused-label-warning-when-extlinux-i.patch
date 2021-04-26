@@ -1,0 +1,29 @@
+From 7a644be5b0c40d97d112d480d334fbfb3cb2d32c Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Wed, 18 Nov 2020 05:54:03 -0800
+Subject: [PATCH 10/12] usb_sd_boot: fix unused-label warning when extlinux is
+ disabled
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/partner/common/lib/linuxboot/usb_sd_boot.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c b/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c
+index 76ad17e..e15e018 100644
+--- a/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c
++++ b/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c
+@@ -160,9 +160,9 @@ tegrabl_error_t usb_sd_boot_load_kernel_and_dtb(uint8_t boot_type,
+ 		goto fail;  /* There is no fallback for ramdisk, so let caller handle the error */
+ 	}
+ 	pr_info("Fallback: Load binaries from partition\n");
+-#endif
+ 
+ fallback:
++#endif
+ 	if (fm_handle->bdev->published == false) {
+ 		/* No partitions found */
+ 		err = TEGRABL_ERROR(TEGRABL_ERR_NOT_FOUND, 0);
+-- 
+2.27.0
+

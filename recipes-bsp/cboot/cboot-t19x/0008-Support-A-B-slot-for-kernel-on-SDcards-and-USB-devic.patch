@@ -1,0 +1,69 @@
+From 172396c6a6beabca7709d2b64f13ffce179f4878 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 15 Nov 2020 08:39:41 -0800
+Subject: [PATCH 08/12] Support A/B slot for kernel on SDcards and USB devices
+
+The kernel and DTB loader for USB and SDcard devices
+wasn't checking for A/B slot, and just hard-coded the
+partition names to load if extlinux isn't in use.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../common/lib/linuxboot/usb_sd_boot.c        | 21 +++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
+
+diff --git a/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c b/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c
+index add52bb..76ad17e 100644
+--- a/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c
++++ b/bootloader/partner/common/lib/linuxboot/usb_sd_boot.c
+@@ -27,6 +27,10 @@
+ #if defined(CONFIG_ENABLE_EXTLINUX_BOOT)
+ #include <extlinux_boot.h>
+ #endif
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++#include <string.h>
++#include <tegrabl_a_b_boot_control.h>
++#endif
+ #include <usb_sd_boot.h>
+ 
+ static tegrabl_error_t load_from_partition(struct tegrabl_fm_handle *fm_handle,
+@@ -36,6 +40,15 @@ static tegrabl_error_t load_from_partition(struct tegrabl_fm_handle *fm_handle,
+ 	uint32_t boot_img_size;
+ 	uint32_t dtb_size;
+ 	tegrabl_error_t err = TEGRABL_NO_ERROR;
++	char kernel_partname[MAX_PARTITION_NAME] = {"kernel"};
++	char kernel_dtb_partname[MAX_PARTITION_NAME] = {"kernel-dtb"};
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++	char slot_suffix[MAX_PARTITION_NAME];
++	if (tegrabl_a_b_get_bootslot_suffix(slot_suffix, false) == TEGRABL_NO_ERROR) {
++		strcat(kernel_partname, slot_suffix);
++		strcat(kernel_dtb_partname, slot_suffix);
++	}
++#endif
+ 
+ 	/* Get load address of kernel and dtb   */
+ 	err = tegrabl_get_boot_img_load_addr(boot_img_load_addr);
+@@ -45,16 +58,16 @@ static tegrabl_error_t load_from_partition(struct tegrabl_fm_handle *fm_handle,
+ 	*dtb_load_addr = (void *)tegrabl_get_dtb_load_addr();
+ 
+ 	/* Load boot image */
+-	pr_info("Loading kernel ...\n");
++	pr_info("Loading %s ...\n", kernel_partname);
+ 	boot_img_size = BOOT_IMAGE_MAX_SIZE;
+-	err = tegrabl_fm_read_partition(fm_handle->bdev, "kernel", *boot_img_load_addr, &boot_img_size);
++	err = tegrabl_fm_read_partition(fm_handle->bdev, kernel_partname, *boot_img_load_addr, &boot_img_size);
+ 	if (err != TEGRABL_NO_ERROR) {
+ 		goto fail;
+ 	}
+ 	/* Load kernel dtb */
+-	pr_info("Loading kernel-dtb ...\n");
++	pr_info("Loading %s ...\n", kernel_dtb_partname);
+ 	dtb_size = DTB_MAX_SIZE;
+-	err = tegrabl_fm_read_partition(fm_handle->bdev, "kernel-dtb", *dtb_load_addr, &dtb_size);
++	err = tegrabl_fm_read_partition(fm_handle->bdev, kernel_dtb_partname, *dtb_load_addr, &dtb_size);
+ 	if (err != TEGRABL_NO_ERROR) {
+ 		goto fail;
+ 	}
+-- 
+2.27.0
+

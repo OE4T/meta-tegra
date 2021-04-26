@@ -1,0 +1,20 @@
+#! /bin/sh
+NAME=nv_update_verifier
+DESC="OTA bootloader update verifier"
+
+case "$1" in
+  start|restart)
+      while [ ! -e /dev/disk/by-partlabel/kernel ]; do sleep 1; done
+      sleep 2
+      /usr/sbin/nv_update_engine --verify < /dev/null
+      ;;
+  stop)
+      ;;
+  *)
+      N=/etc/init.d/$NAME
+      echo "Usage: $N {start|stop|restart}" >&2
+      exit 1
+      ;;
+esac
+
+exit 0

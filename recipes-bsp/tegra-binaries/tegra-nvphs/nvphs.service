@@ -8,6 +8,7 @@ Before=graphical.target
 Type=simple
 ExecStartPre=/usr/sbin/nvphsd_setup.sh
 ExecStart=/usr/sbin/nvphsd
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
