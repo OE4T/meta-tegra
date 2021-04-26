@@ -1,0 +1,38 @@
+From 36e9410daca494317df175063179aa5a3eb54f42 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 17 Nov 2020 06:23:04 -0800
+Subject: [PATCH 7/9] t186/l4t.mk: make some build options configurable
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/partner/t18x/cboot/platform/t186/l4t.mk | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/bootloader/partner/t18x/cboot/platform/t186/l4t.mk b/bootloader/partner/t18x/cboot/platform/t186/l4t.mk
+index 4ce060a..64c0e80 100644
+--- a/bootloader/partner/t18x/cboot/platform/t186/l4t.mk
++++ b/bootloader/partner/t18x/cboot/platform/t186/l4t.mk
+@@ -11,14 +11,18 @@
+ MODULE_DEPS += \
+ 	$(LOCAL_DIR)/../../../../common/drivers/crypto
+ 
++EXTRA_GLOBAL_DEFINES ?= \
++	CONFIG_ENABLE_DISPLAY=1 \
++	CONFIG_ENABLE_L4T_RECOVERY=1
++
+ # Add any needed GLOBAL_DEFINES here
+ GLOBAL_DEFINES += \
+ 	CONFIG_OS_IS_L4T=1 \
+ 	CONFIG_ENABLE_SATA=1 \
+ 	CONFIG_ENABLE_SDCARD=1 \
+-	CONFIG_ENABLE_DISPLAY=1 \
+ 	CONFIG_ENABLE_SECURE_BOOT=1 \
+ 	CONFIG_INITIALIZE_DISPLAY=1 \
+ 	CONFIG_DYNAMIC_LOAD_ADDRESS=1 \
+-	CONFIG_ENABLE_L4T_RECOVERY=1
++	$(EXTRA_GLOBAL_DEFINES)
++
+ # 0-DSI, 1-HDMI, 2-DP, 3-EDP
+-- 
+2.27.0
+

@@ -1,9 +1,14 @@
 #!/bin/bash
-bup_build=
+bup_blob=0
 keyfile=
 sbk_keyfile=
 no_flash=0
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash" -o "u:v:" -- "$@")
+flash_cmd=
+imgfile=
+dataimg=
+inst_args=""
+
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,datafile:,usb-instance:" -o "u:v:c:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -14,12 +19,21 @@ unset ARGS
 while true; do
     case "$1" in
 	--bup)
-	    bup_build=yes
+	    bup_blob=1
 	    shift
 	    ;;
 	--no-flash)
 	    no_flash=1
 	    shift
+	    ;;
+	--datafile)
+	    dataimg="$2"
+	    shift 2
+	    ;;
+	--usb-instance)
+	    usb_instance="$2"
+	    inst_args="--instance ${usb_instance}"
+	    shift 2
 	    ;;
 	-u)
 	    keyfile="$2"
@@ -27,6 +41,10 @@ while true; do
 	    ;;
 	-v)
 	    sbk_keyfile="$2"
+	    shift 2
+	    ;;
+	-c)
+	    flash_cmd="$2"
 	    shift 2
 	    ;;
 	--)
@@ -45,6 +63,8 @@ dtb_file="$2"
 sdramcfg_file="$3"
 odmdata="$4"
 kernfile="$5"
+imgfile="$6"
+shift 6
 
 here=$(readlink -f $(dirname "$0"))
 flashappname="tegraflash.py"
@@ -66,7 +86,7 @@ fi
 cvm_bin=$(mktemp cvm.bin.XXXXX)
 
 if [ -z "$BOARDID" -o -z "$FAB" ]; then
-    if ! python "$flashappname" --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    if ! python3 "$flashappname" ${inst_args} --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
 	echo "ERR: could not retrieve EEPROM board information" >&2
 	exit 1
     fi
@@ -138,16 +158,30 @@ done
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 [ -n "${BOOTDEV}" ] || BOOTDEV="mmcblk0p1"
 
-rm -f verfile.txt
-echo "NV3" >verfile.txt
+rm -f ${MACHINE}_bootblob_ver.txt
+echo "NV3" >${MACHINE}_bootblob_ver.txt
 . bsp_version
-echo "# R$BSP_BRANCH , REVISION: $BSP_MAJOR.$BSP_MINOR" >>verfile.txt
-echo "BOARDID=$BOARDID BOARDSKU=$BOARDSKU FAB=$FAB" >>verfile.txt
-date "+%Y%m%d%H%M%S" >>verfile.txt
-bytes=`cksum verfile.txt | cut -d' ' -f2`
-cksum=`cksum verfile.txt | cut -d' ' -f1`
-echo "BYTES:$bytes CRC32:$cksum" >>verfile.txt
-sed -e"s,VERFILE,verfile.txt," -e"s,BPFDTB-FILE,$BPFDTB_FILE," "$flash_in" > flash.xml
+echo "# R$BSP_BRANCH , REVISION: $BSP_MAJOR.$BSP_MINOR" >>${MACHINE}_bootblob_ver.txt
+echo "BOARDID=$BOARDID BOARDSKU=$BOARDSKU FAB=$FAB" >>${MACHINE}_bootblob_ver.txt
+date "+%Y%m%d%H%M%S" >>${MACHINE}_bootblob_ver.txt
+bytes=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f2`
+cksum=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1`
+echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
+appfile_sed=
+if [ $bup_blob -ne 0 ]; then
+    appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
+elif [ $no_flash -eq 0 ]; then
+    if [ -n "$imgfile" -a -e "$imgfile" ]; then
+	appfile_sed="-es,APPFILE,$imgfile, -es,DATAFILE,$dataimg,"
+    else
+	echo "ERR: rootfs image not specified or missing: $imgfile" >&2
+	exit 1
+    fi
+else
+    touch APPFILE
+    [ -z "$dataimg" ] || touch DATAFILE
+fi
+sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB-FILE,$BPFDTB_FILE," $appfile_sed "$flash_in" > flash.xml
 
 BINSARGS="mb2_bootloader nvtboot_recovery.bin; \
 mts_preboot preboot_d15_prod_cr.bin; \
@@ -170,10 +204,7 @@ bctargs="--misc_config $MISC_CONFIG \
 	      --br_cmd_config $BOOTROM_CONFIG \
 	      --dev_params $DEV_PARAMS"
 skipuid=""
-if [ "$bup_build" = "yes" ]; then
-    tfcmd=sign
-    skipuid="--skipuid"
-elif [ -n "$keyfile" ]; then
+if [ -n "$keyfile" ]; then
     CHIPID="0x18"
     tegraid="$CHIPID"
     localcfgfile="flash.xml"
@@ -188,7 +219,7 @@ elif [ -n "$keyfile" ]; then
     SOSARGS="--applet mb1_recovery_prod.bin "
     BCTARGS="$bctargs"
     . "$here/odmsign.func"
-    odmsign_ext || exit 1
+    (odmsign_ext) || exit 1
     if [ $no_flash -ne 0 ]; then
 	if [ -f flashcmd.txt ]; then
 	    chmod +x flashcmd.txt
@@ -196,13 +227,20 @@ elif [ -n "$keyfile" ]; then
 	else
 	    echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
 	fi
+	rm -f APPFILE DATAFILE
     fi
-    exit 0
-else
-    tfcmd="flash;reboot"
+    [ $bup_blob -ne 0 ] || exit 0
+    touch odmsign.func
 fi
 
-flashcmd="python $flashappname --chip 0x18 --bl nvtboot_recovery_cpu.bin \
+if [ $bup_blob -ne 0 ]; then
+    tfcmd=sign
+    skipuid="--skipuid"
+else
+    tfcmd=${flash_cmd:-"flash;reboot"}
+fi
+
+flashcmd="python3 $flashappname ${inst_args} --chip 0x18 --bl nvtboot_recovery_cpu.bin \
 	      $cfgappargs \
 	      --odmdata $odmdata \
 	      --cmd \"$tfcmd\" $skipuid \
@@ -210,7 +248,7 @@ flashcmd="python $flashappname --chip 0x18 --bl nvtboot_recovery_cpu.bin \
 	      $bctargs \
 	      --bins \"$BINSARGS\""
 
-if [ "$bup_build" = "yes" ]; then
+if [ $bup_blob -ne 0 ]; then
     [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
     [ -z "$sbk_keyfile" ] || flashcmd="${flashcmd} --encrypt_key \"$sbk_keyfile\""
     support_multi_spec=1
@@ -221,7 +259,7 @@ if [ "$bup_build" = "yes" ]; then
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
     spec="${BOARDID}-${FAB}-${BOARDSKU}--1-0-${MACHINE}-${BOOTDEV}"
-    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" 0x18 || exit 1
+    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" "$sbk_keyfile" 0x18 || exit 1
 else
     eval $flashcmd || exit 1
 fi

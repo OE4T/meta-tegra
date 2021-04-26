@@ -1,0 +1,161 @@
+From 83e9fa94ea79bc00d0ac9bfc8e003c5335a29aef Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Wed, 22 Jan 2020 06:35:59 -0800
+Subject: [PATCH 4/4] Convert gen_tos_part_img.py to Python3
+
+%% original patch: 0004-Convert-gen_tos_part_img.py-to-Python3.patch
+---
+ nv_tegra/tos-scripts/gen_tos_part_img.py | 42 +++++++++++++-----------
+ 1 file changed, 23 insertions(+), 19 deletions(-)
+
+diff --git a/nv_tegra/tos-scripts/gen_tos_part_img.py b/nv_tegra/tos-scripts/gen_tos_part_img.py
+index 846725d..cead7f9 100755
+--- a/nv_tegra/tos-scripts/gen_tos_part_img.py
++++ b/nv_tegra/tos-scripts/gen_tos_part_img.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/env python3
+ # Copyright (c) 2013-2019, NVIDIA CORPORATION. All rights reserved.
+ #
+ # Permission is hereby granted, free of charge, to any person obtaining
+@@ -36,6 +36,10 @@ import string
+ import optparse
+ import subprocess
+ import tempfile
++import codecs
++
++hex_decode = codecs.getdecoder("hex_codec")
++hex_encode = codecs.getencoder("hex_codec")
+ 
+ # T124 uses a static monitor library
+ monitor_lib = "libmonitor"
+@@ -76,7 +80,7 @@ if tos_name:
+     tos_type = TOS_TYPE_TRUSTY
+ if args.tostype:
+     if not tos_name:
+-        print "--tostype specified without --os"
++        print("--tostype specified without --os")
+         parser.print_help()
+         sys.exit(1)
+     tos_map = {
+@@ -85,7 +89,7 @@ if args.tostype:
+     }
+     tos_type = tos_map.get(args.tostype, None)
+     if tos_type is None:
+-        print "Invalid --tostype " + args.tostype
++        print("Invalid --tostype " + args.tostype)
+         parser.print_help()
+         sys.exit(1)
+ 
+@@ -123,24 +127,24 @@ tos_size += tos_align
+ # By default the image IV is zero vector.
+ # If --iv option is used the IV value is saved in TOS TOC for the bootloader
+ #
+-iv="00000000000000000000000000000000".decode("hex")
++iv=hex_decode("00000000000000000000000000000000")[0]
+ 
+ if args.e or args.cipher:
+     image_type = 0x45
+ 
+     if args.iv:
+-        iv=args.iv.decode("hex")
++        iv=hex_decode(args.iv)[0]
+         image_type |= 0x20
+ 
+     if args.cipher:
+-        print "Generating Trusted OS Partition Image File (encrypting input)"
++        print("Generating Trusted OS Partition Image File (encrypting input)")
+         tos_size_nopad = tos_size
+         if tos_size % pad_size:
+             tos_size += (pad_size - tos_size % pad_size)
+     else:
+-        print "Generating Trusted OS Partition Image File (pre-encrypted input)"
++        print("Generating Trusted OS Partition Image File (pre-encrypted input)")
+ else:
+-    print "Generating Trusted OS Partition Image File"
++    print("Generating Trusted OS Partition Image File")
+     image_type = 0x50
+ 
+ #
+@@ -172,8 +176,8 @@ if (img_size % 16):
+     img_align = (16 - (img_size % 16))
+ 
+ values = (
+-    str("NVTOSP"),              # partition name
+-    str(img_size + img_align),  # total image size
++    b"NVTOSP",              # partition name
++    str(img_size + img_align).encode('utf-8'),  # total image size
+     0,                          # monitor_offset
+     monitor_size,               # monitor_size
+     tos_offset,                 # tos_offset
+@@ -184,11 +188,11 @@ values = (
+ )
+ s = struct.Struct('< 7s 9s I I I I I 16s I')
+ packed_data = s.pack(*values)
+-header = '\0' * (512-s.size)                         # align TOC to 512 bytes
++header = b'\0' * (512-s.size)                         # align TOC to 512 bytes
+ 
+ # Open new image file
+ 
+-dest = open(output_name, 'w')
++dest = open(output_name, 'wb')
+ os.chmod(output_name, (stat.S_IWUSR | stat.S_IRUSR) | stat.S_IRGRP | stat.S_IROTH)
+ 
+ # Write out TOS partition header
+@@ -231,7 +235,7 @@ if args.cipher:
+ 
+                 # XXX Could use pipes
+                 s = tempfile.NamedTemporaryFile(delete=True)
+-                s.write("00000000000000000000000000000001".decode("hex"))
++                s.write(hex_decode("00000000000000000000000000000001")[0])
+                 s.flush()
+                 s.seek(0)
+                 k = tempfile.NamedTemporaryFile(delete=True)
+@@ -242,7 +246,7 @@ if args.cipher:
+                 s.close()
+                 k.flush()
+                 k.seek(0)
+-                key=k.read().encode("hex")
++                key=hex_encode(k.read())[0].decode('utf-8')
+                 k.close()
+ 
+     image_file = tempfile.NamedTemporaryFile(delete=True)
+@@ -257,7 +261,7 @@ if args.cipher:
+     image_file.flush()
+     image_file.seek(0)
+ 
+-    subprocess.call(["openssl", "enc", "-e", "-nopad", "-aes-128-cbc", "-K", key, "-iv", iv.encode("hex")],
++    subprocess.call(["openssl", "enc", "-e", "-nopad", "-aes-128-cbc", "-K", key, "-iv", hex_encode(iv)[0].decode('utf-8')],
+                     stdin=image_file, stdout=dest)
+     image_file.close()
+ 
+@@ -266,22 +270,22 @@ else:
+       shutil.copyfileobj(open(tos_name, 'rb'), dest)     # write lk.bin
+     else:
+       shutil.copyfileobj(open(monitor_name, 'rb'), dest) # write monitor.bin
+-      dest.write('\0' * tos_align)
++      dest.write(b'\0' * tos_align)
+       if args.os:
+           shutil.copyfileobj(open(tos_name, 'rb'), dest) # write lk.bin
+ 
+ dest.flush()
+ # make TOS image as 16-byte aligned for encryption
+-dest.write('\0' * img_align)
++dest.write(b'\0' * img_align)
+ 
+ dest.flush()
+ dest.close()
+ 
+-print "Generate TOS Image File for boot-wrapper."
++print("Generate TOS Image File for boot-wrapper.")
+ 
+ img_out = str(os.path.dirname(output_name)+"/"+"img.bin")
+ 
+-dest = open(img_out, 'w')
++dest = open(img_out, 'wb')
+ os.chmod(img_out, (stat.S_IWUSR | stat.S_IRUSR) | stat.S_IRGRP | stat.S_IROTH)
+ 
+ if monitor_lib in monitor_name:
+-- 
+2.20.1
+

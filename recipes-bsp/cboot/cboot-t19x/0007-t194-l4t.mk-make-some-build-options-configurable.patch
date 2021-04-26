@@ -1,0 +1,46 @@
+From f520ce1f498dfd0341b1becd1f9b9fb4805957ef Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 17 Nov 2020 05:36:58 -0800
+Subject: [PATCH 07/12] t194/l4t.mk: make some build options configurable
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../partner/t18x/cboot/platform/t194/l4t.mk       | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/bootloader/partner/t18x/cboot/platform/t194/l4t.mk b/bootloader/partner/t18x/cboot/platform/t194/l4t.mk
+index 54629cf..ba0e9f4 100644
+--- a/bootloader/partner/t18x/cboot/platform/t194/l4t.mk
++++ b/bootloader/partner/t18x/cboot/platform/t194/l4t.mk
+@@ -8,19 +8,22 @@
+ # license agreement from NVIDIA CORPORATION is strictly prohibited.
+ #
+ 
++EXTRA_GLOBAL_DEFINES ?= \
++	CONFIG_ENABLE_BOOT_DEVICE_SELECT=1 \
++	CONFIG_ENABLE_ETHERNET_BOOT=1 \
++	CONFIG_ENABLE_DISPLAY=1 \
++	CONFIG_ENABLE_SHELL=1 \
++	CONFIG_ENABLE_L4T_RECOVERY=1 \
++	CONFIG_ENABLE_EXTLINUX_BOOT=1
++
+ # Add any needed GLOBAL_DEFINES here
+ GLOBAL_DEFINES += \
+ 	CONFIG_OS_IS_L4T=1 \
+-	CONFIG_ENABLE_BOOT_DEVICE_SELECT=1 \
+ 	CONFIG_ENABLE_SDCARD=1 \
+ 	CONFIG_ENABLE_USB_MS=1 \
+ 	CONFIG_ENABLE_USB_SD_BOOT=1 \
+-	CONFIG_ENABLE_ETHERNET_BOOT=1 \
+ 	CONFIG_ENABLE_SECURE_BOOT=1 \
+-	CONFIG_ENABLE_DISPLAY=1 \
+-	CONFIG_ENABLE_SHELL=1 \
+-	CONFIG_ENABLE_L4T_RECOVERY=1 \
+-	CONFIG_ENABLE_EXTLINUX_BOOT=1
++	$(EXTRA_GLOBAL_DEFINES)
+ 
+ MODULE_DEPS +=	\
+ 	lib/lwip \
+-- 
+2.27.0
+

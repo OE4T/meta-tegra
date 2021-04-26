@@ -7,7 +7,12 @@ here=$(readlink -f $(dirname "$0"))
 declare -a PARTS
 FINALPART=
 DEVNAME=
+PARTSEP=
 OUTSYSBLK=
+HAVEBMAPTOOL=
+
+SUDO=
+[ $(id -u) -eq 0 ] || SUDO="sudo"
 
 usage() {
     cat <<EOF
@@ -98,6 +103,23 @@ make_partitions() {
     sgdisk "$output" --largest-new=$partnumber --typecode=$partnumber:8300 -c $partnumber:$partname >/dev/null 2>&1
 }
 
+copy_to_device() {
+    local src="$1"
+    local dst="$2"
+    if [ -z "$HAVEBMAPTOOL" ]; then
+	dd if="$src" of="$dst" conv=fsync status=none >/dev/null 2>&1 || return 1
+	return 0
+    fi
+    local bmap=$(mktemp)
+    local rc=0
+    bmaptool create -o "$bmap" "$src" >/dev/null 2>&1 || rc=1
+    if [ $rc -eq 0 ]; then
+	$SUDO bmaptool copy --bmap "$bmap" "$src" "$dst" >/dev/null 2>&1 || rc=1
+    fi
+    rm "$bmap"
+    return $rc
+}
+
 write_partitions_to_device() {
     local blksize partnumber partname partsize partfile partguid partfilltoend
     local i dest pline
@@ -108,20 +130,23 @@ write_partitions_to_device() {
 	    continue
 	fi
 	eval "$pline"
-	[ -n "$partfile" ] || continue
+	if [ -z "$partfile" ]; then
+	    i=$(expr $i + 1)
+	    continue
+	fi
 	if [ -e "signed/$partfile" ]; then
 	    partfile="signed/$partfile"
 	elif [ ! -e "$partfile" ]; then
 	    echo "ERR: cannot find file $partfile for partition $partnumber" >&2
 	    return 1
 	fi
-	dest="/dev/$DEVNAME$partnumber"
+	dest="/dev/$DEVNAME$PARTSEP$partnumber"
 	if [ ! -b "$dest" ]; then
 	    echo "ERR: cannot locate block device $dest" >&2
 	    return 1
 	fi
 	echo -n "$partname..."
-	if ! dd if="$partfile" of="$dest" conv=fsync status=none >/dev/null 2>&1; then
+	if ! copy_to_device "$partfile" "$dest"; then
 	    echo "ERR: failed to write $partfile to $dest" >&2
 	    return 1
 	fi
@@ -133,13 +158,13 @@ write_partitions_to_device() {
 	    echo "ERR: cannot find file $partfile for partition $partnumber" >&2
 	    return 1
 	fi
-	dest="/dev/$DEVNAME$partnumber"
+	dest="/dev/$DEVNAME$PARTSEP$partnumber"
 	if [ ! -b "$dest" ]; then
 	    echo "ERR: cannot locate block device $dest" >&2
 	    return 1
 	fi
 	echo -n "$partname..."
-	if ! dd if="$partfile" of="$dest" conv=fsync status=none >/dev/null 2>&1; then
+	if ! copy_to_device "$partfile" "$dest"; then
 	    echo "ERR: failed to write $partfile to $dest" >&2
 	    return 1
 	fi
@@ -166,7 +191,7 @@ write_partitions_to_image() {
 	    return 1
 	fi
 	echo -n "$partname..."
-	if ! dd if="$partfile" of="$output" conv=notrunc,fsync seek=${partstart[$partnumber]} status=none >/dev/null 2>&1; then
+	if ! dd if="$partfile" of="$output" conv=notrunc seek=${partstart[$partnumber]} status=none >/dev/null 2>&1; then
 	    echo "ERR: failed to write $partfile to $output (offset ${partstart[$partnumber]}" >&2
 	    return 1
 	fi
@@ -186,7 +211,6 @@ confirm() {
 		    ;;
 		*)
 		    echo "Please answer 'yes' or' no'."
-		    break;
 		    ;;
 	    esac
 	else
@@ -269,6 +293,8 @@ if [ -b "$output" ]; then
 	echo "ERR: $output does not appear to be an appropriate device" >&2
 	exit 1
     fi
+    enddigits=$(echo "$DEVNAME" | sed -r -e's,[a-z]+([0-9]*),\1,')
+    [ -z "$enddigits" ] || PARTSEP="p"
     OUTSYSBLK="/sys/block/$DEVNAME"
     outsize=$(cat "$OUTSYSBLK/size")
     [ -n "$preconfirmed" ] || confirm "$output"
@@ -304,11 +330,15 @@ if ! sgdisk "$output" --verify >/dev/null 2>&1; then
     exit 1
 fi
 if [ -b "$output" ]; then
-    if ! sudo partprobe "$output" >/dev/null 2>&1; then
+    sleep 1
+    if ! $SUDO partprobe "$output" >/dev/null 2>&1; then
 	echo "ERR: partprobe failed after partitioning $output" >&2
 	exit 1
     fi
     sleep 1
+fi
+if type -p bmaptool >/dev/null 2>&1; then
+    HAVEBMAPTOOL=yes
 fi
 echo -n "Writing..."
 if [ -b "$output" ]; then

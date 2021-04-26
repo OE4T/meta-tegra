@@ -1,0 +1,11 @@
+[Unit]
+Description=Tegra integrated Bluetooth module initialization
+Before=bluetooth.service
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/tegra-bluetooth-init
+ExecStopPost=/bin/echo 0 > /proc/bluetooth/sleep/lpm
+
+[Install]
+WantedBy=bluetooth.target

@@ -1,0 +1,98 @@
+From c49ed879b88194bb6ae337fd5a5372fc2d1a8d19 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 28 Dec 2020 06:25:49 -0800
+Subject: [PATCH 12/12] Add machine ID to kernel command line
+
+Set CONFIG_ENABLE_MACHINE_ID during the build
+to enable.
+
+Check and use the first four ODM reserved fuses
+if CONFIG_ENABLE_FUSED_MACHINE_ID is also set and
+the fuses are programmed (non-0), falling back to
+checking the variable.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+
+Add machine ID from fuses to kernel command line
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../lib/linuxboot/t194/linuxboot_helper.c     | 48 +++++++++++++++++++
+ 1 file changed, 48 insertions(+)
+
+diff --git a/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c b/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c
+index 65884cd..aea7395 100644
+--- a/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c
++++ b/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c
+@@ -54,6 +54,10 @@
+ #include <tegrabl_a_b_boot_control.h>
+ #endif
+ 
++#if defined(CONFIG_ENABLE_MACHINE_ID)
++#include <tegrabl_bootinfo.h>
++#endif
++
+ #if defined(CONFIG_ENABLE_ANDROID_BOOTREASON)
+ #include <arpmc_impl.h>
+ #include <tegrabl_pmic.h>
+@@ -426,6 +430,47 @@ static int add_vbmeta_info(char *cmdline, int len, char *param, void *priv)
+ }
+ #endif
+ 
++#if defined(CONFIG_ENABLE_MACHINE_ID)
++static int __attribute__((unused)) add_machine_id(char *cmdline, int len, char *param, void *priv)
++{
++	char machineid[65];
++	tegrabl_error_t status;
++	struct devinfo_context *ctx;
++#if defined(CONFIG_ENABLE_FUSED_MACHINE_ID)
++	uint32_t val;
++	int midlen, i;
++#endif
++	if (cmdline == NULL || param == NULL)
++		return -1;
++
++#if defined(CONFIG_ENABLE_FUSED_MACHINE_ID)
++	for (midlen = 0, i = 0; i < 4; i += 1, midlen += 8) {
++		status = tegrabl_fuse_read(FUSE_RESERVED_ODM0 + i, &val, sizeof(val));
++		if (status != TEGRABL_NO_ERROR)
++			goto skip_fuses;
++		if (val == 0)
++			goto skip_fuses;
++		if (tegrabl_snprintf(machineid+midlen, sizeof(machineid)-midlen, "%08x", val) != 8) {
++			pr_error("Error formatting machine ID word %d\n", i);
++			goto skip_fuses;
++		}
++	}
++	machineid[midlen] = '\0';
++	return tegrabl_snprintf(cmdline, len, "%s=%s", param, machineid);
++skip_fuses:
++#endif /* CONFIG_ENABLE_FUSED_MACHINE_ID */
++
++	status = tegrabl_bootinfo_open(&ctx);
++	if (status == TEGRABL_NO_ERROR) {
++		status = tegrabl_bootinfo_getvar(ctx, "machine_id", machineid, sizeof(machineid));
++		if (status == TEGRABL_NO_ERROR)
++			return tegrabl_snprintf(cmdline, len, "%s=%s ", param, machineid);
++		tegrabl_bootinfo_close(ctx);
++	}
++	return -1;
++}
++#endif /* CONFIG_ENABLE_MACHINE_ID */
++
+ #if defined(CONFIG_ENABLE_A_B_SLOT)
+ static int add_boot_slot_suffix(char *, int, char *, void *) __attribute__ ((unused));
+ static int add_boot_slot_suffix(char *cmdline, int len, char *param, void *priv)
+@@ -566,6 +611,9 @@ static struct tegrabl_linuxboot_param extra_params[] = {
+ 	{ "sdhci_tegra.en_boot_part_access", tegrabl_linuxboot_add_string, "1" },
+ #if defined(CONFIG_ENABLE_NVDEC)
+ 	{ "nvdec_enabled", tegrabl_linuxboot_add_nvdec_enabled_info, NULL },
++#endif
++#if defined(CONFIG_ENABLE_MACHINE_ID)
++	{ "systemd.machine_id", add_machine_id, NULL },
+ #endif
+ 	{ NULL, NULL, NULL},
+ };
+-- 
+2.27.0
+
