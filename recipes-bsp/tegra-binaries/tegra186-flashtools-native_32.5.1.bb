@@ -18,6 +18,7 @@ SRC_URI += "\
            file://0006-Update-tegraflash_internal.py-for-Python3.patch \
            file://0007-Update-check-functions-in-BUP_generator.py-for-Pytho.patch \
            file://0009-Remove-xxd-dependency-from-l4t_sign_image.sh.patch \
+           file://0010-Rework-logging-in-l4t_sign_image.sh.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
