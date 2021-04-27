@@ -63,7 +63,7 @@ CBOOTFILENAME_tegra194 = "cboot_t194.bin"
 TOSIMGFILENAME = "tos-trusty.img"
 TOSIMGFILENAME_tegra194 = "tos-trusty_t194.img"
 TOSIMGFILENAME_tegra210 = "tos-mon-only.img"
-BMPBLOBFILENAME = "bmp.blob"
+BMPBLOBFILENAME ??= "bmp.blob"
 
 BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
 FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
