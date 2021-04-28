@@ -7,13 +7,15 @@ LIC_FILES_CHKSUM = "\
     file://tegra/public/LICENSE;md5=7100b53ab2e3231bd0ba50d55a53fbef \
     file://lib/include/LICENSE;md5=1163d440b7d4a6defb52a783d445ff49 \
     file://external/headers/include/remoteproc/LICENSE;md5=6938907077867979a4d0a7fd30f85aed \
-    file://app/keystore-demo/LICENSE;md5=7100b53ab2e3231bd0ba50d55a53fbef \
     file://app/sample/LICENSE;md5=86d3f3a95c324c9479bd8986968f4327 \
+    file://app/sample/hwkey-agent/LICENSE;md5=0f2184456a07e1ba42a53d9220768479 \
     file://lk/trusty/LICENSE;md5=1163d440b7d4a6defb52a783d445ff49 \
     file://lk/common/LICENSE;md5=25394d472e4c06f4d61140e88861fb5b \
 "
 
 DEPENDS = "gcc-linaro-baremetal-arm-native"
+
+EXCLUDE_FROM_WORLD = "1"
 
 B = "${WORKDIR}/build"
 

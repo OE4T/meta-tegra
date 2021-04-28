@@ -1,13 +1,11 @@
 SUMMARY = "OpenMAX IL plugins for GStreamer (Nvidia-specific)"
 SECTION = "multimedia"
 LICENSE = "LGPLv2.1"
-LICENSE_FLAGS = "commercial"
-HOMEPAGE = "http://www.gstreamer.net/"
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-nveglgles gstreamer1.0-plugins-tegra"
 DEPENDS += "tegra-libraries"
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstomx1_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.3.1.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.4.3.inc
 
 # Plugin needs a couple of header files that it does not include, but
 # they are present in the V4L2 plugin source package, so extract them
@@ -20,6 +18,7 @@ unpack_tar_in_tar_append() {
 SRC_URI += "file://0001-use_lt_sysroot_when_parsing_gstconfig_header.patch \
 	    file://0003-add-missing-nviva-lib.patch \
             file://fix-h265enc-compilation-errors.patch \
+            file://0001-Elminate-compiled-in-path-for-core-library-lookup.patch \
 "
 
 LIC_FILES_CHKSUM = "file://COPYING;md5=4fbd65380cdd255951079008b364516c \
@@ -30,10 +29,11 @@ S = "${WORKDIR}/gstomx1_src/gst-omx1"
 CFLAGS += "-DHAVE_NVBUF_UTILS"
 LDFLAGS += "-lnvbuf_utils"
 
-inherit autotools pkgconfig gettext
+inherit autotools pkgconfig gettext container-runtime-csv
+
+CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 do_configure_append() {
-    sed -i -e's,/usr/lib/.*/tegra/,${libdir}/,g' ${S}/gstomx_config.c
     touch ${S}/omx/gstnvivameta_api.h
 }
 

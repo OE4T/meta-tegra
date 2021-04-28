@@ -1,0 +1,28 @@
+From 5d58de7bc8461fbba742f926a193edd840b6603d Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 28 Nov 2019 05:55:45 -0800
+Subject: [PATCH 1/2] common/make/macros.mk: translate '+' to '_'
+
+in addition to the other translations.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ lk/common/make/macros.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/lk/common/make/macros.mk b/lk/common/make/macros.mk
+index a45aca1..ed4dcaf 100644
+--- a/lk/common/make/macros.mk
++++ b/lk/common/make/macros.mk
+@@ -35,7 +35,7 @@ define MAKECONFIGHEADER
+ 	$(MKDIR); \
+ 	echo generating $1; \
+ 	rm -f $1.tmp; \
+-	LDEF=`echo $1 | tr '/\\.-' '_' | sed "s/C++/CPP/g;s/c++/cpp/g"`; \
++	LDEF=`echo $1 | tr '/\\.+-' '_' | sed "s/C++/CPP/g;s/c++/cpp/g"`; \
+ 	echo \#ifndef __$${LDEF}_H > $1.tmp; \
+ 	echo \#define __$${LDEF}_H >> $1.tmp; \
+ 	for d in `echo $($2) | tr '[:lower:]' '[:upper:]'`; do \
+-- 
+2.20.1
+
