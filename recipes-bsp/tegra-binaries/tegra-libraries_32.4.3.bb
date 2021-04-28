@@ -52,7 +52,7 @@ do_install() {
     install -m644 ${DRVROOT}/tegra/nvidia_icd.json ${D}/usr/lib/aarch64-linux-gnu/tegra/
     install -d ${D}${sysconfdir}/vulkan/icd.d
     ln -sf /usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json ${D}${sysconfdir}/vulkan/icd.d/
-    rm ${D}${libdir}/libnvidia-egl-wayland*
+    rm ${D}${libdir}/libnvidia-egl-wayland* ${D}${libdir}/libnvgbm.so* ${D}${libdir}/libvulkan.so*
 }
 
 pkg_postinst_${PN}() {
