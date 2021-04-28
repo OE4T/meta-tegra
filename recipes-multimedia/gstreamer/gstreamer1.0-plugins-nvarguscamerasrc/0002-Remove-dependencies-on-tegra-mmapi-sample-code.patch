@@ -1,0 +1,609 @@
+From 1b738811f77089f3fb2a814cd545f14eee4a813c Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 16 Jul 2020 10:16:13 -0700
+Subject: [PATCH] Remove dependencies on tegra-mmapi sample code
+
+* Replace Ordered with std::atomic
+* Replace Error.h macros with gstreamer macros
+* Also remove the printf-based logging macros with gstreamer macros
+* Other misc cleanups of warnings from -Wall -Wpedantic
+---
+ gstnvarguscamerasrc.cpp | 267 +++++++++++++++++++++++-----------------
+ gstnvarguscamerasrc.hpp |   5 +-
+ 2 files changed, 157 insertions(+), 115 deletions(-)
+
+diff --git a/gstnvarguscamerasrc.cpp b/gstnvarguscamerasrc.cpp
+index 4ccb21b..d644cd5 100644
+--- a/gstnvarguscamerasrc.cpp
++++ b/gstnvarguscamerasrc.cpp
+@@ -54,10 +54,7 @@
+ #include <pthread.h>
+ #include <unistd.h> // for useconds_t
+ 
+-#include "Ordered.h"
+-
+ #include "gstnvarguscamerasrc.hpp"
+-#include "Error.h"
+ 
+ #define CAPTURE_CAPS \
+   "video/x-raw(memory:NVMM), " \
+@@ -113,8 +110,10 @@ bool ThreadArgus::initialize(GstNvArgusCameraSrc *src)
+ 
+   this->src = src;
+ 
+-  if (pthread_create(&m_threadID, NULL, threadFunctionStub, this) != 0)
+-    ORIGINATE_ERROR("Failed to create thread.");
++  if (pthread_create(&m_threadID, NULL, threadFunctionStub, this) != 0) {
++    GST_ERROR_OBJECT (src, "Failed to create thread.");
++    return false;
++  }
+ 
+   // wait for the thread to start up
+   while (m_threadState == THREAD_INACTIVE)
+@@ -128,8 +127,10 @@ bool ThreadArgus::shutdown()
+   if (m_threadID)
+   {
+     m_doShutdown = true;
+-    if (pthread_join(m_threadID, NULL) != 0)
+-      ORIGINATE_ERROR("Failed to join thread");
++    if (pthread_join(m_threadID, NULL) != 0) {
++      GST_ERROR("Failed to join thread");
++      return false;
++    }
+     m_threadID = 0;
+     m_doShutdown = false;
+     m_threadState = THREAD_INACTIVE;
+@@ -141,8 +142,10 @@ bool ThreadArgus::shutdown()
+ bool ThreadArgus::waitRunning(useconds_t timeoutUs)
+ {
+   // Can only wait for a thread which is initializing or already running
+-  if ((m_threadState != THREAD_INITIALIZING) && (m_threadState != THREAD_RUNNING))
+-    ORIGINATE_ERROR("Invalid thread state %d", m_threadState.get());
++  if ((m_threadState != THREAD_INITIALIZING) && (m_threadState != THREAD_RUNNING)) {
++    GST_ERROR("Invalid thread state %d", m_threadState.load());
++    return false;
++  }
+ 
+   // wait for the thread to run
+   const useconds_t sleepTimeUs = 100;
+@@ -185,31 +188,26 @@ bool ThreadArgus::threadFunction(GstNvArgusCameraSrc *src)
+ {
+   m_threadState = THREAD_INITIALIZING;
+ 
+-  PROPAGATE_ERROR(threadInitialize(src));
++  if (!threadInitialize(src))
++    return false;
+ 
+   m_threadState = THREAD_RUNNING;
+ 
+   while (!m_doShutdown)
+   {
+-    PROPAGATE_ERROR(threadExecute(src));
++    if (!threadExecute(src))
++      return false;
+   }
+ 
+-  PROPAGATE_ERROR(threadShutdown(src));
++  return threadShutdown(src);
+ 
+-  return true;
+ }
+ 
+-}; // namespace ArgusSamples
++} // namespace ArgusSamples
+ 
+ namespace ArgusCamera
+ {
+ 
+-// Constants
+-
+-#define GST_ARGUS_PRINT(...) printf("GST_ARGUS: " __VA_ARGS__)
+-#define CONSUMER_PRINT(...) printf("CONSUMER: " __VA_ARGS__)
+-#define GST_ARGUS_ERROR(...) printf("ARGUS_ERROR: Error generated. %s, %s: %d %s", __FILE__, __FUNCTION__, __LINE__, __VA_ARGS__)
+-
+ /*******************************************************************************
+  * StreamConsumer thread:
+  *   Creates a StreamConsumer object to read frames from the OutputStream just tests
+@@ -243,8 +241,10 @@ bool StreamConsumer::threadInitialize(GstNvArgusCameraSrc *src)
+ {
+   // Create the FrameConsumer.
+   m_consumer = UniqueObj<FrameConsumer>(FrameConsumer::create(m_stream));
+-  if (!m_consumer)
+-    ORIGINATE_ERROR("Failed to create FrameConsumer");
++  if (!m_consumer) {
++    GST_ERROR_OBJECT (src, "Failed to create FrameConsumer");
++    return false;
++  }
+ 
+   return true;
+ }
+@@ -256,10 +256,12 @@ bool StreamConsumer::threadExecute(GstNvArgusCameraSrc *src)
+   IFrameConsumer *iFrameConsumer = interface_cast<IFrameConsumer>(m_consumer);
+ 
+   // Wait until the producer has connected to the stream.
+-  CONSUMER_PRINT("Waiting until producer is connected...\n");
+-  if (iStream->waitUntilConnected() != STATUS_OK)
+-    ORIGINATE_ERROR("Stream failed to connect.");
+-  CONSUMER_PRINT("Producer has connected; continuing.\n");
++  GST_DEBUG_OBJECT (src, "Waiting until producer is connected...\n");
++  if (iStream->waitUntilConnected() != STATUS_OK) {
++    GST_ERROR_OBJECT (src, "Stream failed to connect.");
++    return false;
++  }
++  GST_DEBUG_OBJECT (src, "Producer has connected; continuing.\n");
+   IAutoControlSettings* l_iAutoControlSettings_ptr = (IAutoControlSettings *)src->iAutoControlSettings_ptr;
+   ICaptureSession* l_iCaptureSession               = (ICaptureSession *)src->iCaptureSession_ptr;
+   IDenoiseSettings* l_iDenoiseSettings_ptr         = (IDenoiseSettings *)src->iDenoiseSettings_ptr;
+@@ -476,14 +478,18 @@ bool StreamConsumer::threadExecute(GstNvArgusCameraSrc *src)
+     // Use the IFrame interface to print out the frame number/timestamp, and
+     // to provide access to the Image in the Frame.
+     IFrame *iFrame = interface_cast<IFrame>(frame);
+-    if (!iFrame)
+-      ORIGINATE_ERROR("Failed to get IFrame interface.");
++    if (!iFrame) {
++      GST_ERROR_OBJECT (src, "Failed to get IFrame interface.");
++      return false;
++    }
+ 
+     // Get the IImageNativeBuffer extension interface and create the fd.
+     NV::IImageNativeBuffer *iNativeBuffer =
+       interface_cast<NV::IImageNativeBuffer>(iFrame->getImage());
+-    if (!iNativeBuffer)
+-      ORIGINATE_ERROR("IImageNativeBuffer not supported by Image.");
++    if (!iNativeBuffer) {
++      GST_ERROR_OBJECT (src, "IImageNativeBuffer not supported by Image.");
++      return false;
++    }
+ 
+     if (src->frameInfo->fd < 0)
+     {
+@@ -491,15 +497,16 @@ bool StreamConsumer::threadExecute(GstNvArgusCameraSrc *src)
+               NvBufferColorFormat_YUV420,
+               NvBufferLayout_BlockLinear);
+       if (!src->silent)
+-        CONSUMER_PRINT("Acquired Frame. %d\n", src->frameInfo->fd);
++        GST_DEBUG_OBJECT (src, "Acquired Frame. %d\n", src->frameInfo->fd);
+     }
+     else if (iNativeBuffer->copyToNvBuffer(src->frameInfo->fd) != STATUS_OK)
+     {
+-      ORIGINATE_ERROR("IImageNativeBuffer not supported by Image.");
++      GST_ERROR_OBJECT (src, "IImageNativeBuffer not supported by Image.");
++      return false;
+     }
+ 
+     if (!src->silent)
+-      CONSUMER_PRINT("Acquired Frame: %llu, time %llu\n",
++      GST_DEBUG_OBJECT (src, "Acquired Frame: %llu, time %llu\n",
+                  static_cast<unsigned long long>(iFrame->getNumber()),
+                  static_cast<unsigned long long>(iFrame->getTime()));
+ 
+@@ -522,10 +529,9 @@ bool StreamConsumer::threadExecute(GstNvArgusCameraSrc *src)
+   g_slice_free (NvArgusFrameInfo, src->frameInfo);
+   if (!src->argus_in_error)
+   {
+-      CONSUMER_PRINT("Done Success\n");
++      GST_DEBUG_OBJECT (src, "Done Success\n");
+   }
+-  PROPAGATE_ERROR(requestShutdown());
+-  return true;
++  return requestShutdown();
+ }
+ 
+ bool StreamConsumer::threadShutdown(GstNvArgusCameraSrc *src)
+@@ -547,28 +553,36 @@ static bool execute(int32_t cameraIndex,
+   // Create the CameraProvider object
+   static UniqueObj<CameraProvider> cameraProvider(CameraProvider::create());
+   ICameraProvider *iCameraProvider = interface_cast<ICameraProvider>(cameraProvider);
+-  if (!iCameraProvider)
+-    ORIGINATE_ERROR("Failed to create CameraProvider");
++  if (!iCameraProvider) {
++    GST_ERROR_OBJECT (src, "Failed to create CameraProvider");
++    return false;
++  }
+ 
+   // Get the camera devices.
+   std::vector<CameraDevice*> cameraDevices;
+   iCameraProvider->getCameraDevices(&cameraDevices);
+-  if (cameraDevices.size() == 0)
+-    ORIGINATE_ERROR("No cameras available");
++  if (cameraDevices.size() == 0) {
++    GST_ERROR_OBJECT (src, "No cameras available");
++    return false;
++  }
+ 
+-  if (static_cast<uint32_t>(cameraIndex) >= cameraDevices.size())
+-    ORIGINATE_ERROR("Invalid camera device specified %d specified, %d max index",
++  if (static_cast<uint32_t>(cameraIndex) >= cameraDevices.size()) {
++    GST_ERROR_OBJECT (src, "Invalid camera device specified %d specified, %d max index",
+                                       cameraIndex, static_cast<int32_t>(cameraDevices.size())-1);
++    return false;
++  }
+ 
+   // Create the capture session using the specified device.
+   UniqueObj<CaptureSession> captureSession(
+       iCameraProvider->createCaptureSession(cameraDevices[cameraIndex]));
+   ICaptureSession *iCaptureSession = interface_cast<ICaptureSession>(captureSession);
+-  if (!iCaptureSession)
+-    ORIGINATE_ERROR("Failed to create CaptureSession");
++  if (!iCaptureSession) {
++    GST_ERROR_OBJECT (src, "Failed to create CaptureSession");
++    return false;
++  }
+ 
+   src->iCaptureSession_ptr = iCaptureSession;
+-  GST_ARGUS_PRINT("Creating output stream\n");
++  GST_DEBUG_OBJECT(src, "Creating output stream\n");
+   UniqueObj<OutputStreamSettings> streamSettings(iCaptureSession->createOutputStreamSettings(STREAM_TYPE_EGL));
+   IEGLOutputStreamSettings *iStreamSettings = interface_cast<IEGLOutputStreamSettings>(streamSettings);
+   if (iStreamSettings)
+@@ -578,21 +592,27 @@ static bool execute(int32_t cameraIndex,
+   }
+   UniqueObj<OutputStream> outputStream(iCaptureSession->createOutputStream(streamSettings.get()));
+   IEGLOutputStream *iStream = interface_cast<IEGLOutputStream>(outputStream);
+-  if (!iStream)
+-    ORIGINATE_ERROR("Failed to create OutputStream");
++  if (!iStream) {
++    GST_ERROR_OBJECT (src, "Failed to create OutputStream");
++    return false;
++  }
+ 
+   StreamConsumer consumerThread(outputStream.get());
+-  PROPAGATE_ERROR(consumerThread.initialize(src));
++  if (!consumerThread.initialize(src))
++    return false;
+ 
+   // Wait until the consumer is connected to the stream.
+-  PROPAGATE_ERROR(consumerThread.waitRunning());
++  if (!consumerThread.waitRunning())
++    return false;
+ 
+   // Create capture request and enable output stream.
+   UniqueObj<Request> request(iCaptureSession->createRequest());
+   IRequest *iRequest = interface_cast<IRequest>(request);
+   src->iRequest_ptr = iRequest;
+-  if (!iRequest)
+-    ORIGINATE_ERROR("Failed to create Request");
++  if (!iRequest) {
++    GST_ERROR_OBJECT (src, "Failed to create Request");
++    return false;
++  }
+   iRequest->enableOutputStream(outputStream.get());
+ 
+   IAutoControlSettings* iAutoControlSettings =
+@@ -600,55 +620,68 @@ static bool execute(int32_t cameraIndex,
+   src->iAutoControlSettings_ptr = iAutoControlSettings;
+   std::vector<SensorMode*> modes;
+   ICameraProperties *camProps = interface_cast<ICameraProperties>(cameraDevices[cameraIndex]);
+-  if (!camProps)
+-    ORIGINATE_ERROR("Failed to create camera properties");
++  if (!camProps) {
++    GST_ERROR_OBJECT (src, "Failed to create camera properties");
++    return false;
++  }
+   camProps->getAllSensorModes(&modes);
+ 
+   ISourceSettings *requestSourceSettings =
+                                   interface_cast<ISourceSettings>(iRequest->getSourceSettings());
+-  if (!requestSourceSettings)
+-    ORIGINATE_ERROR("Failed to get request source settings");
++  if (!requestSourceSettings) {
++    GST_ERROR_OBJECT (src, "Failed to get request source settings");
++    return false;
++  }
+   src->iRequestSourceSettings_ptr = requestSourceSettings;
+ 
+-  if (cameraMode != NVARGUSCAM_DEFAULT_SENSOR_MODE_STATE && static_cast<uint32_t>(cameraMode) >= modes.size())
+-    ORIGINATE_ERROR("Invalid sensor mode %d selected %d present", cameraMode,
++  if (cameraMode != NVARGUSCAM_DEFAULT_SENSOR_MODE_STATE && static_cast<uint32_t>(cameraMode) >= modes.size()) {
++    GST_ERROR_OBJECT (src, "Invalid sensor mode %d selected %d present", cameraMode,
+                                                           static_cast<int32_t>(modes.size()));
+-
++    return false;
++  }
+   src->total_sensor_modes = modes.size();
+ 
+- GST_ARGUS_PRINT("Available Sensor modes :\n");
++ GST_DEBUG_OBJECT(src, "Available Sensor modes :\n");
+   frameRate = src->fps_n/ src->fps_d;
+   duration = 1e9 * src->fps_d/ src->fps_n;
+-  ISensorMode *iSensorMode[modes.size()];
+   Range<float> sensorModeAnalogGainRange;
+   Range<float> ispDigitalGainRange;
+   Range<uint64_t> limitExposureTimeRange;
+   for (index = 0; index < modes.size(); index++)
+   {
+ 
+-    iSensorMode[index] = interface_cast<ISensorMode>(modes[index]);
+-    sensorModeAnalogGainRange = iSensorMode[index]->getAnalogGainRange();
+-    limitExposureTimeRange = iSensorMode[index]->getExposureTimeRange();
+-    GST_ARGUS_PRINT("%d x %d FR = %f fps Duration = %lu ; Analog Gain range min %f, max %f; Exposure Range min %ju, max %ju;\n\n",
+-                    iSensorMode[index]->getResolution().width(), iSensorMode[index]->getResolution().height(),
+-                    (1e9/(iSensorMode[index]->getFrameDurationRange().min())),
+-                    iSensorMode[index]->getFrameDurationRange().min(),
++    ISensorMode *iSensorMode = interface_cast<ISensorMode>(modes[index]);
++    sensorModeAnalogGainRange = iSensorMode->getAnalogGainRange();
++    limitExposureTimeRange = iSensorMode->getExposureTimeRange();
++    GST_DEBUG_OBJECT(src, "%d x %d FR = %f fps Duration = %lu ; Analog Gain range min %f, max %f; Exposure Range min %ju, max %ju;\n\n",
++                    iSensorMode->getResolution().width(), iSensorMode->getResolution().height(),
++                    (1e9/(iSensorMode->getFrameDurationRange().min())),
++                    iSensorMode->getFrameDurationRange().min(),
+                     sensorModeAnalogGainRange.min(), sensorModeAnalogGainRange.max(),
+                     limitExposureTimeRange.min(), limitExposureTimeRange.max());
+ 
+     if (cameraMode ==  NVARGUSCAM_DEFAULT_SENSOR_MODE_STATE)
+     {
+-      if (streamSize.width() <= iSensorMode[index]->getResolution().width() &&
+-          streamSize.height() <= iSensorMode[index]->getResolution().height() &&
+-          duration >= (iSensorMode[index]->getFrameDurationRange().min()))
++      if (streamSize.width() <= iSensorMode->getResolution().width() &&
++          streamSize.height() <= iSensorMode->getResolution().height() &&
++          duration >= (iSensorMode->getFrameDurationRange().min()))
+       {
+-        if (best_match == -1 || ((streamSize.width() == iSensorMode[index]->getResolution().width()) &&
+-              (streamSize.height() == iSensorMode[index]->getResolution().height()) &&
+-            (iSensorMode[best_match]->getFrameDurationRange().min() >= iSensorMode[index]->getFrameDurationRange().min()))){
+-             best_match = index;
++        if (best_match == -1)
++        {
++          best_match = index;
+         }
+-        else if ((iSensorMode[index]->getResolution().width()) <= iSensorMode[best_match]->getResolution().width()) {
+-        best_match = index;
++        else
++        {
++          ISensorMode *bestMode = interface_cast<ISensorMode>(modes[best_match]);
++          if ((streamSize.width() == iSensorMode->getResolution().width()) &&
++              (streamSize.height() == iSensorMode->getResolution().height()) &&
++              (bestMode->getFrameDurationRange().min() >= iSensorMode->getFrameDurationRange().min()))
++          {
++            best_match = index;
++          }
++          else if ((iSensorMode->getResolution().width()) <= bestMode->getResolution().width()) {
++            best_match = index;
++          }
+         }
+         found = 1;
+       }
+@@ -672,21 +705,26 @@ static bool execute(int32_t cameraIndex,
+   }
+   /* Update Sensor Mode*/
+   src->sensor_mode = cameraMode;
++  ISensorMode* cameraSensorMode = interface_cast<ISensorMode>(modes[cameraMode]);
+ 
+-  if (frameRate > round((1e9/(iSensorMode[cameraMode]->getFrameDurationRange().min()))))
++  if (frameRate > round((1e9/(cameraSensorMode->getFrameDurationRange().min()))))
+   {
+     src->argus_in_error = TRUE;
+-    GST_ARGUS_ERROR("Frame Rate specified is greater than supported\n");
++    GST_ERROR_OBJECT(src, "Frame Rate specified is greater than supported\n");
+   }
+ 
+   IDenoiseSettings *denoiseSettings = interface_cast<IDenoiseSettings>(request);
+-  if (!denoiseSettings)
+-    ORIGINATE_ERROR("Failed to get DenoiseSettings interface");
++  if (!denoiseSettings) {
++    GST_ERROR_OBJECT (src, "Failed to get DenoiseSettings interface");
++    return false;
++  }
+   src->iDenoiseSettings_ptr = denoiseSettings;
+ 
+   IEdgeEnhanceSettings *eeSettings = interface_cast<IEdgeEnhanceSettings>(request);
+-  if (!eeSettings)
+-    ORIGINATE_ERROR("Failed to get EdgeEnhancementSettings interface");
++  if (!eeSettings) {
++    GST_ERROR_OBJECT (src, "Failed to get EdgeEnhancementSettings interface");
++    return false;
++  }
+   src->iEeSettings_ptr = eeSettings;
+ 
+   /* Setting Noise Reduction Mode and Strength*/
+@@ -793,15 +831,15 @@ static bool execute(int32_t cameraIndex,
+     src->aeLockPropSet = FALSE;
+   }
+ 
+-  GST_ARGUS_PRINT("Running with following settings:\n"
+-             "   Camera index = %d \n"
+-             "   Camera mode  = %d \n"
+-             "   Output Stream W = %d H = %d \n"
+-             "   seconds to Run    = %d \n"
+-             "   Frame Rate = %f \n",
+-             cameraIndex, cameraMode, iSensorMode[cameraMode]->getResolution().width(),
+-             iSensorMode[cameraMode]->getResolution().height(), secToRun,
+-             (1e9/(iSensorMode[cameraMode]->getFrameDurationRange().min())));
++  GST_DEBUG_OBJECT (src, "Running with following settings:");
++  GST_DEBUG_OBJECT (src, "   Camera index = %d", cameraIndex);
++  GST_DEBUG_OBJECT (src, "   Camera mode  = %d", cameraMode);
++  GST_DEBUG_OBJECT (src, "   Output Stream W = %d H = %d",
++                    cameraSensorMode->getResolution().width(),
++                    cameraSensorMode->getResolution().height());
++  GST_DEBUG_OBJECT (src, "   seconds to Run    = %d", secToRun);
++  GST_DEBUG_OBJECT (src, "   Frame Rate = %f",
++                    (1e9/(cameraSensorMode->getFrameDurationRange().min())));
+ 
+  /* Setting white balance property */
+     if (src->wbPropSet)
+@@ -885,18 +923,20 @@ static bool execute(int32_t cameraIndex,
+ 
+   requestSourceSettings->setFrameDurationRange(Range<uint64_t>(1e9/frameRate));
+ 
+-  GST_ARGUS_PRINT("Setup Complete, Starting captures for %d seconds\n", secToRun);
++  GST_DEBUG_OBJECT(src, "Setup Complete, Starting captures for %d seconds\n", secToRun);
+ 
+-  GST_ARGUS_PRINT("Starting repeat capture requests.\n");
++  GST_DEBUG_OBJECT(src, "Starting repeat capture requests.\n");
+   Request* captureRequest = request.get();
+   src->request_ptr = captureRequest;
+   iCaptureSession->capture(captureRequest);
+-  if (iCaptureSession->capture(captureRequest) == 0)
+-    ORIGINATE_ERROR("Failed to start capture request");
++  if (iCaptureSession->capture(captureRequest) == 0) {
++    GST_ERROR_OBJECT (src, "Failed to start capture request");
++    return false;
++  }
+ 
+   if (src->argus_in_error)
+   {
+-    GST_ARGUS_ERROR("InvalidState.\n");
++    GST_ERROR_OBJECT(src, "InvalidState.\n");
+     iCaptureSession->cancelRequests();
+     src->timeout = 1;
+   }
+@@ -915,7 +955,7 @@ static bool execute(int32_t cameraIndex,
+     }
+   }
+ 
+-  GST_ARGUS_PRINT("Cleaning up\n");
++  GST_DEBUG_OBJECT(src, "Cleaning up\n");
+ 
+   iCaptureSession->stopRepeat();
+   iCaptureSession->waitForIdle();
+@@ -933,17 +973,18 @@ static bool execute(int32_t cameraIndex,
+     g_mutex_unlock (&src->argus_buffer_consumed_lock);
+   }
+   // Wait for the consumer thread to complete.
+-  PROPAGATE_ERROR(consumerThread.shutdown());
++  if (!consumerThread.shutdown())
++    return false;
+ 
+   if (src->argus_in_error)
+     return false;
+ 
+-  GST_ARGUS_PRINT("Done Success\n");
++  GST_DEBUG_OBJECT(src, "Done Success\n");
+ 
+   return true;
+ }
+ 
+-}; // namespace ArgusCamera
++} // namespace ArgusCamera
+ 
+ 
+ GST_DEBUG_CATEGORY_STATIC (gst_nv_argus_camera_src_debug);
+@@ -1023,8 +1064,8 @@ GType gst_nv_memory_allocator_get_type (void);
+ #define GST_TYPE_NV_MEMORY_ALLOCATOR   (gst_nv_memory_allocator_get_type())
+ 
+ #define gst_nv_argus_camera_src_parent_class parent_class
+-G_DEFINE_TYPE (GstNvArgusCameraSrc, gst_nv_argus_camera_src, GST_TYPE_BASE_SRC);
+-G_DEFINE_TYPE (GstNVArgusMemoryAllocator, gst_nv_memory_allocator, GST_TYPE_ALLOCATOR);
++G_DEFINE_TYPE (GstNvArgusCameraSrc, gst_nv_argus_camera_src, GST_TYPE_BASE_SRC)
++G_DEFINE_TYPE (GstNVArgusMemoryAllocator, gst_nv_memory_allocator, GST_TYPE_ALLOCATOR)
+ 
+ #define GST_NVMEMORY_ALLOCATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_NV_MEMORY_ALLOCATOR,GstNVArgusMemoryAllocator))
+ 
+@@ -1197,7 +1238,7 @@ static gboolean gst_nv_argus_camera_set_caps (GstBaseSrc *base, GstCaps *caps)
+   GstNvArgusCameraSrc *src = GST_NVARGUSCAMERASRC (base);
+   // write own allocator here
+ 
+-  GST_DEBUG_OBJECT (src, "Received caps %" GST_PTR_FORMAT, caps);
++  GST_DEBUG_OBJECT (src, "Received caps %" GST_PTR_FORMAT, (void *) caps);
+ 
+   if (!gst_video_info_from_caps (&info, caps))
+   {
+@@ -1487,21 +1528,21 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+   if(prop_id == PROP_GAIN_RANGE)
+   {
+     str = src->gainRangeString;
+-    GST_ARGUS_PRINT("NvArgusCameraSrc: Setting Gain Range : %s\n", str);
++    GST_DEBUG_OBJECT(src, "NvArgusCameraSrc: Setting Gain Range : %s\n", str);
+   }
+   else if(prop_id == PROP_EXPOSURE_TIME_RANGE)
+   {
+     str = src->exposureTimeString;
+-    GST_ARGUS_PRINT("NvArgusCameraSrc: Setting Exposure Time Range : %s\n", str);
++    GST_DEBUG_OBJECT(src, "NvArgusCameraSrc: Setting Exposure Time Range : %s\n", str);
+   }
+   else if(prop_id == PROP_DIGITAL_GAIN_RANGE)
+   {
+     str = src->ispDigitalGainRangeString;
+-    GST_ARGUS_PRINT("NvArgusCameraSrc: Setting ISP Digital Gain Range : %s\n", str);
++    GST_DEBUG_OBJECT(src, "NvArgusCameraSrc: Setting ISP Digital Gain Range : %s\n", str);
+   }
+   else
+   {
+-    GST_ARGUS_PRINT("NvArgusCameraSrc: property not defined\n");
++    GST_ERROR_OBJECT(src, "NvArgusCameraSrc: property not defined\n");
+     return FALSE;
+   }
+ 
+@@ -1517,7 +1558,7 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+ 
+     if (index == 2)
+     {
+-      GST_ARGUS_PRINT ("Invalid Range Input\n");
++      GST_ERROR_OBJECT (src, "Invalid Range Input\n");
+       ret = FALSE;
+       goto done;
+     }
+@@ -1530,7 +1571,7 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+      if(prop_id == PROP_GAIN_RANGE)
+      {
+        if (array[0] < MIN_GAIN || array[1] > MAX_GAIN) {
+-         GST_ARGUS_PRINT("Invalid Gain Range Input\n");
++         GST_ERROR_OBJECT(src, "Invalid Gain Range Input\n");
+          ret = FALSE;
+          goto done;
+        }
+@@ -1541,7 +1582,7 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+      else if(prop_id == PROP_EXPOSURE_TIME_RANGE)
+      {
+        if (array[0] < MIN_EXPOSURE_TIME || array[1] > MAX_EXPOSURE_TIME) {
+-         GST_ARGUS_PRINT("Invalid Exposure Time Range Input\n");
++         GST_ERROR_OBJECT(src, "Invalid Exposure Time Range Input\n");
+          ret = FALSE;
+          goto done;
+        }
+@@ -1552,7 +1593,7 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+      else if(prop_id == PROP_DIGITAL_GAIN_RANGE)
+      {
+        if (array[0] < MIN_DIGITAL_GAIN || array[1] > MAX_DIGITAL_GAIN) {
+-         GST_ARGUS_PRINT("Invalid ISP Digital Gain Range Input\n");
++         GST_ERROR_OBJECT(src, "Invalid ISP Digital Gain Range Input\n");
+          ret = FALSE;
+          goto done;
+        }
+@@ -1562,13 +1603,13 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+      }
+      else
+      {
+-       GST_ARGUS_PRINT("NvArgusCameraSrc: property not defined\n");
++       GST_ERROR_OBJECT(src, "NvArgusCameraSrc: property not defined\n");
+        return FALSE;
+      }
+   }
+   else
+   {
+-    GST_ARGUS_PRINT ("Need two values to set range\n");
++    GST_ERROR_OBJECT (src, "Need two values to set range\n");
+     ret = FALSE;
+     goto done;
+   }
+diff --git a/gstnvarguscamerasrc.hpp b/gstnvarguscamerasrc.hpp
+index 799a522..8699b2f 100644
+--- a/gstnvarguscamerasrc.hpp
++++ b/gstnvarguscamerasrc.hpp
+@@ -35,6 +35,7 @@
+ #include "nvbuf_utils.h"
+ #include "gstnvarguscamera_utils.h"
+ #include "gstnvdsbufferpool.h"
++#include <atomic>
+ 
+ G_BEGIN_DECLS
+ 
+@@ -240,7 +241,7 @@ protected:
+     return true;
+   }
+ 
+-  Ordered<bool> m_doShutdown; ///< set to request shutdown of the thread
++  std::atomic_bool m_doShutdown; ///< set to request shutdown of the thread
+ 
+ private:
+   pthread_t m_threadID;       ///< thread ID
+@@ -256,7 +257,7 @@ private:
+     THREAD_FAILED,          ///< has failed
+     THREAD_DONE,            ///< execution done
+   };
+-  Ordered<ThreadState> m_threadState;
++  std::atomic<ThreadState> m_threadState;
+ 
+   bool threadFunction(GstNvArgusCameraSrc *);
+ 

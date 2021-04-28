@@ -1,0 +1,44 @@
+From e602df73389b55be8ff58a35f04d536782c9af01 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 27 Apr 2020 06:39:16 -0700
+Subject: [PATCH 2/2] kernel/thread.c: fix thread_timer_tick call signature
+
+to match the timer_callback type, which fixes compilation
+with gcc 8.  Modifications are in line with lk upstream.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ lk/common/include/kernel/thread.h | 3 ++-
+ lk/common/kernel/thread.c         | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/lk/common/include/kernel/thread.h b/lk/common/include/kernel/thread.h
+index e84f9af..b7807cd 100644
+--- a/lk/common/include/kernel/thread.h
++++ b/lk/common/include/kernel/thread.h
+@@ -148,7 +148,8 @@ void uthread_context_switch(thread_t *oldthread, thread_t *newthread);
+ #endif
+ 
+ /* called on every timer tick for the scheduler to do quantum expiration */
+-enum handler_return thread_timer_tick(void);
++struct timer;
++enum handler_return thread_timer_tick(struct timer *t, lk_time_t now, void *arg);
+ 
+ /* the current thread */
+ thread_t *get_current_thread(void);
+diff --git a/lk/common/kernel/thread.c b/lk/common/kernel/thread.c
+index 6f3d04a..4df7219 100644
+--- a/lk/common/kernel/thread.c
++++ b/lk/common/kernel/thread.c
+@@ -764,7 +764,7 @@ void thread_unblock(thread_t *t, bool resched)
+ 		thread_resched();
+ }
+ 
+-enum handler_return thread_timer_tick(void)
++enum handler_return thread_timer_tick(struct timer *t, lk_time_t now, void *arg)
+ {
+ 	thread_t *current_thread = get_current_thread();
+ 
+-- 
+2.20.1
+

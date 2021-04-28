@@ -5,7 +5,7 @@ COMPATIBLE_MACHINE = "(tegra186|tegra194)"
 
 DEPENDS = "tegra186-flashtools-native openssl-native arm-trusted-firmware trusty-l4t"
 
-inherit l4t_bsp deploy nopackages pythonnative
+inherit l4t_bsp deploy nopackages python3native
 
 PV = "${L4T_VERSION}"
 
@@ -20,7 +20,7 @@ TOS_SYMLINK ?= "tos-${MACHINE}.img"
 S = "${WORKDIR}/${BP}"
 
 do_compile() {
-    python ${STAGING_BINDIR_NATIVE}/tegra186-flash/gen_tos_part_img.py \
+    ${STAGING_BINDIR_NATIVE}/tegra186-flash/gen_tos_part_img.py \
         --monitor ${STAGING_DATADIR}/trusted-os/bl31.bin \
         --os ${STAGING_DATADIR}/trusted-os/lk.bin \
         ${TOSIMG}

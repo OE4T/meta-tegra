@@ -1,17 +1,17 @@
 L4T_BSP_NAME = "${L4T_SRCS_NAME}"
 SRC_URI = "${L4T_URI_BASE}/public_sources.tbz2;downloadfilename=${L4T_BSP_PREFIX}-public_sources-${L4T_VERSION}.tbz2"
-SRC_MD5SUM ="4bdd2e6a3c18f045efc5d3e6a32ae737"
-SRC_SHA256SUM = "96407421ac5084429573b9934f564b110c95c131b321ad5753839cbeb15b162d"
-SRC_MD5SUM_tegra210 = "778c2f4a7241f0859e6f71122cbe5fca"
-SRC_SHA256SUM_tegra210 = "201f8f55b6e02421d463b5dd17861e02027fe8a3939ee2a02fb2720f8e4446fd"
-SRC_URI[md5sum] = "${SRC_MD5SUM}"
+SRC_SHA256SUM = "6b3a4517657918ffe365320b22b2546789c5aeb5cd996b39442c975cabce2c1f"
+SRC_SHA256SUM_tegra210 = "dd2a264d532b9c0b632d1b2805c1225ded5cadc4fade6895778a10fa76ec24ec"
 SRC_URI[sha256sum] = "${SRC_SHA256SUM}"
 
 inherit l4t_bsp
 
 unpack_tar_in_tar() {
     cd ${WORKDIR}
-    tar -x -j -f ${SRC_ARCHIVE} ${TEGRA_SRC_SUBARCHIVE} --to-command="tar -x -j --no-same-owner -f-"
+    tar -x -j -f ${SRC_ARCHIVE} ${TEGRA_SRC_SUBARCHIVE} --to-command="tar -x -j --no-same-owner -f- ${TEGRA_SRC_SUBARCHIVE_OPTS}"
+    if [ -n "${TEGRA_SRC_EXTRA_SUBARCHIVE}" ]; then
+        tar -x -j -f ${SRC_ARCHIVE} ${TEGRA_SRC_EXTRA_SUBARCHIVE} --to-command="tar -x -j --no-same-owner -f- ${TEGRA_SRC_EXTRA_SUBARCHIVE_OPTS}"
+    fi
 }
 
 python do_unpack() {
@@ -26,9 +26,10 @@ python do_unpack() {
     except bb.fetch2.BBFetchException as e:
         raise bb.build.FuncFailed(e)
 
-    d.setVar('SRC_ARCHIVE', urldata.localpath)
-    bb.build.exec_func("unpack_tar_in_tar", d)
+    if urldata.localpath.endswith(".tbz2"):
+        d.setVar('SRC_ARCHIVE', urldata.localpath)
+        bb.build.exec_func("unpack_tar_in_tar", d)
 }
 
 COMPATIBLE_MACHINE = "tegra"
-PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH = "${L4T_BSP_PKGARCH}"
