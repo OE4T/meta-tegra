@@ -7,6 +7,8 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=73a5855a8119deb017f5f13cf327095d \
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstegl_src.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-32.4.3.inc
+FILESEXTRAPATHS .= ":${COREBASE}/meta/recipes-multimedia/gstreamer/files"
+require recipes-multimedia/gstreamer/gstreamer1.0-plugins.inc
 
 SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0002-fix-libtool-references.patch \
@@ -16,7 +18,7 @@ SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://make-wayland-configurable.patch \
 "
 
-DEPENDS = "gstreamer1.0 glib-2.0-native gstreamer1.0-plugins-base virtual/egl virtual/libgles2"
+DEPENDS += "gstreamer1.0-plugins-base virtual/egl virtual/libgles2"
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11 wayland', d)}"
 PACKAGECONFIG[x11] = "--with-x11 --with-egl-window-system=x11,--without-x11 --with-egl-window-system=auto,libx11 libxext"
@@ -26,17 +28,9 @@ EXTRA_OECONF = "--disable-gtk-doc --disable-examples"
 
 S = "${WORKDIR}/gstegl_src/gst-egl"
 
-inherit autotools gettext gobject-introspection pkgconfig container-runtime-csv
+inherit gettext container-runtime-csv
 
 CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/gstreamer-1.0/*.so*"
-
-delete_pkg_m4_file() {
-	# This m4 file is out of date and is missing PKG_CONFIG_SYSROOT_PATH tweaks which we need for introspection
-	rm "${S}/common/m4/pkg.m4" || true
-	rm -f "${S}/common/m4/gtk-doc.m4"
-}
-
-do_configure[prefuncs] += " delete_pkg_m4_file"
 
 do_configure_append() {
     rm -f ${S}/po/POTFILES.in
@@ -50,10 +44,6 @@ do_compile_prepend() {
 do_install_append() {
     sed -i -e's,${STAGING_INCDIR},${includedir},g' ${D}${libdir}/pkgconfig/gstreamer-egl-1.0.pc
 }
-
-
-PACKAGES_DYNAMIC = "^${PN}-.*"
-require recipes-multimedia/gstreamer/gstreamer1.0-plugins-packaging.inc
 
 python add_container_csv_dependency() {
     features = d.getVar('DISTRO_FEATURES').split()
