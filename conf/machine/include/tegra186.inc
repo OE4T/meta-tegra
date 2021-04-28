@@ -8,7 +8,7 @@ require conf/machine/include/arm/arch-armv8.inc
 KERNEL_IMAGETYPE = "Image"
 KERNEL_ARGS ?= "console=ttyS0,115200 console=tty0 fbcon=map:0 isolcpus=1-2"
 
-TEGRA_ESSENTIAL_EXTRA_RDEPENDS = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'kernel-image u-boot-extlinux'}"
+TEGRA_ESSENTIAL_EXTRA_RDEPENDS = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'kernel-image'}"
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 INITRAMFS_IMAGE_BUNDLE ?= "${@'1' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
