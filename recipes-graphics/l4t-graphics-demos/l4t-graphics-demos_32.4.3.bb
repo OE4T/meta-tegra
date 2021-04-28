@@ -8,7 +8,7 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS = "libglvnd libdrm"
 
-inherit pkgconfig features_check
+inherit pkgconfig
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11 wayland', d)}"
 PACKAGECONFIG[x11] = ",,libx11"

@@ -17,7 +17,7 @@ PROVIDES += "virtual/egl virtual/libgl virtual/libgles1 virtual/libgles2"
 
 DEPENDS = "l4t-nvidia-glheaders"
 
-inherit autotools pkgconfig features_check python3native
+inherit autotools pkgconfig python3native
 
 S = "${WORKDIR}/git"
 
