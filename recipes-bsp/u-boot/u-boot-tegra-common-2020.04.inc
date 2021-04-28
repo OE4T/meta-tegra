@@ -2,13 +2,12 @@
 LICENSE = "GPLv2+"
 DESCRIPTION = "U-Boot for Nvidia Tegra platforms, based on Nvidia sources"
 COMPATIBLE_MACHINE = "(tegra186|tegra210)"
-LIC_FILES_CHKSUM = "file://Licenses/README;md5=a2c678cfd4a4d97135585cad908541c6"
+LIC_FILES_CHKSUM = "file://Licenses/README;md5=30503fd321432fc713238f582193b78e"
 
-UBOOT_TEGRA_REPO ?= "github.com/madisongh/u-boot-tegra.git"
-SRCBRANCH ?= "patches-l4t-r32.3.1-v2016.07"
-SRC_URI = "git://${UBOOT_TEGRA_REPO};branch=${SRCBRANCH}"
-SRCREV = "565a18c42c8389916639f8225163942b559bb5f2"
-PV .= "+git${SRCPV}"
+SRC_REPO ?= "github.com/OE4T/u-boot-tegra.git;protocol=https"
+SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
+SRCBRANCH ?= "patches-v2020.04-l4t-r32.4.3"
+SRCREV = "f26880956be0147dd96e716c2ea034e223603776"
 
 S = "${WORKDIR}/git"
 

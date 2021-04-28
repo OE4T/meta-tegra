@@ -1,11 +1,3 @@
-UBOOT_BINARY ?= "u-boot-dtb.${UBOOT_SUFFIX}"
-
-require recipes-bsp/u-boot/u-boot.inc
-require u-boot-tegra-common-${PV}.inc
-
-PROVIDES += "u-boot"
-DEPENDS += "dtc-native bc-native ${SOC_FAMILY}-flashtools-native"
-
 inherit image_types_tegra
 
 UBOOT_BOOTIMG_BOARD ?= "/dev/mmcblk0p1"
@@ -44,15 +36,16 @@ uboot_make_bootimg() {
     fi
 }
 
-do_compile_append() {
+do_compile_append_tegra() {
     uboot_make_bootimg
 }
 
-do_install_append() {
-    if [ -n "${INITRAMFS_IMAGE}" -a "${TEGRA_INITRAMFS_INITRD}" = "1" ]; then
+do_install_append_tegra() {
+    if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
         install -m 0644 ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz ${D}/boot/initrd
     fi
 }
-do_install[depends] += "${@'${INITRAMFS_IMAGE}:do_image_complete' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('TEGRA_INITRAMFS_INITRD') == '1' else ''}"
 
-RPROVIDES_${PN} += "u-boot"
+EXTRADOINSTDEPS = ""
+EXTRADOINSTDEPS_tegra = "${@'${INITRAMFS_IMAGE}:do_image_complete' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1' else ''}"
+do_install[depends] += "${EXTRADOINSTDEPS}"
