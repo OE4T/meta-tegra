@@ -19,7 +19,7 @@ SRC_URI += "\
 S = "${WORKDIR}/nvgstapps_src"
 B = "${WORKDIR}/build"
 
-inherit pkgconfig features_check
+inherit pkgconfig
 
 REQUIRED_DISTRO_FEATURES = "x11"
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'alsa', d)}"
