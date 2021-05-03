@@ -3,10 +3,10 @@ HOMEPAGE = "https://github.com/OE4T/tegra-boot-tools"
 LICENSE = "MIT & BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE;md5=7a9217de7f233011b127382da9a035a1"
 
-DEPENDS = "zlib systemd tegra-eeprom-tool"
+DEPENDS = "zlib util-linux systemd tegra-eeprom-tool"
 
 SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
-SRC_URI[sha256sum] = "c77a1d5e1d2b77022581e32e2a79cd1fe2d158e0ca4ade332e482e92e0b544f7"
+SRC_URI[sha256sum] = "80e2d97a679253849d0c9e2b9063d694cf7fa4343f90db18eb9d6997f5371c77"
 
 OTABOOTDEV ??= "/dev/mmcblk0boot0"
 OTAGPTDEV ??= "/dev/mmcblk0boot1"
