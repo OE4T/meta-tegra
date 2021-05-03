@@ -1,15 +1,16 @@
-From 6edf320b9798992a0659e223d76401ac72751db4 Mon Sep 17 00:00:00 2001
+From e6a1e7e77d4b40afe0eacfdc96080951b74347a6 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 3 May 2021 07:20:13 -0700
 Subject: [PATCH] Fix missing t186 boot partitions in l4t_bup_gen.func
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
- bootloader/l4t_bup_gen.func | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ bootloader/l4t_bup_gen.func | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
 diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
-index a2c5c84..a429fd2 100644
+index a2c5c84..60c9bde 100644
 --- a/bootloader/l4t_bup_gen.func
 +++ b/bootloader/l4t_bup_gen.func
 @@ -197,7 +197,10 @@ _generate_bl_update_payload()
@@ -20,6 +21,16 @@ index a2c5c84..a429fd2 100644
 +				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
 +				"${signed_dir}"/dram-ecc_sigheader.bin.${signed_ext} dram-ecc-fw 2 0 $_common_spec; \
 +				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
++				bmp.blob BMP 2 0 $_common_spec;"
+ 		ENTRY_LIST[kernel]=""${signed_dir}"/${kernel_image_base}_sigheader.img.${signed_ext} kernel 2 0 $_common_spec;"
+ 
+ 		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
+@@ -240,7 +243,8 @@ _generate_bl_update_payload()
+ 				"${signed_dir}"/bpmp_t194_sigheader.bin.${signed_ext} bpmp-fw 2 0 $_common_spec; \
+ 				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
+ 				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
+-				"${signed_dir}"/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw 2 0 $_common_spec;"
++				"${signed_dir}"/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw 2 0 $_common_spec; \
 +				bmp.blob BMP 2 0 $_common_spec;"
  		ENTRY_LIST[kernel]=""${signed_dir}"/${kernel_image_base}_sigheader.img.${signed_ext} kernel 2 0 $_common_spec;"
  
