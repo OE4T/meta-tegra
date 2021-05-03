@@ -1,12 +1,12 @@
 DESCRIPTION = "Boot-related tools for Tegra platforms"
 HOMEPAGE = "https://github.com/OE4T/tegra-boot-tools"
 LICENSE = "MIT & BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=f547d56278324f08919c3805e5fb8df9"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=7a9217de7f233011b127382da9a035a1"
 
-DEPENDS = "zlib systemd tegra-eeprom-tool"
+DEPENDS = "zlib util-linux systemd tegra-eeprom-tool"
 
 SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
-SRC_URI[sha256sum] = "0aa2c985015aed6dfa2051d6fd75051562be7e906698d4dc418703ac4d544243"
+SRC_URI[sha256sum] = "80e2d97a679253849d0c9e2b9063d694cf7fa4343f90db18eb9d6997f5371c77"
 
 OTABOOTDEV ??= "/dev/mmcblk0boot0"
 OTAGPTDEV ??= "/dev/mmcblk0boot1"
