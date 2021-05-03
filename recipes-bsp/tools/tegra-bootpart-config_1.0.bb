@@ -6,21 +6,26 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS = "tegra-bootfiles tegra-helper-scripts-native"
 
-PATH =. "${STAGING_BINDIR_NATIVE}/tegra210-flash:"
+FLASHTOOLS_PATH = "${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash"
+FLASHTOOLS_PATH_tegra194 = "${STAGING_BINDIR_NATIVE}/tegra186-flash"
+PATH =. "${FLASHTOOLS_PATH}:"
 
 BOOTDEVNAME = "${@'spi' if d.getVar('TEGRA_SPIFLASH_BOOT') == '1' else 'sdmmc_boot'}"
+BOOTDEVNAME_xavier-nx = "spi"
+
+inherit image_types_tegra
 
 S = "${WORKDIR}"
 B = "${WORKDIR}/build"
 
-do_compile() {
-    :
+do_configure() {
+    rm -f ${B}/flash.xml.in
+    tegraflash_create_flash_config ${B} "dummy"
 }
 
-do_compile_tegra210() {
-    nvflashxmlparse -t ${BOOTDEVNAME} ${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} > ${B}/layout.tmp
-    sed -e 's,NXC,NVC,g' -e's,TXC,TBC,g' -e's,WX0,WB0,g' -e 's,BXF,BPF,g' \
-        -e 's,TXS,TOS,g' -e's,DXB,DTB,g' -e's,EXS,EKS,g' ${B}/layout.tmp > ${B}/layout.txt
+do_compile() {
+    rm -f ${B}/layout.tmp
+    nvflashxmlparse -t ${BOOTDEVNAME} ${B}/flash.xml.in > ${B}/layout.tmp
     cursize=0
     rm -f ${B}/layout.conf
     touch ${B}/layout.conf
@@ -35,13 +40,10 @@ do_compile_tegra210() {
         partbytes=$(expr $partsize \* $blksize)
         echo "$partname:$cursize:$partbytes" >> ${B}/layout.conf
         cursize=$(expr $cursize \+ $partbytes)
-    done < ${B}/layout.txt
+    done < ${B}/layout.tmp
 }
 
 do_install() {
-    :
-}
-do_install_tegra210() {
     install -d ${D}${datadir}/tegra-boot-tools
     install -m 0644 ${B}/layout.conf ${D}${datadir}/tegra-boot-tools/boot-partitions.conf
 }
