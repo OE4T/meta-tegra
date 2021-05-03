@@ -1,17 +1,18 @@
-From 6edf320b9798992a0659e223d76401ac72751db4 Mon Sep 17 00:00:00 2001
+From 01eb1bc22bfae83e6f3bf1313d5c6c3a4bd74270 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 3 May 2021 07:20:13 -0700
 Subject: [PATCH] Fix missing t186 boot partitions in l4t_bup_gen.func
 
 Signed-off-by: Matt Madison <matt@madison.systems>
----
- bootloader/l4t_bup_gen.func | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
-===================================================================
---- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
-+++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
+---
+ bootloader/l4t_bup_gen.func | 28 +++++++++++++++++++++++-----
+ 1 file changed, 23 insertions(+), 5 deletions(-)
+
+diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
+index 82cf6e3..e70b16e 100644
+--- a/bootloader/l4t_bup_gen.func
++++ b/bootloader/l4t_bup_gen.func
 @@ -195,7 +195,13 @@ _generate_bl_update_payload()
  				"${signed_dir}"/cboot_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
  				"${signed_dir}"/nvtboot_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
@@ -39,14 +40,25 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
  		ENTRY_LIST[kernel]=""${kernel_signed_dir}"/${kernel_image_base}_sigheader.img.${kernel_signed_ext} kernel 2 0 $_common_spec;"
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
-@@ -271,8 +280,8 @@ _generate_bl_update_payload()
+@@ -270,9 +279,18 @@ _generate_bl_update_payload()
+ 		_add_multi_bins "VER" "$(ls multi_signed/*/*_bootblob_ver.txt)"
  		_add_multi_bins "mb1" "$(ls multi_signed/*/mb1_t194*_sigheader.bin.${signed_ext})"
  		_add_multi_bins "BCT" "$(ls multi_signed/*/br_bct*.bct)"
- 		_add_multi_bins "MB1_BCT" \
+-		_add_multi_bins "MB1_BCT" \
 -			"$(ls multi_signed/*/mb1_cold_boot*.bct.${signed_ext})"
 -		_add_multi_bins "MEM_BCT" "$(ls multi_signed/*/mem_coldboot*.bct.${signed_ext})"
-+			"$(ls multi_signed/*/mb1_cold_boot*.bct_sigheader.${signed_ext})"
-+		_add_multi_bins "MEM_BCT" "$(ls multi_signed/*/mem_coldboot*.bct.signed)"
++
++		if [ "${signed_ext}" == "encrypt.signed" ]; then
++			_add_multi_bins "MB1_BCT" \
++				"$(ls multi_signed/*/mb1_cold_boot*.bct_sigheader.${signed_ext})"
++			_add_multi_bins "MEM_BCT" \
++				"$(ls multi_signed/*/mem_coldboot*.bct.signed)"
++		else
++			_add_multi_bins "MB1_BCT" \
++				"$(ls multi_signed/*/mb1_cold_boot*.bct.${signed_ext})"
++			_add_multi_bins "MEM_BCT" \
++				"$(ls multi_signed/*/mem_coldboot*.bct.${signed_ext})"
++		fi
  		# xusb-fw: not oem signed
  		ENTRY_LIST[xusb]+=""${signed_dir}"/${xusb_fw} xusb-fw 2 0 $_common_spec;"
  
