@@ -226,7 +226,7 @@ tegraflash_create_flash_config_tegra186() {
         -e"s,WB0TYPE,WB0," -e"s,WB0FILE,warmboot.bin," -e"s,SC7NAME,sc7," \
         -e"s,TOSFILE,${TOSIMGFILENAME}," -e"s,TOSNAME,secure-os," \
         -e"s,EKSFILE,eks.img," \
-        -e"s,FBTYPE,data," -e"s,FBSIGN,false," -e"/FBFILE/d" \
+        -e"s,FBNAME,fusebypass," -e"s,FBTYPE,data," -e"s,FBSIGN,false," -e"/FBFILE/d" \
         -e"s,KERNELDTB-NAME,kernel-dtb," \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
