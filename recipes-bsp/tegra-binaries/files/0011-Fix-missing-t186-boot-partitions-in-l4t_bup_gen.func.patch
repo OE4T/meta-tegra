@@ -1,0 +1,42 @@
+From e6a1e7e77d4b40afe0eacfdc96080951b74347a6 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 3 May 2021 07:20:13 -0700
+Subject: [PATCH] Fix missing t186 boot partitions in l4t_bup_gen.func
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+
+---
+ bootloader/l4t_bup_gen.func | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
+===================================================================
+--- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
++++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
+@@ -195,7 +195,12 @@ _generate_bl_update_payload()
+ 				"${signed_dir}"/cboot_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
+ 				"${signed_dir}"/nvtboot_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
+ 				"${signed_dir}"/spe_sigheader.bin.${signed_ext} spe-fw 2 0 $_common_spec; \
+-				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec;"
++ 				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
++ 				"${signed_dir}"/badpage_sigheader.bin.${signed_ext} badpage-fw 2 0 $_common_spec; \
++				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
++				"${signed_dir}"/dram-ecc_sigheader.bin.${signed_ext} dram-ecc-fw 2 0 $_common_spec; \
++				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
++				bmp.blob BMP 2 0 $_common_spec;"
+ 		ENTRY_LIST[kernel]=""${kernel_signed_dir}"/${kernel_image_base}_sigheader.img.${kernel_signed_ext} kernel 2 0 $_common_spec;"
+ 
+ 		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
+@@ -235,8 +240,11 @@ _generate_bl_update_payload()
+ 				"${signed_dir}"/nvtboot_t194_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
+ 				"${signed_dir}"/cboot_t194_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
+ 				"${signed_dir}"/tos-trusty_t194_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
++ 				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
++ 				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
+ 				"${signed_dir}"/bpmp_t194_sigheader.bin.${signed_ext} bpmp-fw 2 0 $_common_spec; \
+-				"${signed_dir}"/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw 2 0 $_common_spec;"
++				"${signed_dir}"/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw 2 0 $_common_spec; \
++				bmp.blob BMP 2 0 $_common_spec;"
+ 		ENTRY_LIST[kernel]=""${kernel_signed_dir}"/${kernel_image_base}_sigheader.img.${kernel_signed_ext} kernel 2 0 $_common_spec;"
+ 
+ 		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
