@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=7a9217de7f233011b127382da9a035a1"
 DEPENDS = "zlib util-linux-libuuid systemd tegra-eeprom-tool"
 
 SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
-SRC_URI[sha256sum] = "80e2d97a679253849d0c9e2b9063d694cf7fa4343f90db18eb9d6997f5371c77"
+SRC_URI[sha256sum] = "3fd95f2f2d886f75b3ffaee0ac6e0e74c31d6c04fcdb7cdaac9f774150edcd46"
 
 OTABOOTDEV ??= "/dev/mmcblk0boot0"
 OTAGPTDEV ??= "/dev/mmcblk0boot1"
@@ -34,10 +34,9 @@ RDEPENDS_${PN}-earlyboot = "${PN}"
 RDEPENDS_${PN}-lateboot = "${PN}"
 
 FILES_${PN}-updater = "${bindir}/tegra-bootloader-update"
-RDEPENDS_${PN}-updater = "${PN}"
+RDEPENDS_${PN}-updater = "${PN} tegra-bootpart-config"
 
 FILES_${PN} += "${libdir}/tmpfiles.d"
-RDEPENDS_${PN} = "tegra-bootpart-config"
 
 FILES_${PN}-nvbootctrl = "${sbindir}/nvbootctrl"
 RDEPENDS_${PN}-nvbootctrl = "${PN}"
