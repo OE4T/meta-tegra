@@ -12,6 +12,7 @@ PATH =. "${FLASHTOOLS_PATH}:"
 
 BOOTDEVNAME = "${@'spi' if d.getVar('TEGRA_SPIFLASH_BOOT') == '1' else 'sdmmc_boot'}"
 BOOTDEVNAME_xavier-nx = "spi"
+USERDEVNAME = "${@'sdcard' if d.getVar('TEGRA_SPIFLASH_BOOT') == '1' else 'sdmmc_user'}"
 
 inherit image_types_tegra
 
@@ -29,6 +30,7 @@ do_compile() {
     cursize=0
     rm -f ${B}/layout.conf
     touch ${B}/layout.conf
+    ALLPARTS=""
     while read line; do
         eval "$line"
 	if [ -n "$start_location" ]; then
@@ -40,15 +42,24 @@ do_compile() {
         partbytes=$(expr $partsize \* $blksize)
         echo "$partname:$cursize:$partbytes" >> ${B}/layout.conf
         cursize=$(expr $cursize \+ $partbytes)
+        [ -z "$ALLPARTS" ] || ALLPARTS="${ALLPARTS},"
+        ALLPARTS="${ALLPARTS}$partname"
     done < ${B}/layout.tmp
+    rm -f ${B}/userlayout.tmp
+    nvflashxmlparse -t ${USERDEVNAME} ${B}/flash.xml.in > ${B}/userlayout.tmp
+    while read line; do
+        eval "$line"
+        [ -z "$ALLPARTS" ] || ALLPARTS="${ALLPARTS},"
+        ALLPARTS="${ALLPARTS}$partname"
+    done < ${B}/userlayout.tmp
+    echo "$ALLPARTS" > ${B}/all-partitions.conf
 }
 
 do_install() {
     install -d ${D}${datadir}/tegra-boot-tools
     install -m 0644 ${B}/layout.conf ${D}${datadir}/tegra-boot-tools/boot-partitions.conf
+    install -m 0644 ${B}/all-partitions.conf ${D}${datadir}/tegra-boot-tools/
 }
 
 FILES_${PN} = "${datadir}/tegra-boot-tools"
-ALLOW_EMPTY_${PN} = "1"
-ALLOW_EMPTY_${PN}_tegra210 = "0"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
