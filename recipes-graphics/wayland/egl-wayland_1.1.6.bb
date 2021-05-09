@@ -9,6 +9,7 @@ SRC_URI = "git://github.com/NVIDIA/egl-wayland"
 SRCREV = "1b0f2b8dd906c82d20de45974f81295fda9f2bd0"
 SRC_URI += " \
     file://0001-Fix-wayland-eglstream-protocols-pc-file.patch \
+    file://0002-set-wl_eglstream-fd-to-1-after-closing.patch \
     file://nvidia_wayland.json \
 "
 
