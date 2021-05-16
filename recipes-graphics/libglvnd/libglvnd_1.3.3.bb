@@ -7,6 +7,7 @@ SRC_REPO = "gitlab.freedesktop.org/glvnd/libglvnd.git;protocol=https"
 SRC_URI = "git://${SRC_REPO} \
     file://0001-Add-EGL-and-GLES2-extensions-for-Tegra.patch \
     file://0002-Make-Wayland-support-configurable.patch \
+    file://0003-Fix-tests-meson.build-syntax-error.patch \
     "
 SRCREV = "0f0d49f0f3707f26f68bc44f4cd83144f5f4de86"
 
