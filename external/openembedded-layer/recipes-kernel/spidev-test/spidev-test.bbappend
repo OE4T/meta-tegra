@@ -1,11 +1,5 @@
-def no_install_tools(d):
-    kver = d.getVar('KERNEL_VERSION').split('.')
-    return "true" if int(kver[0]) < 4 or (int(kver[0]) == 4 and int(kver[1]) < 14) else "false"
-
-NEED_OLD_INSTALL = "${@no_install_tools(d)}"
-
 do_install_tegra() {
-    if ${NEED_OLD_INSTALL}; then
+    if egrep -q '^([23]\.|4\.([0-9]|1[0-3])\.)' ${STAGING_KERNEL_BUILDDIR}/kernel-abiversion; then
 	install -d ${D}${bindir}
 	install -m 0755 ${S}/tools/spi/spidev_test ${S}/tools/spi/spidev_fdx ${D}${bindir}/
     else
