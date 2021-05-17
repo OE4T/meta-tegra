@@ -1,0 +1,33 @@
+From 24e5b4008d60577b818edf6074da096d01e76c60 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 17 May 2021 13:08:13 -0700
+Subject: [PATCH] Do not overwrite CMAKE_CXX_FLAGS
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+
+---
+ python/CMakeLists.txt | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/python/CMakeLists.txt b/python/CMakeLists.txt
+index 6dd33b8..a873743 100644
+--- a/python/CMakeLists.txt
++++ b/python/CMakeLists.txt
+@@ -38,8 +38,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tensorrt/)
+ set(CMAKE_CXX_STANDARD 11)
+ # pybind11 defaults to c++14.
+ set(PYBIND11_CPP_STANDARD -std=c++11)
+-# This allows us to use TRT libs shipped with the wheel.
+-set(CMAKE_SHARED_LINKER_FLAGS -Wl,-rpath=$ORIGIN)
+ # Bindings library. The module name MUST MATCH the module name specified in python/src/pyTensorRT.cpp
+ set(PY_MODULE_NAME tensorrt)
+ 
+@@ -83,7 +81,7 @@ include_directories(${TENSORRT_ROOT}/include
+ # And lib directories.
+ link_directories(${TENSORRT_BUILD})
+ # Enable link-time optimizations
+-set(CMAKE_CXX_FLAGS "-fvisibility=hidden -std=c++11 -flto -fno-fat-lto-objects -Wno-deprecated-declarations")
++set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -std=c++11 -flto -fno-fat-lto-objects -Wno-deprecated-declarations")
+ 
+ # -------- START BUILD PROCESS --------
+ 
