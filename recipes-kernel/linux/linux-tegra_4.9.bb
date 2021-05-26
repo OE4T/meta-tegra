@@ -25,6 +25,7 @@ KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
            ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
            ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
+           ${@bb.utils.contains('DISTRO_FEATURES', 'kvm', 'file://kvm.cfg', '', d)} \
 "
 
 PATH_prepend = "${STAGING_BINDIR_NATIVE}/kern-tools-tegra:"
