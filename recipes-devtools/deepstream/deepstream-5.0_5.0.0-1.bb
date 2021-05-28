@@ -32,6 +32,8 @@ do_install() {
         [ ! -d "$f" ] || continue
         install -m 0644 "$f" ${D}${DEEPSTREAM_PATH}/lib/
     done
+    ln -sf libnvds_msgconv.so.1.0.0 ${D}${DEEPSTREAM_PATH}/lib/libnvds_msgconv.so
+    ln -sf libnvvpi.so.0.3.0 ${D}${DEEPSTREAM_PATH}/lib/libnvvpi.so.0
     
     install -d ${D}${DEEPSTREAM_PATH}/lib/tensorflow
     cp --preserve=mode,timestamps,links --no-dereference ${S}${DEEPSTREAM_PATH}/lib/tensorflow/* ${D}${DEEPSTREAM_PATH}/lib/tensorflow
@@ -55,7 +57,7 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
 RDEPENDS_${PN} = "glib-2.0 gstreamer1.0 libgstvideo-1.0 libgstrtspserver-1.0 libgstapp-1.0 json-glib \
-	          libvisionworks"
+	          libvisionworks libvisionworks-devso-symlink cuda-cufft"
 RDEPENDS_${PN}-samples = "bash json-glib"
 RDEPENDS_${PN}-sources = "bash"
 
