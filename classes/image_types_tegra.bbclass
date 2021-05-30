@@ -59,7 +59,14 @@ TEGRA_SPIFLASH_BOOT ??= ""
 TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD ??=""
 
 CBOOTFILENAME = "cboot.bin"
+CBOOTIMGNAME = "cboot-${MACHINE}.bin"
 CBOOTFILENAME_tegra194 = "cboot_t194.bin"
+CBOOTFILENAME_tegra194_uefi = "uefi_jetson.bin"
+CBOOTIMGNAME_tegra194_uefi = "uefi_jetson-${MACHINE}.bin"
+VARSTOREFILENAME = ""
+VARSTOREIMGNAME = ""
+VARSTOREFILENAME_tegra194_uefi-acpi = "uefi_jetson_variables.bin"
+VARSTOREIMGNAME_tegra194_uefi-acpi = "uefi_jetson_variables-${MACHINE}.bin"
 TOSIMGFILENAME = "tos-trusty.img"
 TOSIMGFILENAME_tegra194 = "tos-trusty_t194.img"
 TOSIMGFILENAME_tegra210 = "tos-mon-only.img"
@@ -243,6 +250,11 @@ tegraflash_create_flash_config_tegra194() {
     local destdir="$1"
     local lnxfile="$2"
 
+    if [ -n "${VARSTOREFILENAME}" ]; then
+       varstoretag="-e s/VARSTORE_FILE/${VARSTOREFILENAME}/"
+    else
+	varstoretag="-e /VARSTORE_FILE/d"
+    fi
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra194-specific.
     # Note that the blank before DTB_FILE is important, to
@@ -268,7 +280,7 @@ tegraflash_create_flash_config_tegra194() {
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
-        -e"s,APPUUID,," \
+        -e"s,APPUUID,," $varstoretag \
         > $destdir/flash.xml.in
 }
 
@@ -356,7 +368,7 @@ create_tegraflash_pkg_tegra210() {
             fdtput -d ./$dtbf /chosen bootargs
         fi
     done
-    cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/${CBOOTIMGNAME}" ./${CBOOTFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
@@ -422,7 +434,7 @@ create_tegraflash_pkg_tegra186() {
     elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
         fdtput -d ./${DTBFILE} /chosen bootargs
     fi
-    cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/${CBOOTIMGNAME}" ./${CBOOTFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
@@ -504,7 +516,10 @@ create_tegraflash_pkg_tegra194() {
     elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
         fdtput -d ./${DTBFILE} /chosen bootargs
     fi
-    cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
+    cp "${DEPLOY_DIR_IMAGE}/${CBOOTIMGNAME}" ./${CBOOTFILENAME}
+    if [ -n "${VARSTOREFILENAME}" ]; then
+        cp "${DEPLOY_DIR_IMAGE}/${VARSTOREIMGNAME}" ./${VARSTOREFILENAME}
+    fi
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
@@ -612,6 +627,9 @@ EOF
     chmod +x $outfile
 }
 
+CBOOTDEP = "cboot"
+CBOOTDEP_tegra194_uefi = "jetson-uefi"
+
 IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
 TEGRAFLASH_PKG_DEPENDS = "${@'zip-native:do_populate_sysroot' if d.getVar('TEGRAFLASH_PACKAGE_FORMAT') == 'zip' else '${CONVERSION_DEPENDS_gz}:do_populate_sysroot'}"
 do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populate_sysroot coreutils-native:do_populate_sysroot \
@@ -620,7 +638,7 @@ do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populat
                                  tegra-redundant-boot-rollback:do_populate_sysroot virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''} \
-                                 cboot:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
+                                 ${CBOOTDEP}:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
 IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 
 oe_make_bup_payload() {
@@ -653,7 +671,7 @@ oe_make_bup_payload() {
             fdtput -d ./$dtbf /chosen bootargs
         fi
     done
-    cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./$cbootfilename
+    cp "${DEPLOY_DIR_IMAGE}/${CBOOTIMGNAME}" ./$cbootfilename
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./$tosimgfilename
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
