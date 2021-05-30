@@ -2,14 +2,18 @@ LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=2cc00be68c1227a7c42ff3620ef75d05 \
                     file://nv_tegra/LICENSE.brcm_patchram_plus;md5=38fb07f0dacf4830bc57f40a0fb7532e"
 
+UEFI_SRC_URI = ""
+UEFI_SRC_URI_tegra194 = "https://developer.download.nvidia.com/assets/embedded/downloads/nvidia-l4t-jetson-uefi-R32.4.4-20210316074928.tbz2;name=uefi"
 SRC_URI = "${L4T_URI_BASE}/${L4T_BSP_PREFIX}_Linux_R${PV}_aarch64.tbz2;name=l4t \
-	   ${L4T_URI_BASE}/secureboot_R${PV}_aarch64.tbz2;downloadfilename=${L4T_BSP_PREFIX}_secureboot_${PV}.tbz2;name=sb"
+           ${L4T_URI_BASE}/secureboot_R${PV}_aarch64.tbz2;downloadfilename=${L4T_BSP_PREFIX}_secureboot_${PV}.tbz2;name=sb \
+           ${UEFI_SRC_URI}"
 L4T_SHA256SUM = "3d0dccd05159261a32229ddcb6f85fea7bad70dcad97300dbb86e234cae5edf6"
 L4T_SHA256SUM_tegra210 = "ce1cc0e4771454c668da526f8d862d0058c42f2fbaab1d8cafb2f28385b288ad"
 SRC_URI[l4t.sha256sum] = "${L4T_SHA256SUM}"
 SB_SHA256SUM = "4cbc2f7d05bc5bbeebe0026f61a9791d43b3a8be91cd2e751d014754d782d282"
 SB_SHA256SUM_tegra210 = "396a0ed1f847565077edaec0859b6ff94305193c4f5a8c358712fce2f198c06c"
 SRC_URI[sb.sha256sum] = "${SB_SHA256SUM}"
+SRC_URI[uefi.sha256sum] = "6091ee34754545dd4a6448ae14277367303eecfa6cbfa5cdd27bc1012afe3805"
 
 inherit l4t_bsp
 
