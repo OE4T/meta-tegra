@@ -33,9 +33,11 @@ do_deploy() {
 	done
     fi
 }
+CBOOTDEP = "cboot"
+CBOOTDEP_tegra194_uefi = "jetson-uefi"
 do_deploy[depends] += "virtual/kernel:do_deploy ${SOC_FAMILY}-flashtools-native:do_populate_sysroot dtc-native:do_populate_sysroot"
 do_deploy[depends] += "tegra-redundant-boot-rollback:do_populate_sysroot tegra-bootfiles:do_populate_sysroot"
-do_deploy[depends] += "coreutils-native:do_populate_sysroot cboot:do_deploy virtual/secure-os:do_deploy"
+do_deploy[depends] += "coreutils-native:do_populate_sysroot ${CBOOTDEP}:do_deploy virtual/secure-os:do_deploy"
 addtask deploy before do_build
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
