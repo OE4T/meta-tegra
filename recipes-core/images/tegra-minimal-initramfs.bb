@@ -2,11 +2,12 @@ DESCRIPTION = "Minimal initramfs image for Tegra platforms"
 LICENSE = "MIT"
 
 TEGRA_INITRD_INSTALL ??= ""
+TEGRA_INITRD_FIRMARE ??= "tegra-firmware-xusb"
 
 TEGRA_INITRD_BASEUTILS ?= "busybox"
 
 PACKAGE_INSTALL = "\
-    tegra-firmware-xusb \
+    ${TEGRA_INITRD_FIRMWARE} \
     tegra-minimal-init \
     ${TEGRA_INITRD_BASEUTILS} \
     ${ROOTFS_BOOTSTRAP_INSTALL} \
