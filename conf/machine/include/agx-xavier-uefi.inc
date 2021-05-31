@@ -1,4 +1,4 @@
-SERIAL_CONSOLES ?= "115200;ttyS0"
+SERIAL_CONSOLES ?= "115200;ttyTCU0"
 
 PREFERRED_PROVIDER_virtual/bootloader ?= "jetson-uefi-prebuilt"
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-tegra-upstream"
@@ -10,7 +10,7 @@ KERNEL_MODULE_AUTOLOAD = ""
 
 KERNEL_ROOTSPEC ?= ""
 KERNEL_DEVICETREE ?= "nvidia/tegra194-p2972-0000.dtb"
-KERNEL_ARGS ?= "earlycon=uart8250,mmio32,0x3110000 console=ttyS0,115200n8 fbcon=map:0 ${KERNEL_ROOTSPEC}"
+KERNEL_ARGS ?= "earlycon=uart8250,mmio32,0x3110000 console=ttyTCU0,115200n8 console=tty0 fbcon=map:0 ${KERNEL_ROOTSPEC}"
 
 EMMC_SIZE ?= "31276924928"
 EMMC_DEVSECT_SIZE ?= "512"
