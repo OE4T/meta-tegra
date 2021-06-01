@@ -2,5 +2,8 @@
 Name=usb* rndis*
 Type=gadget
 
+[Link]
+RequiredForOnline=no
+
 [Network]
 Bridge=l4tbr0
