@@ -6,9 +6,14 @@ Address=192.168.55.1/24
 DHCPServer=yes
 
 [DHCPServer]
-PoolOffset=99
+PoolOffset=100
 PoolSize=1
-DefaultLeaseTime=900
+DefaultLeaseTimeSec=900
+EmitTimezone=no
+EmitDNS=no
+EmitNTP=no
+EmitSIP=no
+EmitRouter=no
 
 [Route]
 Gateway=192.168.55.100
