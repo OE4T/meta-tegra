@@ -11,7 +11,7 @@ do_install_append_tegra() {
     install -d ${D}${sysconfdir}/systemd/system/weston.service.d
     install -m 0644 ${WORKDIR}/weston-tegra-overrides.conf ${D}${sysconfdir}/systemd/system/weston.service.d/
     install -d ${D}${bindir}
-    if [ -n "${XWAYLAND_SUPPORT}" ]; then
+    if [ -z "${XWAYLAND_SUPPORT}" ]; then
         install -m 0755 ${WORKDIR}/xwayland-tegra-start.sh ${D}${bindir}/xwayland-tegra-start
     fi
     sed -i -e's,@XWAYLAND@,${XWAYLAND_SUPPORT},' ${D}${sysconfdir}/xdg/weston/weston.ini

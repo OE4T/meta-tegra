@@ -1,2 +1,2 @@
 #!/bin/sh
-exec /usr/bin/Xwayland -eglstream
+exec /usr/bin/Xwayland -eglstream "$@"
