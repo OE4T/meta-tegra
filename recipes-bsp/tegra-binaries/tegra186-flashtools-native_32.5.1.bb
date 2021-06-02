@@ -20,6 +20,7 @@ SRC_URI += "\
            file://0009-Remove-xxd-dependency-from-l4t_sign_image.sh.patch \
            file://0010-Rework-logging-in-l4t_sign_image.sh.patch \
            file://0011-Fix-missing-t186-boot-partitions-in-l4t_bup_gen.func.patch \
+           file://0012-BMP_generator_L4T.py-to-Python3.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
