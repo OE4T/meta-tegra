@@ -30,15 +30,19 @@ def validate_guid(guid):
     return guid
 
 class Partition(object):
-    def __init__(self, element, sector_size):
+    def __init__(self, element, sector_size, bootdev=False):
         self.name = element.get('name')
         self.id = element.get('id')
         self.type = element.get('type')
         self.oem_sign = element.get('oemsign', 'false') == 'true'
         guid = element.find('unique_guid')
         self.partguid = "" if guid is None else validate_guid(guid.text.strip())
+        alignment = element.find('align_boundary')
+        self.alignment = "" if alignment is None else str(int(alignment.text.strip(), base=0))
         startloc = element.find('start_location')
         self.start_location = "" if startloc is None else str(int(startloc.text.strip(), base=0))
+        if self.start_location and not bootdev:
+            self.start_location = str((int(self.start_location) + sector_size - 1) // sector_size)
         aa = element.find('allocation_attribute')
         if aa is None:
             self.alloc_attr = 0
@@ -62,16 +66,49 @@ class Partition(object):
         return (self.alloc_attr & 0x800) == 0x800
     def is_partition_table(self):
         return self.type in ['GP1', 'GPT', 'protective_master_boot_record', 'primary_gpt', 'secondary_gpt']
+    def update_start_location(self, cursize, sector_size):
+        default_start = cursize * sector_size
+        if self.alignment:
+            alignment = int(self.alignment)
+            default_start = alignment * ((default_start + alignment - 1) // alignment)
+        # If there's a start location specified in the XML, use it,
+        # but check to make sure it's an offset at or after the current size.
+        # If there's no start location specified, set it.
+        if self.start_location:
+            if int(self.start_location) < default_start // sector_size:
+                raise RuntimeError("partition {} has invalid start location setting".format(self.name))
+        else:
+            self.start_location = str(default_start // sector_size)
 
 class Device(object):
-    def __init__(self, element):
+    def __init__(self, element, devcount):
         self.type = element.get('type')
         self.instance = element.get('instance')
         self.sector_size = int(element.get('sector_size', '512'), 0)
         self.num_sectors = int(element.get('num_sectors', '0'), 0)
         self.partitions = []
+        self.is_boot_device = self.type in ['sdmmc_boot', 'spi'] or (self.type == 'sdmmc' and devcount == 0)
         for partnode in element.findall('./partition'):
-            self.partitions.append(Partition(partnode, self.sector_size))
+            part = Partition(partnode, self.sector_size, bootdev=self.is_boot_device)
+            self.partitions.append(part)
+        self.parttable_size = 0
+
+        # Boot device does not need any partition adjustments
+        # for partition table size
+        if self.is_boot_device:
+            return
+
+        for n, part in enumerate(self.partitions):
+            if not part.is_partition_table():
+                # Set the start location for the first partition after the
+                # partition table
+                part.update_start_location(self.parttable_size, self.sector_size)
+                break
+            # Two partition tables (MBR + GPT) at the front is OK. More than that
+            # is broken, or at least something we don't know how to handle
+            if n > 2:
+                raise RuntimeError("more than 2 partition table entries found on device")
+            self.parttable_size += part.size;
 
 class PartitionLayout(object):
     def __init__(self, configfile):
@@ -84,7 +121,7 @@ class PartitionLayout(object):
         self.devtypes = []
         self.device_count = 0
         for devnode in tree.findall('./device'):
-            dev = Device(devnode)
+            dev = Device(devnode, self.device_count)
             if dev.type == 'sdmmc':
                 dev.type = 'sdmmc_boot' if self.device_count == 0 else 'sdmmc_user'
             if dev.type in self.devices:
