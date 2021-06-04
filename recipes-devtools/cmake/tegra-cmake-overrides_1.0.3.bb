@@ -1,9 +1,9 @@
 DESCRIPTION = "Replacement modules for CMake to fix issues with FindCUDA"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=d171e3bbe1251b3bc6c85aa9c5bf36f5"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=9cdfdd8bf426655841e437d0343463d6"
 
 SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
-SRC_URI[sha256sum] = "0d87debfa1050a2867143e2bf32cd824e90aec1ca2f9690d27b261da7a8134de"
+SRC_URI[sha256sum] = "9b9a416ccb669a7c9dc75df0631b0166a016c3f16e99bda70018f84b4368fca2"
 
 DEPENDS = "cmake-native"
 
