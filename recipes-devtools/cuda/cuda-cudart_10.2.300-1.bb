@@ -1,11 +1,11 @@
-DEPENDS = "cuda-driver cuda-misc-headers cuda-nvcc-headers"
+DEPENDS = "cuda-driver cuda-nvcc-headers"
 
 require cuda-shared-binaries-${PV}.inc
 
-MAINSUM = "2a718596cf1162bf0076d4ec6db52a5f7c3617b7ab7cd243887376e841a99915"
-MAINSUM:x86-64 = "fde9942850342aa5fcba1bef7922e15033f046fb7d7243743d13f284206a4517"
-DEVSUM = "5aa2bf1e8e9d467dacbff778b0d2d4a7bd31077a443b7a49711cc798562ea37d"
-DEVSUM:x86-64 = "0d8e97b450685b6013ed33f0b96b1c80fad6e813721561a8b5fd83712a678a75"
+MAINSUM = "e3cd683965f7b2e4a13b27c58754443185dcc545d0f989e52c224840cfde48d1"
+MAINSUM_x86-64 = "32f3f91e38feb3c2909aab7055de0177441af429f9272d7beb63632528542cc2"
+DEVSUM = "d37a94a3fb858db2cf41cde1bcbe1042b9a66d4fd3fd30882805a478523acb18"
+DEVSUM_x86-64 = "c006853dec4b26871edaa859a7bcff15aed39142dc5a529262793594a8646e28"
 
 inherit container-runtime-csv siteinfo
 CONTAINER_CSV_FILES = "${sysconfdir}/ld.so.conf.d/cuda-${CUDA_VERSION_DASHED}.conf"
