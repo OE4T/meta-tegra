@@ -1,14 +1,14 @@
 DESCRIPTION = "CUDA sample programs"
 SRC_URI = ""
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://EULA.txt;md5=37774d0b88c5743e8fe8e5c10b057270"
+LIC_FILES_CHKSUM = "file://EULA.txt;md5=c3efeff9b7401d0a242a86d9051a8815"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-L4T_DEB_GROUP = "cuda-samples"
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
 SRC_COMMON_DEBS = "${BPN}-${CUDA_VERSION_DASHED}_${PV}_arm64.deb;unpack=false"
-SRC_URI[sha256sum] = "121e273d8586bde904ceeab72a603a86d781f3bac6d3a21732703ca2ca9ec528"
+L4T_DEB_GROUP = "cuda-samples"
+SRC_URI[sha256sum] = "bb7726194bac9252863da80ae13e4fdd7e69a657314cb8ff6edf8ba1cd789e2d"
 
 do_unpack_samples() {
     dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-10-2_${PV}_arm64.deb | \
