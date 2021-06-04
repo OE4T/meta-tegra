@@ -4,12 +4,12 @@ LICENSE = "MIT"
 CUDA_COMPONENTS = " \
     cuda-nvrtc \
     cuda-nvgraph \
-    cuda-cusolver \
+    libcusolver \
     libcublas \
-    cuda-cufft \
-    cuda-curand \
-    cuda-cusparse \
-    cuda-npp \
+    libcufft \
+    libcurand \
+    libcusparse \
+    libnpp \
     cuda-cudart \
 "
 DEPENDS = "${CUDA_COMPONENTS}"
