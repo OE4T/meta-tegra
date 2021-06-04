@@ -2,8 +2,8 @@ HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD"
 
 L4T_DEB_SOCNAME = "t186"
-SRC_SOC_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}-20210519111140_arm64.deb;subdir=tegra-mmapi"
-SRC_URI[sha256sum] = "61e24f12e1ca420fc2a31ef21000ec30979b5b9008989f1fd8f8830965db8573"
+SRC_SOC_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}-20210726122859_arm64.deb;subdir=tegra-mmapi"
+SRC_URI[sha256sum] = "53c18c5e2c8296b3d047eff9f3647263cc72b7b8a6dbe3d63deb600b145640f5"
 
 inherit l4t_deb_pkgfeed
 
