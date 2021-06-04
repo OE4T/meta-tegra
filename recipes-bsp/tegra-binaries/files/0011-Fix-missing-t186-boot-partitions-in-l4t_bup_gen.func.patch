@@ -9,45 +9,33 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  bootloader/l4t_bup_gen.func | 19 ++++++++++++++++---
  1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
-index a2c5c84..d592fd8 100644
---- a/bootloader/l4t_bup_gen.func
-+++ b/bootloader/l4t_bup_gen.func
-@@ -33,6 +33,7 @@ ENTRY_LIST[nano_qspi_uboot]=""
- ENTRY_LIST[nano_qspi_bl]=""
- ENTRY_LIST[nano_qspi_kernel]=""
- ENTRY_LIST[bl_and_kernel]=""
-+ENTRY_LIST[full_init]=""
- 
- signed_ext="signed"
- signed_dir="signed"
-@@ -196,9 +197,13 @@ _generate_bl_update_payload()
- 				"${signed_dir}"/nvtboot_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
- 				"${signed_dir}"/spe_sigheader.bin.${signed_ext} spe-fw 2 0 $_common_spec; \
- 				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
--				"${signed_dir}"/badpage_sigheader.bin.${signed_ext} badpage-fw 2 0 $_common_spec; \
--				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec;"
-+				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
-+				bmp.blob BMP 2 0 $_common_spec;"
- 		ENTRY_LIST[kernel]=""${signed_dir}"/${kernel_image_base}_sigheader.img.${signed_ext} kernel 2 0 $_common_spec;"
-+		ENTRY_LIST[full_init]=""${signed_dir}"/badpage_sigheader.bin.${signed_ext} badpage-fw 2 0 $_common_spec; \
-+				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
-+				"${signed_dir}"/dram-ecc_sigheader.bin.${signed_ext} dram-ecc-fw 2 0 $_common_spec;"
-+
+Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
+===================================================================
+--- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
++++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
+@@ -191,7 +191,10 @@ _generate_bl_update_payload()
+ 				"${signed_dir}"/nvtboot_sigheader.bin.${signed_ext} mb2 ${bsp_ver} 0 $_common_spec; \
+ 				"${signed_dir}"/spe_sigheader.bin.${signed_ext} spe-fw ${bsp_ver} 0 $_common_spec; \
+ 				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw ${bsp_ver} 0 $_common_spec; \
+-				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os ${bsp_ver} 0 $_common_spec;"
++				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os ${bsp_ver} 0 $_common_spec; \
++				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks ${bsp_ver} 0 $_common_spec; \
++				"${signed_dir}"/dram-ecc_sigheader.bin.${signed_ext} dram-ecc-fw ${bsp_ver} 0 $_common_spec; \
++				bmp.blob BMP ${bsp_ver} 0 $_common_spec;"
+ 		ENTRY_LIST[kernel]=""${signed_dir}"/${kernel_image_base}_sigheader.img.${signed_ext} kernel ${bsp_ver} 0 $_common_spec;"
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
- 			ENTRY_LIST[bl]+=""${signed_dir}"/mb1_dev.bin.${signed_ext} mb1 2 1 $_common_spec; \
-@@ -240,7 +245,8 @@ _generate_bl_update_payload()
- 				"${signed_dir}"/bpmp_t194_sigheader.bin.${signed_ext} bpmp-fw 2 0 $_common_spec; \
- 				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
- 				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
--				"${signed_dir}"/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw 2 0 $_common_spec;"
-+				"${signed_dir}"/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw 2 0 $_common_spec; \
-+				bmp.blob BMP 2 0 $_common_spec;"
- 		ENTRY_LIST[kernel]=""${signed_dir}"/${kernel_image_base}_sigheader.img.${signed_ext} kernel 2 0 $_common_spec;"
+@@ -234,7 +237,8 @@ _generate_bl_update_payload()
+ 				"${signed_dir}"/bpmp_t194_sigheader.bin.${signed_ext} bpmp-fw ${bsp_ver} 0 $_common_spec; \
+ 				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks ${bsp_ver} 0 $_common_spec; \
+ 				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw ${bsp_ver} 0 $_common_spec; \
+-				"${signed_dir}"/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw ${bsp_ver} 0 $_common_spec;"
++				"${signed_dir}"/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw ${bsp_ver} 0 $_common_spec; \
++				bmp.blob BMP ${bps_ver} 0 $_common_spec;"
+ 		ENTRY_LIST[kernel]=""${signed_dir}"/${kernel_image_base}_sigheader.img.${signed_ext} kernel ${bsp_ver} 0 $_common_spec;"
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
-@@ -325,6 +331,13 @@ _generate_bl_update_payload()
+@@ -320,6 +324,13 @@ _generate_bl_update_payload()
  		ENTRY_LIST[bl_and_kernel]="${ENTRY_LIST[bl]};${ENTRY_LIST[kernel]}"
  	fi
  
