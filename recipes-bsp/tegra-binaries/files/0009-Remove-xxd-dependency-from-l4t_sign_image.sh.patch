@@ -10,11 +10,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  l4t_sign_image.sh | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/l4t_sign_image.sh b/l4t_sign_image.sh
-index 87d426d..a04fc39 100755
---- a/l4t_sign_image.sh
-+++ b/l4t_sign_image.sh
-@@ -91,8 +91,7 @@ function write_size_to_sig
+Index: Linux_for_Tegra/l4t_sign_image.sh
+===================================================================
+--- Linux_for_Tegra.orig/l4t_sign_image.sh
++++ Linux_for_Tegra/l4t_sign_image.sh
+@@ -96,8 +96,7 @@ function write_size_to_sig
  	echo "${SCRIPT_NAME}: chip ${chip}: add $(printf "0x%x" "${size}") to offset "\
  		"$(printf "0x%x" "${offset}") in sig file" >&5
  	# Convert size to bytes in little endian
@@ -24,6 +24,3 @@ index 87d426d..a04fc39 100755
  	# write to header at position 0x8
  	dd conv=notrunc if="${tempfile}" of="${sig_file}" bs=1 seek="${offset}" > /dev/null 2>&1;
  	rm "${tempfile}"
--- 
-2.27.0
-
