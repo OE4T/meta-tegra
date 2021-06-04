@@ -12,15 +12,16 @@ SRC_COMMON_DEBS = "\
     libnvvpi1_${PV}_arm64.deb;name=lib;subdir=vpi1 \
     vpi1-dev_${PV}_arm64.deb;name=dev;subdir=vpi1 \
 "
-SRC_URI[lib.sha256sum] = "6c82f73820ab6a7b991cf88e28722a73b65979236a35d5e3bf4567130b283d99"
-SRC_URI[dev.sha256sum] = "7863af049be6bf7ef24d68412d8eb1c68f08f5f87059f2e6a3f57308b973a727"
+L4T_DEB_GROUP[dev] = "vpi1-dev"
+SRC_URI[lib.sha256sum] = "973ffed362275ec8f1259e55661ff9a6ff0f107269afba8395e932243b9b0df6"
+SRC_URI[dev.sha256sum] = "c5bfe88d28aa7579ca90eb403c3d3e81ab65286c539cec4dc62886210e669683"
 
 SRC_URI_append = " file://0001-vpi-config-allow-to-compute-the-installation-prefix.patch"
 
 S = "${WORKDIR}/vpi1"
 B = "${S}"
 
-DEPENDS = "cuda-cudart cuda-cufft tegra-libraries"
+DEPENDS = "cuda-cudart libcufft tegra-libraries"
 SYSROOT_DIRS_append = " /opt"
 
 COMPATIBLE_MACHINE = "(tegra)"
