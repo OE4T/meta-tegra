@@ -7,12 +7,12 @@ Subject: [PATCH] Update tegraflash_internal.py for Python3
  bootloader/tegraflash_internal.py | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/bootloader/tegraflash_internal.py b/bootloader/tegraflash_internal.py
-index 49d2119..f803cb5 100755
---- a/bootloader/tegraflash_internal.py
-+++ b/bootloader/tegraflash_internal.py
-@@ -1857,10 +1857,10 @@ def tegraflash_oem_encrypt_and_sign_file(in_file, header , magic_id):
-         command.extend(['--chip', values['--chip'], values['--chip_major']])
+Index: Linux_for_Tegra/bootloader/tegraflash_internal.py
+===================================================================
+--- Linux_for_Tegra.orig/bootloader/tegraflash_internal.py
++++ Linux_for_Tegra/bootloader/tegraflash_internal.py
+@@ -2057,10 +2057,10 @@ def tegraflash_oem_encrypt_and_sign_file
+             command.extend(['--chip', values['--chip'], values['--chip_major']])
  
      command.extend(['--updatesigheader', signed_file, sig_file, sig_type])
 -    if sig_type is not "zerosbk":
@@ -24,7 +24,7 @@ index 49d2119..f803cb5 100755
          if os.path.isfile(tegrasign_values['--getmontgomeryvalues']):
              command.extend(['--setmontgomeryvalues', tegrasign_values['--getmontgomeryvalues']])
  
-@@ -2291,7 +2291,7 @@ def tegraflash_boot_mb2_applet():
+@@ -2553,7 +2553,7 @@ def tegraflash_boot_mb2_applet():
      tegraflash_boot('recovery')
  
      count = 30
@@ -33,7 +33,7 @@ index 49d2119..f803cb5 100755
          time.sleep(1)
          count = count - 1
  
-@@ -2300,7 +2300,7 @@ def tegraflash_poll_applet_bl():
+@@ -2562,7 +2562,7 @@ def tegraflash_poll_applet_bl():
          return
      count = 30;
      enable_print = True;
