@@ -11,16 +11,15 @@ STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-*"
 
 SRC_URI += "\
            file://0001-Fix-skipuid-arg-usage-for-tx2-in-odmsign.func.patch \
-           file://0002-Fix-typo-in-l4t_bup_gen.func.patch \
            file://0003-Convert-BUP_generator.py-to-Python3.patch \
            file://0004-Convert-gen_tos_part_img.py-to-Python3.patch \
            file://0005-Convert-rollback_parser.py-to-Python3.patch \
            file://0006-Update-tegraflash_internal.py-for-Python3.patch \
-           file://0007-Update-check-functions-in-BUP_generator.py-for-Pytho.patch \
            file://0009-Remove-xxd-dependency-from-l4t_sign_image.sh.patch \
            file://0010-Rework-logging-in-l4t_sign_image.sh.patch \
            file://0011-Fix-missing-t186-boot-partitions-in-l4t_bup_gen.func.patch \
            file://0012-BMP_generator_L4T.py-to-Python3.patch \
+           file://0013-Fix-location-of-bsp_version-file-in-l4t_bup_gen.func.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
@@ -49,6 +48,9 @@ do_install() {
     install -m 0755 ${S}/bootloader/tegraparser_v2 ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/tegrarcm_v2 ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/tegrasign_v2 ${D}${BINDIR}
+    install -m 0755 ${S}/bootloader/tegrasign_v3*py ${D}${BINDIR}
+    sed -i -e'1s,^#!.*,#!/usr/bin/env python3,' ${D}${BINDIR}/tegrasign_v3.py
+    install -m 0755 ${S}/bootloader/tegraopenssl ${D}${BINDIR}
 
     install -m 0755 ${S}/bootloader/tegraflash.py ${D}${BINDIR}
     install -m 0644 ${S}/bootloader/tegraflash_internal.py ${D}${BINDIR}
