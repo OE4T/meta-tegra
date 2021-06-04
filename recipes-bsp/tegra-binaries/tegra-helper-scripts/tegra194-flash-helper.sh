@@ -225,6 +225,15 @@ case "$boardid" in
 	;;
 esac
 
+ramcodeargs=
+if [ "$board_id" = "2888" -a "$board_sku" = "0004" ]; then
+    # 32GB AGX Xavier
+    ramcodeargs="--ramcode 2"
+elif [ "$board_id" = "3668" -a "$board_version" = "301" ]; then
+    # Xavier NX A03
+    ramcodeargs="--ramcode 1"
+fi
+
 for var in $FLASHVARS; do
     eval pat=$`echo $var`
     if [ -z "${pat+definedmaybeempty}" ]; then
@@ -345,6 +354,12 @@ if [ -n "$keyfile" ]; then
 	rm -rf signed_bootimg_dir
 	mkdir signed_bootimg_dir
 	cp "$kernfile" "$kernel_dtbfile" signed_bootimg_dir/
+	if [ -n "$MINRATCHET_CONFIG" ]; then
+	    for f in $MINRATCHET_CONFIG; do
+		[ -e "$f" ] || continue
+		cp "$f" signed_bootimg_dir/
+	    done
+	fi
 	oldwd="$PWD"
 	cd signed_bootimg_dir
 	if [ -x $here/l4t_sign_image.sh ]; then
@@ -359,8 +374,8 @@ if [ -n "$keyfile" ]; then
 	    echo "ERR: missing l4t_sign_image script" >&2
 	    exit 1
 	fi
-	"$signimg" --file "$kernfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False &&
-	    "$signimg" --file "$kernel_dtbfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False
+	"$signimg" --file "$kernfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG &&
+	    "$signimg" --file "$kernel_dtbfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG
 	rc=$?
 	cd "$oldwd"
 	if [ $rc -ne 0 ]; then
@@ -414,7 +429,7 @@ flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_c
 	      --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
 	      --cmd \"$tfcmd\" $skipuid \
 	      --cfg flash.xml \
-	      $bctargs \
+	      $bctargs $ramcodeargs \
 	      --bins \"$BINSARGS\""
 
 if [ $bup_blob -ne 0 ]; then
