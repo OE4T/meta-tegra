@@ -1,19 +1,23 @@
 CUDA_PKG ?= "${BPN} ${BPN}-dev"
 REPLACE_STUBS ?= "1"
+CUDA_FULL_VERSION ?= "${PV}"
 
 require cuda-binaries-common-defs.inc
 
-L4T_DEB_GROUP ?= "cuda"
+L4T_DEB_GROUP ?= "${BPN}"
 L4T_DEB_FEED_BASE ??= "file://"
+CUDA_LICENSE_PKG ?= "cuda-documentation-${CUDA_VERSION_DASHED}_${CUDA_FULL_VERSION}_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
 SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb;name=%s;subdir=${BP}' \
                                 % (pkg, 'dev' if pkg.endswith('-dev') else 'main') for pkg in d.getVar('CUDA_PKG').split()])} \
-		   cuda-license-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
+	           ${CUDA_LICENSE_PKG}"
+
 
 SRC_URI[main.sha256sum] = "${MAINSUM}"
 SRC_URI[dev.sha256sum] = "${DEVSUM}"
-LICSUM = "8a862acbff5b33904bfe7ec3e92a553a8312da1db9f651b6cfe14db137a139ce"
-LICSUM_x86-64 = "daf3f9891b290b64ae1130546aaadabd6631b44d08c69a76a74e94a111b6ecec"
+LICSUM = "d8e8c62156516d5eb2dea0ba49abd1b5cecae010872e0e71650e97a1ccd2e005"
+LICSUM_x86-64 = "a64ce62b15263317cdb9c9481433b47b5754ea19f89cdb1007a7da1ac29713cd"
 SRC_URI[lic.sha256sum] = "${LICSUM}"
+L4T_DEB_GROUP[lic] = "cuda-documentation"
 
 CUDA_DL_CLASS = "l4t_deb_pkgfeed"
 
@@ -21,8 +25,7 @@ inherit ${CUDA_DL_CLASS}
 
 DESCRIPTION = "CUDA package ${PN}"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/local/cuda-10.2/LICENSE;md5=659d2cacdb888a4ed2aa29014ed0302a \
-	            file://usr/local/cuda-10.2/doc/EULA.txt;md5=37774d0b88c5743e8fe8e5c10b057270"
+LIC_FILES_CHKSUM = "file://usr/local/cuda-10.2/EULA.txt;md5=c3efeff9b7401d0a242a86d9051a8815"
 
 DEPENDS ?= "cuda-cudart"
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
@@ -81,8 +84,9 @@ do_compile() {
 do_install() {
     install -d ${D}${prefix}
     cp -R --preserve=mode,timestamps ${B}/usr/* ${D}${prefix}/
-    rm -rf ${D}${prefix}/local/cuda-${CUDA_VERSION}/doc
+    rm -rf ${D}${prefix}/local/cuda-${CUDA_VERSION}/doc ${D}${prefix}/local/cuda-${CUDA_VERSION}/tools
     rm -f ${D}${prefix}/local/cuda-${CUDA_VERSION}/LICENSE ${D}${prefix}/local/cuda-${CUDA_VERSION}/README ${D}${prefix}/local/cuda-${CUDA_VERSION}/version.txt
+    rm -f ${D}${prefix}/local/cuda-${CUDA_VERSION}/EULA.txt
 }
 
 FILES_${PN} += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBS} ${prefix}/local/cuda-${CUDA_VERSION}/bin"
@@ -102,4 +106,4 @@ inherit container-runtime-csv
 CONTAINER_CSV_FILES = "${prefix}/local/*"
 
 COMPATIBLE_MACHINE_class-target = "(tegra)"
-PACKAGE_ARCH_class-target = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH_class-target = "${TEGRA_PKGARCH}"
