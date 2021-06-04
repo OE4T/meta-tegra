@@ -233,6 +233,7 @@ tegraflash_create_flash_config_tegra186() {
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,PPTSIZE,2097152," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
+        -e"s,SMDFILE,${SMDFILE}," \
         -e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
@@ -268,6 +269,7 @@ tegraflash_create_flash_config_tegra194() {
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
+        -e"s,SMDFILE,${SMDFILE}," \
         -e"s,APPUUID,," \
         > $destdir/flash.xml.in
 }
