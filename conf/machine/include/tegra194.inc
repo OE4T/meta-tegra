@@ -40,6 +40,13 @@ CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_72 --gpu-code=sm_72"
 PREFERRED_PROVIDER_virtual/bootloader ?= "cboot-t19x"
 PREFERRED_PROVIDER_tos-trusty ?= "tos-prebuilt"
 
+UBOOT_EXTLINUX ?= ""
+UBOOT_EXTLINUX_KERNEL_IMAGE ?= "/boot/${KERNEL_IMAGETYPE}"
+UBOOT_EXTLINUX_INITRD ?= "${@'/boot/initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1' else ''}"
+# This is inserted into UBOOT_EXTLINUX_ROOT in tegra-common.inc
+KERNEL_ROOTSPEC ?= "rootwait"
+UBOOT_EXTLINUX_KERNEL_ARGS ?= ""
+
 require conf/machine/include/tegra-common.inc
 
 L4T_BSP_NAME = "T186"
