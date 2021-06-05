@@ -5,8 +5,10 @@ to_remove=
 split=True
 chip=
 encrypting=
+allfilestype=
+ratchet=
 
-ARGS=$(getopt -n $(basename "$0") -l "user_key:,chip:,nosplit" -o "u:v:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "user_key:,chip:,nosplit,type:,minratchet_config:" -o "u:v:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -22,6 +24,14 @@ while true; do
 	    ;;
 	--user_key)
 	    user_keyfile="$2"
+	    shift 2
+	    ;;
+	--type)
+	    allfilestype="$2"
+	    shift 2
+	    ;;
+	--minratchet_config)
+	    ratchet="--minratchet_config $2"
 	    shift 2
 	    ;;
 	--nosplit)
@@ -84,7 +94,18 @@ rc=0
 while [ -n "$1" ]; do
     filetosign="$1"
     shift
-    if ! "$signimg" --file "$filetosign"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip "$chip" --split $split; then
+    ftype="$allfilestype"
+    if [ -z "$ftype" ]; then
+	if echo "$filetosign" | grep -q "Image"; then
+	    ftype="kernel"
+	elif echo "$filetosign" | grep -q "\.dtb$"; then
+	    ftype="kernel_dtb"
+	else
+	    ftype="data"
+	fi
+	echo "Setting --type $ftype for $filetosign" >&2
+    fi
+    if ! "$signimg" --file "$filetosign"  --type "$ftype" --key "$keyfile" --encrypt_key "$user_keyfile" --chip "$chip" --split $split $ratchet; then
 	echo "Error signing $filetosign" >&2
 	rc=1
     fi
