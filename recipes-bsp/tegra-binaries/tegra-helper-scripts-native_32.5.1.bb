@@ -12,6 +12,7 @@ SRC_URI = " \
     file://tegra210-flash-helper.sh \
     file://nvflashxmlparse.py \
     file://make-sdcard.sh \
+    file://tegra-signimage-helper.sh \
 "
 
 S = "${WORKDIR}"
@@ -25,4 +26,5 @@ do_install() {
     install -m 0755 ${S}/make-sdcard.sh ${D}${bindir}/tegra210-flash/make-sdcard
     install -m 0755 ${S}/nvflashxmlparse.py ${D}${bindir}/tegra186-flash/nvflashxmlparse
     install -m 0755 ${S}/make-sdcard.sh ${D}${bindir}/tegra186-flash/make-sdcard
+    install -m 0755 ${S}/tegra-signimage-helper.sh ${D}${bindir}/tegra186-flash/tegra-signimage-helper
 }
