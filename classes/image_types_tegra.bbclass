@@ -241,9 +241,15 @@ tegraflash_create_flash_config_tegra186() {
 tegraflash_create_flash_config_tegra194() {
     local destdir="$1"
     local lnxfile="$2"
+    local cbotag
 
     # The following sed expression are derived from xxx_TAG variables
     # in the L4T flash.sh script.  Tegra194-specific.
+    if [ -e cbo.dtb ]; then
+        cbotag="-es,CBOOTOPTION_FILE,cbo.dtb,"
+    else
+        cbotag="-e/CBOOTOPTION_FILE/d"
+    fi
     cat "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | sed \
         -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
         -e"s,TEGRABOOT,nvtboot_t194.bin," \
@@ -258,7 +264,7 @@ tegraflash_create_flash_config_tegra194() {
         -e"s,WB0BOOT,warmboot_t194_prod.bin," \
         -e"s,TOSFILE,${TOSIMGFILENAME}," \
         -e"s,EKSFILE,eks.img," \
-        -e"s,CBOOTOPTION_FILE,cbo.dtb," \
+        $cbotag \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
@@ -319,7 +325,6 @@ BOOTFILES_tegra194 = "\
     spe_t194.bin \
     warmboot_t194_prod.bin \
     xusb_sil_rel_fw \
-    cbo.dtb \
 "
 
 create_tegraflash_pkg() {
@@ -505,6 +510,11 @@ create_tegraflash_pkg_tegra194() {
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
+    if [ -e "${STAGING_DATADIR}/tegraflash/cbo.dtb" ]; then
+        cp "${STAGING_DATADIR}/tegraflash/cbo.dtb" .
+    else
+	rm -f ./cbo.dtb
+    fi
     rm -f ./slot_metadata.bin
     cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
     rm -rf ./rollback
@@ -680,6 +690,9 @@ oe_make_bup_payload() {
         for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
             cp $f .
         done
+	if [ -e ${STAGING_DATADIR}/tegraflash/cbo.dtb ]; then
+            cp ${STAGING_DATADIR}/tegraflash/cbo.dtb .
+	fi
     fi
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
         cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
