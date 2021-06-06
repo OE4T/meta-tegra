@@ -10,7 +10,7 @@ BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRID
 BOARD_CFG ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${NVIDIA_BOARD_CFG}"
 PARTITION_FILE ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${PARTITION_LAYOUT_TEMPLATE}"
 SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
-CBOOTOPTION_FILE ?= "${S}/bootloader/cbo.dts"
+CBOOTOPTION_FILE ?= ""
 ODMFUSE_FILE ?= ""
 
 BOOTBINS_tegra186 = "\
@@ -78,7 +78,9 @@ do_compile_append_tegra186() {
 
 do_compile_append_tegra194() {
     ${STAGING_BINDIR_NATIVE}/tegra186-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
-    dtc -I dts -O dtb -o ${B}/cbo.dtb ${CBOOTOPTION_FILE}
+    if [ -n "${CBOOTOPTION_FILE}" ]; then
+        dtc -I dts -O dtb -o ${B}/cbo.dtb ${CBOOTOPTION_FILE}
+    fi
 }
 
 do_install() {
@@ -115,7 +117,9 @@ do_install_append_tegra194() {
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
-    install -m 0644 ${B}/cbo.dtb ${D}${datadir}/tegraflash/
+    if [ -n "${CBOOTOPTION_FILE}" ]; then
+        install -m 0644 ${B}/cbo.dtb ${D}${datadir}/tegraflash/
+    fi
 }
 
 do_install_append_tegra210() {
