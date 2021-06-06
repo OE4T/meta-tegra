@@ -67,7 +67,7 @@ index a04fc39..cdfeb61 100755
  	exit 1;
  fi
 -echo "${SCRIPT_NAME}: Generate header for $(basename "${signedfile}")" >&5
-+[ $quiet -eq 1] || echo "${SCRIPT_NAME}: Generate header for $(basename "${signedfile}")"
++[ $quiet -eq 1 ] || echo "${SCRIPT_NAME}: Generate header for $(basename "${signedfile}")"
  dd if="${signedfile}" of="${file}.sig" bs="${offset}" count=1 > /dev/null 2>&1;
  write_size_to_sig "${file}.sig" "${file_size}"
 -echo "${SCRIPT_NAME}: Generate 16-byte-size-aligned base file for $(basename "${signedfile}")" >&5
