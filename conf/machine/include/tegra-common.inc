@@ -6,6 +6,9 @@ PACKAGE_EXTRA_ARCHS:append = " ${TEGRA_PKGARCH} ${SOC_FAMILY_PKGARCH}"
 KERNEL_IMAGETYPES ?= "Image.gz Image"
 KERNEL_IMAGETYPE ?= "Image.gz"
 
+KERNEL_IMAGETYPES ?= "Image.gz Image"
+KERNEL_IMAGETYPE ?= "Image.gz"
+
 KERNEL_ROOTSPEC ?= "root=/dev/mmcblk${devnum}p${distro_bootpart} rw rootwait"
 KERNEL_ARGS ??= ""
 
