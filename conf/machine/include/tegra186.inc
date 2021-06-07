@@ -5,7 +5,7 @@ SOC_FAMILY = "tegra186"
 require conf/machine/include/soc-family.inc
 require conf/machine/include/arm/arch-armv8a.inc
 
-KERNEL_IMAGETYPE = "Image"
+KERNEL_IMAGETYPE ?= "${@'Image.gz' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'Image'}"
 KERNEL_ARGS ?= "console=ttyS0,115200 console=tty0 fbcon=map:0 isolcpus=1-2"
 
 TEGRA_ESSENTIAL_EXTRA_RDEPENDS = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'kernel-image u-boot-extlinux'}"
