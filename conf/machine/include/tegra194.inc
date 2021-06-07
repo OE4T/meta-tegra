@@ -6,8 +6,6 @@ require conf/machine/include/soc-family.inc
 DEFAULTTUNE ?= "armv8a-crc"
 require conf/machine/include/arm/arch-armv8-2a.inc
 
-KERNEL_IMAGETYPE = "Image"
-
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 INITRAMFS_IMAGE_BUNDLE ?= "1"
 IMAGE_UBOOT ?= ""
