@@ -2,10 +2,11 @@
 
 SOC_FAMILY = "tegra210"
 
+KERNEL_IMAGETYPE ?= "Image"
+KERNEL_IMAGETYPES ?= "${KERNEL_IMAGETYPE}"
+
 require conf/machine/include/soc-family.inc
 require conf/machine/include/arm/arch-armv8a.inc
-
-KERNEL_IMAGETYPE = "Image"
 
 TEGRA_ESSENTIAL_EXTRA_RDEPENDS = "kernel-image u-boot-extlinux"
 
