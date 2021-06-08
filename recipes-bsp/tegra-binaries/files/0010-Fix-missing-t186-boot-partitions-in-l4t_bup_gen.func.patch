@@ -1,34 +1,44 @@
-From 01eb1bc22bfae83e6f3bf1313d5c6c3a4bd74270 Mon Sep 17 00:00:00 2001
+From efa23fd9b41dc04c1c6de0b7722b879203b1ad28 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 3 May 2021 07:20:13 -0700
 Subject: [PATCH] Fix missing t186 boot partitions in l4t_bup_gen.func
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 
+%% original patch: 0010-Fix-missing-t186-boot-partitions-in-l4t_bup_gen.func.patch
 ---
- bootloader/l4t_bup_gen.func | 28 +++++++++++++++++++++++-----
- 1 file changed, 23 insertions(+), 5 deletions(-)
+ bootloader/l4t_bup_gen.func | 36 ++++++++++++++++++++++++++++++------
+ 1 file changed, 30 insertions(+), 6 deletions(-)
 
 diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
-index 82cf6e3..e70b16e 100644
+index 82cf6e3..8af4f68 100644
 --- a/bootloader/l4t_bup_gen.func
 +++ b/bootloader/l4t_bup_gen.func
-@@ -195,7 +195,13 @@ _generate_bl_update_payload()
+@@ -33,6 +33,7 @@ ENTRY_LIST[xusb]=""
+ ENTRY_LIST[porg_qspi]=""
+ ENTRY_LIST[porg_sd]=""
+ ENTRY_LIST[bl_and_kernel]=""
++ENTRY_LIST[full_init]=""
+ 
+ signed_ext="signed"
+ signed_dir="signed"
+@@ -195,9 +196,13 @@ _generate_bl_update_payload()
  				"${signed_dir}"/cboot_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
  				"${signed_dir}"/nvtboot_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
  				"${signed_dir}"/spe_sigheader.bin.${signed_ext} spe-fw 2 0 $_common_spec; \
 -				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec;"
 +				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
 +				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
-+				"${signed_dir}"/badpage_sigheader.bin.${signed_ext} badpage-fw 2 0 $_common_spec; \
-+				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
-+				"${signed_dir}"/dram-ecc_sigheader.bin.${signed_ext} dram-ecc-fw 2 0 $_common_spec; \
-+				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
 +				bmp.blob BMP 2 0 $_common_spec;"
  		ENTRY_LIST[kernel]=""${kernel_signed_dir}"/${kernel_image_base}_sigheader.img.${kernel_signed_ext} kernel 2 0 $_common_spec;"
- 
+-
++		ENTRY_LIST[full_init]=""${signed_dir}"/badpage_sigheader.bin.${signed_ext} badpage-fw 2 0 $_common_spec; \
++				"${signed_dir}"/dram-ecc_sigheader.bin.${signed_ext} dram-ecc-fw 2 0 $_common_spec; \
++				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec;"
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
-@@ -236,7 +242,10 @@ _generate_bl_update_payload()
+ 			ENTRY_LIST[bl]+=""${signed_dir}"/mb1_dev.bin.${signed_ext} mb1 2 1 $_common_spec; \
+ 				"${signed_dir}"/mce_mts_d15_dev_cr_sigheader.bin.${signed_ext} mts-bootpack 2 1 $_common_spec; \
+@@ -236,7 +241,10 @@ _generate_bl_update_payload()
  				"${signed_dir}"/cboot_t194_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
  				"${signed_dir}"/tos-trusty_t194_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
  				"${signed_dir}"/bpmp_t194_sigheader.bin.${signed_ext} bpmp-fw 2 0 $_common_spec; \
@@ -40,7 +50,7 @@ index 82cf6e3..e70b16e 100644
  		ENTRY_LIST[kernel]=""${kernel_signed_dir}"/${kernel_image_base}_sigheader.img.${kernel_signed_ext} kernel 2 0 $_common_spec;"
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
-@@ -270,9 +279,18 @@ _generate_bl_update_payload()
+@@ -270,9 +278,18 @@ _generate_bl_update_payload()
  		_add_multi_bins "VER" "$(ls multi_signed/*/*_bootblob_ver.txt)"
  		_add_multi_bins "mb1" "$(ls multi_signed/*/mb1_t194*_sigheader.bin.${signed_ext})"
  		_add_multi_bins "BCT" "$(ls multi_signed/*/br_bct*.bct)"
@@ -62,3 +72,20 @@ index 82cf6e3..e70b16e 100644
  		# xusb-fw: not oem signed
  		ENTRY_LIST[xusb]+=""${signed_dir}"/${xusb_fw} xusb-fw 2 0 $_common_spec;"
  
+@@ -312,6 +329,13 @@ _generate_bl_update_payload()
+ 		ENTRY_LIST[bl_and_kernel]="${ENTRY_LIST[bl]};${ENTRY_LIST[kernel]}"
+ 	fi
+ 
++	# OE4T: extra 'full_init' payload for TX2 that also includes partitions
++	# not normally included in the t18x bl_and_kernel payload for first-time
++	# initialization.
++	if [ "${tegra_soc}" == "t18x" ]; then
++	    ENTRY_LIST[full_init]="${ENTRY_LIST[bl_and_kernel]};${ENTRY_LIST[full_init]}"
++	fi
++
+ 	for list_name in "${!ENTRY_LIST[@]}"; do
+ 		if [ "${ENTRY_LIST["${list_name}"]}" == "" ]; then
+ 			continue
+-- 
+2.30.2
+
