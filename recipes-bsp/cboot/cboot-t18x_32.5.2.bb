@@ -12,6 +12,7 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t18x.tbz2;downloadfilename=cboot_src_t18x-$
            file://0008-t186-add-bootinfo-to-build.patch \
            file://0009-Add-machine-ID-to-kernel-command-line.patch \
            file://0012-bmp-support-A-B-slots.patch \
+           file://0013-Fix-ext4-sparse-file-handling.patch \
 "
 SRC_URI[sha256sum] = "a09909485dce60567eeb53af2e13f45a13fb30cc42e82ccb602f08e69ffcfd51"
 
