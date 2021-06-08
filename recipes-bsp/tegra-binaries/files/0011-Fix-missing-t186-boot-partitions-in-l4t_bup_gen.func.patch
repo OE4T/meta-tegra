@@ -1,4 +1,4 @@
-From 92825b93788f697ce13492d5639e7880705742d1 Mon Sep 17 00:00:00 2001
+From 075baecfd2d63e3076e71ca56cc55e6b6e6a7d1c Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 3 May 2021 07:20:13 -0700
 Subject: [PATCH] Fix missing t186 boot partitions in l4t_bup_gen.func
@@ -6,11 +6,11 @@ Subject: [PATCH] Fix missing t186 boot partitions in l4t_bup_gen.func
 Signed-off-by: Matt Madison <matt@madison.systems>
 
 ---
- bootloader/l4t_bup_gen.func | 18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ bootloader/l4t_bup_gen.func | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
 diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
-index a2c5c84..503a617 100644
+index a2c5c84..d592fd8 100644
 --- a/bootloader/l4t_bup_gen.func
 +++ b/bootloader/l4t_bup_gen.func
 @@ -33,6 +33,7 @@ ENTRY_LIST[nano_qspi_uboot]=""
@@ -21,12 +21,13 @@ index a2c5c84..503a617 100644
  
  signed_ext="signed"
  signed_dir="signed"
-@@ -196,9 +197,12 @@ _generate_bl_update_payload()
+@@ -196,9 +197,13 @@ _generate_bl_update_payload()
  				"${signed_dir}"/nvtboot_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
  				"${signed_dir}"/spe_sigheader.bin.${signed_ext} spe-fw 2 0 $_common_spec; \
  				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
 -				"${signed_dir}"/badpage_sigheader.bin.${signed_ext} badpage-fw 2 0 $_common_spec; \
 -				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec;"
++				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
 +				bmp.blob BMP 2 0 $_common_spec;"
  		ENTRY_LIST[kernel]=""${signed_dir}"/${kernel_image_base}_sigheader.img.${signed_ext} kernel 2 0 $_common_spec;"
 +		ENTRY_LIST[full_init]=""${signed_dir}"/badpage_sigheader.bin.${signed_ext} badpage-fw 2 0 $_common_spec; \
@@ -36,7 +37,7 @@ index a2c5c84..503a617 100644
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
  			ENTRY_LIST[bl]+=""${signed_dir}"/mb1_dev.bin.${signed_ext} mb1 2 1 $_common_spec; \
-@@ -240,7 +244,8 @@ _generate_bl_update_payload()
+@@ -240,7 +245,8 @@ _generate_bl_update_payload()
  				"${signed_dir}"/bpmp_t194_sigheader.bin.${signed_ext} bpmp-fw 2 0 $_common_spec; \
  				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
  				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
@@ -46,7 +47,7 @@ index a2c5c84..503a617 100644
  		ENTRY_LIST[kernel]=""${signed_dir}"/${kernel_image_base}_sigheader.img.${signed_ext} kernel 2 0 $_common_spec;"
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
-@@ -325,6 +330,13 @@ _generate_bl_update_payload()
+@@ -325,6 +331,13 @@ _generate_bl_update_payload()
  		ENTRY_LIST[bl_and_kernel]="${ENTRY_LIST[bl]};${ENTRY_LIST[kernel]}"
  	fi
  
