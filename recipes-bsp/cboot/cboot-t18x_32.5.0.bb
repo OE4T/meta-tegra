@@ -13,6 +13,7 @@ SRC_URI = "${L4T_ALT_URI_BASE}/cboot_src_t18x.tbz2;downloadfilename=cboot_src_t1
            file://0009-Add-machine-ID-to-kernel-command-line.patch \
            file://0012-bmp-support-A-B-slots.patch \
            file://0013-Fix-ext4-sparse-file-handling.patch \
+           file://0014-extlinux-support-timeouts-under-1-sec.patch \
 "
 SRC_URI[sha256sum] = "6da8ad60d302d222c09d56bc8f7e90e08592a0471f8bcbadb30268b3b0ad320f"
 
