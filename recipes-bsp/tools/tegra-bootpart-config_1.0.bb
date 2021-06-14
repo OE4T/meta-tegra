@@ -34,10 +34,11 @@ do_compile() {
     while read line; do
         eval "$line"
 	if [ -n "$start_location" ]; then
-            if [ $cursize -gt $start_location ]; then
-                bberror "Partition $partname start location ($start_location) is less than current offset ($cursize)"
+	    startbytes=$(expr $start_location \* $blksize || true)
+            if [ $cursize -gt $startbytes ]; then
+                bberror "Partition $partname start location ($startbytes) is less than current offset ($cursize)"
             fi
-            cursize=$start_location
+            cursize=$startbytes
         fi
         partbytes=$(expr $partsize \* $blksize)
         echo "$partname:$cursize:$partbytes" >> ${B}/layout.conf
