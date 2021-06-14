@@ -3,6 +3,7 @@
 import sys
 import argparse
 import uuid
+import logging
 
 uuids = {}
 
@@ -30,19 +31,27 @@ def validate_guid(guid):
     return guid
 
 class Partition(object):
-    def __init__(self, element, sector_size, partnum=None, bootdev=False):
+    def __init__(self, element, sector_size, curpos, partnum, bootdev):
         self.name = element.get('name')
         self.type = element.get('type')
         self.id = element.get('id', (None if self.is_partition_table() else partnum))
         self.oem_sign = element.get('oemsign', 'false') == 'true'
         guid = element.find('unique_guid')
         self.partguid = "" if guid is None else validate_guid(guid.text.strip())
+
         alignment = element.find('align_boundary')
-        self.alignment = "" if alignment is None else str(int(alignment.text.strip(), base=0))
+        if alignment is not None:
+            alignval = int(alignment.text.strip(), base=0) # in bytes
+            curposbytes = alignval * ((curpos * sector_size + alignval-1) // alignval)
+            curpos = curposbytes // sector_size
         startloc = element.find('start_location')
-        self.start_location = "" if startloc is None else str(int(startloc.text.strip(), base=0))
-        if self.start_location and not bootdev:
-            self.start_location = str((int(self.start_location) + sector_size - 1) // sector_size)
+        if startloc is None:
+            self.start_location = curpos
+        else:
+            self.start_location = (int(startloc.text.strip(), base=0) + sector_size-1) // sector_size
+            if self.start_location < curpos:
+                raise RuntimeError("partition {} start location {} overlaps previous partition".format(self.name, self.start_location))
+
         aa = element.find('allocation_attribute')
         if aa is None:
             self.alloc_attr = 0
@@ -51,34 +60,30 @@ class Partition(object):
             if aastr.startswith("0x"):
                 aastr = aastr[2:]
             self.alloc_attr = int(aastr, 16)
+
         if element.find('size') is None:
             self.size = 0
         else:
             s = element.find('size').text.strip()
-            try:
-                self.size = (int(s, 10) + sector_size-1) // sector_size
-            except ValueError:
-                self.size = s
+            if s.lower().startswith('0xffffffff'):
+                self.size = -1
+            else:
+                self.size = int(s, 0)
+            if self.size > 0:
+                self.size = (self.size + sector_size-1) // sector_size
+
         fname = element.find('filename')
         self.filename = "" if fname is None else fname.text.strip()
+        logging.info("Partition {}: id={}, type={}, start={}, size={}".format(self.name, self.id, self.type,
+                                                                              self.start_location, self.size))
 
     def filltoend(self):
         return (self.alloc_attr & 0x800) == 0x800
-    def is_partition_table(self):
-        return self.type in ['GP1', 'GPT', 'protective_master_boot_record', 'primary_gpt', 'secondary_gpt']
-    def update_start_location(self, cursize, sector_size):
-        default_start = cursize * sector_size
-        if self.alignment:
-            alignment = int(self.alignment)
-            default_start = alignment * ((default_start + alignment - 1) // alignment)
-        # If there's a start location specified in the XML, use it,
-        # but check to make sure it's an offset at or after the current size.
-        # If there's no start location specified, set it.
-        if self.start_location:
-            if int(self.start_location) < default_start // sector_size:
-                raise RuntimeError("partition {} has invalid start location setting".format(self.name))
-        else:
-            self.start_location = str(default_start // sector_size)
+
+    def is_partition_table(self, primary_only=False):
+        if self.type in ['GP1', 'protective_master_boot_record', 'primary_gpt']:
+            return True
+        return not primary_only and self.type in ['GPT', 'secondary_gpt']
 
 class Device(object):
     def __init__(self, element, devcount):
@@ -88,30 +93,22 @@ class Device(object):
         self.num_sectors = int(element.get('num_sectors', '0'), 0)
         self.partitions = []
         self.is_boot_device = self.type in ['sdmmc_boot', 'spi'] or (self.type == 'sdmmc' and devcount == 0)
+        logging.info("Device {}: instance={}, sector_size={}, num_sectors={}, boot_device={}".format(self.type, self.instance,
+                                                                                                     self.sector_size, self.num_sectors,
+                                                                                                     self.is_boot_device))
+        self.parttable_size = 0
         nextpart = 1
+        curpos = 0
         for partnode in element.findall('./partition'):
-            part = Partition(partnode, self.sector_size, partnum=nextpart, bootdev=self.is_boot_device)
+            part = Partition(partnode, self.sector_size, curpos, nextpart, self.is_boot_device)
             self.partitions.append(part)
+            if part.is_partition_table(primary_only=True):
+                self.parttable_size += part.size
             if not part.is_partition_table():
                 nextpart = int(part.id) + 1
-        self.parttable_size = 0
+            if part.type != 'secondary_gpt' and not part.filltoend():
+                curpos = part.start_location + part.size
 
-        # Boot device does not need any partition adjustments
-        # for partition table size
-        if self.is_boot_device:
-            return
-
-        for n, part in enumerate(self.partitions):
-            if not part.is_partition_table():
-                # Set the start location for the first partition after the
-                # partition table
-                part.update_start_location(self.parttable_size, self.sector_size)
-                break
-            # Two partition tables (MBR + GPT) at the front is OK. More than that
-            # is broken, or at least something we don't know how to handle
-            if n > 2:
-                raise RuntimeError("more than 2 partition table entries found on device")
-            self.parttable_size += part.size;
 
 class PartitionLayout(object):
     def __init__(self, configfile):
@@ -209,9 +206,11 @@ Extracts partition information from an NVIDIA flash.xml file
     parser.add_argument('-s', '--split', help='SDCard XML output file for MMC/SDCard split on Jetson AGX Xavier', action='store')
     parser.add_argument('-S', '--sdcard-size', help='SDCard size for use with --split', action='store', default="33554432")
     parser.add_argument('-o', '--output', help='file to write output to', action='store')
+    parser.add_argument('-v', '--verbose', help='verbose logging', action='store_true')
     parser.add_argument('filename', help='name of the XML file to parse', action='store')
 
     args = parser.parse_args()
+    logging.basicConfig(format='%(message)s', level=logging.INFO if args.verbose else logging.WARNING)
     layout = PartitionLayout(args.filename)
     if args.list_types:
         print("Device types:\n{}".format('\n'.join(['    ' + t for t in layout.devtypes])))
