@@ -1,0 +1,43 @@
+From d961301d928d109da1471910eeea99a48b89bff1 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 28 Nov 2019 05:55:45 -0800
+Subject: [PATCH 1/2] common/make/macros.mk: translate '+' to '_'
+
+and include some changes for compatibility with make 4.x.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ lk/common/make/macros.mk | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/lk/common/make/macros.mk b/lk/common/make/macros.mk
+index a45aca1..1553a56 100644
+--- a/lk/common/make/macros.mk
++++ b/lk/common/make/macros.mk
+@@ -11,8 +11,8 @@ TOBUILDDIR = $(addprefix $(BUILDDIR)/,$(1))
+ TOBOOL = $(if $(filter-out 0 false,$1),true,false)
+ 
+ COMMA := ,
+-SPACE :=
+-SPACE +=
++_dummy_variable_for_SPACE :=
++SPACE := $(_dummy_variable_for_SPACE) $(_dummy_variable_for_SPACE)
+ 
+ # test if two files are different, replacing the first
+ # with the second if so
+@@ -35,10 +35,10 @@ define MAKECONFIGHEADER
+ 	$(MKDIR); \
+ 	echo generating $1; \
+ 	rm -f $1.tmp; \
+-	LDEF=`echo $1 | tr '/\\.-' '_' | sed "s/C++/CPP/g;s/c++/cpp/g"`; \
++	LDEF=`echo $1 | tr '/\\.+-' '_' | sed "s/C__/CPP/g;s/c__/cpp/g"`; \
+ 	echo \#ifndef __$${LDEF}_H > $1.tmp; \
+ 	echo \#define __$${LDEF}_H >> $1.tmp; \
+-	for d in `echo $($2) | tr '[:lower:]' '[:upper:]'`; do \
++	for d in `echo $($2) | tr '\n' ' ' | tr '[:lower:]' '[:upper:]'`; do \
+ 		echo "#define $$d" | sed "s/=/\ /g;s/-/_/g;s/\//_/g;s/\./_/g;s/\//_/g;s/C++/CPP/g" >> $1.tmp; \
+ 	done; \
+ 	echo \#endif >> $1.tmp; \
+-- 
+2.30.2
+
