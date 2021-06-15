@@ -2,13 +2,13 @@ DESCRIPTION = "NVIDIA v4l2 GStreamer plugin"
 SECTION = "multimedia"
 LICENSE = "LGPLv2 & BSD-3-Clause & Proprietary"
 LIC_FILES_CHKSUM = "file://LICENSE.gst-nvvideo4linux2;md5=457fb5d7ae2d8cd8cabcc21789a37e5c \
-                    file://nvbuf_utils.h;endline=9;md5=afc209f3955d083a93f5009bc9a65a22 \
-                    file://v4l2_nv_extensions.h;endline=28;md5=19f9a856799e0d7b6b94659700291562 \
+                    file://nvbuf_utils.h;endline=9;md5=e74e59ff8c4105650b55b3a26f41d7ac \
+                    file://v4l2_nv_extensions.h;endline=28;md5=27d228405cb4b114e9a967ec7cd50e30 \
                     file://README.txt;endline=11;md5=71af624b03396c4f2c70c9c8684ff3d2 \
 "
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvvideo4linux2_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.5.2.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.6.1.inc
 
 SRC_URI += "\
     file://0000-build-fixups.patch \
@@ -18,7 +18,6 @@ SRC_URI += "\
     file://0004-v4l2bufferpool-Avoid-set_flushing-warning.patch \
     file://0005-gstv4l2videodec-use-ifdef-macro-for-consistency-with.patch \
     file://0006-gstv4l2videodec-check-if-we-have-a-pool-before-the-l.patch \
-    file://0008-Replace-stat-call-with-__xstat.patch \
 "
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries"

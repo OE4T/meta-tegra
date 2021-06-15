@@ -1,19 +1,18 @@
 DESCRIPTION = "NVIDIA nvarguscamerasrc GStreamer plugin"
 SECTION = "multimedia"
 LICENSE = "BSD-3-Clause & Proprietary"
-LIC_FILES_CHKSUM = "file://nvbuf_utils.h;endline=9;md5=afc209f3955d083a93f5009bc9a65a22 \
+LIC_FILES_CHKSUM = "file://nvbuf_utils.h;endline=9;md5=e74e59ff8c4105650b55b3a26f41d7ac \
                     file://README.txt;endline=25;md5=364434949752edc42711344c8401d55b \
 "
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvarguscamera_src.tbz2"
 TEGRA_SRC_SUBARCHIVE_OPTS = "--exclude=3rdpartyheaders.tbz2"
 
-require recipes-bsp/tegra-sources/tegra-sources-32.5.2.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.6.1.inc
 
 SRC_URI += "\
     file://0001-Build-fixups.patch \
     file://0002-Fix-nvarguscamerasrc-build-errors.patch \
-    file://0003-Use-GST_DEBUG-functions-instead-of-printf-for-loggin.patch \
 "
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries tegra-mmapi"
