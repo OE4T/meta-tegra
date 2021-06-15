@@ -1,4 +1,4 @@
-From e602df73389b55be8ff58a35f04d536782c9af01 Mon Sep 17 00:00:00 2001
+From 6a64d7e49450e29baf9c4f8a29d634e8a24d500b Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 27 Apr 2020 06:39:16 -0700
 Subject: [PATCH 2/2] kernel/thread.c: fix thread_timer_tick call signature
@@ -40,5 +40,5 @@ index 6f3d04a..4df7219 100644
  	thread_t *current_thread = get_current_thread();
  
 -- 
-2.20.1
+2.30.2
 
