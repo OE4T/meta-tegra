@@ -8,11 +8,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  gstnvarguscamerasrc.cpp | 179 ++++++++++++++++++++++++----------------
  1 file changed, 106 insertions(+), 73 deletions(-)
 
-diff --git a/gstnvarguscamerasrc.cpp b/gstnvarguscamerasrc.cpp
-index 52e0cad..5f2f74b 100644
---- a/gstnvarguscamerasrc.cpp
-+++ b/gstnvarguscamerasrc.cpp
-@@ -115,8 +115,10 @@ bool ThreadArgus::initialize(GstNvArgusCameraSrc *src)
+Index: gst-nvarguscamera/gstnvarguscamerasrc.cpp
+===================================================================
+--- gst-nvarguscamera.orig/gstnvarguscamerasrc.cpp
++++ gst-nvarguscamera/gstnvarguscamerasrc.cpp
+@@ -115,8 +115,10 @@ bool ThreadArgus::initialize(GstNvArgusC
  
    this->src = src;
  
@@ -51,7 +51,7 @@ index 52e0cad..5f2f74b 100644
  
    // wait for the thread to run
    const useconds_t sleepTimeUs = 100;
-@@ -187,31 +193,28 @@ bool ThreadArgus::threadFunction(GstNvArgusCameraSrc *src)
+@@ -187,31 +193,28 @@ bool ThreadArgus::threadFunction(GstNvAr
  {
    m_threadState = THREAD_INITIALIZING;
  
@@ -89,7 +89,7 @@ index 52e0cad..5f2f74b 100644
  const char* getStatusString(Argus::Status status);
  
  /*******************************************************************************
-@@ -278,10 +281,10 @@ bool StreamConsumer::threadExecute(GstNvArgusCameraSrc *src)
+@@ -278,10 +281,10 @@ bool StreamConsumer::threadExecute(GstNv
    IFrameConsumer *iFrameConsumer = interface_cast<IFrameConsumer>(m_consumer);
  
    // Wait until the producer has connected to the stream.
@@ -102,8 +102,8 @@ index 52e0cad..5f2f74b 100644
    IAutoControlSettings* l_iAutoControlSettings_ptr = (IAutoControlSettings *)src->iAutoControlSettings_ptr;
    ICaptureSession* l_iCaptureSession               = (ICaptureSession *)src->iCaptureSession_ptr;
    IDenoiseSettings* l_iDenoiseSettings_ptr         = (IDenoiseSettings *)src->iDenoiseSettings_ptr;
-@@ -572,7 +575,7 @@ bool StreamConsumer::threadExecute(GstNvArgusCameraSrc *src)
-                 NvBufferColorFormat_YUV420,
+@@ -572,7 +575,7 @@ bool StreamConsumer::threadExecute(GstNv
+                 src->cap_pix_fmt,
                  NvBufferLayout_BlockLinear);
          if (!src->silent)
 -          CONSUMER_PRINT("Acquired Frame. %d\n", src->frameInfo->fd);
@@ -111,7 +111,7 @@ index 52e0cad..5f2f74b 100644
        }
        else if (iNativeBuffer->copyToNvBuffer(src->frameInfo->fd) != STATUS_OK)
        {
-@@ -580,7 +583,7 @@ bool StreamConsumer::threadExecute(GstNvArgusCameraSrc *src)
+@@ -580,7 +583,7 @@ bool StreamConsumer::threadExecute(GstNv
        }
  
        if (!src->silent)
@@ -120,7 +120,7 @@ index 52e0cad..5f2f74b 100644
                     static_cast<unsigned long long>(iFrame->getNumber()),
                     static_cast<unsigned long long>(iFrame->getTime()));
  
-@@ -610,10 +613,9 @@ bool StreamConsumer::threadExecute(GstNvArgusCameraSrc *src)
+@@ -610,10 +613,9 @@ bool StreamConsumer::threadExecute(GstNv
  
    if (!src->argus_in_error)
    {
@@ -201,7 +201,7 @@ index 52e0cad..5f2f74b 100644
    UniqueObj<OutputStreamSettings> streamSettings(iCaptureSession->createOutputStreamSettings(STREAM_TYPE_EGL));
    IEGLOutputStreamSettings *iStreamSettings = interface_cast<IEGLOutputStreamSettings>(streamSettings);
    if (iStreamSettings)
-@@ -685,22 +699,28 @@ static bool execute(int32_t cameraIndex,
+@@ -688,22 +702,28 @@ static bool execute(int32_t cameraIndex,
    }
    UniqueObj<OutputStream> outputStream(iCaptureSession->createOutputStream(streamSettings.get()));
    IEGLOutputStream *iStream = interface_cast<IEGLOutputStream>(outputStream);
@@ -236,7 +236,7 @@ index 52e0cad..5f2f74b 100644
    iRequest->enableOutputStream(outputStream.get());
  
    IAutoControlSettings* iAutoControlSettings =
-@@ -708,23 +728,29 @@ static bool execute(int32_t cameraIndex,
+@@ -711,23 +731,29 @@ static bool execute(int32_t cameraIndex,
    src->iAutoControlSettings_ptr = iAutoControlSettings;
    std::vector<SensorMode*> modes;
    ICameraProperties *camProps = interface_cast<ICameraProperties>(cameraDevices[cameraIndex]);
@@ -274,7 +274,7 @@ index 52e0cad..5f2f74b 100644
    frameRate = src->fps_n/ src->fps_d;
    duration = 1e9 * src->fps_d/ src->fps_n;
    ISensorMode *iSensorMode[modes.size()];
-@@ -737,7 +763,7 @@ static bool execute(int32_t cameraIndex,
+@@ -740,7 +766,7 @@ static bool execute(int32_t cameraIndex,
      iSensorMode[index] = interface_cast<ISensorMode>(modes[index]);
      sensorModeAnalogGainRange = iSensorMode[index]->getAnalogGainRange();
      limitExposureTimeRange = iSensorMode[index]->getExposureTimeRange();
@@ -283,7 +283,7 @@ index 52e0cad..5f2f74b 100644
                      iSensorMode[index]->getResolution().width(), iSensorMode[index]->getResolution().height(),
                      (1e9/(iSensorMode[index]->getFrameDurationRange().min())),
                      iSensorMode[index]->getFrameDurationRange().min(),
-@@ -784,17 +810,21 @@ static bool execute(int32_t cameraIndex,
+@@ -787,17 +813,21 @@ static bool execute(int32_t cameraIndex,
    if (frameRate > round((1e9/(iSensorMode[cameraMode]->getFrameDurationRange().min()))))
    {
      src->argus_in_error = TRUE;
@@ -310,7 +310,7 @@ index 52e0cad..5f2f74b 100644
    src->iEeSettings_ptr = eeSettings;
  
    /* Setting Noise Reduction Mode and Strength*/
-@@ -901,7 +931,7 @@ static bool execute(int32_t cameraIndex,
+@@ -904,7 +934,7 @@ static bool execute(int32_t cameraIndex,
      src->aeLockPropSet = FALSE;
    }
  
@@ -319,7 +319,7 @@ index 52e0cad..5f2f74b 100644
               "   Camera index = %d \n"
               "   Camera mode  = %d \n"
               "   Output Stream W = %d H = %d \n"
-@@ -993,18 +1023,20 @@ static bool execute(int32_t cameraIndex,
+@@ -996,18 +1026,20 @@ static bool execute(int32_t cameraIndex,
  
    requestSourceSettings->setFrameDurationRange(Range<uint64_t>(1e9/frameRate));
  
@@ -345,7 +345,7 @@ index 52e0cad..5f2f74b 100644
      iCaptureSession->cancelRequests();
      src->timeout = 1;
    }
-@@ -1024,7 +1056,7 @@ static bool execute(int32_t cameraIndex,
+@@ -1027,7 +1059,7 @@ static bool execute(int32_t cameraIndex,
      }
    }
  
@@ -354,7 +354,7 @@ index 52e0cad..5f2f74b 100644
  
    iCaptureSession->stopRepeat();
  
-@@ -1044,12 +1076,13 @@ static bool execute(int32_t cameraIndex,
+@@ -1047,12 +1079,13 @@ static bool execute(int32_t cameraIndex,
      g_mutex_unlock (&src->argus_buffer_consumed_lock);
    }
    // Wait for the consumer thread to complete.
@@ -370,7 +370,7 @@ index 52e0cad..5f2f74b 100644
  
    return true;
  }
-@@ -1657,21 +1690,21 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+@@ -1669,21 +1702,21 @@ static gboolean set_range (GstNvArgusCam
    if(prop_id == PROP_GAIN_RANGE)
    {
      str = src->gainRangeString;
@@ -396,7 +396,7 @@ index 52e0cad..5f2f74b 100644
      return FALSE;
    }
  
-@@ -1687,7 +1720,7 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+@@ -1699,7 +1732,7 @@ static gboolean set_range (GstNvArgusCam
  
      if (index == 2)
      {
@@ -405,7 +405,7 @@ index 52e0cad..5f2f74b 100644
        ret = FALSE;
        goto done;
      }
-@@ -1700,7 +1733,7 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+@@ -1712,7 +1745,7 @@ static gboolean set_range (GstNvArgusCam
       if(prop_id == PROP_GAIN_RANGE)
       {
         if (array[0] < MIN_GAIN || array[1] > MAX_GAIN) {
@@ -414,7 +414,7 @@ index 52e0cad..5f2f74b 100644
           ret = FALSE;
           goto done;
         }
-@@ -1711,7 +1744,7 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+@@ -1723,7 +1756,7 @@ static gboolean set_range (GstNvArgusCam
       else if(prop_id == PROP_EXPOSURE_TIME_RANGE)
       {
         if (array[0] < MIN_EXPOSURE_TIME || array[1] > MAX_EXPOSURE_TIME) {
@@ -423,7 +423,7 @@ index 52e0cad..5f2f74b 100644
           ret = FALSE;
           goto done;
         }
-@@ -1722,7 +1755,7 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+@@ -1734,7 +1767,7 @@ static gboolean set_range (GstNvArgusCam
       else if(prop_id == PROP_DIGITAL_GAIN_RANGE)
       {
         if (array[0] < MIN_DIGITAL_GAIN || array[1] > MAX_DIGITAL_GAIN) {
@@ -432,7 +432,7 @@ index 52e0cad..5f2f74b 100644
           ret = FALSE;
           goto done;
         }
-@@ -1732,13 +1765,13 @@ static gboolean set_range (GstNvArgusCameraSrc *src, guint prop_id)
+@@ -1744,13 +1777,13 @@ static gboolean set_range (GstNvArgusCam
       }
       else
       {

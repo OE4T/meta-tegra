@@ -2,15 +2,6 @@ Index: gst-nvarguscamera/gstnvarguscamerasrc.cpp
 ===================================================================
 --- gst-nvarguscamera.orig/gstnvarguscamerasrc.cpp
 +++ gst-nvarguscamera/gstnvarguscamerasrc.cpp
-@@ -299,7 +299,7 @@ bool StreamConsumer::threadExecute(GstNv
-   src->frameInfo->fd = -1;
-   while (true)
-   {
--    Status frame_status;
-+    Argus::Status frame_status;
-     GError *error = NULL;
-     Event* event = NULL;
-     IEvent* iEvent = NULL;
 @@ -320,7 +320,7 @@ bool StreamConsumer::threadExecute(GstNv
      if (!iEvent)
      {
@@ -20,13 +11,11 @@ Index: gst-nvarguscamera/gstnvarguscamerasrc.cpp
      }
  
      if (iEvent->getEventType() == EVENT_TYPE_ERROR)
-@@ -330,8 +330,8 @@ bool StreamConsumer::threadExecute(GstNv
- 
+@@ -331,7 +331,7 @@ bool StreamConsumer::threadExecute(GstNv
        src->argus_in_error = TRUE;
        const IEventError* iEventError = interface_cast<const IEventError>(event);
--      Status argusStatus = iEventError->getStatus();
+       Argus::Status argusStatus = iEventError->getStatus();
 -      error = g_error_new (domain, argusStatus, getStatusString(argusStatus));
-+      Argus::Status argusStatus = iEventError->getStatus();
 +      error = g_error_new (domain, argusStatus, "%s", getStatusString(argusStatus));
        GstMessage *message = gst_message_new_error (GST_OBJECT(src), error, "Argus Error Status");
        gst_element_post_message (GST_ELEMENT_CAST(src), message);
