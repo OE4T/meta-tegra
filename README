@@ -3,8 +3,8 @@ OpenEmbedded/Yocto BSP layer for NVIDIA Tegra X1/X2/K1
 
 Boards supported:
 * Jetson-TK1 development kit (Linux4Tegra R21.7)
-* Jetson-TX1 development kit (Linux4Tegra R28.2, JetPack 3.3)
-* Jetson-TX2 development kit (Linux4Tegra R28.2.1, JetPack 3.3)
+* Jetson-TX1 development kit (Linux4Tegra R28.4.0, JetPack 3.3.3)
+* Jetson-TX2 development kit (Linux4Tegra R28.4.0, JetPack 3.3.3)
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core

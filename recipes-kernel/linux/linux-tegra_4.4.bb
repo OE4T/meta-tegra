@@ -10,21 +10,29 @@ PV .= "+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 EXTRA_OEMAKE += 'LIBGCC=""'
 
-L4T_VERSION = "l4t-r28.2"
+L4T_VERSION = "l4t-r28.4"
 SCMVERSION ??= "y"
 export LOCALVERSION = ""
 
 SRCBRANCH = "patches-${L4T_VERSION}"
-SRCREV = "2657cd8325b0f092fc986a307b9de7e186fe8b9f"
-KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
+SRCREV = "26544edc4336898e8dc0e010bb8dcb03f12b2e72"
+#KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
+KERNEL_REPO = "github.com/mandraga/linux-tegra.git"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 	   file://defconfig \
 "
+
 S = "${WORKDIR}/git"
 
 KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p\${distro_bootpart} rw rootwait"
 
 do_configure_prepend() {
+
+
+    if [ -f "${WORKDIR}/defconfig" ] && [ ! -f "${B}/.config" ]; then
+        bbwarn "config is found"
+	fi
+
     localversion="-${L4T_VERSION}"
     if [ "${SCMVERSION}" = "y" ]; then
 	head=`git --git-dir=${S}/.git rev-parse --verify --short HEAD 2> /dev/null`
@@ -65,4 +73,4 @@ do_install[postfuncs] += "generate_extlinux_conf"
 
 FILES_${KERNEL_PACKAGE_NAME}-image += "/${KERNEL_IMAGEDEST}/extlinux /${KERNEL_IMAGEDEST}/initrd"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra210)"
+COMPATIBLE_MACHINE = "(tegra186)"
