@@ -67,6 +67,10 @@ class Partition(object):
 
         if element.find('size') is None:
             self.size = 0
+        elif self.name == "GP1":
+            # NV flash tools (for t210) ignore this size setting
+            # and just use the standard size
+            self.size = 34
         else:
             s = element.find('size').text.strip()
             if s.lower().startswith('0xffffffff'):
