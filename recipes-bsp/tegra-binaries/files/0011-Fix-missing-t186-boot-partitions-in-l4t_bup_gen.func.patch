@@ -1,4 +1,4 @@
-From e6a1e7e77d4b40afe0eacfdc96080951b74347a6 Mon Sep 17 00:00:00 2001
+From f78ea1100386dc3c1ccf31143624e59ec5fa4739 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 3 May 2021 07:20:13 -0700
 Subject: [PATCH] Fix missing t186 boot partitions in l4t_bup_gen.func
@@ -6,37 +6,60 @@ Subject: [PATCH] Fix missing t186 boot partitions in l4t_bup_gen.func
 Signed-off-by: Matt Madison <matt@madison.systems>
 
 ---
- bootloader/l4t_bup_gen.func | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ bootloader/l4t_bup_gen.func | 21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
-===================================================================
---- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
-+++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
-@@ -195,7 +195,12 @@ _generate_bl_update_payload()
+diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
+index bea0027..9cabc6a 100644
+--- a/bootloader/l4t_bup_gen.func
++++ b/bootloader/l4t_bup_gen.func
+@@ -33,6 +33,7 @@ ENTRY_LIST[xusb]=""
+ ENTRY_LIST[porg_qspi]=""
+ ENTRY_LIST[porg_sd]=""
+ ENTRY_LIST[bl_and_kernel]=""
++ENTRY_LIST[full_init]=""
+ 
+ signed_ext="signed"
+ signed_dir="signed"
+@@ -195,9 +196,13 @@ _generate_bl_update_payload()
  				"${signed_dir}"/cboot_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
  				"${signed_dir}"/nvtboot_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
  				"${signed_dir}"/spe_sigheader.bin.${signed_ext} spe-fw 2 0 $_common_spec; \
 -				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec;"
-+ 				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
-+ 				"${signed_dir}"/badpage_sigheader.bin.${signed_ext} badpage-fw 2 0 $_common_spec; \
-+				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
-+				"${signed_dir}"/dram-ecc_sigheader.bin.${signed_ext} dram-ecc-fw 2 0 $_common_spec; \
 +				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
++				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
 +				bmp.blob BMP 2 0 $_common_spec;"
  		ENTRY_LIST[kernel]=""${kernel_signed_dir}"/${kernel_image_base}_sigheader.img.${kernel_signed_ext} kernel 2 0 $_common_spec;"
- 
+-
++		ENTRY_LIST[full_init]=""${signed_dir}"/badpage_sigheader.bin.${signed_ext} badpage-fw 2 0 $_common_spec; \
++				"${signed_dir}"/dram-ecc_sigheader.bin.${signed_ext} dram-ecc-fw 2 0 $_common_spec; \
++				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec;"
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
-@@ -235,8 +240,11 @@ _generate_bl_update_payload()
- 				"${signed_dir}"/nvtboot_t194_sigheader.bin.${signed_ext} mb2 2 0 $_common_spec; \
+ 			ENTRY_LIST[bl]+=""${signed_dir}"/mb1_dev.bin.${signed_ext} mb1 2 1 $_common_spec; \
+ 				"${signed_dir}"/mce_mts_d15_dev_cr_sigheader.bin.${signed_ext} mts-bootpack 2 1 $_common_spec; \
+@@ -236,7 +241,10 @@ _generate_bl_update_payload()
  				"${signed_dir}"/cboot_t194_sigheader.bin.${signed_ext} cpu-bootloader 2 0 $_common_spec; \
  				"${signed_dir}"/tos-trusty_t194_sigheader.img.${signed_ext} secure-os 2 0 $_common_spec; \
-+ 				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
-+ 				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
  				"${signed_dir}"/bpmp_t194_sigheader.bin.${signed_ext} bpmp-fw 2 0 $_common_spec; \
 -				"${signed_dir}"/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw 2 0 $_common_spec;"
 +				"${signed_dir}"/camera-rtcpu-rce_sigheader.img.${signed_ext} rce-fw 2 0 $_common_spec; \
++				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks 2 0 $_common_spec; \
++				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw 2 0 $_common_spec; \
 +				bmp.blob BMP 2 0 $_common_spec;"
  		ENTRY_LIST[kernel]=""${kernel_signed_dir}"/${kernel_image_base}_sigheader.img.${kernel_signed_ext} kernel 2 0 $_common_spec;"
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
+@@ -321,6 +329,13 @@ _generate_bl_update_payload()
+ 		ENTRY_LIST[bl_and_kernel]="${ENTRY_LIST[bl]};${ENTRY_LIST[kernel]}"
+ 	fi
+ 
++	# OE4T: extra 'full_init' payload for TX2 that also includes partitions
++	# not normally included in the t18x bl_and_kernel payload for first-time
++	# initialization.
++	if [ "${tegra_soc}" == "t18x" ]; then
++	    ENTRY_LIST[full_init]="${ENTRY_LIST[bl_and_kernel]};${ENTRY_LIST[full_init]}"
++	fi
++
+ 	for list_name in "${!ENTRY_LIST[@]}"; do
+ 		if [ "${ENTRY_LIST["${list_name}"]}" == "" ]; then
+ 			continue
