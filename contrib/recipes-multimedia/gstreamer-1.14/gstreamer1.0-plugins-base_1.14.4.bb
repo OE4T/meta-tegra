@@ -32,8 +32,6 @@ DEPENDS += "iso-codes util-linux"
 
 inherit gettext gobject-introspection
 
-PACKAGES_DYNAMIC =+ "^libgst.*"
-
 # opengl packageconfig factored out to make it easy for distros
 # and BSP layers to pick either (desktop) opengl, gles2, or no GL
 PACKAGECONFIG_GL ?= "${@bb.utils.contains('DISTRO_FEATURES', 'opengl', 'gles2 egl', '', d)}"
