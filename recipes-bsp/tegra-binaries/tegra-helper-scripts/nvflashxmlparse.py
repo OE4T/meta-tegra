@@ -1,13 +1,16 @@
 #! /usr/bin/env python3
 
+import os
 import sys
 import argparse
 import uuid
 import logging
 
 uuids = {}
+ignore_partition_ids = True
 
 def generate_guid(guid):
+    global uuids
     try:
         return uuids[guid]
     except KeyError:
@@ -31,10 +34,11 @@ def validate_guid(guid):
     return guid
 
 class Partition(object):
-    def __init__(self, element, sector_size, curpos, partnum, bootdev):
+    def __init__(self, element, sector_size, curpos, partnum, bootdev, ignore_id):
         self.name = element.get('name')
         self.type = element.get('type')
-        self.id = element.get('id', (None if self.is_partition_table() else partnum))
+        default_id = None if self.is_partition_table() else partnum
+        self.id = default_id if ignore_id else element.get('id', default_id)
         self.oem_sign = element.get('oemsign', 'false') == 'true'
         guid = element.find('unique_guid')
         self.partguid = "" if guid is None else validate_guid(guid.text.strip())
@@ -97,6 +101,7 @@ class Device(object):
         self.num_sectors = int(element.get('num_sectors', '0'), 0)
         self.partitions = []
         self.is_boot_device = self.type in ['sdmmc_boot', 'spi'] or (self.type == 'sdmmc' and devcount == 0)
+        self.ignore_ids = ignore_partition_ids or self.is_boot_device
         logging.info("Device {}: instance={}, sector_size={}, num_sectors={}, boot_device={}".format(self.type, self.instance,
                                                                                                      self.sector_size, self.num_sectors,
                                                                                                      self.is_boot_device))
@@ -104,7 +109,7 @@ class Device(object):
         nextpart = 1
         curpos = 0
         for partnode in element.findall('./partition'):
-            part = Partition(partnode, self.sector_size, curpos, nextpart, self.is_boot_device)
+            part = Partition(partnode, self.sector_size, curpos, nextpart, self.is_boot_device, self.ignore_ids)
             self.partitions.append(part)
             if part.is_partition_table(primary_only=True):
                 self.parttable_size += part.size
@@ -200,6 +205,11 @@ def size_to_sectors(sizespec):
 
 
 def main():
+    global ignore_partition_ids
+    ignore_from_env = os.getenv("NVFLASHXMLPARSE_IGNORE_PARTITION_IDS")
+    if ignore_from_env is not None:
+        ignore_from_env = ignore_from_env.strip().upper()
+        ignore_partition_ids = ignore_from_env != "" and ignore_from_env in ['Y', 'YES', 'T', 'TRUE', '1']
     parser = argparse.ArgumentParser(
         description="""
 Extracts partition information from an NVIDIA flash.xml file
