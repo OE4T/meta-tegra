@@ -1,4 +1,4 @@
-From ebd853e32cb62ab5c8f1f1802b093874152e02ac Mon Sep 17 00:00:00 2001
+From 3f6235e88a8bcfa76efcd56afa66c7771ed4bcfc Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 17 Nov 2020 07:51:45 -0800
 Subject: [PATCH 09/11] tegrabl_cbo: support A/B slots
@@ -60,5 +60,5 @@ index e149f68..cbc7e52 100644
  	}
  	partition_size = partition.partition_info->total_size;
 -- 
-2.27.0
+2.30.2
 
