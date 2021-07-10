@@ -1,0 +1,30 @@
+From 9fd9c99e80085311bb320d4188978bdc4ef072a5 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 19 Nov 2020 07:32:29 -0800
+Subject: [PATCH 05/11] Fix spurious console=none warning
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/partner/common/lib/linuxboot/dtb_update.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/bootloader/partner/common/lib/linuxboot/dtb_update.c b/bootloader/partner/common/lib/linuxboot/dtb_update.c
+index 16fb54a..b99f7f1 100644
+--- a/bootloader/partner/common/lib/linuxboot/dtb_update.c
++++ b/bootloader/partner/common/lib/linuxboot/dtb_update.c
+@@ -402,9 +402,9 @@ static tegrabl_error_t add_bootarg_info(void *fdt, int nodeoffset)
+ 	err = tegrabl_linuxboot_helper_get_info(
+ 						TEGRABL_LINUXBOOT_INFO_DEBUG_CONSOLE, NULL, &console);
+ 	if (((err == TEGRABL_NO_ERROR) && (console == TEGRABL_LINUXBOOT_DEBUG_CONSOLE_NONE)) || odm_config_set) {
+-			param_value_override(dtb_cmdline, &len, "console=", "none");
+-	} else
+-		pr_warn("WARN: Fail to override \"console=none\" in commandline\n");
++		if (param_value_override(dtb_cmdline, &len, "console=", "none") != TEGRABL_NO_ERROR)
++			pr_warn("WARN: Fail to override \"console=none\" in commandline\n");
++	}
+ 
+ 	len = tegrabl_snprintf(ptr, remain, "%s ",
+ 			tegrabl_linuxboot_prepare_cmdline(dtb_cmdline));
+-- 
+2.30.2
+

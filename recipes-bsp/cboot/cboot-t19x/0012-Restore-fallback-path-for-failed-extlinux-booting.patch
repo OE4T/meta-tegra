@@ -1,0 +1,40 @@
+From d5ee869bef3947f2cbb99089e433a7b4db908c41 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 10 Jul 2021 04:31:11 -0700
+Subject: [PATCH] Restore fallback path for failed extlinux booting
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/partner/common/lib/linuxboot/fixed_boot.c     | 1 -
+ bootloader/partner/common/lib/linuxboot/removable_boot.c | 3 ---
+ 2 files changed, 4 deletions(-)
+
+diff --git a/bootloader/partner/common/lib/linuxboot/fixed_boot.c b/bootloader/partner/common/lib/linuxboot/fixed_boot.c
+index 813308e..2059ed9 100644
+--- a/bootloader/partner/common/lib/linuxboot/fixed_boot.c
++++ b/bootloader/partner/common/lib/linuxboot/fixed_boot.c
+@@ -242,7 +242,6 @@ tegrabl_error_t fixed_boot_load_kernel_and_dtb(struct tegrabl_kernel_bin *kernel
+ 		goto fail;  /* There is no fallback for ramdisk, so let caller handle the error */
+ 	}
+ 	pr_error("Failed extlinux boot.\n");
+-	goto fail;
+ #else
+ 	TEGRABL_UNUSED(ramdisk_load_addr);
+ 	TEGRABL_UNUSED(kernel_size);
+diff --git a/bootloader/partner/common/lib/linuxboot/removable_boot.c b/bootloader/partner/common/lib/linuxboot/removable_boot.c
+index 64cb399..182cd3c 100644
+--- a/bootloader/partner/common/lib/linuxboot/removable_boot.c
++++ b/bootloader/partner/common/lib/linuxboot/removable_boot.c
+@@ -230,9 +230,6 @@ tegrabl_error_t removable_boot_load_kernel_and_dtb(uint8_t boot_type,
+ 		goto fail;  /* There is no fallback for ramdisk, so let caller handle the error */
+ 	}
+ 	pr_error("Failed extlinux boot.\n");
+-	goto fail;
+-#else
+-	goto fallback;
+ #endif
+ 
+ fallback:
+-- 
+2.30.2
+

@@ -1,7 +1,7 @@
-From 118578b2172ea2503c55ad0580e62cf91cdb8518 Mon Sep 17 00:00:00 2001
+From 1cc702cef00bd9e0f40af6ddcc09e347c28e1f68 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 17 Nov 2020 05:36:58 -0800
-Subject: [PATCH 07/11] t194/l4t.mk: make some build options configurable
+Subject: [PATCH 08/11] t194/l4t.mk: make some build options configurable
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 9 insertions(+), 6 deletions(-)
 
 diff --git a/bootloader/partner/t18x/cboot/platform/t194/l4t.mk b/bootloader/partner/t18x/cboot/platform/t194/l4t.mk
-index 54629cf..ba0e9f4 100644
+index 4617932..b4fa2ff 100644
 --- a/bootloader/partner/t18x/cboot/platform/t194/l4t.mk
 +++ b/bootloader/partner/t18x/cboot/platform/t194/l4t.mk
-@@ -8,19 +8,22 @@
+@@ -8,20 +8,23 @@
  # license agreement from NVIDIA CORPORATION is strictly prohibited.
  #
  
@@ -31,6 +31,7 @@ index 54629cf..ba0e9f4 100644
  	CONFIG_ENABLE_SDCARD=1 \
  	CONFIG_ENABLE_USB_MS=1 \
  	CONFIG_ENABLE_USB_SD_BOOT=1 \
+ 	CONFIG_ENABLE_NVME_BOOT=1 \
 -	CONFIG_ENABLE_ETHERNET_BOOT=1 \
  	CONFIG_ENABLE_SECURE_BOOT=1 \
 -	CONFIG_ENABLE_DISPLAY=1 \
@@ -42,5 +43,5 @@ index 54629cf..ba0e9f4 100644
  MODULE_DEPS +=	\
  	lib/lwip \
 -- 
-2.27.0
+2.30.2
 
