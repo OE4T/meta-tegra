@@ -1,4 +1,4 @@
-From b5fc2ebf61edd263825efe942a2efddb0587720d Mon Sep 17 00:00:00 2001
+From 3493b79dbf37a5d48c98c328a679ae484e6c3a8a Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 28 Dec 2020 05:59:33 -0800
 Subject: [PATCH 10/11] t194: add bootinfo to build
@@ -9,10 +9,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 1 insertion(+)
 
 diff --git a/bootloader/partner/t18x/cboot/platform/t194/rules.mk b/bootloader/partner/t18x/cboot/platform/t194/rules.mk
-index 9ce98b7..2789d2a 100644
+index 2ce07f9..e6e7e7b 100644
 --- a/bootloader/partner/t18x/cboot/platform/t194/rules.mk
 +++ b/bootloader/partner/t18x/cboot/platform/t194/rules.mk
-@@ -76,6 +76,7 @@ MODULE_DEPS += \
+@@ -77,6 +77,7 @@ MODULE_DEPS += \
  	$(LOCAL_DIR)/../../../../common/drivers/pwm \
  	$(LOCAL_DIR)/../../../../common/drivers/display \
  	$(LOCAL_DIR)/../../../../common/lib/cbo \
@@ -21,5 +21,5 @@ index 9ce98b7..2789d2a 100644
  
  ifeq ($(filter t19x, $(TARGET_FAMILY)),)
 -- 
-2.27.0
+2.30.2
 
