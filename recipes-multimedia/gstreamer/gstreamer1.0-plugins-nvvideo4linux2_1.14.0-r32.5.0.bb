@@ -27,6 +27,7 @@ DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-lib
 PACKAGECONFIG ??= "libv4l2"
 PACKAGECONFIG[libv4l2] = ",,v4l-utils,tegra-libraries-libv4l-plugins"
 EXTRA_OEMAKE = "${@bb.utils.contains('PACKAGECONFIG', 'libv4l2', 'USE_LIBV4L2=1', '', d)}"
+CFLAGS += "-fcommon"
 
 S = "${WORKDIR}/gst-v4l2"
 
