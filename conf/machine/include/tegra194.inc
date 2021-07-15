@@ -43,7 +43,7 @@ require conf/machine/include/tegra-common.inc
 
 L4T_BSP_NAME = "T186"
 L4T_SRCS_NAME = "sources/T186"
-L4T_BSP_PREFIX = "Tegra186"
+L4T_BSP_PREFIX = "Jetson"
 L4T_DEB_SOCNAME = "t194"
 
 NVPMODEL ?= "nvpmodel_t194"
