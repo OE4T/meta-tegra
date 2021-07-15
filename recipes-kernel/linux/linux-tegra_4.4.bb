@@ -28,11 +28,6 @@ KERNEL_ROOTSPEC ?= "root=/dev/mmcblk\${devnum}p\${distro_bootpart} rw rootwait"
 
 do_configure_prepend() {
 
-
-    if [ -f "${WORKDIR}/defconfig" ] && [ ! -f "${B}/.config" ]; then
-        bbwarn "config is found"
-	fi
-
     localversion="-${L4T_VERSION}"
     if [ "${SCMVERSION}" = "y" ]; then
 	head=`git --git-dir=${S}/.git rev-parse --verify --short HEAD 2> /dev/null`
@@ -73,4 +68,4 @@ do_install[postfuncs] += "generate_extlinux_conf"
 
 FILES_${KERNEL_PACKAGE_NAME}-image += "/${KERNEL_IMAGEDEST}/extlinux /${KERNEL_IMAGEDEST}/initrd"
 
-COMPATIBLE_MACHINE = "(tegra186)"
+COMPATIBLE_MACHINE = "(tegra186|tegra210)"

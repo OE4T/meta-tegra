@@ -13,6 +13,7 @@ SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
 BOOTBINS_tegra186 = "\
     bmp.blob \
     bpmp.bin \
+    dram-ecc.bin \
     camera-rtcpu-sce.bin \
     cboot.bin \
     eks.img \

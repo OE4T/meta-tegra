@@ -133,6 +133,7 @@ tegraflash_create_flash_config_tegra186() {
         -e"s,MBPTYPE,mts_bootpack," -e"s,MBPFILE,mce_mts_d15_prod_cr.bin," -e"s,MBPNAME,mts-bootpack," \
         -e"s,MB1TYPE,mb1_bootloader," -e"s,MB1FILE,mb1_prod.bin," -e"s,MB1NAME,mb1," \
         -e"s,BPFFILE,bpmp.bin," -e"s,BPFNAME,bpmp-fw," -e"s,BPFSIGN,true," \
+        -e"s,DRAMECCFILE,dram-ecc.bin," -e"s,DRAMECCNAME,dram-ecc-fw," -e"s,DRAMECCTYPE,dram_ecc," \
         -e"s,BPFDTB-NAME,bpmp-fw-dtb," -e"s,BPMPDTB-SIGN,true," \
         -e"s,TBCFILE,cboot.bin," -e"s,TBCTYPE,bootloader," -e"s,TBCNAME,cpu-bootloader," \
         -e"s,TBCDTB-NAME,bootloader-dtb," -e"s,TBCDTB-FILE,${DTBFILE}," \
@@ -162,6 +163,7 @@ BOOTFILES_tegra210 = "\
 BOOTFILES_tegra186 = "\
     bmp.blob \
     bpmp.bin \
+    dram-ecc.bin \
     camera-rtcpu-sce.bin \
     cboot.bin \
     eks.img \
