@@ -1,0 +1,1317 @@
+From babaa7724c8eac70180e7b74bc53ae45211bd910 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 15 Jul 2021 12:55:15 -0700
+Subject: [PATCH] Backport fixes from R32.5.2
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../common/drivers/sdmmc/tegrabl_sdmmc_rpmb.c |  22 +-
+ .../common/include/arch/tegrabl_armv8a.h      |  11 +-
+ .../common/include/lib/tegrabl_malloc.h       |  83 +-
+ .../partner/common/lib/gpt/tegrabl_gpt.c      |  16 +-
+ bootloader/partner/common/lib/malloc/rules.mk |   5 +-
+ .../common/lib/malloc/tegrabl_malloc.c        | 712 ++++++++++++------
+ 6 files changed, 547 insertions(+), 302 deletions(-)
+
+diff --git a/bootloader/partner/common/drivers/sdmmc/tegrabl_sdmmc_rpmb.c b/bootloader/partner/common/drivers/sdmmc/tegrabl_sdmmc_rpmb.c
+index b7373db..93db677 100644
+--- a/bootloader/partner/common/drivers/sdmmc/tegrabl_sdmmc_rpmb.c
++++ b/bootloader/partner/common/drivers/sdmmc/tegrabl_sdmmc_rpmb.c
+@@ -333,13 +333,8 @@ static tegrabl_error_t sdmmc_rpmb_calculate_mac(sdmmc_rpmb_key_t *key,
+ 	memcpy(out_mac, digest, RPMB_KEY_OR_MAC_SIZE);
+ 
+ fail:
+-	if (buf != NULL) {
+-		tegrabl_free(buf);
+-	}
+-
+-	if (digest != NULL) {
+-		tegrabl_free(digest);
+-	}
++	tegrabl_dealloc(TEGRABL_HEAP_DMA, buf);
++	tegrabl_dealloc(TEGRABL_HEAP_DMA, digest);
+ 
+ 	if (error != TEGRABL_NO_ERROR) {
+ 		pr_debug("RPMB MAC calculation failed, error = %08X\n", error);
+@@ -686,12 +681,9 @@ static tegrabl_error_t sdmmc_rpmb_test(tegrabl_bdev_t *dev,
+ 	}
+ 
+ fail:
+-	if (read_buf != NULL) {
+-		tegrabl_free(read_buf);
+-	}
+-	if (write_buf != NULL) {
+-		tegrabl_free(write_buf);
+-	}
++	tegrabl_dealloc(TEGRABL_HEAP_DMA, read_buf);
++	tegrabl_dealloc(TEGRABL_HEAP_DMA, write_buf);
++
+ 	if (error != TEGRABL_NO_ERROR) {
+ 		pr_error("RPMB test failed, error = %08X\n", error);
+ 	} else {
+@@ -780,9 +772,7 @@ tegrabl_error_t sdmmc_rpmb_program_key(tegrabl_bdev_t *bdev, void *key_blob,
+ 
+ fail:
+ 	memset(&key, 0, sizeof(key));
+-	if (rpmb_context != NULL) {
+-		tegrabl_free(rpmb_context);
+-	}
++	tegrabl_dealloc(TEGRABL_HEAP_DMA ,rpmb_context);
+ 	if (error != TEGRABL_NO_ERROR) {
+ 		pr_error("RPMB program key, error = %08X\n", error);
+ 	}
+diff --git a/bootloader/partner/common/include/arch/tegrabl_armv8a.h b/bootloader/partner/common/include/arch/tegrabl_armv8a.h
+index ea2196c..036f4a6 100644
+--- a/bootloader/partner/common/include/arch/tegrabl_armv8a.h
++++ b/bootloader/partner/common/include/arch/tegrabl_armv8a.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2015-2018, NVIDIA Corporation.  All rights reserved.
++ * Copyright (c) 2015-2021, NVIDIA Corporation.  All rights reserved.
+  *
+  * NVIDIA Corporation and its licensors retain all intellectual property
+  * and proprietary rights in and to this software and related documentation
+@@ -178,6 +178,15 @@ static inline uint64_t tegrabl_read_nvg_channel_data(void)
+ 	return reg;
+ }
+ 
++/**
++ * @brief Infinite loop.
++ */
++static inline void tegrabl_hang(void)
++{
++    asm volatile ("b ." : : : "memory", "cc");
++}
++
++
+ #endif /* !defined(_ASSEMBLY_) */
+ 
+ #endif /* INCLUDED_ARMV8A_H */
+diff --git a/bootloader/partner/common/include/lib/tegrabl_malloc.h b/bootloader/partner/common/include/lib/tegrabl_malloc.h
+index 8e1d855..9d70235 100644
+--- a/bootloader/partner/common/include/lib/tegrabl_malloc.h
++++ b/bootloader/partner/common/include/lib/tegrabl_malloc.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2015-2018, NVIDIA CORPORATION.  All Rights Reserved.
++ * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All Rights Reserved.
+  *
+  * NVIDIA Corporation and its licensors retain all intellectual property and
+  * proprietary rights in and to this software and related documentation.  Any
+@@ -16,107 +16,114 @@
+ #include <tegrabl_error.h>
+ 
+ /**
+- * @brief specifies the type of heap
++ * @brief Define heap types available. Possible values are @ref HEAP_TYPES.
+  */
+-/* macro tegrabl heap type */
+ typedef uint32_t tegrabl_heap_type_t;
++
++/**
++ * @addtogroup HEAP_TYPES Heap types
++ * @brief Values for @ref tegrabl_heap_type_t
++ * @{
++ */
+ #define TEGRABL_HEAP_DEFAULT 0U
+ #define TEGRABL_HEAP_DMA 1U
+ #define TEGRABL_HEAP_TYPE_MAX 2U
++/** @}*/
+ 
+ /**
+- * @brief Reserves a large pool of memory. Using tegrabl_malloc, tegrabl_calloc
++ * @brief Reserve a large pool of memory. Using tegrabl_malloc, tegrabl_calloc
+  * or tegrabl_memalign small part of this memory can be requested on need basis
+  * for use. This memory can be returned back to pool using tegrabl_free.
+  *
+- * @param heap_type Constant indicating type of heap
+- * @param start Start location of heap
+- * @param size  Size of the heap
++ * @param[in] heap_type Constant indicating type of heap.
++ *                      See @ref HEAP_TYPES for possible values
++ * @param[in] start Start location of heap
++ * @param[in] size  Size of the heap
+  *
+- * @return TEGRABL_NO_ERROR if successful, else error.
++ * @return TEGRABL_NO_ERROR Successful, else error.
+  */
+ tegrabl_error_t tegrabl_heap_init(tegrabl_heap_type_t heap_type,
+ 								  size_t start, size_t size);
+ 
+ /**
+- * @brief Allocates memory and returns pointer to the allocated memory.
++ * @brief Allocate memory and returns pointer to the allocated memory from default heap.
+  *
+- * @param size Specifies the size in bytes
++ * @param[in] size Specifies the size in bytes
+  *
+- * @return pointer to the allocated memory if successful else NULL
++ * @return Pointer to the allocated memory if successful else NULL
+  */
+ void *tegrabl_malloc(size_t size);
+ 
+ /**
+- * @brief Allocates memory and returns pointer to the allocated memory.
++ * @brief Allocate memory and returns pointer to the allocated memory from default heap.
+  * The memory address will be a multiple of alignment.
+  *
+- * @param alignment  Specifies the alignment
+- * @param size       Specifies the size in bytes
++ * @param[in] alignment  Specifies the alignment in bytes
++ * @param[in] size       Specifies the size in bytes
+  *
+- * @return pointer to the allocated memory if successful else NULL
++ * @return Pointer to the allocated memory if successful else NULL
+  */
+ void *tegrabl_memalign(size_t alignment, size_t size);
+ 
+ /**
+- * @brief Allocates memory of an array of nmemb elements of size bytes each and
++ * @brief Allocate memory of an array of nmemb elements of size bytes each and
+  * returns a pointer to the allocated memory. The memory is set to zero.
+  *
+- * @param nmemb Specifies no of elelements
+- * @param size  Specifies size of an element in bytes
++ * @param[in] nmemb Specifies no of elements
++ * @param[in] size  Specifies size of an element in bytes
+  *
+- * @return pointer to the allocated memory if successful else NULL
++ * @return Pointer to the allocated memory if successful else NULL
+  */
+ void *tegrabl_calloc(size_t nmemb, size_t size);
+ 
+ /**
+- * @brief Frees the memory space which must have been allocated by
++ * @brief Free the memory space which must have been allocated by
+  * tegrabl_malloc or tegrabl_calloc. Calling this function to free memory
+  * which has already freed by previous call to this function will lead to
+  * undefined behaviour. If ptr is NULL, no operation is performed.
+  *
+- * @param ptr Specifies start address of the memory
++ * @param[in] ptr Specifies start address of the memory
+  */
+-void tegrabl_free(void *ptr);
++void tegrabl_free(const void *ptr);
+ 
+ /**
+- * @brief Allocates memory and returns pointer to the allocated memory.
++ * @brief Allocate memory and returns pointer to the allocated memory.
+  *
+- * @param heap_type Specifies the heap from where the memory has to be allocated
+- * @param size Specifies the size in bytes
++ * @param[in] heap_type Specifies the heap from where the memory has to be allocated
++ * @param[in] size Specifies the size in bytes
+  *
+- * @return pointer to the allocated memory if successful else NULL
++ * @return Pointer to the allocated memory if successful else NULL
+  */
+ void *tegrabl_alloc(tegrabl_heap_type_t heap_type, size_t size);
+ 
+ /**
+- * @brief Frees memory
++ * @brief Free memory
+  *
+- * @param heap_type Specifies the heap from where the memory has to be freed
+- * @param ptr Specifies start address of the memory
++ * @param[in] heap_type Specifies the heap from where the memory has to be freed
++ * @param[in] ptr Specifies start address of the memory
+  *
+  */
+-void tegrabl_dealloc(tegrabl_heap_type_t heap_type, void *ptr);
++void tegrabl_dealloc(tegrabl_heap_type_t heap_type, const void *ptr);
+ 
+ /**
+- * @brief Allocates aligned memory from specified heap type and returns pointer
++ * @brief Allocate aligned memory from specified heap type and returns pointer
+  * to allocated memory.
+  *
+- * @param heap_type Specifies the heap from where the memory has to be allocated
+- * @param alignment Specifies alignment
+- * @param size Specifies size in bytes
++ * @param[in] heap_type Specifies the heap from where the memory has to be allocated
++ * @param[in] alignment Specifies alignment in bytes
++ * @param[in] size Specifies size in bytes
+  *
+- * @return pointer to the allocated memory if successful else NULL
++ * @return Pointer to the allocated memory if successful else NULL
+  */
+ void *tegrabl_alloc_align(tegrabl_heap_type_t heap_type,
+ 		size_t alignment, size_t size);
+ 
+ /**
+- * @brief Changes the size of memory pointed to by ptr.
++ * @brief Change the size of memory pointed to by ptr.
+  *
+- * @param ptr Pointer to memory block previously allocated using
++ * @param[in] ptr Pointer to memory block previously allocated using
+  * tegrabl_malloc, tegrabl_calloc, tegrabl_realloc.
+- * @param size New size of the memory block in bytes
++ * @param[in] size New size of the memory block in bytes
+  *
+  * @return New address of memory block if successful else NULL.
+  */
+diff --git a/bootloader/partner/common/lib/gpt/tegrabl_gpt.c b/bootloader/partner/common/lib/gpt/tegrabl_gpt.c
+index cd893ad..20c75ca 100644
+--- a/bootloader/partner/common/lib/gpt/tegrabl_gpt.c
++++ b/bootloader/partner/common/lib/gpt/tegrabl_gpt.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2015-2019, NVIDIA CORPORATION.  All rights reserved.
++ * Copyright (c) 2015-2021, NVIDIA CORPORATION.  All rights reserved.
+  *
+  * NVIDIA CORPORATION and its licensors retain all intellectual property
+  * and proprietary rights in and to this software, related documentation
+@@ -161,6 +161,16 @@ static tegrabl_error_t tegrabl_gpt_read_validate(tegrabl_bdev_t *dev,
+ 	pr_trace("Num entries %d, Entry Size %d\n", hdr->num_entries,
+ 			 hdr->entry_size);
+ 
++	if (hdr->num_entries > TEGRABL_GPT_MAX_PARTITION_ENTRIES) {
++		error = TEGRABL_ERROR(TEGRABL_ERR_TOO_LARGE, 1);
++		goto fail;
++	}
++
++	if (hdr->entry_size > sizeof(struct tegrabl_gpt_entry)) {
++		error = TEGRABL_ERROR(TEGRABL_ERR_TOO_LARGE, 2);
++		goto fail;
++	}
++
+ 	table_size = (hdr->num_entries * hdr->entry_size);
+ 	entries =
+ 		(struct tegrabl_gpt_entry *)(buffer + TEGRABL_BLOCKDEV_BLOCK_SIZE(dev));
+@@ -186,9 +196,7 @@ static tegrabl_error_t tegrabl_gpt_read_validate(tegrabl_bdev_t *dev,
+ 		*buf = buffer;
+ 	}
+ 
+-	return error;
+ fail:
+-	tegrabl_free(buffer);
+ 	return error;
+ }
+ 
+@@ -376,6 +384,6 @@ tegrabl_error_t tegrabl_gpt_publish(tegrabl_bdev_t *dev,
+ 	*num_partitions = num_entries;
+ 
+ fail:
+-	tegrabl_free(buffer);
++	tegrabl_dealloc(TEGRABL_HEAP_DMA, buffer);
+ 	return error;
+ }
+diff --git a/bootloader/partner/common/lib/malloc/rules.mk b/bootloader/partner/common/lib/malloc/rules.mk
+index c7294ba..ae35730 100644
+--- a/bootloader/partner/common/lib/malloc/rules.mk
++++ b/bootloader/partner/common/lib/malloc/rules.mk
+@@ -1,5 +1,5 @@
+ #
+-# Copyright (c) 2015 - 2016, NVIDIA Corporation.  All Rights Reserved.
++# Copyright (c) 2015-2021, NVIDIA Corporation.  All Rights Reserved.
+ #
+ # NVIDIA Corporation and its licensors retain all intellectual property and
+ # proprietary rights in and to this software and related documentation.  Any
+@@ -14,7 +14,8 @@ MODULE := $(LOCAL_DIR)
+ 
+ GLOBAL_INCLUDES += \
+ 	$(LOCAL_DIR)/../../include \
+-	$(LOCAL_DIR)/../../include/lib
++	$(LOCAL_DIR)/../../include/lib \
++	$(LOCAL_DIR)/../../include/arch
+ 
+ MODULE_SRCS += \
+ 	$(LOCAL_DIR)/tegrabl_malloc.c
+diff --git a/bootloader/partner/common/lib/malloc/tegrabl_malloc.c b/bootloader/partner/common/lib/malloc/tegrabl_malloc.c
+index 6c59f59..6587627 100644
+--- a/bootloader/partner/common/lib/malloc/tegrabl_malloc.c
++++ b/bootloader/partner/common/lib/malloc/tegrabl_malloc.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2015-2019, NVIDIA Corporation.  All rights reserved.
++ * Copyright (c) 2015-2021, NVIDIA Corporation.  All rights reserved.
+  *
+  * NVIDIA Corporation and its licensors retain all intellectual property and
+  * proprietary rights in and to this software and related documentation.  Any
+@@ -8,6 +8,9 @@
+  * is strictly prohibited.
+  */
+ 
++/**
++ * @brief Module used for error logging.
++ */
+ #define MODULE TEGRABL_ERR_HEAP
+ 
+ #include <stdint.h>
+@@ -16,6 +19,7 @@
+ #include <tegrabl_utils.h>
+ #include <tegrabl_debug.h>
+ #include <tegrabl_malloc.h>
++#include <tegrabl_cpu_arch.h>
+ 
+ /**
+  * @brief Magic number for free memory block.
+@@ -37,10 +41,14 @@
+  * @brief Information describing a free/unallocated block of memory.
+  */
+ typedef struct tegrabl_heap_free_block {
+-	uint32_t magic; /**< magic identifier for free block */
+-	size_t size; /**< size of the free block, this includes the header */
+-	struct tegrabl_heap_free_block *prev; /**< pointer to previous free block */
+-	struct tegrabl_heap_free_block *next; /**< pointer to next free block */
++	/** Magic identifier for free block */
++	uint32_t magic;
++	/** Size of the free block, this includes the header */
++	size_t size;
++	/** Pointer to previous free block */
++	struct tegrabl_heap_free_block *prev;
++	/** Pointer to next free block */
++	struct tegrabl_heap_free_block *next;
+ } tegrabl_heap_free_block_t;
+ 
+ /**
+@@ -48,39 +56,57 @@ typedef struct tegrabl_heap_free_block {
+  * freeing memory.
+  */
+ typedef struct tegrabl_heap_alloc_block {
+-	uint32_t magic; /**< magic identifier for allocated block */
+-	size_t size; /**< total size of allocated block*/
+-	void *start; /**< start of the allocated block. */
+-	/* Note that the start of allocated block and what is returned tp caller
++	/** Magic identifier for allocated block */
++	uint32_t magic;
++	/** Total size of allocated block */
++	size_t size;
++	/** Start of the allocated block */
++	void *start;
++	/* Note that the start of allocated block and what is returned to caller
+ 	 * of malloc APIs is different */
+ } tegrabl_heap_alloc_block_t;
+ 
+ /**
+- * @brief Head of doubly linked list of free memory block.
+- * List is sorted in ascending order of memory address.
++ * @brief Information describing the heap.
+  */
+-static tegrabl_heap_free_block_t *tegrabl_heap_free_list[TEGRABL_HEAP_TYPE_MAX];
++struct tegrabl_heap_info {
++	/** Maximum size of heap */
++	size_t max_size;
++	/** Current free memory size */
++	size_t free_size;
++	/** Start of heap memory */
++	uintptr_t start;
++	/** End of heap memory */
++	uintptr_t end;
++	/**
++	 * Head of doubly linked list of free memory block.
++	 * List is sorted in ascending order of memory address.
++	 */
++	tegrabl_heap_free_block_t *free_list;
++};
+ 
+ /**
+- * @brief Maximum size of heap. Same as size of heap at the time of initialization.
++ * @brief Stores the information about the supported heaps.
+  */
+-static size_t max_heap_size[TEGRABL_HEAP_TYPE_MAX];
++static struct tegrabl_heap_info heap_info[TEGRABL_HEAP_TYPE_MAX];
+ 
+-tegrabl_error_t tegrabl_heap_init(tegrabl_heap_type_t heap_type, size_t start,
+-			size_t size)
++tegrabl_error_t tegrabl_heap_init(tegrabl_heap_type_t heap_type, size_t start, size_t size)
+ {
+ 	tegrabl_heap_free_block_t *free_list;
+ 
+ 	if (size < MIN_SIZE) {
+-		return TEGRABL_ERROR(TEGRABL_ERR_TOO_SMALL, 0);
++		return TEGRABL_ERROR(TEGRABL_ERR_TOO_SMALL, 0UL);
+ 	}
++
+ 	if (heap_type >= TEGRABL_HEAP_TYPE_MAX) {
+-		return TEGRABL_ERROR(TEGRABL_ERR_INVALID, 0);
++		return TEGRABL_ERROR(TEGRABL_ERR_INVALID, 0UL);
+ 	}
++
+ 	/* check if the heap is already initialized */
+-	if (tegrabl_heap_free_list[heap_type] != NULL) {
+-		return TEGRABL_ERROR(TEGRABL_ERR_ALREADY_EXISTS, 0);
++	if (heap_info[heap_type].free_list != NULL) {
++		return TEGRABL_ERROR(TEGRABL_ERR_ALREADY_EXISTS, 0UL);
+ 	}
++
+ 	free_list = (tegrabl_heap_free_block_t *)start;
+ 
+ 	free_list->prev = NULL;
+@@ -88,99 +114,207 @@ tegrabl_error_t tegrabl_heap_init(tegrabl_heap_type_t heap_type, size_t start,
+ 	free_list->size = size;
+ 	free_list->magic = FREE_MAGIC;
+ 
+-	tegrabl_heap_free_list[heap_type] = free_list;
+-	max_heap_size[heap_type] = size;
++	heap_info[heap_type].free_list = free_list;
++	heap_info[heap_type].max_size = size;
++	heap_info[heap_type].free_size = size;
++	heap_info[heap_type].start = (uintptr_t)free_list;
++	heap_info[heap_type].end = heap_info[heap_type].start + size;
+ 
+ 	return TEGRABL_NO_ERROR;
+ }
+ 
++
++/**
++ * @brief Check the linking of current block.
++ * prev_block->next = cur_block = next_block->prev.
++ *
++ * @param[in] cur_block Current block to check
++ * @param[in] prev_block Block pointed by prev of current block
++ * @param[in] next_block Block pointed by next of current block
++ * @param[in] heap_type Type of heap
++ */
++static void check_link(const tegrabl_heap_free_block_t *cur_block,
++					   const tegrabl_heap_free_block_t *prev_block,
++					   const tegrabl_heap_free_block_t *next_block,
++					   tegrabl_heap_type_t heap_type)
++{
++	uintptr_t start = (uintptr_t)cur_block;
++	uintptr_t end = start + cur_block->size;
++
++	if (end < start) {
++		pr_debug("Heap corrupted !!!\n");
++		tegrabl_hang();
++	}
++
++	/* Check if block is outside heap region */
++	if ((start < heap_info[heap_type].start) || (end > heap_info[heap_type].end)) {
++		pr_error("Heap corrupted !!!\n");
++		tegrabl_hang();
++	}
++
++	if (prev_block != NULL && prev_block->next != cur_block) {
++		pr_error("Heap free list corrupted !!!\n");
++		tegrabl_hang();
++	}
++
++	if (next_block != NULL && next_block->prev != cur_block) {
++		pr_error("Heap free list corrupted !!!\n");
++		tegrabl_hang();
++	}
++}
++
++/**
++ * @brief Sanitize the allocated block before adding to free list to make
++ * sure metadata is not corrupted.
++ *
++ * @param[in] alloc_block Allocated block to be freed
++ * @param[in] heap_type Type of heap
++ */
++static void validate_allocated_block(const tegrabl_heap_alloc_block_t *alloc_block,
++									 tegrabl_heap_type_t heap_type)
++{
++	size_t total_free_size;
++	uintptr_t start = (uintptr_t)(uint8_t *)alloc_block->start;
++	uintptr_t end = start + alloc_block->size;
++	uintptr_t alloc_ptr = (uintptr_t)alloc_block;
++
++	if ((end < start) || (start > alloc_ptr) || (alloc_ptr > end)) {
++		pr_debug("Heap corrupted !!!\n");
++		tegrabl_hang();
++	}
++
++	if (alloc_block->magic != ALLOC_MAGIC) {
++		pr_debug("Heap corrupted !!!\n");
++		tegrabl_hang();
++	}
++
++	/* Check if allocated block is outside heap region */
++	if ((start < heap_info[heap_type].start) || (end > heap_info[heap_type].end)) {
++		pr_error("Heap corrupted !!!\n");
++		tegrabl_hang();
++	}
++
++	/* Check if size value of allocated pointer is manipulated */
++	total_free_size = alloc_block->size + heap_info[heap_type].free_size;
++	if ((total_free_size < heap_info[heap_type].free_size) ||
++		(total_free_size > heap_info[heap_type].max_size)) {
++		pr_error("Heap corrupted !!!\n");
++		tegrabl_hang();
++	}
++}
++
+ /**
+  * @brief Splits the specified free block to create allocated
+  * block. If there is more space then it will create free block
+  * of remaining space and add this free block into free pool.
+  *
+- * @param free_block Free block which is to be split.
+- * @param size Size of allocated block to be created.
++ * @param[in] heap_type Type of heap. See @ref HEAP_TYPES for possible values.
++ * @param[in] free_block Free block which is to be split.
++ * @param[in] size Size of allocated block to be created.
+  *
+- * @return pointer to allocated block.
++ * @return Pointer to allocated block.
+  */
+-static tegrabl_heap_alloc_block_t *tegrabl_heap_split_block(
+-		tegrabl_heap_free_block_t *free_block, size_t size)
++static tegrabl_heap_alloc_block_t *tegrabl_heap_split_block(tegrabl_heap_type_t heap_type,
++	tegrabl_heap_free_block_t *free_block,
++	size_t size)
+ {
+ 	uint8_t *tmp;
+ 	tegrabl_heap_free_block_t *new_free = NULL;
+ 	size_t remaining_size;
++	tegrabl_heap_free_block_t *prev_block;
++	tegrabl_heap_free_block_t *next_block;
++
++	TEGRABL_ASSERT(free_block != NULL);
+ 
+-	if (free_block == NULL) {
+-		return NULL;
+-	}
+ 	remaining_size = free_block->size - size;
+ 
++	prev_block = free_block->prev;
++	next_block = free_block->next;
++
++	check_link(free_block, prev_block, next_block, heap_type);
++	free_block->prev = NULL;
++	free_block->next = NULL;
++
+ 	/* If remaining size is less than size required to
+ 	 * store free block information. Then no need to
+ 	 * split.
+ 	 */
+ 	if (remaining_size <= MIN_SIZE) {
+-		if (free_block == tegrabl_heap_free_list[TEGRABL_HEAP_DEFAULT]) {
+-			tegrabl_heap_free_list[TEGRABL_HEAP_DEFAULT] = free_block->next;
+-		} else if (free_block == tegrabl_heap_free_list[TEGRABL_HEAP_DMA]) {
+-			tegrabl_heap_free_list[TEGRABL_HEAP_DMA] = free_block->next;
++		if (free_block == heap_info[heap_type].free_list) {
++			heap_info[heap_type].free_list = next_block;
+ 		}
+-		if (free_block->next != NULL) {
+-			free_block->next->prev = free_block->prev;
++		if (next_block != NULL) {
++			next_block->prev = prev_block;
+ 		}
+-		if (free_block->prev != NULL) {
+-			free_block->prev->next =free_block->next;
++		if (prev_block != NULL) {
++			prev_block->next = next_block;
+ 		}
++
+ 		goto done;
+ 	}
+ 
+-	tmp = (uint8_t *) free_block;
++	tmp = (uint8_t *)free_block;
+ 
+ 	new_free = (tegrabl_heap_free_block_t *)(tmp + size);
+ 
+-	new_free->prev = free_block->prev;
+-	new_free->next = free_block->next;
++	new_free->prev = prev_block;
++	new_free->next = next_block;
+ 
+-	if (new_free->prev != NULL) {
+-		new_free->prev->next = new_free;
++	if (prev_block != NULL) {
++		prev_block->next = new_free;
+ 	}
+-	if (new_free->next != NULL) {
+-		new_free->next->prev = new_free;
++
++	if (next_block != NULL) {
++		next_block->prev = new_free;
+ 	}
++
+ 	new_free->size = remaining_size;
+ 	new_free->magic = FREE_MAGIC;
++
+ 	free_block->size = size;
+ 
++	if (size > heap_info[heap_type].free_size) {
++		pr_error("Heap free list corrupted !!!\n");
++		tegrabl_hang();
++	}
++
+ 	/* If first free block gets split, then update the
+ 	 * free list start.
+ 	 */
+-	if (free_block == tegrabl_heap_free_list[TEGRABL_HEAP_DEFAULT]) {
+-		tegrabl_heap_free_list[TEGRABL_HEAP_DEFAULT] = new_free;
+-	} else if (free_block == tegrabl_heap_free_list[TEGRABL_HEAP_DMA]) {
+-		tegrabl_heap_free_list[TEGRABL_HEAP_DMA] = new_free;
++	if (free_block == heap_info[heap_type].free_list) {
++		heap_info[heap_type].free_list = new_free;
+ 	} else {
+ 		/* No Action required */
+ 	}
+ 
+ done:
+-	return (tegrabl_heap_alloc_block_t *) free_block;
++	heap_info[heap_type].free_size = heap_info[heap_type].free_size - free_block->size;
++	return (tegrabl_heap_alloc_block_t *)(void *)free_block;
+ }
+ 
+-static void *tegrabl_generic_malloc(tegrabl_heap_free_block_t *free_list,
+-									size_t size)
++/**
++ * @brief Generic allocate memory and return pointer to the allocated memory
++ *
++ * @param[in] heap_type Type of heap. See @ref HEAP_TYPES for possible values.
++ * @param[in] size Size of allocated block to be created
++ *
++ * @return Pointer to the allocated memory if successful else NULL
++ */
++static void *tegrabl_generic_malloc(tegrabl_heap_type_t heap_type, size_t size)
+ {
+ 	tegrabl_heap_free_block_t *free_block = NULL;
+ 	tegrabl_heap_alloc_block_t *alloc_block = NULL;
+ 	void *found = NULL;
+ 	size_t alloc_size;
+ 
+-	if (size == 0UL) {
++	if ((size == 0UL) || (size > heap_info[heap_type].free_size)) {
+ 		return NULL;
+ 	}
+-	free_block = free_list;
++
++	free_block = heap_info[heap_type].free_list;
+ 
+ 	alloc_size = ROUND_UP(size, sizeof(uintptr_t));
++
+ 	alloc_size = alloc_size + sizeof(tegrabl_heap_alloc_block_t);
+ 
+ 	/* Ensure addition didn't wrap the value. */
+@@ -199,7 +333,13 @@ static void *tegrabl_generic_malloc(tegrabl_heap_free_block_t *free_list,
+ 		TEGRABL_ASSERT(free_block->magic == FREE_MAGIC);
+ 
+ 		if (free_block->size > alloc_size) {
+-			alloc_block = tegrabl_heap_split_block(free_block, alloc_size);
++			if (free_block->magic != FREE_MAGIC) {
++				pr_error("Heap free list corrupted !!!\n");
++				while (true) {
++				}
++			}
++
++			alloc_block = tegrabl_heap_split_block(heap_type, free_block, alloc_size);
+ 			found = (uint8_t *)alloc_block + sizeof(*alloc_block);
+ 			break;
+ 		}
+@@ -217,27 +357,50 @@ static void *tegrabl_generic_malloc(tegrabl_heap_free_block_t *free_list,
+ 
+ void *tegrabl_malloc(size_t size)
+ {
+-	if (size > max_heap_size[TEGRABL_HEAP_DEFAULT]) {
++	return tegrabl_generic_malloc(TEGRABL_HEAP_DEFAULT, size);
++}
++
++void *tegrabl_alloc(tegrabl_heap_type_t heap_type, size_t size)
++{
++	tegrabl_heap_type_t type = heap_type;
++
++	if (heap_type >= TEGRABL_HEAP_TYPE_MAX) {
+ 		return NULL;
+ 	}
+ 
+-	return tegrabl_generic_malloc(tegrabl_heap_free_list[TEGRABL_HEAP_DEFAULT],
+-								   size);
++	if (heap_info[TEGRABL_HEAP_DMA].free_list == NULL) {
++		type = TEGRABL_HEAP_DEFAULT;
++	}
++
++	return tegrabl_generic_malloc(type, size);
+ }
+ 
+-void *tegrabl_alloc(tegrabl_heap_type_t heap_type, size_t size)
++/**
++ * @brief Merge current free block and next free block if they are contiguous.
++ * Checks for possible overlaps.
++ *
++ * @param[in, out] cur_block Current free block.
++ * @param[in] next_block Next free block
++ *
++ */
++static void tegrabl_heap_merge_with_next(tegrabl_heap_free_block_t *cur_block,
++		tegrabl_heap_free_block_t *next_block)
+ {
+-	if ((heap_type == TEGRABL_HEAP_DMA) &&
+-		(tegrabl_heap_free_list[TEGRABL_HEAP_DMA] != NULL)) {
++	uintptr_t cur_mem = (uintptr_t)cur_block;
++	uintptr_t next_mem = (uintptr_t)next_block;
++	uintptr_t cur_mem_end = cur_mem + cur_block->size;
+ 
+-		if (size > max_heap_size[TEGRABL_HEAP_DMA]) {
+-			return NULL;
+-		}
++	if ((cur_mem_end < cur_mem) || (cur_mem_end > next_mem)) {
++		pr_error("Heap corrupted !!!\n");
++		tegrabl_hang();
++	}
+ 
+-		return tegrabl_generic_malloc(tegrabl_heap_free_list[TEGRABL_HEAP_DMA],
+-									  size);
+-	} else {
+-		return tegrabl_malloc(size);
++	if (cur_mem_end == next_mem) {
++		cur_block->size = cur_block->size + next_block->size;
++		cur_block->next = next_block->next;
++		if (next_block->next != NULL) {
++			next_block->next->prev = cur_block;
++		}
+ 	}
+ }
+ 
+@@ -245,7 +408,7 @@ void *tegrabl_alloc(tegrabl_heap_type_t heap_type, size_t size)
+  * @brief Tries to merge previous and next free blocks with
+  * specified block if found contiguous.
+  *
+- * @param free_block Current free block which is just added/updated in pool.
++ * @param[in] free_block Current free block which is just added/updated in pool.
+  *
+  * @return New free block generated after merging contiguous blocks.
+  */
+@@ -254,38 +417,26 @@ static tegrabl_heap_free_block_t *tegrabl_heap_merge_blocks(
+ {
+ 	tegrabl_heap_free_block_t *next;
+ 	tegrabl_heap_free_block_t *prev;
+-	uintptr_t cur_mem;
+-	uintptr_t next_mem;
+-	uintptr_t prev_mem;
++	size_t prev_block_size = 0;
+ 
+-	if (free_block == NULL) {
+-		return NULL;
+-	}
+ 	next = free_block->next;
+-	prev  = free_block->prev;
+-	cur_mem = (uintptr_t)free_block;
+-	next_mem = (uintptr_t)next;
+-	prev_mem = (uintptr_t)prev;
++	prev = free_block->prev;
+ 
+ 	/* If next block is contiguous with current freed block, then
+ 	 * merge these two.
+ 	 */
+-	if ((next != NULL) && ((cur_mem + free_block->size) == next_mem)) {
+-		free_block->size += next->size;
+-		free_block->next = next->next;
+-		if (next->next != NULL) {
+-			next->next->prev = free_block;
+-		}
++	if (next != NULL) {
++		tegrabl_heap_merge_with_next(free_block, next);
+ 	}
+ 
+ 	/* If previous block is contiguous with current freed block,
+ 	 * then merge these two.
+ 	 */
+-	if ((prev != NULL) && ((prev_mem + prev->size) == cur_mem)) {
+-		prev->size += free_block->size;
+-		prev->next = free_block->next;
+-		if (free_block->next != NULL) {
+-			free_block->next->prev= prev;
++	if (prev != NULL) {
++		prev_block_size = prev->size;
++		tegrabl_heap_merge_with_next(prev, free_block);
++		if (prev_block_size != prev->size) {
++			free_block = prev;
+ 		}
+ 		free_block = prev;
+ 	}
+@@ -293,32 +444,41 @@ static tegrabl_heap_free_block_t *tegrabl_heap_merge_blocks(
+ 	return free_block;
+ }
+ 
++/**
++ * @brief Generic free memory
++ *
++ * @param[in] heap_type Specifies the heap from where the memory has to be freed.
++ *			See @ref HEAP_TYPES for possible values.
++ * @param[in] ptr Specifies start address of the memory
++ *
++ * @return Pointer to list of type tegrabl_heap_free_block_t if successful else NULL
++ */
+ static tegrabl_heap_free_block_t*
+-tegrabl_generic_free(tegrabl_heap_free_block_t *free_block, void *ptr)
++tegrabl_generic_free(tegrabl_heap_type_t heap_type, const void *ptr)
+ {
+-	uint8_t *tmp;
++	const uint8_t *tmp;
+ 	tegrabl_heap_free_block_t *prev_block = NULL;
+-	tegrabl_heap_alloc_block_t *alloc_block = NULL;
++	const tegrabl_heap_alloc_block_t *alloc_block = NULL;
+ 	tegrabl_heap_free_block_t *tmp_free = NULL;
++	tegrabl_heap_free_block_t *free_block = NULL;
++	size_t free_size;
+ 
+ 	if (ptr == NULL) {
+ 		return NULL;
+ 	}
+-	tmp = (uint8_t *) ptr;
+ 
+-	alloc_block = (tegrabl_heap_alloc_block_t *)(tmp - sizeof(*alloc_block));
++	tmp = (const uint8_t *)ptr;
++	alloc_block = (const tegrabl_heap_alloc_block_t *)(tmp - sizeof(*alloc_block));
+ 
+-	if (alloc_block->magic != ALLOC_MAGIC) {
+-		pr_error("Heap corrupted !!!\n");
+-		while (true) {
+-		}
+-	}
++	validate_allocated_block(alloc_block, heap_type);
+ 
+ 	tmp_free = (tegrabl_heap_free_block_t *) alloc_block->start;
+-	tmp_free->size = alloc_block->size;
++	free_size = alloc_block->size;
++	tmp_free->size = free_size;
+ 
++	free_block = heap_info[heap_type].free_list;
+ 	/* Find the entry in free list which is just before the freed pointer */
+-	while ((free_block != NULL) && ((uintptr_t)ptr > (uintptr_t)free_block)) {
++	while ((free_block != NULL) && ((uintptr_t)(const uint8_t *)ptr > (uintptr_t)free_block)) {
+ 		prev_block = free_block;
+ 		free_block = free_block->next;
+ 	}
+@@ -346,38 +506,56 @@ tegrabl_generic_free(tegrabl_heap_free_block_t *free_block, void *ptr)
+ 		tmp_free = free_block;
+ 	}
+ 
++	heap_info[heap_type].free_size = heap_info[heap_type].free_size + free_size;
++
+ 	return tmp_free;
+ }
+ 
+-void tegrabl_dealloc(tegrabl_heap_type_t heap_type, void *ptr)
++/**
++ * @brief Update free list head
++ *
++ * @param[in] heap_type Type of heap. See @ref HEAP_TYPES for possible values.
++ * @param[in] free_block Pointer to free block of type tegrabl_heap_free_block_t
++ */
++static void update_free_list_head(tegrabl_heap_type_t heap_type, tegrabl_heap_free_block_t *free_block)
+ {
++	tegrabl_heap_free_block_t *free_list = heap_info[heap_type].free_list;
++	uintptr_t free_list_addr = (uintptr_t)free_list;
++	uintptr_t free_block_addr = (uintptr_t)free_block;
++
++	/* If free list does not have any blocks or if freed block points to
++	 * memory address less than memory pointed by head then update the head
++	 * of free block list.
++	 */
++	if ((free_list == NULL) || (free_list_addr > free_block_addr)) {
++		heap_info[heap_type].free_list = free_block;
++	}
++}
++
++void tegrabl_dealloc(tegrabl_heap_type_t heap_type, const void *ptr)
++{
++	tegrabl_heap_type_t type = heap_type;
++
+ 	tegrabl_heap_free_block_t *tmp_free = NULL;
+ 
+-	if ((heap_type == TEGRABL_HEAP_DMA) &&
+-		(tegrabl_heap_free_list[TEGRABL_HEAP_DMA] != NULL)) {
+-		tmp_free = tegrabl_generic_free(
+-				tegrabl_heap_free_list[TEGRABL_HEAP_DMA], ptr);
+-	} else {
+-		heap_type = TEGRABL_HEAP_DEFAULT;
+-		tmp_free = tegrabl_generic_free(
+-			tegrabl_heap_free_list[TEGRABL_HEAP_DEFAULT], ptr);
++	if (heap_type >= TEGRABL_HEAP_TYPE_MAX) {
++		return;
++	}
++
++	if (heap_info[TEGRABL_HEAP_DMA].free_list == NULL) {
++		type = TEGRABL_HEAP_DEFAULT;
+ 	}
+ 
++	tmp_free = tegrabl_generic_free(type, ptr);
++
+ 	if (tmp_free == NULL) {
+ 		return;
+ 	}
+ 
+-	/* If free list does not have any blocks or if freed block points to memory
+-	 * address less than memory pointed by head then update the head of free
+-	 * block list.
+-	 */
+-	if ((tegrabl_heap_free_list[heap_type] == NULL) ||
+-		((uintptr_t) tegrabl_heap_free_list[heap_type] > (uintptr_t) tmp_free)) {
+-		tegrabl_heap_free_list[heap_type] = tmp_free;
+-	}
++	update_free_list_head(type, tmp_free);
+ }
+ 
+-void tegrabl_free(void *ptr)
++void tegrabl_free(const void *ptr)
+ {
+ 	tegrabl_dealloc(TEGRABL_HEAP_DEFAULT, ptr);
+ }
+@@ -387,78 +565,99 @@ void *tegrabl_calloc(size_t nmemb, size_t size)
+ 	void *mem;
+ 	size_t total_size = size * nmemb;
+ 
+-	if (size == 0) {
++	if (size == U8(0)) {
+ 		return NULL;
+ 	}
+ 
+ 	/* Ensure multiplication didn't wrap the value. */
+-	if (nmemb > (max_heap_size[TEGRABL_HEAP_DEFAULT] / size)) {
++	if (nmemb > (heap_info[TEGRABL_HEAP_DEFAULT].max_size / size)) {
+ 		return NULL;
+ 	}
+ 
+ 	TEGRABL_ASSERT((total_size / size) == nmemb);
+ 
+ 	mem = tegrabl_malloc(total_size);
+-	if (mem)
+-		memset(mem, 0x0, total_size);
++	if (mem != NULL) {
++		(void)memset(mem, 0x0, total_size);
++	}
+ 	return mem;
+ }
+ 
+ /**
+- * @brief Boundary and overflow checks for alignment and size
++ * @brief Get free block
+  *
+- * @param heap_type Type of heap
+- * @param alignment Requested alignment
+- * @param size Requested size
++ * @param[in] heap_type Type of heap. See @ref HEAP_TYPES for possible values.
++ * @param[in] alignment Specifies alignment
++ * @param[in] alloc_size Specifies size in bytes
+  *
+- * @retval true if all checks pass
+- * @retval false if one of the checks fails
++ * @return Pointer to free block of type tegrabl_heap_free_block_t
+  */
+-static bool is_size_alignment_valid(tegrabl_heap_type_t heap_type, size_t alignment, size_t size)
++static tegrabl_heap_free_block_t *get_free_block(tegrabl_heap_type_t heap_type,
++	size_t alignment, size_t alloc_size)
+ {
+-	size_t max_size = size + alignment;
++	size_t align_size;
++	uintptr_t address;
++	size_t block_size;
+ 
+-	if (size > max_heap_size[heap_type]) {
+-		return false;
+-	}
++	tegrabl_heap_free_block_t *free_block = heap_info[heap_type].free_list;
+ 
+-	if (alignment > max_heap_size[heap_type]) {
+-		return false;
+-	}
++	/* Find the first free block having sufficient space. */
++	while (free_block != NULL) {
++		block_size = free_block->size;
+ 
+-	if (max_size > max_heap_size[heap_type]) {
+-		return false;
+-	}
++		TEGRABL_ASSERT(free_block->magic == FREE_MAGIC);
+ 
+-	/* Ensure addition didn't wrap the value. */
+-	if (max_size < size) {
+-		return false;
+-	}
++		if (block_size < alloc_size) {
++			free_block = free_block->next;
++			continue;
++		}
+ 
+-	if (max_size < alignment) {
+-		return false;
++		/* Need space to store metadata */
++		address = ((uintptr_t)(uint8_t *)free_block) + sizeof(tegrabl_heap_alloc_block_t);
++		align_size = alignment - (address % alignment);
++
++		if ((align_size + alloc_size) > block_size) {
++			free_block = free_block->next;
++			continue;
++		}
++
++		if (free_block->magic != FREE_MAGIC) {
++			pr_error("Heap free list corrupted !!!\n");
++			while (true) {
++			}
++		}
++		break;
+ 	}
+ 
+-	return true;
++	return free_block;
+ }
+ 
+-static void *tegrabl_memalign_generic(
+-		 tegrabl_heap_type_t heap_type, size_t alignment, size_t size)
++/**
++ * @brief Generic allocate memory and alignment
++ *
++ * @param[in] heap_type Type of heap. See @ref HEAP_TYPES for possible values.
++ * @param[in] alignment Specifies the alignment
++ * @param[in] size Specifies the size in bytes
++ *
++ * @return Pointer to the allocated memory if successful else NULL
++ */
++static void *tegrabl_memalign_generic(tegrabl_heap_type_t heap_type, size_t alignment, size_t size)
+ {
+ 	void *found = NULL;
+ 	tegrabl_heap_alloc_block_t *alloc_block = NULL;
+ 	size_t alloc_size;
+-	tegrabl_heap_free_block_t *free_block =
+-		tegrabl_heap_free_list[heap_type];
++	tegrabl_heap_free_block_t *prev_block;
++	tegrabl_heap_free_block_t *next_block;
++	tegrabl_heap_free_block_t *free_block;
++	size_t align_size;
++	size_t orig_size;
++	uintptr_t address;
++	uint8_t *ptr;
+ 
+ 	if (size == 0UL) {
+ 		return NULL;
+ 	}
+ 
+-	if (!is_size_alignment_valid(heap_type, alignment, size)) {
+-		return NULL;
+-	}
+-
+ 	size = ROUND_UP(size, sizeof(uintptr_t));
+ 	alloc_size = size + sizeof(tegrabl_heap_alloc_block_t);
+ 	/* Minimum size to allocate is the size required to store
+@@ -467,117 +666,148 @@ static void *tegrabl_memalign_generic(
+ 	 */
+ 	alloc_size = MAX(alloc_size, MIN_SIZE);
+ 
+-	/* Find the first free block having sufficient space. */
+-	while (free_block != NULL) {
+-		size_t align_size;
+-		size_t orig_size;
+-		uintptr_t address;
+-		uint8_t *ptr;
+-		size_t block_size = free_block->size;
++	free_block = get_free_block(heap_type, alignment, alloc_size);
+ 
+-		TEGRABL_ASSERT(free_block->magic == FREE_MAGIC);
++	if (free_block == NULL) {
++		return NULL;
++	}
+ 
+-		if (block_size < alloc_size) {
+-			free_block = free_block->next;
+-			continue;
+-		}
++	prev_block = free_block->prev;
++	next_block = free_block->next;
+ 
+-		address = (uintptr_t) free_block + sizeof(tegrabl_heap_alloc_block_t);
++	address = ((uintptr_t)(uint8_t *)free_block) + sizeof(tegrabl_heap_alloc_block_t);
++	align_size = alignment - (address % alignment);
+ 
+-		align_size = alignment - (address % alignment);
++	alloc_block = tegrabl_heap_split_block(heap_type, free_block, alloc_size + align_size);
+ 
+-		if ((align_size + alloc_size) > block_size) {
+-			free_block = free_block->next;
+-			continue;
+-		}
++	TEGRABL_ASSERT((void *)alloc_block == (void *)free_block);
+ 
+-		tegrabl_heap_free_block_t *prev_block = free_block->prev;
+-		tegrabl_heap_free_block_t *next_block = free_block->next;
++	ptr = (uint8_t *)alloc_block;
++	orig_size = alloc_block->size;
+ 
+-		alloc_block = tegrabl_heap_split_block(free_block,
+-						alloc_size + align_size);
++	found = ptr + sizeof(*alloc_block) + align_size;
+ 
+-		if (alloc_block != NULL) {
+-			alloc_block->start = alloc_block;
+-		} else {
+-			break;
+-		}
++	/* Metadata is always before returned pointer. */
++	alloc_block = (tegrabl_heap_alloc_block_t *) (ptr + align_size);
++	alloc_block->size = orig_size;
++	alloc_block->magic = ALLOC_MAGIC;
++	alloc_block->start = ptr;
+ 
+-		ptr = (uint8_t *)alloc_block;
+-		orig_size = alloc_block->size;
++	/* If size of alignment is more than the information required to
++	 * store free block then free memory and allocate only memory
++	 * after alignment.
++	 */
++	if (align_size < MIN_SIZE) {
++		goto done;
++	}
+ 
+-		found = ptr + sizeof(*alloc_block) + align_size;
++	/* This new free block will always be in between prev and next
++	 * block of block which just split. This split could have added
++	 * a free block in between prev and next. Update the prev and next
++	 * appropriately.
++	 */
++	if ((prev_block == NULL) && (next_block == NULL)) {
++		/* There was only one free block. The new block is be before current block */
++		next_block = heap_info[heap_type].free_list;
++	} else if (next_block == NULL) {
++		next_block = prev_block->next;
++	} else if (next_block->prev != prev_block) {
++		next_block = next_block->prev;
++	} else {
++		;/* No Action Required */
++	}
+ 
+-		alloc_block = (tegrabl_heap_alloc_block_t *) (ptr + align_size);
+-		alloc_block->size = orig_size;
+-		alloc_block->magic = ALLOC_MAGIC;
+-		alloc_block->start = ptr;
++	alloc_block->size = alloc_size;
++	alloc_block->start = ptr + align_size;
+ 
+-		/* If size of alignment is more than the information required to
+-		 * store free block then free memory and allocate only memory
+-		 * after alignment.
+-		 */
+-		if (align_size < MIN_SIZE) {
+-			break;
+-		}
+-		/* This new free block will always be in between prev and next
+-		 * block of block which just split. This split could have added
+-		 * a free block in between prev and next. Update the prev and next
+-		 * appropriately.
+-		 */
+-		if ((prev_block == NULL) && (next_block == NULL)) {
+-			next_block = tegrabl_heap_free_list[heap_type];
+-		} else if (next_block == NULL) {
+-			next_block = prev_block->next;
+-		} else if (next_block->prev != prev_block) {
+-			next_block = next_block->prev;
+-		} else {
+-			/* No Action Required */
+-		}
++	free_block->next = next_block;
++	free_block->prev = prev_block;
++	free_block->size = align_size;
++	free_block->magic = FREE_MAGIC;
++	heap_info[heap_type].free_size = heap_info[heap_type].free_size + align_size;
+ 
+-		alloc_block->size = alloc_size;
+-		alloc_block->start = ptr + align_size;
++	if (next_block != NULL) {
++		TEGRABL_ASSERT(next_block->prev == prev_block);
++		next_block->prev = free_block;
++	}
++	if (prev_block != NULL) {
++		TEGRABL_ASSERT(prev_block->next == next_block);
++		prev_block->next = free_block;
++	}
+ 
+-		free_block->next = next_block;
+-		free_block->prev = prev_block;
+-		free_block->size = align_size;
+-		free_block->magic = FREE_MAGIC;
++	update_free_list_head(heap_type, free_block);
+ 
+-		if (next_block != NULL) {
+-			next_block->prev = free_block;
+-		}
+-		if (prev_block != NULL) {
+-			prev_block->next = free_block;
+-		}
++done:
++	TEGRABL_ASSERT((((uintptr_t)found) % alignment) == 0);
++	return found;
++}
+ 
+-		/* If free list does not have any blocks or if freed block points to
+-		 * memory address less than memory pointed by head then update the head
+-		 * of free block list.
+-		 */
+-		if ((tegrabl_heap_free_list[heap_type] == NULL) ||
+-			((uintptr_t) tegrabl_heap_free_list[heap_type] >
+-			 (uintptr_t) free_block)) {
+-			tegrabl_heap_free_list[heap_type] = free_block;
+-		}
+-		break;
++/**
++ * @brief Boundary and overflow checks for alignment and size
++ *
++ * @param[in] heap_type Type of heap. See @ref HEAP_TYPES for possible values.
++ * @param[in] alignment Requested alignment
++ * @param[in] size Requested size
++ *
++ * @retval true All checks pass
++ * @retval false One of the following conditions is true:
++ *	- size or alignment > Maximum size of heap type
++ *	- size + alignment > Maximum size of heap type
++ *	- size + alignment < size or alignment
++ */
++static bool is_size_alignment_valid(tegrabl_heap_type_t heap_type, size_t alignment, size_t size)
++{
++	size_t max_size = size + alignment;
++
++	if (size > heap_info[heap_type].max_size) {
++		return false;
+ 	}
+ 
+-	return found;
++	if (alignment > heap_info[heap_type].max_size) {
++		return false;
++	}
++
++	if (max_size > heap_info[heap_type].max_size) {
++		return false;
++	}
++
++	/* Ensure addition didn't wrap the value. */
++	if (max_size < size) {
++		return false;
++	}
++
++	if (max_size < alignment) {
++		return false;
++	}
++
++	return true;
+ }
+ 
+-void *tegrabl_alloc_align(tegrabl_heap_type_t heap_type,
+-		size_t alignment, size_t size)
++void *tegrabl_alloc_align(tegrabl_heap_type_t heap_type, size_t alignment, size_t size)
+ {
+-	if ((heap_type == TEGRABL_HEAP_DMA) &&
+-		(tegrabl_heap_free_list[TEGRABL_HEAP_DMA] != NULL)) {
+-		return tegrabl_memalign_generic(TEGRABL_HEAP_DMA, alignment, size);
+-	} else {
+-		return tegrabl_memalign_generic(TEGRABL_HEAP_DEFAULT, alignment, size);
++	tegrabl_heap_type_t type = heap_type;
++
++	if (heap_type >= TEGRABL_HEAP_TYPE_MAX) {
++		return NULL;
++	}
++
++	if (heap_info[TEGRABL_HEAP_DMA].free_list == NULL) {
++		type = TEGRABL_HEAP_DEFAULT;
+ 	}
++
++	if (!is_size_alignment_valid(type, alignment, size)) {
++		return NULL;
++	}
++
++	return tegrabl_memalign_generic(type, alignment, size);
+ }
+ 
+ void *tegrabl_memalign(size_t alignment, size_t size)
+ {
++	if (!is_size_alignment_valid(TEGRABL_HEAP_DEFAULT, alignment, size)) {
++		return NULL;
++	}
++
+ 	return tegrabl_memalign_generic(TEGRABL_HEAP_DEFAULT, alignment, size);
+ }
+ 

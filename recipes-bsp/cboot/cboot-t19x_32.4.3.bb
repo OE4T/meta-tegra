@@ -14,6 +14,7 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-$
            file://0010-usb_sd_boot-fix-unused-label-warning-when-extlinux-i.patch \
            file://0011-t194-add-bootinfo-to-build.patch \
            file://0012-Add-machine-ID-to-kernel-command-line.patch \
+           file://0013-Backport-fixes-from-R32.5.2.patch \
 "
 
 SRC_URI[sha256sum] = "2e053ef1f0931ad670c3f5ae75aba60ce7cbde8436d1fd4c2be3cdd2b60f1b88"
