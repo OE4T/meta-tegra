@@ -16,6 +16,7 @@ SRC_URI = "${L4T_ALT_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t1
            file://0012-bmp-support-A-B-slots.patch \
            file://0013-Fix-ext4-sparse-file-handling.patch \
            file://0014-extlinux-support-timeouts-under-1-sec.patch \
+           file://0015-Fix-ext4-multi-block-linear-directory-traversal.patch \
            "
 
 SRC_URI[sha256sum] = "80a5b0491d75ea8f2d5f49e93e6d5b4986c739ff29f62133585c2fe7880e8fa9"
