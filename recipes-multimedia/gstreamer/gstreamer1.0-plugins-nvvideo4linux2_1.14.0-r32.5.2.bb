@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "file://LICENSE.gst-nvvideo4linux2;md5=457fb5d7ae2d8cd8cabcc2
 "
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvvideo4linux2_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.5.0.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.5.2.inc
 
 SRC_URI += "\
     file://0000-build-fixups.patch \
@@ -18,7 +18,6 @@ SRC_URI += "\
     file://0004-v4l2bufferpool-Avoid-set_flushing-warning.patch \
     file://0005-gstv4l2videodec-use-ifdef-macro-for-consistency-with.patch \
     file://0006-gstv4l2videodec-check-if-we-have-a-pool-before-the-l.patch \
-    file://0007-Import-gstv4l2bufferpool-patch-from-R32.5.1.patch \
     file://0008-Replace-stat-call-with-__xstat.patch \
 "
 
