@@ -1,6 +1,6 @@
 DESCRIPTION = "cboot bootloader for Tegra194"
 
-SRC_URI = "${L4T_ALT_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-${PV}.tbz2;subdir=${BP} \
+SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-${PV}.tbz2;subdir=${BP} \
            file://0000-Drop-mistaken-global-variable-definition-in-sdmmc_de.patch \
            file://0001-Convert-Python-scripts-to-Python3.patch \
            file://0002-macros.mk-fix-GNU-make-4.3-compatibility.patch \
@@ -19,7 +19,7 @@ SRC_URI = "${L4T_ALT_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t1
            file://0015-Fix-ext4-multi-block-linear-directory-traversal.patch \
            "
 
-SRC_URI[sha256sum] = "80a5b0491d75ea8f2d5f49e93e6d5b4986c739ff29f62133585c2fe7880e8fa9"
+SRC_URI[sha256sum] = "d52099434fa33ff8eb5e4a239b050b837e58f4681b3390836f68b6a8b126ab5a"
 
 PACKAGECONFIG ??= "bootdev-select ethernet display shell recovery extlinux"
 PACKAGECONFIG[bootdev-select] = "CONFIG_ENABLE_BOOT_DEVICE_SELECT=1,,"
