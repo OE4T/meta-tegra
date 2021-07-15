@@ -1,6 +1,6 @@
 DESCRIPTION = "cboot bootloader for Tegra186"
 
-SRC_URI = "${L4T_ALT_URI_BASE}/cboot_src_t18x.tbz2;downloadfilename=cboot_src_t18x-${PV}.tbz2;subdir=${BP} \
+SRC_URI = "${L4T_URI_BASE}/cboot_src_t18x.tbz2;downloadfilename=cboot_src_t18x-${PV}.tbz2;subdir=${BP} \
            file://0000-Drop-mistaken-global-variable-definition-in-sdmmc_de.patch \
            file://0001-Convert-Python-scripts-to-Python3.patch \
            file://0002-macros.mk-fix-GNU-make-4.3-compatibility.patch \
@@ -13,7 +13,7 @@ SRC_URI = "${L4T_ALT_URI_BASE}/cboot_src_t18x.tbz2;downloadfilename=cboot_src_t1
            file://0009-Add-machine-ID-to-kernel-command-line.patch \
            file://0012-bmp-support-A-B-slots.patch \
 "
-SRC_URI[sha256sum] = "6da8ad60d302d222c09d56bc8f7e90e08592a0471f8bcbadb30268b3b0ad320f"
+SRC_URI[sha256sum] = "a09909485dce60567eeb53af2e13f45a13fb30cc42e82ccb602f08e69ffcfd51"
 
 PACKAGECONFIG ??= "display recovery"
 PACKAGECONFIG[display] = "CONFIG_ENABLE_DISPLAY=1,,"
