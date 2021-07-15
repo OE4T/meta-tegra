@@ -1,0 +1,90 @@
+From 24c9aa3884fca1f2476a372b7ad7bbb848c594a6 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 15 Jul 2021 05:27:46 -0700
+Subject: [PATCH] Fix ext4 multi-block linear directory traversal
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/partner/common/lib/fs/ext4/ext4.c | 41 +++++++++++---------
+ 1 file changed, 23 insertions(+), 18 deletions(-)
+
+diff --git a/bootloader/partner/common/lib/fs/ext4/ext4.c b/bootloader/partner/common/lib/fs/ext4/ext4.c
+index d57fb27..90d8537 100644
+--- a/bootloader/partner/common/lib/fs/ext4/ext4.c
++++ b/bootloader/partner/common/lib/fs/ext4/ext4.c
+@@ -405,20 +405,26 @@ fail:
+ static int lookup_linear_dir(ext2_t *ext2, struct ext2fs_dinode *dir_inode, const char *name, uint8_t *buf,
+                              inodenum_t *inum)
+ {
+-    uint file_blocknum;
+     size_t namelen = strlen(name);
+     struct ext2fs_dir_entry_2 *ent;
+     uint32_t pos;
++    uint32_t nblocks, blocknum;
+     bool file_entry_found = false;
+     int err;
++#if LOCAL_TRACE
++    char namebuf[EXT2FS_MAX_NAME_LEN+1];
++#endif
+ 
+     LTRACE_ENTRY;
+ 
+-    file_blocknum = 0;
+-    for (;;) {
+-        err = ext4_read_data_from_extent(ext2, dir_inode, buf);
+-        if (err <= 0) {
+-            return -1;
++    nblocks = LE32(dir_inode->e2di_nblock);
++    LTRACEF("directory is %u blocks\n", nblocks);
++
++    for (blocknum = 0; blocknum < nblocks; blocknum++) {
++        err = get_extents_blk(ext2, dir_inode, blocknum, buf);
++        if (err != NO_ERROR) {
++            LTRACEF("err %d getting block %u\n", err, blocknum);
++            break;
+         }
+ 
+         /* walk through the directory entries, looking for the one that matches */
+@@ -426,17 +432,23 @@ static int lookup_linear_dir(ext2_t *ext2, struct ext2fs_dinode *dir_inode, cons
+         while (pos < E2FS_BLOCK_SIZE(ext2->super_blk)) {
+ 
+             ent = (struct ext2fs_dir_entry_2 *)&buf[pos];
+-            LTRACEF("ent %d:%d: inode 0x%x, reclen %d, namelen %d, name: %s\n",
+-                    file_blocknum, pos, LE32(ent->e2d_inode), LE16(ent->e2d_rec_len), ent->e2d_name_len, ent->e2d_name);
+-
+             /* Exit if no more file entries are present */
+             if (LE16(ent->e2d_rec_len) == 0) {
+-                LTRACEF("record len 0\n");
++                LTRACEF("record len 0 in block %u\n", blocknum);
+                 break;
+             }
+ 
++#if LOCAL_TRACE
++            memcpy(namebuf, ent->e2d_name, ent->e2d_name_len);
++            namebuf[ent->e2d_name_len] = '\0';
++
++            LTRACEF("ent %d:%d: inode 0x%x, reclen %d, namelen %u, name: %s\n",
++                    blocknum, pos, LE32(ent->e2d_inode), LE16(ent->e2d_rec_len),
++                    ent->e2d_name_len, namebuf);
++#endif
++
+             /* match */
+-            if (ent->e2d_name_len == namelen && memcmp(name, ent->e2d_name, ent->e2d_name_len) == 0) {
++            if (ent->e2d_name_len == namelen && memcmp(name, ent->e2d_name, namelen) == 0) {
+                 *inum = LE32(ent->e2d_inode);
+                 LTRACEF("match: inode %d\n", *inum);
+                 file_entry_found = true;
+@@ -450,13 +462,6 @@ static int lookup_linear_dir(ext2_t *ext2, struct ext2fs_dinode *dir_inode, cons
+             break;
+         }
+ 
+-        file_blocknum++;
+-
+-        /* sanity check the directory. 4MB should be enough */
+-        if (file_blocknum > 1024) {
+-            TRACEF("Invalid file block num\n");
+-            return -1;
+-        }
+     }
+ 
+     return err;
