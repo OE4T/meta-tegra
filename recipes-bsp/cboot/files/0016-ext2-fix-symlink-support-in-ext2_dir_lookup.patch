@@ -1,0 +1,54 @@
+From 658a3fe5677a335790652a19c4beea95f5f3f2d3 Mon Sep 17 00:00:00 2001
+From: Ricardo Salveti <ricardo@foundries.io>
+Date: Thu, 15 Jul 2021 18:32:49 -0300
+Subject: [PATCH] ext2: fix symlink support in ext2_dir_lookup
+
+ext2_dir_lookup was incorrectly using the original path string while
+recursively performing a lookup on a symlink.
+
+Signed-off-by: Ricardo Salveti <ricardo@foundries.io>
+---
+ bootloader/partner/common/lib/fs/ext2/dir.c | 14 ++------------
+ 1 file changed, 2 insertions(+), 12 deletions(-)
+
+diff --git a/bootloader/partner/common/lib/fs/ext2/dir.c b/bootloader/partner/common/lib/fs/ext2/dir.c
+index 34a56da..b652041 100644
+--- a/bootloader/partner/common/lib/fs/ext2/dir.c
++++ b/bootloader/partner/common/lib/fs/ext2/dir.c
+@@ -160,31 +160,21 @@ nextcomponent:
+             err = ext2_read_link(ext2, &inode, link, sizeof(link));
+             if (err < 0)
+                 return err;
+-            else {
+-                /* move to the next separator */
+-                ptr = next_sep + 1;
+-
+-                /* consume multiple separators */
+-                while (*ptr == '/')
+-                    ptr++;
+-            }
+ 
+             LTRACEF("symlink read returns %d '%s'\n", err, link);
+ 
+             /* recurse, parsing the link */
+             if (link[0] == '/') {
+                 /* link starts with '/', so start over again at the rootfs */
+-                err = ext2_walk(ext2, ptr, &ext2->root_inode, inum, recurse + 1);
++                err = ext2_walk(ext2, link, &ext2->root_inode, inum, recurse + 1);
+             } else {
+-                err = ext2_walk(ext2, ptr, &dir_inode, inum, recurse + 1);
++                err = ext2_walk(ext2, link, &dir_inode, inum, recurse + 1);
+             }
+ 
+             LTRACEF("recursive walk returns %d\n", err);
+ 
+             if (err < 0)
+                 return err;
+-            else
+-                done = true;
+ 
+             /* if we weren't done with our path parsing, start again with the result of this recurse */
+             if (!done) {
+-- 
+2.32.0
+
