@@ -14,6 +14,7 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t18x.tbz2;downloadfilename=cboot_src_t18x-$
            file://0012-bmp-support-A-B-slots.patch \
            file://0013-Fix-ext4-sparse-file-handling.patch \
            file://0015-Fix-ext4-multi-block-linear-directory-traversal.patch \
+           file://0016-ext2-fix-symlink-support-in-ext2_dir_lookup.patch \
 "
 SRC_URI[sha256sum] = "a09909485dce60567eeb53af2e13f45a13fb30cc42e82ccb602f08e69ffcfd51"
 
