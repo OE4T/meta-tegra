@@ -15,9 +15,8 @@ SCMVERSION ??= "y"
 export LOCALVERSION = ""
 
 SRCBRANCH = "patches-${L4T_VERSION}"
-SRCREV = "26544edc4336898e8dc0e010bb8dcb03f12b2e72"
-#KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
-KERNEL_REPO = "github.com/mandraga/linux-tegra.git"
+SRCREV = "056d5484370b58e6912aedbff4dd110b81650e6f"
+KERNEL_REPO = "github.com/madisongh/linux-tegra.git"
 SRC_URI = "git://${KERNEL_REPO};branch=${SRCBRANCH} \
 	   file://defconfig \
 "

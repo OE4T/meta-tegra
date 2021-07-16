@@ -1,7 +1,5 @@
 
-#SRC_URI = "https://developer.nvidia.com/embedded/L4T/r28_Release_v4.0/sources/T186/public_sources.tbz2;downloadfilename=public_sources-28.4.0.tbz2"
-SRC_URI = "http://172.17.0.1/public_sources.tar.gz;downloadfilename=public_sources-28.4.0.tar.gz"
-
+SRC_URI = "https://developer.nvidia.com/embedded/L4T/r28_Release_v4.0/sources/T186/public_sources.tbz2;downloadfilename=public_sources-28.4.0.tbz2"
 SRC_URI[md5sum] = "4e79a224fe00a7725d4fca6d1db58e46"
 SRC_URI[sha256sum] = "bfb65816f387d55e4cbaf9911065d5587a1a3a358b8caf947974bc332e0bf59d"
 
