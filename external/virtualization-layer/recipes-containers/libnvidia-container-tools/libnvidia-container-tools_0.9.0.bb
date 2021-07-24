@@ -14,7 +14,7 @@ DEPENDS = " \
     pkgconfig-native \
     libcap \
     elfutils \
-    libtirpc \
+    libtirpc126 \
     ldconfig-native \
 "
 LICENSE = "BSD-3-Clause & GPLv3 & Proprietary"
@@ -37,6 +37,7 @@ SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=l
            file://0002-common.mk-Set-JETSON-variable-if-not-set-before.patch \
            file://0003-Fix-mapping-of-library-paths-for-jetson-mounts.patch \
            file://0004-Fix-build.h-generation-for-cross-builds.patch \
+           file://0005-Update-makefile-for-statically-linking-external-libt.patch \
            "
 
 SRC_URI[modprobe.md5sum] = "f82b649e7a0f1d1279264f9494e7cf43"
@@ -64,7 +65,7 @@ def build_date(d):
 # include bmake-native which does not exist at the moment.
 EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} JETSON=TRUE WITH_LIBELF=yes ${@build_date(d)} ${PACKAGECONFIG_CONFARGS}"
 
-CFLAGS_prepend = " -I=/usr/include/tirpc "
+CFLAGS_prepend = " -I=/usr/include/tirpc-1.2.6 "
 
 export OBJCPY="${OBJCOPY}"
 
