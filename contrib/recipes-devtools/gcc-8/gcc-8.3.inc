@@ -74,6 +74,7 @@ SRC_URI = "\
            file://0041-Add-a-recursion-limit-to-libiberty-s-demangling-code.patch \
            file://0042-PR-debug-86964.patch \
            file://0043-PR85434-Prevent-spilling-of-stack-protector-guard-s-.patch \
+           file://0044-libsanitizer-remove-cyclades.patch \
            file://CVE-2019-14250.patch \
            file://CVE-2019-15847_p1.patch \
            file://CVE-2019-15847_p2.patch \
