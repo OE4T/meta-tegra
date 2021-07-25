@@ -1,0 +1,50 @@
+From 99f943123d2832cdd0f77c989d82cc8cba26e90b Mon Sep 17 00:00:00 2001
+From: Steve Dickson <steved@redhat.com>
+Date: Wed, 22 Apr 2020 12:18:43 -0400
+Subject: [PATCH] __rpc_dtbsize: rlim_cur instead of rlim_max
+
+In the client code, rlim_max is used to allocate two
+arrays used for multithread locking. These arrays are
+indexed with open file descriptors.
+
+With some recent changes to systemd, the rlim_max is
+now a very large number and no longer represents the
+max number of open file descriptors allowed causing
+the locking arrays to be huge resulting in processes
+being OOM killed.
+
+It turns out the max number opens allowed in a process
+is still fairly small (1023) which means rlim_cur (1024)
+can be used instead of rlim_max.
+
+Signed-off-by: Steve Dickson <steved@redhat.com>
+---
+ src/rpc_generic.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+Index: libtirpc-1.2.6/src/rpc_generic.c
+===================================================================
+--- libtirpc-1.2.6.orig/src/rpc_generic.c
++++ libtirpc-1.2.6/src/rpc_generic.c
+@@ -112,7 +112,7 @@ __rpc_dtbsize()
+ 		return (tbsize);
+ 	}
+ 	if (getrlimit(RLIMIT_NOFILE, &rl) == 0) {
+-		return (tbsize = (int)rl.rlim_max);
++		return (tbsize = (int)(rl.rlim_cur > 1024 ? 1024 : rl.rlim_cur));
+ 	}
+ 	/*
+ 	 * Something wrong.  I'll try to save face by returning a
+Index: libtirpc-1.2.6/src/rpc_dtablesize.c
+===================================================================
+--- libtirpc-1.2.6.orig/src/rpc_dtablesize.c
++++ libtirpc-1.2.6/src/rpc_dtablesize.c
+@@ -42,6 +42,8 @@ _rpc_dtablesize(void)
+ 
+ 	if (size == 0) {
+ 		size = getdtablesize();
++		if (size > 1024)
++			size = 1024;
+ 	}
+ 	return (size);
+ }
