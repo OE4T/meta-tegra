@@ -27,5 +27,5 @@ do_install() {
     fi
 }
 
-RDEPENDS_${PN} = "${@'util-linux-blkid' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
-FILES_${PN} = "/"
+RDEPENDS:${PN} = "${@'util-linux-blkid' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
+FILES:${PN} = "/"

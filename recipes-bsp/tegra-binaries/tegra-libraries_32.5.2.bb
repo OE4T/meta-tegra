@@ -76,7 +76,7 @@ do_install() {
     rm ${D}${libdir}/libnvidia-egl-wayland*
 }
 
-pkg_postinst_${PN}() {
+pkg_postinst:${PN}() {
     # argus and scf libraries hard-coded to use this path
     install -d $D/usr/lib/aarch64-linux-gnu/tegra-egl
     ln $D${libdir}/libEGL_nvidia.so.0 $D/usr/lib/aarch64-linux-gnu/tegra-egl/
@@ -84,25 +84,25 @@ pkg_postinst_${PN}() {
 
 PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-argus-daemon-base ${PN}-libnvosd ${PN}-dev ${PN}"
 
-FILES_${PN}-libv4l-plugins = "${libdir}/libv4l"
-FILES_${PN}-argus = "${libdir}/libnvargus*"
-FILES_${PN}-argus-daemon-base = "${sbindir}/nvargus-daemon"
-FILES_${PN}-libnvosd = "${libdir}/libnvosd*"
-FILES_${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir} ${datadir} \
+FILES:${PN}-libv4l-plugins = "${libdir}/libv4l"
+FILES:${PN}-argus = "${libdir}/libnvargus*"
+FILES:${PN}-argus-daemon-base = "${sbindir}/nvargus-daemon"
+FILES:${PN}-libnvosd = "${libdir}/libnvosd*"
+FILES:${PN} = "${libdir} ${sbindir} ${nonarch_libdir} ${localstatedir} ${sysconfdir} ${datadir} \
                /usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json"
-FILES_${PN}-dev = "${libdir}/lib*GL*.so"
-RDEPENDS_${PN} = "libasound"
-RDEPENDS_${PN}-argus = "tegra-argus-daemon"
-RDEPENDS_${PN}-argus-daemon-base = "${PN} libglvnd"
-RDEPENDS_${PN}-libnvosd = "${PN} pango cairo glib-2.0"
-RRECOMMENDS_${PN}-libnvosd = "liberation-fonts"
-RRECOMMENDS_${PN} = "kernel-module-nvgpu"
+FILES:${PN}-dev = "${libdir}/lib*GL*.so"
+RDEPENDS:${PN} = "libasound"
+RDEPENDS:${PN}-argus = "tegra-argus-daemon"
+RDEPENDS:${PN}-argus-daemon-base = "${PN} libglvnd"
+RDEPENDS:${PN}-libnvosd = "${PN} pango cairo glib-2.0"
+RRECOMMENDS:${PN}-libnvosd = "liberation-fonts"
+RRECOMMENDS:${PN} = "kernel-module-nvgpu"
 
-INSANE_SKIP_${PN}-libv4l-plugins = "dev-so textrel ldflags build-deps"
-INSANE_SKIP_${PN} = "dev-so textrel ldflags build-deps libdir"
-INSANE_SKIP_${PN}-argus = "dev-so ldflags"
-INSANE_SKIP_${PN}-argus-daemon-base = "ldflags"
-INSANE_SKIP_${PN}-libnvosd = "dev-so ldflags"
+INSANE_SKIP:${PN}-libv4l-plugins = "dev-so textrel ldflags build-deps"
+INSANE_SKIP:${PN} = "dev-so textrel ldflags build-deps libdir"
+INSANE_SKIP:${PN}-argus = "dev-so ldflags"
+INSANE_SKIP:${PN}-argus-daemon-base = "ldflags"
+INSANE_SKIP:${PN}-libnvosd = "dev-so ldflags"
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"

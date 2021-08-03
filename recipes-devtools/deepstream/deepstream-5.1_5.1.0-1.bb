@@ -9,7 +9,7 @@ HOMEPAGE = "https://developer.nvidia.com/deepstream-sdk"
 
 inherit l4t_deb_pkgfeed
 
-SRC_COMMON_DEBS = "${BPN}_${PV}_arm64.deb;subdir=${BPN}"
+SRC_COMMON_DEBS = "${BPN}_${PV}:arm64.deb;subdir=${BPN}"
 SRC_URI[sha256sum] = "68b5ddff8b8682ed657fe8554cfb492f36621274a7593d9660f335ce8ba926a5"
 
 COMPATIBLE_MACHINE = "(tegra)"
@@ -84,15 +84,15 @@ PKGCONF_PACKAGES = "${@pkgconf_packages(d)}"
 
 PACKAGES =+ "${PN}-samples-data ${PN}-samples ${PN}-sources ${PN}-iothub-client ${PN}-azure-edge ${PN}-triton-plugins ${PKGCONF_PACKAGES}"
 
-FILES_${PN} = "${sysconfdir}/ld.so.conf.d/  \
+FILES:${PN} = "${sysconfdir}/ld.so.conf.d/  \
 	       ${libdir}/gstreamer-1.0/deepstream \
 	       ${DEEPSTREAM_PATH}/lib \
 	      "
 
-FILES_${PN}-dev = "${includedir}"
+FILES:${PN}-dev = "${includedir}"
 
-FILES_${PN}-samples = "${bindir}/*"
-FILES_${PN}-samples-data = "\
+FILES:${PN}-samples = "${bindir}/*"
+FILES:${PN}-samples-data = "\
 	${DEEPSTREAM_PATH}/samples \
 	${DEEPSTREAM_PATH}/sources/apps/sample_apps/*/*.txt \
 	${DEEPSTREAM_PATH}/sources/apps/sample_apps/*/README \
@@ -101,17 +101,17 @@ FILES_${PN}-samples-data = "\
 	${DEEPSTREAM_PATH}/sources/apps/sample_apps/*/csv_files/ \
 "
 
-FILES_${PN}-sources = "${DEEPSTREAM_PATH}/sources"
+FILES:${PN}-sources = "${DEEPSTREAM_PATH}/sources"
 
-FILES_${PN}-iothub-client = "${DEEPSTREAM_PATH}/lib/libiothub_client.so"
-FILES_${PN}-azure-edge = "${DEEPSTREAM_PATH}/lib/libazure*"
-FILES_${PN}-triton-plugins = "${DEEPSTREAM_PATH}/lib/triton_backends"
-FILES_${PN}-amqp = "${DEEPSTREAM_PATH}/lib/libnvds_amqp*"
-FILES_${PN}-kafka = "${DEEPSTREAM_PATH}/lib/libnvds_kafka*"
-FILES_${PN}-redis = "${DEEPSTREAM_PATH}/lib/libnvds_redis*"
+FILES:${PN}-iothub-client = "${DEEPSTREAM_PATH}/lib/libiothub_client.so"
+FILES:${PN}-azure-edge = "${DEEPSTREAM_PATH}/lib/libazure*"
+FILES:${PN}-triton-plugins = "${DEEPSTREAM_PATH}/lib/triton_backends"
+FILES:${PN}-amqp = "${DEEPSTREAM_PATH}/lib/libnvds_amqp*"
+FILES:${PN}-kafka = "${DEEPSTREAM_PATH}/lib/libnvds_kafka*"
+FILES:${PN}-redis = "${DEEPSTREAM_PATH}/lib/libnvds_redis*"
 
-RDEPENDS_${PN} = "cuda-cufft libvisionworks-devso-symlink"
-RDEPENDS_${PN}-samples = "${PN}-samples-data"
-RDEPENDS_${PN}-samples-data = "bash"
-RDEPENDS_${PN}-sources = "bash ${PN}-samples-data ${PN}"
-RRECOMMENDS_${PN} = "liberation-fonts"
+RDEPENDS:${PN} = "cuda-cufft libvisionworks-devso-symlink"
+RDEPENDS:${PN}-samples = "${PN}-samples-data"
+RDEPENDS:${PN}-samples-data = "bash"
+RDEPENDS:${PN}-sources = "bash ${PN}-samples-data ${PN}"
+RRECOMMENDS:${PN} = "liberation-fonts"

@@ -1,6 +1,6 @@
-PACKAGES_prepend_tegra = "${PN}-examples "
-FILES_${PN}-examples = "${bindir}/gadget-acm-ecm ${bindir}/gadget-export ${bindir}/gadget-ffs \
+PACKAGES::prepend:tegra = "${PN}-examples "
+FILES:${PN}-examples = "${bindir}/gadget-acm-ecm ${bindir}/gadget-export ${bindir}/gadget-ffs \
                         ${bindir}/gadget-hid ${bindir}/gadget-midi ${bindir}/gadget-ms \
                         ${bindir}/gadget-rndis-os-desc ${bindir}/gadget-uac2"
-RRECOMMENDS_${PN}_append_tegra = " kernel-module-tegra-xudc"
-PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
+RRECOMMENDS:${PN}:append:tegra = " kernel-module-tegra-xudc"
+PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"

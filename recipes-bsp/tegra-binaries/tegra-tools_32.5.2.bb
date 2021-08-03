@@ -16,9 +16,9 @@ do_install() {
 }
 
 PACKAGES = "${PN}-tegrastats ${PN}-jetson-clocks ${PN}"
-ALLOW_EMPTY_${PN} = "1"
-RDEPENDS_${PN} = "${PN}-tegrastats ${PN}-jetson-clocks"
-FILES_${PN}-tegrastats = "${bindir}/tegrastats"
-INSANE_SKIP_${PN}-tegrastats = "ldflags"
-FILES_${PN}-jetson-clocks = "${bindir}/jetson_clocks"
-RDEPENDS_${PN}-jetson-clocks = "bash"
+ALLOW_EMPTY:${PN} = "1"
+RDEPENDS:${PN} = "${PN}-tegrastats ${PN}-jetson-clocks"
+FILES:${PN}-tegrastats = "${bindir}/tegrastats"
+INSANE_SKIP:${PN}-tegrastats = "ldflags"
+FILES:${PN}-jetson-clocks = "${bindir}/jetson_clocks"
+RDEPENDS:${PN}-jetson-clocks = "bash"

@@ -20,6 +20,6 @@ do_install() {
 	install -m 0644 ${S}/eglexternalplatform.pc ${D}${datadir}/pkgconfig/
 }
 
-ALLOW_EMPTY_${PN} = "1"
-FILES_${PN}-dev = "${includedir} ${datadir}/pkgconfig"
+ALLOW_EMPTY:${PN} = "1"
+FILES:${PN}-dev = "${includedir} ${datadir}/pkgconfig"
 

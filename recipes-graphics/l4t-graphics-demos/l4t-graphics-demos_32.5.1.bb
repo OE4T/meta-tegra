@@ -62,9 +62,9 @@ do_install() {
 }
 
 PACKAGES =+ "${PN}-x11 ${PN}-wayland ${PN}-egldevice"
-FILES_${PN}-x11 = "${bindir}/${BPN}/x11"
-FILES_${PN}-wayland = "${bindir}/${BPN}/wayland"
-FILES_${PN}-egldevice = "${bindir}/${BPN}/egldevice"
-ALLOW_EMPTY_${PN} = "1"
-RDEPENDS_${PN}-egldevice = "libdrm"
-RDEPENDS_${PN} = "${PN}-egldevice ${@' '.join(['${PN}-%s' % p for p in d.getVar('PACKAGECONFIG').split()])}"
+FILES:${PN}-x11 = "${bindir}/${BPN}/x11"
+FILES:${PN}-wayland = "${bindir}/${BPN}/wayland"
+FILES:${PN}-egldevice = "${bindir}/${BPN}/egldevice"
+ALLOW_EMPTY:${PN} = "1"
+RDEPENDS:${PN}-egldevice = "libdrm"
+RDEPENDS:${PN} = "${PN}-egldevice ${@' '.join(['${PN}-%s' % p for p in d.getVar('PACKAGECONFIG').split()])}"

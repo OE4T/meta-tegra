@@ -12,7 +12,7 @@ do_configure() {
         tar -C ${B} -x -f ${S}/nv_tegra/config.tbz2 etc
 }
 
-do_configure_append_tegra210() {
+do_configure:append:tegra210() {
 	quilt import ${STAGING_DATADIR}/l4t-patches-${PV}/Convert-l4t_payload_updater_t210-to-Python3.patch
         quilt push
 }
@@ -29,7 +29,7 @@ do_install() {
 	install -d ${D}/opt/ota_package
 }
 
-do_install_tegra210() {
+do_install:tegra210() {
 	install -d ${D}${sbindir}
 	install -m 0755 ${B}/usr/sbin/l4t_payload_updater_t210 ${D}${sbindir}
 	install -d ${D}/opt/ota_package
@@ -39,12 +39,12 @@ INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 PACKAGES = "tegra-redundant-boot-nvbootctrl ${PN} ${PN}-dev"
-FILES_tegra-redundant-boot-nvbootctrl = "${sbindir}/nvbootctrl"
-FILES_${PN} += "/opt/ota_package"
-RDEPENDS_${PN} = "tegra-redundant-boot-nvbootctrl setup-nv-boot-control-service"
-RDEPENDS_${PN}_tegra210 = "setup-nv-boot-control-service python3-core"
-INSANE_SKIP_${PN} = "ldflags"
-RDEPENDS_tegra-redundant-boot-nvbootctrl = "setup-nv-boot-control"
-RDEPENDS_tegra-redundant-boot-nvbootctrl_tegra210 = ""
-ALLOW_EMPTY_tegra-redundant-boot-nvbootctrl_tegra210 = "1"
-INSANE_SKIP_tegra-redundant-boot-nvbootctrl = "ldflags"
+FILES:tegra-redundant-boot-nvbootctrl = "${sbindir}/nvbootctrl"
+FILES:${PN} += "/opt/ota_package"
+RDEPENDS:${PN} = "tegra-redundant-boot-nvbootctrl setup-nv-boot-control-service"
+RDEPENDS:${PN:}:tegra210 = "setup-nv-boot-control-service python3-core"
+INSANE_SKIP:${PN} = "ldflags"
+RDEPENDS:tegra-redundant-boot-nvbootctrl = "setup-nv-boot-control"
+RDEPENDS:tegra-redundant-boot-nvbootctrl:tegra210 = ""
+ALLOW_EMPTY:tegra-redundant-boot-nvbootctrl:tegra210 = "1"
+INSANE_SKIP:tegra-redundant-boot-nvbootctrl = "ldflags"

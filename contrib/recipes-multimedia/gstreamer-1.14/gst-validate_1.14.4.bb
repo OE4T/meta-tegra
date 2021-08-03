@@ -13,9 +13,9 @@ SRC_URI[md5sum] = "1f4fc5308695adfdc11d13046aa4888c"
 SRC_URI[sha256sum] = "18dccca94bdc0bab3cddb07817bd280df7ab4abbec9a83b92620367a22d955c7"
 
 DEPENDS = "json-glib glib-2.0 glib-2.0-native gstreamer1.0 gstreamer1.0-plugins-base"
-RRECOMMENDS_${PN} = "git"
+RRECOMMENDS:${PN} = "git"
 
-FILES_${PN} += "${datadir}/gstreamer-1.0/* ${libdir}/gst-validate-launcher/* ${libdir}/gstreamer-1.0/*"
+FILES:${PN} += "${datadir}/gstreamer-1.0/* ${libdir}/gst-validate-launcher/* ${libdir}/gstreamer-1.0/*"
 
 inherit pkgconfig gettext autotools gobject-introspection gtk-doc upstream-version-is-even
 

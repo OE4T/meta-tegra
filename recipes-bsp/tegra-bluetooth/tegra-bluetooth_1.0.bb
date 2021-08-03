@@ -28,9 +28,9 @@ do_install() {
     fi
 }
 
-ALLOW_EMPTY_${PN} = "1"
-SYSTEMD_SERVICE_${PN} = "${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', 'tegra-bluetooth.service', '', d)}"
-FILES_${PN} += "${nonarch_base_libdir}/udev/rules.d"
-RDEPENDS_${PN} = "${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', '${TEGRA_BT_SUPPORT_PACKAGE}', '', d)}"
-RRECOMMENDS_${PN} = "kernel-module-bluedroid-pm"
+ALLOW_EMPTY:${PN} = "1"
+SYSTEMD_SERVICE:${PN} = "${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', 'tegra-bluetooth.service', '', d)}"
+FILES:${PN} += "${nonarch_base_libdir}/udev/rules.d"
+RDEPENDS:${PN} = "${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', '${TEGRA_BT_SUPPORT_PACKAGE}', '', d)}"
+RRECOMMENDS:${PN} = "kernel-module-bluedroid-pm"
 PACKAGE_ARCH = "${MACHINE_ARCH}"

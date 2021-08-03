@@ -41,13 +41,13 @@ do_install() {
 }
 
 FILES_SOLIBSDEV = ""
-FILES_${PN} = "${libdir}"
-DEBIAN_NOAUTONAME_${PN} = "1"
+FILES:${PN} = "${libdir}"
+DEBIAN_NOAUTONAME:${PN} = "1"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
-INSANE_SKIP_${PN}-nvcompositor = "dev-so ldflags build-deps"
-INSANE_SKIP_${PN} = "dev-so ldflags build-deps"
-RDEPENDS_${PN} = "gstreamer1.0 libgstvideo-1.0 glib-2.0 libegl tegra-libraries libdrm"
-RRECOMMENDS_${PN} = "gstreamer1.0-plugins-nvarguscamerasrc gstreamer1.0-plugins-nvv4l2camerasrc"
+INSANE_SKIP:${PN}-nvcompositor = "dev-so ldflags build-deps"
+INSANE_SKIP:${PN} = "dev-so ldflags build-deps"
+RDEPENDS:${PN} = "gstreamer1.0 libgstvideo-1.0 glib-2.0 libegl tegra-libraries libdrm"
+RRECOMMENDS:${PN} = "gstreamer1.0-plugins-nvarguscamerasrc gstreamer1.0-plugins-nvv4l2camerasrc"

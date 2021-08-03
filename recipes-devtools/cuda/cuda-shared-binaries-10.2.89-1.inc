@@ -12,7 +12,7 @@ SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGA
 SRC_URI[main.sha256sum] = "${MAINSUM}"
 SRC_URI[dev.sha256sum] = "${DEVSUM}"
 LICSUM = "8a862acbff5b33904bfe7ec3e92a553a8312da1db9f651b6cfe14db137a139ce"
-LICSUM_x86-64 = "daf3f9891b290b64ae1130546aaadabd6631b44d08c69a76a74e94a111b6ecec"
+LICSUM:x86-64 = "daf3f9891b290b64ae1130546aaadabd6631b44d08c69a76a74e94a111b6ecec"
 SRC_URI[lic.sha256sum] = "${LICSUM}"
 
 CUDA_DL_CLASS = "l4t_deb_pkgfeed"
@@ -85,21 +85,21 @@ do_install() {
     rm -f ${D}${prefix}/local/cuda-${CUDA_VERSION}/LICENSE ${D}${prefix}/local/cuda-${CUDA_VERSION}/README ${D}${prefix}/local/cuda-${CUDA_VERSION}/version.txt
 }
 
-FILES_${PN} += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBS} ${prefix}/local/cuda-${CUDA_VERSION}/bin"
-FILES_${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/extras ${prefix}/local/cuda-${CUDA_VERSION}/include ${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/stubs \
+FILES:${PN} += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBS} ${prefix}/local/cuda-${CUDA_VERSION}/bin"
+FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/extras ${prefix}/local/cuda-${CUDA_VERSION}/include ${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/stubs \
                     ${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBSDEV}"
-FILES_${PN}-staticdev += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*.a"
-RDEPENDS_${PN}_class-target = "tegra-libraries"
+FILES:${PN}-staticdev += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*.a"
+RDEPENDS:${PN}:class-target = "tegra-libraries"
 
-INSANE_SKIP_${PN} = "ldflags libdir"
-INSANE_SKIP_${PN}-dev = "ldflags libdir dev-elf"
+INSANE_SKIP:${PN} = "ldflags libdir"
+INSANE_SKIP:${PN}-dev = "ldflags libdir dev-elf"
 
-sysroot_stage_dirs_append() {
+sysroot_stage_dirs:append() {
     sysroot_stage_dir $from${prefix}/local/cuda-${CUDA_VERSION} $to${prefix}/local/cuda-${CUDA_VERSION}
 }
 
 inherit container-runtime-csv
 CONTAINER_CSV_FILES = "${prefix}/local/*"
 
-COMPATIBLE_MACHINE_class-target = "(tegra)"
-PACKAGE_ARCH_class-target = "${TEGRA_PKGARCH}"
+COMPATIBLE_MACHINE:class-target = "(tegra)"
+PACKAGE_ARCH:class-target = "${TEGRA_PKGARCH}"

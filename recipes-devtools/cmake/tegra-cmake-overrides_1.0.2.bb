@@ -16,5 +16,5 @@ do_install() {
     oe_runmake install DESTDIR="${D}"
 }
 
-FILES_${PN}-dev += "${datadir}/cmake"
-ALLOW_EMPTY_${PN} = "1"
+FILES:${PN}-dev += "${datadir}/cmake"
+ALLOW_EMPTY:${PN} = "1"

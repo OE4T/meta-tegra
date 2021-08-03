@@ -7,11 +7,11 @@ COMPATIBLE_MACHINE = "(tegra)"
 DEPENDS = "tegra-bootfiles tegra-helper-scripts-native"
 
 FLASHTOOLS_PATH = "${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash"
-FLASHTOOLS_PATH_tegra194 = "${STAGING_BINDIR_NATIVE}/tegra186-flash"
+FLASHTOOLS_PATH:tegra194 = "${STAGING_BINDIR_NATIVE}/tegra186-flash"
 PATH =. "${FLASHTOOLS_PATH}:"
 
 BOOTDEVNAME = "${@'spi' if d.getVar('TEGRA_SPIFLASH_BOOT') == '1' else 'sdmmc_boot'}"
-BOOTDEVNAME_xavier-nx = "spi"
+BOOTDEVNAME:xavier-nx = "spi"
 USERDEVNAME = "${@'sdcard' if d.getVar('TEGRA_SPIFLASH_BOOT') == '1' else 'sdmmc_user'}"
 
 inherit image_types_tegra
@@ -62,5 +62,5 @@ do_install() {
     install -m 0644 ${B}/all-partitions.conf ${D}${datadir}/tegra-boot-tools/
 }
 
-FILES_${PN} = "${datadir}/tegra-boot-tools"
+FILES:${PN} = "${datadir}/tegra-boot-tools"
 PACKAGE_ARCH = "${MACHINE_ARCH}"

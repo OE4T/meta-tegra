@@ -10,8 +10,8 @@ CUDA_LDFLAGS = "\
   -Wl,-rpath,/usr/local/cuda-${CUDA_VERSION}/${baselib} \
 "
 
-LDFLAGS_prepend_cuda = "${TOOLCHAIN_OPTIONS} "
-LDFLAGS_append_cuda = " ${CUDA_LDFLAGS}"
+LDFLAGS:prepend:cuda = "${TOOLCHAIN_OPTIONS} "
+LDFLAGS:append:cuda = " ${CUDA_LDFLAGS}"
 
 def cuda_extract_compiler(compiler, d, prefix='-Xcompiler '):
     args = d.getVar(compiler).split()
@@ -49,7 +49,7 @@ CUDA_EXTRA_OECMAKE = '\
   -DCUDA_TOOLKIT_ROOT_DIR=${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION} \
   -DCUDA_NVCC_FLAGS="${CUDA_NVCC_FLAGS}" \
 '
-EXTRA_OECMAKE_append_cuda = " ${CUDA_EXTRA_OECMAKE}"
+EXTRA_OECMAKE:append:cuda = " ${CUDA_EXTRA_OECMAKE}"
 
 export CUDA_TOOLKIT_ROOT = "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}"
 export CUDA_NVCC_EXECUTABLE = "${CUDA_TOOLKIT_ROOT}/bin/nvcc"
@@ -57,15 +57,15 @@ export CUDACXX = "${CCACHE}${CUDA_TOOLKIT_ROOT}/bin/nvcc"
 export CUDA_PATH = "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}"
 
 CUDA_NATIVEDEPS = "cuda-compiler-native cuda-cudart-native"
-CUDA_NATIVEDEPS_class-native = ""
+CUDA_NATIVEDEPS:class-native = ""
 CUDA_DEPENDS = "cuda-libraries ${CUDA_NATIVEDEPS}"
 
-DEPENDS_append_cuda = " ${CUDA_DEPENDS} ${@'tegra-cmake-overrides' if bb.data.inherits_class('cmake', d) else ''}"
-PATH_prepend_cuda = "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}/bin:"
+DEPENDS:append:cuda = " ${CUDA_DEPENDS} ${@'tegra-cmake-overrides' if bb.data.inherits_class('cmake', d) else ''}"
+PATH:prepend:cuda = "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}/bin:"
 
 # The following are for the new-style (CMake 3.8+) CUDA language
 # support and to hook in our override of FindCUDA.cmake.
-cmake_do_generate_toolchain_file_append_cuda() {
+cmake_do_generate_toolchain_file:append:cuda() {
     cat >> ${WORKDIR}/toolchain.cmake <<EOF
 set(CMAKE_CUDA_TOOLKIT_ROOT_DIR "${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}" CACHE PATH "" FORCE)
 set(CMAKE_CUDA_TOOLKIT_TARGET_DIR "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}" CACHE PATH "" FORCE)
@@ -81,10 +81,10 @@ meson_cuda_cross_config() {
 cuda = 'nvcc'
 EOF
 }
-MESON_CROSS_FILE_append_cuda_class-target = " --cross-file ${WORKDIR}/meson-cuda.cross"
+MESON_CROSS_FILE:append:cuda:class-target = " --cross-file ${WORKDIR}/meson-cuda.cross"
 
-PACKAGE_ARCH_cuda = "${SOC_FAMILY_PKGARCH}"
-RDEPENDS_${PN}_append_tegra = " tegra-libraries"
+PACKAGE_ARCH:cuda = "${SOC_FAMILY_PKGARCH}"
+RDEPENDS:${PN}:append:tegra = " tegra-libraries"
 
 python() {
     if bb.data.inherits_class('meson', d) and 'cuda' in d.getVar('OVERRIDES').split(':') and d.getVar('CLASSOVERRIDE') == 'class-target':

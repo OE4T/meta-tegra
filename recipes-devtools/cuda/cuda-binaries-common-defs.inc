@@ -1,4 +1,4 @@
-COMPATIBLE_MACHINE_class-target = "(cuda)"
+COMPATIBLE_MACHINE:class-target = "(cuda)"
 COMPATIBLE_HOST = "(x86_64|aarch64)"
 CUDA_VERSION ??= "10.2"
 CUDA_FULL_VERSION ?= "${PV}"

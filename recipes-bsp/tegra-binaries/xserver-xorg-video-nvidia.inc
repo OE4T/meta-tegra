@@ -21,12 +21,12 @@ do_install() {
 }
 
 PACKAGES = "${PN}"
-RDEPENDS_${PN} = "tegra-libraries"
-FILES_${PN} = "${libdir} ${datadir}"
-RPROVIDES_${PN} += "xserver-xorg-extension-glx"
-RCONFLICTS_${PN} = "xserver-xorg-extension-glx"
+RDEPENDS:${PN} = "tegra-libraries"
+FILES:${PN} = "${libdir} ${datadir}"
+RPROVIDES:${PN} += "xserver-xorg-extension-glx"
+RCONFLICTS:${PN} = "xserver-xorg-extension-glx"
 
-INSANE_SKIP_${PN} = "dev-so textrel ldflags xorg-driver-abi"
+INSANE_SKIP:${PN} = "dev-so textrel ldflags xorg-driver-abi"
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"

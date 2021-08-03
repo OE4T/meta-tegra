@@ -20,16 +20,16 @@ do_install() {
     install -d ${D}${datadir}/alsa/cards
 }
 
-do_install_append_tegra186() {
+do_install:append:tegra186() {
     install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda.conf ${D}${datadir}/alsa/cards/
     install -m 0644 ${B}/usr/share/alsa/cards/tegra-snd-t186r.conf ${D}${datadir}/alsa/cards/
 }
-do_install_append_tegra194() {
+do_install:append:tegra194() {
     install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda-galen.conf ${D}${datadir}/alsa/cards/
     install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda-xnx.conf ${D}${datadir}/alsa/cards/
     install -m 0644 ${B}/usr/share/alsa/cards/jetson-xaviernx.conf ${D}${datadir}/alsa/cards/
     install -m 0644 ${B}/usr/share/alsa/cards/tegra-snd-t19x-.conf ${D}${datadir}/alsa/cards/
 }
 
-FILES_${PN} = "${sysconfdir} ${datadir}/alsa"
+FILES:${PN} = "${sysconfdir} ${datadir}/alsa"
 PACKAGE_ARCH = "${MACHINE_ARCH}"

@@ -65,7 +65,7 @@ do_compile () {
 
 PACKAGES = "${PN}-dbg ${PN} ${PN}-doc"
 
-FILES_${PN} = "\
+FILES:${PN} = "\
     ${exec_prefix}/bin/* \
     ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/* \
     ${gcclibdir}/${TARGET_SYS}/${BINV}/*.o \
@@ -80,9 +80,9 @@ FILES_${PN} = "\
     ${prefix}/${TARGET_SYS}/lib/* \
     ${prefix}/${TARGET_SYS}${target_includedir}/* \
 "
-INSANE_SKIP_${PN} += "dev-so"
+INSANE_SKIP:${PN} += "dev-so"
 
-FILES_${PN}-doc = "\
+FILES:${PN}-doc = "\
     ${infodir} \
     ${mandir} \
     ${gcclibdir}/${TARGET_SYS}/${BINV}/include/README \
@@ -149,7 +149,7 @@ do_install () {
 
 ELFUTILS = "nativesdk-elfutils"
 DEPENDS += "nativesdk-gmp nativesdk-mpfr nativesdk-libmpc ${ELFUTILS} nativesdk-zlib"
-RDEPENDS_${PN} += "nativesdk-mpfr nativesdk-libmpc ${ELFUTILS}"
+RDEPENDS:${PN} += "nativesdk-mpfr nativesdk-libmpc ${ELFUTILS}"
 
 SYSTEMHEADERS = "${target_includedir}/"
 SYSTEMLIBS = "${target_base_libdir}/"
@@ -157,9 +157,9 @@ SYSTEMLIBS1 = "${target_libdir}/"
 
 EXTRA_OECONF += "--enable-poison-system-directories"
 
-EXTRA_OECONF_append_libc-baremetal = " --without-headers"
-EXTRA_OECONF_remove_libc-baremetal = "--with-sysroot=/not/exist"
-EXTRA_OECONF_remove_libc-baremetal = "--with-build-sysroot=${STAGING_DIR_TARGET}"
+EXTRA_OECONF:append:libc-baremetal = " --without-headers"
+EXTRA_OECONF:remove:libc-baremetal = "--with-sysroot=/not/exist"
+EXTRA_OECONF:remove:libc-baremetal = "--with-build-sysroot=${STAGING_DIR_TARGET}"
 
 # gcc 4.7 needs -isystem
 export ARCH_FLAGS_FOR_TARGET = "--sysroot=${STAGING_DIR_TARGET} -isystem=${target_includedir}"

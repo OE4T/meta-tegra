@@ -62,9 +62,9 @@ python populate_container_csv() {
 }
 
 CONTAINERCSVFUNC = ""
-CONTAINERCSVFUNC_tegra = "populate_container_csv"
+CONTAINERCSVFUNC:tegra = "populate_container_csv"
 do_install[postfuncs] += "${CONTAINERCSVFUNC}"
 
-PACKAGES_prepend_tegra = " ${CONTAINER_CSV_PKGNAME} "
-FILES_${CONTAINER_CSV_PKGNAME} = "${sysconfdir}/nvidia-container-runtime"
-RDEPENDS_${PN}_append_tegra = " ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', '${CONTAINER_CSV_PKGNAME}', '', d)}"
+PACKAGES::prepend:tegra = " ${CONTAINER_CSV_PKGNAME} "
+FILES:${CONTAINER_CSV_PKGNAME} = "${sysconfdir}/nvidia-container-runtime"
+RDEPENDS:${PN}:append:tegra = " ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', '${CONTAINER_CSV_PKGNAME}', '', d)}"

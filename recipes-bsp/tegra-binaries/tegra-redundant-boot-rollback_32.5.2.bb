@@ -18,12 +18,12 @@ do_install() {
 	:
 }
 
-do_install_append_tegra186() {
+do_install:append:tegra186() {
 	install -d ${D}${datadir}/nv_tegra/rollback/t18x
 	install -m 0644 ${S}/bootloader/rollback/t18x/rollback.cfg ${D}${datadir}/nv_tegra/rollback/t18x/
 }
 
-do_install_append_tegra194() {
+do_install:append:tegra194() {
 	install -d ${D}${datadir}/nv_tegra/rollback/t19x
 	install -m 0644 ${S}/bootloader/rollback/t19x/rollback.cfg ${D}${datadir}/nv_tegra/rollback/t19x/
 }

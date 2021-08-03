@@ -24,7 +24,7 @@ do_install() {
     fi
 }
 
-FILES_${PN} = "${sbindir}/nvpmodel ${sysconfdir}"
-INSANE_SKIP_${PN} = "ldflags"
+FILES:${PN} = "${sbindir}/nvpmodel ${sysconfdir}"
+INSANE_SKIP:${PN} = "ldflags"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

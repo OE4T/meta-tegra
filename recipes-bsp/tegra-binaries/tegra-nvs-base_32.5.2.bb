@@ -17,6 +17,6 @@ do_install() {
 }
 
 PACKAGES = "${PN}"
-FILES_${PN} = "${sbindir} ${sysconfdir}"
-RDEPENDS_${PN} = "bash tegra-libraries"
-INSANE_SKIP_${PN} = "ldflags"
+FILES:${PN} = "${sbindir} ${sysconfdir}"
+RDEPENDS:${PN} = "bash tegra-libraries"
+INSANE_SKIP:${PN} = "ldflags"

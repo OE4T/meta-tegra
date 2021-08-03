@@ -1,2 +1,2 @@
-PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
-PACKAGECONFIG_remove_tegra = "wayland"
+PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"
+PACKAGECONFIG:remove:tegra = "wayland"

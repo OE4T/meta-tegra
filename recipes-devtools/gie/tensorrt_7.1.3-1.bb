@@ -6,7 +6,7 @@ inherit l4t_deb_pkgfeed container-runtime-csv
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 
 PREFIX = "NoDLA-"
-PREFIX_tegra194 = "DLA-"
+PREFIX:tegra194 = "DLA-"
 
 L4T_DEB_GROUP = "tensorrt"
 
@@ -34,16 +34,16 @@ PLUGINSHA256SUM = "a57ea8b4757fa4592c6ba1555bc07045909b553a493c0bde8c8b23c74cf08
 PLUGINDEVSHA256SUM = "94820301980118e34cc1ab99570d3a7a13b96f4811828908b63bf638b4252edd"
 BINSHA256SUM = "94927076974c59ae45b0c56300387816b8fa03d397d1503d8633e7989b4a20f6"
 
-LIBSHA256SUM_tegra194 = "6f6b0e27339ff352f975c65842f4b315db8b341ae5c7d92545c2fe8b3a727ce3"
-DEVSHA256SUM_tegra194 = "b494da5c43360bd20b832854c766b4d4e3cfecdfbd73bef8d96c4ce9ae7f022c"
-SAMPSHA256SUM_tegra194 = "87d32bb231c19717c4690e05c770eb51d3d5ad4bea8fbd0ee46ba4d1a386ad9f"
-NVPSHA256SUM_tegra194 = "65db2ae0f5d7dbb452306823ac4b6ea27386a5650db337c7fa50969f3d9d3cea"
-NVPDEVSHA256SUM_tegra194 = "dc48c0dc44ff69246f3062a480e9d5ac8f72f5bc798bdfad401ebbcb9912e475"
-ONNXSHA256SUM_tegra194 = "26109c58e8eab9dc746fb3fc39cc39bf5a8bf2d61a27b5d9e7aa035fc0b97b4c"
-ONNXDEVSHA256SUM_tegra194 = "52783ca7245171eb83c623a08851c0cfdc659696272b2edf6dfe3503ae9bc49b"
-PLUGINSHA256SUM_tegra194 = "680c7849542dca1cac68fc94f7474f31446cf093b6e6df1d7bab8c24a6122aa3"
-PLUGINDEVSHA256SUM_tegra194 = "bac84671b2990b8110d4f2ac69b4a29cf230346db37a902d1f47cf7a9be4601e"
-BINSHA256SUM_tegra194 = "56275d8cba17be877af063db49ecb7b6e02bed5f8d387b1182a6a7ec2cabee2a"
+LIBSHA256SUM:tegra194 = "6f6b0e27339ff352f975c65842f4b315db8b341ae5c7d92545c2fe8b3a727ce3"
+DEVSHA256SUM:tegra194 = "b494da5c43360bd20b832854c766b4d4e3cfecdfbd73bef8d96c4ce9ae7f022c"
+SAMPSHA256SUM:tegra194 = "87d32bb231c19717c4690e05c770eb51d3d5ad4bea8fbd0ee46ba4d1a386ad9f"
+NVPSHA256SUM:tegra194 = "65db2ae0f5d7dbb452306823ac4b6ea27386a5650db337c7fa50969f3d9d3cea"
+NVPDEVSHA256SUM:tegra194 = "dc48c0dc44ff69246f3062a480e9d5ac8f72f5bc798bdfad401ebbcb9912e475"
+ONNXSHA256SUM:tegra194 = "26109c58e8eab9dc746fb3fc39cc39bf5a8bf2d61a27b5d9e7aa035fc0b97b4c"
+ONNXDEVSHA256SUM:tegra194 = "52783ca7245171eb83c623a08851c0cfdc659696272b2edf6dfe3503ae9bc49b"
+PLUGINSHA256SUM:tegra194 = "680c7849542dca1cac68fc94f7474f31446cf093b6e6df1d7bab8c24a6122aa3"
+PLUGINDEVSHA256SUM:tegra194 = "bac84671b2990b8110d4f2ac69b4a29cf230346db37a902d1f47cf7a9be4601e"
+BINSHA256SUM:tegra194 = "56275d8cba17be877af063db49ecb7b6e02bed5f8d387b1182a6a7ec2cabee2a"
 
 SRC_URI[lib.sha256sum] = "${LIBSHA256SUM}"
 SRC_URI[dev.sha256sum] = "${DEVSHA256SUM}"
@@ -63,7 +63,7 @@ LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=48;md
 S = "${WORKDIR}/tensorrt"
 
 DEPENDS = "libcublas cudnn cuda-cudart cuda-nvrtc libglvnd"
-DEPENDS_append_tegra194 = " tegra-libraries"
+DEPENDS:append:tegra194 = " tegra-libraries"
 
 CONTAINER_CSV_FILES = "${libdir}/*.so* /usr/src/*"
 
@@ -84,17 +84,17 @@ do_install() {
     cp --preserve=mode,timestamps --recursive ${S}/usr/src/tensorrt ${D}${prefix}/src/
 }
 PACKAGES += "${PN}-samples"
-FILES_${PN} += "${prefix}/src/tensorrt/bin"
-FILES_${PN}-samples = "${prefix}/src"
+FILES:${PN} += "${prefix}/src/tensorrt/bin"
+FILES:${PN}-samples = "${prefix}/src"
 
-RDEPENDS_${PN} += "libstdc++ cudnn libcublas cuda-cudart cuda-nvrtc cuda-nvtx tegra-libraries libglvnd"
-RDEPENDS_${PN}-samples += "tegra-libraries bash python3 libglvnd cudnn cuda-cudart libcublas"
-RPROVIDES_${PN}-samples = "${PN}-examples"
+RDEPENDS:${PN} += "libstdc++ cudnn libcublas cuda-cudart cuda-nvrtc cuda-nvtx tegra-libraries libglvnd"
+RDEPENDS:${PN}-samples += "tegra-libraries bash python3 libglvnd cudnn cuda-cudart libcublas"
+RPROVIDES:${PN}-samples = "${PN}-examples"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
-INSANE_SKIP_${PN} = "textrel ldflags"
-INSANE_SKIP_${PN}-samples = "ldflags"
+INSANE_SKIP:${PN} = "textrel ldflags"
+INSANE_SKIP:${PN}-samples = "ldflags"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
-PACKAGE_ARCH_tegra194 = "${SOC_FAMILY_PKGARCH}"
+PACKAGE_ARCH:tegra194 = "${SOC_FAMILY_PKGARCH}"

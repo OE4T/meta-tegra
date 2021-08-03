@@ -7,8 +7,8 @@ inherit l4t_deb_pkgfeed container-runtime-csv
 HOMEPAGE = "https://developer.nvidia.com/embedded/visionworks"
 
 SRC_COMMON_DEBS = "\
-    libvisionworks-tracking_${PV}_arm64.deb;subdir=${BPN};name=lib \
-    libvisionworks-tracking-dev_${PV}_arm64.deb;subdir=${BPN};name=dev \
+    libvisionworks-tracking_${PV}:arm64.deb;subdir=${BPN};name=lib \
+    libvisionworks-tracking-dev_${PV}:arm64.deb;subdir=${BPN};name=dev \
 "
 
 SRC_URI[lib.sha256sum] = "2d4c9149f40948810a3731f17240167cb21e81aff720cc7454dc358b17ba5b98"
@@ -37,8 +37,8 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
 PACKAGES += "${PN}-samples"
-FILES_${PN}-dev += "${datadir}/visionworks-tracking/cmake"
-FILES_${PN}-doc += "${datadir}/visionworks-tracking/docs"
-FILES_${PN}-samples += "${datadir}/visionworks-tracking/sources"
-RDEPENDS_${PN} = "libstdc++"
+FILES:${PN}-dev += "${datadir}/visionworks-tracking/cmake"
+FILES:${PN}-doc += "${datadir}/visionworks-tracking/docs"
+FILES:${PN}-samples += "${datadir}/visionworks-tracking/sources"
+RDEPENDS:${PN} = "libstdc++"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"

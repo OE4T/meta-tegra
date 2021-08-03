@@ -31,20 +31,20 @@ EOF
     install -m 0644 ${B}/etc/enctune.conf ${D}${sysconfdir}
 }
 
-do_install_append_tegra186() {
+do_install:append:tegra186() {
     install -m 0644 ${B}/etc/X11/xorg.conf.t186_ref ${D}${sysconfdir}/X11/xorg.conf
 }
-do_install_append_tegra194() {
+do_install:append:tegra194() {
     install -m 0644 ${B}/etc/X11/xorg.conf.t194_ref ${D}${sysconfdir}/X11/xorg.conf
 }
-do_install_append_tegra210() {
+do_install:append:tegra210() {
     install -m 0644 ${B}/etc/X11/xorg.conf ${D}${sysconfdir}/X11/
 }
 
 PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup"
-FILES_${PN}-udev = "${sysconfdir}/udev/rules.d"
-FILES_${PN}-xorg = "${sysconfdir}/X11"
-FILES_${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
-FILES_${PN}-nvstartup = "${sbindir}"
-RDEPENDS_${PN}-udev = "udev"
-RDEPENDS_${PN}-nvstartup = "bash"
+FILES:${PN}-udev = "${sysconfdir}/udev/rules.d"
+FILES:${PN}-xorg = "${sysconfdir}/X11"
+FILES:${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
+FILES:${PN}-nvstartup = "${sbindir}"
+RDEPENDS:${PN}-udev = "udev"
+RDEPENDS:${PN}-nvstartup = "bash"

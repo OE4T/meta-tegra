@@ -17,5 +17,5 @@ do_install() {
     chmod 0644 ${D}${SDKPATHNATIVE}/environment-setup.d/cuda.sh
 }
 
-FILES_${PN} = "${SDKPATHNATIVE}"
-FILES_${PN}-dev = ""
+FILES:${PN} = "${SDKPATHNATIVE}"
+FILES:${PN}-dev = ""

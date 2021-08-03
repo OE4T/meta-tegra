@@ -40,7 +40,7 @@ copy_headers() {
 	cp ${WORKDIR}/v4l2_nv_extensions.h ${S}/
 }
 
-do_unpack_append() {
+do_unpack:append() {
     if not bb.data.inherits_class("externalsrc", d):
         bb.build.exec_func("copy_headers", d)
 }
@@ -48,4 +48,4 @@ do_unpack_append() {
 do_install() {
 	oe_runmake install DESTDIR="${D}"
 }
-FILES_${PN} = "${libdir}/gstreamer-1.0"
+FILES:${PN} = "${libdir}/gstreamer-1.0"

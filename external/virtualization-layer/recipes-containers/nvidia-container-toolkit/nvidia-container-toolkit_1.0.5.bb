@@ -23,7 +23,7 @@ REQUIRED_DISTRO_FEATURES = "virtualization"
 
 inherit go features_check
 
-do_install_append(){
+do_install:append(){
     install -d ${D}${sysconfdir}/nvidia-container-runtime ${D}${libexecdir}/oci/hooks.d ${D}/${datadir}/oci/hooks.d
     install ${S}/src/${GO_IMPORT}/config/config.toml.centos ${D}${sysconfdir}/nvidia-container-runtime/config.toml
     install ${S}/src/${GO_IMPORT}/oci-nvidia-hook ${D}${libexecdir}/oci/hooks.d
@@ -31,10 +31,10 @@ do_install_append(){
     ln -sf nvidia-container-toolkit ${D}${bindir}/nvidia-container-runtime-hook
 }
 
-FILES_${PN} += "${datadir}/oci"
+FILES:${PN} += "${datadir}/oci"
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
     libnvidia-container-tools \
     docker-ce \
 "
-RDEPENDS_${PN}-dev += "bash make"
+RDEPENDS:${PN}-dev += "bash make"

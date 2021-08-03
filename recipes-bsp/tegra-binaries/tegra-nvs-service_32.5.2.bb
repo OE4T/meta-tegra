@@ -23,7 +23,7 @@ inherit systemd update-rc.d
 
 INITSCRIPT_NAME = "nvs-service"
 INITSCRIPT_PARAMS = "defaults"
-SYSTEMD_SERVICE_${PN} = "nvs-service.service"
-RDEPENDS_${PN} = "tegra-nvs-base"
+SYSTEMD_SERVICE:${PN} = "nvs-service.service"
+RDEPENDS:${PN} = "tegra-nvs-base"
 
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"

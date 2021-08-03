@@ -19,7 +19,7 @@ inherit autotools pkgconfig
 DISABLE_STATIC = ""
 EXTRA_OECONF = "--disable-gssapi --enable-static"
 
-do_install_append() {
+do_install:append() {
     rm -r ${D}${sysconfdir} ${D}${datadir} ${D}${libdir}/pkgconfig
     rm ${D}${libdir}/*.so*
     mv ${D}${includedir}/tirpc ${D}${includedir}/tirpc-1.2.6

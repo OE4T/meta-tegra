@@ -1,1 +1,1 @@
-COMPATIBLE_MACHINE_tegra  = "(-)"
+COMPATIBLE_MACHINE:tegra  = "(-)"

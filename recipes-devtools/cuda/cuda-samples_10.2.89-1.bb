@@ -7,11 +7,11 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 L4T_DEB_GROUP = "cuda-samples"
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
-SRC_COMMON_DEBS = "${BPN}-${CUDA_VERSION_DASHED}_${PV}_arm64.deb;unpack=false"
+SRC_COMMON_DEBS = "${BPN}-${CUDA_VERSION_DASHED}_${PV}:arm64.deb;unpack=false"
 SRC_URI[sha256sum] = "121e273d8586bde904ceeab72a603a86d781f3bac6d3a21732703ca2ca9ec528"
 
 do_unpack_samples() {
-    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-10-2_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-10-2_${PV}:arm64.deb | \
         tar --strip-components=5 --exclude="*/doc/*" --exclude="*/bin/*" -x -f- -C ${S}
 }
 
@@ -91,12 +91,12 @@ do_install() {
         [ -e "$f" ] || continue
         install -m 0755 "$f" ${D}${bindir}/cuda-samples/
     done
-    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-10-2_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-10-2_${PV}:arm64.deb | \
         tar --exclude="*usr/share*" -x -f- -C ${D}
 }
 
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
-FILES_${PN} = "${bindir}/cuda-samples"
-FILES_${PN}-dev = "${CUDA_PATH}"
-INSANE_SKIP_${PN}-dev = "staticdev"
+FILES:${PN} = "${bindir}/cuda-samples"
+FILES:${PN}-dev = "${CUDA_PATH}"
+INSANE_SKIP:${PN}-dev = "staticdev"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"

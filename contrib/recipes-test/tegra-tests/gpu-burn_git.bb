@@ -17,4 +17,4 @@ inherit cuda cmake pkgconfig
 EXTRA_OECMAKE = "-DCMAKE_INSTALL_PREFIX=/opt/cudatests"
 lcl_maybe_fortify = ""
 
-FILES_${PN} = "/opt/cudatests"
+FILES:${PN} = "/opt/cudatests"

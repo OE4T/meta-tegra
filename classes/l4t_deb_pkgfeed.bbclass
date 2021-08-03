@@ -5,7 +5,7 @@ L4T_DEB_FEED_BASE ??= "https://repo.download.nvidia.com/jetson"
 inherit l4t_bsp
 
 L4T_DEB_COMP_DEFAULT = "main"
-L4T_DEB_COMP_DEFAULT_x86-64 = "r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:2])}"
+L4T_DEB_COMP_DEFAULT:x86-64 = "r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:2])}"
 L4T_DEB_COMP ?= "${L4T_DEB_COMP_DEFAULT}"
 
 def l4t_deb_src_uri(d):
@@ -45,9 +45,9 @@ SRC_URI = "${@l4t_deb_src_uri(d)}"
 do_unpack[depends] += "zstd-native:do_populate_sysroot"
 
 do_unpack[depends] += "tar-l4t-workaround-native:do_populate_sysroot"
-EXTRANATIVEPATH_append_task-unpack = " tar-l4t-workaround-native"
+EXTRANATIVEPATH:append_task-unpack = " tar-l4t-workaround-native"
 
-do_unpack_prepend() {
+do_unpack:prepend() {
     path = d.getVar('PATH')
     subpath = ':'.join([p for p in path.split(':') if 'tar-l4t-workaround-native' not in p])
     os.environ['TAR_WRAPPER_STRIPPED_PATH'] = subpath

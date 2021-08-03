@@ -4,6 +4,6 @@ inherit packagegroup nativesdk
 
 PACKAGEGROUP_DISABLE_COMPLEMENTARY = "1"
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
     nativesdk-cuda-compiler \
 "

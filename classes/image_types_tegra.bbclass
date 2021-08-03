@@ -59,15 +59,15 @@ TEGRA_SPIFLASH_BOOT ??= ""
 TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD ??=""
 
 CBOOTFILENAME = "cboot.bin"
-CBOOTFILENAME_tegra194 = "cboot_t194.bin"
+CBOOTFILENAME:tegra194 = "cboot_t194.bin"
 TOSIMGFILENAME = "tos-trusty.img"
-TOSIMGFILENAME_tegra194 = "tos-trusty_t194.img"
-TOSIMGFILENAME_tegra210 = "tos-mon-only.img"
+TOSIMGFILENAME:tegra194 = "tos-trusty_t194.img"
+TOSIMGFILENAME:tegra210 = "tos-mon-only.img"
 BMPBLOBFILENAME = "bmp.blob"
 
 BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
 FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
-FLASHTOOLS_DIR_tegra194 = "tegra186-flash"
+FLASHTOOLS_DIR:tegra194 = "tegra186-flash"
 
 TEGRAFLASH_PACKAGE_FORMAT ??= "tar"
 TEGRAFLASH_PACKAGE_FORMATS = "tar zip"
@@ -92,7 +92,7 @@ tegraflash_post_sign_pkg() {
     :
 }
 
-tegraflash_post_sign_pkg_tegra210() {
+tegraflash_post_sign_pkg:tegra210() {
     mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     [ "${TEGRA_SPIFLASH_BOOT}" = "1" ] || rm -f ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," flash.xml
@@ -102,14 +102,14 @@ tegraflash_post_sign_pkg_tegra210() {
     fi
 }
 
-tegraflash_post_sign_pkg_tegra186() {
+tegraflash_post_sign_pkg:tegra186() {
     sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
     if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" ]; then
         sed -i -e"s,DATAFILE,${DATAFILE}.img," secureflash.xml
     fi
 }
 
-tegraflash_post_sign_pkg_tegra194() {
+tegraflash_post_sign_pkg:tegra194() {
     mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     [ "${TEGRA_SPIFLASH_BOOT}" = "1" -o "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ] || rm -f ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
@@ -172,7 +172,7 @@ tegraflash_create_flash_config() {
     :
 }
 
-tegraflash_create_flash_config_tegra210() {
+tegraflash_create_flash_config:tegra210() {
     local destdir="$1"
     local lnxfile="$2"
 
@@ -201,7 +201,7 @@ tegraflash_create_flash_config_tegra210() {
         > $destdir/flash.xml.in
 }
 
-tegraflash_create_flash_config_tegra186() {
+tegraflash_create_flash_config:tegra186() {
     local destdir="$1"
     local lnxfile="$2"
 
@@ -237,7 +237,7 @@ tegraflash_create_flash_config_tegra186() {
         > $destdir/flash.xml.in
 }
 
-tegraflash_create_flash_config_tegra194() {
+tegraflash_create_flash_config:tegra194() {
     local destdir="$1"
     local lnxfile="$2"
     local cbotag
@@ -273,7 +273,7 @@ tegraflash_create_flash_config_tegra194() {
 }
 
 BOOTFILES = ""
-BOOTFILES_tegra210 = "\
+BOOTFILES:tegra210 = "\
     eks.img \
     nvtboot_recovery.bin \
     nvtboot.bin \
@@ -282,7 +282,7 @@ BOOTFILES_tegra210 = "\
     rp4.blob \
     sc7entry-firmware.bin \
 "
-BOOTFILES_tegra186 = "\
+BOOTFILES:tegra186 = "\
     adsp-fw.bin \
     bpmp.bin \
     camera-rtcpu-sce.img \
@@ -304,7 +304,7 @@ BOOTFILES_tegra186 = "\
     emmc.cfg \
 "
 
-BOOTFILES_tegra194 = "\
+BOOTFILES:tegra194 = "\
     adsp-fw.bin \
     bpmp_t194.bin \
     camera-rtcpu-rce.img \
@@ -329,7 +329,7 @@ create_tegraflash_pkg() {
     :
 }
 
-create_tegraflash_pkg_tegra210() {
+create_tegraflash_pkg:tegra210() {
     PATH="${STAGING_BINDIR_NATIVE}/tegra210-flash:${PATH}"
     rm -rf "${WORKDIR}/tegraflash"
     mkdir -p "${WORKDIR}/tegraflash"
@@ -403,7 +403,7 @@ END
     cd $oldwd
 }
 
-create_tegraflash_pkg_tegra186() {
+create_tegraflash_pkg:tegra186() {
     local f
     PATH="${STAGING_BINDIR_NATIVE}/tegra186-flash:${PATH}"
     rm -rf "${WORKDIR}/tegraflash"
@@ -481,7 +481,7 @@ END
     cd $oldwd
 }
 
-create_tegraflash_pkg_tegra194() {
+create_tegraflash_pkg:tegra194() {
     local f
     PATH="${STAGING_BINDIR_NATIVE}/tegra186-flash:${PATH}"
     rm -rf "${WORKDIR}/tegraflash"
@@ -616,7 +616,7 @@ EOF
     chmod +x $outfile
 }
 
-IMAGE_CMD_tegraflash = "create_tegraflash_pkg"
+IMAGE_CMD:tegraflash = "create_tegraflash_pkg"
 TEGRAFLASH_PKG_DEPENDS = "${@'zip-native:do_populate_sysroot' if d.getVar('TEGRAFLASH_PACKAGE_FORMAT') == 'zip' else '${CONVERSION_DEPENDS_gz}:do_populate_sysroot'}"
 do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populate_sysroot coreutils-native:do_populate_sysroot \
                                  ${SOC_FAMILY}-flashtools-native:do_populate_sysroot gptfdisk-native:do_populate_sysroot \

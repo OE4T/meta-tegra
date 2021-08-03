@@ -90,5 +90,5 @@ do_install() {
     install -m 0644 ${B}/extlinux.conf ${D}/boot/extlinux/
 }
 
-FILES_${PN} = "/boot"
+FILES:${PN} = "/boot"
 PACKAGE_ARCH = "${MACHINE_ARCH}"

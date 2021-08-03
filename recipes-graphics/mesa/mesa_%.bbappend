@@ -1,22 +1,22 @@
-EXTRA_OEMESON_append_tegra = " -Dglvnd=true"
-DEPENDS_append_tegra = " libglvnd"
-PROVIDES_tegra = "virtual/mesa virtual/libgbm"
+EXTRA_OEMESON:append:tegra = " -Dglvnd=true"
+DEPENDS:append:tegra = " libglvnd"
+PROVIDES:tegra = "virtual/mesa virtual/libgbm"
 
-# Workaround for the do_install_append() present in the OE-Core recipe
-do_install_prepend_tegra() {
+# Workaround for the do_install:append() present in the OE-Core recipe
+do_install::prepend:tegra() {
     install -d ${D}${includedir}/EGL
     touch ${D}${includedir}/EGL/eglplatform.h
 }
 
-do_install_append_tegra() {
+do_install:append:tegra() {
     rm -rf ${D}${includedir}/EGL
 }
 
-PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
-FILES_libegl-mesa_append_tegra = " ${libdir}/libEGL_mesa.so.* ${datadir}/glvnd"
-FILES_libegl-mesa-dev_append_tegra = " ${libdir}/libEGL_mesa.so"
-FILES_libgl-mesa_append_tegra = " ${libdir}/libGLX_mesa.so.*"
-FILES_libgl-mesa-dev_append_tegra = " ${libdir}/libGLX_mesa.so"
+PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"
+FILES:libegl-mesa:append:tegra = " ${libdir}/libEGL_mesa.so.* ${datadir}/glvnd"
+FILES:libegl-mesa-dev:append:tegra = " ${libdir}/libEGL_mesa.so"
+FILES:libgl-mesa:append:tegra = " ${libdir}/libGLX_mesa.so.*"
+FILES:libgl-mesa-dev:append:tegra = " ${libdir}/libGLX_mesa.so"
 
 python __anonymous() {
     if "tegra" not in d.getVar('OVERRIDES').split(':'):
@@ -30,13 +30,13 @@ python __anonymous() {
         if not p[0] in pkgconfig:
             continue
         fullp = p[1] + "-mesa"
-        d.delVar("RREPLACES_" + fullp)
-        d.delVar("RPROVIDES_" + fullp)
-        d.delVar("RCONFLICTS_" + fullp)
+        d.delVar("RREPLACES:" + fullp)
+        d.delVar("RPROVIDES:" + fullp)
+        d.delVar("RCONFLICTS:" + fullp)
 
         # For -dev, the first element is both the Debian and original name
         fullp += "-dev"
-        d.delVar("RREPLACES_" + fullp)
-        d.delVar("RPROVIDES_" + fullp)
-        d.delVar("RCONFLICTS_" + fullp)
+        d.delVar("RREPLACES:" + fullp)
+        d.delVar("RPROVIDES:" + fullp)
+        d.delVar("RCONFLICTS:" + fullp)
 }
