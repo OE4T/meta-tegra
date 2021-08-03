@@ -15,9 +15,9 @@ inherit pkgconfig container-runtime-csv
 
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
-CFLAGS_append = " -fpic"
+CFLAGS:append = " -fpic"
 
 do_install() {
 	oe_runmake install DESTDIR="${D}"
 }
-FILES_${PN} = "${libdir}/gstreamer-1.0"
+FILES:${PN} = "${libdir}/gstreamer-1.0"

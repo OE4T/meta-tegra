@@ -34,7 +34,7 @@ BMP_SYMLINK = "bootlogo-${MACHINE}.blob"
 include bootlogo.inc
 
 FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
-FLASHTOOLS_DIR_tegra194 = "tegra186-flash"
+FLASHTOOLS_DIR:tegra194 = "tegra186-flash"
 
 do_compile() {
 

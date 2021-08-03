@@ -97,7 +97,7 @@ JAVA = ""
 
 LTO = "--enable-lto"
 SSP ?= "--disable-libssp"
-SSP_mingw32 = "--enable-libssp"
+SSP:mingw32 = "--enable-libssp"
 
 EXTRA_OECONF_BASE = "\
     ${LTO} \

@@ -25,6 +25,6 @@ PACKAGECONFIG[machine-id] = "CONFIG_ENABLE_MACHINE_ID=1,,"
 
 TARGET_SOC = "t186"
 COMPATIBLE_MACHINE = "(tegra186)"
-PROVIDES_append = "${@' virtual/bootloader' if (d.getVar('PREFERRED_PROVIDER_virtual/bootloader') or '').startswith('cboot') else ''}"
+PROVIDES:append = "${@' virtual/bootloader' if (d.getVar('PREFERRED_PROVIDER_virtual/bootloader') or '').startswith('cboot') else ''}"
 
 require cboot-l4t.inc

@@ -13,7 +13,7 @@ SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
 CBOOTOPTION_FILE ?= ""
 ODMFUSE_FILE ?= ""
 
-BOOTBINS_tegra186 = "\
+BOOTBINS:tegra186 = "\
     adsp-fw.bin \
     bpmp.bin \
     camera-rtcpu-sce.img \
@@ -28,7 +28,7 @@ BOOTBINS_tegra186 = "\
     preboot_d15_prod_cr.bin \
     spe.bin \
 "
-BOOTBINS_tegra194 = "\
+BOOTBINS:tegra194 = "\
     adsp-fw.bin \
     bpmp_t194.bin \
     camera-rtcpu-rce.img \
@@ -47,7 +47,7 @@ BOOTBINS_tegra194 = "\
     warmboot_t194_prod.bin \
 "
 
-BOOTBINS_tegra210 = "\
+BOOTBINS:tegra210 = "\
     eks.img \
     nvtboot_cpu.bin \
     nvtboot_recovery.bin \
@@ -56,13 +56,13 @@ BOOTBINS_tegra210 = "\
     tos-mon-only.img \
 "
 
-BOOTBINS_MACHINE_SPECIFIC_tegra186 = "\
+BOOTBINS_MACHINE_SPECIFIC:tegra186 = "\
     nvtboot.bin \
     warmboot.bin \
 "
-BOOTBINS_MACHINE_SPECIFIC_tegra194 = ""
+BOOTBINS_MACHINE_SPECIFIC:tegra194 = ""
 
-BOOTBINS_MACHINE_SPECIFIC_tegra210 = "\
+BOOTBINS_MACHINE_SPECIFIC:tegra210 = "\
     nvtboot.bin \
     sc7entry-firmware.bin \
     warmboot.bin \
@@ -71,12 +71,12 @@ do_compile() {
     :
 }
 
-do_compile_append_tegra186() {
+do_compile:append:tegra186() {
     ${STAGING_BINDIR_NATIVE}/tegra186-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
 }
 
 
-do_compile_append_tegra194() {
+do_compile:append:tegra194() {
     ${STAGING_BINDIR_NATIVE}/tegra186-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
     if [ -n "${CBOOTOPTION_FILE}" ]; then
         dtc -I dts -O dtb -o ${B}/cbo.dtb ${CBOOTOPTION_FILE}
@@ -97,7 +97,7 @@ do_install() {
     [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
 }
 
-do_install_append_tegra186() {
+do_install:append:tegra186() {
     install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra186* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra186*bpmp*dtb ${D}${datadir}/tegraflash/
@@ -106,12 +106,12 @@ do_install_append_tegra186() {
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/emmc.cfg ${D}${datadir}/tegraflash/
 }
 
-do_install_append_jetson-xavier-nx-devkit-tx2-nx() {
+do_install:append:jetson-xavier-nx-devkit-tx2-nx() {
     # XXX only 16GiB eMMC on tx2-nx
     sed -i -e's,num_sectors="61071360",num_sectors="30777344",' ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
 }
 
-do_install_append_tegra194() {
+do_install:append:tegra194() {
     install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
     install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}-override.cfg
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
@@ -122,11 +122,11 @@ do_install_append_tegra194() {
     fi
 }
 
-do_install_append_tegra210() {
+do_install:append:tegra210() {
     [ -z "${NVIDIA_BOARD_CFG}" ] || install -m 0644 ${BOARD_CFG} ${D}${datadir}/tegraflash/board_config_${MACHINE}.xml
 }
 
 PACKAGES = "${PN}-dev"
-FILES_${PN}-dev = "${datadir}"
-RDEPENDS_${PN}-dev = ""
+FILES:${PN}-dev = "${datadir}"
+RDEPENDS:${PN}-dev = ""
 PACKAGE_ARCH = "${MACHINE_ARCH}"

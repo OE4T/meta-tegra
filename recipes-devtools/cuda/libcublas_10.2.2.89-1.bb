@@ -6,13 +6,13 @@ require cuda-shared-binaries-${CUDA_FULL_VERSION}.inc
 L4T_DEB_GROUP = "cublas"
 SRC_COMMON_DEBS = "libcublas10_10.2.2.89-1_${CUDA_DEB_PKGARCH}.deb;name=main;subdir=${BP} \
                    libcublas-dev_10.2.2.89-1_${CUDA_DEB_PKGARCH}.deb;name=dev;subdir=${BP}"
-SRC_URI_append = " ${L4T_DEB_FEED_BASE}/common/pool/main/c/cuda/cuda-license-${CUDA_VERSION_DASHED}_10.2.89-1_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
+SRC_URI:append = " ${L4T_DEB_FEED_BASE}/common/pool/main/c/cuda/cuda-license-${CUDA_VERSION_DASHED}_10.2.89-1_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
 MAINSUM = "d0299b139a163136432dfb2c028769944b6c5636ad9238614860c196a1c91aea"
-MAINSUM_x86-64 = "e28a243120d72ddb4dd75dfa3894330394318df87ebe5f1d4611b0ca0e8ade2b"
+MAINSUM:x86-64 = "e28a243120d72ddb4dd75dfa3894330394318df87ebe5f1d4611b0ca0e8ade2b"
 DEVSUM = "5fa7e3e8fe266fdea7e91778610b7e8d3d85d8950875a4915ce3626c9e564365"
-DEVSUM_x86-64 = "2d36e90ca3c1835577bdea35db5980058c3eb35b24961c8764cdd2fa607cad7d"
+DEVSUM:x86-64 = "2d36e90ca3c1835577bdea35db5980058c3eb35b24961c8764cdd2fa607cad7d"
 
-do_compile_append() {
+do_compile:append() {
     if [ -d ${B}/usr/${baselib}/${HOST_ARCH}-linux-gnu ]; then
         for f in ${B}/usr/${baselib}/${HOST_ARCH}-linux-gnu/lib*; do
             [ -e "$f" ] || continue
@@ -25,7 +25,7 @@ do_compile_append() {
     ln -sf cublas-10.pc ${B}/usr/${baselib}/pkgconfig/cublas-10.2.pc
 }
 
-do_install_append() {
+do_install:append() {
     rm -rf ${D}${prefix}/local
 }
 

@@ -25,8 +25,8 @@ AS[unexport] = "1"
 LD[unexport] = "1"
 
 TARGET_SOC = "t186"
-TARGET_SOC_tegra194 = "t194"
-PATH_prepend = "${B}/bin-${BUILD_ARCH}:${STAGING_DATADIR_NATIVE}/gcc-linaro-baremetal-arm/bin:"
+TARGET_SOC:tegra194 = "t194"
+PATH:prepend = "${B}/bin-${BUILD_ARCH}:${STAGING_DATADIR_NATIVE}/gcc-linaro-baremetal-arm/bin:"
 
 make_tc_wrappers() {
     tgtdir="$1"
@@ -64,8 +64,8 @@ VERSION_DEFS ?= "VERSION_MAJOR=${@extract_version(0, d)} VERSION_MINOR=${@extrac
 BUILDTIMESTAMP ?= "${@generate_build_timestamp(d)}"
 
 EXTRA_OEMAKE = 'PROJECT=t186 TARGET=t186 BUILDROOT=${B} \
-                TOOLCHAIN_PREFIX="${TARGET_PREFIX}" ARCH_arm64_TOOLCHAIN_PREFIX="${TARGET_PREFIX}" \
-		ARCH_arm_TOOLCHAIN_PREFIX="arm-eabi-" \
+                TOOLCHAIN_PREFIX="${TARGET_PREFIX}" ARCH:arm64_TOOLCHAIN_PREFIX="${TARGET_PREFIX}" \
+		ARCH:arm_TOOLCHAIN_PREFIX="arm-eabi-" \
 	        DEBUG=0 DEBUG_LVL=0 V=0 DEFAULT_OTE_APP_DEBUGLEVEL=1 NOECHO=@ \
 		TRUSTY_VARIANT=l4t-public TRUSTY_MULTI_GUEST_CONFIGURATION= \
 		TARGET_SOC=${TARGET_SOC} ${VERSION_DEFS} ${BUILDTIMESTAMP}'
@@ -79,6 +79,6 @@ do_install() {
     install -m 0644 ${B}/build-t186/lk.bin ${D}${datadir}/trusted-os/
 }
 
-ALLOW_EMPTY_${PN} = "1"
-FILES_${PN}-dev = "${datadir}/trusted-os"
+ALLOW_EMPTY:${PN} = "1"
+FILES:${PN}-dev = "${datadir}/trusted-os"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"

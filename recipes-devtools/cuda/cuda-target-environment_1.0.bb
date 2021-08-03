@@ -27,6 +27,6 @@ do_install() {
     install -m 0644 ${B}/cuda_target.sh ${D}/environment-setup.d/
 }
 
-FILES_${PN} = "/environment-setup.d"
-RDEPENDS_${PN} = "tegra-cmake-overrides"
-PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
+FILES:${PN} = "/environment-setup.d"
+RDEPENDS:${PN} = "tegra-cmake-overrides"
+PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"

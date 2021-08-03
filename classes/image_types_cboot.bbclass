@@ -13,10 +13,10 @@ oe_cbootimg_common() {
         --output "$outfile"
     [ -n "$2" ] || ln -sf $1.cboot ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.cboot
 }
-oe_cbootimg_tegra186() {
+oe_cbootimg:tegra186() {
     oe_cbootimg_common "$@"
 }
-oe_cbootimg_tegra194() {
+oe_cbootimg:tegra194() {
     oe_cbootimg_common "$@"
 }
 

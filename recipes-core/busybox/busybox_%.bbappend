@@ -1,4 +1,4 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
-SRC_URI_append_tegra = " file://cksum.cfg"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
+SRC_URI:append:tegra = " file://cksum.cfg"
 
-PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
+PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"

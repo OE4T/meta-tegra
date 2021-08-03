@@ -23,6 +23,6 @@ inherit systemd update-rc.d
 
 INITSCRIPT_NAME = "nvphs"
 INITSCRIPT_PARAMS = "defaults"
-SYSTEMD_SERVICE_${PN} = "nvphs.service"
+SYSTEMD_SERVICE:${PN} = "nvphs.service"
 
-RDEPENDS_${PN} = "tegra-nvphs-base"
+RDEPENDS:${PN} = "tegra-nvphs-base"

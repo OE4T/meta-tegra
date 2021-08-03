@@ -36,9 +36,9 @@ do_install() {
     install -m 0644 ${DEPLOY_DIR_IMAGE}/${BUPFILE} ${D}/opt/ota_package/bl_update_payload
 }
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 
 do_install[depends] += "${@bup_dependency(d)}"
-FILES_${PN} = "/opt/ota_package/bl_update_payload"
-RDEPENDS_${PN} += "tegra-redundant-boot"
+FILES:${PN} = "/opt/ota_package/bl_update_payload"
+RDEPENDS:${PN} += "tegra-redundant-boot"
 PACKAGE_ARCH = "${MACHINE_ARCH}"

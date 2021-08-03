@@ -23,5 +23,5 @@ inherit systemd update-rc.d
 
 INITSCRIPT_NAME = "nvargus-daemon"
 INITSCRIPT_PARAMS = "defaults"
-SYSTEMD_SERVICE_${PN} = "nvargus-daemon.service"
-RDEPENDS_${PN} = "tegra-libraries-argus-daemon-base"
+SYSTEMD_SERVICE:${PN} = "nvargus-daemon.service"
+RDEPENDS:${PN} = "tegra-libraries-argus-daemon-base"

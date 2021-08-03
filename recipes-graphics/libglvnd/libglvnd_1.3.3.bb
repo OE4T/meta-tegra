@@ -22,7 +22,7 @@ inherit meson pkgconfig features_check python3native
 
 S = "${WORKDIR}/git"
 
-PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
+PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"
 
 PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
@@ -31,7 +31,7 @@ PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)} 
 PACKAGECONFIG[x11] = "-Dx11=enabled -Dglx=enabled,-Dx11=disabled -Dglx=disabled,libx11 libxext xorgproto"
 PACKAGECONFIG[wayland] = "-Dwayland=enabled,-Dwayland=disabled,wayland"
 
-do_install_append() {
+do_install:append() {
 
     ## no-X11 hack included from mesa:
     #because we cannot rely on the fact that all apps will use pkgconfig,
@@ -43,12 +43,12 @@ do_install_append() {
     fi
 }
 
-RPROVIDES_${PN} += "libegl libgl libgles1 libgles2"
-RPROVIDES_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
-RCONFLICTS_${PN} = "libegl libgl ligbles1 libgles2"
-RCONFLICTS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
-RREPLACES_${PN} = "libegl libgl libgles1 ligbles2"
+RPROVIDES:${PN} += "libegl libgl libgles1 libgles2"
+RPROVIDES:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
+RCONFLICTS:${PN} = "libegl libgl ligbles1 libgles2"
+RCONFLICTS:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
+RREPLACES:${PN} = "libegl libgl libgles1 ligbles2"
 RREPLACESS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
 
-RDEPENDS_${PN}_append_tegra = " tegra-libraries"
-RRECOMMENDS_${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'egl-wayland', '', d)}"
+RDEPENDS:${PN}:append:tegra = " tegra-libraries"
+RRECOMMENDS:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'egl-wayland', '', d)}"

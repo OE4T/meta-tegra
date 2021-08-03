@@ -1,13 +1,13 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 
-SRC_URI_append_tegra = "\
+SRC_URI:append:tegra = "\
     file://weston-tegra-overrides.conf \
     file://xwayland-tegra-start.sh \
 "
 
 XWAYLAND_SUPPORT = "${@bb.utils.contains('DISTRO_FEATURES', 'x11', '', '#', d)}"
 
-do_install_append_tegra() {
+do_install:append:tegra() {
     install -d ${D}${sysconfdir}/systemd/system/weston.service.d
     install -m 0644 ${WORKDIR}/weston-tegra-overrides.conf ${D}${sysconfdir}/systemd/system/weston.service.d/
     install -d ${D}${bindir}
@@ -17,4 +17,4 @@ do_install_append_tegra() {
     sed -i -e's,@XWAYLAND@,${XWAYLAND_SUPPORT},' ${D}${sysconfdir}/xdg/weston/weston.ini
 }
 
-PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
+PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"

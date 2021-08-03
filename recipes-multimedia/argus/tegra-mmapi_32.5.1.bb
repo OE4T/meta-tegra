@@ -26,4 +26,4 @@ do_install() {
 }
 
 PACKAGES = "${PN}-dev ${PN}"
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"

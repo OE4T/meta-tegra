@@ -1,5 +1,5 @@
-OPENGL_PKGCONFIGS_remove_tegra = "glamor"
-PACKAGECONFIG_remove_tegra = "dri2"
-PACKAGECONFIG_append_tegra = " xinerama"
+OPENGL_PKGCONFIGS:remove:tegra = "glamor"
+PACKAGECONFIG:remove:tegra = "dri2"
+PACKAGECONFIG:append:tegra = " xinerama"
 
-PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
+PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"

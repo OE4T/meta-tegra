@@ -41,16 +41,16 @@ delete_pkg_m4_file() {
 
 do_configure[prefuncs] += " delete_pkg_m4_file"
 
-do_configure_append() {
+do_configure:append() {
     rm -f ${S}/po/POTFILES.in
     echo "" > ${S}/po/POTFILES.in
 }
 
-do_compile_prepend() {
+do_compile:prepend() {
     export GIR_EXTRA_LIBS_PATH="${B}/gst-libs/gst/egl/.libs"
 }
 
-do_install_append() {
+do_install:append() {
     sed -i -e's,${STAGING_INCDIR},${includedir},g' ${D}${libdir}/pkgconfig/gstreamer-egl-1.0.pc
 }
 
@@ -63,10 +63,10 @@ python add_container_csv_dependency() {
     if 'virtualization' not in features:
         return
     for pkg in ['libgstegl-1.0', 'gstreamer1.0-plugins-nveglgles-nveglglessink']:
-        if d.getVar('RDEPENDS_%s' % pkg):
-            d.appendVar('RDEPENDS_%s' % pkg, ' ${CONTAINER_CSV_PKGNAME}')
+        if d.getVar('RDEPENDS:%s' % pkg):
+            d.appendVar('RDEPENDS:%s' % pkg, ' ${CONTAINER_CSV_PKGNAME}')
         else:
-            d.setVar('RDEPENDS_%s' % pkg, '${CONTAINER_CSV_PKGNAME}')
+            d.setVar('RDEPENDS:%s' % pkg, '${CONTAINER_CSV_PKGNAME}')
 }
 
-PACKAGESPLITFUNCS_append = " add_container_csv_dependency "
+PACKAGESPLITFUNCS:append = " add_container_csv_dependency "

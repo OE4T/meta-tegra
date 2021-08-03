@@ -49,10 +49,10 @@ do_install() {
 }
 
 PACKAGES =+ "nvgstcapture nvgstplayer"
-FILES_nvgstplayer = "${bindir}/nvgstplayer-1.0"
-FILES_nvgstcapture = "${bindir}/nvgstcapture-1.0"
-ALLOW_EMPTY_nvgstplayer = "1"
-ALLOW_EMPTY_${PN} = "1"
-RDEPENDS_${PN} = "nvgstcapture nvgstplayer"
-RRECOMMENDS_nvgstcapture = "gstreamer1.0-plugins-nvarguscamerasrc gstreamer1.0-plugins-nvv4l2camerasrc gstreamer1.0-plugins-good-video4linux2 gstreamer1.0-plugins-tegra"
-RRECOMMENDS_nvgstplayer = "gstreamer1.0-plugins-nveglgles gstreamer1.0-plugins-nvvideo4linux2 gstreamer1.0-plugins-nvvideosinks gstreamer1.0-plugins-nvjpeg gstreamer1.0-plugins-tegra"
+FILES:nvgstplayer = "${bindir}/nvgstplayer-1.0"
+FILES:nvgstcapture = "${bindir}/nvgstcapture-1.0"
+ALLOW_EMPTY:nvgstplayer = "1"
+ALLOW_EMPTY:${PN} = "1"
+RDEPENDS:${PN} = "nvgstcapture nvgstplayer"
+RRECOMMENDS:nvgstcapture = "gstreamer1.0-plugins-nvarguscamerasrc gstreamer1.0-plugins-nvv4l2camerasrc gstreamer1.0-plugins-good-video4linux2 gstreamer1.0-plugins-tegra"
+RRECOMMENDS:nvgstplayer = "gstreamer1.0-plugins-nveglgles gstreamer1.0-plugins-nvvideo4linux2 gstreamer1.0-plugins-nvvideosinks gstreamer1.0-plugins-nvjpeg gstreamer1.0-plugins-tegra"

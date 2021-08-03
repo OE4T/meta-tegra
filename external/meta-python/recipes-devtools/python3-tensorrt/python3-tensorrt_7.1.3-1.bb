@@ -56,4 +56,4 @@ do_install() {
     distutils3_do_install
 }
 
-RDEPENDS_${PN} = "python3-ctypes python3-numpy"
+RDEPENDS:${PN} = "python3-ctypes python3-numpy"

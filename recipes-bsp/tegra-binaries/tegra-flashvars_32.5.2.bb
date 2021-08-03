@@ -18,5 +18,5 @@ do_install() {
     install -m 0644 ${S}/flashvars ${D}${datadir}/tegraflash/
 }
 
-FILES_${PN} = "${datadir}/tegraflash"
+FILES:${PN} = "${datadir}/tegraflash"
 PACKAGE_ARCH = "${MACHINE_ARCH}"

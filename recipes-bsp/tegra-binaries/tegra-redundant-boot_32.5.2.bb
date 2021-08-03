@@ -20,18 +20,18 @@ do_install() {
     install -m 0644 ${S}/nv_update_verifier.service ${D}${systemd_system_unitdir}
 }
 
-do_install_tegra210() {
+do_install:tegra210() {
     :
 }
 
 inherit update-rc.d systemd
 
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
 INITSCRIPT_PACKAGES = "${PN}"
-INITSCRIPT_PACKAGES_tegra210 = ""
+INITSCRIPT_PACKAGES:tegra210 = ""
 INITSCRIPT_NAME = "nv_update_verifier"
 SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_PACKAGES_tegra210 = ""
-SYSTEMD_SERVICE_${PN} = "nv_update_verifier.service"
-RDEPENDS_${PN} = "tegra-redundant-boot-base"
+SYSTEMD_PACKAGES:tegra210 = ""
+SYSTEMD_SERVICE:${PN} = "nv_update_verifier.service"
+RDEPENDS:${PN} = "tegra-redundant-boot-base"
 PACKAGE_ARCH = "${L4T_BSP_PKGARCH}"

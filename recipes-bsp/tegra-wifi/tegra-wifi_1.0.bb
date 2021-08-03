@@ -17,6 +17,6 @@ do_install() {
     fi
 }
 
-ALLOW_EMPTY_${PN} = "1"
-FILES_${PN} += "${nonarch_base_libdir}/udev/rules.d"
+ALLOW_EMPTY:${PN} = "1"
+FILES:${PN} += "${nonarch_base_libdir}/udev/rules.d"
 PACKAGE_ARCH = "${MACHINE_ARCH}"

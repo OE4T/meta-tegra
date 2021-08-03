@@ -13,4 +13,4 @@ do_install() {
 }
 
 PACKAGES = "${PN}"
-RDEPENDS_${PN} = "tegra-firmware-brcm"
+RDEPENDS:${PN} = "tegra-firmware-brcm"

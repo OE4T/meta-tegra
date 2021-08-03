@@ -10,7 +10,7 @@ require recipes-bsp/tegra-sources/tegra-sources-32.5.2.inc
 # Plugin needs a couple of header files that it does not include, but
 # they are present in the V4L2 plugin source package, so extract them
 # from there.
-unpack_tar_in_tar_append() {
+unpack_tar_in_tar:append() {
     tar -x -j -f ${SRC_ARCHIVE} Linux_for_Tegra/source/public/gst-nvvideo4linux2_src.tbz2 \
 	--to-command="tar -C ${S}/omx -x -j --no-same-owner -f- nvbufsurface.h nvbuf_utils.h"
 }
@@ -33,7 +33,7 @@ inherit autotools pkgconfig gettext container-runtime-csv
 
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
-do_configure_append() {
+do_configure:append() {
     touch ${S}/omx/gstnvivameta_api.h
 }
 
@@ -41,8 +41,8 @@ acpaths = "-I ${S}/common/m4 -I ${S}/m4"
 
 EXTRA_OECONF += "--disable-valgrind --with-omx-target=tegra"
 
-FILES_${PN} += "${libdir}/gstreamer-1.0/*.so"
-FILES_${PN}-dbg += "${libdir}/gstreamer-1.0/.debug"
-FILES_${PN}-dev += "${libdir}/gstreamer-1.0/*.la"
-FILES_${PN}-staticdev += "${libdir}/gstreamer-1.0/*.a"
-RDEPENDS_${PN} += "tegra-configs-omx-tegra gstreamer1.0-plugins-nveglgles-nveglglessink"
+FILES:${PN} += "${libdir}/gstreamer-1.0/*.so"
+FILES:${PN}-dbg += "${libdir}/gstreamer-1.0/.debug"
+FILES:${PN}-dev += "${libdir}/gstreamer-1.0/*.la"
+FILES:${PN}-staticdev += "${libdir}/gstreamer-1.0/*.a"
+RDEPENDS:${PN} += "tegra-configs-omx-tegra gstreamer1.0-plugins-nveglgles-nveglglessink"

@@ -6,7 +6,7 @@ SUMMARY = "Runtime libraries from GCC"
 # All gcc-runtime packages are now covered by the runtime exception.
 LICENSE = "GPL-3.0-with-GCC-exception"
 
-CXXFLAGS_remove = "-fvisibility-inlines-hidden"
+CXXFLAGS:remove = "-fvisibility-inlines-hidden"
 
 EXTRA_OECONF_PATHS = "\
     --with-gxx-include-dir=${includedir}/c++/${BINV} \
@@ -14,17 +14,17 @@ EXTRA_OECONF_PATHS = "\
     --with-build-sysroot=${STAGING_DIR_TARGET} \
 "
 
-EXTRA_OECONF_append_linuxstdbase = " --enable-clocale=gnu"
+EXTRA_OECONF:append:linuxstdbase = " --enable-clocale=gnu"
 
 RUNTIMELIBITM = "libitm"
-RUNTIMELIBITM_arc = ""
-RUNTIMELIBITM_mipsarch = ""
-RUNTIMELIBITM_nios2 = ""
-RUNTIMELIBITM_microblaze = ""
-RUNTIMELIBITM_riscv32 = ""
-RUNTIMELIBITM_riscv64 = ""
+RUNTIMELIBITM:arc = ""
+RUNTIMELIBITM:mipsarch = ""
+RUNTIMELIBITM:nios2 = ""
+RUNTIMELIBITM:microblaze = ""
+RUNTIMELIBITM:riscv32 = ""
+RUNTIMELIBITM:riscv64 = ""
 RUNTIMELIBSSP ?= ""
-RUNTIMELIBSSP_mingw32 ?= "libssp"
+RUNTIMELIBSSP:mingw32 ?= "libssp"
 
 RUNTIMETARGET = "${RUNTIMELIBSSP} libstdc++-v3 libgomp libatomic ${RUNTIMELIBITM} \
     ${@bb.utils.contains_any('FORTRAN', [',fortran',',f77'], 'libquadmath', '', d)} \
@@ -37,7 +37,7 @@ RUNTIMETARGET = "${RUNTIMELIBSSP} libstdc++-v3 libgomp libatomic ${RUNTIMELIBITM
 SLIB = "${TMPDIR}/work-shared/gcc-${PV}-${PR}/gcc-${PV}"
 SLIB_NEW = "/usr/src/debug/${PN}/${EXTENDPE}${PV}-${PR}"
 
-DEBUG_PREFIX_MAP_class-target = " \
+DEBUG_PREFIX_MAP:class-target = " \
    -fdebug-prefix-map=${WORKDIR}/recipe-sysroot= \
    -fdebug-prefix-map=${WORKDIR}/recipe-sysroot-native= \
    -fdebug-prefix-map=${SLIB}=${SLIB_NEW} \
@@ -91,7 +91,7 @@ do_install () {
 
 }
 
-do_install_append_class-target () {
+do_install:append:class-target () {
 	if [ "${TARGET_OS}" = "linux-gnuspe" ]; then
 		ln -s ${TARGET_SYS} ${D}${includedir}/c++/${BINV}/${TARGET_ARCH}${TARGET_VENDOR}-linux
 	fi
@@ -158,104 +158,104 @@ PACKAGES = "\
     libitm-staticdev \
 "
 # The base package doesn't exist, so we clear the recommends.
-RRECOMMENDS_${PN}-dbg = ""
+RRECOMMENDS:${PN}-dbg = ""
 
 # include python debugging scripts
-FILES_${PN}-dbg += "\
+FILES:${PN}-dbg += "\
     ${libdir}/libstdc++.so.*-gdb.py \
     ${datadir}/gcc-${BINV}/python/libstdcxx \
 "
 
-FILES_libg2c = "${target_libdir}/libg2c.so.*"
-SUMMARY_libg2c = "Companion runtime library for g77"
-FILES_libg2c-dev = "\
+FILES:libg2c = "${target_libdir}/libg2c.so.*"
+SUMMARY:libg2c = "Companion runtime library for g77"
+FILES:libg2c-dev = "\
     ${libdir}/libg2c.so \
     ${libdir}/libg2c.a \
     ${libdir}/libfrtbegin.a \
 "
-SUMMARY_libg2c-dev = "Companion runtime library for g77 - development files"
+SUMMARY:libg2c-dev = "Companion runtime library for g77 - development files"
 
-FILES_libstdc++ = "${libdir}/libstdc++.so.*"
-SUMMARY_libstdc++ = "GNU standard C++ library"
-FILES_libstdc++-dev = "\
+FILES:libstdc++ = "${libdir}/libstdc++.so.*"
+SUMMARY:libstdc++ = "GNU standard C++ library"
+FILES:libstdc++-dev = "\
     ${includedir}/c++/ \
     ${libdir}/libstdc++.so \
     ${libdir}/libstdc++*.la \
     ${libdir}/libsupc++.la \
 "
-SUMMARY_libstdc++-dev = "GNU standard C++ library - development files"
-FILES_libstdc++-staticdev = "\
+SUMMARY:libstdc++-dev = "GNU standard C++ library - development files"
+FILES:libstdc++-staticdev = "\
     ${libdir}/libstdc++*.a \
     ${libdir}/libsupc++.a \
 "
-SUMMARY_libstdc++-staticdev = "GNU standard C++ library - static development files"
+SUMMARY:libstdc++-staticdev = "GNU standard C++ library - static development files"
 
-FILES_libstdc++-precompile-dev = "${includedir}/c++/${TARGET_SYS}/bits/*.gch"
-SUMMARY_libstdc++-precompile-dev = "GNU standard C++ library - precompiled header files"
+FILES:libstdc++-precompile-dev = "${includedir}/c++/${TARGET_SYS}/bits/*.gch"
+SUMMARY:libstdc++-precompile-dev = "GNU standard C++ library - precompiled header files"
 
-FILES_libssp = "${libdir}/libssp.so.*"
-SUMMARY_libssp = "GNU stack smashing protection library"
-FILES_libssp-dev = "\
+FILES:libssp = "${libdir}/libssp.so.*"
+SUMMARY:libssp = "GNU stack smashing protection library"
+FILES:libssp-dev = "\
     ${libdir}/libssp*.so \
     ${libdir}/libssp*_nonshared.a \
     ${libdir}/libssp*.la \
     ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/ssp \
 "
-SUMMARY_libssp-dev = "GNU stack smashing protection library - development files"
-FILES_libssp-staticdev = "${libdir}/libssp*.a"
-SUMMARY_libssp-staticdev = "GNU stack smashing protection library - static development files"
+SUMMARY:libssp-dev = "GNU stack smashing protection library - development files"
+FILES:libssp-staticdev = "${libdir}/libssp*.a"
+SUMMARY:libssp-staticdev = "GNU stack smashing protection library - static development files"
 
-FILES_libquadmath = "${libdir}/libquadmath*.so.*"
-SUMMARY_libquadmath = "GNU quad-precision math library"
-FILES_libquadmath-dev = "\
+FILES:libquadmath = "${libdir}/libquadmath*.so.*"
+SUMMARY:libquadmath = "GNU quad-precision math library"
+FILES:libquadmath-dev = "\
     ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/quadmath* \
     ${libdir}/libquadmath*.so \
     ${libdir}/libquadmath.la \
 "
-SUMMARY_libquadmath-dev = "GNU quad-precision math library - development files"
-FILES_libquadmath-staticdev = "${libdir}/libquadmath.a"
-SUMMARY_libquadmath-staticdev = "GNU quad-precision math library - static development files"
+SUMMARY:libquadmath-dev = "GNU quad-precision math library - development files"
+FILES:libquadmath-staticdev = "${libdir}/libquadmath.a"
+SUMMARY:libquadmath-staticdev = "GNU quad-precision math library - static development files"
 
 # NOTE: mudflap has been removed as of gcc 4.9 and has been superseded by the address sanitiser
-FILES_libmudflap = "${libdir}/libmudflap*.so.*"
-SUMMARY_libmudflap = "Pointer debugging library for gcc"
-FILES_libmudflap-dev = "\
+FILES:libmudflap = "${libdir}/libmudflap*.so.*"
+SUMMARY:libmudflap = "Pointer debugging library for gcc"
+FILES:libmudflap-dev = "\
     ${libdir}/libmudflap*.so \
     ${libdir}/libmudflap.la \
 "
-SUMMARY_libmudflap-dev = "Pointer debugging library for gcc - development files"
-FILES_libmudflap-staticdev = "${libdir}/libmudflap.a"
-SUMMARY_libmudflap-staticdev = "Pointer debugging library for gcc - static development files"
+SUMMARY:libmudflap-dev = "Pointer debugging library for gcc - development files"
+FILES:libmudflap-staticdev = "${libdir}/libmudflap.a"
+SUMMARY:libmudflap-staticdev = "Pointer debugging library for gcc - static development files"
 
-FILES_libgomp = "${libdir}/libgomp*${SOLIBS}"
-SUMMARY_libgomp = "GNU OpenMP parallel programming library"
-FILES_libgomp-dev = "\
+FILES:libgomp = "${libdir}/libgomp*${SOLIBS}"
+SUMMARY:libgomp = "GNU OpenMP parallel programming library"
+FILES:libgomp-dev = "\
     ${libdir}/libgomp*${SOLIBSDEV} \
     ${libdir}/libgomp*.la \
     ${libdir}/libgomp.spec \
     ${libdir}/gcc/${TARGET_SYS}/${BINV}/include/omp.h \
 "
-SUMMARY_libgomp-dev = "GNU OpenMP parallel programming library - development files"
-FILES_libgomp-staticdev = "${libdir}/libgomp*.a"
-SUMMARY_libgomp-staticdev = "GNU OpenMP parallel programming library - static development files"
+SUMMARY:libgomp-dev = "GNU OpenMP parallel programming library - development files"
+FILES:libgomp-staticdev = "${libdir}/libgomp*.a"
+SUMMARY:libgomp-staticdev = "GNU OpenMP parallel programming library - static development files"
 
-FILES_libatomic = "${libdir}/libatomic.so.*"
-SUMMARY_libatomic = "GNU C++11 atomics support library"
-FILES_libatomic-dev = "\
+FILES:libatomic = "${libdir}/libatomic.so.*"
+SUMMARY:libatomic = "GNU C++11 atomics support library"
+FILES:libatomic-dev = "\
     ${libdir}/libatomic.so \
     ${libdir}/libatomic.la \
 "
-SUMMARY_libatomic-dev = "GNU C++11 atomics support library - development files"
-FILES_libatomic-staticdev = "${libdir}/libatomic.a"
-SUMMARY_libatomic-staticdev = "GNU C++11 atomics support library - static development files"
+SUMMARY:libatomic-dev = "GNU C++11 atomics support library - development files"
+FILES:libatomic-staticdev = "${libdir}/libatomic.a"
+SUMMARY:libatomic-staticdev = "GNU C++11 atomics support library - static development files"
 
-FILES_libitm = "${libdir}/libitm.so.*"
-SUMMARY_libitm = "GNU transactional memory support library"
-FILES_libitm-dev = "\
+FILES:libitm = "${libdir}/libitm.so.*"
+SUMMARY:libitm = "GNU transactional memory support library"
+FILES:libitm-dev = "\
     ${libdir}/libitm.so \
     ${libdir}/libitm.la \
     ${libdir}/libitm.spec \
 "
-SUMMARY_libitm-dev = "GNU transactional memory support library - development files"
-FILES_libitm-staticdev = "${libdir}/libitm.a"
-SUMMARY_libitm-staticdev = "GNU transactional memory support library - static development files"
+SUMMARY:libitm-dev = "GNU transactional memory support library - development files"
+FILES:libitm-staticdev = "${libdir}/libitm.a"
+SUMMARY:libitm-staticdev = "GNU transactional memory support library - static development files"

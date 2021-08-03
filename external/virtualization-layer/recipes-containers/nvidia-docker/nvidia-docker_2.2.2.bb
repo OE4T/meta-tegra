@@ -29,4 +29,4 @@ do_install() {
     install -m 644 ${S}/daemon.json ${D}/${sysconfdir}/docker
 }
 
-RDEPENDS_${PN} = "nvidia-container-runtime bash"
+RDEPENDS:${PN} = "nvidia-container-runtime bash"

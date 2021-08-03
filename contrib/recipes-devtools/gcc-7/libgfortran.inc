@@ -53,8 +53,8 @@ PACKAGES = "\
     libgfortran-dev \
     libgfortran-staticdev \
 "
-FILES_${PN} = "${libdir}/libgfortran.so.*"
-FILES_${PN}-dev = "\
+FILES:${PN} = "${libdir}/libgfortran.so.*"
+FILES:${PN}-dev = "\
     ${libdir}/libgfortran*.so \
     ${libdir}/libgfortran.spec \
     ${libdir}/libgfortran.la \
@@ -62,9 +62,9 @@ FILES_${PN}-dev = "\
     ${libdir}/gcc/${TARGET_SYS}/${BINV}/libcaf_single* \
     ${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude/ \
 "
-FILES_${PN}-staticdev = "${libdir}/libgfortran.a"
+FILES:${PN}-staticdev = "${libdir}/libgfortran.a"
 
-INSANE_SKIP_${MLPREFIX}libgfortran-dev = "staticdev"
+INSANE_SKIP:${MLPREFIX}libgfortran-dev = "staticdev"
 
 do_package_write_ipk[depends] += "virtual/${MLPREFIX}libc:do_packagedata"
 do_package_write_deb[depends] += "virtual/${MLPREFIX}libc:do_packagedata"

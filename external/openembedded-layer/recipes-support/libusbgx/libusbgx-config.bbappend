@@ -1,12 +1,12 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 
-SRC_URI_append_tegra = " \
+SRC_URI:append:tegra = " \
     file://l4t.schema.in \
     file://usbgx-overrides.conf \
     file://l4t-gadget-config-setup.sh \
 "
 
-do_install_append_tegra() {
+do_install:append:tegra() {
     install -d ${D}${datadir}/usbgx
     install -m 0644 ${WORKDIR}/l4t.schema.in ${D}${datadir}/usbgx/
     install -d ${D}${sysconfdir}/usbgx
@@ -18,5 +18,5 @@ do_install_append_tegra() {
     sed -i -e's,^IMPORT_SCHEMAS=.*,IMPORT_SCHEMAS="l4t",' ${D}${sysconfdir}/default/usbgx
 }
 
-FILES_${PN} += "${datadir}/usbgx"
-PACKAGE_ARCH_tegra = "${MACHINE_ARCH}"
+FILES:${PN} += "${datadir}/usbgx"
+PACKAGE_ARCH:tegra = "${MACHINE_ARCH}"

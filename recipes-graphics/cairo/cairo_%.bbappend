@@ -1,3 +1,3 @@
-PACKAGECONFIG_append_tegra = " egl glesv2"
-PACKAGECONFIG_remove_tegra = "opengl"
-PACKAGE_ARCH_tegra = "${TEGRA_PKGARCH}"
+PACKAGECONFIG:append:tegra = " egl glesv2"
+PACKAGECONFIG:remove:tegra = "opengl"
+PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"

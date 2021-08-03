@@ -16,12 +16,12 @@ S = "${WORKDIR}/git"
 
 inherit meson pkgconfig
 
-do_install_append() {
+do_install:append() {
     install -d ${D}${datadir}/egl/egl_external_platform.d
     install -m 0644 ${WORKDIR}/nvidia_wayland.json ${D}${datadir}/egl/egl_external_platform.d/
 }
 
-FILES_${PN} += "${datadir}/egl"
-FILES_${PN}-dev += "${datadir}/wayland-eglstream"
+FILES:${PN} += "${datadir}/egl"
+FILES:${PN}-dev += "${datadir}/wayland-eglstream"
 
 

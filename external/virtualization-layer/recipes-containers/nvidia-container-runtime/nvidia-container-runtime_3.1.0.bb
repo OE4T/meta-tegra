@@ -37,13 +37,13 @@ do_compile() {
     cd ${B}
 }
 
-do_install_append_tegra() {
+do_install:append:tegra() {
     install -d -m 755 ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
     install -m 0644 ${WORKDIR}/l4t.csv ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/l4t.csv
 }
 
-RDEPENDS_${PN} = "\
+RDEPENDS:${PN} = "\
     nvidia-container-toolkit \
     docker-ce \
 "
-RDEPENDS_${PN}-dev += "bash make"
+RDEPENDS:${PN}-dev += "bash make"

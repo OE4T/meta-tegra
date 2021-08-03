@@ -5,7 +5,7 @@ SECTION = "multimedia"
 
 DEPENDS = "gstreamer1.0 glib-2.0-native"
 
-SRC_URI_append = " file://gtk-doc-tweaks.patch"
+SRC_URI:append = " file://gtk-doc-tweaks.patch"
 
 inherit autotools pkgconfig upstream-version-is-even gtk-doc
 

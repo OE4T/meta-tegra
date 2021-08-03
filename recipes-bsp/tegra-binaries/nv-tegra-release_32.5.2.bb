@@ -19,5 +19,5 @@ do_install() {
     install -m 0644 ${B}/nv_tegra_release ${D}${datadir}/nv_tegra
 }
 
-FILES_${PN} = "${sysconfdir}"
-FILES_${PN}-dev = "${datadir}/nv_tegra"
+FILES:${PN} = "${sysconfdir}"
+FILES:${PN}-dev = "${datadir}/nv_tegra"

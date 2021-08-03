@@ -9,8 +9,8 @@ inherit l4t_deb_pkgfeed container-runtime-csv
 HOMEPAGE = "https://developer.nvidia.com/embedded/visionworks"
 
 SRC_COMMON_DEBS = "\
-    libvisionworks-sfm_${PV}_arm64.deb;subdir=${BPN};name=lib \
-    libvisionworks-sfm-dev_${PV}_arm64.deb;subdir=${BPN};name=dev \
+    libvisionworks-sfm_${PV}:arm64.deb;subdir=${BPN};name=lib \
+    libvisionworks-sfm-dev_${PV}:arm64.deb;subdir=${BPN};name=dev \
 "
 
 SRC_URI[lib.sha256sum] = "f0aa8309f87791c8766b5ac86d4f218692d91479d4109b90081579b0e635e9d3"
@@ -39,8 +39,8 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
 PACKAGES += "${PN}-samples"
-FILES_${PN}-dev += "${datadir}/visionworks-sfm/cmake"
-FILES_${PN}-doc += "${datadir}/visionworks-sfm/docs"
-FILES_${PN}-samples += "${datadir}/visionworks-sfm/sources"
-RDEPENDS_${PN} = "libstdc++"
+FILES:${PN}-dev += "${datadir}/visionworks-sfm/cmake"
+FILES:${PN}-doc += "${datadir}/visionworks-sfm/docs"
+FILES:${PN}-samples += "${datadir}/visionworks-sfm/sources"
+RDEPENDS:${PN} = "libstdc++"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"

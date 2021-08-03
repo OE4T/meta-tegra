@@ -7,12 +7,12 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 inherit l4t_bsp
 require recipes-kernel/linux/linux-yocto.inc
 
-DEPENDS_remove = "kern-tools-native"
-DEPENDS_append = " kern-tools-tegra-native"
+DEPENDS:remove = "kern-tools-native"
+DEPENDS:append = " kern-tools-tegra-native"
 
 LINUX_VERSION ?= "4.9.201"
 PV = "${LINUX_VERSION}+git${SRCPV}"
-FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
 LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[:2])}"
 SCMVERSION ??= "y"
@@ -27,7 +27,7 @@ SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
            ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
 "
 
-PATH_prepend = "${STAGING_BINDIR_NATIVE}/kern-tools-tegra:"
+PATH:prepend = "${STAGING_BINDIR_NATIVE}/kern-tools-tegra:"
 
 KBUILD_DEFCONFIG = "tegra_defconfig"
 KCONFIG_MODE = "--alldefconfig"
@@ -40,7 +40,7 @@ set_scmversion() {
 }
 do_kernel_checkout[postfuncs] += "set_scmversion"
 
-python do_kernel_configcheck_prepend() {
+python do_kernel_configcheck:prepend() {
     os.environ['KERNEL_OVERLAYS'] = d.expand("${S}/nvidia ${S}/nvidia/nvgpu")
 }
 
@@ -79,21 +79,21 @@ bootimg_from_bundled_initramfs() {
         done
     fi
 }
-do_deploy_append_tegra186() {
+do_deploy:append:tegra186() {
     bootimg_from_bundled_initramfs
 }
-do_deploy_append_tegra194() {
+do_deploy:append:tegra194() {
     bootimg_from_bundled_initramfs
 }
 
 EXTRADEPLOYDEPS = ""
-EXTRADEPLOYDEPS_tegra186 = "tegra186-flashtools-native:do_populate_sysroot"
-EXTRADEPLOYDEPS_tegra194 = "tegra186-flashtools-native:do_populate_sysroot"
+EXTRADEPLOYDEPS:tegra186 = "tegra186-flashtools-native:do_populate_sysroot"
+EXTRADEPLOYDEPS:tegra194 = "tegra186-flashtools-native:do_populate_sysroot"
 do_deploy[depends] += "${EXTRADEPLOYDEPS}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-RDEPENDS_${KERNEL_PACKAGE_NAME}-base = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '${KERNEL_PACKAGE_NAME}-image'}"
+RDEPENDS:${KERNEL_PACKAGE_NAME}-base = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '${KERNEL_PACKAGE_NAME}-image'}"
 
 # kernel.bbclass automatically adds a dependency on the intramfs image
 # even if INITRAMFS_IMAGE_BUNDLE is disabled.  This creates a circular
