@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 inherit l4t_bsp
 require recipes-kernel/linux/linux-yocto.inc
 
-LINUX_VERSION ?= "4.9.201"
+LINUX_VERSION ?= "4.9.253"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
@@ -15,7 +15,7 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "c68230c5b46a40bf085a9b8fe7e218e43815d127"
+SRCREV = "3b1a82dc339456b28fc75d4c1428d4ec3b6b9d95"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-tegra-4.9;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
