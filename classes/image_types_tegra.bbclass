@@ -625,7 +625,7 @@ do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populat
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''} \
                                  cboot:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
-IMAGE_TYPEDEP_tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
+IMAGE_TYPEDEP:tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 
 oe_make_bup_payload() {
     PATH="${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}:${PATH}"
@@ -735,5 +735,5 @@ create_bup_payload_image[vardepsexclude] += "DATETIME"
 
 CONVERSIONTYPES += "bup-payload"
 CONVERSION_DEPENDS_bup-payload = "${SOC_FAMILY}-flashtools-native coreutils-native tegra-bootfiles tegra-redundant-boot-rollback dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
-CONVERSION_CMD_bup-payload = "create_bup_payload_image ${type}"
+CONVERSION_CMD:bup-payload = "create_bup_payload_image ${type}"
 IMAGE_TYPES += "cpio.gz.cboot.bup-payload"

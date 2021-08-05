@@ -174,8 +174,8 @@ SYSTEMLIBS1 = "${target_libdir}/"
 
 EXTRA_OECONF += "--enable-poison-system-directories"
 EXTRA_OECONF:remove_elf = "--with-sysroot=/not/exist"
-EXTRA_OECONF:remove_eabi = "--with-sysroot=/not/exist"
+EXTRA_OECONF:remove:eabi = "--with-sysroot=/not/exist"
 EXTRA_OECONF:append_elf = " --without-headers --with-newlib"
-EXTRA_OECONF:append_eabi = " --without-headers --with-newlib"
+EXTRA_OECONF:append:eabi = " --without-headers --with-newlib"
 # gcc 4.7 needs -isystem
 export ARCH_FLAGS_FOR_TARGET = "--sysroot=${STAGING_DIR_TARGET} -isystem=${target_includedir}"

@@ -30,4 +30,4 @@ CONVERSIONTYPES =+ "cboot"
 IMAGE_TYPES += "cpio.gz.cboot"
 
 CONVERSION_DEPENDS_cboot = "tegra186-flashtools-native virtual/kernel:do_deploy"
-CONVERSION_CMD_cboot = "make_cboot_image ${type}"
+CONVERSION_CMD:cboot = "make_cboot_image ${type}"
