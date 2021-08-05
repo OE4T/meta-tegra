@@ -1,4 +1,4 @@
-From 075baecfd2d63e3076e71ca56cc55e6b6e6a7d1c Mon Sep 17 00:00:00 2001
+From eee62b47ad52c4fbe552ae4ec92e473998ceb7f7 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 3 May 2021 07:20:13 -0700
 Subject: [PATCH] Fix missing t186 boot partitions in l4t_bup_gen.func
@@ -6,26 +6,37 @@ Subject: [PATCH] Fix missing t186 boot partitions in l4t_bup_gen.func
 Signed-off-by: Matt Madison <matt@madison.systems>
 
 ---
- bootloader/l4t_bup_gen.func | 19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ bootloader/l4t_bup_gen.func | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
-===================================================================
---- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
-+++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
-@@ -191,7 +191,10 @@ _generate_bl_update_payload()
+diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
+index ed08827..7f9a564 100644
+--- a/bootloader/l4t_bup_gen.func
++++ b/bootloader/l4t_bup_gen.func
+@@ -34,6 +34,7 @@ ENTRY_LIST[nano_qspi_uboot]=""
+ ENTRY_LIST[nano_qspi_bl]=""
+ ENTRY_LIST[nano_qspi_kernel]=""
+ ENTRY_LIST[bl_and_kernel]=""
++ENTRY_LIST[full_init]=""
+ 
+ signed_ext="signed"
+ signed_dir="signed"
+@@ -191,8 +192,13 @@ _generate_bl_update_payload()
  				"${signed_dir}"/nvtboot_sigheader.bin.${signed_ext} mb2 ${bsp_ver} 0 $_common_spec; \
  				"${signed_dir}"/spe_sigheader.bin.${signed_ext} spe-fw ${bsp_ver} 0 $_common_spec; \
  				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw ${bsp_ver} 0 $_common_spec; \
 -				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os ${bsp_ver} 0 $_common_spec;"
 +				"${signed_dir}"/tos-trusty_sigheader.img.${signed_ext} secure-os ${bsp_ver} 0 $_common_spec; \
-+				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks ${bsp_ver} 0 $_common_spec; \
-+				"${signed_dir}"/dram-ecc_sigheader.bin.${signed_ext} dram-ecc-fw ${bsp_ver} 0 $_common_spec; \
 +				bmp.blob BMP ${bsp_ver} 0 $_common_spec;"
  		ENTRY_LIST[kernel]=""${signed_dir}"/${kernel_image_base}_sigheader.img.${signed_ext} kernel ${bsp_ver} 0 $_common_spec;"
++		ENTRY_LIST[full_init]=""${signed_dir}"/badpage_sigheader.bin.${signed_ext} badpage-fw 2 0 $_common_spec; \
++				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks ${bsp_ver} 0 $_common_spec; \
++				"${signed_dir}"/dram-ecc_sigheader.bin.${signed_ext} dram-ecc-fw ${bsp_ver} 0 $_common_spec;"
++
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
-@@ -234,7 +237,8 @@ _generate_bl_update_payload()
+ 			ENTRY_LIST[bl]+=""${signed_dir}"/mb1_dev.bin.${signed_ext} mb1 ${bsp_ver} 1 $_common_spec; \
+@@ -234,7 +240,8 @@ _generate_bl_update_payload()
  				"${signed_dir}"/bpmp_t194_sigheader.bin.${signed_ext} bpmp-fw ${bsp_ver} 0 $_common_spec; \
  				"${signed_dir}"/eks_sigheader.img.${signed_ext} eks ${bsp_ver} 0 $_common_spec; \
  				"${signed_dir}"/adsp-fw_sigheader.bin.${signed_ext} adsp-fw ${bsp_ver} 0 $_common_spec; \
@@ -35,7 +46,7 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
  		ENTRY_LIST[kernel]=""${signed_dir}"/${kernel_image_base}_sigheader.img.${signed_ext} kernel ${bsp_ver} 0 $_common_spec;"
  
  		if [ "${fuselevel}" == "fuselevel_nofuse" ]; then
-@@ -320,6 +324,13 @@ _generate_bl_update_payload()
+@@ -320,6 +327,13 @@ _generate_bl_update_payload()
  		ENTRY_LIST[bl_and_kernel]="${ENTRY_LIST[bl]};${ENTRY_LIST[kernel]}"
  	fi
  
