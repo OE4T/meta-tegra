@@ -7,6 +7,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
 SRC_COMMON_DEBS = "${BPN}-${CUDA_VERSION_DASHED}_${PV}_arm64.deb;unpack=false"
+L4T_DEB_GROUP = "cuda-samples"
 SRC_URI[sha256sum] = "bb7726194bac9252863da80ae13e4fdd7e69a657314cb8ff6edf8ba1cd789e2d"
 
 do_unpack_samples() {
