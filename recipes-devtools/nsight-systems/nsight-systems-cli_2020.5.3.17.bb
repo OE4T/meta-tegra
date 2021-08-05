@@ -10,7 +10,7 @@ LIC_FILES_CHKSUM = " \
 
 inherit l4t_deb_pkgfeed
 
-SRC_COMMON_DEBS = "${BPN}-${BASE_VERSION}_${PV}-0256620:arm64.deb;subdir=${BPN}"
+SRC_COMMON_DEBS = "${BPN}-${BASE_VERSION}_${PV}-0256620_arm64.deb;subdir=${BPN}"
 SRC_URI[sha256sum] = "8a1d1bc76ee4a88793e1df26214e0df9aa69e0b435f9e79acdca84a41e7b3c8f"
 
 S = "${WORKDIR}/${BPN}"

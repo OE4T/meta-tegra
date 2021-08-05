@@ -6,4 +6,4 @@ do_install:append:tegra() {
 }
 
 RDEPENDS:${PN}:append:tegra = " tegra-configs-alsa"
-ALLOW_EMPTY:${PN:}:tegra = "1"
+ALLOW_EMPTY:${PN}:tegra = "1"

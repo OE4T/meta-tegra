@@ -65,6 +65,6 @@ CONTAINERCSVFUNC = ""
 CONTAINERCSVFUNC:tegra = "populate_container_csv"
 do_install[postfuncs] += "${CONTAINERCSVFUNC}"
 
-PACKAGES::prepend:tegra = " ${CONTAINER_CSV_PKGNAME} "
+PACKAGES:prepend:tegra = " ${CONTAINER_CSV_PKGNAME} "
 FILES:${CONTAINER_CSV_PKGNAME} = "${sysconfdir}/nvidia-container-runtime"
 RDEPENDS:${PN}:append:tegra = " ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', '${CONTAINER_CSV_PKGNAME}', '', d)}"

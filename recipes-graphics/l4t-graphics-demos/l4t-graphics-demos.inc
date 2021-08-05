@@ -4,7 +4,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 # The sources for t186 and t210 are identical, so just pick one
 L4T_DEB_SOCNAME = "t186"
-SRC_SOC_DEBS = "nvidia-l4t-graphics-demos_${PV}-20210519111140:arm64.deb;subdir=l4t-graphics-demos"
+SRC_SOC_DEBS = "nvidia-l4t-graphics-demos_${PV}-20210519111140_arm64.deb;subdir=l4t-graphics-demos"
 
 inherit l4t_deb_pkgfeed
 

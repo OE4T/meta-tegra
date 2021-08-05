@@ -7,8 +7,8 @@ inherit l4t_deb_pkgfeed container-runtime-csv
 HOMEPAGE = "https://developer.nvidia.com/embedded/visionworks"
 
 SRC_COMMON_DEBS = "\
-    libvisionworks-tracking_${PV}:arm64.deb;subdir=${BPN};name=lib \
-    libvisionworks-tracking-dev_${PV}:arm64.deb;subdir=${BPN};name=dev \
+    libvisionworks-tracking_${PV}_arm64.deb;subdir=${BPN};name=lib \
+    libvisionworks-tracking-dev_${PV}_arm64.deb;subdir=${BPN};name=dev \
 "
 
 SRC_URI[lib.sha256sum] = "2d4c9149f40948810a3731f17240167cb21e81aff720cc7454dc358b17ba5b98"

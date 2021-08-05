@@ -9,7 +9,7 @@ HOMEPAGE = "https://developer.nvidia.com/deepstream-sdk"
 
 inherit l4t_deb_pkgfeed
 
-SRC_COMMON_DEBS = "${BPN}_${PV}:arm64.deb;subdir=${BPN}"
+SRC_COMMON_DEBS = "${BPN}_${PV}_arm64.deb;subdir=${BPN}"
 SRC_URI[sha256sum] = "68b5ddff8b8682ed657fe8554cfb492f36621274a7593d9660f335ce8ba926a5"
 
 COMPATIBLE_MACHINE = "(tegra)"

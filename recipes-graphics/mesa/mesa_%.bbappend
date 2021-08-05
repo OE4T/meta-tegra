@@ -3,7 +3,7 @@ DEPENDS:append:tegra = " libglvnd"
 PROVIDES:tegra = "virtual/mesa virtual/libgbm"
 
 # Workaround for the do_install:append() present in the OE-Core recipe
-do_install::prepend:tegra() {
+do_install:prepend:tegra() {
     install -d ${D}${includedir}/EGL
     touch ${D}${includedir}/EGL/eglplatform.h
 }
