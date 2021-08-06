@@ -11,6 +11,36 @@ imgfile=
 dataimg=
 inst_args=""
 blocksize=4096
+bootloader_part="sdmmc_boot"
+
+generate_pt_header() {
+    local in="$1"
+    local out="$2"
+    local blpart="$3"
+    local pline blksize partnumber partname start_location partsize partfile partguid partfilltoend
+    local -a PARTS
+    mapfile PARTS < <("$here/nvflashxmlparse" -t $blpart "$in")
+    for pline in "${PARTS[@]}"; do
+	eval "$pline"
+	if [ "$partname" = "PT" ]; then
+	    break
+	fi
+    done
+    if [ "$partname" != "PT" ]; then
+	echo "ERR: could not locate PT in flash layout" >&2
+	return 1
+    fi
+    local ptsize=$(expr $partsize \* $blksize)
+    rm -f crc-flash.xml.tmp "$out"
+    sed -e"s,$partfile,crc-$partfile," "$in" > crc-flash.xml.tmp
+    "$here/tegraparser" --pt crc-flash.xml.tmp || return 1
+    cp crc-flash.xml.tmp "$out"
+    truncate -s $ptsize crc-$partfile
+    printf "\x01\x00\x00\x00\x00\x00\x00\x00PTHD\x00\x00\x00\x00" | \
+	dd of=crc-$partfile seek=$(expr $ptsize - 16) bs=1 count=16 conv=notrunc status=none || return 1
+    "$here/tegrahost" --fillcrc32 crc-$partfile
+    return 0
+}
 
 ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only,datafile:,usb-instance:" -o "u:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
@@ -147,6 +177,9 @@ if [ "$boardid" = "3448" ]; then
 	boardsku="0000"
 	BOARDSKU="0000"
     fi
+    if [ "$boardsku" != "0002" ]; then
+	bootloader_part="spi"
+    fi
     for var in $FLASHVARS; do
 	eval pat=$`echo $var`
 	if [ -z "$pat" ]; then
@@ -161,6 +194,11 @@ if [ -n "$DTBFILE" ]; then
     dtb_file="$DTBFILE"
 else
     DTBFILE="$dtb_file"
+fi
+
+if [ "$spi_only" = "yes" -a "$bootloader_part" != "spi" ]; then
+    echo "ERR: --spi-only specified for eMMC platform" >&2
+    exit 1
 fi
 
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
@@ -199,14 +237,18 @@ else
     fi
     touch APPFILE
 fi
+
+if [ ! -e "$here/nvflashxmlparse" ]; then
+    echo "ERR: missing nvflashxmlparse script" >&2
+    exit 1
+fi
+
+generate_pt_header "$flash_in" flash.xml.tmp "$bootloader_part" || exit 1
+
 if [ "$spi_only" = "yes" ]; then
-    if [ ! -e "$here/nvflashxmlparse" ]; then
-	echo "ERR: missing nvflashxmlparse script" >&2
-	exit 1
-    fi
-    "$here/nvflashxmlparse" --extract -t spi -o flash.xml.tmp "$flash_in" || exit 1
-else
-    cp "$flash_in" flash.xml.tmp
+    cp flash.xml.tmp flash.xml.tmp-1
+    "$here/nvflashxmlparse" --extract -t spi -o flash.xml.tmp flash.xml.tmp-1 || exit 1
+    rm flash.xml.tmp-1
 fi
 sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,DTBFILE,$DTBFILE," $appfile_sed flash.xml.tmp > flash.xml
 rm flash.xml.tmp
