@@ -9,9 +9,10 @@ LIC_FILES_CHKSUM = " \
 inherit l4t_deb_pkgfeed
 
 SRC_COMMON_DEBS = "\
-    libnvvpi1-${PV}_arm64.deb;name=lib;subdir=vpi1 \
-    vpi1-dev-${PV}_arm64.deb;name=dev;subdir=vpi1 \
+    libnvvpi1_${PV}_arm64.deb;name=lib;subdir=vpi1 \
+    vpi1-dev_${PV}_arm64.deb;name=dev;subdir=vpi1 \
 "
+L4T_DEB_GROUP[dev] = "vpi1-dev"
 SRC_URI[lib.sha256sum] = "973ffed362275ec8f1259e55661ff9a6ff0f107269afba8395e932243b9b0df6"
 SRC_URI[dev.sha256sum] = "c5bfe88d28aa7579ca90eb403c3d3e81ab65286c539cec4dc62886210e669683"
 
