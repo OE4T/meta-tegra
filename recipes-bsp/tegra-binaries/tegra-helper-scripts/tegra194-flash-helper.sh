@@ -358,6 +358,12 @@ if [ -n "$keyfile" ]; then
 	rm -rf signed_bootimg_dir
 	mkdir signed_bootimg_dir
 	cp "$kernfile" "$kernel_dtbfile" signed_bootimg_dir/
+	if [ -n "$MINRATCHET_CONFIG" ]; then
+	    for f in $MINRATCHET_CONFIG; do
+		[ -e "$f" ] || continue
+		cp "$f" signed_bootimg_dir/
+	    done
+	fi
 	oldwd="$PWD"
 	cd signed_bootimg_dir
 	if [ -x $here/l4t_sign_image.sh ]; then
