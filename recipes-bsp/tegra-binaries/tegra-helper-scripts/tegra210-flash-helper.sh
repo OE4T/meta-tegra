@@ -19,7 +19,7 @@ generate_pt_header() {
     local blpart="$3"
     local pline blksize partnumber partname start_location partsize partfile partguid partfilltoend
     local -a PARTS
-    mapfile PARTS < <("$here/nvflashxmlparse" -t $blpart "$in")
+    mapfile PARTS < <("nvflashxmlparse" -t $blpart "$in")
     for pline in "${PARTS[@]}"; do
 	eval "$pline"
 	if [ "$partname" = "PT" ]; then
@@ -33,12 +33,12 @@ generate_pt_header() {
     local ptsize=$(expr $partsize \* $blksize)
     rm -f crc-flash.xml.tmp "$out"
     sed -e"s,$partfile,crc-$partfile," "$in" > crc-flash.xml.tmp
-    "$here/tegraparser" --pt crc-flash.xml.tmp || return 1
+    "tegraparser" --pt crc-flash.xml.tmp || return 1
     cp crc-flash.xml.tmp "$out"
     truncate -s $ptsize crc-$partfile
     printf "\x01\x00\x00\x00\x00\x00\x00\x00PTHD\x00\x00\x00\x00" | \
 	dd of=crc-$partfile seek=$(expr $ptsize - 16) bs=1 count=16 conv=notrunc status=none || return 1
-    "$here/tegrahost" --fillcrc32 crc-$partfile
+    "tegrahost" --fillcrc32 crc-$partfile
     return 0
 }
 
@@ -123,7 +123,8 @@ imgfile="$7"
 shift 7
 
 here=$(readlink -f $(dirname "$0"))
-flashapp=$here/tegraflash.py
+PATH="$here:$PATH"
+flashapp=tegraflash.py
 
 if [ -e ./flashvars ]; then
     . ./flashvars
@@ -238,16 +239,11 @@ else
     touch APPFILE
 fi
 
-if [ ! -e "$here/nvflashxmlparse" ]; then
-    echo "ERR: missing nvflashxmlparse script" >&2
-    exit 1
-fi
-
 generate_pt_header "$flash_in" flash.xml.tmp "$bootloader_part" || exit 1
 
 if [ "$spi_only" = "yes" ]; then
     cp flash.xml.tmp flash.xml.tmp-1
-    "$here/nvflashxmlparse" --extract -t spi -o flash.xml.tmp flash.xml.tmp-1 || exit 1
+    "nvflashxmlparse" --extract -t spi -o flash.xml.tmp flash.xml.tmp-1 || exit 1
     rm flash.xml.tmp-1
 fi
 sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,DTBFILE,$DTBFILE," $appfile_sed flash.xml.tmp > flash.xml
@@ -260,10 +256,10 @@ if [ $bup_blob -ne 0 -o "$sdcard" = "yes" ]; then
 else
     if [ -z "$sdcard" -a $no_flash -eq 0 ]; then
 	rm -f "$appfile"
-	$here/mksparse -b ${blocksize} --fillpattern=0 "$imgfile"  "$appfile" || exit 1
+	mksparse -b ${blocksize} --fillpattern=0 "$imgfile"  "$appfile" || exit 1
 	if [ -n "$datafile" ]; then
 	    rm -f "$datafile"
-	    $here/mksparse -b ${blocksize} --fillpattern=0 "$dataimg" "$datafile" || exit 1
+	    mksparse -b ${blocksize} --fillpattern=0 "$dataimg" "$datafile" || exit 1
 	fi
     fi
     cmd=${flash_cmd:-"flash;reboot"}
@@ -297,7 +293,7 @@ if [ -n "$keyfile" ]; then
     if [ $no_flash -ne 0 ]; then
 	rm -f flashcmd.txt
 	echo "#!/bin/sh" > flashcmd.txt
-	echo "python3 $flashapp ${inst_args} --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
+	echo "python3 $(basename $flashapp) ${inst_args} --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
 --bldtb \"${dtb_file}.signed\" --applet rcm_1_signed.rcm --cfg flash.xml --chip 0x21 \
 --cmd \"secureflash;reboot\" $binargs" > flashcmd.txt
 	chmod +x flashcmd.txt
