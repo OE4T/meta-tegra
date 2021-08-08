@@ -1,0 +1,29 @@
+From aa71d4c097034cdcc0b0958d1c3f21da96cc4ead Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Sun, 8 Aug 2021 21:22:14 +0100
+Subject: [PATCH 2/4] mk/common.mk: set JETSON variable if not set before
+ Changing the equal sign will allow modifying the variable using the
+ environment variables.
+
+Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ mk/common.mk | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/mk/common.mk b/mk/common.mk
+index d6ef499..875e412 100644
+--- a/mk/common.mk
++++ b/mk/common.mk
+@@ -24,7 +24,7 @@ DATE     := $(shell date -u --iso-8601=minutes)
+ REVISION := $(shell git rev-parse HEAD)
+ COMPILER := $(realpath $(shell which $(CC)))
+ PLATFORM ?= $(shell uname -m)
+-JETSON   := TRUE
++JETSON   ?= TRUE
+ 
+ ifeq ($(DATE),)
+ $(error Invalid date format)
+-- 
+2.32.0
+
