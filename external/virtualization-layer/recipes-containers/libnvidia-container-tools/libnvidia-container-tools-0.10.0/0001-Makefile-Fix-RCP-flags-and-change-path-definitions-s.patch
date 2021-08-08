@@ -1,0 +1,95 @@
+From 8fdbc558a8a3230899942fe2a8ce4b76cab40846 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Sun, 8 Aug 2021 21:18:48 +0100
+Subject: [PATCH 1/4] Makefile: Fix RCP flags and change path definitions signs
+
+Add RCP -ltirpc flag and fix equal signs on paths definitions.
+
+Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ Makefile | 33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 8f7f3b4..3f02b9d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -13,14 +13,14 @@ WITH_SECCOMP ?= yes
+ 
+ ##### Global definitions #####
+ 
+-export prefix      = /usr/local
+-export exec_prefix = $(prefix)
+-export bindir      = $(exec_prefix)/bin
+-export libdir      = $(exec_prefix)/lib
+-export docdir      = $(prefix)/share/doc
+-export libdbgdir   = $(prefix)/lib/debug$(libdir)
+-export includedir  = $(prefix)/include
+-export pkgconfdir  = $(libdir)/pkgconfig
++export prefix      ?= /usr/local
++export exec_prefix ?= $(prefix)
++export bindir      ?= $(exec_prefix)/bin
++export libdir      ?= $(exec_prefix)/lib
++export docdir      ?= $(prefix)/share/doc
++export libdbgdir   ?= $(prefix)/lib/debug$(libdir)
++export includedir  ?= $(prefix)/include
++export pkgconfdir  ?= $(libdir)/pkgconfig
+ 
+ export PKG_DIR     ?= $(CURDIR)/pkg
+ export TESTS_DIR   ?= $(CURDIR)/test
+@@ -114,11 +114,14 @@ LIB_PKGCFG  := $(LIB_NAME).pc
+ 
+ # Common flags
+ CPPFLAGS := -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 -g3 -D JETSON=$(JETSON) $(CPPFLAGS)
++CCNAME := $(shell $(CC) -v 2>&1 | grep -q "clang version" && echo clang || echo gcc)
++CPPFLAGS := -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 -g3 -D JETSON=$(JETSON) -DHOST_LIBDIR=$(libdir) $(CPPFLAGS)
+ CFLAGS   := -std=gnu11 -O0 -g3 -fdata-sections -ffunction-sections -fstack-protector -fno-strict-aliasing -fvisibility=hidden \
+             -Wall -Wextra -Wcast-align -Wpointer-arith -Wmissing-prototypes -Wnonnull \
+             -Wwrite-strings -Wlogical-op -Wformat=2 -Wmissing-format-attribute -Winit-self -Wshadow \
+             -Wstrict-prototypes -Wunreachable-code -Wconversion -Wsign-conversion \
+-            -Wno-unknown-warning-option -Wno-format-extra-args -Wno-gnu-alignof-expression $(CFLAGS)
++            -Wno-format-extra-args $(if $(filter clang,$(CCNAME)),-Wno-unknown-warning-option -Wno-gnu-alignof-expression,) \
++            -I=/usr/include/tirpc $(CFLAGS)
+ LDFLAGS  := -Wl,-zrelro -Wl,-znow -Wl,-zdefs -Wl,--gc-sections $(LDFLAGS)
+ LDLIBS   := $(LDLIBS)
+ 
+@@ -127,7 +130,7 @@ LIB_CPPFLAGS       = -DNV_LINUX -isystem $(DEPS_DIR)$(includedir) -include $(BUI
+ LIB_CFLAGS         = -fPIC
+ LIB_LDFLAGS        = -L$(DEPS_DIR)$(libdir) -shared -Wl,-soname=$(LIB_SONAME)
+ LIB_LDLIBS_STATIC  = -l:libnvidia-modprobe-utils.a
+-LIB_LDLIBS_SHARED  = -ldl -lcap
++LIB_LDLIBS_SHARED  = -ldl -lcap -ltirpc
+ ifeq ($(WITH_LIBELF), yes)
+ LIB_CPPFLAGS       += -DWITH_LIBELF
+ LIB_LDLIBS_SHARED  += -lelf
+@@ -156,6 +159,10 @@ BIN_CFLAGS         = -I$(SRCS_DIR) -fPIE -flto $(CFLAGS)
+ BIN_LDFLAGS        = -L. -pie $(LDFLAGS) -Wl,-rpath='$$ORIGIN/../$$LIB'
+ BIN_LDLIBS         = -l:$(LIB_SHARED) -lcap $(LDLIBS)
+ 
++ifeq ($(WITH_TIRPC), yes)
++BIN_CPPFLAGS       += -isystem $(DEPS_DIR)$(includedir)/tirpc -DWITH_TIRPC
++endif
++
+ $(word 1,$(LIB_RPC_SRCS)): RPCGENFLAGS=-h
+ $(word 2,$(LIB_RPC_SRCS)): RPCGENFLAGS=-c
+ $(word 3,$(LIB_RPC_SRCS)): RPCGENFLAGS=-m
+@@ -226,12 +233,12 @@ static: $(LIB_STATIC)($(LIB_STATIC_OBJ))
+ deps: export DESTDIR:=$(DEPS_DIR)
+ deps: $(LIB_RPC_SRCS) $(BUILD_DEFS)
+ 	$(MKDIR) -p $(DEPS_DIR)
+-	$(MAKE) -f $(MAKE_DIR)/nvidia-modprobe.mk install
++	$(MAKE) -f $(MAKE_DIR)/nvidia-modprobe.mk DESTDIR=$(DEPS_DIR) install
+ ifeq ($(WITH_LIBELF), no)
+-	$(MAKE) -f $(MAKE_DIR)/elftoolchain.mk install
++	$(MAKE) -f $(MAKE_DIR)/elftoolchain.mk DESTDIR=$(DEPS_DIR) install
+ endif
+ ifeq ($(WITH_TIRPC), yes)
+-	$(MAKE) -f $(MAKE_DIR)/libtirpc.mk install
++	$(MAKE) -f $(MAKE_DIR)/libtirpc.mk DESTDIR=$(DEPS_DIR) install
+ endif
+ 
+ install: all
+-- 
+2.32.0
+
