@@ -1,0 +1,44 @@
+From 9cb99609be811ce0a1b5a53ad01b1ab86f0eefa8 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Sun, 8 Aug 2021 21:45:09 +0100
+Subject: [PATCH 4/4] Fix build.h generation for cross builds
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ Makefile     | 4 ++++
+ mk/common.mk | 2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index d179986..a2aaf17 100644
+--- a/Makefile
++++ b/Makefile
+@@ -177,7 +177,11 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
+ $(BUILD_DEFS):
+ 	@printf '#define BUILD_DATE     "%s"\n' '$(strip $(DATE))' >$(BUILD_DEFS)
+ 	@printf '#define BUILD_COMPILER "%s " __VERSION__\n' '$(notdir $(COMPILER))' >>$(BUILD_DEFS)
++ifeq ($(EXCLUDE_BUILD_FLAGS),)
+ 	@printf '#define BUILD_FLAGS    "%s"\n' '$(strip $(CPPFLAGS) $(CFLAGS) $(LDFLAGS))' >>$(BUILD_DEFS)
++else
++	@printf '#define BUILD_FLAGS    ""\n' >>$(BUILD_DEFS)
++endif
+ 	@printf '#define BUILD_REVISION "%s"\n' '$(strip $(REVISION))' >>$(BUILD_DEFS)
+ 	@printf '#define BUILD_PLATFORM "%s"\n' '$(strip $(PLATFORM))' >>$(BUILD_DEFS)
+ 
+diff --git a/mk/common.mk b/mk/common.mk
+index 875e412..f8170de 100644
+--- a/mk/common.mk
++++ b/mk/common.mk
+@@ -22,7 +22,7 @@ UID      := $(shell id -u)
+ GID      := $(shell id -g)
+ DATE     := $(shell date -u --iso-8601=minutes)
+ REVISION := $(shell git rev-parse HEAD)
+-COMPILER := $(realpath $(shell which $(CC)))
++COMPILER := $(realpath $(shell which $(firstword $(CC))))
+ PLATFORM ?= $(shell uname -m)
+ JETSON   ?= TRUE
+ 
+-- 
+2.32.0
+
