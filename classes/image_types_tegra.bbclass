@@ -260,6 +260,7 @@ tegraflash_create_flash_config_tegra194() {
         -e"s,BPFFILE,bpmp_t194.bin," \
         -e"s,TBCFILE,${CBOOTFILENAME}," \
         -e"s,CAMERAFW,camera-rtcpu-rce.img," \
+        -e"s,DRAMECCTYPE,dram_ecc," -e"s,DRAMECCFILE,dram-ecc-t194.bin," -e"s,DRAMECCNAME,dram-ecc-fw," \
         -e"s,SPEFILE,spe_t194.bin," \
         -e"s,WB0BOOT,warmboot_t194_prod.bin," \
         -e"s,TOSFILE,${TOSIMGFILENAME}," \
@@ -310,6 +311,7 @@ BOOTFILES_tegra194 = "\
     adsp-fw.bin \
     bpmp_t194.bin \
     camera-rtcpu-rce.img \
+    dram-ecc-t194.bin \
     eks.img \
     mb1_t194_prod.bin \
     nvtboot_applet_t194.bin \
