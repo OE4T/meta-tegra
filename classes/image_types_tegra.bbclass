@@ -277,10 +277,13 @@ tegraflash_create_flash_config_tegra194() {
 
 BOOTFILES = ""
 BOOTFILES_tegra210 = "\
+    cboot_rb.bin \
     eks.img \
     nvtboot_recovery.bin \
     nvtboot.bin \
     nvtboot_cpu.bin \
+    nvtboot_cpu_rb.bin \
+    nvtboot_rb.bin \
     warmboot.bin \
     rp4.blob \
     sc7entry-firmware.bin \

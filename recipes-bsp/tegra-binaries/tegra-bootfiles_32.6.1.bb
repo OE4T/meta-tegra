@@ -51,6 +51,7 @@ BOOTBINS_tegra194 = "\
 BOOTBINS_tegra210 = "\
     eks.img \
     nvtboot_cpu.bin \
+    nvtboot_cpu_rb.bin \
     nvtboot_recovery.bin \
     nvtboot_recovery_cpu.bin \
     rp4.blob \
@@ -64,7 +65,9 @@ BOOTBINS_MACHINE_SPECIFIC_tegra186 = "\
 BOOTBINS_MACHINE_SPECIFIC_tegra194 = ""
 
 BOOTBINS_MACHINE_SPECIFIC_tegra210 = "\
+    cboot_rb.bin \
     nvtboot.bin \
+    nvtboot_rb.bin \
     sc7entry-firmware.bin \
     warmboot.bin \
 "
