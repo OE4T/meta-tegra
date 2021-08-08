@@ -51,7 +51,7 @@ XSERVER = "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-
 
 CUDA_VERSION ?= "10.2"
 # Tegra specific version of libnvidia-container
-PREFERRED_VERSION_libnvidia-container-tools = "0.9.0"
+PREFERRED_VERSION_libnvidia-container-tools = "0.10.0"
 
 L4T_BSP_ARCH = "tegra"
 L4T_BSP_PKGARCH = "${TEGRA_PKGARCH}"
