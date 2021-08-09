@@ -48,7 +48,7 @@ do_install() {
     install -d ${D}${libdir}
     for f in ${DRVROOT}/tegra/lib*; do
 	[ -f $f ] || continue
-        install -m 0644 $f ${D}${libdir}
+	echo "$f" | grep -q "tegra/libv4l2_nv" || install -m 0644 $f ${D}${libdir}
     done
     for f in ${DRVROOT}/tegra-egl/lib*; do
         install -m 0644 $f ${D}${libdir}
@@ -63,6 +63,7 @@ do_install() {
     ln -sf libnvid_mapper.so.1.0.0 ${D}${libdir}/libnvid_mapper.so
     rm -f ${D}${libdir}/libdrm* ${D}${libdir}/libnvphsd* ${D}${libdir}/libnvgov*
     rm -f ${D}${libdir}/libv4l2.so* ${D}${libdir}/libv4lconvert.so* ${D}${libdir}/libnvv4l2.so ${D}${libdir}/libnvv4lconvert.so
+    rm -f ${D}${libdir}/libvulkan.so*
     soname_fixup libnvidia-fatbinaryloader ${D}${libdir}
     soname_fixup libnvidia-ptxjitcompiler ${D}${libdir}
     install -d ${D}${sbindir}
