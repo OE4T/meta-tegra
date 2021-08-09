@@ -5,8 +5,8 @@ L4T_DEB_FEED_BASE ??= "https://repo.download.nvidia.com/jetson"
 inherit l4t_bsp
 
 L4T_DEB_COMP_DEFAULT = "main"
-L4T_DEB_COMP_DEFAULT_x86-64 = "r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:2])}"
 L4T_DEB_COMP ?= "${L4T_DEB_COMP_DEFAULT}"
+L4T_X86_DEB_CLASS ??= "x86_64/bionic"
 
 def l4t_deb_src_uri(d):
     def generate_uris(d, debclass, deblist):
@@ -34,7 +34,7 @@ def l4t_deb_src_uri(d):
     common_debs = (d.getVar('SRC_COMMON_DEBS') or '').split()
     soc_debs = (d.getVar('SRC_SOC_DEBS') or '').split()
     if d.getVar('HOST_ARCH') == 'x86_64':
-        return ' '.join(generate_uris(d, 'x86_64', common_debs + soc_debs))
+        return ' '.join(generate_uris(d, d.getVar('L4T_X86_DEB_CLASS'), common_debs + soc_debs))
     else:
         soc = d.getVar('L4T_DEB_SOCNAME')
         return ' '.join(generate_uris(d, 'common', common_debs) + generate_uris(d, soc, soc_debs))
