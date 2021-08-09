@@ -50,7 +50,7 @@ ALLOW_EMPTY:${PN}-staticdev = "1"
 PACKAGES += "${PN}-apps ${PN}-meta ${PN}-glib"
 
 # Dynamically generate packages for all enabled plugins
-PACKAGES_DYNAMIC = "^${PN}-.* ^libgst.*"
+PACKAGES_DYNAMIC = "^${PN}-.* ^libgst(?!video-1.0).*"
 
 FILES:${PN} = ""
 FILES:${PN}-apps = "${bindir}"
