@@ -67,6 +67,7 @@ while true; do
 	--spi-only)
 	    spi_only=yes
 	    shift
+	    ;;
 	--datafile)
 	    dataimg="$2"
 	    shift 2
@@ -263,7 +264,7 @@ else
     fi
     cmd=${flash_cmd:-"flash;reboot"}
     if [ "$boardid" = "3448" ]; then
-        binargs="--bins \"EBT cboot.bin;DTB $dtb_file\""
+	binargs="--bins \"EBT cboot.bin;DTB $dtb_file\""
     fi
 fi
 
@@ -315,7 +316,7 @@ flashcmd="python3 $flashapp ${inst_args} --bl cboot.bin --bct \"$sdramcfg_file\"
  $boardcfg --cfg flash.xml --chip 0x21 --cmd \"$cmd\" $binargs"
 
 if [ $bup_blob -ne 0 ]; then
-    [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
+    [ -z "$keyfile" ] || flashcmd="${flashcmd} $keyfile_args"
     support_multi_spec=1
     clean_up=0
     dtbfilename="$dtb_file"

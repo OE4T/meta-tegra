@@ -34,6 +34,10 @@ while true; do
 	    sdcard=yes
 	    shift
 	    ;;
+	--spi-only)
+	    spi_only=yes
+	    shift
+	    ;;
 	--datafile)
 	    dataimg="$2"
 	    shift 2
@@ -397,6 +401,7 @@ if [ -n "$keyfile" ]; then
     bctfilename=`echo $sdramcfg_files | cut -d, -f1`
     bctfile1name=`echo $sdramcfg_files | cut -d, -f2`
     SOSARGS="--applet mb1_t194_prod.bin "
+    NV_ARGS="--soft_fuses tegra194-mb1-soft-fuses-l4t.cfg "
     BCTARGS="$bctargs"
     rootfs_ab=0
     rcm_boot=0
