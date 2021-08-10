@@ -69,16 +69,16 @@ do_install() {
     cp --preserve=mode,timestamps --recursive ${S}/usr/src/tensorrt ${D}${prefix}/src/
 }
 PACKAGES += "${PN}-samples"
-FILES_${PN} += "${prefix}/src/tensorrt/bin"
-FILES_${PN}-samples = "${prefix}/src"
+FILES:${PN} += "${prefix}/src/tensorrt/bin"
+FILES:${PN}-samples = "${prefix}/src"
 
-RDEPENDS_${PN} += "libstdc++ cudnn libcublas cuda-cudart cuda-nvrtc cuda-nvtx tegra-libraries libglvnd"
-RDEPENDS_${PN}-samples += "tegra-libraries bash python3 libglvnd cudnn cuda-cudart libcublas"
-RPROVIDES_${PN}-samples = "${PN}-examples"
+RDEPENDS:${PN} += "libstdc++ cudnn libcublas cuda-cudart cuda-nvrtc cuda-nvtx tegra-libraries libglvnd"
+RDEPENDS:${PN}-samples += "tegra-libraries bash python3 libglvnd cudnn cuda-cudart libcublas"
+RPROVIDES:${PN}-samples = "${PN}-examples"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
-INSANE_SKIP_${PN} = "textrel ldflags"
-INSANE_SKIP_${PN}-samples = "ldflags"
+INSANE_SKIP:${PN} = "textrel ldflags"
+INSANE_SKIP:${PN}-samples = "ldflags"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"

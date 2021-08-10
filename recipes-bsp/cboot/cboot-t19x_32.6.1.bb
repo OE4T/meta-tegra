@@ -27,7 +27,7 @@ PACKAGECONFIG[extlinux] = "CONFIG_ENABLE_EXTLINUX_BOOT=1,,"
 PACKAGECONFIG[machine-id] = "CONFIG_ENABLE_MACHINE_ID=1,,"
 
 # Xavier NX devkits *must* have this option, or they cannot boot from the SDcard:
-EXTRA_GLOBAL_DEFINES_append_jetson-xavier-nx-devkit = " CONFIG_ENABLE_BOOT_DEVICE_SELECT=1"
+EXTRA_GLOBAL_DEFINES:append:jetson-xavier-nx-devkit = " CONFIG_ENABLE_BOOT_DEVICE_SELECT=1"
 
 TARGET_SOC = "t194"
 COMPATIBLE_MACHINE = "(tegra194)"

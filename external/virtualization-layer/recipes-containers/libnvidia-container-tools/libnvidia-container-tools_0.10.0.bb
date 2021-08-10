@@ -64,12 +64,12 @@ def build_date(d):
 # include bmake-native which does not exist at the moment.
 EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} JETSON=TRUE WITH_LIBELF=yes ${@build_date(d)} ${PACKAGECONFIG_CONFARGS}"
 
-CFLAGS_prepend = " -I=/usr/include/tirpc "
+CFLAGS:prepend = " -I=/usr/include/tirpc "
 
 export OBJCPY="${OBJCOPY}"
 
 # Fix me: Create an independent recipe for nvidia-modprobe
-do_configure_append() {
+do_configure:append() {
     # Mark Nvidia modprobe as downloaded
     touch ${S}/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/.download_stamp
 }
@@ -78,4 +78,4 @@ do_install () {
     oe_runmake install DESTDIR=${D}
 }
 
-INSANE_SKIP_${PN} = "already-stripped"
+INSANE_SKIP:${PN} = "already-stripped"

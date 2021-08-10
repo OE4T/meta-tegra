@@ -15,7 +15,7 @@ SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGA
 SRC_URI[main.sha256sum] = "${MAINSUM}"
 SRC_URI[dev.sha256sum] = "${DEVSUM}"
 LICSUM = "d8e8c62156516d5eb2dea0ba49abd1b5cecae010872e0e71650e97a1ccd2e005"
-LICSUM_x86-64 = "a64ce62b15263317cdb9c9481433b47b5754ea19f89cdb1007a7da1ac29713cd"
+LICSUM:x86-64 = "a64ce62b15263317cdb9c9481433b47b5754ea19f89cdb1007a7da1ac29713cd"
 SRC_URI[lic.sha256sum] = "${LICSUM}"
 L4T_DEB_GROUP[lic] = "cuda-documentation"
 

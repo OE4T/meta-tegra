@@ -3,7 +3,7 @@ CUDA_PKG = "${BPN}"
 require cuda-shared-binaries-${PV}.inc
 
 MAINSUM = "662c7e43a4cce180f187cf5f2b00d8634d9276a6ecb415eeca638778e27c215f"
-MAINSUM_x86-64 = "b15354fbc8f7bfd6bb6291657696756944008f9f34fbffe9066f651da42b535b"
+MAINSUM:x86-64 = "b15354fbc8f7bfd6bb6291657696756944008f9f34fbffe9066f651da42b535b"
 
 DEPENDS = "ncurses expat"
 
