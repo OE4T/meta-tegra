@@ -110,7 +110,7 @@ FILES:${PN}-amqp = "${DEEPSTREAM_PATH}/lib/libnvds_amqp*"
 FILES:${PN}-kafka = "${DEEPSTREAM_PATH}/lib/libnvds_kafka*"
 FILES:${PN}-redis = "${DEEPSTREAM_PATH}/lib/libnvds_redis*"
 
-RDEPENDS:${PN} = "cuda-cufft libvisionworks-devso-symlink"
+RDEPENDS:${PN} = "libcufft libvisionworks-devso-symlink"
 RDEPENDS:${PN}-samples = "${PN}-samples-data"
 RDEPENDS:${PN}-samples-data = "bash"
 RDEPENDS:${PN}-sources = "bash ${PN}-samples-data ${PN}"
