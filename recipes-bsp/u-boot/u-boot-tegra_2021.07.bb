@@ -24,9 +24,7 @@ PROVIDES += "u-boot"
 
 require u-boot-tegra-bootimg.inc
 
-PACKAGES =+ "${PN}-extlinux"
-FILES:${PN}-extlinux = "/boot/extlinux /boot/initrd"
+FILES:${PN}-extlinux += "/boot/initrd"
 ALLOW_EMPTY:${PN}-extlinux = "1"
 RPROVIDES:${PN}-extlinux += "u-boot-extlinux"
 RPROVIDES:${PN} += "u-boot"
-RDEPENDS:${PN} += "${PN}-extlinux"
