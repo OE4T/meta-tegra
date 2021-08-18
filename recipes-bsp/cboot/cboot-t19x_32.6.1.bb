@@ -13,6 +13,7 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-$
     file://0010-t194-add-bootinfo-to-build.patch \
     file://0011-Add-machine-ID-to-kernel-command-line.patch \
     file://0012-Restore-fallback-path-for-failed-extlinux-booting.patch \
+    file://0012-bmp-support-A-B-slots.patch \
 "
 
 SRC_URI[sha256sum] = "42fe4f41a6ee3b0b2d7d74c4dcd8d7f2d010fb2c09f7ee3855b7959bacbe0a9a"
