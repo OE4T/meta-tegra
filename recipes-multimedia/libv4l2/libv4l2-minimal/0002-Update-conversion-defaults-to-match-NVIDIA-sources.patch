@@ -1,0 +1,29 @@
+From 364f6905b83ea967e8ddbadd1824b5d2e1ddca22 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 26 Aug 2021 13:30:45 -0700
+Subject: [PATCH] Update conversion defaults to match NVIDIA sources
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ lib/libv4lconvert/libv4lconvert.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/lib/libv4lconvert/libv4lconvert.c b/lib/libv4lconvert/libv4lconvert.c
+index 5945be4..f2efbc0 100644
+--- a/lib/libv4lconvert/libv4lconvert.c
++++ b/lib/libv4lconvert/libv4lconvert.c
+@@ -151,10 +151,10 @@ static const struct v4lconvert_pixfmt supported_src_pixfmts[] = {
+ 	{ V4L2_PIX_FMT_OV518,		 0,	 7,	 7,	1 },
+ #endif
+ 	/* uncompressed bayer */
+-	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	0 },
+-	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	0 },
+-	{ V4L2_PIX_FMT_SGRBG8,		 8,	 8,	 8,	0 },
+-	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	0 },
++	{ V4L2_PIX_FMT_SBGGR8,		 8,	 8,	 8,	1 },
++	{ V4L2_PIX_FMT_SGBRG8,		 8,	 8,	 8,	1 },
++	{ V4L2_PIX_FMT_SGRBG8,		 8,	 8,	 8,	1 },
++	{ V4L2_PIX_FMT_SRGGB8,		 8,	 8,	 8,	1 },
+ 	{ V4L2_PIX_FMT_STV0680,		 8,	 8,	 8,	1 },
+ 	{ V4L2_PIX_FMT_SBGGR10P,	10,	 8,	 8,	1 },
+ 	{ V4L2_PIX_FMT_SGBRG10P,	10,	 8,	 8,	1 },
