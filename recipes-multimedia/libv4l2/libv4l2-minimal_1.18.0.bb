@@ -6,7 +6,10 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS = "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'virtual/libx11', '', d)}"
 
-SRC_URI = "http://linuxtv.org/downloads/v4l-utils/v4l-utils-${PV}.tar.bz2"
+SRC_URI = "http://linuxtv.org/downloads/v4l-utils/v4l-utils-${PV}.tar.bz2 \
+           file://0002-Make-plugin-directory-relative-to-ORIGIN.patch \
+           file://0003-Update-conversion-defaults-to-match-NVIDIA-sources.patch \
+"
 SRC_URI[md5sum] = "18996bd5e9d83d47055c05de376708cd"
 SRC_URI[sha256sum] = "6cb60d822eeed20486a03cc23e0fc65956fbc1e85e0c1a7477f68bbd9802880d"
 
@@ -18,8 +21,12 @@ EXTRA_OECONF = "--disable-libdvbv5 --disable-v4l-utils --disable-qv4l2 \
                 --enable-shared --disable-qvidcap --disable-gconv --disable-bpf \
 		--with-udevdir=${nonarch_base_libdir}/udev"
 
+do_install_append_tegra() {
+    rm -rf ${D}${libdir}/libv4l/plugins
+}
+
 CONTAINER_CSV_BASENAME = "libv4l"
-CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/libv4l/ov* ${libdir}/libv4l/*.so ${libdir}/libv4l/plugins/*.so"
+CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/libv4l/ov* ${libdir}/libv4l/*.so"
 
 PACKAGES =+ "libv4l libv4l-dev"
 RPROVIDES_${PN}-dbg += "libv4l-dbg"
