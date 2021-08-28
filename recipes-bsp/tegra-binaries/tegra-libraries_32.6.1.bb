@@ -45,6 +45,9 @@ do_install() {
     for f in ${DRVROOT}/tegra/libv4l2_nv*; do
         install -m 0644 $f ${D}${libdir}/libv4l/plugins/
     done
+    install -d ${D}${libdir}/libv4l/plugins-wrapped
+    install -m 0644 ${DRVROOT}/tegra/libv4l2_nvvidconv.so ${D}${libdir}/libv4l/plugins-wrapped/
+    rm -f ${D}${libdir}/libv4l/plugins/libv4l2_nvvidconv.so
     install -d ${D}${libdir}
     for f in ${DRVROOT}/tegra/lib*; do
 	[ -f $f ] || continue
@@ -86,6 +89,7 @@ pkg_postinst:${PN}() {
 PACKAGES = "${PN}-libv4l-plugins ${PN}-argus ${PN}-argus-daemon-base ${PN}-libnvosd ${PN}-dev ${PN}"
 
 FILES:${PN}-libv4l-plugins = "${libdir}/libv4l"
+RDEPENDS:${PN}-libv4l-plugins = "libv4l2-nvvidconv-wrapper"
 FILES:${PN}-argus = "${libdir}/libnvargus*"
 FILES:${PN}-argus-daemon-base = "${sbindir}/nvargus-daemon"
 FILES:${PN}-libnvosd = "${libdir}/libnvosd*"
