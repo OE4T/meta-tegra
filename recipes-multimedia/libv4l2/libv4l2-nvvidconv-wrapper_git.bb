@@ -19,6 +19,6 @@ inherit cmake container-runtime-csv
 
 CONTAINER_CSV_FILES = "${libdir}/libv4l/plugins/*.so*"
 
-FILES_${PN} = "${libdir}/libv4l/plugins/*${SOLIBSDEV}"
+FILES:${PN} = "${libdir}/libv4l/plugins/*${SOLIBSDEV}"
 
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
