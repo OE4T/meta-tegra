@@ -9,9 +9,9 @@ DEPENDS = "libv4l"
 SRC_REPO = "github.com/OE4T/nvvidconv-plugin-wrapper.git;protocol=https"
 SRCBRANCH = "main"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
-# Corresponds to v1.0.0 tag
-SRCREV = "2eea65282ae3c385cf007dc61cd6ef6cf7b5d13a"
-PV = "1.0.0"
+# Corresponds to v1.0.1 tag
+SRCREV = "0b2f038a6c715e73e0c38ae8ec1680f4406d655d"
+PV = "1.0.1"
 
 S = "${WORKDIR}/git"
 
