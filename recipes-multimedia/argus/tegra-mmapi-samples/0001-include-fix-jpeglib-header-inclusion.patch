@@ -1,0 +1,42 @@
+From a648a9288177f49e8ae76e1fe36f5b5d5d5c4d60 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 30 Aug 2021 03:39:27 -0700
+Subject: [PATCH 1/9] include: fix jpeglib header inclusion
+
+To ensure that it's using the NVIDIA-specific header.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ include/NvJpegDecoder.h | 2 +-
+ include/NvJpegEncoder.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/include/NvJpegDecoder.h b/include/NvJpegDecoder.h
+index 1cbb85f..500c3d0 100644
+--- a/include/NvJpegDecoder.h
++++ b/include/NvJpegDecoder.h
+@@ -56,7 +56,7 @@
+ #endif
+ 
+ #include <stdio.h>
+-#include "jpeglib.h"
++#include "libjpeg-8b/jpeglib.h"
+ #include "NvElement.h"
+ #include "NvBuffer.h"
+ 
+diff --git a/include/NvJpegEncoder.h b/include/NvJpegEncoder.h
+index be40589..5b341b9 100644
+--- a/include/NvJpegEncoder.h
++++ b/include/NvJpegEncoder.h
+@@ -57,7 +57,7 @@
+ #endif
+ 
+ #include <stdio.h>
+-#include "jpeglib.h"
++#include "libjpeg-8b/jpeglib.h"
+ #include "NvElement.h"
+ #include "NvBuffer.h"
+ 
+-- 
+2.30.2
+

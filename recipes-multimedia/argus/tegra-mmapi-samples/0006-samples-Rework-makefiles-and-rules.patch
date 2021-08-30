@@ -1,0 +1,1204 @@
+From 16f97485a33c7530a59b00844c2559549993ac50 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 30 Aug 2021 03:42:26 -0700
+Subject: [PATCH 6/9] samples: Rework makefiles and rules
+
+* Make them more OE-friendly
+* Add install targets
+* Allow for object detection (opencv/TRT) to be optional
+* Rework references to common classes and algorithms
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile                                      |  9 +-
+ samples/00_video_decode/Makefile              | 10 +-
+ samples/01_video_encode/Makefile              | 10 +-
+ samples/02_video_dec_cuda/Makefile            | 20 +---
+ samples/03_video_cuda_enc/Makefile            | 21 +---
+ samples/04_video_dec_trt/Makefile             | 34 +++----
+ samples/05_jpeg_encode/Makefile               | 11 +--
+ samples/06_jpeg_decode/Makefile               | 10 +-
+ samples/07_video_convert/Makefile             | 10 +-
+ samples/08_video_dec_drm/Makefile             | 16 ++--
+ samples/09_camera_jpeg_capture/Makefile       | 14 +--
+ samples/10_camera_recording/Makefile          | 18 ++--
+ samples/12_camera_v4l2_cuda/Makefile          | 20 +---
+ samples/13_multi_camera/Makefile              | 14 +--
+ samples/14_multivideo_decode/Makefile         | 10 +-
+ samples/15_multivideo_encode/Makefile         | 10 +-
+ samples/16_multivideo_transcode/Makefile      | 10 +-
+ samples/Rules.mk                              | 96 +++++++++----------
+ samples/backend/Makefile                      | 41 ++++----
+ samples/common/algorithm/cuda/Makefile        | 16 ++--
+ samples/common/algorithm/trt/Makefile         | 11 ++-
+ samples/common/classes/Makefile               | 10 +-
+ samples/frontend/Makefile                     | 42 ++++----
+ .../camera_unit_sample/Makefile               | 10 +-
+ .../decoder_unit_sample/Makefile              | 10 +-
+ .../encoder_unit_sample/Makefile              | 10 +-
+ .../transform_unit_sample/Makefile            | 10 +-
+ samples/v4l2cuda/Makefile                     | 10 +-
+ 28 files changed, 208 insertions(+), 305 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 3729d4d..d1fcd9f 100644
+--- a/Makefile
++++ b/Makefile
+@@ -57,7 +57,7 @@ SUBDIRS = \
+ all:
+ 	@list='$(SUBDIRS)'; for subdir in $$list; do \
+ 		echo "Make in $$subdir";\
+-		$(MAKE) -C $$subdir;\
++		$(MAKE) -C $$subdir all;\
+ 		if [ $$? -ne 0 ]; then exit 1; fi;\
+ 	done
+ 
+@@ -67,3 +67,10 @@ clean:
+ 		echo "Clean in $$subdir";\
+ 		$(MAKE) -C $$subdir clean;\
+ 	done
++
++.PHONY: install
++install:
++	@list='$(SUBDIRS)'; for subdir in $$list; do \
++		echo "Install in $$subdir";\
++		$(MAKE) -C $$subdir install;\
++	done
+diff --git a/samples/00_video_decode/Makefile b/samples/00_video_decode/Makefile
+index 06239b1..e65ba7e 100644
+--- a/samples/00_video_decode/Makefile
++++ b/samples/00_video_decode/Makefile
+@@ -34,23 +34,19 @@ APP := video_decode
+ 
+ SRCS := \
+ 	video_decode_csvparser.cpp \
+-	video_decode_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	video_decode_main.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/01_video_encode/Makefile b/samples/01_video_encode/Makefile
+index 650b888..a14f4b4 100644
+--- a/samples/01_video_encode/Makefile
++++ b/samples/01_video_encode/Makefile
+@@ -34,23 +34,19 @@ APP := video_encode
+ 
+ SRCS := \
+ 	video_encode_csvparser.cpp \
+-	video_encode_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	video_encode_main.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/02_video_dec_cuda/Makefile b/samples/02_video_dec_cuda/Makefile
+index 31e8de8..97f8a4c 100644
+--- a/samples/02_video_dec_cuda/Makefile
++++ b/samples/02_video_dec_cuda/Makefile
+@@ -34,33 +34,19 @@ APP := video_dec_cuda
+ 
+ SRCS := \
+ 	videodec_csvparser.cpp \
+-	videodec_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	videodec_main.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+-OBJS += \
+-	$(ALGO_CUDA_DIR)/NvAnalysis.o \
+-	$(ALGO_CUDA_DIR)/NvCudaProc.o
+-
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cu
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes algo_cuda
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(ALGO_CUDA_OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/03_video_cuda_enc/Makefile b/samples/03_video_cuda_enc/Makefile
+index 7911c20..d0d0cc4 100644
+--- a/samples/03_video_cuda_enc/Makefile
++++ b/samples/03_video_cuda_enc/Makefile
+@@ -34,33 +34,20 @@ APP := video_cuda_enc
+ 
+ SRCS := \
+ 	video_cuda_enc_csvparser.cpp \
+-	video_cuda_enc_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	video_cuda_enc_main.cpp
+ 
+-OBJS := $(SRCS:.cpp=.o)
+ 
+-OBJS += \
+-	$(ALGO_CUDA_DIR)/NvAnalysis.o \
+-	$(ALGO_CUDA_DIR)/NvCudaProc.o
++OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cu
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes algo_cuda
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(ALGO_CUDA_OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/04_video_dec_trt/Makefile b/samples/04_video_dec_trt/Makefile
+index 2dcd621..1d35817 100644
+--- a/samples/04_video_dec_trt/Makefile
++++ b/samples/04_video_dec_trt/Makefile
+@@ -30,44 +30,36 @@
+ 
+ include ../Rules.mk
+ 
++ifneq ($(HAVE_OPENCV), 1)
++all:
++	:
++install:
++	:
++clean:
++	:
++else
+ APP := video_dec_trt
+ 
+ SRCS := \
+ 	video_dec_trt_csvparser.cpp \
+-	video_dec_trt_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	video_dec_trt_main.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+-OBJS += \
+-	$(ALGO_CUDA_DIR)/NvAnalysis.o \
+-	$(ALGO_CUDA_DIR)/NvCudaProc.o \
+-	$(ALGO_TRT_DIR)/trt_inference.o
+-
++CPPFLAGS += $(shell pkg-config --cflags opencv4)
+ LDFLAGS += -lopencv_objdetect \
+ 	-lnvinfer -lnvparsers -lnvonnxparser
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cu
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_TRT_DIR)/%.o: $(ALGO_TRT_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_TRT_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes algo_cuda algo_trt
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(ALGO_CUDA_OBJS) $(ALGO_TRT_OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
++endif
+diff --git a/samples/05_jpeg_encode/Makefile b/samples/05_jpeg_encode/Makefile
+index ebb6626..eebdb63 100644
+--- a/samples/05_jpeg_encode/Makefile
++++ b/samples/05_jpeg_encode/Makefile
+@@ -34,23 +34,20 @@ APP := jpeg_encode
+ 
+ SRCS := \
+ 	jpeg_encode_csvparser.cpp \
+-	jpeg_encode_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	jpeg_encode_main.cpp
++
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/06_jpeg_decode/Makefile b/samples/06_jpeg_decode/Makefile
+index 3f28db9..4d769f0 100644
+--- a/samples/06_jpeg_decode/Makefile
++++ b/samples/06_jpeg_decode/Makefile
+@@ -34,23 +34,19 @@ APP := jpeg_decode
+ 
+ SRCS := \
+ 	jpeg_decode_csvparser.cpp \
+-	jpeg_decode_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	jpeg_decode_main.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/07_video_convert/Makefile b/samples/07_video_convert/Makefile
+index 7edeb29..8af6299 100644
+--- a/samples/07_video_convert/Makefile
++++ b/samples/07_video_convert/Makefile
+@@ -34,23 +34,19 @@ APP := video_convert
+ 
+ SRCS := \
+ 	video_convert_csvparser.cpp \
+-	video_convert_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	video_convert_main.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/08_video_dec_drm/Makefile b/samples/08_video_dec_drm/Makefile
+index 5cb1be9..f59d7f7 100644
+--- a/samples/08_video_dec_drm/Makefile
++++ b/samples/08_video_dec_drm/Makefile
+@@ -34,12 +34,11 @@ APP := video_dec_drm
+ 
+ SRCS := \
+ 	video_dec_drm_csvparser.cpp \
+-	video_dec_drm.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	video_dec_drm.cpp
+ 
+ # Use python script to read out the RGBA value of given image file
+ # and store the result into a source file
+-PYTHON := /usr/bin/python
++PYTHON ?= python3
+ GET_PIXEL_PY := $(TOP_DIR)/tools/GetPixel.py
+ UI_BACKGROUND_IMAGE := $(TOP_DIR)/data/Picture/nvidia-logo.jpg
+ OBJS := image_rgba.o
+@@ -48,19 +47,16 @@ OBJS += $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+-image_rgba.cpp:
+-	$(PYTHON) $(GET_PIXEL_PY) -i $(UI_BACKGROUND_IMAGE) -o $@
++image_rgba.cpp: $(UI_BACKGROUND_IMAGE)
++	$(PYTHON) $(GET_PIXEL_PY) -i $< -o $@
+ 
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS) image_rgba.*
+diff --git a/samples/09_camera_jpeg_capture/Makefile b/samples/09_camera_jpeg_capture/Makefile
+index 52ee562..0fd68f8 100644
+--- a/samples/09_camera_jpeg_capture/Makefile
++++ b/samples/09_camera_jpeg_capture/Makefile
+@@ -36,10 +36,9 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
+ 
+ SRCS := \
+ 	main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp) \
+ 	$(ARGUS_UTILS_DIR)/Thread.cpp
+ 
+-OBJS := $(SRCS:.cpp=.o)
++OBJS := $(notdir $(SRCS:.cpp=.o))
+ 
+ CPPFLAGS += \
+ 	-I"$(ARGUS_UTILS_DIR)"
+@@ -49,16 +48,17 @@ LDFLAGS += \
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $< -o $@
+ 
+-$(APP): $(OBJS)
++%.o: $(ARGUS_UTILS_DIR)/%.cpp
++	@echo "Compiling: $<"
++	$(CPP) $(CPPFLAGS) -c $< -o $@
++
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/10_camera_recording/Makefile b/samples/10_camera_recording/Makefile
+index c3fdce9..fb4551d 100644
+--- a/samples/10_camera_recording/Makefile
++++ b/samples/10_camera_recording/Makefile
+@@ -36,12 +36,11 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
+ 
+ SRCS := \
+ 	main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp) \
+ 	$(ARGUS_UTILS_DIR)/Thread.cpp \
+ 	$(ARGUS_UTILS_DIR)/NativeBuffer.cpp \
+ 	$(ARGUS_UTILS_DIR)/nvmmapi/NvNativeBuffer.cpp
+ 
+-OBJS := $(SRCS:.cpp=.o)
++OBJS := $(notdir $(SRCS:.cpp=.o))
+ 
+ CPPFLAGS += \
+ 	-I"$(ARGUS_UTILS_DIR)"
+@@ -51,16 +50,21 @@ LDFLAGS += \
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $< -o $@
+ 
+-$(APP): $(OBJS)
++%.o: $(ARGUS_UTILS_DIR)/%.cpp
++	@echo "Compiling: $<"
++	$(CPP) $(CPPFLAGS) -c $< -o $@
++
++%.o: $(ARGUS_UTILS_DIR)/nvmmapi/%.cpp
++	@echo "Compiling: $<"
++	$(CPP) $(CPPFLAGS) -c $< -o $@
++
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/12_camera_v4l2_cuda/Makefile b/samples/12_camera_v4l2_cuda/Makefile
+index 0cc2e97..9a644db 100644
+--- a/samples/12_camera_v4l2_cuda/Makefile
++++ b/samples/12_camera_v4l2_cuda/Makefile
+@@ -33,33 +33,19 @@ include ../Rules.mk
+ APP := camera_v4l2_cuda
+ 
+ SRCS := \
+-	camera_v4l2_cuda.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	camera_v4l2_cuda.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+-OBJS += \
+-	$(ALGO_CUDA_DIR)/NvAnalysis.o \
+-	$(ALGO_CUDA_DIR)/NvCudaProc.o
+-
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cu
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes algo_cuda
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(ALGO_CUDA_OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/13_multi_camera/Makefile b/samples/13_multi_camera/Makefile
+index b600351..73cb468 100644
+--- a/samples/13_multi_camera/Makefile
++++ b/samples/13_multi_camera/Makefile
+@@ -36,10 +36,9 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
+ 
+ SRCS := \
+ 	main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp) \
+ 	$(ARGUS_UTILS_DIR)/Thread.cpp
+ 
+-OBJS := $(SRCS:.cpp=.o)
++OBJS := $(notdir $(SRCS:.cpp=.o))
+ 
+ CPPFLAGS += \
+ 	-I"$(ARGUS_UTILS_DIR)"
+@@ -49,16 +48,17 @@ LDFLAGS += \
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $< -o $@
+ 
+-$(APP): $(OBJS)
++%.o: $(ARGUS_UTILS_DIR)/%.cpp
++	@echo "Compiling: $<"
++	$(CPP) $(CPPFLAGS) -c $< -o $@
++
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/14_multivideo_decode/Makefile b/samples/14_multivideo_decode/Makefile
+index 0e13ef9..80d5d6c 100644
+--- a/samples/14_multivideo_decode/Makefile
++++ b/samples/14_multivideo_decode/Makefile
+@@ -34,23 +34,19 @@ APP := multivideo_decode
+ 
+ SRCS := \
+ 	multivideo_decode_csvparser.cpp \
+-	multivideo_decode_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	multivideo_decode_main.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/15_multivideo_encode/Makefile b/samples/15_multivideo_encode/Makefile
+index 2121764..9ac26e8 100644
+--- a/samples/15_multivideo_encode/Makefile
++++ b/samples/15_multivideo_encode/Makefile
+@@ -34,23 +34,19 @@ APP := multivideo_encode
+ 
+ SRCS := \
+ 	multivideo_encode_csvparser.cpp \
+-	multivideo_encode_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	multivideo_encode_main.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/16_multivideo_transcode/Makefile b/samples/16_multivideo_transcode/Makefile
+index df65641..9b7394e 100644
+--- a/samples/16_multivideo_transcode/Makefile
++++ b/samples/16_multivideo_transcode/Makefile
+@@ -34,23 +34,19 @@ APP := multivideo_transcode
+ 
+ SRCS := \
+ 	multivideo_transcode_csvparser.cpp \
+-	multivideo_transcode_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	multivideo_transcode_main.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/Rules.mk b/samples/Rules.mk
+index da172ab..6e8fb57 100644
+--- a/samples/Rules.mk
++++ b/samples/Rules.mk
+@@ -28,10 +28,6 @@
+ #
+ ###############################################################################
+ 
+-# Clear the flags from env
+-CPPFLAGS :=
+-LDFLAGS :=
+-
+ # Verbose flag
+ ifeq ($(VERBOSE), 1)
+ AT =
+@@ -39,71 +35,65 @@ else
+ AT = @
+ endif
+ 
+-# ARM ABI of the target platform
+-ifeq ($(TEGRA_ARMABI),)
+-TEGRA_ARMABI ?= aarch64-linux-gnu
++ifneq ($(CXXFLAGS),)
++CPPFLAGS = $(CXXFLAGS)
+ endif
+ 
+-# Location of the target rootfs
+-ifeq ($(shell uname -m), aarch64)
+-TARGET_ROOTFS :=
+-else
+-ifeq ($(TARGET_ROOTFS),)
+-$(error Please specify the target rootfs path if you are cross-compiling)
+-endif
++ifneq ($(CXX),)
++CPP = $(CXX)
+ endif
+ 
+-# Location of the CUDA Toolkit
+-CUDA_PATH 	:= /usr/local/cuda
++.PHONY: all clean install
+ 
+ # Use absolute path for better access from everywhere
+ TOP_DIR 	:= $(shell pwd | awk '{split($$0, f, "/samples"); print f[1]}')
+ CLASS_DIR 	:= $(TOP_DIR)/samples/common/classes
+ ALGO_CUDA_DIR 	:= $(TOP_DIR)/samples/common/algorithm/cuda
+-ALGO_TRT_DIR 	:= $(TOP_DIR)/samples/common/algorithm/trt
+-
+-ifeq ($(shell uname -m), aarch64)
+-CROSS_COMPILE :=
+-else
+-CROSS_COMPILE ?= aarch64-unknown-linux-gnu-
+-endif
+-AS             = $(AT) $(CROSS_COMPILE)as
+-LD             = $(AT) $(CROSS_COMPILE)ld
+-CC             = $(AT) $(CROSS_COMPILE)gcc
+-CPP            = $(AT) $(CROSS_COMPILE)g++
+-AR             = $(AT) $(CROSS_COMPILE)ar
+-NM             = $(AT) $(CROSS_COMPILE)nm
+-STRIP          = $(AT) $(CROSS_COMPILE)strip
+-OBJCOPY        = $(AT) $(CROSS_COMPILE)objcopy
+-OBJDUMP        = $(AT) $(CROSS_COMPILE)objdump
+-NVCC           = $(AT) $(CUDA_PATH)/bin/nvcc -ccbin $(filter-out $(AT), $(CPP))
+-
+-# Specify the logical root directory for headers and libraries.
+-ifneq ($(TARGET_ROOTFS),)
+-CPPFLAGS += --sysroot=$(TARGET_ROOTFS)
+-LDFLAGS += \
+-	-Wl,-rpath-link=$(TARGET_ROOTFS)/lib/$(TEGRA_ARMABI) \
+-	-Wl,-rpath-link=$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI) \
+-	-Wl,-rpath-link=$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)/tegra \
+-	-Wl,-rpath-link=$(TARGET_ROOTFS)/$(CUDA_PATH)/lib64
+-endif
+ 
+ # All common header files
+ CPPFLAGS += -std=c++11 \
+ 	-I"$(TOP_DIR)/include" \
+-	-I"$(TOP_DIR)/include/libjpeg-8b" \
+ 	-I"$(ALGO_CUDA_DIR)" \
+-	-I"$(ALGO_TRT_DIR)" \
+-	-I"$(TARGET_ROOTFS)/$(CUDA_PATH)/include" \
+-	-I"$(TARGET_ROOTFS)/usr/include/$(TEGRA_ARMABI)" \
+-	-I"$(TARGET_ROOTFS)/usr/include/libdrm" \
+-	-I"$(TARGET_ROOTFS)/usr/include/opencv4"
++        $(shell pkg-config --cflags libdrm)
++
++ifneq ($(HAVE_TENSORRT),)
++ALGO_TRT_DIR 	:= $(TOP_DIR)/samples/common/algorithm/trt
++CPPFLAGS += -I"$(ALGO_TRT_DIR)"
++endif
+ 
+ # All common dependent libraries
+ LDFLAGS += \
+ 	-lpthread -lv4l2 -lEGL -lGLESv2 -lX11 \
+ 	-lnvbuf_utils -lnvjpeg -lnvosd -ldrm \
+-	-lcuda -lcudart \
+-	-L"$(TARGET_ROOTFS)/$(CUDA_PATH)/lib64" \
+-	-L"$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)" \
+-	-L"$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)/tegra"
++	-lcuda -lcudart
++
++.DEFAULT_GOAL: all
++
++ifneq ($(BUILDING_CLASSES),1)
++.PHONY: classes
++classes:
++	$(AT)$(MAKE) -C $(CLASS_DIR) all
++CLASSES := $(CLASS_DIR)/libnvclasses.a
++endif
++
++ifneq ($(BUILDING_ALGO_CUDA),1)
++.PHONY: algo_cuda
++algo_cuda:
++	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR) all
++ALGO_CUDA_OBJS := $(ALGO_CUDA_DIR)/NvAnalysis.o $(ALGO_CUDA_DIR)/NvCudaProc.o
++endif
++
++ifneq ($(BUILDING_ALGO_TRT),1)
++.PHONY: algo_trt
++algo_trt:
++	$(AT)$(MAKE) -C $(ALGO_TRT_DIR) all
++ALGO_TRT_OBJS := $(ALGO_TRT_DIR)/trt_inference.o
++endif
++
++prefix = /opt/tegra-mmapi
++exec_prefix = $(prefix)
++bindir = $(exec_prefix)/bin
++
++install: $(APP)
++	[ -z "$(APP)" ] || install -d $(DESTDIR)$(bindir)
++	[ -z "$(APP)" ] || install -m 0755 $(APP) $(DESTDIR)$(bindir)
+diff --git a/samples/backend/Makefile b/samples/backend/Makefile
+index 13389e8..145241d 100644
+--- a/samples/backend/Makefile
++++ b/samples/backend/Makefile
+@@ -30,28 +30,34 @@
+ 
+ include ../Rules.mk
+ 
++ifneq ($(HAVE_OPENCV), 1)
++all:
++	:
++install:
++	:
++clean:
++	:
++else
++
+ APP := backend
+ 
+ ENABLE_TRT ?= 1
+ 
+ SRCS := \
+ 	v4l2_backend_csvparser.cpp \
+-	v4l2_backend_main.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	v4l2_backend_main.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+-OBJS += \
+-	$(ALGO_CUDA_DIR)/NvAnalysis.o \
+-	$(ALGO_CUDA_DIR)/NvCudaProc.o
+-
++LINKDEPS = classes algo_cuda
++EXTRAOBJS = $(ALGO_CUDA_OBJS)
+ ifeq ($(ENABLE_TRT), 1)
+ CPPFLAGS += -DENABLE_TRT
+-
+-OBJS += \
+-	$(ALGO_TRT_DIR)/trt_inference.o
++LINKDEPS += algo_trt
++EXTRAOBJS += $(ALGO_TRT_OBJS)
+ endif
+ 
++CPPFLAGS += $(shell pkg-config --cflags opencv4)
+ LDFLAGS += -lopencv_objdetect
+ ifeq ($(ENABLE_TRT), 1)
+ LDFLAGS += 	-lnvinfer -lnvparsers -lnvonnxparser
+@@ -59,25 +65,14 @@ endif
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cu
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_TRT_DIR)/%.o: $(ALGO_TRT_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_TRT_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) $(LINKDEPS)
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(EXTRAOBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
++endif
+diff --git a/samples/common/algorithm/cuda/Makefile b/samples/common/algorithm/cuda/Makefile
+index dc40f07..86c5a0d 100644
+--- a/samples/common/algorithm/cuda/Makefile
++++ b/samples/common/algorithm/cuda/Makefile
+@@ -28,6 +28,8 @@
+ #
+ ###############################################################################
+ 
++BUILDING_ALGO_CUDA := 1
++
+ include ../../../Rules.mk
+ 
+ # Internal flags
+@@ -43,15 +45,11 @@ endif
+ ALL_CPPFLAGS := $(NVCCFLAGS)
+ ALL_CPPFLAGS += $(addprefix -Xcompiler ,$(filter-out -std=c++11, $(CPPFLAGS)))
+ 
+-# CUDA code generation flags
+-GENCODE_SM53 := -gencode arch=compute_53,code=sm_53
+-GENCODE_SM62 := -gencode arch=compute_62,code=sm_62
+-GENCODE_SM72 := -gencode arch=compute_72,code=sm_72
+-GENCODE_SM_PTX := -gencode arch=compute_72,code=compute_72
+-GENCODE_FLAGS := $(GENCODE_SM53) $(GENCODE_SM62) $(GENCODE_SM72) $(GENCODE_SM_PTX)
+-
+ # Target rules
+-all: NvAnalysis.o NvCudaProc.o
++all: algo_cuda.built
++
++algo_cuda.built: NvAnalysis.o NvCudaProc.o
++	touch $@
+ 
+ NvAnalysis.o : NvAnalysis.cu
+ 	@echo "Compiling: $<"
+@@ -62,4 +60,4 @@ NvCudaProc.o : NvCudaProc.cpp
+ 	$(NVCC) $(ALL_CPPFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
+ 
+ clean:
+-	$(AT)rm -rf *.o
++	$(AT)rm -rf *.o algo_cuda.built
+diff --git a/samples/common/algorithm/trt/Makefile b/samples/common/algorithm/trt/Makefile
+index f782ae0..e24ae57 100644
+--- a/samples/common/algorithm/trt/Makefile
++++ b/samples/common/algorithm/trt/Makefile
+@@ -28,17 +28,24 @@
+ #
+ ###############################################################################
+ 
++BUILDING_ALGO_TRT := 1
++
+ include ../../../Rules.mk
+ 
+ SRCS := $(wildcard *.cpp)
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+-all: $(OBJS)
++CPPFLAGS += $(shell pkg-config --cflags opencv4)
++
++all: algo_trt.built
++
++algo_trt.built: $(OBJS)
++	touch $@
+ 
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -Wno-deprecated-declarations -c $<
+ 
+ clean:
+-	$(AT)rm -rf $(APP) $(OBJS)
++	$(AT)rm -rf $(APP) $(OBJS) algo_trt.built
+diff --git a/samples/common/classes/Makefile b/samples/common/classes/Makefile
+index 7336298..82e2bb8 100644
+--- a/samples/common/classes/Makefile
++++ b/samples/common/classes/Makefile
+@@ -28,13 +28,21 @@
+ #
+ ###############################################################################
+ 
++BUILDING_CLASSES := 1
++
+ include ../../Rules.mk
+ 
+ SRCS:= $(wildcard *.cpp)
+ 
+ OBJS:= $(SRCS:.cpp=.o)
+ 
+-all: $(OBJS)
++all: classes.built
++
++classes.built: libnvclasses.a
++	touch $@
++
++libnvclasses.a: $(OBJS)
++	$(AT)$(AR) rsc $@ $^
+ 
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+diff --git a/samples/frontend/Makefile b/samples/frontend/Makefile
+index 35f3f56..8bfafb3 100644
+--- a/samples/frontend/Makefile
++++ b/samples/frontend/Makefile
+@@ -30,6 +30,15 @@
+ 
+ include ../Rules.mk
+ 
++ifneq ($(HAVE_OPENCV), 1)
++all:
++	:
++install:
++	:
++clean:
++	:
++else
++
+ APP := frontend
+ 
+ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
+@@ -41,7 +50,6 @@ SRCS := \
+ 	StreamConsumer.cpp \
+ 	VideoEncodeStreamConsumer.cpp \
+ 	VideoEncoder.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp) \
+ 	$(ARGUS_UTILS_DIR)/Thread.cpp
+ 
+ ifeq ($(ENABLE_TRT), 1)
+@@ -49,18 +57,17 @@ SRCS += \
+ 	TRTStreamConsumer.cpp
+ endif
+ 
+-OBJS := $(SRCS:.cpp=.o)
++OBJS := $(notdir $(SRCS:.cpp=.o))
+ 
+ ifeq ($(ENABLE_TRT), 1)
+ CPPFLAGS += -DENABLE_TRT
+-OBJS += \
+-	$(ALGO_CUDA_DIR)/NvAnalysis.o \
+-	$(ALGO_CUDA_DIR)/NvCudaProc.o \
+-	$(ALGO_TRT_DIR)/trt_inference.o
++LINKDEPS = algo_cuda algo_trt
++EXTRAOBJS = $(ALGO_CUDA_OBJS) $(ALGO_TRT_OBJS)
+ endif
+ 
+ CPPFLAGS += \
+-	-I"$(ARGUS_UTILS_DIR)"
++	-I"$(ARGUS_UTILS_DIR)" \
++	$(shell pkg-config --cflags opencv4)
+ 
+ LDFLAGS += -lnvargus_socketclient -lopencv_objdetect
+ ifeq ($(ENABLE_TRT), 1)
+@@ -69,25 +76,18 @@ endif
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cu
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_TRT_DIR)/%.o: $(ALGO_TRT_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_TRT_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $< -o $@
+ 
+-$(APP): $(OBJS)
++%.o: $(ARGUS_UTILS_DIR)/%.cpp
++	@echo "Compiling: $<"
++	$(CPP) $(CPPFLAGS) -c $< -o $@
++
++$(APP): $(OBJS) $(LINKDEPS)
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(EXTRAOBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
++endif
+diff --git a/samples/unittest_samples/camera_unit_sample/Makefile b/samples/unittest_samples/camera_unit_sample/Makefile
+index 790a322..ec63a2d 100644
+--- a/samples/unittest_samples/camera_unit_sample/Makefile
++++ b/samples/unittest_samples/camera_unit_sample/Makefile
+@@ -35,23 +35,19 @@ APP := camera_sample
+ SRCS := \
+ 	camera_unit_sample.cpp \
+ 	camera_unit_sample_parser.cpp \
+-	camera_unit_sample_ctrls.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	camera_unit_sample_ctrls.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/unittest_samples/decoder_unit_sample/Makefile b/samples/unittest_samples/decoder_unit_sample/Makefile
+index 16b6a0a..e6f813a 100644
+--- a/samples/unittest_samples/decoder_unit_sample/Makefile
++++ b/samples/unittest_samples/decoder_unit_sample/Makefile
+@@ -33,23 +33,19 @@ include ../../Rules.mk
+ APP := decode_sample
+ 
+ SRCS := \
+-	decoder_unit_sample.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	decoder_unit_sample.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/unittest_samples/encoder_unit_sample/Makefile b/samples/unittest_samples/encoder_unit_sample/Makefile
+index d372602..f1d6428 100644
+--- a/samples/unittest_samples/encoder_unit_sample/Makefile
++++ b/samples/unittest_samples/encoder_unit_sample/Makefile
+@@ -33,23 +33,19 @@ include ../../Rules.mk
+ APP := encode_sample
+ 
+ SRCS := \
+-	encoder_unit_sample.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	encoder_unit_sample.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/unittest_samples/transform_unit_sample/Makefile b/samples/unittest_samples/transform_unit_sample/Makefile
+index 404429b..1ede2ab 100644
+--- a/samples/unittest_samples/transform_unit_sample/Makefile
++++ b/samples/unittest_samples/transform_unit_sample/Makefile
+@@ -33,23 +33,19 @@ include ../../Rules.mk
+ APP := transform_sample
+ 
+ SRCS := \
+-	transform_unit_sample.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	transform_unit_sample.cpp
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+ 
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/v4l2cuda/Makefile b/samples/v4l2cuda/Makefile
+index 720fb96..f856671 100644
+--- a/samples/v4l2cuda/Makefile
++++ b/samples/v4l2cuda/Makefile
+@@ -26,14 +26,8 @@ SRCS := \
+ 	capture.cpp \
+ 	yuv2rgb.cu
+ 
+-ALL_CPPFLAGS := $(addprefix -Xcompiler ,$(filter-out -std=c++11, $(CPPFLAGS)))
+-
+-# CUDA code generation flags
+-GENCODE_SM53 := -gencode arch=compute_53,code=sm_53
+-GENCODE_SM62 := -gencode arch=compute_62,code=sm_62
+-GENCODE_SM72 := -gencode arch=compute_72,code=sm_72
+-GENCODE_SM_PTX := -gencode arch=compute_72,code=compute_72
+-GENCODE_FLAGS := $(GENCODE_SM53) $(GENCODE_SM62) $(GENCODE_SM72) $(GENCODE_SM_PTX)
++ALL_CPPFLAGS := $(NVCCFLAGS)
++ALL_CPPFLAGS += $(addprefix -Xcompiler ,$(filter-out -std=c++11, $(CPPFLAGS)))
+ 
+ all: $(APP)
+ 
+-- 
+2.30.2
+
