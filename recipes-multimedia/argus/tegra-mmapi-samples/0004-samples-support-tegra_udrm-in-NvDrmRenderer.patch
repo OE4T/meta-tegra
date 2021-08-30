@@ -1,0 +1,112 @@
+From 3cde01ddc2074192bc0d6edbcde29a75a5fbb3b0 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 30 Aug 2021 03:57:45 -0700
+Subject: [PATCH 4/9] samples: support tegra_udrm in NvDrmRenderer
+
+The class was hard-coded to check for the old drm-nvdc
+device only.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ include/NvDrmRenderer.h                  |  1 +
+ samples/common/classes/NvDrmRenderer.cpp | 36 +++++++++++++++++++++---
+ 2 files changed, 33 insertions(+), 4 deletions(-)
+
+diff --git a/include/NvDrmRenderer.h b/include/NvDrmRenderer.h
+index 243c895..985b299 100644
+--- a/include/NvDrmRenderer.h
++++ b/include/NvDrmRenderer.h
+@@ -266,6 +266,7 @@ private:
+     bool flipPending;
+     bool renderingStarted;
+     bool planeIsSet;
++    bool isNvdc;
+ 
+     uint32_t hdrBlobId;
+     bool hdrBlobCreated;
+diff --git a/samples/common/classes/NvDrmRenderer.cpp b/samples/common/classes/NvDrmRenderer.cpp
+index 52885ca..aee18cb 100644
+--- a/samples/common/classes/NvDrmRenderer.cpp
++++ b/samples/common/classes/NvDrmRenderer.cpp
+@@ -13,6 +13,8 @@
+ 
+ #include <sys/time.h>
+ #include <sys/poll.h>
++#include <sys/mman.h>
++#include <fcntl.h>
+ #include <unistd.h>
+ #include <string.h>
+ #include <xf86drm.h>
+@@ -26,7 +28,8 @@
+ using namespace std;
+ 
+ #define CAT_NAME "DrmRenderer"
+-#define DRM_DEVICE_NAME "drm-nvdc"
++#define DRM_DEVICE_UDRM "/dev/dri/card0"
++#define DRM_DEVICE_NVDC "drm-nvdc"
+ #define ZERO_FD 0x0
+ 
+ struct NvBufDrmParams
+@@ -181,6 +184,7 @@ NvDrmRenderer::NvDrmRenderer(const char *name, uint32_t w, uint32_t h,
+   drmModeEncoder* drm_enc_info = NULL;
+   drmModeCrtc* drm_crtc_info = NULL;
+   uint32_t crtc_mask;
++  const char *devname;
+   int i;
+   conn = aconn;
+   crtc = acrtc;
+@@ -196,9 +200,18 @@ NvDrmRenderer::NvDrmRenderer(const char *name, uint32_t w, uint32_t h,
+   log_level = LOG_LEVEL_ERROR;
+   last_render_time.tv_sec = 0;
+ 
+-  drm_fd = drmOpen(DRM_DEVICE_NAME, NULL);
++  if (access(DRM_DEVICE_UDRM, F_OK) == 0) {
++    devname = DRM_DEVICE_UDRM;
++    drm_fd = open(DRM_DEVICE_UDRM, O_RDWR, 0);
++    isNvdc = false;
++  } else {
++    devname = DRM_DEVICE_NVDC;
++    drm_fd = drmOpen(DRM_DEVICE_NVDC, NULL);
++    isNvdc = true;
++  }
++
+   if (drm_fd == -1) {
+-    COMP_ERROR_MSG("Couldn't open device: " << DRM_DEVICE_NAME);
++    COMP_ERROR_MSG("Couldn't open device: " << devname);
+     goto error;
+   }
+   // Obtain DRM-KMS resources
+@@ -833,6 +846,7 @@ NvDrmRenderer::createDumbBO(int width, int height, int bpp, NvDrmBO *bo)
+   /* prepare buffer for memory mapping */
+   memset(&mreq, 0, sizeof(mreq));
+   mreq.handle = creq.handle;
++
+   ret = drmIoctl(drm_fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
+   if (ret) {
+     COMP_ERROR_MSG("cannot map dumb buffer\n");
+@@ -840,7 +854,21 @@ NvDrmRenderer::createDumbBO(int width, int height, int bpp, NvDrmBO *bo)
+     goto err_destroy;
+   }
+ 
+-  map = (uint8_t*)(mreq.offset);
++  if (isNvdc) {
++    map = (uint8_t*)(mreq.offset);
++    if (map == NULL) {
++      COMP_ERROR_MSG("no mapping for nvdc dumb buffer\n");
++      ret = -ENOMEM;
++      goto err_destroy;
++    }
++  } else {
++    map = (uint8_t *) mmap(0, creq.size, PROT_READ|PROT_WRITE, MAP_SHARED, drm_fd, mreq.offset);
++    if (map == MAP_FAILED) {
++      COMP_ERROR_MSG("cannot map dumb buffer\n");
++      ret = -errno;
++      goto err_destroy;
++    }
++  }
+ 
+   /* clear the buffer object */
+   memset(map, 0x00, creq.size);
+-- 
+2.30.2
+

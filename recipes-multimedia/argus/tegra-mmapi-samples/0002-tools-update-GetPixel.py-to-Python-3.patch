@@ -1,0 +1,49 @@
+From 7cdb8cedd669ce3d0b872783be3cce6c13082527 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 30 Aug 2021 03:43:54 -0700
+Subject: [PATCH 2/9] tools: update GetPixel.py to Python 3
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ tools/GetPixel.py | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/tools/GetPixel.py b/tools/GetPixel.py
+index 2109c25..21464d7 100755
+--- a/tools/GetPixel.py
++++ b/tools/GetPixel.py
+@@ -1,4 +1,4 @@
+-#!/usr/bin/env python2
++#!/usr/bin/env python3
+ ###############################################################################
+ #
+ # Copyright (c) 2017, NVIDIA CORPORATION. All rights reserved.
+@@ -41,8 +41,8 @@ if os.path.isfile(args.image):
+     try:
+         from PIL import Image
+     except ImportError:
+-        print "WARN: don't error out if PIL is not installed, instead to create a color pattern."
+-        print "Alternatively, you can install it by <sudo apt-get install python-imaging>"
++        print("WARN: don't error out if PIL is not installed, instead to create a color pattern.")
++        print("Alternatively, you can install it by <sudo apt-get install python-imaging>")
+         file = open(args.output, 'w')
+         file.write('\n\n//Auto-generated file! Do not edit it!\n\n')
+         file.write('unsigned int image_w = 640;\n')
+@@ -62,7 +62,7 @@ if os.path.isfile(args.image):
+     im = Image.open(args.image)
+     pix = im.load()
+     dim = im.size
+-    print "The image size is " + str(dim[0]) + " x " + str(dim[1])
++    print("The image size is " + str(dim[0]) + " x " + str(dim[1]))
+     file = open(args.output, 'w')
+     file.write('\n\n//Auto-generated file! Do not edit it!\n\n')
+     file.write('unsigned int image_w = ' + str(dim[0]) + ';\n')
+@@ -79,4 +79,4 @@ if os.path.isfile(args.image):
+     file.write('};');
+     file.close()
+ else:
+-    print "ERROR: the image file is not existing"
++    print("ERROR: the image file is not existing")
+-- 
+2.30.2
+
