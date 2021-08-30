@@ -1,11 +1,9 @@
 HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD"
 
+# This is the t186 package, but the t210 version's content is identical
 SRC_SOC_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}-20210726122859_arm64.deb;subdir=tegra-mmapi"
-SRC_SOC_DEBS_tegra210 = "nvidia-l4t-jetson-multimedia-api_${PV}-20210726122000_arm64.deb;subdir=tegra-mmapi"
-SRC_SHA256SUM = "53c18c5e2c8296b3d047eff9f3647263cc72b7b8a6dbe3d63deb600b145640f5"
-SRC_SHA256SUM_tegra210 = "93903b08c1c86b3ccf5d640e7930869656836698ef5237ecdceed916fd282bec"
-SRC_URI[sha256sum] = "${SRC_SHA256SUM}"
+SRC_URI[sha256sum] = "53c18c5e2c8296b3d047eff9f3647263cc72b7b8a6dbe3d63deb600b145640f5"
 
 inherit l4t_deb_pkgfeed
 
@@ -18,4 +16,3 @@ B = "${S}"
 COMPATIBLE_MACHINE = "(tegra)"
 
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
-PACKAGE_ARCH_tegra210 = "${SOC_FAMILY_PKGARCH}"
