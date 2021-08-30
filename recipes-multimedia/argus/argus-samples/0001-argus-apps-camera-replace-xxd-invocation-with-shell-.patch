@@ -1,0 +1,44 @@
+From 3c24a3546305d50f7b2330f3b6b62f8b667c1ff0 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 30 Aug 2021 03:36:02 -0700
+Subject: [PATCH] argus/apps/camera: replace xxd invocation with shell script
+
+The xxd command is part of vim, which isn't really a build
+tool.  Use a shell script to perform the header file creation
+instead.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ argus/apps/camera/ui/camera/CMakeLists.txt | 3 ++-
+ argus/apps/camera/ui/camera/xxd.sh         | 4 ++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+ create mode 100644 argus/apps/camera/ui/camera/xxd.sh
+
+diff --git a/argus/apps/camera/ui/camera/CMakeLists.txt b/argus/apps/camera/ui/camera/CMakeLists.txt
+index 8a0e5a8..f500570 100644
+--- a/argus/apps/camera/ui/camera/CMakeLists.txt
++++ b/argus/apps/camera/ui/camera/CMakeLists.txt
+@@ -32,8 +32,9 @@ set(GEN_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cameraBuilder.h)
+ 
+ add_custom_command(
+    OUTPUT ${GEN_OUTPUT}
+-   COMMAND xxd -i < ${GEN_INPUT} > ${GEN_OUTPUT}
++   COMMAND sh ${CMAKE_CURRENT_SOURCE_DIR}/xxd.sh ${GEN_INPUT} ${GEN_OUTPUT}
+    DEPENDS ${GEN_INPUT}
++   VERBATIM
+ )
+ #end generate source
+ 
+diff --git a/argus/apps/camera/ui/camera/xxd.sh b/argus/apps/camera/ui/camera/xxd.sh
+new file mode 100644
+index 0000000..cf89987
+--- /dev/null
++++ b/argus/apps/camera/ui/camera/xxd.sh
+@@ -0,0 +1,4 @@
++set -x
++od -tx1 -v "$1" | sed -r -e's,^[0-9a-f]+, ,' -e's! ([0-9a-f][0-9a-f])! 0x\1,!g' > "$2"
++truncate --size="-4" "$2"
++set +x
+-- 
+2.30.2
+
