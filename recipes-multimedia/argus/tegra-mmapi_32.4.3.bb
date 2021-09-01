@@ -1,4 +1,4 @@
-DESCRIPTION = "NVIDIA Tegra Multimedia API headers"
+DESCRIPTION = "NVIDIA Tegra Multimedia API headers subset for Argus, nvosd, and nvbuf APIs"
 
 require tegra-mmapi-${PV}.inc
 
