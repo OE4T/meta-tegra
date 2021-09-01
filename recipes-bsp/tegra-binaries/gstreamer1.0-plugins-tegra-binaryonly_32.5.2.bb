@@ -6,8 +6,11 @@ inherit container-runtime-csv
 CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/gstreamer-1.0/*.so*"
 
 DEPENDS = "\
+	glib-2.0 \
 	gstreamer1.0-plugins-base \
+	tegra-libraries \
 	${@bb.utils.contains('DISTRO_FEATURES', ['x11', 'alsa'], 'virtual/libx11 alsa-lib', '', d)} \
+	libdrm virtual/egl virtual/libgles2 \
 "
 
 do_configure() {
@@ -47,7 +50,6 @@ DEBIAN_NOAUTONAME_${PN} = "1"
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
-INSANE_SKIP_${PN}-nvcompositor = "dev-so ldflags build-deps"
-INSANE_SKIP_${PN} = "dev-so ldflags build-deps"
-RDEPENDS_${PN} = "gstreamer1.0 libgstvideo-1.0 glib-2.0 libegl tegra-libraries libdrm"
+INSANE_SKIP_${PN}-nvcompositor = "dev-so ldflags"
+INSANE_SKIP_${PN} = "dev-so ldflags"
 RRECOMMENDS_${PN} = "gstreamer1.0-plugins-nvarguscamerasrc gstreamer1.0-plugins-nvv4l2camerasrc"
