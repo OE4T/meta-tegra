@@ -1,6 +1,7 @@
 HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD"
 
+L4T_DEB_SOCNAME = "t186"
 SRC_SOC_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}-20200625213407_arm64.deb;subdir=tegra-mmapi"
 SRC_URI[sha256sum] = "a639090aa97441790f59e6946cdd558e8d2873678421b4cf6fdee77adfb22d1d"
 FILESEXTRAPATHS_prepend := "${THISDIR}/tegra-mmapi:"
