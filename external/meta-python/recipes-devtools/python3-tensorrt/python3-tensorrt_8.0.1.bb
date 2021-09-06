@@ -10,10 +10,10 @@ inherit setuptools3 cmake cuda
 SRC_REPO = "github.com/NVIDIA/TensorRT.git;protocol=https"
 SRCBRANCH = "master"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH} \
-           file://0001-Do-not-overwrite-CMAKE_CXX_FLAGS.patch \
-           file://0002-pyOnnx-fixups-for-TensorRT-7.1-API.patch \
+           file://0001-Fixups-for-cross-building-in-OE.patch \
            "
-SRCREV = "ab20a8ac26da03df5e434b4f9d1da0156ca019b6"
+# 8.0.1 tag
+SRCREV = "eb5de99b523c76c2f3ae997855ad86d3a1e86a31"
 
 S = "${WORKDIR}/git"
 
