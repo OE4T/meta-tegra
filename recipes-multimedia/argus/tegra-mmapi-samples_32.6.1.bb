@@ -12,8 +12,9 @@ SRC_URI += "\
     file://0004-samples-support-tegra_udrm-in-NvDrmRenderer.patch \
     file://0005-Remove-DO-NOT-USE-declarations-from-v4l2_nv_extensio.patch \
     file://0006-samples-Rework-makefiles-and-rules.patch \
-    file://0007-frontend-add-option-to-set-timeout.patch \
-    file://0008-camera_v4l2_cuda-add-option-for-setting-max-frame-co.patch \
+    file://0007-trt_inference-use-smart-pointers-during-model-conver.patch \
+    file://0008-frontend-add-option-to-set-timeout.patch \
+    file://0009-camera_v4l2_cuda-add-option-for-setting-max-frame-co.patch \
 "
 
 DEPENDS = "libdrm tegra-mmapi tegra-libraries virtual/egl virtual/libgles1 virtual/libgles2 jpeg expat gstreamer1.0 glib-2.0 libv4l pango"

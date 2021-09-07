@@ -1,7 +1,7 @@
-From d330a09e5d6e286f3c8b986e6828ceeada59a304 Mon Sep 17 00:00:00 2001
+From a648a9288177f49e8ae76e1fe36f5b5d5d5c4d60 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 30 Aug 2021 03:39:27 -0700
-Subject: [PATCH 1/8] include: fix jpeglib header inclusion
+Subject: [PATCH 1/9] include: fix jpeglib header inclusion
 
 To ensure that it's using the NVIDIA-specific header.
 

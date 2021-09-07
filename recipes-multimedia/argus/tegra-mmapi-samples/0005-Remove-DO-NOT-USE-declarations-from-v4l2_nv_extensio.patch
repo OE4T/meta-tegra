@@ -1,7 +1,7 @@
-From f5ab95c8292eb04e09f3b11a90b3eeeb2308d6c8 Mon Sep 17 00:00:00 2001
+From 05e71ef677d23b77b56241c24956407aa89f93e4 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 11 Jul 2021 08:10:18 -0700
-Subject: [PATCH 5/8] Remove DO NOT USE declarations from v4l2_nv_extensions.h
+Subject: [PATCH 5/9] Remove DO NOT USE declarations from v4l2_nv_extensions.h
 
 as they are now present in v4l2-controls.h and conflict
 with the definitions there.
@@ -12,10 +12,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 264 deletions(-)
 
 diff --git a/include/v4l2_nv_extensions.h b/include/v4l2_nv_extensions.h
-index b6d87c7..3c8e0d4 100644
+index d1660f1..e36d9cc 100644
 --- a/include/v4l2_nv_extensions.h
 +++ b/include/v4l2_nv_extensions.h
-@@ -105,21 +105,6 @@
+@@ -115,21 +115,6 @@
   */
  #define V4L2_EVENT_RESOLUTION_CHANGE        5
  
@@ -37,7 +37,7 @@ index b6d87c7..3c8e0d4 100644
  
  /**
   * Defines the control ID to set the H.265 encoder profile.
-@@ -146,255 +131,6 @@ enum v4l2_mpeg_video_h265_profile {
+@@ -156,255 +141,6 @@ enum v4l2_mpeg_video_h265_profile {
   */
  #define V4L2_CID_MPEG_VIDEO_IDR_INTERVAL        (V4L2_CID_MPEG_BASE+514)
  

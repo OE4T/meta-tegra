@@ -1,14 +1,12 @@
-From 976de6089d969557b5c6fff04a51521c1f156b77 Mon Sep 17 00:00:00 2001
+From 16f97485a33c7530a59b00844c2559549993ac50 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Wed, 1 Sep 2021 11:21:32 -0700
-Subject: [PATCH 6/8] samples: Rework makefiles and rules
+Date: Mon, 30 Aug 2021 03:42:26 -0700
+Subject: [PATCH 6/9] samples: Rework makefiles and rules
 
 * Make them more OE-friendly
 * Add install targets
 * Allow for object detection (opencv/TRT) to be optional
 * Rework references to common classes and algorithms
-* Backport the changes from R32.6.1 for adding TRT
-  only to those makefiles that need it
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -17,11 +15,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  samples/01_video_encode/Makefile              | 10 +-
  samples/02_video_dec_cuda/Makefile            | 20 +---
  samples/03_video_cuda_enc/Makefile            | 21 +---
- samples/04_video_dec_trt/Makefile             | 37 +++----
+ samples/04_video_dec_trt/Makefile             | 34 +++----
  samples/05_jpeg_encode/Makefile               | 11 +--
  samples/06_jpeg_decode/Makefile               | 10 +-
  samples/07_video_convert/Makefile             | 10 +-
- samples/08_video_dec_drm/Makefile             | 16 ++-
+ samples/08_video_dec_drm/Makefile             | 16 ++--
  samples/09_camera_jpeg_capture/Makefile       | 14 +--
  samples/10_camera_recording/Makefile          | 18 ++--
  samples/12_camera_v4l2_cuda/Makefile          | 20 +---
@@ -29,25 +27,24 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  samples/14_multivideo_decode/Makefile         | 10 +-
  samples/15_multivideo_encode/Makefile         | 10 +-
  samples/16_multivideo_transcode/Makefile      | 10 +-
- samples/Rules.mk                              | 97 ++++++++-----------
- samples/backend/Makefile                      | 48 +++++----
- samples/common/algorithm/cuda/Makefile        | 16 ++-
+ samples/Rules.mk                              | 96 +++++++++----------
+ samples/backend/Makefile                      | 41 ++++----
+ samples/common/algorithm/cuda/Makefile        | 16 ++--
  samples/common/algorithm/trt/Makefile         | 11 ++-
  samples/common/classes/Makefile               | 10 +-
- samples/frontend/Makefile                     | 45 +++++----
+ samples/frontend/Makefile                     | 42 ++++----
  .../camera_unit_sample/Makefile               | 10 +-
  .../decoder_unit_sample/Makefile              | 10 +-
  .../encoder_unit_sample/Makefile              | 10 +-
  .../transform_unit_sample/Makefile            | 10 +-
  samples/v4l2cuda/Makefile                     | 10 +-
- tools/ConvertCaffeToTrtModel/Makefile         |  1 +
- 29 files changed, 219 insertions(+), 309 deletions(-)
+ 28 files changed, 208 insertions(+), 305 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 3e3287a..629dd43 100644
+index 3729d4d..d1fcd9f 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -58,7 +58,7 @@ SUBDIRS = \
+@@ -57,7 +57,7 @@ SUBDIRS = \
  all:
  	@list='$(SUBDIRS)'; for subdir in $$list; do \
  		echo "Make in $$subdir";\
@@ -56,7 +53,7 @@ index 3e3287a..629dd43 100644
  		if [ $$? -ne 0 ]; then exit 1; fi;\
  	done
  
-@@ -68,3 +68,10 @@ clean:
+@@ -67,3 +67,10 @@ clean:
  		echo "Clean in $$subdir";\
  		$(MAKE) -C $$subdir clean;\
  	done
@@ -213,10 +210,10 @@ index 7911c20..d0d0cc4 100644
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
 diff --git a/samples/04_video_dec_trt/Makefile b/samples/04_video_dec_trt/Makefile
-index ffed21b..0d6e851 100644
+index 2dcd621..1d35817 100644
 --- a/samples/04_video_dec_trt/Makefile
 +++ b/samples/04_video_dec_trt/Makefile
-@@ -30,43 +30,36 @@
+@@ -30,44 +30,36 @@
  
  include ../Rules.mk
  
@@ -243,10 +240,9 @@ index ffed21b..0d6e851 100644
 -	$(ALGO_CUDA_DIR)/NvCudaProc.o \
 -	$(ALGO_TRT_DIR)/trt_inference.o
 -
--LDFLAGS += -lopencv_objdetect
 +CPPFLAGS += $(shell pkg-config --cflags opencv4)
-+LDFLAGS += -lopencv_objdetect \
-+	-lnvinfer -lnvparsers -lnvonnxparser
+ LDFLAGS += -lopencv_objdetect \
+ 	-lnvinfer -lnvparsers -lnvonnxparser
  
  all: $(APP)
  
@@ -670,7 +666,7 @@ index df65641..9b7394e 100644
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
 diff --git a/samples/Rules.mk b/samples/Rules.mk
-index 146a2c7..524db5c 100644
+index da172ab..6e8fb57 100644
 --- a/samples/Rules.mk
 +++ b/samples/Rules.mk
 @@ -28,10 +28,6 @@
@@ -684,7 +680,7 @@ index 146a2c7..524db5c 100644
  # Verbose flag
  ifeq ($(VERBOSE), 1)
  AT =
-@@ -39,72 +35,65 @@ else
+@@ -39,71 +35,65 @@ else
  AT = @
  endif
  
@@ -764,7 +760,6 @@ index 146a2c7..524db5c 100644
  	-lpthread -lv4l2 -lEGL -lGLESv2 -lX11 \
  	-lnvbuf_utils -lnvjpeg -lnvosd -ldrm \
 -	-lcuda -lcudart \
--	-lnvinfer -lnvparsers -lnvonnxparser \
 -	-L"$(TARGET_ROOTFS)/$(CUDA_PATH)/lib64" \
 -	-L"$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)" \
 -	-L"$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)/tegra"
@@ -801,10 +796,10 @@ index 146a2c7..524db5c 100644
 +	[ -z "$(APP)" ] || install -d $(DESTDIR)$(bindir)
 +	[ -z "$(APP)" ] || install -m 0755 $(APP) $(DESTDIR)$(bindir)
 diff --git a/samples/backend/Makefile b/samples/backend/Makefile
-index 3527cc3..1eb66be 100644
+index 13389e8..145241d 100644
 --- a/samples/backend/Makefile
 +++ b/samples/backend/Makefile
-@@ -30,51 +30,49 @@
+@@ -30,28 +30,34 @@
  
  include ../Rules.mk
  
@@ -819,8 +814,7 @@ index 3527cc3..1eb66be 100644
 +
  APP := backend
  
--ENABLETRT ?= 1
-+ENABLE_TRT ?= 1
+ ENABLE_TRT ?= 1
  
  SRCS := \
  	v4l2_backend_csvparser.cpp \
@@ -834,10 +828,9 @@ index 3527cc3..1eb66be 100644
 -	$(ALGO_CUDA_DIR)/NvAnalysis.o \
 -	$(ALGO_CUDA_DIR)/NvCudaProc.o
 -
--ifeq ($(ENABLETRT), 1)
 +LINKDEPS = classes algo_cuda
 +EXTRAOBJS = $(ALGO_CUDA_OBJS)
-+ifeq ($(ENABLE_TRT), 1)
+ ifeq ($(ENABLE_TRT), 1)
  CPPFLAGS += -DENABLE_TRT
 -
 -OBJS += \
@@ -848,9 +841,9 @@ index 3527cc3..1eb66be 100644
  
 +CPPFLAGS += $(shell pkg-config --cflags opencv4)
  LDFLAGS += -lopencv_objdetect
-+ifeq ($(ENABLE_TRT), 1)
-+LDFLAGS +=	-lnvinfer -lnvparsers -lnvonnxparser
-+endif
+ ifeq ($(ENABLE_TRT), 1)
+ LDFLAGS += 	-lnvinfer -lnvparsers -lnvonnxparser
+@@ -59,25 +65,14 @@ endif
  
  all: $(APP)
  
@@ -919,7 +912,7 @@ index dc40f07..86c5a0d 100644
 -	$(AT)rm -rf *.o
 +	$(AT)rm -rf *.o algo_cuda.built
 diff --git a/samples/common/algorithm/trt/Makefile b/samples/common/algorithm/trt/Makefile
-index 4440b9a..4092551 100644
+index f782ae0..e24ae57 100644
 --- a/samples/common/algorithm/trt/Makefile
 +++ b/samples/common/algorithm/trt/Makefile
 @@ -28,17 +28,24 @@
@@ -944,7 +937,7 @@ index 4440b9a..4092551 100644
  
  %.o: %.cpp
  	@echo "Compiling: $<"
- 	$(CPP) $(CPPFLAGS) -c $<
+ 	$(CPP) $(CPPFLAGS) -Wno-deprecated-declarations -c $<
  
  clean:
 -	$(AT)rm -rf $(APP) $(OBJS)
@@ -977,7 +970,7 @@ index 7336298..82e2bb8 100644
  %.o: %.cpp
  	@echo "Compiling: $<"
 diff --git a/samples/frontend/Makefile b/samples/frontend/Makefile
-index 1881e86..06d3d69 100644
+index 35f3f56..8bfafb3 100644
 --- a/samples/frontend/Makefile
 +++ b/samples/frontend/Makefile
 @@ -30,6 +30,15 @@
@@ -1004,7 +997,7 @@ index 1881e86..06d3d69 100644
  	$(ARGUS_UTILS_DIR)/Thread.cpp
  
  ifeq ($(ENABLE_TRT), 1)
-@@ -49,42 +57,37 @@ SRCS += \
+@@ -49,18 +57,17 @@ SRCS += \
  	TRTStreamConsumer.cpp
  endif
  
@@ -1027,9 +1020,8 @@ index 1881e86..06d3d69 100644
 +	$(shell pkg-config --cflags opencv4)
  
  LDFLAGS += -lnvargus_socketclient -lopencv_objdetect
-+ifeq ($(ENABLE_TRT), 1)
-+LDFLAGS +=     -lnvinfer -lnvparsers -lnvonnxparser
-+endif
+ ifeq ($(ENABLE_TRT), 1)
+@@ -69,25 +76,18 @@ endif
  
  all: $(APP)
  
@@ -1204,18 +1196,6 @@ index 720fb96..f856671 100644
 -GENCODE_FLAGS := $(GENCODE_SM53) $(GENCODE_SM62) $(GENCODE_SM72) $(GENCODE_SM_PTX)
 +ALL_CPPFLAGS := $(NVCCFLAGS)
 +ALL_CPPFLAGS += $(addprefix -Xcompiler ,$(filter-out -std=c++11, $(CPPFLAGS)))
- 
- all: $(APP)
- 
-diff --git a/tools/ConvertCaffeToTrtModel/Makefile b/tools/ConvertCaffeToTrtModel/Makefile
-index 4f34d08..99f65e3 100644
---- a/tools/ConvertCaffeToTrtModel/Makefile
-+++ b/tools/ConvertCaffeToTrtModel/Makefile
-@@ -38,6 +38,7 @@ SRCS := \
- OBJS := $(SRCS:.cpp=.o)
- 
- CPPFLAGS += -DENABLE_TRT
-+LDFLAGS +=     -lnvinfer -lnvparsers -lnvonnxparser
  
  all: $(APP)
  

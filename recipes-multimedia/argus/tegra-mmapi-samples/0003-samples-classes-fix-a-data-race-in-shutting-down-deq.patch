@@ -1,7 +1,7 @@
-From 706bd546cf702a1b6d3c1f05284220971b96bf8b Mon Sep 17 00:00:00 2001
+From c12c2ce8846f4718eb862445e91eb21a11c68885 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 30 Aug 2021 03:52:42 -0700
-Subject: [PATCH 3/8] samples: classes: fix a data race in shutting down
+Subject: [PATCH 3/9] samples: classes: fix a data race in shutting down
  dequeue thread
 
 as well as a couple of other uses of pthread_join with

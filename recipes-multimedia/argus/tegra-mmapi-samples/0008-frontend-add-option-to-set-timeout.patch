@@ -1,0 +1,77 @@
+From 76e464e74614d1edb9d134b9e0d7b3111cd53f04 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 31 Aug 2021 05:10:02 -0700
+Subject: [PATCH 8/9] frontend: add option to set timeout
+
+instead of requiring a human to type 'q' to quit,
+to allow the sample to be used as an automated test.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ samples/frontend/main.cpp | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/samples/frontend/main.cpp b/samples/frontend/main.cpp
+index 459aacb..9549364 100644
+--- a/samples/frontend/main.cpp
++++ b/samples/frontend/main.cpp
+@@ -27,6 +27,7 @@
+  */
+ 
+ #include <stdio.h>
++#include <unistd.h>
+ #include <getopt.h>
+ #include <sys/sysinfo.h>
+ #include <termios.h>
+@@ -59,6 +60,7 @@ static std::string g_deployFile("../../data/Model/GoogleNet_three_class/GoogleNe
+ static std::string g_modelFile("../../data/Model/GoogleNet_three_class/GoogleNet_modified_threeClass_VGA.caffemodel");
+ static bool g_mode = false;
+ static bool g_bNoPreview = false;
++static int g_timeOutSec = 0;
+ 
+ // Globals.
+ static NvEglRenderer *g_eglRenderer = NULL;
+@@ -155,8 +157,11 @@ runArgusProducer(const std::vector<StreamConsumer*> &consumers)
+     if (iCaptureSession->repeat(request.get()) != STATUS_OK)
+         ORIGINATE_ERROR("Failed to start repeat capture request");
+ 
+-    // Wait until user press 'q'.
+-    while (getchar() != 'q');
++    if (g_timeOutSec > 0)
++        sleep((unsigned int) g_timeOutSec);
++    else
++        // Wait until user press 'q'.
++        while (getchar() != 'q');
+ 
+     // Stop the repeating request and wait for idle.
+     iCaptureSession->stopRepeat();
+@@ -232,6 +237,7 @@ static void printHelp()
+            "  --fp32                Force to use fp32\n"
+            "  -s                    Enable profiling\n"
+            "  -v                    Enable verbose message\n"
++           "  -t <seconds>          Timed run instead of interactive\n"
+            "Commands\n"
+            "  q:        exit\n");
+ }
+@@ -256,7 +262,7 @@ static bool parseCmdline(int argc, char **argv)
+     };
+ 
+     int c;
+-    while ((c = getopt_long(argc, argv, "s::v::h", longOptions, NULL)) != -1)
++    while ((c = getopt_long(argc, argv, "s::v::t:h", longOptions, NULL)) != -1)
+     {
+         switch (c)
+         {
+@@ -275,6 +281,9 @@ static bool parseCmdline(int argc, char **argv)
+             case 's':
+                 g_bProfiling = true;
+                 break;
++            case 't':
++                g_timeOutSec = atoi(optarg);
++                break;
+             case 'v':
+                 g_bVerbose = true;
+                 break;
+-- 
+2.30.2
+
