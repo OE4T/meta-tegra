@@ -35,6 +35,6 @@ FILES:${PN} += "${datadir}/oci"
 
 RDEPENDS:${PN} = "\
     libnvidia-container-tools \
-    docker-ce \
+    docker \
 "
 RDEPENDS:${PN}-dev += "bash make"
