@@ -12,7 +12,7 @@ DEPENDS:append = " kern-tools-tegra-native"
 
 LINUX_VERSION ?= "4.9.253"
 PV = "${LINUX_VERSION}+git${SRCPV}"
-FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
+FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
 LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[:2])}"
 SCMVERSION ??= "y"
