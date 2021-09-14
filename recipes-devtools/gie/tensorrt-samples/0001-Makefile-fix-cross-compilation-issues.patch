@@ -1,0 +1,105 @@
+From f196aef19ab533c5aae1195698c1d27c3ffc43bc Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Tue, 21 Sep 2021 23:12:52 +0100
+Subject: [PATCH] Makefile: fix cross compilation issues
+
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ Makefile.config | 29 +++++++++++++++++++----------
+ 1 file changed, 19 insertions(+), 10 deletions(-)
+
+diff --git a/Makefile.config b/Makefile.config
+index 48c1a8d..70db6aa 100644
+--- a/Makefile.config
++++ b/Makefile.config
+@@ -5,6 +5,7 @@ DLSW_TRIPLE ?= x86_64-linux-gnu
+ SAFE_PDK ?= 0
+ CPP_STANDARD?=14
+ TARGET ?= $(shell uname -m)
++BUILD_TYPE ?= release
+ 
+ ifeq ($(CUDA_INSTALL_DIR),)
+   CUDA_INSTALL_DIR ?= /usr/local/cuda
+@@ -34,11 +35,11 @@ CUDNN_LIBDIR = lib64
+ ifeq ($(TARGET), aarch64)
+   ifeq ($(shell uname -m), aarch64)
+     CUDA_LIBDIR = lib64
+-    CC = g++
++    CXX ?= g++
+   else
+-    CC = aarch64-linux-gnu-g++
++    CXX ?= aarch64-linux-gnu-g++
+   endif
+-  CUCC = $(CUDA_INSTALL_DIR)/bin/nvcc -m64 -ccbin $(CC)
++  CUCC = $(CUDA_INSTALL_DIR)/bin/nvcc -m64 -ccbin $(CXX)
+ else ifeq ($(TARGET), x86_64)
+   CUDA_LIBDIR = lib64
+   CC = g++
+@@ -54,7 +55,7 @@ else ########
+   $(error Auto-detection of platform failed. Please specify one of the following arguments to make: TARGET=[aarch64|x86_64|qnx])
+ endif
+ 
+-CC_MAJOR_VER = $(shell $(CC) -dumpversion | sed -e "s/\..*//")
++CC_MAJOR_VER = $(shell $(CXX) -dumpversion | sed -e "s/\..*//")
+ ifeq (${CC_MAJOR_VER}, 4)
+     CPP_STANDARD := 11
+ endif
+@@ -111,7 +112,7 @@ endef
+ ifneq ($(USE_QCC),1)
+ # Usage: $(call make-depend,source-file,object-file,depend-file)
+ define make-depend
+-  $(AT)$(CC) -MM -MF $3 -MP -MT $2 $(COMMON_FLAGS) $1
++  $(AT)$(CXX) -MM -MF $3 -MP -MT $2 $(COMMON_FLAGS) $1
+ endef
+ # Usage: $(call make-cuda-depend,source-file,object-file,depend-file,flags)
+ define make-cuda-depend
+@@ -305,7 +306,15 @@ CFLAGSD = $(COMMON_FLAGS) -g
+ LFLAGS = $(COMMON_LD_FLAGS)
+ LFLAGSD = $(COMMON_LD_FLAGS)
+ 
+-all: debug release
++ifeq ($(BUILD_TYPE), release)
++  all: release
++else
++ifeq ($(BUILD_TYPE), debug)
++  all: debug
++else
++  all: debug release
++endif
++endif
+ 
+ release : $(OUTDIR)/$(OUTNAME_RELEASE)
+ 
+@@ -321,25 +330,25 @@ test_release:
+ 
+ $(OUTDIR)/$(OUTNAME_RELEASE) : $(OBJS) $(CUOBJS)
+ 	$(ECHO) Linking: $@
+-	$(AT)$(CC) -o $@ $(LFLAGS) -Wl,--start-group $(LIBS) $^ -Wl,--end-group
++	$(AT)$(CXX) -o $@ $(LFLAGS) -Wl,--start-group $(LIBS) $^ -Wl,--end-group
+ 
+ $(OUTDIR)/$(OUTNAME_DEBUG) : $(DOBJS) $(CUDOBJS)
+ 	$(ECHO) Linking: $@
+-	$(AT)$(CC) -o $@ $(LFLAGSD) -Wl,--start-group $(DLIBS) $^ -Wl,--end-group
++	$(AT)$(CXX) -o $@ $(LFLAGSD) -Wl,--start-group $(DLIBS) $^ -Wl,--end-group
+ 
+ $(OBJDIR)/%.o: %.cpp
+ 	$(AT)if [ ! -d $(OBJDIR) ]; then mkdir -p $(OBJDIR); fi
+ 	$(foreach XDIR,$(EXTRA_DIRECTORIES), if [ ! -d $(OBJDIR)/$(XDIR) ]; then mkdir -p $(OBJDIR)/$(XDIR); fi;) :
+ 	$(call make-depend,$<,$@,$(subst .o,.d,$@))
+ 	$(ECHO) Compiling: $<
+-	$(AT)$(CC) $(CFLAGS) -c -o $@ $<
++	$(AT)$(CXX) $(CFLAGS) -c -o $@ $<
+ 
+ $(DOBJDIR)/%.o: %.cpp
+ 	$(AT)if [ ! -d $(DOBJDIR) ]; then mkdir -p $(DOBJDIR); fi
+ 	$(foreach XDIR,$(EXTRA_DIRECTORIES), if [ ! -d $(OBJDIR)/$(XDIR) ]; then mkdir -p $(DOBJDIR)/$(XDIR); fi;) :
+ 	$(call make-depend,$<,$@,$(subst .o,.d,$@))
+ 	$(ECHO) Compiling: $<
+-	$(AT)$(CC) $(CFLAGSD) -c -o $@ $<
++	$(AT)$(CXX) $(CFLAGSD) -c -o $@ $<
+ 
+ ######################################################################### CU
+ $(OBJDIR)/%.o: %.cu
+-- 
+2.17.1
+
