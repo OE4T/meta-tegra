@@ -35,6 +35,7 @@ PREFERRED_PROVIDER_virtual/libgl = "libglvnd"
 PREFERRED_PROVIDER_libv4l = "${@'v4l-utils' if 'openembedded-layer' in d.getVar('BBFILE_COLLECTIONS').split() else 'libv4l2-minimal'}"
 PREFERRED_PROVIDER_v4l-utils = "${@'v4l-utils' if 'openembedded-layer' in d.getVar('BBFILE_COLLECTIONS').split() else 'libv4l2-minimal'}"
 PREFERRED_PROVIDER_virtual/bootlogo ?= "bootlogo-prebuilt"
+PREFERRED_PROVIDER_tensorrt-plugins ?= "tensorrt-plugins-prebuilt"
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
 TEGRA_BLBLOCKSIZE ?= "${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}"
