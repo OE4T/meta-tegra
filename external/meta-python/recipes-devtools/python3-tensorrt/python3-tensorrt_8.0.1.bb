@@ -3,7 +3,7 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://python/packaging/LICENSE.txt;md5=c291e0a531e08d4914e269730ba2f70d"
 
-DEPENDS = "python3-pybind11 tensorrt"
+DEPENDS = "python3-pybind11 tensorrt-core tensorrt-plugins"
 
 inherit setuptools3 cmake cuda
 
