@@ -14,6 +14,7 @@ SRC_REPO = "github.com/NVIDIA/TensorRT.git;protocol=https"
 SRCBRANCH = "master"
 SRC_URI = "gitsm://${SRC_REPO};branch=${SRCBRANCH} \
     file://0001-CMakeLists.txt-fix-cross-compilation-issues.patch \
+    file://0002-Tensorrt-fix-build-issues-when-using-protobuf-versio.patch \
 "
 SRCREV = "eb5de99b523c76c2f3ae997855ad86d3a1e86a31"
 
