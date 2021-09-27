@@ -1,0 +1,33 @@
+From 3563cd343b13e1ee53e1781bc5349d7cf1d2fe86 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Mon, 27 Sep 2021 14:32:33 +0100
+Subject: [PATCH] parsers/onnx: remove constexpr
+
+This is based on the following PR:
+
+https://github.com/onnx/onnx-tensorrt/commit/c5b696e0a830790d763981a597846d9952068b88
+
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ Index: git/parsers/onnx/builtin_op_importers.cpp
+===================================================================
+--- git.orig/parsers/onnx/builtin_op_importers.cpp
++++ git/parsers/onnx/builtin_op_importers.cpp
+@@ -1008,7 +1008,7 @@ DEFINE_BUILTIN_OP_IMPORTER(Gemm)
+         inputASqueezed = squeeze->getOutput(0);
+     }
+ 
+-    constexpr auto getMatrixOp = [](const nvinfer1::ITensor& input, bool transpose) {
++    const auto getMatrixOp = [](const nvinfer1::ITensor& input, bool transpose) {
+         if (input.getDimensions().nbDims == 1)
+         {
+             return nvinfer1::MatrixOperation::kVECTOR;
+@@ -1998,7 +1998,7 @@ DEFINE_BUILTIN_OP_IMPORTER(MatMul)
+ 
+     broadcastTensors(ctx, inputA, inputB);
+ 
+-    constexpr auto getMatrixOp = [](const nvinfer1::ITensor& input) {
++    const auto getMatrixOp = [](const nvinfer1::ITensor& input) {
+         return (input.getDimensions().nbDims == 1) ? nvinfer1::MatrixOperation::kVECTOR
+                                                    : nvinfer1::MatrixOperation::kNONE;
+     };
