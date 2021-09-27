@@ -5,6 +5,8 @@ LIC_FILES_CHKSUM = "file://python/packaging/LICENSE.txt;md5=c291e0a531e08d4914e2
 
 DEPENDS = "python3-pybind11 tensorrt-core tensorrt-plugins"
 
+COMPATIBLE_MACHINE = "(tegra)"
+
 inherit setuptools3 cmake cuda
 
 SRC_REPO = "github.com/NVIDIA/TensorRT.git;protocol=https"
