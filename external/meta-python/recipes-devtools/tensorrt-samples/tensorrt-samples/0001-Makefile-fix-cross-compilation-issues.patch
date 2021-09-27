@@ -1,0 +1,99 @@
+From b54d557bbd65bc8b9b8d521a737e53161f37c930 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Mon, 27 Sep 2021 02:22:13 +0100
+Subject: [PATCH] Makefile: fix cross compilation issues
+
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ Makefile.config | 27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
+
+diff --git a/Makefile.config b/Makefile.config
+index a2a5ca8..19fe755 100644
+--- a/Makefile.config
++++ b/Makefile.config
+@@ -4,6 +4,7 @@ CUBLAS_TRIPLE ?= x86_64-linux-gnu
+ DLSW_TRIPLE ?= x86_64-linux-gnu
+ SAFE_PDK ?= 0
+ TARGET ?= $(shell uname -m)
++BUILD_TYPE ?= release
+ 
+ ifeq ($(CUDA_INSTALL_DIR),)
+   CUDA_INSTALL_DIR ?= /usr/local/cuda
+@@ -33,11 +34,11 @@ CUDNN_LIBDIR = lib64
+ ifeq ($(TARGET), aarch64)
+   ifeq ($(shell uname -m), aarch64)
+     CUDA_LIBDIR = lib64
+-    CC = g++
++    CXX ?= g++
+   else
+-    CC = aarch64-linux-gnu-g++
++    CXX ?= aarch64-linux-gnu-g++
+   endif
+-  CUCC = $(CUDA_INSTALL_DIR)/bin/nvcc -m64 -ccbin $(CC)
++  CUCC = $(CUDA_INSTALL_DIR)/bin/nvcc -m64 -ccbin $(CXX)
+ else ifeq ($(TARGET), x86_64)
+   CUDA_LIBDIR = lib64
+   CC = g++
+@@ -90,7 +91,7 @@ endef
+ ifneq ($(USE_QCC),1)
+ # Usage: $(call make-depend,source-file,object-file,depend-file)
+ define make-depend
+-  $(AT)$(CC) -MM -MF $3 -MP -MT $2 $(COMMON_FLAGS) $1
++  $(AT)$(CXX) -MM -MF $3 -MP -MT $2 $(COMMON_FLAGS) $1
+ endef
+ # Usage: $(call make-cuda-depend,source-file,object-file,depend-file,flags)
+ define make-cuda-depend
+@@ -265,7 +266,15 @@ CFLAGSD = $(COMMON_FLAGS) -g
+ LFLAGS = $(COMMON_LD_FLAGS)
+ LFLAGSD = $(COMMON_LD_FLAGS)
+ 
+-all: debug release
++ifeq ($(BUILD_TYPE), release)
++  all: release
++else
++ifeq ($(BUILD_TYPE), debug)
++  all: debug
++else
++  all: debug release
++endif
++endif
+ 
+ release : $(OUTDIR)/$(OUTNAME_RELEASE)
+ 
+@@ -292,13 +301,13 @@ $(OUTDIR)/$(OUTNAME_DEBUG) : $(DOBJS) $(CUDOBJS)
+ else
+ $(OUTDIR)/$(OUTNAME_RELEASE) : $(OBJS) $(CUOBJS)
+ 	$(ECHO) Linking: $@
+-	$(AT)$(CC) -o $@ $^ $(LFLAGS) -Wl,--start-group $(LIBS) -Wl,--end-group
++	$(AT)$(CXX) -o $@ $^ $(LFLAGS) -Wl,--start-group $(LIBS) -Wl,--end-group
+ 	# Copy every EXTRA_FILE of this sample to bin dir
+ 	$(foreach EXTRA_FILE,$(EXTRA_FILES), cp -f $(EXTRA_FILE) $(OUTDIR)/$(EXTRA_FILE); )
+ 
+ $(OUTDIR)/$(OUTNAME_DEBUG) : $(DOBJS) $(CUDOBJS)
+ 	$(ECHO) Linking: $@
+-	$(AT)$(CC) -o $@ $^ $(LFLAGSD) -Wl,--start-group $(DLIBS) -Wl,--end-group
++	$(AT)$(CXX) -o $@ $^ $(LFLAGSD) -Wl,--start-group $(DLIBS) -Wl,--end-group
+ endif
+ 
+ $(OBJDIR)/%.o: %.cpp
+@@ -306,14 +315,14 @@ $(OBJDIR)/%.o: %.cpp
+ 	$(foreach XDIR,$(EXTRA_DIRECTORIES), if [ ! -d $(OBJDIR)/$(XDIR) ]; then mkdir -p $(OBJDIR)/$(XDIR); fi;) :
+ 	$(call make-depend,$<,$@,$(subst .o,.d,$@))
+ 	$(ECHO) Compiling: $<
+-	$(AT)$(CC) $(CFLAGS) -c -o $@ $<
++	$(AT)$(CXX) $(CFLAGS) -c -o $@ $<
+ 
+ $(DOBJDIR)/%.o: %.cpp
+ 	$(AT)if [ ! -d $(DOBJDIR) ]; then mkdir -p $(DOBJDIR); fi
+ 	$(foreach XDIR,$(EXTRA_DIRECTORIES), if [ ! -d $(OBJDIR)/$(XDIR) ]; then mkdir -p $(DOBJDIR)/$(XDIR); fi;) :
+ 	$(call make-depend,$<,$@,$(subst .o,.d,$@))
+ 	$(ECHO) Compiling: $<
+-	$(AT)$(CC) $(CFLAGSD) -c -o $@ $<
++	$(AT)$(CXX) $(CFLAGSD) -c -o $@ $<
+ 
+ ######################################################################### CU
+ $(OBJDIR)/%.o: %.cu
+-- 
+2.17.1
+
