@@ -21,7 +21,7 @@ DEPENDS = "libdrm tegra-mmapi tegra-libraries virtual/egl virtual/libgles1 virtu
 inherit pkgconfig cuda python3native features_check
 
 PACKAGECONFIG ??= ""
-PACKAGECONFIG[objdetect] = "HAVE_OPENCV=1 HAVE_TENSORRT=1,,tensorrt opencv"
+PACKAGECONFIG[objdetect] = "HAVE_OPENCV=1 HAVE_TENSORRT=1,,tensorrt-core tensorrt-plugins opencv"
 
 REQUIRED_DISTRO_FEATURES = "x11"
 
