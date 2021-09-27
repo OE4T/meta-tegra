@@ -18,6 +18,7 @@ SRC_URI += "\
     file://0004-v4l2bufferpool-Avoid-set_flushing-warning.patch \
     file://0005-gstv4l2videodec-use-ifdef-macro-for-consistency-with.patch \
     file://0006-gstv4l2videodec-check-if-we-have-a-pool-before-the-l.patch \
+    file://0007-Fix-resource-leak-in-nvv4l2decoder.patch \
 "
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries"
