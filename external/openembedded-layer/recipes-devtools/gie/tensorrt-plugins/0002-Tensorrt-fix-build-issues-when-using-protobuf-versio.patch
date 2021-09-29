@@ -105,3 +105,4 @@ Index: git/parsers/onnx/third_party/onnx/onnx/proto_utils.h
 +  coded_stream.SetTotalBytesLimit((2048LL << 20) - 1);
    return proto->ParseFromCodedStream(&coded_stream);
  }
+ 
