@@ -211,3 +211,4 @@ Index: git/plugin/CMakeLists.txt
 +    endif()
      list(APPEND PLUGIN_SOURCES "${BERT_CU_SOURCES}")
  endif()
+ 
