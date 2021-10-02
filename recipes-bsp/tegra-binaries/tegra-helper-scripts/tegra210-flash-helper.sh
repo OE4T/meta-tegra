@@ -19,13 +19,17 @@ generate_pt_header() {
     local blpart="$3"
     local pline blksize partnumber partname start_location partsize partfile partguid partfilltoend
     local -a PARTS
-    mapfile PARTS < <("nvflashxmlparse" -t $blpart "$in")
+    local plist=$(mktemp partlist.XXXXXX)
+
+    nvflashxmlparse -t $blpart "$in" >"$plist"
+    mapfile PARTS < "$plist"
     for pline in "${PARTS[@]}"; do
 	eval "$pline"
 	if [ "$partname" = "PT" ]; then
 	    break
 	fi
     done
+    rm -f "$plist"
     if [ "$partname" != "PT" ]; then
 	echo "ERR: could not locate PT in flash layout" >&2
 	return 1
@@ -33,12 +37,12 @@ generate_pt_header() {
     local ptsize=$(expr $partsize \* $blksize)
     rm -f crc-flash.xml.tmp "$out"
     sed -e"s,$partfile,crc-$partfile," "$in" > crc-flash.xml.tmp
-    "tegraparser" --pt crc-flash.xml.tmp || return 1
+    tegraparser --pt crc-flash.xml.tmp || return 1
     cp crc-flash.xml.tmp "$out"
     truncate -s $ptsize crc-$partfile
     printf "\x01\x00\x00\x00\x00\x00\x00\x00PTHD\x00\x00\x00\x00" | \
 	dd of=crc-$partfile seek=$(expr $ptsize - 16) bs=1 count=16 conv=notrunc status=none || return 1
-    "tegrahost" --fillcrc32 crc-$partfile
+    tegrahost --fillcrc32 crc-$partfile
     return 0
 }
 
@@ -54,6 +58,7 @@ while true; do
     case "$1" in
 	--bup)
 	    bup_blob=1
+	    no_flash=1
 	    shift
 	    ;;
 	--no-flash)
@@ -290,7 +295,7 @@ if [ -n "$keyfile" ]; then
     if [ "$boardid" = "3448" ]; then
 	binargs="--bins \"EBT cboot.bin.signed;DTB ${dtb_file}.signed\""
     fi
-    if [ $no_flash -ne 0 ]; then
+    if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
 	rm -f flashcmd.txt
 	echo "#!/bin/sh" > flashcmd.txt
 	echo "python3 $(basename $flashapp) ${inst_args} --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \

@@ -24,6 +24,7 @@ while true; do
     case "$1" in
 	--bup)
 	    bup_blob=1
+	    no_flash=1
 	    shift
 	    ;;
 	--no-flash)
@@ -408,7 +409,7 @@ if [ -n "$keyfile" ]; then
     external_device=0
     . "$here/odmsign.func"
     (odmsign_ext) || exit 1
-    if [ $no_flash -ne 0 ]; then
+    if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
 	if [ -f flashcmd.txt ]; then
 	    chmod +x flashcmd.txt
 	    ln -sf flashcmd.txt ./secureflash.sh
