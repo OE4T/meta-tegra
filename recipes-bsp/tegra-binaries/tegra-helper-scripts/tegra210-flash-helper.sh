@@ -24,6 +24,7 @@ while true; do
     case "$1" in
 	--bup)
 	    bup_blob=1
+	    no_flash=1
 	    shift
 	    ;;
 	--no-flash)
@@ -252,7 +253,7 @@ if [ -n "$keyfile" ]; then
     if [ "$boardid" = "3448" ]; then
 	binargs="--bins \"EBT cboot.bin.signed;DTB ${dtb_file}.signed\""
     fi
-    if [ $no_flash -ne 0 ]; then
+    if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
 	rm -f flashcmd.txt
 	echo "#!/bin/sh" > flashcmd.txt
 	echo "python3 $flashapp ${inst_args} --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
