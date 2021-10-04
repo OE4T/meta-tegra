@@ -256,7 +256,7 @@ if [ -n "$keyfile" ]; then
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
 	rm -f flashcmd.txt
 	echo "#!/bin/sh" > flashcmd.txt
-	echo "python3 $flashapp ${inst_args} --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
+	echo "python3 $flashappname ${inst_args} --bl cboot.bin.signed --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
 --bldtb \"${dtb_file}.signed\" --applet rcm_1_signed.rcm --cfg flash.xml --chip 0x21 \
 --cmd \"secureflash;reboot\" $binargs" > flashcmd.txt
 	chmod +x flashcmd.txt
