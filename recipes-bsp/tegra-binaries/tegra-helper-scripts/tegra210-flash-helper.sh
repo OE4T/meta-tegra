@@ -201,7 +201,7 @@ else
 	    if [ "$boardid" = "3448" ]; then
 		binargs="--bins \"EBT cboot.bin.signed;DTB ${dtb_file}.signed\""
 	    fi
-	    echo "python3 $flashapp --bl cboot.bin.signed --bct \"$sdramcfg_file\" --odmdata $odmdata \
+	    echo "python3 $flashappname --bl cboot.bin.signed --bct \"$sdramcfg_file\" --odmdata $odmdata \
 --bldtb \"${dtb_file}.signed\" --applet rcm_1_signed.rcm --cfg flash.xml --chip 0x21 \
 --cmd \"secureflash;reboot\" $binargs" > flashcmd.txt
 	    chmod +x flashcmd.txt
