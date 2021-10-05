@@ -60,6 +60,8 @@ RDEPENDS:${PN} += "tegra-libraries"
 PROVIDES = "tensorrt-plugins"
 RPROVIDES:${PN} = "tensorrt-plugins"
 RCONFLICTS:${PN} = "tensorrt-plugins"
+RPROVIDES:${PN}-dev = "tensorrt-plugins-dev"
+RCONFLICTS:${PN}-dev = "tensorrt-plugins-dev"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
