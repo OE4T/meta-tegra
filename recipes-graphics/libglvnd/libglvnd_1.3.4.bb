@@ -9,7 +9,7 @@ SRC_URI = "git://${SRC_REPO} \
     file://0002-Make-Wayland-support-configurable.patch \
     file://0003-Fix-tests-meson.build-syntax-error.patch \
     "
-SRCREV = "0f0d49f0f3707f26f68bc44f4cd83144f5f4de86"
+SRCREV = "dc084876b411366c3785b7584c216356169bb45e"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
