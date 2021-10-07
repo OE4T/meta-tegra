@@ -4,9 +4,11 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://COPYING;md5=cfa5a0f49cb081823fc5d965566e8298"
 DEPENDS = "eglexternalplatform virtual/egl wayland wayland-protocols wayland-native"
 
-SRC_URI = "git://github.com/NVIDIA/egl-wayland"
-# tag 1.1.5
-SRCREV = "f08e1a570eee30cbaed4c49e761830667f5ba29e"
+SRC_REPO = "github.com/NVIDIA/egl-wayland.git;protocol=https"
+SRCBRANCH = "master"
+SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
+# tag 1.1.8
+SRCREV = "ce4c9635fb3121ef59a82eace1a29125d21b798b"
 SRC_URI += " \
     file://0001-Fix-wayland-eglstream-protocols-pc-file.patch \
     file://nvidia_wayland.json \
