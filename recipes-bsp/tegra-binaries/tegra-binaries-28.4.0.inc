@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://nv_tegra/LICENSE;md5=2174e6214d83da8e19ab6510ffa71336
 
 INCNAME = "tegra186"
 INCNAME_tegra210 = "tegra210"
-require tegra-binaries-${INCNAME}-28.4.0.inc
+require tegra-binaries-${INCNAME}-${PV}.inc
 
 SRC_URI += "\
     file://nvcamera-daemon.init \
