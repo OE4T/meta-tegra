@@ -1,7 +1,7 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(tegra186)"
+COMPATIBLE_MACHINE = "(tegra186|tegra210)"
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS = "${SOC_FAMILY}-flashtools-native"
 
@@ -28,12 +28,13 @@ BOOTBINS_tegra186 = "\
     tos.img \
 "
 BOOTBINS_tegra210 = "\
-    bpmp.bin \
+    sc7entry-firmware.bin \
     eks.img \
     nvtboot_cpu.bin \
     nvtboot_recovery.bin \
     nvtboot_recovery_cpu.bin \
     tos.img \
+    bmp.blob \
 "
 
 BOOTBINS_MACHINE_SPECIFIC_tegra186 = "\
