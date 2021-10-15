@@ -15,7 +15,7 @@ PV = "1.0.1"
 
 S = "${WORKDIR}/git"
 
-inherit cmake container-runtime-csv
+inherit cmake pkgconfig container-runtime-csv
 
 CONTAINER_CSV_FILES = "${libdir}/libv4l/plugins/*.so*"
 
