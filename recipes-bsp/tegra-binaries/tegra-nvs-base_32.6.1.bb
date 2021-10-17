@@ -5,6 +5,8 @@ DESCRIPTION = "NVIDIA sensor HAL daemon"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
+DEPENDS = "tegra-libraries-core"
+
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/sbin/nvs-service
 }
@@ -18,5 +20,5 @@ do_install() {
 
 PACKAGES = "${PN}"
 FILES_${PN} = "${sbindir} ${sysconfdir}"
-RDEPENDS_${PN} = "bash tegra-libraries"
+RDEPENDS_${PN} = "bash"
 INSANE_SKIP_${PN} = "ldflags"

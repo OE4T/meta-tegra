@@ -1,5 +1,7 @@
 require tegra-shared-libraries.inc
 
+DEPENDS = "tegra-libraries-core tegra-libraries-glxcore"
+
 do_configure() {
     tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/lib/xorg ${DRV_EXTRAS}
 }
@@ -21,7 +23,6 @@ do_install() {
 }
 
 PACKAGES = "${PN}"
-RDEPENDS_${PN} = "tegra-libraries"
 FILES_${PN} = "${libdir} ${datadir}"
 RPROVIDES_${PN} += "xserver-xorg-extension-glx"
 RCONFLICTS_${PN} = "xserver-xorg-extension-glx"
