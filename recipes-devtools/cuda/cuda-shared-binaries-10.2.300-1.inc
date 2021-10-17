@@ -93,7 +93,6 @@ FILES:${PN} += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBS} ${pre
 FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/extras ${prefix}/local/cuda-${CUDA_VERSION}/include ${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/stubs \
                     ${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBSDEV}"
 FILES:${PN}-staticdev += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*.a"
-RDEPENDS:${PN}:class-target = "tegra-libraries"
 
 INSANE_SKIP:${PN} = "ldflags libdir"
 INSANE_SKIP:${PN}-dev = "ldflags libdir dev-elf"
