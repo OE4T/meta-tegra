@@ -84,7 +84,7 @@ EOF
 MESON_CROSS_FILE:append:cuda:class-target = " --cross-file ${WORKDIR}/meson-cuda.cross"
 
 PACKAGE_ARCH:cuda = "${SOC_FAMILY_PKGARCH}"
-RDEPENDS:${PN}:append:tegra = " tegra-libraries"
+RDEPENDS:${PN}:append:tegra = " tegra-libraries-cuda"
 
 python() {
     if bb.data.inherits_class('meson', d) and 'cuda' in d.getVar('OVERRIDES').split(':') and d.getVar('CLASSOVERRIDE') == 'class-target':
