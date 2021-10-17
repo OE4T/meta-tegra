@@ -27,6 +27,8 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=48;md5=3d6981c1227c404d42d710f96a875a1b"
 
+DEPENDS = "tegra-libraries-multimedia"
+
 S = "${WORKDIR}/tensorrt"
 
 CONTAINER_CSV_FILES = "${libdir}/*.so*"
@@ -46,6 +48,5 @@ do_install() {
     cp --preserve=mode,timestamps,links --no-dereference ${S}/usr/lib/aarch64-linux-gnu/*.so* ${D}${libdir}
 }
 
-RDEPENDS:${PN} += "cudnn libcublas cuda-nvrtc tegra-libraries"
 INSANE_SKIP:${PN} = "already-stripped"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
