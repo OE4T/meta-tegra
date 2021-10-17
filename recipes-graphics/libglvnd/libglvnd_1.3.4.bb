@@ -28,7 +28,7 @@ PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)} 
     ${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'wayland', '', d)} \
 "
 
-PACKAGECONFIG[x11] = "-Dx11=enabled -Dglx=enabled,-Dx11=disabled -Dglx=disabled,libx11 libxext xorgproto"
+PACKAGECONFIG[x11] = "-Dx11=enabled -Dglx=enabled,-Dx11=disabled -Dglx=disabled,libx11 libxext xorgproto,tegra-libraries-glxcore"
 PACKAGECONFIG[wayland] = "-Dwayland=enabled,-Dwayland=disabled,wayland"
 
 do_install:append() {
@@ -50,5 +50,5 @@ RCONFLICTS:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
 RREPLACES:${PN} = "libegl libgl libgles1 ligbles2"
 RREPLACESS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
 
-RDEPENDS:${PN}:append:tegra = " tegra-libraries"
+RDEPENDS:${PN}:append:tegra = " tegra-libraries-eglcore tegra-libraries-glescore"
 RRECOMMENDS:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'egl-wayland', '', d)}"
