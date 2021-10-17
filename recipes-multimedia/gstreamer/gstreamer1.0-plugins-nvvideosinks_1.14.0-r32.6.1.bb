@@ -11,8 +11,8 @@ require recipes-bsp/tegra-sources/tegra-sources-32.6.1.inc
 SRC_URI += "file://build-fixups.patch"
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl \
-           tegra-libraries gstreamer1.0-plugins-nveglgles tegra-mmapi \
-           nvbufsurface-headers"
+           tegra-libraries-multimedia tegra-libraries-multimedia-utils \
+           gstreamer1.0-plugins-nveglgles tegra-mmapi nvbufsurface-headers"
 
 REQUIRED_DISTRO_FEATURES = "x11"
 
