@@ -8,7 +8,7 @@ CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/gstreamer-1.0/*.so*"
 DEPENDS = "\
 	glib-2.0 \
 	gstreamer1.0-plugins-base \
-	tegra-libraries \
+	tegra-libraries-multimedia tegra-libraries-multimedia-utils \
 	${@bb.utils.contains('DISTRO_FEATURES', ['x11', 'alsa'], 'virtual/libx11 alsa-lib', '', d)} \
 	libdrm virtual/egl virtual/libgles2 \
 "
