@@ -2,7 +2,7 @@ DESCRIPTION = "NVIDIA Tegra Multimedia API headers subset for Argus, nvosd, and 
 
 require tegra-mmapi-${PV}.inc
 
-DEPENDS = "tegra-libraries virtual/egl"
+DEPENDS = "tegra-libraries-multimedia tegra-libraries-multimedia-utils tegra-libraries-camera virtual/egl"
 
 do_configure() {
     :
