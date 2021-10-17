@@ -21,7 +21,7 @@ PACKAGECONFIG[kafka] = ",,librdkafka"
 # NB: requires hiredis 1.0.0+
 PACKAGECONFIG[redis] = ",,hiredis"
 
-DEPENDS = "glib-2.0 gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-rtsp-server tensorrt-core tensorrt-plugins libnvvpi1 libvisionworks json-glib tegra-libraries"
+DEPENDS = "glib-2.0 gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-rtsp-server tensorrt-core tensorrt-plugins libnvvpi1 libvisionworks json-glib tegra-libraries-multimedia"
 
 S = "${WORKDIR}/${BPN}"
 B = "${WORKDIR}/build"
