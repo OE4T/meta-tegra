@@ -33,7 +33,7 @@ LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInferPlugin.h;endline
 
 S = "${WORKDIR}/tensorrt"
 
-DEPENDS = "cuda-cudart cudnn tegra-libraries tensorrt-core"
+DEPENDS = "cuda-cudart cudnn tensorrt-core libcublas"
 
 CONTAINER_CSV_FILES = "${libdir}/*.so* /usr/src/*"
 
@@ -56,7 +56,6 @@ do_install() {
 
 FILES:${PN} += "${prefix}/src/tensorrt/bin"
 
-RDEPENDS:${PN} += "tegra-libraries"
 PROVIDES = "tensorrt-plugins"
 RPROVIDES:${PN} = "tensorrt-plugins"
 RCONFLICTS:${PN} = "tensorrt-plugins"
