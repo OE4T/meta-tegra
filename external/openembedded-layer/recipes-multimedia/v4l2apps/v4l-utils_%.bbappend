@@ -15,7 +15,7 @@ do_install:append:tegra() {
 FILES_libv4l:remove:tegra = "${libdir}/libv4l/plugins/*.so"
 
 TEGRA_PLUGINS ?= ""
-TEGRA_PLUGINS:tegra = "tegra-libraries-libv4l-plugins"
+TEGRA_PLUGINS:tegra = "tegra-libraries-multimedia-v4l"
 RRECOMMENDS:libv4l += "${TEGRA_PLUGINS}"
 
 inherit container-runtime-csv
