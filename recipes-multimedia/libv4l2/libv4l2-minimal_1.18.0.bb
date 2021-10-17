@@ -40,5 +40,5 @@ FILES_libv4l-dev += "${includedir} ${libdir}/pkgconfig \
                      ${libdir}/v4l*${SOLIBSDEV} ${libdir}/libv4l/*.la ${libdir}/libv4l/plugins/*.la"
 RDEPENDS_libv4l = " ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', '${CONTAINER_CSV_PKGNAME}', '', d)}"
 RDEPENDS_${PN}_remove = " ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', '${CONTAINER_CSV_PKGNAME}', '', d)}"
-RRECOMMENDS_libv4l = "tegra-libraries-libv4l-plugins"
+RRECOMMENDS_libv4l = "tegra-libraries-multimedia-v4l"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
