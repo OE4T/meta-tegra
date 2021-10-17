@@ -21,11 +21,11 @@ LIC_FILES_CHKSUM = "file://../../../share/doc/libnvinfer-samples/copyright;md5=7
 
 S = "${WORKDIR}/tensorrt/usr/src/tensorrt/samples"
 
-DEPENDS = "cuda-cudart cudnn tegra-libraries tensorrt-core tensorrt-plugins libglvnd"
+DEPENDS = "cuda-cudart cudnn tegra-libraries-multimedia-utils tensorrt-core tensorrt-plugins libglvnd"
 
 EXTRA_OEMAKE = ' \
     CUDA_INSTALL_DIR="${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}" \
-    CUDNN_INSTALL_DIR="${STAGING_DIR_HOST}/usr/lib" \ 
+    CUDNN_INSTALL_DIR="${STAGING_DIR_HOST}/usr/lib" \
     TRT_LIB_DIR="${STAGING_DIR_HOST}/usr/lib" \
     TARGET="${TARGET_ARCH}" BUILD_TYPE="release" \
 '
