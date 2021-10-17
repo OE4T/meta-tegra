@@ -17,7 +17,7 @@ SRC_URI += "\
     file://0002-Clean-up-compiler-warnings.patch \
 "
 
-DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good libv4l virtual/egl tegra-libraries"
+DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good libv4l virtual/egl tegra-libraries-multimedia"
 
 S = "${WORKDIR}/gst-nvv4l2camera"
 
