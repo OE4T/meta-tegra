@@ -44,8 +44,6 @@ do_install:append() {
     install -d ${D}${includedir}
     install -m 0644 ${S}/include/NvInferPlugin.h ${D}${includedir}
     install -m 0644 ${S}/include/NvInferPluginUtils.h ${D}${includedir}
-    install -m 0644 ${S}/include/NvOnnxConfig.h ${D}${includedir}  
+    install -m 0644 ${S}/include/NvOnnxConfig.h ${D}${includedir}
     install -m 0644 ${S}/parsers/onnx/NvOnnxParser.h ${D}${includedir}
 }
-
-RDEPENDS:${PN} += "tegra-libraries"
