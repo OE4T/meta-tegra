@@ -8,7 +8,7 @@ require recipes-bsp/tegra-sources/tegra-sources-32.6.1.inc
 
 SRC_URI += "file://use-nvjpeg-for-plugin-name.patch"
 
-DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base libjpeg-turbo tegra-libraries"
+DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base libjpeg-turbo tegra-libraries-multimedia tegra-libraries-multimedia-utils"
 
 S = "${WORKDIR}/gstjpeg_src/gst-jpeg/gst-jpeg-1.0"
 CFLAGS += "-I${WORKDIR}/gstjpeg_src/nv_headers -DUSE_TARGET_TEGRA"
