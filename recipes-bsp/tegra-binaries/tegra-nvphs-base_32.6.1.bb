@@ -3,6 +3,8 @@ require tegra-shared-binaries.inc
 
 DESCRIPTION = "NVIDIA Power Hinting Service"
 
+DEPENDS = "tegra-libraries-core"
+
 inherit container-runtime-csv
 
 COMPATIBLE_MACHINE = "(tegra)"
@@ -28,7 +30,7 @@ do_install() {
 
 PACKAGES = "${PN}"
 FILES:${PN} = "${sbindir} ${sysconfdir} ${libdir}"
-RDEPENDS:${PN} = "bash tegra-libraries"
+RDEPENDS:${PN} = "bash"
 INSANE_SKIP:${PN} = "ldflags dev-so"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_STRIP = "1"
