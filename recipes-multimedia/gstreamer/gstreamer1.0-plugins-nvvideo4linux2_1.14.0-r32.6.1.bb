@@ -21,10 +21,10 @@ SRC_URI += "\
     file://0007-Fix-resource-leak-in-nvv4l2decoder.patch \
 "
 
-DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries"
+DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries-multimedia"
 
 PACKAGECONFIG ??= "libv4l2"
-PACKAGECONFIG[libv4l2] = ",,v4l-utils,tegra-libraries-libv4l-plugins"
+PACKAGECONFIG[libv4l2] = ",,v4l-utils,tegra-libraries-multimedia-v4l"
 EXTRA_OEMAKE = "${@bb.utils.contains('PACKAGECONFIG', 'libv4l2', 'USE_LIBV4L2=1', '', d)}"
 
 S = "${WORKDIR}/gst-v4l2"

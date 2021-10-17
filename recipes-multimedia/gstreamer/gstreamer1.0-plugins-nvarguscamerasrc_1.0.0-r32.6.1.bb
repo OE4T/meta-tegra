@@ -15,7 +15,7 @@ SRC_URI += "\
     file://0002-Fix-nvarguscamerasrc-build-errors.patch \
 "
 
-DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries tegra-mmapi"
+DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries-camera tegra-mmapi"
 
 S = "${WORKDIR}/gst-nvarguscamera"
 
