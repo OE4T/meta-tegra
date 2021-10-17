@@ -21,7 +21,7 @@ SRC_URI_append = " file://0001-vpi-config-allow-to-compute-the-installation-pref
 S = "${WORKDIR}/vpi1"
 B = "${S}"
 
-DEPENDS = "cuda-cudart libcufft tegra-libraries"
+DEPENDS = "cuda-cudart libcufft tegra-libraries-multimedia-utils tegra-libraries-multimedia tegra-libraries-eglcore"
 SYSROOT_DIRS_append = " /opt"
 
 COMPATIBLE_MACHINE = "(tegra)"
