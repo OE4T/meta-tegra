@@ -1,0 +1,27 @@
+From 8302198ab0e2bfe9709b747d24cfca79753ed706 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 18 Oct 2021 02:43:19 -0700
+Subject: [PATCH] Update makefile for statically linking external libtirpc
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index a2aaf17..231a4ad 100644
+--- a/Makefile
++++ b/Makefile
+@@ -127,9 +127,9 @@ LDLIBS   := $(LDLIBS)
+ # Library flags (recursively expanded to handle target-specific flags)
+ LIB_CPPFLAGS       = -DNV_LINUX -isystem $(DEPS_DIR)$(includedir) -include $(BUILD_DEFS)
+ LIB_CFLAGS         = -fPIC
+-LIB_LDFLAGS        = -L$(DEPS_DIR)$(libdir) -shared -Wl,-soname=$(LIB_SONAME)
+-LIB_LDLIBS_STATIC  = -l:libnvidia-modprobe-utils.a
+-LIB_LDLIBS_SHARED  = -ldl -lcap -ltirpc
++LIB_LDFLAGS        = -shared -Wl,-soname=$(LIB_SONAME)
++LIB_LDLIBS_STATIC  = -L$(DEPS_DIR)$(libdir) -l:libnvidia-modprobe-utils.a -L=$(libdir) -l:libtirpc.a
++LIB_LDLIBS_SHARED  = -ldl -lcap -lpthread
+ ifeq ($(WITH_LIBELF), yes)
+ LIB_CPPFLAGS       += -DWITH_LIBELF
+ LIB_LDLIBS_SHARED  += -lelf
