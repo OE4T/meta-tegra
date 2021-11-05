@@ -15,7 +15,7 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=06cff45c51018e430083a716
 		    file://src/${GO_INSTALL}/vendor/github.com/stretchr/testify/LICENSE;md5=d4c9e9b2abd3afaebed1524a9a77b937"
 
 SRC_URI = " \
-    git://github.com/NVIDIA/nvidia-container-runtime;protocol=https \
+    git://github.com/NVIDIA/nvidia-container-runtime.git;protocol=https;branch=master \
     file://l4t.csv \
 "
 SRCREV = "027d6c876ad8c163f53e75cbd5a6a54776985e5c"
