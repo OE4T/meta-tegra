@@ -4,7 +4,8 @@ LICENSE = "MIT & BSD & GPL-3.0-with-autoconf-exception"
 LIC_FILES_CHKSUM = "file://README.md;beginline=323;md5=f98ec0fbe6c0d2fbbd0298b5d9e664d3"
 
 SRC_REPO = "gitlab.freedesktop.org/glvnd/libglvnd.git;protocol=https"
-SRC_URI = "git://${SRC_REPO} \
+SRCBRANCH = "master"
+SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH} \
     file://0001-Add-EGL-and-GLES2-extensions-for-Tegra.patch \
     file://0002-Make-Wayland-support-configurable.patch \
     file://0003-Fix-tests-meson.build-syntax-error.patch \
