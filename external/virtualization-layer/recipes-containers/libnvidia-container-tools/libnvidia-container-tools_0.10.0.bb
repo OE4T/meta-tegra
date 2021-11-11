@@ -17,12 +17,23 @@ DEPENDS = " \
     libtirpc126 \
     ldconfig-native \
 "
-LICENSE = "BSD-3-Clause & GPLv3 & Proprietary"
+LICENSE = "BSD-3-Clause & MIT & Proprietary"
+
+# Both source repositories include GPL COPYING (and for
+# libnvidia-container, COPYING.LESSER) files. However:
+# * For libnvidia-container, those files might only apply if elfutils
+#   sources were included (the makefile has commands to download and
+#   build libelf from elfutils sources). We configure the build to
+#   use libelf provided externally.
+# * For nvidia-modprobe, only the nvidia-modprobe-utils library is
+#   built and used.  All sources for that library are MIT-licensed.
 
 LIC_FILES_CHKSUM = "\
     file://LICENSE;md5=06cff45c51018e430083a716510821b7 \
-    file://COPYING;md5=1ebbd3e34237af26da5dc08a4e440464 \
-    file://COPYING.LESSER;md5=3000208d539ec061b899bce1d9ce9404 \
+    file://deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/modprobe-utils/nvidia-modprobe-utils.c;endline=22;md5=8f11a22ea12c5aecde3340212f7fc9a1 \
+    file://deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/modprobe-utils/pci-enum.h;endline=29;md5=b2c0e63b1fa594dcb4f4093247d74a29 \
+    file://deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/modprobe-utils/pci-sysfs.c;endline=25;md5=a5eee0d4ba40238ac5823a33ead29b6d \
+    file://src/cuda.h;endline=48;md5=d212e7eced2562852ccf8267e4811e6f \
 "
 
 PR = "r1"
