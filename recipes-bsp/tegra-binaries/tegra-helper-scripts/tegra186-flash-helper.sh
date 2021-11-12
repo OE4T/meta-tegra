@@ -163,7 +163,24 @@ for var in $FLASHVARS; do
 done
 
 [ -n "$BOARDID" ] || BOARDID=3310
-[ -n "$BOARDSKU" ] || BOARDSKU=1000
+case "$BOARDID" in
+    3310)
+	[ -n "$BOARDSKU" ] || BOARDSKU=1000
+	bup_boardsku=
+	;;
+    3489)
+	[ -n "$BOARDSKU" ] || BOARDSKU=0000
+	bup_boardsku=
+	;;
+    3636)
+	[ -n "$BOARDSKU" ] || BOARDSKU=0001
+	bup_boardsku="$BOARDSKU"
+	;;
+    *)
+	echo "ERR: no default board SKU for board ID $BOARDID" >&2
+	exit 1
+	;;
+esac
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 [ -n "${BOOTDEV}" ] || BOOTDEV="mmcblk0p1"
 
@@ -319,7 +336,7 @@ if [ $bup_blob -ne 0 ]; then
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
-    spec="${BOARDID}-${FAB}-${BOARDSKU}--1-0-${MACHINE}-${BOOTDEV}"
+    spec="${BOARDID}-${FAB}-${bup_boardsku}--1-0-${MACHINE}-${BOOTDEV}"
     if [ $(expr length "$spec") -ge 64 ]; then
 	echo "ERR: TNSPEC must be shorter than 64 characters: $spec" >&2
 	exit 1
