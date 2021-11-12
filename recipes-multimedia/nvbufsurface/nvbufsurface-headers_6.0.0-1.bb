@@ -5,14 +5,14 @@ HOMEPAGE = "https://developer.nvidia.com/deepstream-sdk"
 
 inherit l4t_deb_pkgfeed
 
-L4T_DEB_GROUP = "deepstream-5.1"
-SRC_COMMON_DEBS = "deepstream-5.1_${PV}_arm64.deb;subdir=${BPN}"
-SRC_URI[sha256sum] = "68b5ddff8b8682ed657fe8554cfb492f36621274a7593d9660f335ce8ba926a5"
+L4T_DEB_GROUP = "deepstream-6.0"
+SRC_COMMON_DEBS = "deepstream-6.0_${PV}_arm64.deb;subdir=${BPN}"
+SRC_URI[sha256sum] = "320927fe83b40bea2da5408f6777985065038c7f1506b2f5d5eaa0bcfc2a1564"
 
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
-S = "${WORKDIR}/${BPN}/opt/nvidia/deepstream/deepstream-5.1/sources"
+S = "${WORKDIR}/${BPN}/opt/nvidia/deepstream/deepstream-6.0/sources"
 B = "${WORKDIR}/build"
 
 do_configure() {
