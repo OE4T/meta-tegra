@@ -1,6 +1,11 @@
+L4T_DEB_COPYRIGHT_MD5 = "3d9212d4d5911fa3200298cd55ed6621"
 DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-multimedia-utils pango cairo glib-2.0 gstreamer1.0 gstreamer1.0-plugins-base virtual/egl"
 
-require tegra-libraries-common.inc
+require tegra-debian-libraries-common.inc
+
+COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+
+SRC_URI[sha256sum] = "ed2a35fadbdd80c91e81da0c5f57b557f56f0a2792f3d4ec843ead87aecfa1a5"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvavp.so \
