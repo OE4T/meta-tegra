@@ -50,8 +50,9 @@ MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvs
 MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu kernel-module-tegra-udrm"
 MACHINE_HWCODECS = "gstreamer1.0-omx-tegra gstreamer1.0-plugins-nvvideo4linux2"
 
-PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg"
-XSERVER = "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-module-libwfb"
+PREFERRED_PROVIDER_virtual/xserver = "xserver-xorg-tegra"
+PREFERRED_PROVIDER_virtual/xserver-xf86 = "xserver-xorg-tegra"
+XSERVER = "xserver-xorg-tegra xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-tegra-module-libwfb"
 
 CUDA_VERSION ?= "10.2"
 # Tegra specific version of libnvidia-container
