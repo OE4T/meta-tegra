@@ -3,6 +3,8 @@ DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-multimedia-
 
 require tegra-debian-libraries-common.inc
 
+COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+
 SRC_URI[sha256sum] = "ed2a35fadbdd80c91e81da0c5f57b557f56f0a2792f3d4ec843ead87aecfa1a5"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\

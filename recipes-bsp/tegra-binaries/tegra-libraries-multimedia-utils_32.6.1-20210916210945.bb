@@ -3,6 +3,8 @@ DEPENDS = "tegra-libraries-core virtual/egl"
 
 require tegra-debian-libraries-common.inc
 
+COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+
 SRC_URI[sha256sum] = "e4d9935bcfaa133ebd8fe42d0f211c6bc00adb8e4675b9d67b7b7633d398ab76"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
