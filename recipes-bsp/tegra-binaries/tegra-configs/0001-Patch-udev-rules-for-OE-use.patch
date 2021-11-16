@@ -1,0 +1,31 @@
+From c2e973957f9fcbedd0bcf16bcc3af9aa51729f2b Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 16 Nov 2021 09:08:15 -0800
+Subject: [PATCH] Patch udev rules for OE use
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ etc/udev/rules.d/99-tegra-devices.rules | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/etc/udev/rules.d/99-tegra-devices.rules b/etc/udev/rules.d/99-tegra-devices.rules
+index ed48477..7ca3242 100644
+--- a/etc/udev/rules.d/99-tegra-devices.rules
++++ b/etc/udev/rules.d/99-tegra-devices.rules
+@@ -3,7 +3,6 @@
+ #
+ 
+ ACTION=="remove" GOTO="nvidia_end"
+-KERNEL=="camera.pcl", RUN+="/usr/sbin/camera_device_detect"
+ 
+ # root only devices
+ KERNEL=="knvrm" OWNER="root" GROUP="root" MODE="0660"
+@@ -39,8 +38,4 @@ KERNEL=="ar*" OWNER="root" GROUP="video" MODE="0660"
+ KERNEL=="camchar*" OWNER="root" GROUP="video" MODE="0660"
+ KERNEL=="capture-*" OWNER="root" GROUP="video" MODE="0660"
+ 
+-# security related devices
+-KERNEL=="tegra-crypto" OWNER="root" GROUP="crypto" MODE="0660"
+-KERNEL=="trusty-ipc-dev*" OWNER="root" GROUP="trusty" MODE="0660"
+-
+ LABEL="nvidia_end"

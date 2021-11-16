@@ -1,24 +1,19 @@
-require tegra-binaries-${PV}.inc
-require tegra-shared-binaries.inc
-
 DESCRIPTION = "NVIDIA sensor HAL daemon"
-
-COMPATIBLE_MACHINE = "(tegra)"
-
+L4T_DEB_COPYRIGHT_MD5 = "0a282b202b51eab090698fcda604cb76"
 DEPENDS = "tegra-libraries-core"
 
-do_configure() {
-    tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 usr/sbin/nvs-service
-}
+L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-init"
+TEGRA_LIBRARIES_CONTAINER_CSV = ""
 
-do_compile[noexec] = "1"
+require tegra-debian-libraries-common.inc
+
+MAINSUM = "97ecfa2e2a1bd9dd7537c1e272ce3b44dc56b859f1b5b0a8131549872669a93b"
+MAINSUM_tegra210 = "bee82489940152358039b5b7123815620447415121f03843f711a8f4158b23b4"
 
 do_install() {
     install -d ${D}${sbindir}
-    install -m 0755 ${B}/usr/sbin/nvs-service ${D}${sbindir}/
+    install -m 0755 ${S}/usr/sbin/nvs-service ${D}${sbindir}/
 }
 
-PACKAGES = "${PN}"
-FILES_${PN} = "${sbindir} ${sysconfdir}"
 RDEPENDS_${PN} = "bash"
 INSANE_SKIP_${PN} = "ldflags"
