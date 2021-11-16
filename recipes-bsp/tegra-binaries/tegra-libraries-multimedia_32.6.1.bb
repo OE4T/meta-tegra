@@ -3,9 +3,15 @@ DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-multimedia-
 
 require tegra-debian-libraries-common.inc
 
-COMPATIBLE_MACHINE = "(tegra210)"
+LICENSE += "& MIT & BSD-3-Clause"
+LIC_FILES_CHKSUM += "\
+    file://usr/share/doc/nvidia-tegra/LICENSE.libnveventlib;md5=42479ac5ddc96ba7997ecf0636e707d2 \
+    file://usr/share/doc/nvidia-tegra/LICENSE.libnvtracebuf;md5=42479ac5ddc96ba7997ecf0636e707d2 \
+    file://usr/share/doc/nvidia-tegra/LICENSE.libnvjpeg;md5=1b873f8976e4e3683c04133e3035be98 \
+"
 
-SRC_URI[sha256sum] = "3bef951a6ffac09dd412714f7de51895afd8e19b3f782ce448d473746867cbf1"
+MAINSUM = "ed2a35fadbdd80c91e81da0c5f57b557f56f0a2792f3d4ec843ead87aecfa1a5"
+MAINSUM_tegra210 = "3bef951a6ffac09dd412714f7de51895afd8e19b3f782ce448d473746867cbf1"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvavp.so \
