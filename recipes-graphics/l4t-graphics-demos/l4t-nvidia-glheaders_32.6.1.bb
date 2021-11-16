@@ -1,3 +1,6 @@
+DESCRIPTION = "NVIDIA Jetson-specific EGL and GLES2 extension headers"
+HOMEPAGE = "https://developer.nvidia.com/embedded"
+
 require l4t-graphics-demos.inc
 
 LICENSE = "Proprietary"

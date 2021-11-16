@@ -1,3 +1,4 @@
+DESCRIPTION = "L4T graphics demo programs"
 require l4t-graphics-demos.inc
 
 LICENSE = "MIT & Proprietary"
