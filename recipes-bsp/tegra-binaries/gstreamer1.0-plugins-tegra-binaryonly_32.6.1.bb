@@ -1,9 +1,4 @@
-require tegra-binaries-${PV}.inc
-require tegra-shared-binaries.inc
-
-inherit container-runtime-csv
-
-CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/gstreamer-1.0/*.so*"
+L4T_DEB_COPYRIGHT_MD5 = "e9ada95d2bb512af0bf751941ce6e6ba"
 
 DEPENDS = "\
 	glib-2.0 \
@@ -13,23 +8,29 @@ DEPENDS = "\
 	libdrm virtual/egl virtual/libgles2 \
 "
 
-do_configure() {
-    tar -C ${B} -x -f ${S}/nv_tegra/nv_sample_apps/nvgstapps.tbz2
-}
+L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-gstreamer"
 
-do_compile[noexec] = "1"
+require tegra-debian-libraries-common.inc
 
-LIBROOT = "${B}/usr/lib/aarch64-linux-gnu"
+LICENSE += "& MIT"
+LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-tegra/LICENSE.gstvideocuda;md5=f37b39e990d2d2fa02cb5c87368357f4"
 
+MAINSUM = "02b80b3d90d46b9e42b2daedd5eba7c2357d6a015263ff9dccd5dc0d93b289cc"
+MAINSUM_tegra210 = "09349648604d6af55f388a6398517c78c0172cc7289e8b2bf1274cabfb373ab3"
+
+TEGRA_LIBRARIES_TO_INSTALL = "\
+    libgstnvegl-1.0.so.0 \
+    libgstnvexifmeta.so \
+    libgstnvivameta.so \
+    libnvsample_cudaprocess.so \
+"
 do_install() {
+    install_libraries
     install -d ${D}${libdir}/gstreamer-1.0
-    install -m 0644 ${LIBROOT}/libgstnvegl-1.0.so.0 ${D}${libdir}
-    install -m 0644 ${LIBROOT}/libgstnvivameta.so ${D}${libdir}
-    install -m 0644 ${LIBROOT}/libgstnvexifmeta.so ${D}${libdir}
-    install -m 0644 ${LIBROOT}/libnvsample_cudaprocess.so ${D}${libdir}
-    for f in ${LIBROOT}/gstreamer-1.0/lib*; do
+    for f in ${S}/usr/lib/aarch64-linux-gnu/gstreamer-1.0/lib*; do
         install -m 0644 $f ${D}${libdir}/gstreamer-1.0/
     done
+    # Remove the plugins we build from source
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvarguscamerasrc.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnveglglessink.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvjpeg.so*
@@ -43,13 +44,10 @@ do_install() {
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvidconv*
 }
 
+CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/gstreamer-1.0/*.so*"
+
 FILES_SOLIBSDEV = ""
 FILES_${PN} = "${libdir}"
 DEBIAN_NOAUTONAME_${PN} = "1"
 
-INHIBIT_PACKAGE_STRIP = "1"
-INHIBIT_SYSROOT_STRIP = "1"
-INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
-INSANE_SKIP_${PN}-nvcompositor = "dev-so ldflags"
-INSANE_SKIP_${PN} = "dev-so ldflags"
 RRECOMMENDS_${PN} = "gstreamer1.0-plugins-nvarguscamerasrc gstreamer1.0-plugins-nvv4l2camerasrc"
