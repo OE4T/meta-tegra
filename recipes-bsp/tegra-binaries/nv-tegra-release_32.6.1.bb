@@ -1,15 +1,21 @@
-require recipes-bsp/tegra-binaries/tegra-binaries-${PV}.inc
-require recipes-bsp/tegra-binaries/tegra-shared-binaries.inc
+DESCRIPTION = "Release version information file from L4T"
+L4T_DEB_COPYRIGHT_MD5 = "fab0c15b4bbf7f8d5ac2bd6673d4211c"
+
+L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-core"
+TEGRA_LIBRARIES_CONTAINER_CSV = ""
+
+require tegra-debian-libraries-common.inc
+
+L4T_BSP_DEB_VERSION = "${L4T_BSP_DEB_ORIG_VERSION}"
+MAINSUM = "2c87814d6d06344a81baf7709377c5d2b1cf22b999fa136ca20531cf58f315c1"
+MAINSUM:tegra210 = "d2d8941982e1b344868b0b2d2a93f6ecf886493722c2620a5864262f5db73363"
 
 INHIBIT_DEFAULT_DEPS = "1"
 
-do_configure() {
-	tar -C ${B} -x -f ${S}/nv_tegra/nvidia_drivers.tbz2 etc/nv_tegra_release
-}
+B = "${WORKDIR}/build"
 
 do_compile() {
-	rm -f ${B}/nv_tegra_release
-	head -n 1 ${B}/etc/nv_tegra_release > ${B}/nv_tegra_release
+	head -n 1 ${S}/etc/nv_tegra_release > ${B}/nv_tegra_release
 }
 
 do_install() {
