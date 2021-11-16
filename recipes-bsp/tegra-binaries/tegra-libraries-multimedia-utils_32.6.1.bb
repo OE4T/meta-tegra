@@ -3,9 +3,8 @@ DEPENDS = "tegra-libraries-core virtual/egl"
 
 require tegra-debian-libraries-common.inc
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
-
-SRC_URI[sha256sum] = "e4d9935bcfaa133ebd8fe42d0f211c6bc00adb8e4675b9d67b7b7633d398ab76"
+MAINSUM = "e4d9935bcfaa133ebd8fe42d0f211c6bc00adb8e4675b9d67b7b7633d398ab76"
+MAINSUM:tegra210 = "768f9ed9b162226f2659ae3837e81e1ca520c62a4a85617e5baa7492c2726d52"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvbuf_fdmap.so.1.0.0 \
