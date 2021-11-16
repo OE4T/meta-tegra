@@ -1,18 +1,19 @@
-require tegra-binaries-${PV}.inc
-require tegra-shared-binaries.inc
-
 DESCRIPTION = "Miscellaneous tools provided by L4T"
+L4T_DEB_COPYRIGHT_MD5 = "fe65a18c0cbf70d19e3d6202a8c825b6"
 
-do_configure() {
-    tar -C ${B} -x -f ${S}/nv_tegra/nv_tools.tbz2
-}
+L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-tools"
+TEGRA_LIBRARIES_CONTAINER_CSV = ""
 
-do_compile[noexec] = "1"
+require tegra-debian-libraries-common.inc
+
+L4T_BSP_DEB_VERSION = "${L4T_BSP_DEB_ORIG_VERSION}"
+MAINSUM = "5a74992b743b419a0763c96c6840a08792767bd12de6e5ebc384b0cbcf21bd92"
+MAINSUM:tegra210 = "801e7f20a5eb2b96b36eff69e592c29cd10f53872b6ebafbc8757b2d2614b502"
 
 do_install() {
     install -d ${D}${bindir}
-    install -m 0755 ${B}/usr/bin/tegrastats ${D}${bindir}/
-    install -m 0755 ${B}/usr/bin/jetson_clocks ${D}${bindir}/
+    install -m 0755 ${S}/usr/bin/tegrastats ${D}${bindir}/
+    install -m 0755 ${S}/usr/bin/jetson_clocks ${D}${bindir}/
 }
 
 PACKAGES = "${PN}-tegrastats ${PN}-jetson-clocks ${PN}"
