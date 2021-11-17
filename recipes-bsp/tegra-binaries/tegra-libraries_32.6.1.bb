@@ -9,14 +9,14 @@ TEGRA_LIBRARIES = "\
     tegra-libraries-eglcore \
     tegra-libraries-gbm \
     tegra-libraries-glescore \
-    tegra-libraries-glxcore \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'tegra-libraries-glxcore', '', d)} \
     tegra-libraries-multimedia \
     tegra-libraries-multimedia \
     tegra-libraries-multimedia-utils \
     tegra-libraries-multimedia-utils \
     tegra-libraries-multimedia-v4l \
     tegra-libraries-omx \
-    tegra-libraries-vulkan \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'vulkan', 'tegra-libraries-vulkan', '', d)} \
     tegra-libraries-winsys \
 "
 
