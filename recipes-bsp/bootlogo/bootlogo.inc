@@ -13,7 +13,7 @@ cook_bitmaps() {
         local H=${size#*x}
         bbdebug 1 "Resizing ${SPLASH_GRAPHIC_FILENAME} to ${W}x${H} with background ${SPLASH_GRAPHIC_BACKGROUND}"
         # resize input with size reduction only, pad remaining about center with color
-        convert.im7 ${_input_file} -type truecolor -resize ${W}x${H}\> -gravity center -background ${SPLASH_GRAPHIC_BACKGROUND} -extent ${W}x${H} ${B}/logo-${H}.bmp
+        convert.im7 ${_input_file} -type truecolor -colorspace RGB -resize ${W}x${H}\> -gravity center -background ${SPLASH_GRAPHIC_BACKGROUND} -extent ${W}x${H} ${B}/logo-${H}.bmp
         LIST="${LIST}${B}/logo-${H}.bmp nvidia ${H};"
     done
 
