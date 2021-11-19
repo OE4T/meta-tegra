@@ -5,6 +5,8 @@ LICENSE = "MIT & Proprietary"
 LIC_FILES_CHKSUM = "file://README;endline=21;md5=9344f9b3e882bebae9422f515711d756 \
                     file://gears-cube/Makefile;endline=8;md5=a2d67caf4241d62192371ef03b193fea"
 
+SRC_URI += " file://0001-Fix-stdbool.h-inclusion-check.patch"
+
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS = "libglvnd libdrm"
