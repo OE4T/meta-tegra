@@ -17,6 +17,9 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvgbm.so \
 "
 
+DEBIAN_NOAUTONAME:${PN} = "1"
+DEBIAN_NOAUTONAME:${PN}-dev = "1"
+DEBIAN_NOAUTONAME:${PN}-dbg = "1"
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
 RRECOMMENDS:${PN} = "kernel-module-nvgpu"
