@@ -1,5 +1,7 @@
 L4T_DEB_COPYRIGHT_MD5 = "ce4d36df31e6cc73581fd2a25d16834e"
 
+L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-3d-core"
+
 require tegra-debian-libraries-common.inc
 
 MAINSUM = "c6b3b72a3abbc8f88013d4447e9570465573f2f85ee79b2f1d7cdfc2ccbf669d"
