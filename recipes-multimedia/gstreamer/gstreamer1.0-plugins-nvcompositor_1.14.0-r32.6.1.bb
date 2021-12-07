@@ -10,7 +10,9 @@ require recipes-bsp/tegra-sources/tegra-sources-32.6.1.inc
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-bad virtual/egl tegra-libraries-multimedia-utils"
 
-SRC_URI += " file://0001-Update-makefile-for-OE-builds.patch"
+SRC_URI += " file://0001-Update-makefile-for-OE-builds.patch \
+             file://0002-Compatibility-with-gstreamer-1.18.patch \
+"
 S = "${WORKDIR}/gst-nvcompositor"
 
 inherit pkgconfig container-runtime-csv
