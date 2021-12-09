@@ -42,7 +42,7 @@ PLEASE NOTE
 
 
 Getting Help
------------
+------------
 
 For general build issues or questions about getting started with your build
 setup please use the
@@ -60,9 +60,8 @@ are related to meta-tegra.
 above, and which doesn't relate to a build or runtime issue with Tegra yocto
 builds.
 
-
 Reporting Issues
------------
+----------------
 
 Use the [Issues tab in meta-tegra](https://github.com/OE4T/meta-tegra/issues)
 for reporting build or runtime issues with Tegra yocto build targets.  When
@@ -71,10 +70,13 @@ environment as you can. For example, the target hardware you are building for,
 branch/version information, etc.  Please fill in the provided bug template when
 reporting issues.
 
+We are required to provide an e-mail address, but please use GitHub as
+described above, instead of sending e-mail to oe4t-questions@madison.systems.
 
 Contributing
 ------------
 
-Please see [CONTRIBUTING.md](CONTRIBUTING.md)
+Please see [CONTRIBUTING.md](CONTRIBUTING.md) for information on submitting
+patches to the maintainers.
 
 Contributions are welcome!

@@ -28,10 +28,8 @@ configuration:
 
 after including this layer in your `bblayers.conf` file.
 
+Getting Help, Reporting Issues, Contributing
+--------------------------------------------
 
-Contributing
-------------
-
-Please use GitHub (https://github.com/OE4T/meta-tegra) to submit
-issues or pull requests, or add to the documentation on the wiki.
-Contributions are welcome!
+Please see the [README file in the meta-tegra layer](../README.md)
+for more information.
