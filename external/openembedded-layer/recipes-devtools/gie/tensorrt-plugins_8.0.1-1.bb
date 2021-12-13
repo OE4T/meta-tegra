@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = " \
   file://parsers/onnx/LICENSE;md5=e149467d209874a32715c20e9fdafac5 \
 "
 
-inherit cuda cmake container-runtime-csv
+inherit cuda cmake container-runtime-csv pkgconfig
 
 SRC_REPO = "github.com/NVIDIA/TensorRT.git;protocol=https"
 SRCBRANCH = "master"
