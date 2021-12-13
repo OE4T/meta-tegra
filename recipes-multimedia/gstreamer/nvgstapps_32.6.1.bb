@@ -14,6 +14,7 @@ DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libx11 libxext"
 SRC_URI += "\
     file://0001-Fix-compiler-warnings.patch \
     file://0002-Fix-stringop-truncation-warning.patch \
+    file://0003-Fix-indentation-in-nvgstplayer.c.patch \
 "
 
 S = "${WORKDIR}/nvgstapps_src"
