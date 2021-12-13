@@ -26,19 +26,14 @@ branch: master
 LAYERSERIES_COMPAT: honister
 
 
-PLEASE NOTE
------------
+CUDA toolchain compatibility note
+---------------------------------
 
-* CUDA 10.2 supports up through gcc 8 only. Pre-built binaries
-  in the BSP appear to be compatible with gcc 7 and 8 **only**.
-  So use only gcc 7 or gcc 8 if you intend to use CUDA.
-  Recipes for gcc 8 have been imported from the OE-Core warrior branch
-  (the last version of OE-Core to supply gcc 8) to make it easier
-  to use this older toolchain.
-
-  See [this wiki page](https://github.com/OE4T/meta-tegra/wiki/Using-gcc8-from-the-contrib-layer)
-  for information on adding the `meta-tegra/contrib` layer to your
-  builds and configuring them for GCC 8.
+CUDA 10.2 supports up through gcc 8 only, so recipes are included
+for adding the gcc 8 toolchain to the build for CUDA use, and `cuda.bbclass`
+has been updated to pass the g++ 8 compiler to nvcc for CUDA code compilation.
+This is different from earlier releases/branches, which required setting
+the toolchain used for all builds to a CUDA-compatible version.
 
 
 Getting Help
