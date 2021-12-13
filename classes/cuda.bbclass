@@ -1,3 +1,5 @@
+inherit cuda-gcc
+CUDA_ARCHITECTURES ??= ""
 CUDA_NVCC_COMPAT_FLAGS ??= ""
 CUDA_NVCC_PATH_FLAGS ??= "--include-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include --library-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/${baselib}"
 CUDA_NVCC_EXTRA_FLAGS ??= ""
@@ -19,11 +21,16 @@ def cuda_extract_compiler(compiler, d, prefix='-Xcompiler '):
         return args[1], ' '.join([prefix + arg for arg in args[2:]])
     return args[0], ' '.join([prefix + arg for arg in args[1:]])
 
-export CUDAHOSTCXX = "${@cuda_extract_compiler('CXX', d)[0]}"
-export CUDAFLAGS = "${CUDA_NVCC_FLAGS} ${@cuda_extract_compiler('CXX', d)[1]}"
+export CUDAHOSTCXX = "${@cuda_extract_compiler('CXX_FOR_CUDA', d)[0]}"
+export CUDAFLAGS = "${CUDA_NVCC_FLAGS} ${@cuda_extract_compiler('CXX_FOR_CUDA', d)[1]}"
 OECMAKE_CUDA_COMPILER_LAUNCHER ?= "${CCACHE}"
 OECMAKE_CUDA_COMPILER ?= "nvcc"
 CUDA_CCACHE_COMPILERCHECK ?= "cuda-compiler-check %compiler%"
+
+def cmake_cuda_archs(d):
+    archs = d.getVar('CUDA_ARCHITECTURES')
+    return archs if archs else "OFF"
+OECMAKE_CUDA_ARCHITECTURES ?= "${@cmake_cuda_archs(d)}"
 
 # meson uses 'CUFLAGS' for flags to pass to nvcc
 # and requires all nvcc, compiler, and linker flags to be
@@ -41,7 +48,7 @@ def cuda_meson_ldflags(d):
         elif arg.startswith('--sysroot='):
             linkargs.append(arg)
     return '-Xlinker ' + ','.join(linkargs)
-CUFLAGS = "-ccbin ${@cuda_extract_compiler('CXX', d)[0]} ${CUDAFLAGS} ${@cuda_extract_compiler('CXX', d)[1]} ${@cuda_meson_ldflags(d)}"
+CUFLAGS = "-ccbin ${@cuda_extract_compiler('CXX_FOR_CUDA', d)[0]} ${CUDAFLAGS} ${@cuda_extract_compiler('CXX_FOR_CUDA', d)[1]} ${@cuda_meson_ldflags(d)}"
 
 # The following are for the old-style FindCUDA.cmake module (pre-3.8)
 CUDA_EXTRA_OECMAKE = '\
@@ -72,6 +79,7 @@ set(CMAKE_CUDA_TOOLKIT_TARGET_DIR "${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VER
 set(CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES "\${CMAKE_CUDA_TOOLKIT_ROOT_DIR}/include" "\${CMAKE_CUDA_TOOLKIT_TARGET_DIR}/include" CACHE PATH "" FORCE)
 set(CMAKE_CUDA_COMPILER ${OECMAKE_CUDA_COMPILER})
 set(CMAKE_CUDA_COMPILER_LAUNCHER ${OECMAKE_CUDA_COMPILER_LAUNCHER})
+set(CMAKE_CUDA_ARCHITECTURES ${OECMAKE_CUDA_ARCHITECTURES})
 EOF
 }
 
