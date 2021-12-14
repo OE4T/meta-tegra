@@ -46,6 +46,7 @@ SRC_URI[modprobe.sha256sum] = "25bc6437a384be670e9fd76ac2e5b9753517e23eb16e7fa89
 SRCREV_libnvidia = "09df17a2424704c1e4af310d3ce51fe475ba292a"
 # Nvidia modprobe version 396.51
 SRCREV_modprobe = "d97c08af5061f1516fb2e3a26508936f69d6d71d"
+SRCREV_FORMAT = "libnvidia_modprobe"
 
 S = "${WORKDIR}/git"
 
