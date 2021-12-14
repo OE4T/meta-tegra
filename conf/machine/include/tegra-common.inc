@@ -55,6 +55,8 @@ PREFERRED_PROVIDER_virtual/xserver-xf86 = "xserver-xorg-tegra"
 XSERVER = "xserver-xorg-tegra xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-tegra-module-libwfb"
 
 CUDA_VERSION ?= "10.2"
+CUDA_ARCHITECTURES ?= "${TEGRA_CUDA_ARCHITECTURE}"
+CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_${TEGRA_CUDA_ARCHITECTURE} --gpu-code=sm_${TEGRA_CUDA_ARCHITECTURE}"
 # Tegra specific version of libnvidia-container
 PREFERRED_VERSION_libnvidia-container-tools = "0.10.0"
 
