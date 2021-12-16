@@ -1,10 +1,10 @@
 #!/bin/sh
-# bitbake fetcher passes --no-same-owner -xpf <filename>
+# bitbake fetcher passes --extract --no-same-owner -p -f <filename>
 tarargs=
 extraarg=
 while [ $# -gt 0 ]; do
     case "$1" in
-	-x*f)
+	-f)
 	    tarargs="$tarargs $1 $2"
 	    if [ "$2" = "data.tar.zst" ]; then
 		tarargs="$tarargs -Iunzstd"
