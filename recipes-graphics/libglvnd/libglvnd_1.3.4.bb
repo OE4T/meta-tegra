@@ -15,7 +15,7 @@ SRCREV = "dc084876b411366c3785b7584c216356169bb45e"
 COMPATIBLE_MACHINE = "(tegra)"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
-PROVIDES += "virtual/egl virtual/libgl virtual/libgles1 virtual/libgles2"
+PROVIDES += "virtual/egl virtual/libgl virtual/libgles1 virtual/libgles2 virtual/libgles3"
 
 DEPENDS = "l4t-nvidia-glheaders"
 
@@ -45,11 +45,11 @@ do_install:append() {
 }
 
 RPROVIDES:${PN} += "libegl libgl libgles1 libgles2"
-RPROVIDES:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
+RPROVIDES:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 RCONFLICTS:${PN} = "libegl libgl ligbles1 libgles2"
-RCONFLICTS:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
+RCONFLICTS:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 RREPLACES:${PN} = "libegl libgl libgles1 ligbles2"
-RREPLACESS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev"
+RREPLACESS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 
 RDEPENDS:${PN}:append:tegra = " tegra-libraries-eglcore tegra-libraries-glescore"
 RRECOMMENDS:${PN} += "${@bb.utils.contains('DISTRO_FEATURES', 'wayland', 'egl-wayland', '', d)}"

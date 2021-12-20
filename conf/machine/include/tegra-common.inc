@@ -31,6 +31,7 @@ PREFERRED_PROVIDER_virtual/secure-os ?= "tos-prebuilt"
 PREFERRED_PROVIDER_virtual/egl = "libglvnd"
 PREFERRED_PROVIDER_virtual/libgles1 = "libglvnd"
 PREFERRED_PROVIDER_virtual/libgles2 = "libglvnd"
+PREFERRED_PROVIDER_virtual/libgles3 = "libglvnd"
 PREFERRED_PROVIDER_virtual/libgl = "libglvnd"
 PREFERRED_PROVIDER_libv4l = "${@'v4l-utils' if 'openembedded-layer' in d.getVar('BBFILE_COLLECTIONS').split() else 'libv4l2-minimal'}"
 PREFERRED_PROVIDER_v4l-utils = "${@'v4l-utils' if 'openembedded-layer' in d.getVar('BBFILE_COLLECTIONS').split() else 'libv4l2-minimal'}"
@@ -55,6 +56,8 @@ PREFERRED_PROVIDER_virtual/xserver-xf86 = "xserver-xorg-tegra"
 XSERVER = "xserver-xorg-tegra xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-tegra-module-libwfb"
 
 CUDA_VERSION ?= "10.2"
+CUDA_ARCHITECTURES ?= "${TEGRA_CUDA_ARCHITECTURE}"
+CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_${TEGRA_CUDA_ARCHITECTURE} --gpu-code=sm_${TEGRA_CUDA_ARCHITECTURE}"
 # Tegra specific version of libnvidia-container
 PREFERRED_VERSION_libnvidia-container-tools = "0.10.0"
 

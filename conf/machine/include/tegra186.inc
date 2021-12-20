@@ -23,7 +23,7 @@ NVIDIA_CHIP = "0x18"
 
 TEGRA_SIGNING_ENV ?= "BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB}"
 
-CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_62 --gpu-code=sm_62"
+TEGRA_CUDA_ARCHITECTURE ?= "62"
 
 PREFERRED_PROVIDER_tos-trusty ?= "tos-prebuilt"
 PREFERRED_PROVIDER_cboot ?= "cboot-t18x"
