@@ -1,13 +1,24 @@
+From c2bbcafa8ebdfbfa04ec6bcd04f6aea6e428ba0e Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 6 Sep 2021 04:35:56 -0700
+Subject: [PATCH] Fixups for cross-building in OE
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ python/CMakeLists.txt                | 6 ++----
+ python/include/ForwardDeclarations.h | 2 +-
+ 2 files changed, 3 insertions(+), 5 deletions(-)
+
 diff --git a/python/CMakeLists.txt b/python/CMakeLists.txt
-index ddac863..174f9ca 100644
+index ddac863..81f0cd9 100644
 --- a/python/CMakeLists.txt
 +++ b/python/CMakeLists.txt
-@@ -36,14 +36,14 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tensorrt/)
+@@ -35,15 +35,13 @@ endfunction()
+ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tensorrt/)
  set(CPP_STANDARD 11 CACHE STRING "CPP Standard Version")
  set(CMAKE_CXX_STANDARD ${CPP_STANDARD})
- # This allows us to use TRT libs shipped with the wheel.
+-# This allows us to use TRT libs shipped with the wheel.
 -set(CMAKE_SHARED_LINKER_FLAGS -Wl,-rpath=$ORIGIN)
-+# set(CMAKE_SHARED_LINKER_FLAGS -Wl,-rpath=$ORIGIN)
  set(PY_MODULE_NAME tensorrt)
  
  # -------- PATHS --------
@@ -19,7 +30,7 @@ index ddac863..174f9ca 100644
  set_ifndef(PYBIND11_DIR ${EXT_PATH}/pybind11/)
  
  # Source Files
-@@ -59,7 +59,7 @@ find_path(PY_CONFIG_INCLUDE pyconfig.h HINTS ${PY_INCLUDE} PATH_SUFFIXES ${PY_TA
+@@ -59,7 +57,7 @@ find_path(PY_CONFIG_INCLUDE pyconfig.h HINTS ${PY_INCLUDE} PATH_SUFFIXES ${PY_TA
  
  include_directories(${TENSORRT_ROOT}/include ${PROJECT_SOURCE_DIR}/include ${CUDA_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/docstrings ${ONNX_INC_DIR} ${PYBIND11_DIR}/include)
  link_directories(${TENSORRT_BUILD})
@@ -41,6 +52,8 @@ index 484e8fa..7eb0e58 100644
  
  // We need to avoid making copies of PluginField because it does not own any of it's members.
  // When there are multiple PluginFields pointing to the same data in Python, bad things happen.
+
+ // Hotfix to account for naming mismatch of get_override function (this will no longer be necessary once the Tensorrt libraries for tegra are updated to release 8.2)
 diff --git a/python/include/utils.h b/python/include/utils.h
 index fbf2771..be32a7a 100644
 --- a/python/include/utils.h
