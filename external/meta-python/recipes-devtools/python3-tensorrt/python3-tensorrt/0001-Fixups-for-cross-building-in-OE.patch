@@ -52,3 +52,18 @@ index 484e8fa..7eb0e58 100644
  
  // We need to avoid making copies of PluginField because it does not own any of it's members.
  // When there are multiple PluginFields pointing to the same data in Python, bad things happen.
+
+ // Hotfix to account for naming mismatch of get_override function (this will no longer be necessary once the Tensorrt libraries for tegra are updated to release 8.2)
+diff --git a/python/include/utils.h b/python/include/utils.h
+index fbf2771..be32a7a 100644
+--- a/python/include/utils.h
++++ b/python/include/utils.h
+@@ -104,7 +104,7 @@ inline size_t volume(const nvinfer1::Dims& dims)
+ template <typename T>
+ py::function getOverload(const T* self, const std::string& overloadName, bool showWarning = true)
+ {
+-    py::function overload = py::get_override(self, overloadName.c_str());
++    py::function overload = py::get_overload(self, overloadName.c_str());
+     if (!overload && showWarning)
+     {
+         std::cerr << "Method: " << overloadName
