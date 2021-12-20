@@ -1,0 +1,475 @@
+From 2fd2ef7f88aaa19307c5cc934292ac8145bf7b37 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 20 Dec 2021 03:36:26 -0800
+Subject: [PATCH] Update for gstreamer 1.18
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile             |   8 +-
+ gstnvcompositor.c    | 186 ++++++++++++++++++++++++++++++-------------
+ gstnvcompositorpad.h |   5 +-
+ 3 files changed, 137 insertions(+), 62 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 3ebbd27..357985b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -37,7 +37,6 @@ SRCS := $(wildcard *.c)
+ 
+ PKGS := gstreamer-1.0 \
+ 	gstreamer-base-1.0 \
+-	gstreamer-bad-video-1.0 \
+ 	gstreamer-video-1.0 \
+ 	gstreamer-allocators-1.0 \
+ 	glib-2.0 \
+@@ -45,14 +44,13 @@ PKGS := gstreamer-1.0 \
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+-CFLAGS += -fPIC \
+-	-DGST_USE_UNSTABLE_API
++CFLAGS += -fPIC
+ 
+-CFLAGS += `pkg-config --cflags $(PKGS)`
++CFLAGS += $(shell pkg-config --cflags $(PKGS))
+ 
+ LDFLAGS += -Wl,--no-undefined
+ 
+-LIBS += `pkg-config --libs $(PKGS)`
++LIBS += $(shell pkg-config --libs $(PKGS))
+ 
+ all: $(SO_NAME)
+ 
+diff --git a/gstnvcompositor.c b/gstnvcompositor.c
+index 7ca2bd4..ef893b2 100644
+--- a/gstnvcompositor.c
++++ b/gstnvcompositor.c
+@@ -105,6 +105,9 @@ enum
+ #define GST_NV_V4L2_MEMORY_TYPE       "V4l2Memory"
+ #define GST_NVARGUS_MEMORY_TYPE       "nvarguscam"
+ 
++static void gst_nvcompositor_child_proxy_init (gpointer g_iface,
++    gpointer iface_data);
++
+ /* NvCompositor memory allocator Implementation */
+ 
+ typedef struct _GstNvCompositorMemory GstNvCompositorMemory;
+@@ -252,8 +255,8 @@ gst_nv_compositor_memory_allocator_alloc (GstAllocator * allocator,
+     goto error;
+   }
+ 
+-  gst_memory_init (GST_MEMORY_CAST (mem), GST_MEMORY_FLAG_NO_SHARE, allocator, NULL, par.nv_buffer_size, 1,/* Alignment */
+-      0, par.nv_buffer_size);
++  gst_memory_init (GST_MEMORY_CAST (mem), GST_MEMORY_FLAG_NO_SHARE, allocator, NULL, size, 1,/* Alignment */
++      0, size);
+   mem->buf = nvbuf;
+ 
+   return GST_MEMORY_CAST (mem);
+@@ -313,12 +316,13 @@ gst_nv_compositor_allocator_new (guint width, guint height,
+   allocator->width = width;
+   allocator->height = height;
+   allocator->colorFormat = out_pix_fmt;
++  gst_object_ref_sink (allocator);
+ 
+   return (GstAllocator *) allocator;
+ }
+ 
+ G_DEFINE_TYPE (GstNvCompositorPad, gst_nvcompositor_pad,
+-    GST_TYPE_VIDEO_AGGREGATOR_PAD);
++    GST_TYPE_VIDEO_AGGREGATOR_CONVERT_PAD);
+ 
+ /**
+   * nvcompositor pad set property function.
+@@ -491,37 +495,34 @@ gst_nvcompositor_mpad_output_size (GstNvCompositor * nvcomp,
+ }
+ 
+ /**
+-  * NvCompositorPad set info function.
++  * NvCompositorPad create conversion info function.
+   *
+   * @param pad: GstVideoAggregatorPad object instance
+   * @param vagg: GstVideoAggregator object instance
+-  * @param current_info: input pad video info
+-  * @param wanted_info: input pad needed info
++  * @param conversion_info: input pad conversion info
+   */
+-static gboolean
+-gst_nvcompositor_pad_set_info (GstVideoAggregatorPad * pad,
+-    GstVideoAggregator * vagg G_GNUC_UNUSED,
+-    GstVideoInfo * current_info, GstVideoInfo * wanted_info)
++static void
++gst_nvcompositor_pad_create_conversion_info (GstVideoAggregatorConvertPad * pad,
++    GstVideoAggregator * vagg, GstVideoInfo * conversion_info)
+ {
+   GstNvCompositorPad *cpad = GST_NVCOMPOSITOR_PAD (pad);
+ 
+-  if (!current_info->finfo)
+-    return TRUE;
+-
+-  if (GST_VIDEO_INFO_FORMAT (current_info) == GST_VIDEO_FORMAT_UNKNOWN)
+-    return TRUE;
++  GST_VIDEO_AGGREGATOR_CONVERT_PAD_CLASS
++      (gst_nvcompositor_pad_parent_class)->create_conversion_info (pad, vagg,
++      conversion_info);
++  if (!conversion_info->finfo)
++    return;
+ 
+-  cpad->conversion_info = *current_info;
++  cpad->conversion_info = *conversion_info;
+   cpad->input_width = GST_VIDEO_INFO_WIDTH (&cpad->conversion_info);
+   cpad->input_height = GST_VIDEO_INFO_HEIGHT (&cpad->conversion_info);
+ 
+   if (!get_nvcolorformat (&cpad->conversion_info, &cpad->comppad_pix_fmt)) {
+     GST_ERROR_OBJECT (vagg,
+         "Failed to get nvcompositorpad input NvColorFormat");
+-    return FALSE;
++    return;
+   }
+ 
+-  return TRUE;
+ }
+ 
+ /**
+@@ -532,7 +533,7 @@ gst_nvcompositor_pad_set_info (GstVideoAggregatorPad * pad,
+   */
+ static gboolean
+ gst_nvcompositor_pad_prepare_frame (GstVideoAggregatorPad * pad,
+-    GstVideoAggregator * vagg)
++    GstVideoAggregator * vagg, GstBuffer * buffer, GstVideoFrame * prepared_frame)
+ {
+   guint i = 0;
+   gint ret = 0;
+@@ -545,15 +546,12 @@ gst_nvcompositor_pad_prepare_frame (GstVideoAggregatorPad * pad,
+   NvBufferCreateParams input_params = {0};
+   GstNvCompositorPad *cpad = GST_NVCOMPOSITOR_PAD (pad);
+ 
+-  if (!pad->buffer)
+-    return TRUE;
+-
+-  inmem = gst_buffer_peek_memory (pad->buffer, 0);
++  inmem = gst_buffer_peek_memory (buffer, 0);
+   if (!inmem)
+     goto no_memory;
+ 
+   if (!g_strcmp0 (inmem->allocator->mem_type, GST_ALLOCATOR_SYSMEM)) {
+-    if (!gst_buffer_map (pad->buffer, &inmap, GST_MAP_READ))
++    if (!gst_video_frame_map (prepared_frame, &pad->info, buffer, GST_MAP_READ))
+       goto invalid_inbuf;
+ 
+     if (cpad->comppad_buf_flag == TRUE) {
+@@ -609,9 +607,9 @@ gst_nvcompositor_pad_prepare_frame (GstVideoAggregatorPad * pad,
+     }
+ 
+     for (i = 0; i < params.num_planes; i++) {
+-      ret =
+-          Raw2NvBuffer (inmap.data + Bufsize, i, SrcWidth[i], SrcHeight[i],
+-          cpad->comppad_buf.pad_dmabuf_fd);
++      ret = Raw2NvBuffer (prepared_frame->map[0].data + Bufsize, i,
++                          SrcWidth[i], SrcHeight[i],
++                          cpad->comppad_buf.pad_dmabuf_fd);
+       if (ret != 0) {
+         GST_ERROR ("Raw2NvBuffer Failed\n");
+         goto error;
+@@ -619,10 +617,9 @@ gst_nvcompositor_pad_prepare_frame (GstVideoAggregatorPad * pad,
+       Bufsize += SrcWidth[i] * SrcHeight[i];
+     }
+ 
+-    gst_buffer_unmap (pad->buffer, &inmap);
+   }
+ 
+-  return TRUE;
++  return GST_VIDEO_AGGREGATOR_PAD_CLASS (gst_nvcompositor_pad_parent_class)->prepare_frame(pad, vagg, buffer, prepared_frame);
+ 
+ /* ERRORS */
+ no_memory:
+@@ -637,7 +634,7 @@ invalid_inbuf:
+   }
+ error:
+   {
+-    gst_buffer_unmap (pad->buffer, &inmap);
++    gst_video_frame_unmap (prepared_frame);
+     return FALSE;
+   }
+ }
+@@ -650,8 +647,12 @@ error:
+   */
+ static void
+ gst_nvcompositor_pad_clean_frame (GstVideoAggregatorPad * pad,
+-    GstVideoAggregator * vagg)
++    GstVideoAggregator * vagg, GstVideoFrame * prepared_frame)
+ {
++  if (prepared_frame->buffer) {
++    gst_video_frame_unmap (prepared_frame);
++    memset (prepared_frame, 0, sizeof (GstVideoFrame));
++  }
+ }
+ 
+ /**
+@@ -686,6 +687,8 @@ gst_nvcompositor_pad_class_init (GstNvCompositorPadClass * klass)
+   GObjectClass *gobject_class = (GObjectClass *) klass;
+   GstVideoAggregatorPadClass *vaggpadclass =
+       (GstVideoAggregatorPadClass *) klass;
++  GstVideoAggregatorConvertPadClass *vaggcpadclass =
++      (GstVideoAggregatorConvertPadClass *) klass;
+ 
+   gobject_class->set_property = gst_nvcompositor_pad_set_property;
+   gobject_class->get_property = gst_nvcompositor_pad_get_property;
+@@ -718,7 +721,7 @@ gst_nvcompositor_pad_class_init (GstNvCompositorPadClass * klass)
+           GST_PARAM_CONTROLLABLE | G_PARAM_READWRITE | G_PARAM_CONSTRUCT |
+           G_PARAM_STATIC_STRINGS));
+ 
+-  vaggpadclass->set_info = GST_DEBUG_FUNCPTR (gst_nvcompositor_pad_set_info);
++  vaggcpadclass->create_conversion_info = GST_DEBUG_FUNCPTR (gst_nvcompositor_pad_create_conversion_info);
+   vaggpadclass->prepare_frame =
+       GST_DEBUG_FUNCPTR (gst_nvcompositor_pad_prepare_frame);
+   vaggpadclass->clean_frame =
+@@ -853,10 +856,10 @@ gst_nvcompositor_get_property (GObject * object,
+   }
+ }
+ 
+-static GstElementClass *gparent_class = NULL;
+-
+ #define gst_nvcompositor_parent_class parent_class
+-G_DEFINE_TYPE (GstNvCompositor, gst_nvcompositor, GST_TYPE_VIDEO_AGGREGATOR);
++G_DEFINE_TYPE_WITH_CODE (GstNvCompositor, gst_nvcompositor, GST_TYPE_VIDEO_AGGREGATOR,
++                         G_IMPLEMENT_INTERFACE (GST_TYPE_CHILD_PROXY,
++                                                gst_nvcompositor_child_proxy_init));
+ 
+ /**
+   * Fixate and return the src pad caps provided.
+@@ -1066,7 +1069,7 @@ gst_nvcompositor_decide_allocation (GstAggregator * agg, GstQuery * query)
+       pool = gst_buffer_pool_new ();
+ 
+       config = gst_buffer_pool_get_config (pool);
+-      gst_buffer_pool_config_set_params (config, outcaps, NvBufferGetSize(), minimum, minimum);
++      gst_buffer_pool_config_set_params (config, outcaps, size, minimum, minimum);
+       allocator = gst_nv_compositor_allocator_new (nvcomp->out_width, nvcomp->out_height, nvcomp->out_pix_fmt);
+ 
+       gst_buffer_pool_config_set_allocator (config, allocator, &params);
+@@ -1187,7 +1190,7 @@ get_bg_color (GstNvCompositor * nvcomp)
+   * @param out_dmabuf_fd : output Nvbuffer dmabuf fd
+   */
+ static gboolean
+-do_nvcomposite (GstVideoAggregator * vagg, gint out_dmabuf_fd)
++do_nvcomposite (GstVideoAggregator * vagg, GstVideoFrame * outframe, gint out_dmabuf_fd)
+ {
+   gint i = 0;
+   guint all_yuv = 0;
+@@ -1197,18 +1200,18 @@ do_nvcomposite (GstVideoAggregator * vagg, gint out_dmabuf_fd)
+   gint input_dmabuf_count = 0;
+   gint releasefd_index[MAX_INPUT_FRAME] = { 0 };
+   GstMemory *inmem = NULL;
+-  GstMapInfo inmap = GST_MAP_INFO_INIT;
+ 
+   GstNvCompositor *nvcomp = GST_NVCOMPOSITOR (vagg);
+ 
+   for (l = GST_ELEMENT (vagg)->sinkpads; l; l = l->next) {
+     GstVideoAggregatorPad *pad = l->data;
+-    if (!pad->buffer)
++    GstVideoFrame *prepared_frame = gst_video_aggregator_pad_get_prepared_frame (pad);
++    if (!prepared_frame)
+       continue;
+ 
+     GstNvCompositorPad *compo_pad = GST_NVCOMPOSITOR_PAD (pad);
+ 
+-    inmem = gst_buffer_peek_memory (pad->buffer, 0);
++    inmem = gst_buffer_peek_memory (prepared_frame->buffer, 0);
+     if (!inmem) {
+       GST_ERROR ("no input memory block");
+       return FALSE;
+@@ -1218,12 +1221,8 @@ do_nvcomposite (GstVideoAggregator * vagg, gint out_dmabuf_fd)
+         !g_strcmp0 (inmem->allocator->mem_type, GST_NV_FILTER_MEMORY_TYPE) ||
+         !g_strcmp0 (inmem->allocator->mem_type, GST_NVARGUS_MEMORY_TYPE) ||
+         !g_strcmp0 (inmem->allocator->mem_type, GST_NV_V4L2_MEMORY_TYPE)) {
+-      if (!gst_buffer_map (pad->buffer, &inmap, GST_MAP_READ)) {
+-        GST_ERROR ("input buffer mapinfo failed");
+-        return FALSE;
+-      }
+ 
+-      ret = ExtractFdFromNvBuffer (inmap.data, &input_dmabuf_fds[i]);
++      ret = ExtractFdFromNvBuffer (prepared_frame->map[0].data, &input_dmabuf_fds[i]);
+       if (ret != 0) {
+         GST_ERROR ("ExtractFdFromNvBuffer failed");
+         return FALSE;
+@@ -1293,10 +1292,6 @@ do_nvcomposite (GstVideoAggregator * vagg, gint out_dmabuf_fd)
+         break;
+     }
+ 
+-    if (inmap.data) {
+-      gst_buffer_unmap (pad->buffer, &inmap);
+-    }
+-
+     input_dmabuf_count += 1;
+     i++;
+   }
+@@ -1349,6 +1344,7 @@ gst_nvcompositor_aggregate_frames (GstVideoAggregator * vagg,
+   GstMemory *outmem = NULL;
+   GstNvCompositorMemory *omem = NULL;
+   GstMapInfo outmap = GST_MAP_INFO_INIT;
++  GstVideoFrame out_frame;
+ 
+   outmem = gst_buffer_peek_memory (outbuf, 0);
+   if (!outmem) {
+@@ -1365,7 +1361,7 @@ gst_nvcompositor_aggregate_frames (GstVideoAggregator * vagg,
+     goto invalid_outmem;
+   }
+ 
+-  if (!gst_buffer_map (outbuf, &outmap, GST_MAP_WRITE)) {
++  if (!gst_video_frame_map (&out_frame, &vagg->info, outbuf, GST_MAP_WRITE)) {
+     GST_ERROR_OBJECT (vagg, "output buffer map failed");
+     flow_ret = GST_FLOW_ERROR;
+     goto invalid_outbuf;
+@@ -1374,7 +1370,7 @@ gst_nvcompositor_aggregate_frames (GstVideoAggregator * vagg,
+   GST_OBJECT_LOCK (vagg);
+ 
+   /* Nv Composition function */
+-  if (!do_nvcomposite (vagg, omem->buf->dmabuf_fd)) {
++  if (!do_nvcomposite (vagg, &out_frame, omem->buf->dmabuf_fd)) {
+     GST_ERROR_OBJECT (vagg, "Failed to composit frames");
+     flow_ret = GST_FLOW_ERROR;
+     goto done;
+@@ -1382,7 +1378,7 @@ gst_nvcompositor_aggregate_frames (GstVideoAggregator * vagg,
+ 
+ done:
+   GST_OBJECT_UNLOCK (vagg);
+-  gst_buffer_unmap (outbuf, &outmap);
++  gst_video_frame_unmap (&out_frame);
+ 
+   return flow_ret;
+ 
+@@ -1404,6 +1400,46 @@ invalid_outbuf:
+   }
+ }
+ 
++static GstPad *
++gst_nvcompositor_request_new_pad (GstElement * element, GstPadTemplate * templ,
++    const gchar * req_name, const GstCaps * caps)
++{
++  GstPad *newpad;
++
++  newpad = (GstPad *)
++      GST_ELEMENT_CLASS (parent_class)->request_new_pad (element,
++      templ, req_name, caps);
++
++  if (newpad == NULL)
++    goto could_not_create;
++
++  gst_child_proxy_child_added (GST_CHILD_PROXY (element), G_OBJECT (newpad),
++      GST_OBJECT_NAME (newpad));
++
++  return newpad;
++
++could_not_create:
++  {
++    GST_DEBUG_OBJECT (element, "could not create/add pad");
++    return NULL;
++  }
++}
++
++static void
++gst_nvcompositor_release_pad (GstElement * element, GstPad * pad)
++{
++  GstNvCompositor *compositor;
++
++  compositor = GST_NVCOMPOSITOR (element);
++
++  GST_DEBUG_OBJECT (compositor, "release pad %s:%s", GST_DEBUG_PAD_NAME (pad));
++
++  gst_child_proxy_child_removed (GST_CHILD_PROXY (compositor), G_OBJECT (pad),
++      GST_OBJECT_NAME (pad));
++
++  GST_ELEMENT_CLASS (parent_class)->release_pad (element, pad);
++}
++
+ /**
+   * query functon for sink pad.
+   *
+@@ -1468,11 +1504,13 @@ gst_nvcompositor_class_init (GstNvCompositorClass * klass)
+       (GstVideoAggregatorClass *) klass;
+   GstAggregatorClass *agg_class = (GstAggregatorClass *) klass;
+ 
+-  gparent_class = g_type_class_peek_parent (agg_class);
+-
+   gobject_class->get_property = gst_nvcompositor_get_property;
+   gobject_class->set_property = gst_nvcompositor_set_property;
+ 
++  gstelement_class->request_new_pad =
++      GST_DEBUG_FUNCPTR (gst_nvcompositor_request_new_pad);
++  gstelement_class->release_pad =
++      GST_DEBUG_FUNCPTR (gst_nvcompositor_release_pad);
+   agg_class->sink_query = gst_nvcompositor_sink_query;
+   agg_class->fixate_src_caps = gst_nvcompositor_fixate_caps;
+   agg_class->negotiated_src_caps = gst_nvcompositor_negotiated_caps;
+@@ -1525,6 +1563,46 @@ gst_nvcompositor_init (GstNvCompositor * nvcomp)
+   memset(&nvcomp->comp_params, 0, sizeof(NvBufferCompositeParams));
+ }
+ 
++/* GstChildProxy implementation */
++static GObject *
++gst_nvcompositor_child_proxy_get_child_by_index (GstChildProxy * child_proxy,
++    guint index)
++{
++  GstNvCompositor *compositor = GST_NVCOMPOSITOR (child_proxy);
++  GObject *obj = NULL;
++
++  GST_OBJECT_LOCK (compositor);
++  obj = g_list_nth_data (GST_ELEMENT_CAST (compositor)->sinkpads, index);
++  if (obj)
++    gst_object_ref (obj);
++  GST_OBJECT_UNLOCK (compositor);
++
++  return obj;
++}
++
++static guint
++gst_nvcompositor_child_proxy_get_children_count (GstChildProxy * child_proxy)
++{
++  guint count = 0;
++  GstNvCompositor *compositor = GST_NVCOMPOSITOR (child_proxy);
++
++  GST_OBJECT_LOCK (compositor);
++  count = GST_ELEMENT_CAST (compositor)->numsinkpads;
++  GST_OBJECT_UNLOCK (compositor);
++  GST_INFO_OBJECT (compositor, "Children Count: %d", count);
++
++  return count;
++}
++
++static void
++gst_nvcompositor_child_proxy_init (gpointer g_iface, gpointer iface_data)
++{
++  GstChildProxyInterface *iface = g_iface;
++
++  iface->get_child_by_index = gst_nvcompositor_child_proxy_get_child_by_index;
++  iface->get_children_count = gst_nvcompositor_child_proxy_get_children_count;
++}
++
+ /* NvCompositor Element registration */
+ static gboolean
+ plugin_init (GstPlugin * plugin)
+diff --git a/gstnvcompositorpad.h b/gstnvcompositorpad.h
+index 330a530..95279be 100644
+--- a/gstnvcompositorpad.h
++++ b/gstnvcompositorpad.h
+@@ -64,8 +64,7 @@ struct _GstNvCompPadBuf
+  */
+ struct _GstNvCompositorPad
+ {
+-  GstVideoAggregatorPad parent;
+-
++  GstVideoAggregatorConvertPad parent;
+   /* nvcompositor pad properties */
+   gint xpos;
+   gint ypos;
+@@ -86,7 +85,7 @@ struct _GstNvCompositorPad
+ 
+ struct _GstNvCompositorPadClass
+ {
+-  GstVideoAggregatorPadClass parent_class;
++  GstVideoAggregatorConvertPadClass parent_class;
+ };
+ 
+ GType gst_nvcompositor_pad_get_type (void);
+-- 
+2.32.0
+
