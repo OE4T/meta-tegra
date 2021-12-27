@@ -1,14 +1,14 @@
-From 9914732447d02e9ebd423aa9ca37f7216848bdbf Mon Sep 17 00:00:00 2001
+From b3c461f92f506374babbe8adcb2e0b23d18ef830 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 8 Aug 2020 08:48:13 -0700
 Subject: [PATCH] Add kernel overlays support to kconfiglib
 
 ---
- Kconfiglib/kconfiglib.py | 41 ++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 39 insertions(+), 2 deletions(-)
+ Kconfiglib/kconfiglib.py | 51 ++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 49 insertions(+), 2 deletions(-)
 
 diff --git a/Kconfiglib/kconfiglib.py b/Kconfiglib/kconfiglib.py
-index c67895c..df80f0f 100644
+index 36500c2..7c5a672 100644
 --- a/Kconfiglib/kconfiglib.py
 +++ b/Kconfiglib/kconfiglib.py
 @@ -815,6 +815,7 @@ class Kconfig(object):
@@ -43,7 +43,7 @@ index c67895c..df80f0f 100644
  
                  if not filenames and t0 in _OBL_SOURCE_TOKENS:
                      raise KconfigError(
-@@ -3030,6 +3039,29 @@ class Kconfig(object):
+@@ -3030,6 +3039,39 @@ class Kconfig(object):
  
                  prev.next = prev = node
  
@@ -53,13 +53,23 @@ index c67895c..df80f0f 100644
 +                for node in self.menus:
 +                    if node.prompt == prompt:
 +                        found = node
++                        visibility = self.y
 +                        break
++                if found is None:
++                    for sym in self.defined_syms:
++                        for node in sym.nodes:
++                            if node.is_menuconfig and node.prompt == prompt:
++                                found = node
++                                visibility = sym.visibility
++                                break
++                        if found:
++                            break
 +                if found is None:
 +                    raise KconfigError("append_menu for non-existent menu '{}' in {}".format(prompt, self.filename))
 +                node = found
-+                node._node_stack += [(node.kconfig, node.visibility, node.parent, node.filename, node.linenr, node.include_path)]
++                node._node_stack += [(node.kconfig, visibility, node.parent, node.filename, node.linenr, node.include_path)]
 +                node.kconfig = self
-+                node.visibility = self.y
++                node.visibility = visibility
 +                node.parent = parent
 +                node.filename = self.filename
 +                node.linenr = self.linenr
@@ -73,7 +83,7 @@ index c67895c..df80f0f 100644
              elif t0 is _T_COMMENT:
                  node = MenuNode()
                  node.kconfig = self
-@@ -5622,6 +5654,7 @@ class MenuNode(object):
+@@ -5639,6 +5681,7 @@ class MenuNode(object):
          "parent",
          "prompt",
          "visibility",
@@ -81,7 +91,7 @@ index c67895c..df80f0f 100644
  
          # Properties
          "defaults",
-@@ -5638,6 +5671,7 @@ class MenuNode(object):
+@@ -5655,6 +5698,7 @@ class MenuNode(object):
          self.selects = []
          self.implies = []
          self.ranges = []
@@ -89,7 +99,7 @@ index c67895c..df80f0f 100644
  
      @property
      def orig_prompt(self):
-@@ -6851,6 +6885,7 @@ except AttributeError:
+@@ -6868,6 +6912,7 @@ except AttributeError:
  (
      _T_ALLNOCONFIG_Y,
      _T_AND,
@@ -97,7 +107,7 @@ index c67895c..df80f0f 100644
      _T_BOOL,
      _T_CHOICE,
      _T_CLOSE_PAREN,
-@@ -6899,13 +6934,14 @@ except AttributeError:
+@@ -6916,13 +6961,14 @@ except AttributeError:
      _T_TRISTATE,
      _T_UNEQUAL,
      _T_VISIBLE,
@@ -113,7 +123,7 @@ index c67895c..df80f0f 100644
      "bool":           _T_BOOL,
      "boolean":        _T_BOOL,
      "choice":         _T_CHOICE,
-@@ -7021,6 +7057,7 @@ _DEF_TOKEN_TO_TYPE = {
+@@ -7038,6 +7084,7 @@ _DEF_TOKEN_TO_TYPE = {
  # these tokens. _T_CHOICE is included to avoid symbols being registered for
  # named choices.
  _STRING_LEX = frozenset({
