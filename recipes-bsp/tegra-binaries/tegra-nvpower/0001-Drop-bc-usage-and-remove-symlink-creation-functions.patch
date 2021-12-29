@@ -1,0 +1,125 @@
+From b2cdefaae658c9b55f29ae17ca2d0decd1bd79a9 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 25 Mar 2022 12:51:57 -0700
+Subject: [PATCH] Drop bc usage and remove symlink creation functions
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ etc/systemd/nvpower.sh | 81 +-----------------------------------------
+ 1 file changed, 1 insertion(+), 80 deletions(-)
+
+Index: tegra-nvpower-34.1.0-20220406120854/etc/systemd/nvpower.sh
+===================================================================
+--- tegra-nvpower-34.1.0-20220406120854.orig/etc/systemd/nvpower.sh
++++ tegra-nvpower-34.1.0-20220406120854/etc/systemd/nvpower.sh
+@@ -89,92 +89,6 @@ function set_power_state_perm()
+ 	fi
+ }
+ 
+-function create_nvpmodel_symlink()
+-{
+-	conf_file=""
+-	# create /etc/nvpmodel.conf symlink
+-	if [ ! -e "/etc/nvpmodel.conf" ]; then
+-		if [ "${SOCFAMILY}" = "tegra194" ]; then
+-			if [ "${machine}" = "e3900" ]; then
+-				if [ -d "/sys/devices/gpu.0" ] &&
+-					[ -d "/sys/devices/17000000.gv11b" ]; then
+-					conf_file="/etc/nvpmodel/nvpmodel_t194_e3900_iGPU.conf"
+-				else
+-					conf_file="/etc/nvpmodel/nvpmodel_t194_e3900_dGPU.conf"
+-				fi
+-			elif [ "${machine}" = "p2972-0006" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_t194_8gb.conf"
+-			elif [ "${machine}" = "p3668" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_t194_p3668.conf"
+-			elif [ "${machine}" = "p3668-emul" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_t194_p3668_emul.conf"
+-			elif [ "${machine}" = "jetson-xavier-industrial" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_t194_agxi.conf"
+-			else
+-				conf_file="/etc/nvpmodel/nvpmodel_t194.conf"
+-			fi
+-		elif [ "${SOCFAMILY}" = "tegra234" ]; then
+-			if [ "${machine}" = "p3701-0000-as-p3767-0000" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000.conf"
+-			elif [ "${machine}" = "p3701-0000-as-p3767-0010" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0010.conf"
+-			elif [ "${machine}" = "p3701-0000-as-p3769" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3769.conf"
+-			elif [ "${machine}" = "p3701-0000-as-p3770" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3770.conf"
+-			elif [ "${machine}" = "p3701-0000-as-pxxxx" ] || \
+-				[ "${machine}" = "e2421-1099-as-pxxxx" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_pxxxx.conf"
+-			elif [ "${machine}" = "p3701-0000-as-p3701-0004" ] || \
+-				[ "${machine}" = "p3701-0004" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3701_0004.conf"
+-			else
+-				conf_file="/etc/nvpmodel/nvpmodel_p3701_0000.conf"
+-			fi
+-		fi
+-
+-		if [ "${conf_file}" != "" ]; then
+-			if [ -e "${conf_file}" ]; then
+-				ln -sf "${conf_file}" /etc/nvpmodel.conf
+-			else
+-				echo "${SCRIPT_NAME} - WARNING: file ${conf_file} not found!"
+-			fi
+-		fi
+-	fi
+-}
+-
+-function create_nvfancontrol_symlink()
+-{
+-	conf_file=""
+-	if [ ! -e "/etc/nvfancontrol.conf" ]; then
+-		if [ "${SOCFAMILY}" = "tegra194" ]; then
+-			if [ "${machine}" = "e3900" ]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_e3900.conf"
+-			elif [ "${machine}" = "p3668" ]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3668.conf"
+-			else
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p2888.conf"
+-			fi
+-		fi
+-
+-		if [ "${SOCFAMILY}" = "tegra234" ]; then
+-			if [ "${machine}" = "p3701-0002" ]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0002.conf"
+-			else
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0000.conf"
+-			fi
+-		fi
+-
+-		if [ "${conf_file}" != "" ]; then
+-			if [ -e "${conf_file}" ]; then
+-				ln -sf "${conf_file}" /etc/nvfancontrol.conf
+-			else
+-				echo "${SCRIPT_NAME} - WARNING: file ${conf_file} not found!"
+-			fi
+-		fi
+-	fi
+-}
+-
+ function cpu_hotplug()
+ {
+ 	# CPU hotplug
+@@ -213,7 +127,7 @@ function set_cpu_governor()
+ 			*schedutil*)
+ 				# latest kernel is using the upstream driver and need to avoid setting
+ 				# schedutil governor on kstable.
+-				if [ "$(echo "${KERNEL_VERSION} < 5.11" | bc)" -eq 1 ]; then
++				if [ "${KERNEL_VERSION}" = "5.10" ]; then
+ 					CPU_SCHEDUTIL_GOV=1
+ 				fi
+ 	        ;;
+@@ -445,8 +359,6 @@ SOCFAMILY=""
+ 
+ set_socfamily
+ set_power_state_perm
+-create_nvpmodel_symlink
+-create_nvfancontrol_symlink
+ cpu_hotplug
+ set_cpu_governor
+ lock_se_frequency
