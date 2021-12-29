@@ -11,7 +11,7 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
 ===================================================================
 --- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
 +++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
-@@ -472,13 +472,13 @@ function l4t_bup_gen()
+@@ -479,13 +479,13 @@ function l4t_bup_gen()
  	export OUT=$(pwd);
  
  	# get the bsp version to fill the entry list version.

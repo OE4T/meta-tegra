@@ -1,7 +1,7 @@
 [Unit]
 Description=NVIDIA PHS daemon
 Requires=nvstartup.service
-After=nvstartup.service
+After=nvstartup.service nvpmodel.service
 Before=graphical.target
 
 [Service]

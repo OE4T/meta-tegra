@@ -298,10 +298,10 @@ BINSARGS="mb2_bootloader nvtboot_recovery_t194.bin; \
 mts_preboot preboot_c10_prod_cr.bin; \
 mts_mce mce_c10_prod_cr.bin; \
 mts_proper mts_c10_prod_cr.bin; \
-bpmp_fw bpmp_t194.bin; \
+bpmp_fw bpmp-2_t194.bin; \
 bpmp_fw_dtb $BPFDTB_FILE; \
 spe_fw spe_t194.bin; \
-tlk tos-trusty_t194.img; \
+tlk tos-optee_t194.img; \
 eks eks.img; \
 bootloader_dtb $dtb_file"
 
