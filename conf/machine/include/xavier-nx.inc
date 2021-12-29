@@ -7,7 +7,8 @@ TEGRA_FAB ?= "200"
 TEGRA_BOARDREV ?= "G.0"
 TEGRA_CHIPREV ?= "2"
 NVPMODEL ?= "nvpmodel_t194_p3668"
-TEGRA_AUDIO_DEVICE ?= "tegrahdaxaviernx"
+NVFANCONTROL ?= "nvfancontrol_p3668"
+TEGRA_AUDIO_DEVICE ?= "tegra-hda-jetson-xnx"
 
 MACHINEOVERRIDES =. "xavier-nx:"
 require conf/machine/include/tegra194.inc
@@ -30,3 +31,5 @@ NVIDIA_BOARD ?= "t186ref"
 
 OTABOOTDEV ?= "/dev/mtdblock0"
 OTAGPTDEV ?= "/dev/mtdblock0"
+
+TEGRA_AUDIO_DEVICE ?= "tegra-hda-jetson-xnx"
