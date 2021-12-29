@@ -1,0 +1,8 @@
+[Unit]
+Description=nvsciipc initialization
+After=sysinit.target
+Before=multi-user.target
+
+[Service]
+ExecStart=/usr/bin/nvsciipc_init
+Type=oneshot
