@@ -1,0 +1,4 @@
+#! /bin/sh
+test -c /dev/nvsciipc || exit 0
+/usr/bin/nvsciipc_init
+exit 0

@@ -1,35 +1,32 @@
-From 8bd40bb4fb50e868f2c10aeffe28580adb49827a Mon Sep 17 00:00:00 2001
+From d6dccf257f227db9d7537dfbaf15b3f36c693961 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 16 Nov 2021 09:11:46 -0800
 Subject: [PATCH] Patch nv.sh script for OE use
 
 Signed-off-by: Matt Madison <matt@madison.systems>
----
- etc/systemd/nv.sh | 239 ----------------------------------------------
- 1 file changed, 239 deletions(-)
 
-diff --git a/etc/systemd/nv.sh b/etc/systemd/nv.sh
-index 7df5893..fc592ef 100755
---- a/etc/systemd/nv.sh
-+++ b/etc/systemd/nv.sh
-@@ -74,7 +74,6 @@ if [ -e "/proc/device-tree/compatible" ]; then
+---
+ etc/systemd/nv.sh | 262 +---------------------------------------------
+ 1 file changed, 5 insertions(+), 257 deletions(-)
+
+Index: tegra-configs-34.0.1-20220315011106/etc/systemd/nv.sh
+===================================================================
+--- tegra-configs-34.0.1-20220315011106.orig/etc/systemd/nv.sh
++++ tegra-configs-34.0.1-20220315011106/etc/systemd/nv.sh
+@@ -73,12 +73,6 @@ if [ -e "/proc/device-tree/compatible" ]
+ 	fi
  fi
  
- if [ "$SOCFAMILY" = "tegra194" ]; then
+-if [ "$SOCFAMILY" = "tegra194" ]; then
 -	sudo bash -c "ln -sf /etc/X11/xorg.conf.t194_ref /etc/X11/xorg.conf"
- 	if [ "$machine" = "p2972-0006" -o "$machine" = "p3668" ]; then
- 		if [ -e /sys/devices/system/cpu/cpu6/online ]; then
- 			echo 0 > /sys/devices/system/cpu/cpu6/online
-@@ -83,8 +82,6 @@ if [ "$SOCFAMILY" = "tegra194" ]; then
- 			echo 0 > /sys/devices/system/cpu/cpu7/online
- 		fi
- 	fi
 -elif [ "$machine" = "jetson_tx1" ] || [ "$machine" = "jetson_e" ]; then
 -	sudo bash -c "ln -sf /etc/X11/xorg.conf.jetson_e /etc/X11/xorg.conf"
- fi
- 
+-fi
+-
  if [ "$SOCFAMILY" = "Tegra13" ] &&
-@@ -109,11 +106,6 @@ if [ "$SOCFAMILY" != "tegra210" ]; then
+ 	[ -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq ]; then
+ 	bash \
+@@ -101,11 +95,6 @@ if [ "$SOCFAMILY" != "tegra210" ]; then
  	fi
  fi
  
@@ -38,16 +35,16 @@ index 7df5893..fc592ef 100755
 -	rm -f "/etc/systemd/system/multi-user.target.wants/ondemand.service"
 -fi
 -
- # lp2 idle state
- if [ -e /sys/module/cpuidle/parameters/power_down_in_idle ]; then
- 	echo "Y" > /sys/module/cpuidle/parameters/power_down_in_idle
-@@ -249,55 +241,11 @@ case "${SOCFAMILY}" in
- 		;;
- esac
+ # mmc read ahead size
+ if [ -e /sys/block/mmcblk0/queue/read_ahead_kb ]; then
+ 	echo 2048 > /sys/block/mmcblk0/queue/read_ahead_kb
+@@ -121,260 +110,8 @@ if [ "$SOCFAMILY" = "tegra186" ] || [ "$
+ 	fi
+ fi
  
 -# Ensure libglx.so is not overwritten by a distribution update of Xorg
 -# Alternatively, package management tools could be used to prevent updates
--ARCH=`/usr/bin/dpkg --print-architecture`
+-ARCH=$(/usr/bin/dpkg --print-architecture)
 -if [ "x${ARCH}" = "xarm64" ]; then
 -	LIB_DIR="/usr/lib/aarch64-linux-gnu"
 -fi
@@ -58,10 +55,19 @@ index 7df5893..fc592ef 100755
  fi
  
 -# WAR for https://bugs.launchpad.net/ubuntu/+source/mesa/+bug/1776499
+-# and https://bugs.launchpad.net/ubuntu/+source/mesa/+bug/1946621
+-# These issues are fixed from MESA version 21.2 and so detect the MESA
+-# version and apply the workaround if needed.
 -# When DISABLE_MESA_EGL="1" glvnd will not load mesa EGL library.
 -# When DISABLE_MESA_EGL="0" glvnd will load mesa EGL library.
 -# nvidia EGL library is prioritized over mesa even if DISABLE_MESA_EGL="0".
--DISABLE_MESA_EGL="1"
+-MESA_VERSION="$(dpkg -s libegl-mesa0 | sed -nr 's/^Version: ([0-9]+\.[0-9]+)\.[0-9]+-.*+ubuntu.*/\1/p')"
+-DISABLE_MESA_EGL="0"
+-
+-if [ "${MESA_VERSION}" != "" ]; then
+-    DISABLE_MESA_EGL="$(echo "${MESA_VERSION} < 21.2" | bc)"
+-fi
+-
 -if [ -f "/usr/share/glvnd/egl_vendor.d/50_mesa.json" ]; then
 -	if  [ "${DISABLE_MESA_EGL}" -eq "1" ]; then
 -		sed -i "s/\"library_path\" : .*/\"library_path\" : \"\"/g" \
@@ -73,12 +79,9 @@ index 7df5893..fc592ef 100755
 -fi
 -
 -# Add gdm in video group
--grep "gdm" "/etc/group" > /dev/null
+-getent passwd gdm > /dev/null
 -if [ $? -eq 0 ]; then
--	groups "gdm" | grep "video" > /dev/null
--	if [ $? -eq 1 ]; then
--		addgroup "gdm" "video"
--	fi
+-	adduser gdm video
 -fi
 -
 -# Add lightdm in video group
@@ -93,14 +96,6 @@ index 7df5893..fc592ef 100755
 -if [ -e "/var/lib/lightdm" ]; then
 -	sudo chown lightdm:lightdm /var/lib/lightdm -R
 -fi
--
- function check_nvpmodel_param()
- {
- 	if ! grep -q "< PARAM TYPE=${1} NAME=${2} >" "/etc/nvpmodel.conf"; then
-@@ -326,190 +274,3 @@ using PowerEstimator web tool - https://jetson-tools.nvidia.com/powerestimator"
- 		fi
- 	fi
- fi
 -
 -# Set INSTALL_DOWNSTREAM_WESTON="1" to install downstream weston. This will
 -# overwrite weston binaries in standard weston installation path with downstream
@@ -125,6 +120,18 @@ index 7df5893..fc592ef 100755
 -
 -	if [ -e "${LIB_DIR}/tegra/weston/gl-renderer.so" ]; then
 -		ln -sf "${LIB_DIR}/tegra/weston/gl-renderer.so" "${LIB_DIR}/weston/gl-renderer.so"
+-	fi
+-
+-	if [ -e "${LIB_DIR}/tegra/weston/hmi-controller.so" ]; then
+-		ln -sf "${LIB_DIR}/tegra/weston/hmi-controller.so" "${LIB_DIR}/weston/hmi-controller.so"
+-	fi
+-
+-	if [ -e "${LIB_DIR}/tegra/weston/ivi-controller.so" ]; then
+-		ln -sf "${LIB_DIR}/tegra/weston/ivi-controller.so" "${LIB_DIR}/weston/ivi-controller.so"
+-	fi
+-
+-	if [ -e "${LIB_DIR}/tegra/weston/ivi-shell.so" ]; then
+-		ln -sf "${LIB_DIR}/tegra/weston/ivi-shell.so" "${LIB_DIR}/weston/ivi-shell.so"
 -	fi
 -
 -	if [ -e "${LIB_DIR}/tegra/weston/libweston-6.so.0" ]; then
@@ -233,6 +240,10 @@ index 7df5893..fc592ef 100755
 -
 -	if [ -e "${LIB_DIR}/tegra/weston/weston-info" ]; then
 -		ln -sf "${LIB_DIR}/tegra/weston/weston-info" "/usr/bin/weston-info"
+-	fi
+-
+-	if [ -e "${LIB_DIR}/tegra/weston/weston-ivi-shell-user-interface" ]; then
+-		ln -sf "${LIB_DIR}/tegra/weston/weston-ivi-shell-user-interface" "/usr/bin/weston-ivi-shell-user-interface"
 -	fi
 -
 -	if [ -e "${LIB_DIR}/tegra/weston/weston-launch" ]; then

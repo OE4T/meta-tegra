@@ -1,0 +1,1 @@
+ACTION=="add", SUBSYSTEM=="platform", ENV{ID_PATH}=="platform-nvsciipc-kernel", RUN+="/bin/chmod 0666 /dev/nvsciipc", TAG+="systemd", ENV{SYSTEMD_WANTS}="nv_nvsciipc_init.service"
