@@ -4,29 +4,22 @@ TEGRA_PKGARCH = "${ARMPKGARCH}${ARMPKGSFX_DSP}${ARMPKGSFX_EABI}${ARMPKGSFX_ENDIA
 PACKAGE_EXTRA_ARCHS:append = " ${TEGRA_PKGARCH} ${SOC_FAMILY_PKGARCH}"
 
 KERNEL_IMAGETYPES ?= "Image.gz Image"
-KERNEL_IMAGETYPE ?= "Image.gz"
+KERNEL_IMAGETYPE ?= "Image"
 
-KERNEL_IMAGETYPES ?= "Image.gz Image"
-KERNEL_IMAGETYPE ?= "Image.gz"
-
-KERNEL_ROOTSPEC ?= "root=/dev/mmcblk${devnum}p${distro_bootpart} rw rootwait"
+KERNEL_ROOTSPEC ?= "root=/dev/mmcblk0p1 rootfstype=ext4 rw rootwait"
 KERNEL_ARGS ??= ""
 
-UBOOT_EXTLINUX ?= "1"
 UBOOT_EXTLINUX_FDTDIR ?= ""
-UBOOT_EXTLINUX_ROOT ?= "${cbootargs} ${KERNEL_ROOTSPEC}"
-# Console setting comes from ${cbootargs}
-UBOOT_EXTLINUX_CONSOLE = ""
-UBOOT_EXTLINUX_KERNEL_ARGS ?= "${bootargs}"
-UBOOT_EXTLINUX_INITRD ?= "${@'../initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1' else ''}"
+UBOOT_EXTLINUX_ROOT ?= "${KERNEL_ROOTSPEC}"
+UBOOT_EXTLINUX_KERNEL_IMAGE ?= "/boot/${KERNEL_IMAGETYPE}"
+UBOOT_EXTLINUX_INITRD ?= "${@'/boot/initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1' else ''}"
+UBOOT_EXTLINUX_KERNEL_ARGS ?= "${KERNEL_ARGS}"
 
 TNSPEC_BOOTDEV ??= "mmcblk0p1"
 TNSPEC ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-${TEGRA_BOARDSKU}-${TEGRA_BOARDREV}-1-${TEGRA_CHIPREV}-${MACHINE}-${TNSPEC_BOOTDEV}"
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-tegra"
-PREFERRED_PROVIDER_u-boot ?= "u-boot-tegra"
-PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-tegra"
-PREFERRED_PROVIDER_cboot ?= "cboot-prebuilt"
+PREFERRED_PROVIDER_virtual/bootloader ?= "tegra-uefi-prebuilt"
 PREFERRED_PROVIDER_virtual/secure-os ?= "tos-prebuilt"
 PREFERRED_PROVIDER_virtual/egl = "libglvnd"
 PREFERRED_PROVIDER_virtual/libgles1 = "libglvnd"
@@ -48,9 +41,12 @@ IMAGE_FSTYPES ?= "tegraflash"
 TEGRA_ESSENTIAL_EXTRA_RDEPENDS ??= ""
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda ext2"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${TEGRA_ESSENTIAL_EXTRA_RDEPENDS}"
-MACHINE_EXTRA_RDEPENDS = "tegra-nvpmodel tegra-nvphs tegra-nvs-service tegra-nvstartup tegra-configs-udev"
-MACHINE_EXTRA_RRECOMMENDS ?= "kernel-module-nvgpu kernel-module-tegra-udrm"
-MACHINE_HWCODECS ?= "gstreamer1.0-omx-tegra gstreamer1.0-plugins-nvvideo4linux2"
+MACHINE_EXTRA_RDEPENDS = "tegra-nvphs tegra-nvs-service tegra-nvsciipc tegra-nvstartup tegra-nvfancontrol tegra-configs-udev"
+MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu kernel-module-tegra-udrm \
+			   kernel-module-snd-hda-tegra kernel-module-snd-hda-codec-hdmi kernel-module-ina3221 \
+                           kernel-module-tegra-bpmp-thermal kernel-module-spi-tegra114 kernel-module-ahci \
+                           kernel-module-max77620-thermal kernel-module-pwm-fan"
+MACHINE_HWCODECS = "gstreamer1.0-plugins-nvvideo4linux2"
 
 PREFERRED_PROVIDER_virtual/xserver ?= "xserver-xorg-tegra"
 PREFERRED_PROVIDER_virtual/xserver-xf86 ?= "xserver-xorg-tegra"
