@@ -5,15 +5,12 @@ LIC_FILES_CHKSUM = "file://usr/include/libdrm/nvidia/tegra_drm.h;endline=21;md5=
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-# The sources for t186 and t210 are identical, so just pick one
-L4T_DEB_SOCNAME = "t186"
-L4T_BSP_DEB_VERSION = "${L4T_BSP_DEB_DEFAULT_VERSION_T186}"
 SRC_SOC_DEBS = "nvidia-l4t-weston_${PV}_arm64.deb;subdir=${BPN}"
 PV .= "${@l4t_bsp_debian_version_suffix(d)}"
 
 inherit l4t_deb_pkgfeed
 
-SRC_URI[sha256sum] = "c662c3d513b5bc5907a95153ae85c1239c89f68cef0bd3b805a26de0b152b05e"
+SRC_URI[sha256sum] = "d2470e149573158c1230ce89693e2efb397f228df754eee77fc72410a6102aad"
 
 S = "${WORKDIR}/${BPN}"
 B = "${S}"
@@ -32,4 +29,4 @@ do_install() {
 }
 
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
-ALLOW_EMPTY_${PN} = "1"
+ALLOW_EMPTY:${PN} = "1"
