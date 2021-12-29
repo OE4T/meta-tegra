@@ -7,7 +7,6 @@ COMPATIBLE_MACHINE = "(tegra)"
 DEPENDS = "tegra-bootfiles tegra-helper-scripts-native"
 
 FLASHTOOLS_PATH = "${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash"
-FLASHTOOLS_PATH:tegra194 = "${STAGING_BINDIR_NATIVE}/tegra186-flash"
 PATH =. "${FLASHTOOLS_PATH}:"
 
 BOOTDEVNAME = "${@'spi' if d.getVar('TEGRA_SPIFLASH_BOOT') == '1' else 'sdmmc_boot'}"
