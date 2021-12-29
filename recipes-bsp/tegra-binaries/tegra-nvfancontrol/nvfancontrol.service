@@ -1,0 +1,12 @@
+[Unit]
+Description=nvfancontrol service
+Requires=nvstartup.service
+After=nvstartup.service
+Before=graphical.target display-manager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/nvfancontrol
+
+[Install]
+WantedBy=multi-user.target
