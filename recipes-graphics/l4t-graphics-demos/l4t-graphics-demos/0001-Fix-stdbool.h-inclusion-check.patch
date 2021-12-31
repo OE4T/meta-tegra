@@ -1,23 +1,26 @@
-From d12d115f0ca7d17c48ae6821dc5cf977de9ac917 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Fri, 19 Nov 2021 12:47:04 -0800
-Subject: [PATCH] Fix stdbool.h inclusion check
+From 7d71199c996b722f7c36f60088747baa033dfaf4 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Mon, 4 Apr 2022 21:19:32 +0100
+Subject: [PATCH 1/2] Fix stdbool.h inclusion check
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- usr/src/nvidia/nvgldemo/nvgldemo_win_egldevice.h | 2 +-
+ nvgldemo/nvgldemo_win_egldevice.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/nvgldemo/nvgldemo_win_egldevice.h b/nvgldemo/nvgldemo_win_egldevice.h
-index 363de00..d9c0fb8 100644
+index 95685c6..69ec6fa 100644
 --- a/nvgldemo/nvgldemo_win_egldevice.h
 +++ b/nvgldemo/nvgldemo_win_egldevice.h
-@@ -34,7 +34,7 @@
- #define DRM_CLIENT_CAP_DRM_NVDC_PERMISSIVE 6
- #endif
+@@ -37,7 +37,7 @@
+ #include "WF/wfdext.h"
+ #endif//!__QNX__
  
 -#if defined(__INTEGRITY)
 +#if defined(__INTEGRITY) || (defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L)
  #include <stdbool.h>
  #else
  typedef enum {
+-- 
+2.32.0
+
