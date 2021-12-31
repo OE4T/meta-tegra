@@ -12,13 +12,13 @@ SRC_URI += "\
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-DEPENDS = "libglvnd libdrm"
+DEPENDS = "libglvnd libdrm libdrm-nvdc"
 
 inherit pkgconfig features_check
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11 wayland', d)}"
 PACKAGECONFIG[x11] = ",,libx11"
-PACKAGECONFIG[wayland] = ",,libxkbcommon wayland wayland-native weston libffi virtual/libgbm tegra-drm-headers tegra-mmapi"
+PACKAGECONFIG[wayland] = ",,libxkbcommon wayland wayland-native weston libffi virtual/libgbm tegra-drm-headers tegra-mmapi tegra-libraries-multimedia-utils"
 
 CONFIGURESTAMPFILE = "${WORKDIR}/configure.sstate"
 
@@ -35,7 +35,7 @@ do_configure() {
 
 do_compile() {
     for winsys in egldevice ${PACKAGECONFIG}; do
-        cflags="-I${S}/nvgldemo -I${S}/nvtexfont -I${S}/gears-lib"
+        cflags="-isystem${S}/include -I${S}/nvgldemo -I${S}/nvtexfont -I${S}/gears-lib -I=${includedir}/libdrm/nvidia"
 	ldflags="-ldl"
 	extra=
         case $winsys in
@@ -49,7 +49,7 @@ do_compile() {
 		;;
 	    wayland)
 	        cflags="$cflags -DEGL_NO_X11 -DWAYLAND `pkg-config --cflags xkbcommon wayland-client wayland-egl libffi libdrm`"
-		ldflags="$ldflags `pkg-config --libs xkbcommon wayland-client wayland-egl libffi`"
+		ldflags="$ldflags -lnvbufsurface `pkg-config --libs xkbcommon wayland-client wayland-egl libffi`"
 		extra=weston-dmabuf-formats
 		;;
 	esac
