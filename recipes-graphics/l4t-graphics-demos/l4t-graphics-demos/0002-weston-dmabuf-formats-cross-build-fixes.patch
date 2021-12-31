@@ -1,17 +1,17 @@
-From db097ecd7091b55661996b031db148cbd492e243 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Wed, 16 Mar 2022 10:27:53 -0700
-Subject: [PATCH] weston-dmabuf-formats cross-build fixes
+From 02788680e9e1f744018768c78b89b6d0a69f72f1 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Mon, 4 Apr 2022 21:25:15 +0100
+Subject: [PATCH 2/2] weston-dmabuf-formats cross-build fixes
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- weston-dmabuf-formats/Makefile | 40 ++++++++++++++++++++++++++++------
- 1 file changed, 33 insertions(+), 7 deletions(-)
+ weston-dmabuf-formats/Makefile | 41 +++++++++++++++++++++++++++++-----
+ 1 file changed, 35 insertions(+), 6 deletions(-)
 
-Index: graphics_demos/weston-dmabuf-formats/Makefile
-===================================================================
---- graphics_demos.orig/weston-dmabuf-formats/Makefile
-+++ graphics_demos/weston-dmabuf-formats/Makefile
+diff --git a/weston-dmabuf-formats/Makefile b/weston-dmabuf-formats/Makefile
+index 5c4d9ea..ff8306d 100644
+--- a/weston-dmabuf-formats/Makefile
++++ b/weston-dmabuf-formats/Makefile
 @@ -28,8 +28,16 @@ WESTON-DMABUF-FORMATS_OBJS :=
  WESTON-DMABUF-FORMATS_OBJS += $(NV_WINSYS)/weston-dmabuf-formats.o
  INTERMEDIATES += $(WESTON-DMABUF-FORMATS_OBJS)
@@ -31,8 +31,8 @@ Index: graphics_demos/weston-dmabuf-formats/Makefile
  
  WESTON-DMABUF-FORMATS_LDLIBS :=
  WESTON-DMABUF-FORMATS_LDLIBS += -lm
-@@ -38,11 +46,10 @@ WESTON-DMABUF-FORMATS_LDLIBS += -lpthrea
- WESTON-DMABUF-FORMATS_LDLIBS += -lEGL
+@@ -38,11 +46,10 @@ WESTON-DMABUF-FORMATS_LDLIBS += -lpthread
+ WESTON-DMABUF-FORMATS_LDLIBS += -l:libEGL.so.1
  WESTON-DMABUF-FORMATS_LDLIBS += -l:libGLESv2.so.2
  WESTON-DMABUF-FORMATS_LDLIBS += -l:libnvbuf_utils.so
 -WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-6.so.0
@@ -77,3 +77,6 @@ Index: graphics_demos/weston-dmabuf-formats/Makefile
  endef
  $(foreach demolib,$(WESTON-DMABUF-FORMATS_DEMOLIBS),$(eval $(call demolib-rule,$(demolib))))
 +$(foreach protocol,$(PROTOCOLS),$(eval $(call protocol-rule,$(basename $(protocol)))))
+-- 
+2.32.0
+
