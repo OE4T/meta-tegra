@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=0ceb3372c9595f0a8067e55da801e4a1"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-SOC_FAMILY ??= "tegra186"
+SOC_FAMILY ??= "tegra194"
 DEPENDS = "${SOC_FAMILY}-flashtools-native lz4-native"
 
 inherit deploy nopackages
@@ -34,7 +34,6 @@ BMP_SYMLINK = "bootlogo-${MACHINE}.blob"
 include bootlogo.inc
 
 FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
-FLASHTOOLS_DIR:tegra194 = "tegra186-flash"
 
 do_compile() {
 
