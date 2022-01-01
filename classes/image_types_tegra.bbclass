@@ -61,7 +61,6 @@ TOSIMGFILENAME:tegra194 = "tos-optee_t194.img"
 
 BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
 FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
-FLASHTOOLS_DIR:tegra194 = "tegra186-flash"
 
 TEGRAFLASH_PACKAGE_FORMAT ??= "tar"
 TEGRAFLASH_PACKAGE_FORMATS = "tar zip"
@@ -206,7 +205,7 @@ create_tegraflash_pkg() {
 
 create_tegraflash_pkg:tegra194() {
     local f
-    PATH="${STAGING_BINDIR_NATIVE}/tegra186-flash:${PATH}"
+    PATH="${STAGING_BINDIR_NATIVE}/tegra194-flash:${PATH}"
     rm -rf "${WORKDIR}/tegraflash"
     mkdir -p "${WORKDIR}/tegraflash"
     oldwd=`pwd`
@@ -249,7 +248,7 @@ create_tegraflash_pkg:tegra194() {
         cp $f .
     done
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
-        cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
+        cp -R ${STAGING_BINDIR_NATIVE}/tegra194-flash/* .
         mv ./rollback_parser.py ./rollback/
         tegraflash_generate_bupgen_script
     fi

@@ -7,7 +7,7 @@ oe_cbootimg() {
 oe_cbootimg_common() {
     outfile="$2"
     [ -n "$outfile" ] || outfile="${IMGDEPLOYDIR}/$1.cboot"
-    ${STAGING_BINDIR_NATIVE}/tegra186-flash/mkbootimg \
+    ${STAGING_BINDIR_NATIVE}/tegra194-flash/mkbootimg \
         --kernel ${CBOOTIMG_KERNEL} \
         --ramdisk ${IMGDEPLOYDIR}/$1 \
         --output "$outfile"
@@ -29,5 +29,5 @@ make_cboot_image[vardepsexclude] += "DATETIME"
 CONVERSIONTYPES =+ "cboot"
 IMAGE_TYPES += "cpio.gz.cboot"
 
-CONVERSION_DEPENDS_cboot = "tegra186-flashtools-native virtual/kernel:do_deploy"
+CONVERSION_DEPENDS_cboot = "tegra194-flashtools-native virtual/kernel:do_deploy"
 CONVERSION_CMD:cboot = "make_cboot_image ${type}"
