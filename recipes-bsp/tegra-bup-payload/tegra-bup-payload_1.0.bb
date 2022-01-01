@@ -6,30 +6,15 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 inherit kernel-artifact-names
 
-UBOOT_SUFFIX ??= "bin"
-UBOOT_IMAGE ?= "u-boot-${MACHINE}.${UBOOT_SUFFIX}"
-
 def bupfile_basename(d):
-    bootloader = d.getVar('PREFERRED_PROVIDER_virtual/bootloader')
-    soc = d.getVar('SOC_FAMILY') or ''
-    if bootloader is None:
-        bootloader = 'cboot' if soc == 'tegra194' else 'u-boot'
-    if bootloader.startswith('cboot'):
-        if bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')):
-            return "${KERNEL_IMAGETYPE}-${INITRAMFS_LINK_NAME}"
-        return "${INITRAMFS_IMAGE}-${MACHINE}"
-    return "${UBOOT_IMAGE}"
+    if bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')):
+        return "${KERNEL_IMAGETYPE}-${INITRAMFS_LINK_NAME}"
+    return "${INITRAMFS_IMAGE}-${MACHINE}"
 
 def bup_dependency(d):
-    bootloader = d.getVar('PREFERRED_PROVIDER_virtual/bootloader')
-    soc = d.getVar('SOC_FAMILY') or ''
-    if bootloader is None:
-        bootloader = 'cboot' if soc == 'tegra194' else 'u-boot'
-    if bootloader.startswith('cboot'):
-        if bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')):
-            return "kernel-bup-payload:do_deploy"
-        return "${INITRAMFS_IMAGE}:do_image_complete"
-    return "u-boot-bup-payload:do_deploy"
+    if bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')):
+        return "kernel-bup-payload:do_deploy"
+    return "${INITRAMFS_IMAGE}:do_image_complete"
 
 BUPFILE = "${@bupfile_basename(d)}.bup-payload"
 
