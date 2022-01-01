@@ -1,14 +1,14 @@
-DESCRIPTION = "Generate an extlinux.conf for use with cboot"
+DESCRIPTION = "Generate an extlinux.conf for use with L4TLauncher UEFI application"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-COMPATIBLE_MACHINE = "(tegra194)"
+COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS = "tegra186-flashtools-native dtc-native"
 
 UBOOT_EXTLINUX = "1"
 
-inherit cboot-extlinux-config kernel-artifact-names
+inherit l4t-extlinux-config kernel-artifact-names
 
 TEGRA_SIGNING_ARGS ??= ""
 TEGRA_SIGNING_EXCLUDE_TOOLS ??= ""
