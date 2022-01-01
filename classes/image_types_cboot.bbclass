@@ -1,7 +1,7 @@
 CBOOTIMG_KERNEL ?= "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}"
 
 oe_cbootimg() {
-    bbfatal "This image type only supported on tegra186/tegra194 platforms"
+    bbfatal "This image type only supported on tegra194 platforms"
 }
 
 oe_cbootimg_common() {
@@ -12,9 +12,6 @@ oe_cbootimg_common() {
         --ramdisk ${IMGDEPLOYDIR}/$1 \
         --output "$outfile"
     [ -n "$2" ] || ln -sf $1.cboot ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.cboot
-}
-oe_cbootimg:tegra186() {
-    oe_cbootimg_common "$@"
 }
 oe_cbootimg:tegra194() {
     oe_cbootimg_common "$@"
