@@ -1,3 +1,4 @@
+DEPENDS:append:tegra = " libdrm-nvdc"
 RDEPENDS:${PN}:tegra = "libdrm-nvdc"
 
 # Ensure libdrm uses its helpers and doesn't call back into libdrm-nvdc
