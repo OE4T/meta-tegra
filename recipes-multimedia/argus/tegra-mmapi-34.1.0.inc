@@ -1,15 +1,15 @@
 HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD-3-Clause"
 
-# This is the t186 package, but the t210 version's content is identical
-L4T_DEB_SOCNAME = "t186"
-L4T_BSP_DEB_VERSION = "${L4T_BSP_DEB_DEFAULT_VERSION_T186}"
+L4T_DEB_SOCNAME = "t194"
 SRC_SOC_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}_arm64.deb;subdir=tegra-mmapi"
 PV .= "${@l4t_bsp_debian_version_suffix(d)}"
 
-SRC_URI[sha256sum] = "8f088ce087d009b67785df56076bcd589c9fafc486c284c0660afd9b1bf8c586"
+SRC_URI[sha256sum] = "a1d266d7b21f2cb6a8ce0cf922d56495f7881a3639fd2adcc9afc517c22bd838"
 
 inherit l4t_deb_pkgfeed features_check
+
+SRC_URI += "file://0005-Remove-DO-NOT-USE-declarations-from-v4l2_nv_extensio.patch"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 

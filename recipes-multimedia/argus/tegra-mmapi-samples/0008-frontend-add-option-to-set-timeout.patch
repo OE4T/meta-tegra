@@ -1,6 +1,6 @@
-From 76e464e74614d1edb9d134b9e0d7b3111cd53f04 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Tue, 31 Aug 2021 05:10:02 -0700
+From 5edeb1a86dd1c25d6e9742900735a43557047102 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Wed, 30 Mar 2022 22:54:03 +0100
 Subject: [PATCH 8/9] frontend: add option to set timeout
 
 instead of requiring a human to type 'q' to quit,
@@ -8,7 +8,7 @@ to allow the sample to be used as an automated test.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- samples/frontend/main.cpp | 15 ++++++++++++---
+ samples/frontend/main.cpp                     | 15 ++++++++++++---
  1 file changed, 12 insertions(+), 3 deletions(-)
 
 diff --git a/samples/frontend/main.cpp b/samples/frontend/main.cpp
@@ -73,5 +73,5 @@ index 459aacb..9549364 100644
                  g_bVerbose = true;
                  break;
 -- 
-2.30.2
+2.32.0
 
