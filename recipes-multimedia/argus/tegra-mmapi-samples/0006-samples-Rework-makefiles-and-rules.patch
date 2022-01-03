@@ -1,6 +1,6 @@
-From 16f97485a33c7530a59b00844c2559549993ac50 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Mon, 30 Aug 2021 03:42:26 -0700
+From 7c9891dbcb5f4dcddc6d41b73d99e10579cfc300 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Wed, 30 Mar 2022 22:42:28 +0100
 Subject: [PATCH 6/9] samples: Rework makefiles and rules
 
 * Make them more OE-friendly
@@ -10,35 +10,35 @@ Subject: [PATCH 6/9] samples: Rework makefiles and rules
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile                                      |  9 +-
- samples/00_video_decode/Makefile              | 10 +-
- samples/01_video_encode/Makefile              | 10 +-
- samples/02_video_dec_cuda/Makefile            | 20 +---
- samples/03_video_cuda_enc/Makefile            | 21 +---
- samples/04_video_dec_trt/Makefile             | 34 +++----
- samples/05_jpeg_encode/Makefile               | 11 +--
- samples/06_jpeg_decode/Makefile               | 10 +-
- samples/07_video_convert/Makefile             | 10 +-
- samples/08_video_dec_drm/Makefile             | 16 ++--
- samples/09_camera_jpeg_capture/Makefile       | 14 +--
- samples/10_camera_recording/Makefile          | 18 ++--
- samples/12_camera_v4l2_cuda/Makefile          | 20 +---
- samples/13_multi_camera/Makefile              | 14 +--
- samples/14_multivideo_decode/Makefile         | 10 +-
- samples/15_multivideo_encode/Makefile         | 10 +-
- samples/16_multivideo_transcode/Makefile      | 10 +-
- samples/Rules.mk                              | 96 +++++++++----------
- samples/backend/Makefile                      | 41 ++++----
- samples/common/algorithm/cuda/Makefile        | 16 ++--
- samples/common/algorithm/trt/Makefile         | 11 ++-
- samples/common/classes/Makefile               | 10 +-
- samples/frontend/Makefile                     | 42 ++++----
- .../camera_unit_sample/Makefile               | 10 +-
- .../decoder_unit_sample/Makefile              | 10 +-
- .../encoder_unit_sample/Makefile              | 10 +-
- .../transform_unit_sample/Makefile            | 10 +-
- samples/v4l2cuda/Makefile                     | 10 +-
- 28 files changed, 208 insertions(+), 305 deletions(-)
+ Makefile        |  9 +-
+ samples/00_video_decode/Makefile          | 10 +-
+ samples/01_video_encode/Makefile          | 10 +-
+ samples/02_video_dec_cuda/Makefile        | 20 +---
+ samples/03_video_cuda_enc/Makefile        | 21 +---
+ samples/04_video_dec_trt/Makefile         | 34 +++----
+ samples/05_jpeg_encode/Makefile           | 11 +--
+ samples/06_jpeg_decode/Makefile           | 10 +-
+ samples/07_video_convert/Makefile         | 10 +-
+ samples/08_video_dec_drm/Makefile         | 16 ++--
+ samples/09_camera_jpeg_capture/Makefile   | 14 +--
+ samples/10_camera_recording/Makefile      | 18 ++--
+ samples/12_camera_v4l2_cuda/Makefile      | 20 +---
+ samples/13_multi_camera/Makefile          | 14 +--
+ samples/14_multivideo_decode/Makefile     | 10 +-
+ samples/15_multivideo_encode/Makefile     | 10 +-
+ samples/16_multivideo_transcode/Makefile  | 10 +-
+ samples/Rules.mk                          | 96 +++++++++----------
+ samples/backend/Makefile                  | 41 ++++----
+ samples/common/algorithm/cuda/Makefile    | 17 ++--
+ samples/common/algorithm/trt/Makefile     | 11 ++-
+ samples/common/classes/Makefile           | 10 +-
+ samples/frontend/Makefile                 | 42 ++++----
+ .../camera_unit_sample/Makefile           | 10 +-
+ .../decoder_unit_sample/Makefile          | 10 +-
+ .../encoder_unit_sample/Makefile          | 10 +-
+ .../transform_unit_sample/Makefile        | 10 +-
+ samples/v4l2cuda/Makefile                 | 11 +--
+ 28 files changed, 208 insertions(+), 307 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index 3729d4d..d1fcd9f 100644
@@ -666,7 +666,7 @@ index df65641..9b7394e 100644
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
 diff --git a/samples/Rules.mk b/samples/Rules.mk
-index da172ab..6e8fb57 100644
+index 190c8e1..a4df626 100644
 --- a/samples/Rules.mk
 +++ b/samples/Rules.mk
 @@ -28,10 +28,6 @@
@@ -748,7 +748,7 @@ index da172ab..6e8fb57 100644
 -	-I"$(TARGET_ROOTFS)/usr/include/$(TEGRA_ARMABI)" \
 -	-I"$(TARGET_ROOTFS)/usr/include/libdrm" \
 -	-I"$(TARGET_ROOTFS)/usr/include/opencv4"
-+        $(shell pkg-config --cflags libdrm)
++	$(shell pkg-config --cflags libdrm)
 +
 +ifneq ($(HAVE_TENSORRT),)
 +ALGO_TRT_DIR 	:= $(TOP_DIR)/samples/common/algorithm/trt
@@ -758,7 +758,7 @@ index da172ab..6e8fb57 100644
  # All common dependent libraries
  LDFLAGS += \
  	-lpthread -lv4l2 -lEGL -lGLESv2 -lX11 \
- 	-lnvbuf_utils -lnvjpeg -lnvosd -ldrm \
+ 	-lnvbufsurface -lnvbufsurftransform -lnvjpeg -lnvosd -ldrm \
 -	-lcuda -lcudart \
 -	-L"$(TARGET_ROOTFS)/$(CUDA_PATH)/lib64" \
 -	-L"$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)" \
@@ -873,7 +873,7 @@ index 13389e8..145241d 100644
  	$(AT)rm -rf $(APP) $(OBJS)
 +endif
 diff --git a/samples/common/algorithm/cuda/Makefile b/samples/common/algorithm/cuda/Makefile
-index dc40f07..86c5a0d 100644
+index e218d51..86c5a0d 100644
 --- a/samples/common/algorithm/cuda/Makefile
 +++ b/samples/common/algorithm/cuda/Makefile
 @@ -28,6 +28,8 @@
@@ -885,7 +885,7 @@ index dc40f07..86c5a0d 100644
  include ../../../Rules.mk
  
  # Internal flags
-@@ -43,15 +45,11 @@ endif
+@@ -43,16 +45,11 @@ endif
  ALL_CPPFLAGS := $(NVCCFLAGS)
  ALL_CPPFLAGS += $(addprefix -Xcompiler ,$(filter-out -std=c++11, $(CPPFLAGS)))
  
@@ -893,8 +893,9 @@ index dc40f07..86c5a0d 100644
 -GENCODE_SM53 := -gencode arch=compute_53,code=sm_53
 -GENCODE_SM62 := -gencode arch=compute_62,code=sm_62
 -GENCODE_SM72 := -gencode arch=compute_72,code=sm_72
+-GENCODE_SM87 := -gencode arch=compute_87,code=sm_87
 -GENCODE_SM_PTX := -gencode arch=compute_72,code=compute_72
--GENCODE_FLAGS := $(GENCODE_SM53) $(GENCODE_SM62) $(GENCODE_SM72) $(GENCODE_SM_PTX)
+-GENCODE_FLAGS := $(GENCODE_SM53) $(GENCODE_SM62) $(GENCODE_SM72) $(GENCODE_SM87) $(GENCODE_SM_PTX)
 -
  # Target rules
 -all: NvAnalysis.o NvCudaProc.o
@@ -905,7 +906,7 @@ index dc40f07..86c5a0d 100644
  
  NvAnalysis.o : NvAnalysis.cu
  	@echo "Compiling: $<"
-@@ -62,4 +60,4 @@ NvCudaProc.o : NvCudaProc.cpp
+@@ -63,4 +60,4 @@ NvCudaProc.o : NvCudaProc.cpp
  	$(NVCC) $(ALL_CPPFLAGS) $(GENCODE_FLAGS) -o $@ -c $<
  
  clean:
@@ -1179,10 +1180,10 @@ index 404429b..1ede2ab 100644
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
 diff --git a/samples/v4l2cuda/Makefile b/samples/v4l2cuda/Makefile
-index 720fb96..f856671 100644
+index 6a6c794..f856671 100644
 --- a/samples/v4l2cuda/Makefile
 +++ b/samples/v4l2cuda/Makefile
-@@ -26,14 +26,8 @@ SRCS := \
+@@ -26,15 +26,8 @@ SRCS := \
  	capture.cpp \
  	yuv2rgb.cu
  
@@ -1192,13 +1193,14 @@ index 720fb96..f856671 100644
 -GENCODE_SM53 := -gencode arch=compute_53,code=sm_53
 -GENCODE_SM62 := -gencode arch=compute_62,code=sm_62
 -GENCODE_SM72 := -gencode arch=compute_72,code=sm_72
+-GENCODE_SM87 := -gencode arch=compute_87,code=sm_87
 -GENCODE_SM_PTX := -gencode arch=compute_72,code=compute_72
--GENCODE_FLAGS := $(GENCODE_SM53) $(GENCODE_SM62) $(GENCODE_SM72) $(GENCODE_SM_PTX)
+-GENCODE_FLAGS := $(GENCODE_SM53) $(GENCODE_SM62) $(GENCODE_SM72) $(GENCODE_SM87) $(GENCODE_SM_PTX)
 +ALL_CPPFLAGS := $(NVCCFLAGS)
 +ALL_CPPFLAGS += $(addprefix -Xcompiler ,$(filter-out -std=c++11, $(CPPFLAGS)))
  
  all: $(APP)
  
 -- 
-2.30.2
+2.32.0
 
