@@ -1,6 +1,6 @@
-From 3cde01ddc2074192bc0d6edbcde29a75a5fbb3b0 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Mon, 30 Aug 2021 03:57:45 -0700
+From e260e58dd6821d733ae5016693d442f5de7ab4f8 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Wed, 30 Mar 2022 22:18:39 +0100
 Subject: [PATCH 4/9] samples: support tegra_udrm in NvDrmRenderer
 
 The class was hard-coded to check for the old drm-nvdc
@@ -8,24 +8,24 @@ device only.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- include/NvDrmRenderer.h                  |  1 +
- samples/common/classes/NvDrmRenderer.cpp | 36 +++++++++++++++++++++---
+ include/NvDrmRenderer.h                   |  1 +
+ samples/common/classes/NvDrmRenderer.cpp  | 36 ++++++++++++++++---
  2 files changed, 33 insertions(+), 4 deletions(-)
 
 diff --git a/include/NvDrmRenderer.h b/include/NvDrmRenderer.h
-index 243c895..985b299 100644
+index f8e85a2..ea99dde 100644
 --- a/include/NvDrmRenderer.h
 +++ b/include/NvDrmRenderer.h
-@@ -266,6 +266,7 @@ private:
+@@ -282,6 +282,7 @@ private:
+     int flippedFd;
      bool flipPending;
      bool renderingStarted;
-     bool planeIsSet;
 +    bool isNvdc;
  
      uint32_t hdrBlobId;
      bool hdrBlobCreated;
 diff --git a/samples/common/classes/NvDrmRenderer.cpp b/samples/common/classes/NvDrmRenderer.cpp
-index 52885ca..aee18cb 100644
+index 433f668..bb19373 100644
 --- a/samples/common/classes/NvDrmRenderer.cpp
 +++ b/samples/common/classes/NvDrmRenderer.cpp
 @@ -13,6 +13,8 @@
@@ -55,7 +55,7 @@ index 52885ca..aee18cb 100644
    int i;
    conn = aconn;
    crtc = acrtc;
-@@ -196,9 +200,18 @@ NvDrmRenderer::NvDrmRenderer(const char *name, uint32_t w, uint32_t h,
+@@ -195,9 +199,18 @@ NvDrmRenderer::NvDrmRenderer(const char *name, uint32_t w, uint32_t h,
    log_level = LOG_LEVEL_ERROR;
    last_render_time.tv_sec = 0;
  
@@ -76,7 +76,7 @@ index 52885ca..aee18cb 100644
      goto error;
    }
    // Obtain DRM-KMS resources
-@@ -833,6 +846,7 @@ NvDrmRenderer::createDumbBO(int width, int height, int bpp, NvDrmBO *bo)
+@@ -823,6 +836,7 @@ NvDrmRenderer::createDumbBO(int width, int height, int bpp, NvDrmBO *bo)
    /* prepare buffer for memory mapping */
    memset(&mreq, 0, sizeof(mreq));
    mreq.handle = creq.handle;
@@ -84,7 +84,7 @@ index 52885ca..aee18cb 100644
    ret = drmIoctl(drm_fd, DRM_IOCTL_MODE_MAP_DUMB, &mreq);
    if (ret) {
      COMP_ERROR_MSG("cannot map dumb buffer\n");
-@@ -840,7 +854,21 @@ NvDrmRenderer::createDumbBO(int width, int height, int bpp, NvDrmBO *bo)
+@@ -830,7 +844,21 @@ NvDrmRenderer::createDumbBO(int width, int height, int bpp, NvDrmBO *bo)
      goto err_destroy;
    }
  
@@ -108,5 +108,5 @@ index 52885ca..aee18cb 100644
    /* clear the buffer object */
    memset(map, 0x00, creq.size);
 -- 
-2.30.2
+2.32.0
 

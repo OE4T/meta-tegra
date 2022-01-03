@@ -5,9 +5,8 @@ require recipes-multimedia/argus/tegra-mmapi-${PV}.inc
 SRC_URI += "\
     file://0001-include-fix-jpeglib-header-inclusion.patch \
     file://0002-tools-update-GetPixel.py-to-Python-3.patch \
-    file://0003-samples-classes-fix-a-data-race-in-shutting-down-deq.patch \
+    file://0003-samples-classes-fix-a-data-race-in-shutting-down.patch \
     file://0004-samples-support-tegra_udrm-in-NvDrmRenderer.patch \
-    file://0005-Remove-DO-NOT-USE-declarations-from-v4l2_nv_extensio.patch \
     file://0006-samples-Rework-makefiles-and-rules.patch \
     file://0007-trt_inference-use-smart-pointers-during-model-conver.patch \
     file://0008-frontend-add-option-to-set-timeout.patch \
