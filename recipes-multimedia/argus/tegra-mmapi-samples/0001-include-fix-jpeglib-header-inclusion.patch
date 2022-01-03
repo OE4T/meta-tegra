@@ -1,6 +1,6 @@
-From a648a9288177f49e8ae76e1fe36f5b5d5d5c4d60 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Mon, 30 Aug 2021 03:39:27 -0700
+From 2b123a62056ce766bf4d10d5710160697bd1c686 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Wed, 30 Mar 2022 21:54:22 +0100
 Subject: [PATCH 1/9] include: fix jpeglib header inclusion
 
 To ensure that it's using the NVIDIA-specific header.
@@ -38,5 +38,5 @@ index be40589..5b341b9 100644
  #include "NvBuffer.h"
  
 -- 
-2.30.2
+2.32.0
 
