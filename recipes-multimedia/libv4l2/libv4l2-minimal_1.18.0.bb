@@ -16,7 +16,9 @@ SRC_URI[sha256sum] = "6cb60d822eeed20486a03cc23e0fc65956fbc1e85e0c1a7477f68bbd98
 
 S = "${WORKDIR}/v4l-utils-${PV}"
 
-inherit autotools gettext pkgconfig container-runtime-csv
+inherit autotools gettext pkgconfig container-runtime-csv features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 EXTRA_OECONF = "--disable-libdvbv5 --disable-v4l-utils --disable-qv4l2 \
                 --enable-shared --disable-qvidcap --disable-gconv --disable-bpf \

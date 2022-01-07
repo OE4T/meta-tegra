@@ -5,6 +5,10 @@ SRC_URI:append:tegra = " \
     file://0003-Update-conversion-defaults-to-match-NVIDIA-sources.patch \
 "
 
+inherit container-runtime-csv features_check
+
+REQUIRED_DISTRO_FEATURES:append:tegra = " opengl"
+
 EXTRA_OECONF:tegra = " --without-jpeg"
 DEPENDS:remove:tegra = "jpeg"
 
@@ -18,7 +22,6 @@ TEGRA_PLUGINS ?= ""
 TEGRA_PLUGINS:tegra = "tegra-libraries-multimedia-v4l"
 RRECOMMENDS:libv4l += "${TEGRA_PLUGINS}"
 
-inherit container-runtime-csv
 CONTAINER_CSV_BASENAME = "libv4l"
 CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/libv4l/ov* ${libdir}/libv4l/*.so"
 # These files aren't in nvidia host-files-for-container.d/l4t.csv and conflict with attempts
