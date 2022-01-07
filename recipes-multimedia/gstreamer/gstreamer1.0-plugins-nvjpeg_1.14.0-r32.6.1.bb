@@ -15,7 +15,9 @@ CFLAGS += "-I${WORKDIR}/gstjpeg_src/nv_headers -DUSE_TARGET_TEGRA"
 EXTRA_OECONF = "--disable-examples"
 EXTRA_OEMAKE = "JPEG_LIBS=-lnvjpeg"
 
-inherit autotools gtk-doc gettext pkgconfig container-runtime-csv
+inherit autotools gtk-doc gettext pkgconfig container-runtime-csv features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 

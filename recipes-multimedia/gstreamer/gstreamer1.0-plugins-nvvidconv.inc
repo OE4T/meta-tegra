@@ -17,7 +17,9 @@ SRC_URI += "\
 
 S = "${WORKDIR}/gst-nvvidconv"
 
-inherit pkgconfig container-runtime-csv
+inherit pkgconfig container-runtime-csv features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 

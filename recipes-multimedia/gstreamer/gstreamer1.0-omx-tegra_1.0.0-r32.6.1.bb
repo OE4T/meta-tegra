@@ -29,7 +29,9 @@ S = "${WORKDIR}/gstomx1_src/gst-omx1"
 CFLAGS += "-DHAVE_NVBUF_UTILS"
 LDFLAGS += "-lnvbuf_utils"
 
-inherit autotools pkgconfig gettext container-runtime-csv
+inherit autotools pkgconfig gettext container-runtime-csv features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 

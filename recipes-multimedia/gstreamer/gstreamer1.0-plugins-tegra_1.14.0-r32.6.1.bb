@@ -16,6 +16,10 @@ PLUGINS = "\
 "
 DEPENDS = "${PLUGINS}"
 
+inherit features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
+
 do_fetch[noexec] = "1"
 do_unpack[noexec] = "1"
 do_patch[noexec] = "1"

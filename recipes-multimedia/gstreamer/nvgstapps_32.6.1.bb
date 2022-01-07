@@ -22,7 +22,7 @@ B = "${WORKDIR}/build"
 
 inherit pkgconfig features_check
 
-REQUIRED_DISTRO_FEATURES = "x11"
+REQUIRED_DISTRO_FEATURES = "x11 opengl"
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'alsa', d)}"
 PACKAGECONFIG[alsa] = "WITH_NVGSTPLAYER=yes,,alsa-lib"
 

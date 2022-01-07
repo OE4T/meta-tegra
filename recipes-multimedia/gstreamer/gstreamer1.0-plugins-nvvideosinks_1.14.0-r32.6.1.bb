@@ -14,7 +14,7 @@ DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl \
            tegra-libraries-multimedia tegra-libraries-multimedia-utils \
            gstreamer1.0-plugins-nveglgles tegra-mmapi nvbufsurface-headers"
 
-REQUIRED_DISTRO_FEATURES = "x11"
+REQUIRED_DISTRO_FEATURES = "x11 opengl"
 
 S = "${WORKDIR}/gst-plugins-nv-video-sinks"
 

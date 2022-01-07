@@ -11,7 +11,9 @@ DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libdrm tegra-libra
 SRC_URI += " file://0001-Update-makefile-for-OE-builds.patch"
 S = "${WORKDIR}/gst-nvdrmvideosink"
 
-inherit pkgconfig container-runtime-csv
+inherit pkgconfig container-runtime-csv features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 

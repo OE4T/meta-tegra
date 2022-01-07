@@ -30,7 +30,9 @@ CFLAGS += "-fcommon"
 
 S = "${WORKDIR}/gst-v4l2"
 
-inherit gettext pkgconfig container-runtime-csv
+inherit gettext pkgconfig container-runtime-csv features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
