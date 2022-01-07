@@ -5,9 +5,9 @@ SRC_URI:append:tegra = " \
     file://0003-Update-conversion-defaults-to-match-NVIDIA-sources.patch \
 "
 
-inherit container-runtime-csv features_check
-
-REQUIRED_DISTRO_FEATURES:append:tegra = " opengl"
+FCINHERIT = ""
+FCINHERIT:tegra = "tegra_opengl_required"
+inherit container-runtime-csv ${FCINHERIT}
 
 EXTRA_OECONF:tegra = " --without-jpeg"
 DEPENDS:remove:tegra = "jpeg"
