@@ -14,9 +14,11 @@ SRC_URI += " \
     file://nvidia_wayland.json \
 "
 
+REQUIRED_DISTRO_FEATURES = "opengl"
+
 S = "${WORKDIR}/git"
 
-inherit meson pkgconfig
+inherit meson pkgconfig features_check
 
 do_install:append() {
     install -d ${D}${datadir}/egl/egl_external_platform.d
@@ -25,5 +27,3 @@ do_install:append() {
 
 FILES:${PN} += "${datadir}/egl"
 FILES:${PN}-dev += "${datadir}/wayland-eglstream"
-
-
