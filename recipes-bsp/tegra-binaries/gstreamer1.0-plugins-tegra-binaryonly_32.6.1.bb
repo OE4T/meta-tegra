@@ -18,6 +18,10 @@ LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-tegra/LICENSE.gstvideocuda;md5=
 MAINSUM = "02b80b3d90d46b9e42b2daedd5eba7c2357d6a015263ff9dccd5dc0d93b289cc"
 MAINSUM:tegra210 = "09349648604d6af55f388a6398517c78c0172cc7289e8b2bf1274cabfb373ab3"
 
+inherit features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
+
 TEGRA_LIBRARIES_TO_INSTALL = "\
     libgstnvegl-1.0.so.0 \
     libgstnvexifmeta.so \

@@ -21,6 +21,10 @@ CORESUM:tegra210 = "d2d8941982e1b344868b0b2d2a93f6ecf886493722c2620a5864262f5db7
 SRC_URI[gstreamer.sha256sum] = "${GSTSUM}"
 SRC_URI[core.sha256sum] = "${CORESUM}"
 
+inherit features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
+
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11', d)}"
 PACKAGECONFIG[x11] = ",,gtk+3 libx11 glib-2.0 cairo"
 

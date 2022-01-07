@@ -19,7 +19,9 @@ do_install() {
     install -m644 ${S}/nvargus-daemon.service ${D}${systemd_system_unitdir}
 }
 
-inherit systemd update-rc.d
+inherit systemd update-rc.d features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 INITSCRIPT_NAME = "nvargus-daemon"
 INITSCRIPT_PARAMS = "defaults"

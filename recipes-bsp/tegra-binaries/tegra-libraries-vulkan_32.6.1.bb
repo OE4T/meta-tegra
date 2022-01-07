@@ -10,7 +10,7 @@ MAINSUM:tegra210 = "96f7eaa8832fbe68d585e5dfed9b1c10db738e53289e8a06c6b4bd5535ea
 
 inherit features_check
 
-REQUIRED_DISTRO_FEATURES = "vulkan"
+REQUIRED_DISTRO_FEATURES = "vulkan opengl"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvvulkan-producer.so \
