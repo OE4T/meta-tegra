@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = " \
     file://etc/ld.so.conf.d/vpi1.conf;md5=bfdc8e915558abe115e0fc762a2ff724 \
     file://opt/nvidia/vpi1/include/vpi/VPI.h;endline=48;md5=7c9511c3e53f3d844d189edd66c44682"
 
-inherit l4t_deb_pkgfeed
+inherit l4t_deb_pkgfeed features_check
 
 SRC_COMMON_DEBS = "\
     libnvvpi1_${PV}_arm64.deb;name=lib;subdir=vpi1 \
@@ -17,6 +17,8 @@ SRC_URI[lib.sha256sum] = "e5eb85fa0d6efa5f0603db5764946add16cd132d121fd77d97c4b4
 SRC_URI[dev.sha256sum] = "ffa2cccaae800260f9fb7ec6f3fc83253c746a80fbda41f8524c539138af57a3"
 
 SRC_URI:append = " file://0001-vpi-config-allow-to-compute-the-installation-prefix.patch"
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 S = "${WORKDIR}/vpi1"
 B = "${S}"
