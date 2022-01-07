@@ -9,7 +9,9 @@ PV .= "${@l4t_bsp_debian_version_suffix(d)}"
 
 SRC_URI[sha256sum] = "cc28d6756ea3577735cebb434f77c4f0e45844bbc0893a312aa1832e68a5fcf1"
 
-inherit l4t_deb_pkgfeed
+inherit l4t_deb_pkgfeed features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 LIC_FILES_CHKSUM = "file://LICENSE;md5=2cc00be68c1227a7c42ff3620ef75d05 \
 		    file://argus/LICENSE.TXT;md5=271791ce6ff6f928d44a848145021687"
