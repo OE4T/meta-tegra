@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA TensorRT Core (GPU Inference Engine) for deep learning"
 LICENSE = "Proprietary"
 
-inherit l4t_deb_pkgfeed container-runtime-csv
+inherit l4t_deb_pkgfeed container-runtime-csv features_check
 
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 
@@ -26,6 +26,8 @@ SRC_URI[nvpdev.sha256sum] = "${NVPDEVSHA256SUM}"
 COMPATIBLE_MACHINE = "(tegra)"
 
 LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=48;md5=3d6981c1227c404d42d710f96a875a1b"
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 DEPENDS = "tegra-libraries-multimedia"
 

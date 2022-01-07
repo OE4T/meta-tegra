@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA TensorRT Samples for deep learning"
 LICENSE = "Proprietary"
 
-inherit l4t_deb_pkgfeed cuda
+inherit l4t_deb_pkgfeed cuda features_check
 
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 
@@ -16,6 +16,8 @@ SRC_URI:append = " file://0001-Makefile-fix-cross-compilation-issues.patch"
 SRC_URI[samples.sha256sum] = "6eadd053f8e840f17ee8ea5cde98b2b170b91a763cc5cf0bda5a8c59a4d5390d"
 
 COMPATIBLE_MACHINE = "(tegra)"
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 LIC_FILES_CHKSUM = "file://../../../share/doc/libnvinfer-samples/copyright;md5=713c2de2adb0f371a903b9fe20431bab"
 

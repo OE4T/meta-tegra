@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA TensorRT Prebuilt Plugins for deep learning"
 LICENSE = "Proprietary"
 
-inherit l4t_deb_pkgfeed container-runtime-csv
+inherit l4t_deb_pkgfeed container-runtime-csv features_check
 
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 
@@ -28,6 +28,8 @@ SRC_URI[plugindev.sha256sum] = "${PLUGINDEVSHA256SUM}"
 SRC_URI[bin.sha256sum] = "${BINSHA256SUM}"
 
 COMPATIBLE_MACHINE = "(tegra)"
+
+REQUIRED_DISTRO_FEATURES = "opengl"
 
 LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInferPlugin.h;endline=48;md5=3d6981c1227c404d42d710f96a875a1b"
 
