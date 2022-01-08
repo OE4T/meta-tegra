@@ -43,6 +43,7 @@ do_configure:append() {
 }
 
 do_compile() {
+	export CFLAGS="-Wno-error=array-bounds"
 	oe_runmake -C ${S} all
 }
 
