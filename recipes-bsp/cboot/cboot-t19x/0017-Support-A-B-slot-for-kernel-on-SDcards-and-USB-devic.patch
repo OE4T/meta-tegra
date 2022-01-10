@@ -1,0 +1,115 @@
+From fbfff93e81df174686c7960a86e6b45a4a40a7ca Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 15 Nov 2020 08:39:41 -0800
+Subject: [PATCH] Support A/B slot for kernel on SDcards and USB devices
+
+The kernel and DTB loader for USB and SDcard devices
+wasn't checking for A/B slot, and just hard-coded the
+partition names to load if extlinux isn't in use.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../common/lib/linuxboot/removable_boot.c     | 51 ++++++++++++++++---
+ 1 file changed, 43 insertions(+), 8 deletions(-)
+
+diff --git a/bootloader/partner/common/lib/linuxboot/removable_boot.c b/bootloader/partner/common/lib/linuxboot/removable_boot.c
+index 182cd3c..71290a7 100644
+--- a/bootloader/partner/common/lib/linuxboot/removable_boot.c
++++ b/bootloader/partner/common/lib/linuxboot/removable_boot.c
+@@ -29,6 +29,10 @@
+ #if defined(CONFIG_ENABLE_EXTLINUX_BOOT)
+ #include <extlinux_boot.h>
+ #endif
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++#include <string.h>
++#include <tegrabl_a_b_boot_control.h>
++#endif
+ #include <removable_boot.h>
+ #if defined(CONFIG_ENABLE_A_B_SLOT)
+ #include <tegrabl_a_b_boot_control.h>
+@@ -65,6 +69,17 @@ static tegrabl_error_t load_from_partition(struct tegrabl_fm_handle *fm_handle,
+ 	uint32_t dtb_size;
+ 	tegrabl_error_t err = TEGRABL_NO_ERROR;
+ 	struct tegrabl_img_dtb *img_dtb = NULL;
++	char image_partname[MAX_PARTITION_NAME], dtb_partname[MAX_PARTITION_NAME];
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++	char slot_suffix[MAX_PARTITION_NAME];
++
++	if (tegrabl_a_b_get_bootslot_suffix(slot_suffix, false) != TEGRABL_NO_ERROR) {
++		pr_info("Slot suffix: %s", slot_suffix);
++	} else {
++		pr_warn("Could not obtain bootslot suffix");
++		slot_suffix[0] = '\0';
++	}
++#endif
+ 
+ 	TEGRABL_UNUSED(is_recovery);
+ 
+@@ -77,23 +92,43 @@ static tegrabl_error_t load_from_partition(struct tegrabl_fm_handle *fm_handle,
+ 
+ 	/* Fill the struct tegrabl_img_dtb based on the "is_recovery" */
+ #if defined(CONFIG_ENABLE_L4T_RECOVERY)
+-	img_dtb = is_recovery ? &img_dtb_table[1] : &img_dtb_table[0];
+-#else
++	if (is_recovery) {
++		img_dtb = &img_dtb_table[1];
++		strcpy(image_partname, img_dtb_table[1].img_name_str);
++		strcpy(dtb_partname, img_dtb_table[1].dtb_name_str);
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++		pr_info("booting into recovery image, disabling A/B slot selection");
++		slot_suffix[0] = '\0';
++#endif /* A_B_SLOT */
++	} else {
++		img_dtb = &img_dtb_table[0];
++		strcpy(image_partname, img_dtb_table[0].img_name_str);
++		strcpy(dtb_partname, img_dtb_table[0].dtb_name_str);
++	}
++#else /* RECOVERY */
++	img_dtb = &img_dtb_table[0];
+ 	img_dtb = &img_dtb_table[0];
++	strcpy(image_partname, img_dtb_table[0].img_name_str);
++	strcpy(dtb_partname, img_dtb_table[0].dtb_name_str);
++#endif /* RECOVERY */
++
++#if defined(CONFIG_ENABLE_A_B_SLOT)
++	strcat(image_partname, slot_suffix);
++	strcat(dtb_partname, slot_suffix);
+ #endif
+ 
+ 	/* Load kernel or recovery image */
+-	pr_info("Loading %s ...\n", img_dtb->img_name_str);
++	pr_info("Loading %s ...\n", image_partname);
+ 	boot_img_size = BOOT_IMAGE_MAX_SIZE;
+-	err = tegrabl_fm_read_partition(fm_handle->bdev, img_dtb->img_name_str,
++	err = tegrabl_fm_read_partition(fm_handle->bdev, image_partname,
+ 						*boot_img_load_addr, &boot_img_size);
+ 	if (err != TEGRABL_NO_ERROR) {
+ 		goto fail;
+ 	}
+ 	/* Load kernel dtb or recovery dtb */
+-	pr_info("Loading %s ...\n", img_dtb->dtb_name_str);
++	pr_info("Loading %s ...\n", dtb_partname);
+ 	dtb_size = DTB_MAX_SIZE;
+-	err = tegrabl_fm_read_partition(fm_handle->bdev, img_dtb->dtb_name_str,
++	err = tegrabl_fm_read_partition(fm_handle->bdev, dtb_partname,
+ 						*dtb_load_addr, &dtb_size);
+ 	if (err != TEGRABL_NO_ERROR) {
+ 		goto fail;
+@@ -101,12 +136,12 @@ static tegrabl_error_t load_from_partition(struct tegrabl_fm_handle *fm_handle,
+ 
+ 	/* Validate both the binaries */
+ #if defined(CONFIG_ENABLE_SECURE_BOOT)
+-	err = tegrabl_validate_binary(img_dtb->img_bin_type, img_dtb->img_name_str, BOOT_IMAGE_MAX_SIZE,
++	err = tegrabl_validate_binary(img_dtb->img_bin_type, image_partname, BOOT_IMAGE_MAX_SIZE,
+ 					*boot_img_load_addr, &boot_img_size);
+ 	if (err != TEGRABL_NO_ERROR) {
+ 		goto fail;
+ 	}
+-	err = tegrabl_validate_binary(img_dtb->dtb_bin_type, img_dtb->dtb_name_str, DTB_MAX_SIZE,
++	err = tegrabl_validate_binary(img_dtb->dtb_bin_type, dtb_partname, DTB_MAX_SIZE,
+ 					*dtb_load_addr, NULL);
+ 	if (err != TEGRABL_NO_ERROR) {
+ 		goto fail;
+-- 
+2.32.0
+
