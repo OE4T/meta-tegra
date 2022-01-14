@@ -1,4 +1,4 @@
-From fbfff93e81df174686c7960a86e6b45a4a40a7ca Mon Sep 17 00:00:00 2001
+From 4ef3356039c0949394072cb3867a7ec54fef86f0 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 15 Nov 2020 08:39:41 -0800
 Subject: [PATCH] Support A/B slot for kernel on SDcards and USB devices
@@ -13,7 +13,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 43 insertions(+), 8 deletions(-)
 
 diff --git a/bootloader/partner/common/lib/linuxboot/removable_boot.c b/bootloader/partner/common/lib/linuxboot/removable_boot.c
-index 182cd3c..71290a7 100644
+index 182cd3c..335352b 100644
 --- a/bootloader/partner/common/lib/linuxboot/removable_boot.c
 +++ b/bootloader/partner/common/lib/linuxboot/removable_boot.c
 @@ -29,6 +29,10 @@
@@ -35,10 +35,10 @@ index 182cd3c..71290a7 100644
 +#if defined(CONFIG_ENABLE_A_B_SLOT)
 +	char slot_suffix[MAX_PARTITION_NAME];
 +
-+	if (tegrabl_a_b_get_bootslot_suffix(slot_suffix, false) != TEGRABL_NO_ERROR) {
-+		pr_info("Slot suffix: %s", slot_suffix);
++	if (tegrabl_a_b_get_bootslot_suffix(slot_suffix, false) == TEGRABL_NO_ERROR) {
++		pr_info("Slot suffix: %s\n", slot_suffix);
 +	} else {
-+		pr_warn("Could not obtain bootslot suffix");
++		pr_warn("Could not obtain bootslot suffix\n");
 +		slot_suffix[0] = '\0';
 +	}
 +#endif
