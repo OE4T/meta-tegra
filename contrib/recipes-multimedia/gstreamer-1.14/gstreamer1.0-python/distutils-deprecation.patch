@@ -1,0 +1,28 @@
+Index: gst-python-1.14.4/acinclude.m4
+===================================================================
+--- gst-python-1.14.4.orig/acinclude.m4
++++ gst-python-1.14.4/acinclude.m4
+@@ -79,8 +79,8 @@ AC_MSG_CHECKING(for libraries required t
+ 
+ dnl deduce PYTHON_LIBS
+ if $PYTHON-config --help 1>/dev/null 2>/dev/null; then
+-  PYTHON_LIBS=`$PYTHON-config --ldflags 2>/dev/null`
+-  PYTHON_LIB=`$PYTHON -c "import distutils.sysconfig as s; print(s.get_python_lib(standard_lib=1))"`
++  PYTHON_LIBS=`$PYTHON-config --embed --ldflags 2>/dev/null`
++  PYTHON_LIB=`$PYTHON -c "import sysconfig; print(sysconfig.get_config_var('LIBDIR'))"`
+   if echo "$host_os" | grep darwin >/dev/null 2>&1; then
+     dnl OSX is a pain. Python as shipped by apple installs libpython in /usr/lib
+     dnl so we hardcode that. Other systems can use --with-libpython-dir to
+Index: gst-python-1.14.4/configure.ac
+===================================================================
+--- gst-python-1.14.4.orig/configure.ac
++++ gst-python-1.14.4/configure.ac
+@@ -89,7 +89,7 @@ fi
+ # - 'SO' for PyPy, CPython 2.7-3.2
+ # - 'EXT_SUFFIX' for CPython3.3+ (http://bugs.python.org/issue16754)
+ # - fallback to '.so'
+-PYTHON_SO=`$PYTHON -c "import distutils.sysconfig, sys; get = distutils.sysconfig.get_config_var; sys.stdout.write(get('EXT_SUFFIX') or get('SO') or '.so');"`
++PYTHON_SO=`$PYTHON -c "import sysconfig, sys; get = sysconfig.get_config_var; sys.stdout.write(get('EXT_SUFFIX') or get('SO') or '.so');"`
+ AC_SUBST(PYTHON_SO)
+ 
+ AM_CHECK_PYTHON_HEADERS(,[AC_MSG_ERROR(could not find Python headers)])

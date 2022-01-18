@@ -9,6 +9,8 @@ SRC_URI = "http://gstreamer.freedesktop.org/src/${PNREAL}/${PNREAL}-${PV}.tar.xz
 SRC_URI[md5sum] = "d4c0e3915f547feef49208ee08981e5a"
 SRC_URI[sha256sum] = "d0fdb24f93b6d889f309d2f526b8ea9577e0084ff0a62b4623ef1aed52e85a1b"
 
+SRC_URI += "file://distutils-deprecation.patch"
+
 DEPENDS = "gstreamer1.0 python3-pygobject"
 RDEPENDS:${PN} += "gstreamer1.0 python3-pygobject"
 
@@ -20,7 +22,7 @@ S = "${WORKDIR}/${PNREAL}-${PV}"
 REQUIRED_DISTRO_FEATURES = "gobject-introspection-data"
 UNKNOWN_CONFIGURE_WHITELIST:append = " --enable-introspection --disable-introspection"
 
-inherit autotools pkgconfig distutils3-base upstream-version-is-even gobject-introspection features_check
+inherit autotools pkgconfig setuptools3-base upstream-version-is-even gobject-introspection features_check
 
 do_install:append() {
     # gstpythonplugin hardcodes the location of the libpython from the build
