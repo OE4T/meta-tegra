@@ -22,6 +22,11 @@ TEGRA_PLUGINS = "\
 SOC_SPECIFIC_PLUGINS = "libv4l2_nvcuvidvideocodec.so"
 SOC_SPECIFIC_PLUGINS_tegra210 = ""
 
+CONTAINER_CSV_FILES += " \
+    ${libdir}/libv4l/plugins-wrapped/*.so \
+    ${libdir}/libv4l/plugins/*.so \
+"
+
 do_install() {
     install_libraries
     install -d ${D}${libdir}/libv4l/plugins/ ${D}${libdir}/libv4l/plugins-wrapped/
