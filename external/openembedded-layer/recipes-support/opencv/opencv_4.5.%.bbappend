@@ -2,23 +2,27 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 
 inherit cuda
 
-EXTRA_OECMAKE:append:tegra210 = ' -DWITH_CUDA=ON -DCUDA_ARCH_BIN="5.3" -DCUDA_ARCH_PTX=""'
-EXTRA_OECMAKE:append:tegra186 = ' -DWITH_CUDA=ON -DCUDA_ARCH_BIN="6.2" -DCUDA_ARCH_PTX=""'
-EXTRA_OECMAKE:append:tegra194 = ' -DWITH_CUDA=ON -DCUDA_ARCH_BIN="7.2" -DCUDA_ARCH_PTX=""'
+def opencv_cuda_flags(d):
+    arch = d.getVar('TEGRA_CUDA_ARCHITECTURE')
+    if not arch:
+        return ''
+    return '-DWITH_CUDA=ON -DCUDA_ARCH_BIN="{}.{}" -DCUDA_ARCH_PTX=""'.format(arch[0:1], arch[1:2])
+
+PACKAGECONFIG[cuda] = "${@opencv_cuda_flags(d)},-DWITH_CUDA=OFF,${CUDA_DEPENDS} cudnn"
+
+OPENCV_CUDA_SUPPORT ?= "${@'cuda dnn' if opencv_cuda_flags(d) else ''}"
+PACKAGECONFIG:append:cuda = "${OPENCV_CUDA_SUPPORT}"
 EXTRA_OECMAKE:append:cuda = ' -DOPENCV_CUDA_DETECTION_NVCC_FLAGS="-ccbin ${CUDAHOSTCXX}"'
 
-EXTRA_OECMAKE:append = " -DOPENCV_GENERATE_PKGCONFIG=ON"
+SRC_URI:append:cuda = " file://0001-Fix-search-paths-in-FindCUDNN.cmake.patch"
 
 OPTICALFLOW_MD5 = "a73cd48b18dcc0cc8933b30796074191"
 OPTICALFLOW_HASH = "edb50da3cf849840d680249aa6dbef248ebce2ca"
 
-SRC_URI += "https://github.com/NVIDIA/NVIDIAOpticalFlowSDK/archive/${OPTICALFLOW_HASH}.zip;name=opticalflow;unpack=false;subdir=${OPENCV_DLDIR}/nvidia_optical_flow;downloadfilename=${OPTICALFLOW_MD5}-${OPTICALFLOW_HASH}.zip"
+SRC_URI:append:cuda = " https://github.com/NVIDIA/NVIDIAOpticalFlowSDK/archive/${OPTICALFLOW_HASH}.zip;name=opticalflow;unpack=false;subdir=${OPENCV_DLDIR}/nvidia_optical_flow;downloadfilename=${OPTICALFLOW_MD5}-${OPTICALFLOW_HASH}.zip"
 
 SRC_URI[opticalflow.md5sum] = "${OPTICALFLOW_MD5}"
 SRC_URI[opticalflow.sha256sum] = "e300c02e4900741700b2b857965d2589f803390849e1e2022732e02f4ae9be44"
 
 # No stable URI is available for NVIDIAOpticalFlowSDK
-INSANE_SKIP:append = " src-uri-bad"
-
-DEPENDS:append:cuda = "${@' cudnn' if 'dnn' in d.getVar('PACKAGECONFIG') else ''}"
-SRC_URI += "file://0001-Fix-search-paths-in-FindCUDNN.cmake.patch"
+INSANE_SKIP:append:cuda = " src-uri-bad"
