@@ -259,7 +259,7 @@ if [ $bup_blob -ne 0 -o "$sdcard" = "yes" ]; then
     cmd="sign"
     binargs=
 else
-    if [ -z "$sdcard" -a $no_flash -eq 0 ]; then
+    if [ -z "$sdcard" -a $no_flash -eq 0 -a "$spi_only" != "yes" ]; then
 	rm -f "$appfile"
 	mksparse -b ${blocksize} --fillpattern=0 "$imgfile"  "$appfile" || exit 1
 	if [ -n "$datafile" ]; then
