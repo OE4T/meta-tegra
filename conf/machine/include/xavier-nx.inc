@@ -12,7 +12,7 @@ TEGRA_AUDIO_DEVICE ?= "tegrahdaxaviernx"
 MACHINEOVERRIDES =. "xavier-nx:"
 require conf/machine/include/tegra194.inc
 
-KERNEL_DEVICETREE ?= "_ddot_/_ddot_/_ddot_/_ddot_/nvidia/platform/t19x/jakku/kernel-dts/tegra194-p3668-all-p3509-0000.dtb"
+KERNEL_DEVICETREE ?= "tegra194-p3668-all-p3509-0000.dtb"
 KERNEL_ARGS ?= "console=ttyTCU0,115200 console=tty0 fbcon=map:0"
 
 MACHINE_FEATURES += "wifi bluetooth"
