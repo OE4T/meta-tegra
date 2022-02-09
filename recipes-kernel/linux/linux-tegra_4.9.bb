@@ -15,7 +15,7 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "3fa334c5ca499557f577d63663a35e42980249d6"
+SRCREV = "6258c8444566f77001379ab68da9d0c6cb1233d2"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-tegra-4.9;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
@@ -34,6 +34,81 @@ set_scmversion() {
     fi
 }
 do_kernel_checkout[postfuncs] += "set_scmversion"
+
+KERNEL_DEVICETREE_APPLY_OVERLAYS ??= ""
+
+overlay_compatible() {
+	for oc in $1; do
+		if echo "$2 " | grep -q "${oc} "; then
+			return 0
+		fi
+	done
+	return 1
+}
+
+do_compile_devicetree_overlays() {
+	if [ -n "${KERNEL_DTC_FLAGS}" ]; then
+		export DTC_FLAGS="${KERNEL_DTC_FLAGS}"
+	fi
+	oe_runmake dtb-overlays CC="${KERNEL_CC} $cc_extra " LD="${KERNEL_LD}" ${KERNEL_EXTRA_ARGS}
+	# Prune out the overlays that are not compatible with at least
+	# one of our device trees
+	for dtbo in ${B}/arch/arm64/boot/dts/*.dtbo; do
+		overlaycompat=$(fdtget "$dtbo" / compatible 2>/dev/null || echo "")
+		keep=no
+		if [ -n "$overlaycompat" ]; then
+			for dtbf in ${KERNEL_DEVICETREE}; do
+				dtb=$(get_real_dtb_path_in_kernel $(normalize_dtb "$dtbf"))
+				compat=$(fdtget "$dtb" / compatible)
+				if overlay_compatible "$overlaycompat" "$compat"; then
+					keep=yes
+					break
+				fi
+			done
+		fi
+		[ "$keep" = "yes" ] || rm -f "$dtbo"
+	done
+}
+do_compile_devicetree_overlays[dirs] = "${B}"
+do_compile_devicetree_overlays[depends] += "dtc-native:do_populate_sysroot"
+
+addtask compile_devicetree_overlays after do_compile before do_install
+
+do_apply_devicetree_overlays() {
+
+	[ -n "${KERNEL_DEVICETREE_APPLY_OVERLAYS}" ] || return 0
+
+	for dtbf in ${KERNEL_DEVICETREE}; do
+		dtb=$(get_real_dtb_path_in_kernel $(normalize_dtb "$dtbf"))
+		compat=$(fdtget "$dtb" / compatible)
+		overlayfiles=
+		for dtbof in ${KERNEL_DEVICETREE_APPLY_OVERLAYS}; do
+			dtbo=$(get_real_dtb_path_in_kernel $(normalize_dtb "$dtbof"))
+			overlaycompat=$(fdtget "$dtbo" / compatible)
+			if overlay_compatible "$overlaycompat" "$compat"; then
+				overlayfiles="$overlayfiles $dtbo"
+			fi
+		done
+		if [ -n "$overlayfiles" ]; then
+			fdtoverlay --input "$dtb" --output "${dtb}.tmp" $overlayfiles
+			rm "$dtb"
+			mv "${dtb}.tmp" "$dtb"
+		else
+			bbnote "Skipping overlays for $dtb: none compatible"
+		fi
+	done
+}
+do_apply_devicetree_overlays[dirs] = "${B}"
+do_apply_devicetree_overlays[depends] += "dtc-native:do_populate_sysroot"
+
+do_install_append() {
+	for dtbo in arch/arm64/boot/dts/*.dtbo; do
+		dtbo_base_name=`basename $dtbo .$dtbo_ext`
+		install -m 0644 $dtbo ${D}/${KERNEL_IMAGEDEST}/$dtbo_base_name
+	done
+}
+
+addtask apply_devicetree_overlays after do_compile_devicetree_overlays before do_install
 
 bootimg_from_bundled_initramfs() {
     if [ ! -z "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" = "1" ]; then
