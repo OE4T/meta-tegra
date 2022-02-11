@@ -8,7 +8,7 @@ DEFAULT_PREFERENCE = "-1"
 DEPENDS = "zlib util-linux-libuuid systemd tegra-eeprom-tool"
 
 SRC_REPO = "github.com/OE4T/tegra-boot-tools.git;protocol=https"
-SRCBRANCH = "wip-bootinfo-refactor"
+SRCBRANCH = "master"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 SRCREV = "${AUTOREV}"
 
