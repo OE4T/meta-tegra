@@ -6,16 +6,16 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=7a9217de7f233011b127382da9a035a1"
 DEPENDS = "zlib util-linux-libuuid systemd tegra-eeprom-tool"
 
 SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
-SRC_URI[sha256sum] = "aa43c6f9b11a299f4b9c0664e0db55314819b6c231f1e83e79bf8992c61a65e5"
+SRC_URI[sha256sum] = "2480eaf129e95b8f892c6cb4e1768f6b302d8e3f580866b6a59516c04a3ae6a3"
 
 OTABOOTDEV ??= "/dev/mmcblk0boot0"
 OTAGPTDEV ??= "/dev/mmcblk0boot1"
 
-EXTRA_OECONF = "--with-systemdsystemunitdir=${systemd_system_unitdir} \
-                --with-machine-name=${MACHINE} \
-                --with-bootdev=${OTABOOTDEV} --with-gptdev=${OTAGPTDEV}"
+EXTRA_OECMAKE = "-DSYSTEMD_SYSTEM_UNITDIR=${systemd_system_unitdir} \
+                 -DMACHINE=${MACHINE} \
+                 -DBOOT_DEVICE=${OTABOOTDEV} -DGPT_DEVICE=${OTAGPTDEV}"
 
-inherit autotools pkgconfig systemd features_check
+inherit cmake pkgconfig systemd features_check
 
 REQUIRED_DISTRO_FEATURES = "systemd"
 
