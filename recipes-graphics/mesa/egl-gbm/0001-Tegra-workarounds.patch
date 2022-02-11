@@ -1,0 +1,50 @@
+From 3c7e0dac3f414afeef9893e087af5bcb208d0e3a Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 10 Feb 2022 11:52:55 -0800
+Subject: [PATCH] Tegra workarounds
+
+---
+ src/gbm-display.c | 1 -
+ src/gbm-surface.c | 7 ++++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/src/gbm-display.c b/src/gbm-display.c
+index 93bceb4..d03ea65 100644
+--- a/src/gbm-display.c
++++ b/src/gbm-display.c
+@@ -262,7 +262,6 @@ eGbmInitializeHook(EGLDisplay dpy, EGLint* major, EGLint* minor)
+         !eGbmFindExtension("EGL_KHR_stream", exts) ||
+         !eGbmFindExtension("EGL_KHR_stream_producer_eglsurface", exts) ||
+         !eGbmFindExtension("EGL_KHR_image_base", exts) ||
+-        !eGbmFindExtension("EGL_NV_stream_consumer_eglimage", exts) ||
+         !eGbmFindExtension("EGL_MESA_image_dma_buf_export", exts) ||
+         !eGbmFindExtension("EGL_EXT_sync_reuse", exts)) {
+         data->egl.Terminate(display->devDpy);
+diff --git a/src/gbm-surface.c b/src/gbm-surface.c
+index df7d481..f8df644 100644
+--- a/src/gbm-surface.c
++++ b/src/gbm-surface.c
+@@ -195,11 +195,12 @@ static bool
+ PumpSurfEvents(GbmDisplay* display, GbmSurface* surf)
+ {
+     GbmPlatformData* data = display->data;
+-    EGLenum event;
+-    EGLAttrib aux;
+     EGLint evStatus;
+ 
+     while (true) {
++        EGLenum event = 0;
++        EGLAttrib aux = 0;
++
+         evStatus = data->egl.QueryStreamConsumerEventNV(display->devDpy,
+                                                         surf->stream,
+                                                         0,
+@@ -225,7 +226,7 @@ PumpSurfEvents(GbmDisplay* display, GbmSurface* surf)
+             break;
+ 
+         default:
+-            assert(!"Unhandled EGLImage stream consumer event");
++            return true;
+ 
+         }
+     }
