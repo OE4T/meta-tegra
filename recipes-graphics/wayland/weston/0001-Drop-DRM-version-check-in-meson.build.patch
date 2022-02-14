@@ -1,0 +1,33 @@
+From 8eec4e961f1e36bedcb057bf76f9c1febb6524cb Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 14 Feb 2022 08:38:55 -0800
+Subject: [PATCH] Drop DRM version check in meson.build
+
+The NVIDIA libdrm that we drop in at runtime doesn't
+support the feature that weston is looking for, but
+the version it checks at build time is real libdrm,
+not ours, so just drop the check entirely for tegra
+builds.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ meson.build | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/meson.build b/meson.build
+index 7b80214..b1295be 100644
+--- a/meson.build
++++ b/meson.build
+@@ -156,12 +156,6 @@ dep_libdrm = dependency('libdrm', version: '>= 2.4.95')
+ dep_libdrm_headers = dep_libdrm.partial_dependency(compile_args: true)
+ dep_threads = dependency('threads')
+ 
+-dep_libdrm_version = dep_libdrm.version()
+-if dep_libdrm_version.version_compare('>=2.4.107')
+-  message('Found libdrm with human format modifier support.')
+-  config_h.set('HAVE_HUMAN_FORMAT_MODIFIER', '1')
+-endif
+-
+ prog_python = import('python').find_installation('python3')
+ files_xxd_py = files('tools/xxd.py')
+ cmd_xxd = [ prog_python, files_xxd_py, '@INPUT@', '@OUTPUT@' ]
