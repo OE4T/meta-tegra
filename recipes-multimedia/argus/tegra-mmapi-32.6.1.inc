@@ -1,5 +1,5 @@
 HOMEPAGE = "http://developer.nvidia.com"
-LICENSE = "Proprietary & BSD"
+LICENSE = "Proprietary & BSD-3-Clause"
 
 # This is the t186 package, but the t210 version's content is identical
 L4T_DEB_SOCNAME = "t186"

@@ -2,9 +2,6 @@ DESCRIPTION = "NVIDIA Tegra Multimedia API sample programs"
 
 require recipes-multimedia/argus/tegra-mmapi-${PV}.inc
 
-LICENSE = "Proprietary & BSD"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=2cc00be68c1227a7c42ff3620ef75d05"
-
 SRC_URI += "\
     file://0001-include-fix-jpeglib-header-inclusion.patch \
     file://0002-tools-update-GetPixel.py-to-Python-3.patch \
