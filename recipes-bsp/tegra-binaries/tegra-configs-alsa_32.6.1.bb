@@ -28,6 +28,10 @@ do_install_append_tegra194() {
     install -m 0644 ${S}/usr/share/alsa/cards/jetson-xaviernx.conf ${D}${datadir}/alsa/cards/
     install -m 0644 ${S}/usr/share/alsa/cards/tegra-snd-t19x-.conf ${D}${datadir}/alsa/cards/
 }
+do_install_append_tegra210() {
+    install -m 0644 ${B}/usr/share/alsa/cards/tegra-hda.conf ${D}${datadir}/alsa/cards/
+    install -m 0644 ${B}/usr/share/alsa/cards/tegra-snd-t210r.conf ${D}${datadir}/alsa/cards/
+}
 
 FILES_${PN} = "${sysconfdir} ${datadir}/alsa"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
