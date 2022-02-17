@@ -5,7 +5,9 @@ SECTION = "multimedia"
 LICENSE = "LGPLv2.1"
 LIC_FILES_CHKSUM = "file://COPYING;md5=c34deae4e395ca07e725ab0076a5f740"
 
-SRC_URI = "http://gstreamer.freedesktop.org/src/${PNREAL}/${PNREAL}-${PV}.tar.xz"
+SRC_URI = "http://gstreamer.freedesktop.org/src/${PNREAL}/${PNREAL}-${PV}.tar.xz \
+           file://0001-Hack-acinclude.m4-python-checks-for-cross-building.patch \
+           "
 SRC_URI[md5sum] = "d4c0e3915f547feef49208ee08981e5a"
 SRC_URI[sha256sum] = "d0fdb24f93b6d889f309d2f526b8ea9577e0084ff0a62b4623ef1aed52e85a1b"
 
@@ -21,6 +23,8 @@ REQUIRED_DISTRO_FEATURES = "gobject-introspection-data"
 UNKNOWN_CONFIGURE_WHITELIST_append = " --enable-introspection --disable-introspection"
 
 inherit autotools pkgconfig distutils3-base upstream-version-is-even gobject-introspection features_check
+
+EXTRA_OECONF = "--with-libpython-dir=${libdir}"
 
 do_install_append() {
     # gstpythonplugin hardcodes the location of the libpython from the build
