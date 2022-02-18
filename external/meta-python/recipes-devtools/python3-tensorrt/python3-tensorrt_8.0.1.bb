@@ -20,7 +20,7 @@ SRCREV = "eb5de99b523c76c2f3ae997855ad86d3a1e86a31"
 S = "${WORKDIR}/git"
 
 OECMAKE_SOURCEPATH = "${S}/python"
-DISTUTILS_SETUP_PATH = "${B}"
+SETUPTOOLS_SETUP_PATH = "${B}"
 
 EXTRA_OECMAKE = "-DONNX_INC_DIR=${STAGING_INCDIR} -DPYBIND11_DIR=${STAGING_DIR_TARGET} \
                  -DTARGET_ARCHITECTURE=${HOST_ARCH} -DCMAKE_BUILD_TYPE=Release \
@@ -51,11 +51,11 @@ do_configure() {
 
 do_compile() {
     cmake_do_compile
-    distutils3_do_compile
+    setuptools3_do_compile
 }
 
 do_install() {
-    distutils3_do_install
+    setuptools3_do_install
 }
 
 RDEPENDS:${PN} = "python3-ctypes python3-numpy"
