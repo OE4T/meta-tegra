@@ -24,6 +24,9 @@ UNKNOWN_CONFIGURE_WHITELIST:append = " --enable-introspection --disable-introspe
 
 inherit autotools pkgconfig setuptools3-base upstream-version-is-even gobject-introspection features_check
 
+EXTRA_OECONF = "--with-libpython-dir=${libdir}"
+EXTRA_OEMAKE = 'PYTHON_LIB_SUFFIX="\\\"so.1.0\\\""'
+
 do_install:append() {
     # gstpythonplugin hardcodes the location of the libpython from the build
     # workspace and then fails at runtime. We can override it using
