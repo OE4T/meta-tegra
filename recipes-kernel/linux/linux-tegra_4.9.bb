@@ -7,6 +7,10 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
 inherit l4t_bsp
 require recipes-kernel/linux/linux-yocto.inc
 
+KERNEL_INTERNAL_WIRELESS_REGDB ?= "${@bb.utils.contains('DISTRO_FEATURES', 'wifi', '1', '0', d)}"
+
+DEPENDS_append = "${@' wireless-regdb-native' if bb.utils.to_boolean(d.getVar('KERNEL_INTERNAL_WIRELESS_REGDB')) else ''}"
+
 LINUX_VERSION ?= "4.9.253"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS_prepend := "${THISDIR}/${BPN}-${@bb.parse.BBHandler.vars_from_file(d.getVar('FILE', False),d)[1]}:"
@@ -22,6 +26,7 @@ KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
            ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
            ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
+           ${@'file://wireless_regdb.cfg' if d.getVar('KERNEL_INTERNAL_WIRELESS_REGDB') == '1' else ''} \
 "
 
 KBUILD_DEFCONFIG = "tegra_defconfig"
@@ -178,3 +183,12 @@ python () {
             bb.warn('did not find it in %s' % ','.join(flags))
             pass
 }
+
+SRCTREECOVEREDTASKS += "do_kernel_add_regdb"
+do_kernel_add_regdb() {
+    if [ "${KERNEL_INTERNAL_WIRELESS_REGDB}" = "1" ]; then
+        cp ${STAGING_LIBDIR_NATIVE}/crda/db.txt ${S}/net/wireless/db.txt
+    fi
+}
+do_kernel_add_regdb[dirs] = "${S}"
+addtask kernel_add_regdb before do_compile after do_configure
