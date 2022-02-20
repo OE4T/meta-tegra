@@ -111,7 +111,7 @@ do_apply_devicetree_overlays[dirs] = "${B}"
 do_apply_devicetree_overlays[depends] += "dtc-native:do_populate_sysroot"
 
 do_install:append() {
-	for dtbo in arch/arm64/boot/dts/*.dtbo; do
+	for dtbo in $(find ${KERNEL_OUTPUT_DIR}/dts/*.dtbo); do
 		dtbo_base_name=`basename $dtbo .$dtbo_ext`
 		install -m 0644 $dtbo ${D}/${KERNEL_IMAGEDEST}/$dtbo_base_name
 	done
