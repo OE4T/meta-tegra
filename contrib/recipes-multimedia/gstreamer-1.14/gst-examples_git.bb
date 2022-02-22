@@ -27,6 +27,6 @@ RDEPENDS:${PN} = "gstreamer1.0-plugins-base-playback"
 RRECOMMENDS:${PN} = "gstreamer1.0-plugins-base-meta \
                      gstreamer1.0-plugins-good-meta \
                      gstreamer1.0-plugins-bad-meta \
-                      ${@bb.utils.contains("LICENSE_FLAGS_WHITELIST", "commercial", "gstreamer1.0-libav", "", d)} \
-                     ${@bb.utils.contains("LICENSE_FLAGS_WHITELIST", "commercial", "gstreamer1.0-plugins-ugly-meta", "", d)}"
+                      ${@bb.utils.contains("LICENSE_FLAGS_ACCEPTED", "commercial", "gstreamer1.0-libav", "", d)} \
+                     ${@bb.utils.contains("LICENSE_FLAGS_ACCEPTED", "commercial", "gstreamer1.0-plugins-ugly-meta", "", d)}"
 RPROVIDES:${PN} += "gst-player gst-player-bin"
