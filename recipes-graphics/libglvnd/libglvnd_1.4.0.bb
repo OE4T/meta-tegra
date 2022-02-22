@@ -1,6 +1,6 @@
 DESCRIPTION = "libglvnd is a vendor-neutral dispatch layer for arbitrating OpenGL API calls between multiple vendors."
 HOMEPAGE = "https://gitlab.freedesktop.org/glvnd/libglvnd"
-LICENSE = "MIT & BSD & GPL-3.0-with-autoconf-exception"
+LICENSE = "MIT & BSD-1-Clause & BSD-3-Clause & GPL-3.0-with-autoconf-exception"
 LIC_FILES_CHKSUM = "file://README.md;beginline=323;md5=7ac5f0111f648b92fe5427efeb08e8c4"
 
 SRC_REPO = "gitlab.freedesktop.org/glvnd/libglvnd.git;protocol=https"
