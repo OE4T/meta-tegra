@@ -13,7 +13,7 @@ SRC_COMMON_DEBS = "\
 
 SRC_URI:append = " file://0001-Makefile-fix-cross-compilation-issues.patch"
 
-SRC_URI[samples.sha256sum] = "6eadd053f8e840f17ee8ea5cde98b2b170b91a763cc5cf0bda5a8c59a4d5390d"
+SRC_URI[samples.sha256sum] = "711ba173603270a836d844b71edd6da22322be7fd5e66ad683a5a34014514478"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
@@ -47,12 +47,11 @@ do_install() {
     install -m 0755 ${S}/../bin/sample_googlenet ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_int8 ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_int8_api ${D}${prefix}/src/tensorrt/bin
-    install -m 0755 ${S}/../bin/sample_mlp ${D}${prefix}/src/tensorrt/bin
+    install -m 0755 ${S}/../bin/sample_io_formats ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_mnist ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_mnist_api ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_nmt ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_onnx_mnist ${D}${prefix}/src/tensorrt/bin
-    install -m 0755 ${S}/../bin/sample_reformat_free_io ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_ssd ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_uff_faster_rcnn ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_uff_mask_rcnn ${D}${prefix}/src/tensorrt/bin
