@@ -1,6 +1,6 @@
-From f196aef19ab533c5aae1195698c1d27c3ffc43bc Mon Sep 17 00:00:00 2001
+From 4642ba03e09dec387243d5f423d70ec0c8ea23b1 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Tue, 21 Sep 2021 23:12:52 +0100
+Date: Thu, 24 Feb 2022 01:53:30 +0000
 Subject: [PATCH] Makefile: fix cross compilation issues
 
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
@@ -9,18 +9,18 @@ Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
  1 file changed, 19 insertions(+), 10 deletions(-)
 
 diff --git a/Makefile.config b/Makefile.config
-index 48c1a8d..70db6aa 100644
+index 7e45c45..271d1b2 100644
 --- a/Makefile.config
 +++ b/Makefile.config
-@@ -5,6 +5,7 @@ DLSW_TRIPLE ?= x86_64-linux-gnu
+@@ -6,6 +6,7 @@ PROTOBUF_TRIPLE ?= x86_64-linux-gnu
  SAFE_PDK ?= 0
- CPP_STANDARD?=14
+ CPP_STANDARD ?= 14
  TARGET ?= $(shell uname -m)
 +BUILD_TYPE ?= release
  
- ifeq ($(CUDA_INSTALL_DIR),)
+ ifeq ($(CUDA_INSTALL_DIR), )
    CUDA_INSTALL_DIR ?= /usr/local/cuda
-@@ -34,11 +35,11 @@ CUDNN_LIBDIR = lib64
+@@ -40,11 +41,11 @@ CUDNN_LIBDIR = lib64
  ifeq ($(TARGET), aarch64)
    ifeq ($(shell uname -m), aarch64)
      CUDA_LIBDIR = lib64
@@ -35,17 +35,17 @@ index 48c1a8d..70db6aa 100644
  else ifeq ($(TARGET), x86_64)
    CUDA_LIBDIR = lib64
    CC = g++
-@@ -54,7 +55,7 @@ else ########
+@@ -60,7 +61,7 @@ else ########
    $(error Auto-detection of platform failed. Please specify one of the following arguments to make: TARGET=[aarch64|x86_64|qnx])
  endif
  
 -CC_MAJOR_VER = $(shell $(CC) -dumpversion | sed -e "s/\..*//")
 +CC_MAJOR_VER = $(shell $(CXX) -dumpversion | sed -e "s/\..*//")
- ifeq (${CC_MAJOR_VER}, 4)
-     CPP_STANDARD := 11
+ ifeq ($(CC_MAJOR_VER), 4)
+   CPP_STANDARD := 11
  endif
-@@ -111,7 +112,7 @@ endef
- ifneq ($(USE_QCC),1)
+@@ -117,7 +118,7 @@ endef
+ ifneq ($(USE_QCC), 1)
  # Usage: $(call make-depend,source-file,object-file,depend-file)
  define make-depend
 -  $(AT)$(CC) -MM -MF $3 -MP -MT $2 $(COMMON_FLAGS) $1
@@ -53,7 +53,7 @@ index 48c1a8d..70db6aa 100644
  endef
  # Usage: $(call make-cuda-depend,source-file,object-file,depend-file,flags)
  define make-cuda-depend
-@@ -305,7 +306,15 @@ CFLAGSD = $(COMMON_FLAGS) -g
+@@ -313,7 +314,15 @@ CFLAGSD = $(COMMON_FLAGS) -g
  LFLAGS = $(COMMON_LD_FLAGS)
  LFLAGSD = $(COMMON_LD_FLAGS)
  
@@ -68,23 +68,23 @@ index 48c1a8d..70db6aa 100644
 +endif
 +endif
  
- release : $(OUTDIR)/$(OUTNAME_RELEASE)
+ release: $(OUTDIR)/$(OUTNAME_RELEASE)
+ debug: $(OUTDIR)/$(OUTNAME_DEBUG)
+@@ -328,25 +337,25 @@ test_release:
  
-@@ -321,25 +330,25 @@ test_release:
- 
- $(OUTDIR)/$(OUTNAME_RELEASE) : $(OBJS) $(CUOBJS)
+ $(OUTDIR)/$(OUTNAME_RELEASE): $(OBJS) $(CUOBJS)
  	$(ECHO) Linking: $@
 -	$(AT)$(CC) -o $@ $(LFLAGS) -Wl,--start-group $(LIBS) $^ -Wl,--end-group
 +	$(AT)$(CXX) -o $@ $(LFLAGS) -Wl,--start-group $(LIBS) $^ -Wl,--end-group
  
- $(OUTDIR)/$(OUTNAME_DEBUG) : $(DOBJS) $(CUDOBJS)
+ $(OUTDIR)/$(OUTNAME_DEBUG): $(DOBJS) $(CUDOBJS)
  	$(ECHO) Linking: $@
 -	$(AT)$(CC) -o $@ $(LFLAGSD) -Wl,--start-group $(DLIBS) $^ -Wl,--end-group
 +	$(AT)$(CXX) -o $@ $(LFLAGSD) -Wl,--start-group $(DLIBS) $^ -Wl,--end-group
  
  $(OBJDIR)/%.o: %.cpp
  	$(AT)if [ ! -d $(OBJDIR) ]; then mkdir -p $(OBJDIR); fi
- 	$(foreach XDIR,$(EXTRA_DIRECTORIES), if [ ! -d $(OBJDIR)/$(XDIR) ]; then mkdir -p $(OBJDIR)/$(XDIR); fi;) :
+ 	$(foreach XDIR, $(EXTRA_DIRECTORIES), if [ ! -d $(OBJDIR)/$(XDIR) ]; then mkdir -p $(OBJDIR)/$(XDIR); fi &&) :
  	$(call make-depend,$<,$@,$(subst .o,.d,$@))
  	$(ECHO) Compiling: $<
 -	$(AT)$(CC) $(CFLAGS) -c -o $@ $<
@@ -92,7 +92,7 @@ index 48c1a8d..70db6aa 100644
  
  $(DOBJDIR)/%.o: %.cpp
  	$(AT)if [ ! -d $(DOBJDIR) ]; then mkdir -p $(DOBJDIR); fi
- 	$(foreach XDIR,$(EXTRA_DIRECTORIES), if [ ! -d $(OBJDIR)/$(XDIR) ]; then mkdir -p $(DOBJDIR)/$(XDIR); fi;) :
+ 	$(foreach XDIR, $(EXTRA_DIRECTORIES), if [ ! -d $(OBJDIR)/$(XDIR) ]; then mkdir -p $(DOBJDIR)/$(XDIR); fi &&) :
  	$(call make-depend,$<,$@,$(subst .o,.d,$@))
  	$(ECHO) Compiling: $<
 -	$(AT)$(CC) $(CFLAGSD) -c -o $@ $<
@@ -101,5 +101,5 @@ index 48c1a8d..70db6aa 100644
  ######################################################################### CU
  $(OBJDIR)/%.o: %.cu
 -- 
-2.17.1
+2.32.0
 
