@@ -13,8 +13,8 @@ SRC_COMMON_DEBS = "\
     vpi1-dev_${PV}_arm64.deb;name=dev;subdir=vpi1 \
 "
 L4T_DEB_GROUP[dev] = "vpi1-dev"
-SRC_URI[lib.sha256sum] = "e5eb85fa0d6efa5f0603db5764946add16cd132d121fd77d97c4b40e5ae8a11f"
-SRC_URI[dev.sha256sum] = "ffa2cccaae800260f9fb7ec6f3fc83253c746a80fbda41f8524c539138af57a3"
+SRC_URI[lib.sha256sum] = "96bf55201147b6d687a740f5201c025e89f02568b2ea67ec9ceee5c7a262ab63"
+SRC_URI[dev.sha256sum] = "0afeddb485916fc401de8b600cf9a44b24ec197060e1f07e4384bc498181316d"
 
 SRC_URI:append = " file://0001-vpi-config-allow-to-compute-the-installation-prefix.patch"
 
