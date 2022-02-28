@@ -1,8 +1,4 @@
-def kernel_disable_features(d):
-    if bb.utils.vercmp_string(d.getVar('KERNEL_VERSION'), '4.17') < 0:
-        # python3 is not supported until 4.17, so do not allow scripting
-        return "scripting"
-    else:
-        return ""
-
-PACKAGECONFIG:remove:tegra = "${@kernel_disable_features(d)}"
+PACKAGECONFIG:tegra ?= "tui libunwind"
+# Need to enable -fcommon on C compilations and disable POSIX yacc
+# mode in bison
+EXTRA_OEMAKE:append:tegra = " EXTRA_CFLAGS='-ldw -fcommon' YFLAGS='--file-prefix-map=${WORKDIR}=/usr/src/debug/${PN}/${EXTENDPE}${PV}-${PR}'"
