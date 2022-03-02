@@ -1,5 +1,5 @@
 L4T_DEB_COPYRIGHT_MD5 = "fab0c15b4bbf7f8d5ac2bd6673d4211c"
-DEPENDS = "libdrm"
+DEPENDS = "libdrm patchelf-native"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-core"
 
@@ -16,6 +16,10 @@ MAINSUM:tegra210 = "d2d8941982e1b344868b0b2d2a93f6ecf886493722c2620a5864262f5db7
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvgbm.so \
 "
+
+do_install:append() {
+    patchelf --set-soname libnvgbm.so.1 ${D}${libdir}/libnvgbm.so
+}
 
 DEBIAN_NOAUTONAME:${PN} = "1"
 DEBIAN_NOAUTONAME:${PN}-dev = "1"
