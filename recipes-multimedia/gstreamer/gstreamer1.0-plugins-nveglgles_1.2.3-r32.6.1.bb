@@ -29,7 +29,7 @@ EXTRA_OECONF = "--disable-gtk-doc --disable-examples"
 
 S = "${WORKDIR}/gstegl_src/gst-egl"
 
-inherit autotools gettext gobject-introspection pkgconfig container-runtime-csv features_check
+inherit autotools gtk-doc gettext gobject-introspection pkgconfig container-runtime-csv features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
