@@ -1,6 +1,6 @@
 SUMMARY = "OpenMAX IL plugins for GStreamer (Nvidia-specific)"
 SECTION = "multimedia"
-LICENSE = "LGPLv2.1"
+LICENSE = "LGPL-2.1-only"
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-nveglgles gstreamer1.0-plugins-tegra-binaryonly"
 DEPENDS += "tegra-libraries-omx"
 

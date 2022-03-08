@@ -1,6 +1,6 @@
 DESCRIPTION = "NVIDIA video sinks GStreamer plugin"
 SECTION = "multimedia"
-LICENSE = "LGPLv2 & Proprietary"
+LICENSE = "LGPL-2.0-only & Proprietary"
 LIC_FILES_CHKSUM = "file://LICENSE.libgstnvvideosinks;md5=86ed1f32df3aaa376956e408540c024b \
                     file://README.txt;endline=11;md5=d0b0c459af10bc6ecd665c01d08d0650 \
 "

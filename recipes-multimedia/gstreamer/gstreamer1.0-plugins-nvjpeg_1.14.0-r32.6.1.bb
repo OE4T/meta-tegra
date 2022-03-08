@@ -1,6 +1,6 @@
 DESCRIPTION = "NVIDIA accelerated JPEG GStreamer plugin"
 SECTION = "multimedia"
-LICENSE = "LGPLv2"
+LICENSE = "LGPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=a6f89e2100d9b6cdffcea4f398e37343"
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstjpeg_src.tbz2"
