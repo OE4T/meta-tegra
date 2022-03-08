@@ -1,6 +1,6 @@
 DESCRIPTION = "Linaro baremetal ARM toolchain (prebuilt)"
 HOMEPAGE = "https://linaro.org/downloads"
-LICENSE = "GPL-3.0-with-GCC-exception & LGPLv3 & GPLv3 & GFDL-1.3"
+LICENSE = "GPL-3.0-with-GCC-exception & LGPL-3.0-only & GPL-3.0-only & GFDL-1.3"
 SECTION = "devel"
 
 BASEVER = "${@'.'.join(d.getVar('PV').split('.')[0:2]) + '-' + d.getVar('PV').split('-')[1]}"
