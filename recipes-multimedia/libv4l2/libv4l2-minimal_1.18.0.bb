@@ -1,5 +1,5 @@
 SUMMARY = "libv4l2 from v4l-utils, minimally built"
-LICENSE = "LGPLv2.1"
+LICENSE = "LGPL-2.1-only"
 LIC_FILES_CHKSUM = "file://COPYING.libv4l;md5=d749e86a105281d7a44c2328acebc4b0"
 PROVIDES = "libv4l v4l-utils"
 COMPATIBLE_MACHINE = "(tegra)"
