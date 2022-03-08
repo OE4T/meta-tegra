@@ -3,7 +3,7 @@ DESCRIPTION = "A Tool to test GStreamer components"
 HOMEPAGE = "https://gstreamer.freedesktop.org/releases/gst-validate/1.12.3.html"
 SECTION = "multimedia"
 
-LICENSE = "LGPLv2.1"
+LICENSE = "LGPL-2.1-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=a6f89e2100d9b6cdffcea4f398e37343"
 
 SRC_URI = "https://gstreamer.freedesktop.org/src/${BPN}/${BP}.tar.xz \
