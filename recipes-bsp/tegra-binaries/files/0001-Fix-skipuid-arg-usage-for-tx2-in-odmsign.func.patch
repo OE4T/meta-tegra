@@ -7,11 +7,11 @@ Subject: [PATCH] Fix skipuid arg usage for tx2 in odmsign.func
  bootloader/odmsign.func | 6 +++++-
  1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/bootloader/odmsign.func b/bootloader/odmsign.func
-index 98c76e7..c2c4aef 100644
---- a/bootloader/odmsign.func
-+++ b/bootloader/odmsign.func
-@@ -488,7 +488,11 @@ odmsign ()
+Index: Linux_for_Tegra/bootloader/odmsign.func
+===================================================================
+--- Linux_for_Tegra.orig/bootloader/odmsign.func
++++ Linux_for_Tegra/bootloader/odmsign.func
+@@ -493,7 +493,11 @@ odmsign ()
  			BCTARGS="--mb1_bct mb1_bct_MB1_sigheader.bct.signed ";
  			sigbins BINSARGS "_sigheader" "signed" SIGNEDBINSARGS;
  			BINSARGS="--bins \"${SIGNEDBINSARGS}\" ";
@@ -24,6 +24,3 @@ index 98c76e7..c2c4aef 100644
  		else
  			flashername="${flashername}.signed";
  			chext bctfilename ${bctfilename} "bct";
--- 
-2.27.0
-
