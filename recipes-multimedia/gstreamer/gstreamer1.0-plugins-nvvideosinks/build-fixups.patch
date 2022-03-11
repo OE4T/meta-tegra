@@ -11,54 +11,17 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  Makefile | 44 ++++++++++++++++++++++++++++----------------
  1 file changed, 28 insertions(+), 16 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index adf4636..f52cf03 100644
---- a/Makefile
-+++ b/Makefile
-@@ -10,7 +10,6 @@
- #
- ###############################################################################
- 
--CC:= gcc
- TARGET_NAME := libgstnvvideosinks.so
- 
- SRCS := common/context.c \
-@@ -24,14 +23,15 @@ SRCS := common/context.c \
- 	gstnvvideosinks.c \
- 	nv3dsink/gstnv3dsink.c
- 
-+OBJS := $(patsubst %.c,%.o,$(SRCS))
-+
- IS_GST_PLUGIN:=1
- 
--CFLAGS := -fPIC \
-+CFLAGS += -fPIC \
-     -DNV_VIDEO_SINKS_HAS_EGL \
-     -DNV_VIDEO_SINKS_HAS_GL \
-     -DNV_VIDEO_SINKS_HAS_NV3DSINK \
--    -DNV_VIDEO_SINKS_HAS_X11 \
--    -DIS_DESKTOP
-+    -DNV_VIDEO_SINKS_HAS_X11
- 
- NEEDS_CUDA:=1
- 
-@@ -39,8 +39,6 @@ IGNORE_DS_PACKAGE_NAMING:=1
- 
- PACKAGE_BINARY_IN_DS:=1
- 
--LDFLAGS:= -shared
--
- CAN_PUBLIC_LINK:=1
- 
- INC_PATHS =: \
-@@ -48,22 +46,36 @@ INC_PATHS =: \
- 	common/egl \
- 	common/renderer \
- 	common/x11 \
--	/usr/local/include/gstreamer-1.0 \
--	../../../3rdparty/gst/gst-nveglglessink/gst-libs/ \
--	../../../nvutils/nvbufsurface/ \
--	../
+Index: gst-plugins-nv-video-sinks/Makefile
+===================================================================
+--- gst-plugins-nv-video-sinks.orig/Makefile
++++ gst-plugins-nv-video-sinks/Makefile
+@@ -34,18 +34,20 @@ INCLUDES += -I./common \
+ 	-I./common/egl \
+ 	-I./common/renderer \
+ 	-I./common/x11 \
+-	-I/usr/local/include/gstreamer-1.0 \
+-	-I/usr/local/cuda-$(CUDA_VER)/targets/aarch64-linux/include/ \
+-	-I../
  
  PKGS := glib-2.0 \
  	gstreamer-1.0 \
@@ -67,34 +30,38 @@ index adf4636..f52cf03 100644
 +	gstreamer-video-1.0 \
 +	glesv2 \
 +	egl \
-+	cuda-10.2 \
-+	cudart-10.2 \
++	cuda-$(CUDA_VER) \
++	cudart-$(CUDA_VER) \
 +	x11
  
--CFLAGS += `pkg-config --cflags $(PKGS)`
-+CFLAGS += $(patsubst %,-I%,$(INC_PATHS)) `pkg-config --cflags $(PKGS)`
+ OBJS := $(SRCS:.c=.o)
  
--LDFLAGS = -Wl,--no-undefined -L/usr/lib/aarch64-linux-gnu/tegra
--
--LIBS = -lnvbufsurface -lGLESv2 -lEGL -lX11 -lm -lcuda -lcudart
+-CFLAGS := -fPIC \
++CFLAGS += -fPIC \
+ 	-DNV_VIDEO_SINKS_HAS_EGL \
+ 	-DNV_VIDEO_SINKS_HAS_GL \
+ 	-DNV_VIDEO_SINKS_HAS_NV3DSINK \
+@@ -53,9 +55,9 @@ CFLAGS := -fPIC \
+ 
+ CFLAGS += `pkg-config --cflags $(PKGS)`
+ 
+-LDFLAGS = -Wl,--no-undefined -L/usr/lib/aarch64-linux-gnu/tegra -L/usr/local/cuda-$(CUDA_VER)/targets/aarch64-linux/lib/
++LDFLAGS += -Wl,--no-undefined
+ 
+-LIBS = -lnvbuf_utils -lnvbufsurface -lGLESv2 -lEGL -lX11 -lm -lcuda -lcudart
 +LIBS = -lnvbufsurface -lnvbuf_utils -lm
  
  LIBS += `pkg-config --libs $(PKGS)`
  
--include ../../../deepstream/sdk/Rules.mk
-+all: $(TARGET_NAME)
-+
-+%.o: %.c
-+	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
-+
-+$(TARGET_NAME): $(OBJS)
-+	$(CC) -shared -o $(TARGET_NAME) $(LDFLAGS) $(OBJS) $(LIBS)
-+
-+.PHONY: install
-+install: $(TARGET_NAME)
-+	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
-+	install -m 0644 $(TARGET_NAME) $(DESTDIR)$(libdir)/gstreamer-1.0/
-+
-+.PHONY: clean
-+clean:
-+	rm -rf $(OBJS) $(TARGET_NAME)
+@@ -69,9 +71,9 @@ $(SO_NAME): $(OBJS)
+ 
+ .PHONY: install
+ $(DEST_DIR):
+-	mkdir -p $(DEST_DIR)
++	install -d $(DEST_DIR)
+ install: $(SO_NAME) | $(DEST_DIR)
+-	cp -vp $(SO_NAME) $(DEST_DIR)
++	install -m 0644 $(SO_NAME) $(DEST_DIR)
+ 
+ .PHONY: clean
+ clean:

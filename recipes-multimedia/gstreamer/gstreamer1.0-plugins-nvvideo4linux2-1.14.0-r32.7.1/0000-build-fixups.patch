@@ -8,10 +8,10 @@ Date: Thu, 22 Nov 2018 09:48:57 -0800
  gstv4l2videoenc.h  |  1 +
  3 files changed, 18 insertions(+), 24 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index 5a309bf..d4213a0 100644
---- a/Makefile
-+++ b/Makefile
+Index: gst-v4l2/Makefile
+===================================================================
+--- gst-v4l2.orig/Makefile
++++ gst-v4l2/Makefile
 @@ -12,21 +12,7 @@
  
  SO_NAME := libgstnvvideo4linux2.so
@@ -80,11 +80,11 @@ index 5a309bf..d4213a0 100644
  
  .PHONY: clean
  clean:
-diff --git a/gstv4l2allocator.c b/gstv4l2allocator.c
-index 2263f6b..c6b717e 100644
---- a/gstv4l2allocator.c
-+++ b/gstv4l2allocator.c
-@@ -856,7 +856,7 @@ gst_v4l2_allocator_alloc_mmap (GstV4l2Allocator * allocator)
+Index: gst-v4l2/gstv4l2allocator.c
+===================================================================
+--- gst-v4l2.orig/gstv4l2allocator.c
++++ gst-v4l2/gstv4l2allocator.c
+@@ -875,7 +875,7 @@ gst_v4l2_allocator_alloc_mmap (GstV4l2Al
        expbuf.plane = i;
        expbuf.flags = O_CLOEXEC | O_RDWR;
  
@@ -93,7 +93,7 @@ index 2263f6b..c6b717e 100644
          GST_ERROR_OBJECT (allocator, "expbuf_failed");
  
        if ((!V4L2_TYPE_IS_OUTPUT (obj->type)) &&
-@@ -1411,7 +1411,7 @@ gst_v4l2_allocator_dqbuf (GstV4l2Allocator * allocator,
+@@ -1431,7 +1431,7 @@ gst_v4l2_allocator_dqbuf (GstV4l2Allocat
   /* TODO: This could a possible bug in library */
    while (1)
    {
@@ -102,10 +102,10 @@ index 2263f6b..c6b717e 100644
        break;
      else if (errno == EPIPE)
        goto error;
-diff --git a/gstv4l2videoenc.h b/gstv4l2videoenc.h
-index df322d0..13365c2 100644
---- a/gstv4l2videoenc.h
-+++ b/gstv4l2videoenc.h
+Index: gst-v4l2/gstv4l2videoenc.h
+===================================================================
+--- gst-v4l2.orig/gstv4l2videoenc.h
++++ gst-v4l2/gstv4l2videoenc.h
 @@ -30,6 +30,7 @@
  
  #include <gstv4l2object.h>

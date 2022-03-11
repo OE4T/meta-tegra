@@ -4,7 +4,7 @@ LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE.libgstnvdrmvideosink;md5=674ef4559ff709167b72104cb9814e93"
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/libgstnvdrmvideosink_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.6.1.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.7.1.inc
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libdrm tegra-libraries-multimedia-utils tegra-mmapi nvbufsurface-headers"
 
