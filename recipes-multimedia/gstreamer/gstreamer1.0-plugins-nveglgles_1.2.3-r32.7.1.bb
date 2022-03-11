@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=73a5855a8119deb017f5f13cf327095d \
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstegl_src.tbz2"
 TEGRA_SRC_EXTRA_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvarguscamera_src.tbz2"
 TEGRA_SRC_EXTRA_SUBARCHIVE_OPTS = "-C ${S}/ext/eglgles/ --strip-components=1 gst-nvarguscamera/nvbufsurface.h"
-require recipes-bsp/tegra-sources/tegra-sources-32.6.1.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.7.1.inc
 
 SRC_URI += "file://0001-introspection-pkgconfig.patch \
 	    file://0002-fix-libtool-references.patch \

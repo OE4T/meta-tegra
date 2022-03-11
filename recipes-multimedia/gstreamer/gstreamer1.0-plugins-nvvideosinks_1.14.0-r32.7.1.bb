@@ -2,11 +2,11 @@ DESCRIPTION = "NVIDIA video sinks GStreamer plugin"
 SECTION = "multimedia"
 LICENSE = "LGPL-2.0-only & Proprietary"
 LIC_FILES_CHKSUM = "file://LICENSE.libgstnvvideosinks;md5=86ed1f32df3aaa376956e408540c024b \
-                    file://README.txt;endline=11;md5=d0b0c459af10bc6ecd665c01d08d0650 \
+                    file://README.txt;endline=11;md5=3670d068ae876bb6ea4c18beae2397ff \
 "
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/libgstnvvideosinks_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.6.1.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.7.1.inc
 
 SRC_URI += "file://build-fixups.patch"
 
@@ -22,7 +22,9 @@ inherit gettext pkgconfig container-runtime-csv cuda features_check
 
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
+EXTRA_OEMAKE = "CUDA_VER=${CUDA_VERSION}"
+
 do_install() {
-	oe_runmake install DESTDIR="${D}"
+	oe_runmake install DEST_DIR="${D}${libdir}/gstreamer-1.0"
 }
 FILES:${PN} = "${libdir}/gstreamer-1.0"
