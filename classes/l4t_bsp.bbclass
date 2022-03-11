@@ -1,25 +1,17 @@
 HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
 L4T_BSP_NAME ??= "T186"
-L4T_SRCS_NAME ??= "sources/T186"
+L4T_SRCS_NAME ??= "Sources/T186"
 L4T_BSP_PREFIX ??= "Jetson"
 
-L4T_VERSION ?= "32.6.1"
+L4T_VERSION ?= "32.7.1"
 
 # Version (date-time stamp) suffixes for nvidia-l4t-* packages
 # in the package feeds.
 #
-# Original 32.6.1 release
-L4T_BSP_DEB_ORIG_VERSION_T186 = "20210726122859"
-L4T_BSP_DEB_ORIG_VERSION = "${L4T_BSP_DEB_ORIG_VERSION_T186}"
-L4T_BSP_DEB_ORIG_VERSION:tegra210 = "20210726122000"
-# Some, but not all, of the nvidia-l4t-* packages were updated
-# with the JetPack 4.6 (rev2) release.  Make that the default
-# so we pick up the latest; recipes that use packages that
-# have not been updated can override with L4T_BSP_DEB_ORIG_VERSION
-# as needed.
-L4T_BSP_DEB_DEFAULT_VERSION_T186 = "20210916210945"
+# Original L4T R32.7.1 release
+L4T_BSP_DEB_DEFAULT_VERSION_T186 = "20220219090344"
 L4T_BSP_DEB_DEFAULT_VERSION = "${L4T_BSP_DEB_DEFAULT_VERSION_T186}"
-L4T_BSP_DEB_DEFAULT_VERSION:tegra210 = "20210916211029"
+L4T_BSP_DEB_DEFAULT_VERSION:tegra210 = "20220219090432"
 
 L4T_BSP_DEB_VERSION ?= "${L4T_BSP_DEB_DEFAULT_VERSION}"
 
