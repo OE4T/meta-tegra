@@ -7,11 +7,11 @@ Subject: [PATCH] Fix location of bsp_version file in l4t_bup_gen.func
  bootloader/l4t_bup_gen.func | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
-index 4128750..11a6231 100644
---- a/bootloader/l4t_bup_gen.func
-+++ b/bootloader/l4t_bup_gen.func
-@@ -470,13 +470,13 @@ function l4t_bup_gen()
+Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
+===================================================================
+--- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
++++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
+@@ -472,13 +472,13 @@ function l4t_bup_gen()
  	export OUT=$(pwd);
  
  	# get the bsp version to fill the entry list version.

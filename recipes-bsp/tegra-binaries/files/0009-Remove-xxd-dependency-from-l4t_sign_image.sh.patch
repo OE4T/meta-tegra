@@ -14,7 +14,7 @@ Index: Linux_for_Tegra/l4t_sign_image.sh
 ===================================================================
 --- Linux_for_Tegra.orig/l4t_sign_image.sh
 +++ Linux_for_Tegra/l4t_sign_image.sh
-@@ -96,8 +96,7 @@ function write_size_to_sig
+@@ -104,8 +104,7 @@ function write_size_to_sig
  	echo "${SCRIPT_NAME}: chip ${chip}: add $(printf "0x%x" "${size}") to offset "\
  		"$(printf "0x%x" "${offset}") in sig file" >&5
  	# Convert size to bytes in little endian
