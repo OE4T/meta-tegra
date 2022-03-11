@@ -21,7 +21,7 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-$
     file://0017-Support-A-B-slot-for-kernel-on-SDcards-and-USB-devic.patch \
 "
 
-SRC_URI[sha256sum] = "42fe4f41a6ee3b0b2d7d74c4dcd8d7f2d010fb2c09f7ee3855b7959bacbe0a9a"
+SRC_URI[sha256sum] = "73325dc2551bb312e53e50bf84c8f9828b4dc08faab9c238c6823cc14ca15287"
 
 PACKAGECONFIG ??= "bootdev-select ethernet display shell recovery extlinux"
 PACKAGECONFIG[bootdev-select] = "CONFIG_ENABLE_BOOT_DEVICE_SELECT=1,,"
