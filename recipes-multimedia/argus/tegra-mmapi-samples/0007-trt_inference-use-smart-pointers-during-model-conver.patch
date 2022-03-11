@@ -11,11 +11,11 @@ which is causing segfaults.
  .../common/algorithm/trt/trt_inference.cpp    | 33 ++++++-------------
  1 file changed, 10 insertions(+), 23 deletions(-)
 
-diff --git a/samples/common/algorithm/trt/trt_inference.cpp b/samples/common/algorithm/trt/trt_inference.cpp
-index 6b18cb7..4de44df 100644
---- a/samples/common/algorithm/trt/trt_inference.cpp
-+++ b/samples/common/algorithm/trt/trt_inference.cpp
-@@ -446,12 +446,12 @@ TRT_Context::caffeToTRTModel(const string& deployfile, const string& modelfile)
+Index: jetson_multimedia_api/samples/common/algorithm/trt/trt_inference.cpp
+===================================================================
+--- jetson_multimedia_api.orig/samples/common/algorithm/trt/trt_inference.cpp
++++ jetson_multimedia_api/samples/common/algorithm/trt/trt_inference.cpp
+@@ -446,12 +446,12 @@ TRT_Context::caffeToTRTModel(const strin
      Int8EntropyCalibrator calibrator;
      IInt8Calibrator* int8Calibrator = &calibrator;
      // create API root class - must span the lifetime of the engine usage
@@ -32,7 +32,7 @@ index 6b18cb7..4de44df 100644
  
      bool hasFp16 = builder->platformHasFastFp16();
  
-@@ -511,18 +511,11 @@ TRT_Context::caffeToTRTModel(const string& deployfile, const string& modelfile)
+@@ -511,18 +511,11 @@ TRT_Context::caffeToTRTModel(const strin
          config->setFlag(BuilderFlag::kFP16);
      }
  
@@ -41,18 +41,18 @@ index 6b18cb7..4de44df 100644
      assert(engine);
  
 -    // we don't need the network any more, and we can destroy the parser
--    network->destroy();
--    parser->destroy();
--    config->destroy();
+-    delete network;
+-    delete parser;
+-    delete config;
 -
      // serialize the engine, then close everything down
      trtModelStream = engine->serialize();
--    engine->destroy();
--    builder->destroy();
+-    delete engine;
+-    delete builder;
      shutdownProtobufLibrary();
  }
  
-@@ -532,13 +525,13 @@ TRT_Context::onnxToTRTModel(const string& modelfile)
+@@ -532,13 +525,13 @@ TRT_Context::onnxToTRTModel(const string
      Int8EntropyCalibrator calibrator(true, true);
      IInt8Calibrator* int8Calibrator = &calibrator;
      // create API root class - must span the lifetime of the engine usage
@@ -70,7 +70,7 @@ index 6b18cb7..4de44df 100644
  
      bool hasFp16 = builder->platformHasFastFp16();
  
-@@ -596,18 +589,12 @@ TRT_Context::onnxToTRTModel(const string& modelfile)
+@@ -596,19 +589,11 @@ TRT_Context::onnxToTRTModel(const string
          config->setFlag(BuilderFlag::kFP16);
      }
  
@@ -79,17 +79,15 @@ index 6b18cb7..4de44df 100644
      assert(engine);
  
 -    // we don't need the network any more, and we can destroy the parser
--    network->destroy();
--    parser->destroy();
--    config->destroy();
- 
+-    delete network;
+-    delete parser;
+-    delete config;
+-
+-
      // serialize the engine, then close everything down
      trtModelStream = engine->serialize();
--    engine->destroy();
--    builder->destroy();
+-    delete engine;
+-    delete builder;
      shutdownProtobufLibrary();
  }
  
--- 
-2.30.2
-
