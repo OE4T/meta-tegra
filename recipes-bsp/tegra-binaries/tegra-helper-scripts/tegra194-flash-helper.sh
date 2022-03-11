@@ -196,9 +196,7 @@ case "$boardid" in
 		TOREV="a02"
 		PMICREV="a04"
 		BPFDTBREV="a02"
-		if [ "$board_sku" = "0006" ]; then
-		    BPFDTBREV="0006-a04"
-		elif [ "$board_sku" = "0004" ] || [ $board_version -gt 300 -a `expr "$board_revision" \> "D.0"` -eq 1 ]; then
+		if [ $board_sku -ge 4 ] || [ $board_version -gt 300 -a `expr "$board_revision" \> "D.0"` -eq 1 ]; then
 		    PMICREV="a04-E-0"
 		    BPFDTBREV="a04"
 		fi
@@ -206,8 +204,12 @@ case "$boardid" in
 	    *)
 		echo "ERR: unrecognized board version $board_version" >&2
 		exit 1
-		;;
+		;;	    
 	esac
+	if [ "$board_sku" = "$0005" ]; then
+	    # AGX Xavier 64GB
+	    BPFDTBREV="0005-a04-maxn"
+	fi
 	;;
     3660)
 	case $board_version in
@@ -231,11 +233,8 @@ case "$boardid" in
 esac
 
 ramcodeargs=
-if [ "$board_id" = "2888" -a "$board_sku" = "0004" ]; then
-    # 32GB AGX Xavier
-    ramcodeargs="--ramcode 2"
-elif [ "$board_id" = "3668" -a "$board_version" = "301" ]; then
-    # Xavier NX A03
+if [ "$board_id" = "2888" -a "$board_sku" = "0008" ]; then
+    # AGX Xavier Industrial
     ramcodeargs="--ramcode 1"
 fi
 
