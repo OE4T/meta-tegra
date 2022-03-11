@@ -7,7 +7,7 @@ L4T_BSP_DEB_VERSION = "${L4T_BSP_DEB_DEFAULT_VERSION_T186}"
 SRC_SOC_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}_arm64.deb;subdir=tegra-mmapi"
 PV .= "${@l4t_bsp_debian_version_suffix(d)}"
 
-SRC_URI[sha256sum] = "cc28d6756ea3577735cebb434f77c4f0e45844bbc0893a312aa1832e68a5fcf1"
+SRC_URI[sha256sum] = "8f088ce087d009b67785df56076bcd589c9fafc486c284c0660afd9b1bf8c586"
 
 inherit l4t_deb_pkgfeed features_check
 
