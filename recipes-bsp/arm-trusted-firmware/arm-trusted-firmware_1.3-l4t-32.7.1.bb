@@ -1,5 +1,5 @@
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/atf_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.6.1.inc
+require recipes-bsp/tegra-sources/tegra-sources-32.7.1.inc
 S = "${WORKDIR}/arm-trusted-firmware"
 
 def generate_build_string(d):
