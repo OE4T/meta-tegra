@@ -26,7 +26,7 @@ REQUIRED_DISTRO_FEATURES = "x11 opengl"
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'alsa', d)}"
 PACKAGECONFIG[alsa] = "WITH_NVGSTPLAYER=yes,,alsa-lib"
 
-CFLAGS += "-Wall -Werror -DNVGST_TARGET_TEGRA"
+CFLAGS += "-Wall -Werror -Wno-deprecated-declarations -DNVGST_TARGET_TEGRA"
 
 do_compile() {
     ${PACKAGECONFIG_CONFARGS}
