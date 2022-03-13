@@ -204,7 +204,7 @@ case "$boardid" in
 	    *)
 		echo "ERR: unrecognized board version $board_version" >&2
 		exit 1
-		;;	    
+		;;
 	esac
 	if [ "$board_sku" = "$0005" ]; then
 	    # AGX Xavier 64GB
