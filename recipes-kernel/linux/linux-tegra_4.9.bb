@@ -8,6 +8,7 @@ inherit l4t_bsp
 require recipes-kernel/linux/linux-yocto.inc
 
 KERNEL_INTERNAL_WIRELESS_REGDB ?= "${@bb.utils.contains('DISTRO_FEATURES', 'wifi', '1', '0', d)}"
+KERNEL_DISABLE_FW_USER_HELPER ?= "y"
 
 DEPENDS:remove = "kern-tools-native"
 DEPENDS:append = " kern-tools-tegra-native"
@@ -27,6 +28,7 @@ SRC_REPO = "github.com/OE4T/linux-tegra-4.9;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
            ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
+           ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
            ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
            ${@'file://wireless_regdb.cfg' if d.getVar('KERNEL_INTERNAL_WIRELESS_REGDB') == '1' else ''} \
 "
