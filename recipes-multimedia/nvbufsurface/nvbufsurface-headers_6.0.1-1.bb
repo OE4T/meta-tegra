@@ -7,7 +7,7 @@ inherit l4t_deb_pkgfeed
 
 L4T_DEB_GROUP = "deepstream-6.0"
 SRC_COMMON_DEBS = "deepstream-6.0_${PV}_arm64.deb;subdir=${BPN}"
-SRC_URI[sha256sum] = "320927fe83b40bea2da5408f6777985065038c7f1506b2f5d5eaa0bcfc2a1564"
+SRC_URI[sha256sum] = "5520f52b30f02e4e6535d11229b758a9c46fb6004528ea9eda0952b9bbf2d5f5"
 
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
