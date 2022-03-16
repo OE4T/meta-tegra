@@ -13,16 +13,18 @@ inherit pkgconfig features_check
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11 wayland', d)}"
 PACKAGECONFIG[x11] = ",,libx11"
-PACKAGECONFIG[wayland] = ",,libxkbcommon wayland libffi"
+PACKAGECONFIG[wayland] = ",,libxkbcommon wayland wayland-native weston libffi virtual/libgbm tegra-drm-headers tegra-mmapi"
 
 CONFIGURESTAMPFILE = "${WORKDIR}/configure.sstate"
 
 do_configure() {
     if [ -n "${CONFIGURESTAMPFILE}" ]; then
-        if [ -e "${CONFIGURESTAMPFILE}" -a "`cat ${CONFIGURESTAMPFILE}`" != "${BB_TASKHASH}" ]; then
-            rm -rf ${S}/x11 ${S}/wayland ${S}/egldevice
+        if [ -e "${CONFIGURESTAMPFILE}" ]; then
+            if [ "`cat ${CONFIGURESTAMPFILE}`" != "${BB_TASKHASH}" ]; then
+                rm -rf ${S}/x11 ${S}/wayland ${S}/egldevice
+            fi
+            echo "${BB_TASKHASH}" > "${CONFIGURESTAMPFILE}"
         fi
-        echo "${BB_TASKHASH}" > "${CONFIGURESTAMPFILE}"
     fi
 }
 
@@ -30,6 +32,7 @@ do_compile() {
     for winsys in egldevice ${PACKAGECONFIG}; do
         cflags="-I${S}/nvgldemo -I${S}/nvtexfont -I${S}/gears-lib"
 	ldflags="-ldl"
+	extra=
         case $winsys in
 	    egldevice)
 	        cflags="$cflags -DEGL_NO_X11 `pkg-config --cflags libdrm`"
@@ -40,12 +43,12 @@ do_compile() {
                 ldflags="$ldflags `pkg-config --libs x11`"
 		;;
 	    wayland)
-	        cflags="$cflags -DEGL_NO_X11 -DWAYLAND `pkg-config --cflags xkbcommon wayland-client wayland-egl libffi`"
+	        cflags="$cflags -DEGL_NO_X11 -DWAYLAND `pkg-config --cflags xkbcommon wayland-client wayland-egl libffi libdrm`"
 		ldflags="$ldflags `pkg-config --libs xkbcommon wayland-client wayland-egl libffi`"
 		;;
 	esac
-	for demo in bubble ctree eglstreamcube gears-lib gears-basic gears-cube; do
-            oe_runmake -C $demo NV_WINSYS=$winsys CC="${CC}" CXX="${CXX}" LD="${CC}" AR="${AR}" NV_PLATFORM_LDFLAGS="${LDFLAGS}" NV_PLATFORM_OPT="${CFLAGS}" NV_PLATFORM_SDK_LIB="" NV_PLATFORM_SDK_INC="$cflags" NV_PLATFORM_WINSYS_LIBS="$ldflags"
+	for demo in bubble ctree eglstreamcube gears-lib gears-basic gears-cube $extra; do
+            oe_runmake -C $demo $mflags NV_WINSYS=$winsys CC="${CC}" CXX="${CXX}" LD="${CC}" AR="${AR}" NV_PLATFORM_LDFLAGS="${LDFLAGS}" NV_PLATFORM_OPT="${CFLAGS}" NV_PLATFORM_SDK_LIB="" NV_PLATFORM_SDK_INC="$cflags" NV_PLATFORM_WINSYS_LIBS="$ldflags"
         done
     done
 }
