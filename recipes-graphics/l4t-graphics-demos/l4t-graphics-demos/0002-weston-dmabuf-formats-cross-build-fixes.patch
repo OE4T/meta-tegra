@@ -1,0 +1,79 @@
+From db097ecd7091b55661996b031db148cbd492e243 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Wed, 16 Mar 2022 10:27:53 -0700
+Subject: [PATCH] weston-dmabuf-formats cross-build fixes
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ weston-dmabuf-formats/Makefile | 40 ++++++++++++++++++++++++++++------
+ 1 file changed, 33 insertions(+), 7 deletions(-)
+
+Index: graphics_demos/weston-dmabuf-formats/Makefile
+===================================================================
+--- graphics_demos.orig/weston-dmabuf-formats/Makefile
++++ graphics_demos/weston-dmabuf-formats/Makefile
+@@ -28,8 +28,16 @@ WESTON-DMABUF-FORMATS_OBJS :=
+ WESTON-DMABUF-FORMATS_OBJS += $(NV_WINSYS)/weston-dmabuf-formats.o
+ INTERMEDIATES += $(WESTON-DMABUF-FORMATS_OBJS)
+ 
+-EGLSTREAMCUBE_DEMOLIBS :=
+-EGLSTREAMCUBE_DEMOLIBS += ../nvgldemo/$(NV_WINSYS)/libnvgldemo.a
++PROTOCOLS :=
++PROTOCOLS += $(NV_WINSYS)/fullscreen-shell-unstable-v1-client-protocol.h
++PROTOCOLS += $(NV_WINSYS)/xdg-shell-client-protocol.h
++PROTOCOLS += $(NV_WINSYS)/linux-dmabuf-unstable-v1-client-protocol.h
++INTERMEDIATES += $(PROTOCOLS)
++CFLAGS += -I$(NV_WINSYS)/ -I=$(includedir)/libdrm/nvidia
++
++PROTOCOLSDIR := $(shell pkg-config --variable=pkgdatadir wayland-protocols)
++
++WESTON-DMABUF-FORMATS_OBJS += $(patsubst %.h,%.o,$(PROTOCOLS))
+ 
+ WESTON-DMABUF-FORMATS_LDLIBS :=
+ WESTON-DMABUF-FORMATS_LDLIBS += -lm
+@@ -38,11 +46,10 @@ WESTON-DMABUF-FORMATS_LDLIBS += -lpthrea
+ WESTON-DMABUF-FORMATS_LDLIBS += -lEGL
+ WESTON-DMABUF-FORMATS_LDLIBS += -l:libGLESv2.so.2
+ WESTON-DMABUF-FORMATS_LDLIBS += -l:libnvbuf_utils.so
+-WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-6.so.0
+-WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-desktop-6.so.0
+-WESTON-DMABUF-FORMATS_LDLIBS += -l:fullscreen-shell.so
++WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-10.so.0
++WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-desktop-10.so.0
+ WESTON-DMABUF-FORMATS_LDLIBS += -l:libdrm.so.2
+-WESTON-DMABUF-FORMATS_LDLIBS += -l:libnvgbm.so
++WESTON-DMABUF-FORMATS_LDLIBS += -l:libgbm.so
+ WESTON-DMABUF-FORMATS_LDLIBS += ${NV_PLATFORM_WINSYS_LIBS}
+ 
+ ifeq ($(findstring $(NV_WINSYS),egldevice screen wayland x11),)
+@@ -61,8 +68,30 @@ FORCE:
+ $(NV_WINSYS)/weston-dmabuf-formats: $(WESTON-DMABUF-FORMATS_OBJS) $(WESTON-DMABUF-FORMATS_DEMOLIBS)
+ 	$(LD) $(LDFLAGS) -o $@ $^ $(WESTON-DMABUF-FORMATS_LDLIBS)
+ 
++$(WESTON-DMABUF-FORMATS_OBJS): $(PROTOCOLS)
++
++define protocol-rule
++$(1).h: FORCE
++	@mkdir -p $(dir $(1))
++ifeq ($(findstring unstable,$(1)),)
++	wayland-scanner client-header $$(PROTOCOLSDIR)/stable/$$(shell echo $$(notdir $(1)) | sed -e's,-client-protocol.*,,')/$(patsubst %-client-protocol,%.xml,$(notdir $(1))) $$@
++else
++	wayland-scanner client-header $$(PROTOCOLSDIR)/unstable/$$(shell echo $$(notdir $(1)) | sed -e's,-unstable.*,,')/$(patsubst %-client-protocol,%.xml,$(notdir $(1))) $$@
++endif
++$(1).c: $(1).h
++ifeq ($(findstring unstable,$(1)),)
++	wayland-scanner private-code $$(PROTOCOLSDIR)/stable/$$(shell echo $$(notdir $(1)) | sed -e's,-client-protocol.*,,')/$(patsubst %-client-protocol,%.xml,$(notdir $(1))) $$@
++else
++	wayland-scanner private-code $$(PROTOCOLSDIR)/unstable/$$(shell echo $$(notdir $(1)) | sed -e's,-unstable.*,,')/$(patsubst %-client-protocol,%.xml,$(notdir $(1))) $$@
++endif
++$(1).o: $(1).c
++	@mkdir -p $(dir $(1))
++	$$(COMPILE.c) $$(OUTPUT_OPTION) $$<
++endef
++
+ define demolib-rule
+ $(1): FORCE
+ 	$(MAKE) -C $$(subst $$(NV_WINSYS)/,,$$(dir $$@))
+ endef
+ $(foreach demolib,$(WESTON-DMABUF-FORMATS_DEMOLIBS),$(eval $(call demolib-rule,$(demolib))))
++$(foreach protocol,$(PROTOCOLS),$(eval $(call protocol-rule,$(basename $(protocol)))))
