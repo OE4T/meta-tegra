@@ -1,0 +1,232 @@
+From d2100ffe475959438c76141181e79c4521030760 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Wed, 16 Mar 2022 14:07:25 -0700
+Subject: [PATCH] Fix dmabuf explicit synchronization for tegra
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ clients/simple-dmabuf-egl.c                |  2 +-
+ libweston/android-sync-file-uapi.h         | 88 ++++++++++++++++++++++
+ libweston/linux-explicit-synchronization.c |  2 +-
+ libweston/linux-sync-file.c                | 53 +++++++++++++
+ libweston/linux-sync-file.h                |  6 ++
+ libweston/renderer-gl/gl-renderer.c        |  2 +-
+ 6 files changed, 150 insertions(+), 3 deletions(-)
+ create mode 100644 libweston/android-sync-file-uapi.h
+
+diff --git a/clients/simple-dmabuf-egl.c b/clients/simple-dmabuf-egl.c
+index 33df4cf..576d9f5 100644
+--- a/clients/simple-dmabuf-egl.c
++++ b/clients/simple-dmabuf-egl.c
+@@ -1490,7 +1490,7 @@ main(int argc, char **argv)
+ 	struct window *window;
+ 	uint32_t format = DRM_FORMAT_XRGB8888;
+ 	int opts = 0;
+-	char const *drm_render_node = "/dev/dri/renderD128";
++	char const *drm_render_node = "/dev/dri/card0";
+ 	int c, option_index, ret = 0;
+ 	int window_size = 256;
+ 
+diff --git a/libweston/android-sync-file-uapi.h b/libweston/android-sync-file-uapi.h
+new file mode 100644
+index 0000000..26df8ae
+--- /dev/null
++++ b/libweston/android-sync-file-uapi.h
+@@ -0,0 +1,88 @@
++/* Sync file Linux kernel UAPI */
++
++#ifndef WESTON_ANDROID_SYNC_FILE_UAPI_H
++#define WESTON_ANDROID_SYNC_FILE_UAPI_H
++
++#include <linux/ioctl.h>
++#include <linux/types.h>
++
++/**
++ * struct sync_merge_data - data passed to merge ioctl
++ * @fd2:	file descriptor of second fence
++ * @name:	name of new fence
++ * @fence:	returns the fd of the new fence to userspace
++ */
++struct android_sync_merge_data {
++	__s32	fd2; /* fd of second fence */
++	char	name[32]; /* name of new fence */
++	__s32	fence; /* fd on newly created fence */
++};
++
++/**
++ * struct sync_pt_info - detailed sync_pt information
++ * @len:		length of sync_pt_info including any driver_data
++ * @obj_name:		name of parent sync_timeline
++ * @driver_name:	name of driver implementing the parent
++ * @status:		status of the sync_pt 0:active 1:signaled <0:error
++ * @timestamp_ns:	timestamp of status change in nanoseconds
++ * @driver_data:	any driver dependent data
++ */
++struct android_sync_pt_info {
++	__u32	len;
++	char	obj_name[32];
++	char	driver_name[32];
++	__s32	status;
++	__u64	timestamp_ns;
++
++	__u8	driver_data[0];
++};
++
++/**
++ * struct sync_fence_info_data - data returned from fence info ioctl
++ * @len:	ioctl caller writes the size of the buffer its passing in.
++ *		ioctl returns length of sync_fence_data returned to userspace
++ *		including pt_info.
++ * @name:	name of fence
++ * @status:	status of fence. 1: signaled 0:active <0:error
++ * @pt_info:	a sync_pt_info struct for every sync_pt in the fence
++ */
++struct android_sync_fence_info_data {
++	__u32	len;
++	char	name[32];
++	__s32	status;
++
++	__u8	pt_info[0];
++};
++
++#define ANDROID_SYNC_IOC_MAGIC		'>'
++
++/**
++ * DOC: SYNC_IOC_WAIT - wait for a fence to signal
++ *
++ * pass timeout in milliseconds.  Waits indefinitely timeout < 0.
++ */
++#define ANDROID_SYNC_IOC_WAIT		_IOW(ANDROID_SYNC_IOC_MAGIC, 0, __s32)
++
++/**
++ * DOC: SYNC_IOC_MERGE - merge two fences
++ *
++ * Takes a struct sync_merge_data.  Creates a new fence containing copies of
++ * the sync_pts in both the calling fd and sync_merge_data.fd2.  Returns the
++ * new fence's fd in sync_merge_data.fence
++ */
++#define ANDROID_SYNC_IOC_MERGE		_IOWR(ANDROID_SYNC_IOC_MAGIC, 1, struct android_sync_merge_data)
++
++/**
++ * DOC: SYNC_IOC_FENCE_INFO - get detailed information on a fence
++ *
++ * Takes a struct sync_file_info_data with extra space allocated for pt_info.
++ * Caller should write the size of the buffer into len.  On return, len is
++ * updated to reflect the total size of the sync_file_info_data including
++ * pt_info.
++ *
++ * pt_info is a buffer containing sync_pt_infos for every sync_pt in the fence.
++ * To iterate over the sync_pt_infos, use the sync_pt_info.len field.
++ */
++#define ANDROID_SYNC_IOC_FENCE_INFO	_IOWR(ANDROID_SYNC_IOC_MAGIC, 2, struct android_sync_fence_info_data)
++
++#endif /* WESTON_ANDROID_SYNC_FILE_UAPI_H */
+diff --git a/libweston/linux-explicit-synchronization.c b/libweston/linux-explicit-synchronization.c
+index 4b47383..42a754e 100644
+--- a/libweston/linux-explicit-synchronization.c
++++ b/libweston/linux-explicit-synchronization.c
+@@ -79,7 +79,7 @@ linux_surface_synchronization_set_acquire_fence(struct wl_client *client,
+ 		goto err;
+ 	}
+ 
+-	if (!linux_sync_file_is_valid(fd)) {
++	if (!android_sync_file_is_valid(fd)) {
+ 		wl_resource_post_error(
+ 			resource,
+ 			ZWP_LINUX_SURFACE_SYNCHRONIZATION_V1_ERROR_INVALID_FENCE,
+diff --git a/libweston/linux-sync-file.c b/libweston/linux-sync-file.c
+index 9f5313c..a5f6dd0 100644
+--- a/libweston/linux-sync-file.c
++++ b/libweston/linux-sync-file.c
+@@ -37,6 +37,7 @@
+ #else
+ #include "linux-sync-file-uapi.h"
+ #endif
++#include "android-sync-file-uapi.h"
+ 
+ #include "linux-sync-file.h"
+ #include "shared/timespec-util.h"
+@@ -81,3 +82,55 @@ weston_linux_sync_file_read_timestamp(int fd, struct timespec *ts)
+ 
+ 	return 0;
+ }
++
++
++struct __attribute__((__packed__)) android_sync_fence_data {
++	struct android_sync_fence_info_data file_info;
++	__u8 fence_info[128];
++};
++
++/* Check that a file descriptor represents a valid sync file
++ *
++ * \param fd[in] a file descriptor
++ * \return true if fd is a valid sync file, false otherwise
++ */
++bool
++android_sync_file_is_valid(int fd)
++{
++	struct android_sync_fence_data fence_data = { { 0 } };
++
++	fence_data.file_info.len = sizeof(fence_data);
++
++	if (ioctl(fd, ANDROID_SYNC_IOC_FENCE_INFO, &fence_data) < 0)
++		return false;
++
++	return fence_data.file_info.len > sizeof(struct android_sync_fence_info_data);
++}
++
++/* Read the timestamp stored in a sync file
++ *
++ * \param fd[in] fd a file descriptor for a sync file
++ * \param ts[out] the timespec struct to fill with the timestamp
++ * \return 0 if a timestamp was read, -1 on error
++ */
++WL_EXPORT int
++weston_android_sync_file_read_timestamp(int fd, struct timespec *ts)
++{
++	struct android_sync_fence_data fence_data = { { 0 } };
++	struct android_sync_pt_info* pt_info = (struct android_sync_pt_info*) &fence_data.fence_info;
++
++	assert(ts != NULL);
++
++	fence_data.file_info.len = sizeof(fence_data);
++
++	if (ioctl(fd, ANDROID_SYNC_IOC_FENCE_INFO, &fence_data) < 0)
++		return -1;
++
++	if (fence_data.file_info.len <= sizeof(struct android_sync_fence_info_data) ||
++		pt_info->len < sizeof(struct android_sync_pt_info))
++		return -1;
++
++	timespec_from_nsec(ts, pt_info->timestamp_ns);
++
++	return 0;
++}
+diff --git a/libweston/linux-sync-file.h b/libweston/linux-sync-file.h
+index 9746d7b..9e14cea 100644
+--- a/libweston/linux-sync-file.h
++++ b/libweston/linux-sync-file.h
+@@ -35,4 +35,10 @@ linux_sync_file_is_valid(int fd);
+ int
+ weston_linux_sync_file_read_timestamp(int fd, struct timespec *ts);
+ 
++bool
++android_sync_file_is_valid(int fd);
++
++int
++weston_android_sync_file_read_timestamp(int fd, struct timespec *ts);
++
+ #endif /* WESTON_LINUX_SYNC_FILE_H */
+diff --git a/libweston/renderer-gl/gl-renderer.c b/libweston/renderer-gl/gl-renderer.c
+index 67c8a57..659f0a2 100644
+--- a/libweston/renderer-gl/gl-renderer.c
++++ b/libweston/renderer-gl/gl-renderer.c
+@@ -297,7 +297,7 @@ timeline_render_point_handler(int fd, uint32_t mask, void *data)
+ 	if (mask & WL_EVENT_READABLE) {
+ 		struct timespec tspec = { 0 };
+ 
+-		if (weston_linux_sync_file_read_timestamp(trp->fd,
++		if (weston_android_sync_file_read_timestamp(trp->fd,
+ 							  &tspec) == 0) {
+ 			TL_POINT(trp->output->compositor, tp_name, TLP_GPU(&tspec),
+ 				 TLP_OUTPUT(trp->output), TLP_END);

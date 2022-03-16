@@ -3,6 +3,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 SRC_URI:append:tegra = " file://0001-Drop-DRM-version-check-in-meson.build.patch \
                          file://0002-gl-renderer-Add-EGL-client-support-for-EGLStream-fra.patch \
                          file://0003-compositor-Process-stream-attach-requests-with-wl_eg.patch \
+                         file://0004-Fix-dmabuf-explicit-synchronization-for-tegra.patch \
 "
 
 DEPENDS:append:tegra = " egl-wayland"
