@@ -11,7 +11,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 SRC_REPO = "github.com/oe4t/tegra-udrm-gbm.git;protocol=https"
 SRCBRANCH = "master"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
-SRCREV = "f027d3297589195df1eddcf3011819322d193e8d"
+SRCREV = "26911c2f1625f124942d553765f386c284f2d7ab"
 
 S = "${WORKDIR}/git"
 
