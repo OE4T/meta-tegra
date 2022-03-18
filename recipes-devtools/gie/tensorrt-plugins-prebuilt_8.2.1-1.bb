@@ -12,7 +12,6 @@ SRC_COMMON_DEBS = "\
     libnvonnxparsers-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=libnvonnxparsers-dev_${PV}+cuda10.2_arm64.deb;name=onnxdev;subdir=tensorrt \
     libnvinfer-plugin8_${PV}+cuda10.2_arm64.deb;downloadfilename=libnvinfer-plugin8_${PV}+cuda10.2_arm64.deb;name=plugin;subdir=tensorrt \
     libnvinfer-plugin-dev_${PV}+cuda10.2_arm64.deb;downloadfilename=libnvinfer-plugin-dev_${PV}+cuda10.2_arm64.deb;name=plugindev;subdir=tensorrt \
-    libnvinfer-bin_${PV}+cuda10.2_arm64.deb;downloadfilename=libnvinfer-bin_${PV}+cuda10.2_arm64.deb;name=bin;subdir=tensorrt \
 "
 
 ONNXSHA256SUM = "d7c27711b73e4cc3febb21969d21a84cd92e21a7863da75d0a72b50ea2c12833"
@@ -25,7 +24,6 @@ SRC_URI[onnx.sha256sum] = "${ONNXSHA256SUM}"
 SRC_URI[onnxdev.sha256sum] = "${ONNXDEVSHA256SUM}"
 SRC_URI[plugin.sha256sum] = "${PLUGINSHA256SUM}"
 SRC_URI[plugindev.sha256sum] = "${PLUGINDEVSHA256SUM}"
-SRC_URI[bin.sha256sum] = "${BINSHA256SUM}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
@@ -37,7 +35,7 @@ S = "${WORKDIR}/tensorrt"
 
 DEPENDS = "cuda-cudart cudnn tensorrt-core libcublas"
 
-CONTAINER_CSV_FILES = "${libdir}/*.so* /usr/src/*"
+CONTAINER_CSV_FILES = "${libdir}/*.so*"
 
 do_configure() {
     :
@@ -52,11 +50,7 @@ do_install() {
     install -m 0644 ${S}/usr/include/aarch64-linux-gnu/*.h ${D}${includedir}
     install -d ${D}${libdir}
     cp --preserve=mode,timestamps,links --no-dereference ${S}/usr/lib/aarch64-linux-gnu/*.so* ${D}${libdir}
-    install -d ${D}${prefix}/src
-    cp --preserve=mode,timestamps --recursive ${S}/usr/src/tensorrt ${D}${prefix}/src/
 }
-
-FILES:${PN} += "${prefix}/src/tensorrt/bin"
 
 PROVIDES = "tensorrt-plugins"
 RPROVIDES:${PN} = "tensorrt-plugins"
