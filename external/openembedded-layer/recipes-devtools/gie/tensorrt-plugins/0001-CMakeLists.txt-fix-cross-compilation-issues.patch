@@ -13,15 +13,16 @@ Index: git/CMakeLists.txt
 ===================================================================
 --- git.orig/CMakeLists.txt
 +++ git/CMakeLists.txt
-@@ -56,12 +56,16 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_T
+@@ -57,6 +57,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_T
  option(BUILD_PLUGINS "Build TensorRT plugin" ON)
  option(BUILD_PARSERS "Build TensorRT parsers" ON)
  option(BUILD_SAMPLES "Build TensorRT samples" ON)
 +option(BUILD_PROTOBUF "Build internal copy of protobuf" OFF)
  
- set(CMAKE_CXX_STANDARD 11)
- set(CMAKE_CXX_STANDARD_REQUIRED ON)
- set(CMAKE_CXX_EXTENSIONS OFF)
+ # C++14
+ set(CMAKE_CXX_STANDARD 14)
+@@ -65,6 +66,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
+ 
  set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations ${CMAKE_CXX_FLAGS} -DBUILD_SYSTEM=cmake_oss")
  
 +# otherwise the installation directories are empty by default
@@ -30,7 +31,7 @@ Index: git/CMakeLists.txt
  ############################################################################################
  # Cross-compilation settings
  
-@@ -96,7 +100,11 @@ message(STATUS "Protobuf version set to
+@@ -98,7 +102,11 @@ message(STATUS "Protobuf version set to
  find_package(Threads REQUIRED)
  if (BUILD_PLUGINS OR BUILD_PARSERS)
      include(third_party/zlib.cmake)
@@ -42,8 +43,8 @@ Index: git/CMakeLists.txt
 +    endif()
  endif()
  if(NOT CUB_ROOT_DIR)
-     set(CUB_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cub CACHE STRING "directory of CUB installation")
-@@ -111,27 +119,30 @@ include_directories(
+   if (CUDA_VERSION VERSION_LESS 11.0)
+@@ -115,27 +123,30 @@ include_directories(
      ${CUDA_INCLUDE_DIRS}
      ${CUDNN_ROOT_DIR}/include
  )
@@ -81,7 +82,7 @@ Index: git/CMakeLists.txt
  if (DEFINED GPU_ARCHS)
    message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
    separate_arguments(GPU_ARCHS)
-@@ -173,6 +184,7 @@ set(GENCODES "${GENCODES} -gencode arch=
+@@ -178,6 +189,7 @@ set(GENCODES "${GENCODES} -gencode arch=
  if (${LATEST_SM} GREATER_EQUAL 70)
      set(BERT_GENCODES "${BERT_GENCODES} -gencode arch=compute_${LATEST_SM},code=compute_${LATEST_SM}")
  endif()
@@ -89,7 +90,7 @@ Index: git/CMakeLists.txt
  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-declarations")
  
  ############################################################################################
-@@ -185,6 +197,8 @@ else()
+@@ -190,6 +202,8 @@ else()
  endif()
  
  if(BUILD_PARSERS)
@@ -156,7 +157,7 @@ Index: git/parsers/onnx/CMakeLists.txt
 ===================================================================
 --- git.orig/parsers/onnx/CMakeLists.txt
 +++ git/parsers/onnx/CMakeLists.txt
-@@ -76,7 +76,7 @@ endif()
+@@ -68,7 +68,7 @@ endif()
  if (NOT TARGET protobuf::libprotobuf)
    FIND_PACKAGE(Protobuf REQUIRED)
  else()
@@ -195,7 +196,7 @@ Index: git/plugin/CMakeLists.txt
      set(BERT_CU_SOURCES)
      set(PLUGIN_LISTS
          ${PLUGIN_LISTS}
-@@ -83,10 +83,14 @@ endforeach(PLUGIN_ITER)
+@@ -84,10 +84,14 @@ endforeach(PLUGIN_ITER)
  add_subdirectory(common)
  
  # Set gencodes
