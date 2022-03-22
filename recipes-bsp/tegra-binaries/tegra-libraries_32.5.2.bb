@@ -3,8 +3,14 @@ require tegra-shared-binaries.inc
 
 inherit container-runtime-csv
 
-CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/libv4l/plugins/* ${datadir}/glvnd/egl_vendor.d/* ${sysconfdir}/vulkan/icd.d/* \
-                      /usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json"
+CONTAINER_CSV_FILES = " \
+    ${libdir}/*.so* \
+    ${libdir}/libv4l/plugins/* \
+    ${libdir}/libv4l/plugins-wrapped/* \
+    ${datadir}/glvnd/egl_vendor.d/* \
+    ${sysconfdir}/vulkan/icd.d/* \
+    /usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json \
+"
 CONTAINER_CSV_EXTRA = "lib, /usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0"
 
 do_configure() {
