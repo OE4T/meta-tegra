@@ -4,7 +4,11 @@ LICENSE = "LGPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=a6f89e2100d9b6cdffcea4f398e37343"
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstjpeg_src.tbz2"
+<<<<<<<< HEAD:recipes-multimedia/gstreamer/gstreamer1.0-plugins-nvjpeg_1.14.0-r32.7.2.bb
 require recipes-bsp/tegra-sources/tegra-sources-32.7.2.inc
+========
+require recipes-bsp/tegra-sources/tegra-sources-34.1.0.inc
+>>>>>>>> a7def3cc (gstreamer: update recipes for R34.1.0):recipes-multimedia/gstreamer/gstreamer1.0-plugins-nvjpeg_1.14.0-r34.1.0.bb
 
 SRC_URI += "file://use-nvjpeg-for-plugin-name.patch"
 
