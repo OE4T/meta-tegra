@@ -7,10 +7,10 @@ Subject: [PATCH] Build fixups
  Makefile | 23 ++++++++++-------------
  1 file changed, 10 insertions(+), 13 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index 19a2733..c258914 100644
---- a/Makefile
-+++ b/Makefile
+Index: gst-nvv4l2camera/Makefile
+===================================================================
+--- gst-nvv4l2camera.orig/Makefile
++++ gst-nvv4l2camera/Makefile
 @@ -26,20 +26,16 @@
  
  SO_NAME := libgstnvv4l2camerasrc.so
@@ -25,7 +25,7 @@ index 19a2733..c258914 100644
 -GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
 -LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
 -CFLAGS:=
- LIBS:= -lnvbuf_utils -lnvbufsurface
+ LIBS:= -lnvbufsurface -lnvbufsurftransform
  
  
  SRCS := $(wildcard *.cpp)
