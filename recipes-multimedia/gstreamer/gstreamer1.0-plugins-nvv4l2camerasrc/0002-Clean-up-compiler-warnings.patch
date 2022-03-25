@@ -12,12 +12,12 @@ Index: gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
 ===================================================================
 --- gst-nvv4l2camera.orig/gstnvv4l2camerasrc.cpp
 +++ gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
-@@ -116,11 +116,11 @@ GType gst_nv_memory_allocator_get_type (
+@@ -117,11 +117,11 @@ GType gst_nv_memory_allocator_get_type (
  #define GST_TYPE_NV_MEMORY_ALLOCATOR   (gst_nv_memory_allocator_get_type())
  
  #define gst_nvv4l2camera_buffer_pool_parent_class bpool_parent_class
--G_DEFINE_TYPE (GstNvV4l2CameraBufferPool, gst_nvv4l2camera_buffer_pool, GST_TYPE_BUFFER_POOL);
-+G_DEFINE_TYPE_WITH_PRIVATE (GstNvV4l2CameraBufferPool, gst_nvv4l2camera_buffer_pool, GST_TYPE_BUFFER_POOL)
+-G_DEFINE_TYPE_WITH_CODE (GstNvV4l2CameraBufferPool, gst_nvv4l2camera_buffer_pool, GST_TYPE_BUFFER_POOL, G_ADD_PRIVATE(GstNvV4l2CameraBufferPool));
++G_DEFINE_TYPE_WITH_CODE (GstNvV4l2CameraBufferPool, gst_nvv4l2camera_buffer_pool, GST_TYPE_BUFFER_POOL, G_ADD_PRIVATE(GstNvV4l2CameraBufferPool))
  
  #define gst_nv_v4l2_camera_src_parent_class parent_class
 -G_DEFINE_TYPE (GstNvV4l2CameraSrc, gst_nv_v4l2_camera_src, GST_TYPE_BASE_SRC);
@@ -27,18 +27,7 @@ Index: gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
  
  #define GST_NVMEMORY_ALLOCATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_NV_MEMORY_ALLOCATOR,GstNVV4l2MemoryAllocator))
  
-@@ -529,9 +529,7 @@ gst_nvv4l2camera_buffer_pool_free_buffer
- 
- static void gst_nvv4l2camera_buffer_pool_init (GstNvV4l2CameraBufferPool *pool)
- {
--  pool->priv =
--      G_TYPE_INSTANCE_GET_PRIVATE (pool, GST_TYPE_NVV4L2CAMERA_BUFFER_POOL,
--      GstNvV4l2CameraBufferPoolPrivate);
-+  pool->priv = (GstNvV4l2CameraBufferPoolPrivate*) gst_nvv4l2camera_buffer_pool_get_instance_private(pool);
- 
-   memset (pool->priv, 0, sizeof(GstNvV4l2CameraBufferPoolPrivate));
- 
-@@ -656,7 +654,7 @@ wrong_video_caps:
+@@ -606,7 +606,7 @@ wrong_video_caps:
    {
      GST_OBJECT_UNLOCK (pool);
      GST_WARNING_OBJECT (pool,
@@ -47,16 +36,7 @@ Index: gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
      return FALSE;
    }
  }
-@@ -696,8 +694,6 @@ gst_nvv4l2camera_buffer_pool_class_init
-   gstbufferpool_class->acquire_buffer = gst_nvv4l2camera_buffer_pool_acquire_buffer;
-   gstbufferpool_class->release_buffer = gst_nvv4l2camera_buffer_pool_release_buffer;
- 
--  g_type_class_add_private (klass, sizeof (GstNvV4l2CameraBufferPoolPrivate));
--
-   GST_DEBUG_CATEGORY_INIT (gst_nv_v4l2_camera_src_debug, "nvv4l2camerapool", 0,
-         "nvv4l2camera buffer pool object");
- }
-@@ -749,7 +745,7 @@ static gboolean gst_nv_v4l2_camera_set_c
+@@ -697,7 +697,7 @@ static gboolean gst_nv_v4l2_camera_set_c
  
    GstNvV4l2CameraSrc *src = GST_NVV4L2CAMERASRC (base);
  
@@ -65,7 +45,7 @@ Index: gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
  
    if (!gst_video_info_from_caps (&info, caps))
    {
-@@ -878,7 +874,7 @@ static gboolean gst_nv_v4l2_camera_set_c
+@@ -826,7 +826,7 @@ static gboolean gst_nv_v4l2_camera_set_c
    FD_SET(src->video_fd, &(src->read_set));
  
    /* Setting timeout value of select to 5, this can be configured as required */

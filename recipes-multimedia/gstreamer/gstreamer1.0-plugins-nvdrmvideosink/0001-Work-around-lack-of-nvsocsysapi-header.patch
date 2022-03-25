@@ -1,0 +1,85 @@
+From 5ca402869d0557f41a0648b08b8817faa5b02bde Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 8 Apr 2022 12:26:31 -0700
+Subject: [PATCH] Work around lack of nvsocsysapi header
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ gstnvdrmvideosink.c | 7 +++++++
+ util/drmutil.c      | 6 ++++++
+ util/drmutil.h      | 4 ++++
+ 3 files changed, 17 insertions(+)
+
+diff --git a/gstnvdrmvideosink.c b/gstnvdrmvideosink.c
+index f703495..c842c05 100644
+--- a/gstnvdrmvideosink.c
++++ b/gstnvdrmvideosink.c
+@@ -359,6 +359,7 @@ gst_nv_drm_video_sink_show_frame (GstVideoSink * video_sink, GstBuffer * buf)
+ 
+         if (sink->is_tegra_drm) {
+           if (in_surface->surfaceList[0].layout == NVBUF_LAYOUT_BLOCK_LINEAR) {
++#if HAVE_NVSOCSYSAPI
+             switch (sink->chip_id) {
+               case TEGRA_CHIPID_TEGRA19:
+               case TEGRA_CHIPID_TEGRA21:
+@@ -372,6 +373,12 @@ gst_nv_drm_video_sink_show_frame (GstVideoSink * video_sink, GstBuffer * buf)
+                 modifiers[hm] = DRM_FORMAT_MOD_NVIDIA_16BX2_BLOCK(nvblocksize[hm]);
+                 break;
+             }
++#else
++            /* assuming t194 and later */
++            modifiers[hm] = DRM_FORMAT_MOD_NVIDIA_16BX2_BLOCK(nvblocksize[hm]);
++            //Sector layout bit is supported only on T194 or later
++            modifiers[hm] |= 1 << 22;
++#endif /* HAVE_NVSOCSYSAPI */
+           }
+           else {
+             modifiers[hm] = DRM_FORMAT_MOD_LINEAR;
+diff --git a/util/drmutil.c b/util/drmutil.c
+index a9bd43e..8d30b61 100644
+--- a/util/drmutil.c
++++ b/util/drmutil.c
+@@ -124,7 +124,9 @@ drm_util_init (int *fd, drmModeConnector ** conn_info_s, int *conn_id_s,
+   drmModeCrtc *crtc_info = NULL;
+   drmModePlane *plane_info = NULL;
+   drmVersion *version = NULL;
++#ifdef HAVE_NVSOCSYSAPI
+   NvSocSysErrCode err;
++#endif
+   int is;
+   int ret = 0;
+ 
+@@ -161,6 +163,7 @@ drm_util_init (int *fd, drmModeConnector ** conn_info_s, int *conn_id_s,
+   }
+   drmFreeVersion(version);
+ 
++#ifdef HAVE_NVSOCSYSAPI
+   err = NvTegraSysInit(NvSysSocAutoDetect);
+   if (NvSocSysError == err) {
+     *chipId = TEGRA_CHIPID_UNKNOWN;
+@@ -168,6 +171,9 @@ drm_util_init (int *fd, drmModeConnector ** conn_info_s, int *conn_id_s,
+   else {
+     *chipId = NvTegraSysGetChipId();
+   }
++#else
++  *chipId = 0;
++#endif
+ 
+   if (drmSetClientCap (*fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1)) {
+     g_print ("Failed to set universal planes \n");
+diff --git a/util/drmutil.h b/util/drmutil.h
+index 9948ac3..819b489 100644
+--- a/util/drmutil.h
++++ b/util/drmutil.h
+@@ -33,7 +33,11 @@
+ 
+ #include "xf86drm.h"
+ #include "xf86drmMode.h"
++#ifdef HAVE_NVSOCSYSAPI
+ #include <nvsocsysapi.h>
++#else
++typedef unsigned int NvSocChipId;
++#endif
+ 
+ struct drm_util_bo
+ {

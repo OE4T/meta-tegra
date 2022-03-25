@@ -1,0 +1,73 @@
+From 3c8282072303831f26ab7ae269c5b4bb4e2e27db Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 8 Apr 2022 13:10:30 -0700
+Subject: [PATCH] Work around missing nvdsseimeta header
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ gstv4l2videodec.c | 4 ++++
+ gstv4l2videoenc.c | 6 +++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/gstv4l2videodec.c b/gstv4l2videodec.c
+index c43f8aa..9bd5362 100644
+--- a/gstv4l2videodec.c
++++ b/gstv4l2videodec.c
+@@ -31,7 +31,9 @@
+ #include <string.h>
+ #include "gstv4l2object.h"
+ #include "gstv4l2videodec.h"
++#ifdef HAVE_NVDSSEIMETA
+ #include "gstnvdsseimeta.h"
++#endif
+ 
+ #include "stdlib.h"
+ 
+@@ -1676,6 +1678,7 @@ gst_v4l2_video_dec_handle_frame (GstVideoDecoder * decoder,
+       GST_BUFFER_COPY_FLAGS | GST_BUFFER_COPY_TIMESTAMPS |
+       GST_BUFFER_COPY_META, 0, 0);
+ 
++#ifdef HAVE_NVDSSEIMETA
+   /* Parse SEI data from the bitsream */
+   if ((is_cuvid == TRUE) && (self->extract_sei_type5_data == TRUE))
+   {
+@@ -1706,6 +1709,7 @@ gst_v4l2_video_dec_handle_frame (GstVideoDecoder * decoder,
+           gst_buffer_unmap (tmp, &map);
+       }
+   }
++#endif
+ 
+   gst_buffer_unref (tmp);
+ 
+diff --git a/gstv4l2videoenc.c b/gstv4l2videoenc.c
+index 35a62fd..f31bec9 100644
+--- a/gstv4l2videoenc.c
++++ b/gstv4l2videoenc.c
+@@ -37,7 +37,9 @@
+ 
+ #include "gstv4l2object.h"
+ #include "gstv4l2videoenc.h"
++#ifdef HAVE_NVDSSEIMETA
+ #include "gstnvdsseimeta.h"
++#endif
+ 
+ #include <string.h>
+ #include <gst/gst-i18n-plugin.h>
+@@ -1336,7 +1338,8 @@ gst_v4l2_video_enc_handle_frame (GstVideoEncoder * encoder,
+   }
+ 
+   if (frame->input_buffer) {
+-    
++
++#ifdef HAVE_NVDSSEIMETA
+     GstVideoSEIMeta *meta =
+         (GstVideoSEIMeta *) gst_buffer_get_meta (frame->input_buffer,
+                 GST_VIDEO_SEI_META_API_TYPE);
+@@ -1354,6 +1357,7 @@ gst_v4l2_video_enc_handle_frame (GstVideoEncoder * encoder,
+             self->v4l2output->sei_payload = (void *) meta->sei_metadata_ptr;
+         }
+     }
++#endif
+ 
+     GST_VIDEO_ENCODER_STREAM_UNLOCK (encoder);
+     ret =

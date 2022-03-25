@@ -1,18 +1,21 @@
 DESCRIPTION = "NVIDIA GStreamer applications"
 SECTION = "multimedia"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://nvgst_sample_apps/nvgstcapture-1.0/nvgstcapture-1.0_README.txt;endline=21;md5=1e4984aeb6db6056fdde4cd672eb1f6f \
+LIC_FILES_CHKSUM = "file://nvgst_sample_apps/nvgstcapture-1.0/nvgstcapture-1.0_README.txt;endline=21;md5=75e7c2d08d6618cb836cbef46b410515 \
                     file://nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer-1.0_README.txt;endline=21;md5=694cc29d69c54345f88511643308aae5 \
 "
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/nvgstapps_src.tbz2"
 
+<<<<<<<< HEAD:recipes-multimedia/gstreamer/nvgstapps_32.7.2.bb
 require recipes-bsp/tegra-sources/tegra-sources-32.7.2.inc
+========
+require recipes-bsp/tegra-sources/tegra-sources-34.1.0.inc
+>>>>>>>> a7def3cc (gstreamer: update recipes for R34.1.0):recipes-multimedia/gstreamer/nvgstapps_34.1.0.bb
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libx11 libxext"
 
 SRC_URI += "\
-    file://0001-Fix-compiler-warnings.patch \
     file://0002-Fix-stringop-truncation-warning.patch \
     file://0003-Fix-indentation-in-nvgstplayer.c.patch \
 "

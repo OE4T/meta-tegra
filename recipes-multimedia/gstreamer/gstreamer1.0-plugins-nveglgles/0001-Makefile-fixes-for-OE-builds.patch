@@ -1,0 +1,134 @@
+From 7b3481fd8da2a5de0b5a0fa49ce2c1bb66e4b81e Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Thu, 14 Apr 2022 23:56:59 +0100
+Subject: [PATCH] Makefile fixes for OE builds
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ Makefile                   | 45 +++++++++++++------
+ pre-gen-source_64/config.h |  6 +--
+ 2 files changed, 34 insertions(+), 17 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 5c96775..6aae564 100644
+--- a/Makefile
++++ b/Makefile
+@@ -16,8 +16,11 @@ ifeq ($(CUDA_VER),)
+ endif
+ endif
+ 
++prefix ?= /usr
++exec_prefix ?= $(prefix)
++libdir ?= $(exec_prefix)/lib
++
+ SO_NAME := libgstnveglglessink.so
+-DEST_DIR ?= /usr/lib/aarch64-linux-gnu/gstreamer-1.0
+ 
+ SRCS := ext/eglgles/gstegladaptation.c \
+ 	ext/eglgles/gstegladaptation_egl.c \
+@@ -29,33 +32,47 @@ SRCS := ext/eglgles/gstegladaptation.c \
+ INCLUDES += -I./pre-gen-source_64/ \
+         -I./gst-libs \
+         -I./gst-libs/gst/egl \
+-        -I/opt/nvidia/deepstream/deepstream-6.0/sources/includes/ \
+-        -I/usr/local/include/gstreamer-1.0 \
+-        -I/usr/local/cuda-$(CUDA_VER)/targets/aarch64-linux/include/ \
+         -I./
+ 
+ PKGS := glib-2.0 \
+-        gstreamer-1.0 \
+-        gstreamer-base-1.0 \
+-        gstreamer-video-1.0
++	gstreamer-1.0 \
++	gstreamer-base-1.0 \
++	gstreamer-video-1.0 \
++	glesv2 \
++	egl \
++	cudart-$(CUDA_VER) \
++	cuda-$(CUDA_VER)
++
++ifneq ($(USE_X11),)
++PKGS += x11
++endif
++ifneq ($(USE_WAYLAND),)
++PKGS += wayland-client wayland-egl
++endif
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+-CFLAGS := -fPIC \
++CFLAGS += -fPIC \
+ 	-DHAVE_CONFIG_H \
+ 	-DG_THREADS_MANDATORY \
+ 	-DG_DISABLE_DEPRECATED \
+-	-DUSE_EGL_TEGRA \
+-	-DUSE_EGL_WAYLAND
++	-DUSE_EGL_TEGRA
++ifneq ($(USE_X11),)
++CFLAGS += -DHAVE_X11 -DUSE_EGL_X11
++endif
++ifneq ($(USE_WAYLAND),)
++CFLAGS += -DHAVE_WAYLAND -DUSE_EGL_WAYLAND
++endif
+ 
+ CFLAGS += `pkg-config --cflags $(PKGS)`
+ 
+-LDFLAGS = -Wl,--no-undefined -L/usr/lib/aarch64-linux-gnu/tegra -L/usr/local/cuda-$(CUDA_VER)/targets/aarch64-linux/lib/
++LDFLAGS += -Wl,--no-undefined
+ 
+-LIBS = -lnvbuf_utils -lnvbufsurface -lGLESv2 -lEGL -lX11 -lm -lcuda -lcudart -lwayland-client -lwayland-egl
++LIBS = -lnvbuf_utils -lnvbufsurface -lm
+ 
+ LIBS += `pkg-config --libs $(PKGS)`
+ 
++.PHONY: all
+ all: $(SO_NAME)
+ 
+ %.o: %.c
+@@ -66,9 +83,9 @@ $(SO_NAME): $(OBJS)
+ 
+ .PHONY: install
+ install: $(SO_NAME)
+-	cp -vp $(SO_NAME) $(DEST_DIR)
++	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
++	install -m 0644 $(SO_NAME) $(DESTDIR)$(libdir)/gstreamer-1.0
+ 
+ .PHONY: clean
+ clean:
+ 	rm -rf $(OBJS) $(SO_NAME)
+-
+diff --git a/pre-gen-source_64/config.h b/pre-gen-source_64/config.h
+index f2b6187..721c9ab 100644
+--- a/pre-gen-source_64/config.h
++++ b/pre-gen-source_64/config.h
+@@ -507,7 +507,7 @@
+ /* #undef HAVE_WASAPI */
+ 
+ /* Define to enable wayland sink (used by wayland ). */
+-#define HAVE_WAYLAND /**/
++/* #undef HAVE_WAYLAND */
+ 
+ /* Define to enable WebP (used by webp ). */
+ /* #undef HAVE_WEBP */
+@@ -540,7 +540,7 @@
+ /* #undef HAVE_WS2TCPIP_H */
+ 
+ /* Define if you have X11 library */
+-#define HAVE_X11 1
++/* #undef HAVE_X11 */
+ 
+ /* Define to enable xvid plugins (used by xvid). */
+ /* #undef HAVE_XVID */
+@@ -622,7 +622,7 @@
+ /* #undef USE_EGL_RPI */
+ 
+ /* Use X11 EGL window system */
+-#define USE_EGL_X11 1
++/* #undef USE_EGL_X11  */
+ 
+ /* Version number of package */
+ #define VERSION "1.2.3"
+-- 
+2.32.0
+

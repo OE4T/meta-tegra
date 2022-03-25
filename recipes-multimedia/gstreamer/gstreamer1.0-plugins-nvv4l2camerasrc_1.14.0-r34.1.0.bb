@@ -10,7 +10,11 @@ TEGRA_SRC_SUBARCHIVE_OPTS = "--exclude=3rdpartyheaders.tbz2"
 TEGRA_SRC_EXTRA_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvarguscamera_src.tbz2"
 TEGRA_SRC_EXTRA_SUBARCHIVE_OPTS = "-C ${S} --strip-components=1 gst-nvarguscamera/nvbufsurface.h"
 
+<<<<<<<< HEAD:recipes-multimedia/gstreamer/gstreamer1.0-plugins-nvv4l2camerasrc_1.14.0-r32.7.2.bb
 require recipes-bsp/tegra-sources/tegra-sources-32.7.2.inc
+========
+require recipes-bsp/tegra-sources/tegra-sources-34.1.0.inc
+>>>>>>>> a7def3cc (gstreamer: update recipes for R34.1.0):recipes-multimedia/gstreamer/gstreamer1.0-plugins-nvv4l2camerasrc_1.14.0-r34.1.0.bb
 
 SRC_URI += "\
     file://0001-Build-fixups.patch \
