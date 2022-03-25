@@ -7,12 +7,11 @@ LIC_FILES_CHKSUM = "file://nvgst_sample_apps/nvgstcapture-1.0/nvgstcapture-1.0_R
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/nvgstapps_src.tbz2"
 
-require recipes-bsp/tegra-sources/tegra-sources-32.7.1.inc
+require recipes-bsp/tegra-sources/tegra-sources-34.1.0.inc
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libx11 libxext"
 
 SRC_URI += "\
-    file://0001-Fix-compiler-warnings.patch \
     file://0002-Fix-stringop-truncation-warning.patch \
     file://0003-Fix-indentation-in-nvgstplayer.c.patch \
 "

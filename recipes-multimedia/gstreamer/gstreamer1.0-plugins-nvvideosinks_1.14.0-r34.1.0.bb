@@ -6,13 +6,13 @@ LIC_FILES_CHKSUM = "file://LICENSE.libgstnvvideosinks;md5=86ed1f32df3aaa376956e4
 "
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/libgstnvvideosinks_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-32.7.1.inc
+require recipes-bsp/tegra-sources/tegra-sources-34.1.0.inc
 
 SRC_URI += "file://build-fixups.patch"
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl \
            tegra-libraries-multimedia tegra-libraries-multimedia-utils \
-           gstreamer1.0-plugins-nveglgles tegra-mmapi nvbufsurface-headers"
+           gstreamer1.0-plugins-nveglgles tegra-mmapi"
 
 REQUIRED_DISTRO_FEATURES = "x11 opengl"
 
