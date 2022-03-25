@@ -2,7 +2,6 @@ DESCRIPTION = "Dummy recipe for Tegra gstreamer plugins metapackage"
 LICENSE = "MIT"
 
 PLUGINS = "\
-    gstreamer1.0-omx-tegra \
     gstreamer1.0-plugins-nvarguscamerasrc \
     gstreamer1.0-plugins-nvdrmvideosink \
     gstreamer1.0-plugins-nveglgles \

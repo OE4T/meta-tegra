@@ -8,7 +8,11 @@ LIC_FILES_CHKSUM = "file://nvbuf_utils.h;endline=9;md5=e74e59ff8c4105650b55b3a26
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvarguscamera_src.tbz2"
 TEGRA_SRC_SUBARCHIVE_OPTS = "--exclude=3rdpartyheaders.tbz2"
 
+<<<<<<<< HEAD:recipes-multimedia/gstreamer/gstreamer1.0-plugins-nvarguscamerasrc_1.0.0-r32.7.2.bb
 require recipes-bsp/tegra-sources/tegra-sources-32.7.2.inc
+========
+require recipes-bsp/tegra-sources/tegra-sources-34.1.0.inc
+>>>>>>>> a7def3cc (gstreamer: update recipes for R34.1.0):recipes-multimedia/gstreamer/gstreamer1.0-plugins-nvarguscamerasrc_1.0.0-r34.1.0.bb
 
 SRC_URI += "\
     file://0001-Build-fixups.patch \
