@@ -1,12 +1,11 @@
 CUDA_PKG ?= "${BPN} ${BPN}-dev"
 REPLACE_STUBS ?= "1"
-CUDA_FULL_VERSION ?= "${PV}"
 
 require cuda-binaries-common-defs.inc
 
 L4T_DEB_GROUP ?= "${BPN}"
 L4T_DEB_FEED_BASE ??= "file://"
-CUDA_LICENSE_PKG ?= "cuda-documentation-${CUDA_VERSION_DASHED}_${CUDA_FULL_VERSION}_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
+CUDA_LICENSE_PKG ?= "cuda-documentation-${CUDA_VERSION_DASHED}_11.4.167-1_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
 SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb;name=%s;subdir=${BP}' \
                                 % (pkg, 'dev' if pkg.endswith('-dev') else 'main') for pkg in d.getVar('CUDA_PKG').split()])} \
 	           ${CUDA_LICENSE_PKG}"
@@ -14,8 +13,8 @@ SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGA
 
 SRC_URI[main.sha256sum] = "${MAINSUM}"
 SRC_URI[dev.sha256sum] = "${DEVSUM}"
-LICSUM = "d8e8c62156516d5eb2dea0ba49abd1b5cecae010872e0e71650e97a1ccd2e005"
-LICSUM:x86-64 = "a64ce62b15263317cdb9c9481433b47b5754ea19f89cdb1007a7da1ac29713cd"
+LICSUM = "1a9b7becad6f5d4b8017997168c16c641b970d62e7abca58e9f28ef622deb5d8"
+LICSUM:x86-64 = "302055a43edb3507a4a9768b8f8f2c711a250e1b283546416e92fe6de108169d"
 SRC_URI[lic.sha256sum] = "${LICSUM}"
 L4T_DEB_GROUP[lic] = "cuda-documentation"
 
@@ -25,7 +24,7 @@ inherit ${CUDA_DL_CLASS}
 
 DESCRIPTION = "CUDA package ${PN}"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/local/cuda-10.2/EULA.txt;md5=c3efeff9b7401d0a242a86d9051a8815"
+LIC_FILES_CHKSUM = "file://usr/local/cuda-11.4/EULA.txt;md5=eabf6d52bdf58fa3d3cfe296cf1b17ee"
 
 DEPENDS ?= "cuda-cudart"
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
@@ -87,6 +86,7 @@ do_install() {
     rm -rf ${D}${prefix}/local/cuda-${CUDA_VERSION}/doc ${D}${prefix}/local/cuda-${CUDA_VERSION}/tools
     rm -f ${D}${prefix}/local/cuda-${CUDA_VERSION}/LICENSE ${D}${prefix}/local/cuda-${CUDA_VERSION}/README ${D}${prefix}/local/cuda-${CUDA_VERSION}/version.txt
     rm -f ${D}${prefix}/local/cuda-${CUDA_VERSION}/EULA.txt
+    rm -f ${D}${prefix}/local/cuda-${CUDA_VERSION}/DOCS
 }
 
 FILES:${PN} += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBS} ${prefix}/local/cuda-${CUDA_VERSION}/bin"

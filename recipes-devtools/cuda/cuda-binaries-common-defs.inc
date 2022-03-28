@@ -1,7 +1,6 @@
 COMPATIBLE_MACHINE:class-target = "(cuda)"
 COMPATIBLE_HOST = "(x86_64|aarch64)"
-CUDA_VERSION ??= "10.2"
-CUDA_FULL_VERSION ?= "${PV}"
+CUDA_VERSION ??= "11.4"
 
 S = "${WORKDIR}/${BP}"
 B = "${S}"
