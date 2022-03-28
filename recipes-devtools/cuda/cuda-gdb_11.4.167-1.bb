@@ -1,9 +1,9 @@
 CUDA_PKG = "${BPN}"
 
-require cuda-shared-binaries-${PV}.inc
+require cuda-shared-binaries.inc
 
-MAINSUM = "662c7e43a4cce180f187cf5f2b00d8634d9276a6ecb415eeca638778e27c215f"
-MAINSUM:x86-64 = "b15354fbc8f7bfd6bb6291657696756944008f9f34fbffe9066f651da42b535b"
+MAINSUM = "4874345b5232d94adb6b15a9e2c310eed62bfb211ed33f934b80d061ecd46e39"
+MAINSUM:x86-64 = "77c52a4dcc980368ab412c9c9b0066061a1f7025448a0173002697238fa8486c"
 
 DEPENDS = "ncurses expat"
 
