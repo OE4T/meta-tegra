@@ -1,13 +1,13 @@
 REPLACE_STUBS = "0"
 CUDA_PKG = "${BPN}-dev"
 
-require cuda-shared-binaries-${PV}.inc
+require cuda-shared-binaries.inc
 
 DEPENDS:tegra = "tegra-libraries-cuda"
 
 L4T_DEB_GROUP = "cuda-cudart"
-DEVSUM = "5ea760773de2685acfac3931bcdc2eff3a18eceb28fc86f80061e215e9e81456"
-DEVSUM:x86-64 = "e98f46f1a850b0e90399645b79fce38857781bbec0b0db49ae3fcd01b7c8d961"
+DEVSUM = "4b0f3a1c27fe05ed2615438bc045a1cae60430b2f41780c729ebb6bab4853e7c"
+DEVSUM:x86-64 = "160bb6077f8d2991fc665f368a570c451b46cb47a81d1691b5d9dbd217d9e2c7"
 
 ALLOW_EMPTY:${PN} = "1"
 PRIVATE_LIBS = "libcuda.so.1"

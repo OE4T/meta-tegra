@@ -2,15 +2,15 @@ DESCRIPTION = "Dummy recipe for bringing in CUDA libraries"
 LICENSE = "MIT"
 
 CUDA_COMPONENTS = " \
+    cuda-cudart \
     cuda-nvrtc \
-    cuda-nvgraph \
-    libcusolver \
     libcublas \
     libcufft \
+    libcudla \
     libcurand \
+    libcusolver \
     libcusparse \
     libnpp \
-    cuda-cudart \
 "
 DEPENDS = "${CUDA_COMPONENTS}"
 

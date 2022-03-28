@@ -1,17 +1,17 @@
 DESCRIPTION = "CUDA sample programs"
 SRC_URI = ""
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://EULA.txt;md5=c3efeff9b7401d0a242a86d9051a8815"
+LIC_FILES_CHKSUM = "file://EULA.txt;md5=eabf6d52bdf58fa3d3cfe296cf1b17ee"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
 SRC_COMMON_DEBS = "${BPN}-${CUDA_VERSION_DASHED}_${PV}_arm64.deb;unpack=false"
 L4T_DEB_GROUP = "cuda-samples"
-SRC_URI[sha256sum] = "bb7726194bac9252863da80ae13e4fdd7e69a657314cb8ff6edf8ba1cd789e2d"
+SRC_URI[sha256sum] = "1ea23da965886f87d6550bc1486cfc41c727bc17063c26bf06be53411628b56a"
 
 do_unpack_samples() {
-    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-10-2_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-11-4_${PV}_arm64.deb | \
         tar --strip-components=5 --exclude="*/doc/*" --exclude="*/bin/*" -x -f- -C ${S}
 }
 
@@ -91,7 +91,7 @@ do_install() {
         [ -e "$f" ] || continue
         install -m 0755 "$f" ${D}${bindir}/cuda-samples/
     done
-    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-10-2_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-11-4_${PV}_arm64.deb | \
         tar --exclude="*usr/share*" -x -f- -C ${D}
 }
 
