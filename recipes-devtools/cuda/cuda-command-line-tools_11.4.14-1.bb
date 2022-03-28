@@ -1,9 +1,9 @@
-DESCRIPTION = "Dummy recipe for bringing in CUDA compilation tools"
+DESCRIPTION = "Dummy recipe for bringing in CUDA command-line tools"
 LICENSE = "MIT"
 
 PR = "r1"
 
-CUDA_COMPONENTS = "cuda-nvcc cuda-cuobjdump cuda-nvprune"
+CUDA_COMPONENTS = "cuda-cupti cuda-gdb cuda-nvdisasm cuda-nvprof cuda-nvtx cuda-sanitizer"
 DEPENDS = "${CUDA_COMPONENTS}"
 
 do_fetch[noexec] = "1"
