@@ -7,14 +7,16 @@ inherit l4t_deb_pkgfeed container-runtime-csv
 
 L4T_DEB_GROUP = "cudnn"
 
+DEPENDS = "libcublas"
+
 SRC_COMMON_DEBS = "\
-    libcudnn8_${PV}+cuda10.2_arm64.deb;name=lib;subdir=cudnn \
-    libcudnn8-dev_${PV}+cuda10.2_arm64.deb;name=dev;subdir=cudnn \
-    libcudnn8-samples_${PV}+cuda10.2_arm64.deb;name=samples;subdir=cudnn \
+    libcudnn8_${PV}+cuda11.4_arm64.deb;name=lib;subdir=cudnn \
+    libcudnn8-dev_${PV}+cuda11.4_arm64.deb;name=dev;subdir=cudnn \
+    libcudnn8-samples_${PV}+cuda11.4_arm64.deb;name=samples;subdir=cudnn \
 "
-SRC_URI[lib.sha256sum] = "4c1619640e5411fb53e87828c62ff429daa608c8f02efb96460b43f743d64bb8"
-SRC_URI[dev.sha256sum] = "adf7873edbde7fe293f672ebc65fcec299642950797d18b1c3a89855bb23904e"
-SRC_URI[samples.sha256sum] = "52347d4fb10ef6db4897dd06407b41e46260bbd3c969d0886a739be7aa5f4e95"
+SRC_URI[lib.sha256sum] = "025d1351143e6ebbf290f4fb787028a16a0f0dd1221e673cf718c7f18327a7f7"
+SRC_URI[dev.sha256sum] = "ac2866f7d14dd7aea376ad5204229805c274f65e3fdcf430609e552adc47c247"
+SRC_URI[samples.sha256sum] = "74746e69adf65f6734388fbca4b6648d613b9b7b6ed17db5bf6be7180e33da3e"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
@@ -51,10 +53,12 @@ do_install() {
 	libname=$(basename $f .so.${BASEVER})
 	install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/${libname}.so.${BASEVER} ${D}${libdir}/
 	ln -s ${libname}.so.${BASEVER} ${D}${libdir}/${libname}.so.${MAJVER}
-	ln -s ${libname}.so.${BASEVER} ${D}${libdir}/${libname}.so
+	ln -s ${libname}.so.${MAJVER} ${D}${libdir}/${libname}.so
+	if [ "${libname}" != "libcudnn" ]; then
+	    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/${libname}_static.a ${D}${libdir}/
+	    ln -s ${libname}_static.a ${D}${libdir}/${libname}_static_v${MAJVER}.a
+	fi
     done
-    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libcudnn_static_v${MAJVER}.a ${D}${libdir}/
-    ln -s libcudnn_static_v${MAJVER}.a ${D}${libdir}/libcudnn_static.a
     cp --preserve=mode,timestamps --recursive ${S}/usr/share/* ${D}${datadir}/
     rm -rf ${D}${datadir}/lintian
     cp --preserve=mode,timestamps --recursive ${S}/usr/src/* ${D}${prefix}/src/
