@@ -7,22 +7,22 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvinfer-samples_${PV}+cuda10.2_all.deb;downloadfilename=libnvinfer-samples_${PV}+cuda10.2_all.deb;name=samples;subdir=tensorrt \
+    libnvinfer-samples_${PV}+cuda11.4_all.deb;downloadfilename=libnvinfer-samples_${PV}+cuda11.4_all.deb;name=samples;subdir=tensorrt \
 "
 
 SRC_URI:append = " file://0001-Makefile-fix-cross-compilation-issues.patch"
 
-SRC_URI[samples.sha256sum] = "711ba173603270a836d844b71edd6da22322be7fd5e66ad683a5a34014514478"
+SRC_URI[samples.sha256sum] = "6c516418ce485baa626de3dd2e46a502beda3a4c3eddcaa916106c03693ed6e7"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-LIC_FILES_CHKSUM = "file://../../../share/doc/libnvinfer-samples/copyright;md5=713c2de2adb0f371a903b9fe20431bab"
+LIC_FILES_CHKSUM = "file://../../../share/doc/libnvinfer-samples/copyright;md5=945a4cd6440aab48df67854e15596b7b"
 
 S = "${WORKDIR}/tensorrt/usr/src/tensorrt/samples"
 
-DEPENDS = "cuda-cudart cudnn tegra-libraries-multimedia-utils tensorrt-core tensorrt-plugins libglvnd"
+DEPENDS = "cuda-cudart cuda-nvprof cudnn tegra-libraries-multimedia-utils tensorrt-core tensorrt-plugins libglvnd"
 
 EXTRA_OEMAKE = ' \
     CUDA_INSTALL_DIR="${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}" \
