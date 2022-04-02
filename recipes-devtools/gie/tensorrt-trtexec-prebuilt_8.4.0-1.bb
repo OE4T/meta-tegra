@@ -8,10 +8,10 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvinfer-bin_${PV}+cuda10.2_arm64.deb;downloadfilename=libnvinfer-bin_${PV}+cuda10.2_arm64.deb;name=bin;subdir=tensorrt \
+    libnvinfer-bin_${PV}+cuda11.4_arm64.deb;downloadfilename=libnvinfer-bin_${PV}+cuda11.4_arm64.deb;name=bin;subdir=tensorrt \
 "
 
-BINSHA256SUM = "738904f63c16498da9e9789dd4c99a9be926a2809c30cb45c2a97877b6e3c3d7"
+BINSHA256SUM = "3fdf9d374e6c6b9745089a60482f4ba15375aa7e32dd71927344d2ac64549424"
 
 SRC_URI[bin.sha256sum] = "${BINSHA256SUM}"
 
@@ -19,7 +19,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-LIC_FILES_CHKSUM = "file://usr/share/doc/libnvinfer-bin/copyright;md5=713c2de2adb0f371a903b9fe20431bab"
+LIC_FILES_CHKSUM = "file://usr/share/doc/libnvinfer-bin/copyright;md5=945a4cd6440aab48df67854e15596b7b"
 
 S = "${WORKDIR}/tensorrt"
 
