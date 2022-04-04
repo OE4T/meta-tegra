@@ -24,7 +24,10 @@ S = "${WORKDIR}/vpi2"
 B = "${S}"
 
 DEPENDS = "cuda-cudart libcufft tegra-libraries-multimedia-utils tegra-libraries-multimedia tegra-libraries-eglcore \
-    tegra-libraries-pva tegra-libraries-nvsci"
+           tegra-libraries-pva tegra-libraries-nvsci"
+# XXX--- see hack in do_install
+DEPENDS += "patchelf-native"
+# ---XXX
 SYSROOT_DIRS:append = " /opt"
 
 COMPATIBLE_MACHINE = "(tegra)"
@@ -51,6 +54,12 @@ do_install() {
     ln -s libnvvpi.so.${BASEVER} ${D}/opt/nvidia/vpi2/lib64/libnvvpi.so.${MAJVER}
     ln -s libnvvpi.so.${MAJVER} ${D}/opt/nvidia/vpi2/lib64/libnvvpi.so
     install -m 0644 ${B}/opt/nvidia/vpi2/lib64/priv/libcupva_host.so ${D}/opt/nvidia/vpi2/lib64/priv
+    # XXX---
+    # libcupva_host.so is not using the actual SONAME for libnvscibuf
+    # in its DT_NEEDED ELF header, so we have to rewrite it to prevent
+    # a broken runtime dependency.
+    patchelf --replace-needed libnvscibuf.so libnvscibuf.so.1 ${D}/opt/nvidia/vpi2/lib64/priv/libcupva_host.so
+    # ---XXX
     install -m 0644 ${B}/opt/nvidia/vpi2/lib64/priv/libcupva_host_utils.so ${D}/opt/nvidia/vpi2/lib64/priv
 
     install -d ${D}${sysconfdir}/ld.so.conf.d/
@@ -66,7 +75,6 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
 PACKAGES = "${PN} ${PN}-dev"
-FILES:${PN} = "/opt/nvidia/vpi2/lib64/libnvvpi.so.* opt/nvidia/vpi2/lib64/priv ${sysconfdir}/ld.so.conf.d"
+FILES:${PN} = "/opt/nvidia/vpi2/lib64/libnvvpi.so.* /opt/nvidia/vpi2/lib64/priv ${sysconfdir}/ld.so.conf.d"
 FILES:${PN}-dev = "/opt/nvidia/vpi2/lib64/libnvvpi.so /opt/nvidia/vpi2/include ${datadir}/vpi2/cmake"
-RDEPENDS:${PN} = "tegra-libraries-nvsci"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
