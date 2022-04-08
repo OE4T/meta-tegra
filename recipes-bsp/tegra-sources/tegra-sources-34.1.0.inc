@@ -1,8 +1,6 @@
 L4T_BSP_NAME = "${L4T_SRCS_NAME}"
 SRC_URI = "${L4T_URI_BASE}/public_sources.tbz2;downloadfilename=${L4T_BSP_PREFIX}-public_sources-${L4T_VERSION}.tbz2"
-SRC_SHA256SUM = "3f551de576e0eb0397a8679aed760e53433fbd9c90b1d008caae364f3b7569f9"
-SRC_SHA256SUM:tegra210 = "fdf5fb80fca25d107bb1545f9f8985237404b621d751b1c1ddc9a25c1b25cd21"
-SRC_URI[sha256sum] = "${SRC_SHA256SUM}"
+SRC_URI[sha256sum] = "fe2d0ce56682c825347a899763c3d38772667c954480f00b6d4d74f276e1eff1"
 
 inherit l4t_bsp
 
