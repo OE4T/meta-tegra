@@ -8,12 +8,13 @@ the code is designed for reuse or porting to other ARMv8-A model and hardware \
 platforms."
 HOMEPAGE = "https://www.github.com/ARM-software/arm-trusted-firmware"
 LICENSE = "BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://license.md;md5=5eb52e7718ec9f1c8de8525fe75a27f8"
+LIC_FILES_CHKSUM = "file://docs/license.rst;md5=b2c740efedc159745b9b31f88ff03dde"
 
 COMPATIBLE_MACHINE = "(tegra186|tegra194)"
 
-PACKAGECONFIG ??= "trusty"
+PACKAGECONFIG ??= "optee"
 PACKAGECONFIG[trusty] = "SPD=trusty"
+PACKAGECONFIG[optee] = "SPD=opteed"
 
 B = "${WORKDIR}/build"
 
@@ -22,8 +23,9 @@ LDFLAGS[unexport] = "1"
 AS[unexport] = "1"
 LD[unexport] = "1"
 
-TARGET_SOC = "t186"
+TARGET_SOC = "UNKNOWN"
 TARGET_SOC:tegra194 = "t194"
+TARGET_SOC:tegra234 = "t234"
 
 def generate_build_timestamp(d):
     from datetime import datetime
