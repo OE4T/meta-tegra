@@ -1,4 +1,5 @@
 CUDA_PKG = "cuda-cccl"
+L4T_DEB_GROUP = "cuda-thrust"
 
 require cuda-shared-binaries.inc
 
