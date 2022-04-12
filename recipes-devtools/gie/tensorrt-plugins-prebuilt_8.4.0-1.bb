@@ -14,10 +14,10 @@ SRC_COMMON_DEBS = "\
     libnvinfer-plugin-dev_${PV}+cuda11.4_arm64.deb;downloadfilename=libnvinfer-plugin-dev_${PV}+cuda11.4_arm64.deb;name=plugindev;subdir=tensorrt \
 "
 
-ONNXSHA256SUM = "419936472e8a9ff680696c9e41480441329e6170443f5740d72438da7a707637"
-ONNXDEVSHA256SUM = "0b7f26bb2b3ab000d1a5c715779dd82dd01a738dff9057a8b76183e703c98623"
-PLUGINSHA256SUM = "a740a9689ceec2d73de8e9193c96071a1b50d5da4f678f907afd928322ed4c67"
-PLUGINDEVSHA256SUM = "d72a876c2c4b37077d2eea5803cdcaa02396b1e9e7b0efbf11a8b215a3706f95"
+ONNXSHA256SUM = "87b19d8b95c7a1415d6e8e2a9e0fa9cecd628f1dc9569d6ae6d219702d17575c"
+ONNXDEVSHA256SUM = "5b2bba30c5a85689ccad5733092ff806043e2851be345508c014704c232a567a"
+PLUGINSHA256SUM = "cdc300b15801274cdf66db7738801d108922d69ad3c98a4d231992c702df2b9a"
+PLUGINDEVSHA256SUM = "8521ce42635e9d7827016f96f43e6e61679eec5e7bad547136f917ceae9fd583"
 
 SRC_URI[onnx.sha256sum] = "${ONNXSHA256SUM}"
 SRC_URI[onnxdev.sha256sum] = "${ONNXDEVSHA256SUM}"
@@ -28,7 +28,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInferPlugin.h;endline=48;md5=1243a04ad50f54138acd8a623c6d90cf"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInferPlugin.h;endline=11;md5=f099d2358ef8a23caa6cbf96136cac44"
 
 def extract_basever(d):
     ver = d.getVar('PV').split('-')[0]
