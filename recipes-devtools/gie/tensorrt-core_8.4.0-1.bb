@@ -13,10 +13,10 @@ SRC_COMMON_DEBS = "\
     libnvparsers8_${PV}+cuda11.4_arm64.deb;downloadfilename=libnvparsers8_${PV}+cuda11.4_arm64.deb;name=nvp;subdir=tensorrt \
     libnvparsers-dev_${PV}+cuda11.4_arm64.deb;downloadfilename=libnvparsers-dev_${PV}+cuda11.4_arm64.deb;name=nvpdev;subdir=tensorrt \
 "
-LIBSHA256SUM = "1e1fb1f03c4c05ceb2cd1d33fdff15a11090812b5f51d0b028ad7d16058c6741"
-DEVSHA256SUM = "d1aadb326ce73f7b0c739e3eb2351ccdd358b066fbd3ed7d0eff65b2e362b6db"
-NVPSHA256SUM = "0412a6326abcf9a6389bfd933333724675867803b1efe3e4cdc20be9443a4a0d"
-NVPDEVSHA256SUM = "b06a5adab609b2975e56bef10d93690e9ee34939f86686af1b3e992b51512fe7"
+LIBSHA256SUM = "528e3a668962ab26d78047e401d5da7810b6d09cc8e14ad64420cf0acf77a6ea"
+DEVSHA256SUM = "a5da680fa77135982db8d9261e9deca10fa032266a51a711df355c85c73ffbdb"
+NVPSHA256SUM = "ceff97a7b37a478c38ff74c59bb32ec1e49b106c2e7c3bef8d80103f04cfd145"
+NVPDEVSHA256SUM = "f3281b12a1be13a600b15fe07700ba85c79254a82b0926ed9a72d6a290d905a7"
 
 SRC_URI[lib.sha256sum] = "${LIBSHA256SUM}"
 SRC_URI[dev.sha256sum] = "${DEVSHA256SUM}"
@@ -25,7 +25,7 @@ SRC_URI[nvpdev.sha256sum] = "${NVPDEVSHA256SUM}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=48;md5=1243a04ad50f54138acd8a623c6d90cf"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=11;md5=f099d2358ef8a23caa6cbf96136cac44"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
