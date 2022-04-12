@@ -12,11 +12,9 @@ DEPENDS = "libcublas"
 SRC_COMMON_DEBS = "\
     libcudnn8_${PV}+cuda11.4_arm64.deb;name=lib;subdir=cudnn \
     libcudnn8-dev_${PV}+cuda11.4_arm64.deb;name=dev;subdir=cudnn \
-    libcudnn8-samples_${PV}+cuda11.4_arm64.deb;name=samples;subdir=cudnn \
 "
 SRC_URI[lib.sha256sum] = "025d1351143e6ebbf290f4fb787028a16a0f0dd1221e673cf718c7f18327a7f7"
 SRC_URI[dev.sha256sum] = "ac2866f7d14dd7aea376ad5204229805c274f65e3fdcf430609e552adc47c247"
-SRC_URI[samples.sha256sum] = "74746e69adf65f6734388fbca4b6648d613b9b7b6ed17db5bf6be7180e33da3e"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
@@ -43,7 +41,7 @@ do_compile() {
 }
 
 do_install() {
-    install -d ${D}${includedir} ${D}${libdir} ${D}${datadir} ${D}${prefix}/src
+    install -d ${D}${includedir} ${D}${libdir} ${D}${datadir}
     install -m 0644 ${S}/usr/include/aarch64-linux-gnu/*.h ${D}${includedir}
     for f in ${D}${includedir}/*_v${MAJVER}.h; do
 	incname=$(basename $f)
@@ -61,17 +59,10 @@ do_install() {
     done
     cp --preserve=mode,timestamps --recursive ${S}/usr/share/* ${D}${datadir}/
     rm -rf ${D}${datadir}/lintian
-    cp --preserve=mode,timestamps --recursive ${S}/usr/src/* ${D}${prefix}/src/
 }
 
-PACKAGES += "${PN}-samples"
-FILES:${PN}-samples = "${prefix}/src"
 INSANE_SKIP:${PN} = "ldflags"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
-
-RDEPENDS:${PN}-samples = "libcublas libcublas-dev cuda-cudart"
-RPROVIDES:${PN}-samples = "${PN}-examples"
-INSANE_SKIP:${PN}-samples = "build-deps dev-deps ldflags staticdev"
