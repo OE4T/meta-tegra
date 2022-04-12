@@ -14,7 +14,6 @@ do_install() {
     install -m 0755 ${S}/../bin/sample_io_formats ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_mnist ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_mnist_api ${D}${prefix}/src/tensorrt/bin
-    install -m 0755 ${S}/../bin/sample_nmt ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_onnx_mnist ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_ssd ${D}${prefix}/src/tensorrt/bin
     install -m 0755 ${S}/../bin/sample_uff_faster_rcnn ${D}${prefix}/src/tensorrt/bin
