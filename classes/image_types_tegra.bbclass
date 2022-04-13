@@ -355,9 +355,6 @@ oe_make_bup_payload() {
     mkdir ${WORKDIR}/bup-payload
     oldwd="$PWD"
     cd ${WORKDIR}/bup-payload
-    if [ "${SOC_FAMILY}" = "tegra186" ]; then
-        dd if=/dev/zero of=badpage.bin bs=4096 count=1
-    fi
     # BUP generator really wants to use 'boot.img' for the LNX
     # partition contents
     cp $1 ./boot.img
@@ -379,27 +376,13 @@ oe_make_bup_payload() {
     done
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./$tosimgfilename
+    cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./esp.img
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     . ./flashvars
-    if [ "${SOC_FAMILY}" = "tegra186" ]; then
-        for var in $FLASHVARS; do
-            eval pat=$`echo $var`
-            if [ -z "$pat" ]; then
-                echo "ERR: missing variable: $var" >&2
-                exit 1
-            fi
-            fnglob=`echo $pat | sed -e"s,@BPFDTBREV@,\*," -e"s,@BOARDREV@,\*," -e"s,@PMICREV@,\*," -e"s,@CHIPREV@,\*,"`
-            for fname in ${STAGING_DATADIR}/tegraflash/$fnglob; do
-                if [ ! -e $fname ]; then
-                    bbfatal "$var file(s) not found"
-                fi
-                cp $fname ./
-            done
-        done
-    elif [ "${SOC_FAMILY}" = "tegra194" ]; then
+    if [ "${SOC_FAMILY}" = "tegra194" ]; then
         for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
             cp $f .
         done
@@ -417,18 +400,14 @@ oe_make_bup_payload() {
         boardcfg=
     fi
     export boardcfg
-    if [ "${SOC_FAMILY}" != "tegra210" ]; then
-        rm -f ./slot_metadata.bin
-        cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
-        mkdir ./rollback
-        cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
-    fi
+    rm -f ./slot_metadata.bin
+    cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
+    mkdir ./rollback
+    cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* ./
         sed -i -e 's,^function ,,' ./l4t_bup_gen.func
-        if [ "${SOC_FAMILY}" != "tegra210" ]; then
-            mv ./rollback_parser.py ./rollback/
-        fi
+        mv ./rollback_parser.py ./rollback/
         tegraflash_generate_bupgen_script ./doflash.sh
     fi
     tegraflash_custom_sign_bup
@@ -455,5 +434,5 @@ create_bup_payload_image() {
 create_bup_payload_image[vardepsexclude] += "DATETIME"
 
 CONVERSIONTYPES += "bup-payload"
-CONVERSION_DEPENDS_bup-payload = "${SOC_FAMILY}-flashtools-native coreutils-native tegra-bootfiles tegra-redundant-boot-rollback dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
+CONVERSION_DEPENDS_bup-payload = "${SOC_FAMILY}-flashtools-native python3-pyyaml-native coreutils-native tegra-bootfiles tegra-redundant-boot-rollback dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_ESP_IMAGE}:do_image_complete ${TEGRA_SIGNING_EXTRA_DEPS}"
 CONVERSION_CMD:bup-payload = "create_bup_payload_image ${type}"
