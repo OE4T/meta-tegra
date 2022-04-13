@@ -418,6 +418,7 @@ fi
 flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
 	      --sdram_config $sdramcfg_files \
 	      --odmdata $odmdata \
+	      --bldtb $dtb_file \
 	      --applet mb1_t194_prod.bin \
 	      --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
 	      --cmd \"$tfcmd\" $skipuid \
@@ -434,6 +435,8 @@ if [ $bup_blob -ne 0 ]; then
     tbcdtbfilename="$dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
+    TBCFILE="uefi_jetson.bin"
+    TOSFILE="tos-optee_t194.img"
     . "$here/l4t_bup_gen.func"
     spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}-${BOOTDEV}"
     if [ $(expr length "$spec") -ge 64 ]; then
