@@ -1,7 +1,7 @@
 DESCRIPTION = "Generates a bootloader update payload for use with nv_update_engine when using a kernel with bundled initramfs"
 LICENSE = "MIT"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "(tegra)"
 
 INHIBIT_DEFAULT_DEPS = "1"
 
@@ -37,8 +37,9 @@ do_deploy() {
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
 
 do_deploy[depends] += "virtual/kernel:do_deploy ${SOC_FAMILY}-flashtools-native:do_populate_sysroot dtc-native:do_populate_sysroot"
+do_deploy[depends] += "python3-pyyaml-native:do_populate_sysroot"
 do_deploy[depends] += "tegra-redundant-boot-rollback:do_populate_sysroot tegra-bootfiles:do_populate_sysroot"
-do_deploy[depends] += "coreutils-native:do_populate_sysroot cboot:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy"
+do_deploy[depends] += "coreutils-native:do_populate_sysroot ${TEGRA_ESP_IMAGE}:do_image_complete virtual/secure-os:do_deploy"
 do_deploy[depends] += "${TEGRA_SIGNING_EXTRA_DEPS}"
 addtask deploy before do_build
 
