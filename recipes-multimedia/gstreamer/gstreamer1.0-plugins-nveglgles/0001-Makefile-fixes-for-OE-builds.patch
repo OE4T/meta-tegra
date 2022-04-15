@@ -1,18 +1,19 @@
-From 509c4b7c0c11213fa03f343190a26767027a2338 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Fri, 8 Apr 2022 11:55:22 -0700
+From 7b3481fd8da2a5de0b5a0fa49ce2c1bb66e4b81e Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Thu, 14 Apr 2022 23:56:59 +0100
 Subject: [PATCH] Makefile fixes for OE builds
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
- gstegl_src/gst-egl/Makefile                   | 45 ++++++++++++++++++++----------
- gstegl_src/gst-egl/pre-gen-source_64/config.h |  6 ++--
+ Makefile                   | 45 +++++++++++++------
+ pre-gen-source_64/config.h |  6 +--
  2 files changed, 34 insertions(+), 17 deletions(-)
 
-diff --git a/gstegl_src/gst-egl/Makefile b/gstegl_src/gst-egl/Makefile
+diff --git a/Makefile b/Makefile
 index 5c96775..6aae564 100644
---- a/gstegl_src/gst-egl/Makefile
-+++ b/gstegl_src/gst-egl/Makefile
+--- a/Makefile
++++ b/Makefile
 @@ -16,8 +16,11 @@ ifeq ($(CUDA_VER),)
  endif
  endif
@@ -97,10 +98,10 @@ index 5c96775..6aae564 100644
  clean:
  	rm -rf $(OBJS) $(SO_NAME)
 -
-diff --git a/gstegl_src/gst-egl/pre-gen-source_64/config.h b/gstegl_src/gst-egl/pre-gen-source_64/config.h
+diff --git a/pre-gen-source_64/config.h b/pre-gen-source_64/config.h
 index f2b6187..721c9ab 100644
---- a/gstegl_src/gst-egl/pre-gen-source_64/config.h
-+++ b/gstegl_src/gst-egl/pre-gen-source_64/config.h
+--- a/pre-gen-source_64/config.h
++++ b/pre-gen-source_64/config.h
 @@ -507,7 +507,7 @@
  /* #undef HAVE_WASAPI */
  
@@ -128,3 +129,6 @@ index f2b6187..721c9ab 100644
  
  /* Version number of package */
  #define VERSION "1.2.3"
+-- 
+2.32.0
+
