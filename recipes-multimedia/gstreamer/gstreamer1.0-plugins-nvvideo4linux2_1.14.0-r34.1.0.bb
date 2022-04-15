@@ -15,6 +15,7 @@ SRC_URI += "file://0002-v4l2videoenc-Fix-negotiation-caps-leak.patch \
            file://0006-gstv4l2videodec-check-if-we-have-a-pool-before-the-l.patch \
            file://0007-Fix-resource-leak-in-nvv4l2decoder.patch \
            file://0001-Work-around-missing-nvdsseimeta-header.patch \
+           file://0008-Makefile-fixes-for-OE-builds.patch \
            "
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries-multimedia tegra-mmapi"
