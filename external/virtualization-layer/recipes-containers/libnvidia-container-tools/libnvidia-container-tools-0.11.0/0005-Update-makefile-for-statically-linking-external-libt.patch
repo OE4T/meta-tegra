@@ -1,18 +1,19 @@
-From 8302198ab0e2bfe9709b747d24cfca79753ed706 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Mon, 18 Oct 2021 02:43:19 -0700
-Subject: [PATCH] Update makefile for statically linking external libtirpc
+From 1fa153c0852e5af2aefbb68e8a74bf27782e44f1 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Sun, 17 Apr 2022 00:52:39 +0100
+Subject: [PATCH 5/5] Update makefile for statically linking external libtirpc
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
  Makefile | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index a2aaf17..231a4ad 100644
+index eb76ea4..0e2d663 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -127,9 +127,9 @@ LDLIBS   := $(LDLIBS)
+@@ -145,9 +145,9 @@ LDLIBS   := $(LDLIBS)
  # Library flags (recursively expanded to handle target-specific flags)
  LIB_CPPFLAGS       = -DNV_LINUX -isystem $(DEPS_DIR)$(includedir) -include $(BUILD_DEFS)
  LIB_CFLAGS         = -fPIC
@@ -25,3 +26,6 @@ index a2aaf17..231a4ad 100644
  ifeq ($(WITH_LIBELF), yes)
  LIB_CPPFLAGS       += -DWITH_LIBELF
  LIB_LDLIBS_SHARED  += -lelf
+-- 
+2.32.0
+

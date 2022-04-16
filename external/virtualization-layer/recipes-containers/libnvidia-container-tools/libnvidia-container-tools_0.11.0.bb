@@ -44,7 +44,7 @@ LIBTIRPC_VERSION = "1.1.4"
 
 SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=libnvidia;branch=jetson \
            git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=git/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} \
-           file://0001-Makefile-Fix-RCP-flags-and-change-path-definitions-s.patch \
+           file://0001-Makefile-fixes-for-OE-builds.patch \
            file://0002-mk-common.mk-set-JETSON-variable-if-not-set-before.patch \
            file://0003-Fix-mapping-of-library-paths-for-jetson-mounts.patch \
            file://0004-Fix-build.h-generation-for-cross-builds.patch \
@@ -55,7 +55,7 @@ SRC_URI[modprobe.md5sum] = "f82b649e7a0f1d1279264f9494e7cf43"
 SRC_URI[modprobe.sha256sum] = "25bc6437a384be670e9fd76ac2e5b9753517e23eb16e7fa891b18537b70c4b20"
 
 
-SRCREV_libnvidia = "61f57bcdf7aa6e73d9a348a7e36ec9fd94128fb2"
+SRCREV_libnvidia = "583547f8842cbfd991f0849b64df23996162e685"
 # Nvidia modprobe version 396.51
 SRCREV_modprobe = "d97c08af5061f1516fb2e3a26508936f69d6d71d"
 SRCREV_FORMAT = "libnvidia_modprobe"

@@ -56,7 +56,7 @@ CUDA_VERSION ?= "11.4"
 CUDA_ARCHITECTURES ?= "${TEGRA_CUDA_ARCHITECTURE}"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_${TEGRA_CUDA_ARCHITECTURE} --gpu-code=sm_${TEGRA_CUDA_ARCHITECTURE}"
 # Tegra specific version of libnvidia-container
-PREFERRED_VERSION_libnvidia-container-tools = "0.10.0"
+PREFERRED_VERSION_libnvidia-container-tools = "0.11.0"
 
 L4T_BSP_ARCH = "tegra"
 L4T_BSP_PKGARCH = "${TEGRA_PKGARCH}"

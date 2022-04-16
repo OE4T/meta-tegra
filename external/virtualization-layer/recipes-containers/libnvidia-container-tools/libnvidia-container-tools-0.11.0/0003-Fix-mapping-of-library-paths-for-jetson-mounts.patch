@@ -1,7 +1,7 @@
-From 08af34415b46e77e50cbc13846a74fda1352558f Mon Sep 17 00:00:00 2001
+From 3901dab841cdc46bcc113b73693e808b694375d2 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Sun, 8 Aug 2021 21:40:36 +0100
-Subject: [PATCH 3/4] Fix mapping of library paths for jetson mounts
+Date: Sun, 17 Apr 2022 00:47:26 +0100
+Subject: [PATCH 3/5] Fix mapping of library paths for jetson mounts
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
@@ -13,10 +13,10 @@ Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
  4 files changed, 65 insertions(+), 14 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 3f02b9d..d179986 100644
+index d5a634c..437ce94 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -113,9 +113,8 @@ LIB_PKGCFG  := $(LIB_NAME).pc
+@@ -131,9 +131,8 @@ LIB_PKGCFG  := $(LIB_NAME).pc
  ##### Flags definitions #####
  
  # Common flags

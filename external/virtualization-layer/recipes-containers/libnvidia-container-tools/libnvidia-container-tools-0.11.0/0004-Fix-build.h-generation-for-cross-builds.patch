@@ -1,7 +1,7 @@
-From 9cb99609be811ce0a1b5a53ad01b1ab86f0eefa8 Mon Sep 17 00:00:00 2001
+From 5355ab48bc1f0124dd11e76e872ad9139a651db1 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Sun, 8 Aug 2021 21:45:09 +0100
-Subject: [PATCH 4/4] Fix build.h generation for cross builds
+Date: Sun, 17 Apr 2022 00:48:11 +0100
+Subject: [PATCH 4/5] Fix build.h generation for cross builds
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
@@ -11,10 +11,10 @@ Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
  2 files changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/Makefile b/Makefile
-index d179986..a2aaf17 100644
+index 437ce94..eb76ea4 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -177,7 +177,11 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
+@@ -191,7 +191,11 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
  $(BUILD_DEFS):
  	@printf '#define BUILD_DATE     "%s"\n' '$(strip $(DATE))' >$(BUILD_DEFS)
  	@printf '#define BUILD_COMPILER "%s " __VERSION__\n' '$(notdir $(COMPILER))' >>$(BUILD_DEFS)

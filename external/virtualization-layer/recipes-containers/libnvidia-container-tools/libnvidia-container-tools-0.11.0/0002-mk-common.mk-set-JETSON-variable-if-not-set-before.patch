@@ -1,9 +1,10 @@
-From aa71d4c097034cdcc0b0958d1c3f21da96cc4ead Mon Sep 17 00:00:00 2001
+From 7795997c9454783d73c02f1e7c253f14a268229e Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Sun, 8 Aug 2021 21:22:14 +0100
-Subject: [PATCH 2/4] mk/common.mk: set JETSON variable if not set before
- Changing the equal sign will allow modifying the variable using the
- environment variables.
+Date: Sun, 17 Apr 2022 00:45:27 +0100
+Subject: [PATCH 2/5] mk/common.mk: set JETSON variable if not set before
+
+changing the equal sign will allow modifying the variable using the
+environment variables.
 
 Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
