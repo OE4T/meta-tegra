@@ -1,32 +1,17 @@
-From 08af34415b46e77e50cbc13846a74fda1352558f Mon Sep 17 00:00:00 2001
+From f0bcc7decbf89f11fb2008ca4f7caab6a4215679 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Sun, 8 Aug 2021 21:40:36 +0100
-Subject: [PATCH 3/4] Fix mapping of library paths for jetson mounts
+Subject: [PATCH] Fix mapping of library paths for jetson mounts
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+
 ---
- Makefile           |  3 +-
  src/jetson_mount.c | 70 ++++++++++++++++++++++++++++++++++++++++------
  src/jetson_mount.h |  2 +-
  src/nvc_mount.c    |  4 +--
- 4 files changed, 65 insertions(+), 14 deletions(-)
+ 3 files changed, 64 insertions(+), 12 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index 3f02b9d..d179986 100644
---- a/Makefile
-+++ b/Makefile
-@@ -113,9 +113,8 @@ LIB_PKGCFG  := $(LIB_NAME).pc
- ##### Flags definitions #####
- 
- # Common flags
--CPPFLAGS := -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 -g3 -D JETSON=$(JETSON) $(CPPFLAGS)
--CCNAME := $(shell $(CC) -v 2>&1 | grep -q "clang version" && echo clang || echo gcc)
- CPPFLAGS := -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 -g3 -D JETSON=$(JETSON) -DHOST_LIBDIR=$(libdir) $(CPPFLAGS)
-+CCNAME := $(shell $(CC) -v 2>&1 | grep -q "clang version" && echo clang || echo gcc)
- CFLAGS   := -std=gnu11 -O0 -g3 -fdata-sections -ffunction-sections -fstack-protector -fno-strict-aliasing -fvisibility=hidden \
-             -Wall -Wextra -Wcast-align -Wpointer-arith -Wmissing-prototypes -Wnonnull \
-             -Wwrite-strings -Wlogical-op -Wformat=2 -Wmissing-format-attribute -Winit-self -Wshadow \
 diff --git a/src/jetson_mount.c b/src/jetson_mount.c
 index 1c5d9de..5cf94c8 100644
 --- a/src/jetson_mount.c
@@ -191,6 +176,3 @@ index fc2d0ec..8971e28 100644
                          goto fail;
                  ptr = array_append(ptr, tmp, array_size(tmp));
                  free(tmp);
--- 
-2.32.0
-
