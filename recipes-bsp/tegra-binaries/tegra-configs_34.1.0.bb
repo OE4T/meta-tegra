@@ -49,22 +49,22 @@ do_install() {
 
     install -d ${D}${sysconfdir}/sysctl.d
     install -m 0644 ${S}/etc/sysctl.d/60-nvsciipc.conf ${D}${sysconfdir}/sysctl.d/
+
+    install -d ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
+    grep '^dev,' ${S}/etc/nvidia-container-runtime/host-files-for-container.d/l4t.csv > ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/l4t.csv
+    chmod 0644 ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/l4t.csv
 }
 
 do_install:append:tegra194() {
     install -m 0644 ${S}/etc/X11/xorg.conf.t194_ref ${D}${sysconfdir}/X11/xorg.conf
 }
 
-PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup ${PN}-bootloader"
+PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup ${PN}-container-csv"
 FILES:${PN}-udev = "${sysconfdir}/udev/rules.d"
 FILES:${PN}-xorg = "${sysconfdir}/X11"
 FILES:${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
-<<<<<<<< HEAD:recipes-bsp/tegra-binaries/tegra-configs_32.7.2.bb
-FILES:${PN}-nvstartup = "${sbindir}"
-FILES:${PN}-bootloader = "/opt/nvidia/l4t-bootloader-config/"
-========
 FILES:${PN}-nvstartup = "${sbindir} ${sysconfdir}/sysctl.d"
->>>>>>>> 390a51f3 (tegra-binaries: update for 34.1.0):recipes-bsp/tegra-binaries/tegra-configs_34.1.0.bb
+FILES:${PN}-container-csv = "${sysconfdir}/nvidia-container-runtime"
 RDEPENDS:${PN}-udev = "udev"
 RDEPENDS:${PN}-nvstartup = "bash"
 RDEPENDS_${PN}-bootloader = "bash"
