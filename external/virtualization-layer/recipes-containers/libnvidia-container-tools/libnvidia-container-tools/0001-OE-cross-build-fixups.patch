@@ -1,0 +1,118 @@
+From 08770e194e90479472d8aae156bae40bc7def02f Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Sun, 8 Aug 2021 21:18:48 +0100
+Subject: [PATCH] OE cross-build fixups
+
+Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile     | 34 ++++++++++++++++++----------------
+ mk/common.mk |  2 +-
+ 2 files changed, 19 insertions(+), 17 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 6fb6976..4f2ec77 100644
+--- a/Makefile
++++ b/Makefile
+@@ -24,14 +24,14 @@ WITH_SECCOMP ?= yes
+ 
+ ##### Global definitions #####
+ 
+-export prefix      = /usr/local
+-export exec_prefix = $(prefix)
+-export bindir      = $(exec_prefix)/bin
+-export libdir      = $(exec_prefix)/lib
+-export docdir      = $(prefix)/share/doc
+-export libdbgdir   = $(prefix)/lib/debug$(libdir)
+-export includedir  = $(prefix)/include
+-export pkgconfdir  = $(libdir)/pkgconfig
++export prefix      ?= /usr/local
++export exec_prefix ?= $(prefix)
++export bindir      ?= $(exec_prefix)/bin
++export libdir      ?= $(exec_prefix)/lib
++export docdir      ?= $(prefix)/share/doc
++export libdbgdir   ?= $(prefix)/lib/debug$(libdir)
++export includedir  ?= $(prefix)/include
++export pkgconfdir  ?= $(libdir)/pkgconfig
+ 
+ export PKG_DIR     ?= $(CURDIR)/pkg
+ export SRCS_DIR    ?= $(CURDIR)/src
+@@ -140,20 +140,22 @@ LIBGO_SYMLINK := $(LIBGO_NAME).so
+ 
+ # Common flags
+ CPPFLAGS := -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 $(CPPFLAGS)
++CCNAME := $(shell $(CC) -v 2>&1 | grep -q "clang version" && echo clang || echo gcc)
+ CFLAGS   := -std=gnu11 -O2 -g -fdata-sections -ffunction-sections -fplan9-extensions -fstack-protector -fno-strict-aliasing -fvisibility=hidden \
+             -Wall -Wextra -Wcast-align -Wpointer-arith -Wmissing-prototypes -Wnonnull \
+             -Wwrite-strings -Wlogical-op -Wformat=2 -Wmissing-format-attribute -Winit-self -Wshadow \
+             -Wstrict-prototypes -Wunreachable-code -Wconversion -Wsign-conversion \
+-            -Wno-unknown-warning-option -Wno-format-extra-args -Wno-gnu-alignof-expression $(CFLAGS)
++            -Wno-format-extra-args $(if $(filter clang,$(CCNAME)),-Wno-unknown-warning-option -Wno-gnu-alignof-expression,) \
++            -I=/usr/include/tirpc $(CFLAGS)
+ LDFLAGS  := -Wl,-zrelro -Wl,-znow -Wl,-zdefs -Wl,--gc-sections $(LDFLAGS)
+ LDLIBS   := $(LDLIBS)
+ 
+ # Library flags (recursively expanded to handle target-specific flags)
+ LIB_CPPFLAGS       = -DNV_LINUX -isystem $(DEPS_DIR)$(includedir) -include $(BUILD_DEFS)
+ LIB_CFLAGS         = -fPIC
+-LIB_LDFLAGS        = -L$(DEPS_DIR)$(libdir) -shared -Wl,-soname=$(LIB_SONAME)
+-LIB_LDLIBS_STATIC  = -l:libnvidia-modprobe-utils.a
+-LIB_LDLIBS_SHARED  = -ldl -lcap
++LIB_LDFLAGS        = -shared -Wl,-soname=$(LIB_SONAME)
++LIB_LDLIBS_STATIC  = -L$(DEPS_DIR)$(libdir) -l:libnvidia-modprobe-utils.a -L=$(libdir) -l:libtirpc.a
++LIB_LDLIBS_SHARED  = -ldl -lcap -lpthread
+ ifeq ($(WITH_NVCGO), yes)
+ LIB_CPPFLAGS       += -DWITH_NVCGO
+ LIB_LDLIBS_SHARED  += -lpthread
+@@ -205,7 +207,11 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
+ $(BUILD_DEFS):
+ 	@printf '#define BUILD_DATE     "%s"\n' '$(strip $(DATE))' >$(BUILD_DEFS)
+ 	@printf '#define BUILD_COMPILER "%s " __VERSION__\n' '$(notdir $(COMPILER))' >>$(BUILD_DEFS)
++ifeq ($(EXCLUDE_BUILD_FLAGS),)
+ 	@printf '#define BUILD_FLAGS    "%s"\n' '$(strip $(CPPFLAGS) $(CFLAGS) $(LDFLAGS))' >>$(BUILD_DEFS)
++else
++	@printf '#define BUILD_FLAGS    ""\n' >>$(BUILD_DEFS)
++endif
+ 	@printf '#define BUILD_REVISION "%s"\n' '$(strip $(REVISION))' >>$(BUILD_DEFS)
+ 	@printf '#define BUILD_PLATFORM "%s"\n' '$(strip $(PLATFORM))' >>$(BUILD_DEFS)
+ 
+@@ -227,17 +233,14 @@ $(LIB_SHARED): $(LIB_OBJS)
+ 	$(OBJCPY) --only-keep-debug $@ $(LIB_SONAME)
+ 	$(OBJCPY) --add-gnu-debuglink=$(LIB_SONAME) $@
+ 	$(MV) $(LIB_SONAME) $(DEBUG_DIR)
+-	$(STRIP) --strip-unneeded -R .comment $@
+ 
+ $(LIB_STATIC_OBJ): $(LIB_OBJS)
+ 	# FIXME Handle user-defined LDFLAGS and LDLIBS
+ 	$(LD) -d -r --exclude-libs ALL -L$(DEPS_DIR)$(libdir) $(OUTPUT_OPTION) $^ $(LIB_LDLIBS_STATIC)
+ 	$(OBJCPY) --localize-hidden $@
+-	$(STRIP) --strip-unneeded -R .comment $@
+ 
+ $(BIN_NAME): $(BIN_OBJS)
+ 	$(CC) $(BIN_CFLAGS) $(BIN_CPPFLAGS) $(BIN_LDFLAGS) $(OUTPUT_OPTION) $^ $(BIN_SCRIPT) $(BIN_LDLIBS)
+-	$(STRIP) --strip-unneeded -R .comment $@
+ 
+ ##### Public rules #####
+ 
+@@ -247,7 +250,6 @@ all: shared static tools
+ # Run with ASAN_OPTIONS="protect_shadow_gap=0" to avoid CUDA OOM errors
+ debug: CFLAGS += -pedantic -fsanitize=undefined -fno-omit-frame-pointer -fno-common -fsanitize=address
+ debug: LDLIBS += -lubsan
+-debug: STRIP  := @echo skipping: strip
+ debug: shared static tools
+ 
+ tools: $(BIN_NAME)
+diff --git a/mk/common.mk b/mk/common.mk
+index f6d5fbf..d46584b 100644
+--- a/mk/common.mk
++++ b/mk/common.mk
+@@ -28,7 +28,7 @@ else
+     DATE := $(shell date -u --iso-8601=minutes)
+ endif
+ REVISION ?= $(shell git rev-parse HEAD)
+-COMPILER := $(realpath $(shell which $(CC)))
++COMPILER := $(realpath $(shell which $(firstword $(CC))))
+ PLATFORM ?= $(shell uname -m)
+ 
+ ifeq ($(DATE),)

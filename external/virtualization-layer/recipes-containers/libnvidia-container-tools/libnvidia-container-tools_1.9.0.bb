@@ -7,8 +7,6 @@ kernel subsystems and is designed to be agnostic of the container runtime. \
 "
 HOMEPAGE = "https://github.com/NVIDIA/libnvidia-container"
 
-COMPATIBLE_MACHINE = "(tegra)"
-
 DEPENDS = " \
     coreutils-native \
     pkgconfig-native \
@@ -17,7 +15,7 @@ DEPENDS = " \
     libtirpc126 \
     ldconfig-native \
 "
-LICENSE = "BSD-3-Clause & MIT & Proprietary"
+LICENSE = "Apache-2.0 & MIT"
 
 # Both source repositories include GPL COPYING (and for
 # libnvidia-container, COPYING.LESSER) files. However:
@@ -29,35 +27,26 @@ LICENSE = "BSD-3-Clause & MIT & Proprietary"
 #   built and used.  All sources for that library are MIT-licensed.
 
 LIC_FILES_CHKSUM = "\
-    file://LICENSE;md5=06cff45c51018e430083a716510821b7 \
+    file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57 \
     file://deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/modprobe-utils/nvidia-modprobe-utils.c;endline=22;md5=8f11a22ea12c5aecde3340212f7fc9a1 \
-    file://deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/modprobe-utils/pci-enum.h;endline=29;md5=b2c0e63b1fa594dcb4f4093247d74a29 \
-    file://deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/modprobe-utils/pci-sysfs.c;endline=25;md5=a5eee0d4ba40238ac5823a33ead29b6d \
-    file://src/cuda.h;endline=48;md5=d212e7eced2562852ccf8267e4811e6f \
+    file://deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/modprobe-utils/pci-enum.h;endline=29;md5=ca948b6fabc48e616fccbf17247feebf \
+    file://deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/modprobe-utils/pci-sysfs.c;endline=25;md5=0449248350efd54938e7f8d25af965cb \
 "
 
-PR = "r1"
-
-NVIDIA_MODPROBE_VERSION = "396.51"
+NVIDIA_MODPROBE_VERSION = "495.44"
 ELF_TOOLCHAIN_VERSION = "0.7.1"
 LIBTIRPC_VERSION = "1.1.4"
 
-SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=libnvidia;branch=jetson \
+SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=libnvidia;branch=master \
            git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=git/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} \
-           file://0001-Makefile-Fix-RCP-flags-and-change-path-definitions-s.patch \
-           file://0002-mk-common.mk-set-JETSON-variable-if-not-set-before.patch \
-           file://0003-Fix-mapping-of-library-paths-for-jetson-mounts.patch \
-           file://0004-Fix-build.h-generation-for-cross-builds.patch \
-           file://0005-Update-makefile-for-statically-linking-external-libt.patch \
+           file://0001-OE-cross-build-fixups.patch \
+           file://0002-Expose-device-file-attrs.patch \
            "
 
-SRC_URI[modprobe.md5sum] = "f82b649e7a0f1d1279264f9494e7cf43"
-SRC_URI[modprobe.sha256sum] = "25bc6437a384be670e9fd76ac2e5b9753517e23eb16e7fa891b18537b70c4b20"
-
-
-SRCREV_libnvidia = "61f57bcdf7aa6e73d9a348a7e36ec9fd94128fb2"
-# Nvidia modprobe version 396.51
-SRCREV_modprobe = "d97c08af5061f1516fb2e3a26508936f69d6d71d"
+# tag: v1.9.0
+SRCREV_libnvidia = "5e135c17d6dbae861ec343e9a8d3a0d2af758a4f"
+# Nvidia modprobe version 495.44
+SRCREV_modprobe = "292409904a5d18163fc7d1fbc11f98627324b82a"
 SRCREV_FORMAT = "libnvidia_modprobe"
 
 S = "${WORKDIR}/git"
@@ -65,17 +54,9 @@ S = "${WORKDIR}/git"
 PACKAGECONFIG ??= ""
 PACKAGECONFIG[seccomp] = "WITH_SECCOMP=yes,WITH_SECCOMP=no,libseccomp"
 
-def build_date(d):
-    import datetime
-    epoch = d.getVar('SOURCE_DATE_EPOCH')
-    if epoch:
-        dt = datetime.datetime.fromtimestamp(int(epoch), tz=datetime.timezone.utc)
-        return 'DATE=' + dt.isoformat(timespec='minutes')
-    return ''
-
 # We need to link with libelf, otherwise we need to
 # include bmake-native which does not exist at the moment.
-EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} JETSON=TRUE WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${@build_date(d)} ${PACKAGECONFIG_CONFARGS}"
+EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} WITH_NVCGO=no WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${PACKAGECONFIG_CONFARGS}"
 
 CFLAGS:prepend = " -I=/usr/include/tirpc-1.2.6 "
 
@@ -89,6 +70,8 @@ do_configure:append() {
 
 do_install () {
     oe_runmake install DESTDIR=${D}
+    # See note about licensing above
+    find ${D}${datadir}/doc -type f -name 'COPYING*' -delete
 }
 
-INSANE_SKIP:${PN} = "already-stripped"
+RDEPENDS:${PN}:append:tegra = " libnvidia-container-jetson"
