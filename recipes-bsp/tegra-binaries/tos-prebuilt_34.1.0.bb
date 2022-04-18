@@ -6,6 +6,7 @@ INHIBIT_DEFAULT_DEPS = "1"
 
 TOSIMG_PREBUILT = "tos-trusty.img"
 TOSIMG_PREBUILT:tegra194 = "tos-optee_t194.img"
+TOSIMG_PREBUILT:tegra234 = "tos-mon-only_t234.img"
 PREFERRED_PROVIDER_virtual/secure-os ??= ""
 PROVIDES = "trusted-os virtual/secure-os"
 TOS_IMAGE ?= "tos-${MACHINE}-${PV}-${PR}.img"
