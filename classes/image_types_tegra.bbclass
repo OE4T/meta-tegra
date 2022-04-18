@@ -58,6 +58,7 @@ TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD ??=""
 
 TOSIMGFILENAME = "tos-optee.img"
 TOSIMGFILENAME:tegra194 = "tos-optee_t194.img"
+TOSIMGFILENAME:tegra234 = "tos-mon-only_t234.img"
 
 BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
 FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
@@ -86,6 +87,16 @@ tegraflash_post_sign_pkg() {
 }
 
 tegraflash_post_sign_pkg:tegra194() {
+    mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
+    [ "${TEGRA_SPIFLASH_BOOT}" = "1" -o "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ] || rm -f ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
+    if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" -a "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" != "1" ]; then
+        mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_DATA}" ${DATAFILE}.img
+        sed -i -e"s,DATAFILE,${DATAFILE}.img," secureflash.xml
+    fi
+}
+
+tegraflash_post_sign_pkg:tegra234() {
     mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     [ "${TEGRA_SPIFLASH_BOOT}" = "1" -o "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ] || rm -f ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
@@ -233,6 +244,35 @@ BOOTFILES:tegra194 = "\
     xusb_sil_rel_fw \
 "
 
+BOOTFILES:tegra234 = "\
+    adsp-fw.bin \
+    applet_t234.bin \
+    ${BPF_FILE} \
+    camera-rtcpu-t234-rce.img \
+    eks.img \
+    mb1_t234_prod.bin \
+    mb2_t234.bin \
+    preboot_c10_prod_cr.bin \
+    mce_c10_prod_cr.bin \
+    mts_c10_prod_cr.bin \
+    nvtboot_cpurf_t234.bin \
+    spe_t234.bin \
+    psc_bl1_t234_prod.bin \
+    pscfw_t234_prod.bin \
+    mce_flash_o10_cr_prod.bin \
+    sc7_t234_prod.bin \
+    dce.bin \
+    psc_rf_t234_prod.bin \
+    nvdec_t234_prod.fw \
+    xusb_t234_prod.bin \
+    tegrabl_carveout_id.h \
+    pinctrl-tegra.h \
+    tegra234-gpio.h \
+    gpio.h \
+    readinfo_t234_min_prod.xml \
+    camera-rtcpu-sce.img \
+"
+
 create_tegraflash_pkg() {
     :
 }
@@ -333,6 +373,115 @@ END
     tegraflash_finalize_pkg
     cd $oldwd
 }
+
+create_tegraflash_pkg:tegra234() {
+    local f
+    PATH="${STAGING_BINDIR_NATIVE}/tegra234-flash:${PATH}"
+    rm -rf "${WORKDIR}/tegraflash"
+    mkdir -p "${WORKDIR}/tegraflash"
+    oldwd=`pwd`
+    cd "${WORKDIR}/tegraflash"
+    cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
+    cp "${STAGING_DATADIR}/tegraflash/${EMMC_BCT}" .
+    cp "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
+    cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./esp.img
+    if [ -n "${DATAFILE}" -a -n "${IMAGE_TEGRAFLASH_DATA}" ]; then
+        cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
+        DATAARGS="--datafile ${DATAFILE}"
+    fi
+    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
+    if [ -n "${KERNEL_ARGS}" ]; then
+        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
+    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
+        fdtput -d ./${DTBFILE} /chosen bootargs
+    fi
+    cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./uefi_jetson.bin
+    cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
+    for f in ${BOOTFILES}; do
+        cp "${STAGING_DATADIR}/tegraflash/$f" .
+    done
+    if [ -e "${STAGING_DATADIR}/tegraflash/cbo.dtb" ]; then
+        cp "${STAGING_DATADIR}/tegraflash/cbo.dtb" .
+    else
+	rm -f ./cbo.dtb
+    fi
+    rm -f ./slot_metadata.bin
+    cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
+
+    # Copy and update flashvars
+    cp ${STAGING_DATADIR}/tegraflash/flashvars .
+    sed -i -e "s/@BPF_FILE@/${BPF_FILE}/" \
+    -e "s/@BPFDTB_FILE@/${BPFDTB_FILE}/" \
+    -e "s/@TBCDTB_FILE@/${TBCDTB_FILE}/" \
+    -e "s/@WB0SDRAM_BCT@/${WB0SDRAM_BCT}/" \
+    -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" \
+    ./flashvars
+
+    for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dts*; do
+        cp $f .
+    done
+    for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dtbo; do
+        cp $f .
+    done
+    for f in ${STAGING_DATADIR}/tegraflash/tegra234-bpmp-*.dtb; do
+        cp $f .
+    done
+    if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
+        cp -R ${STAGING_BINDIR_NATIVE}/tegra234-flash/* .
+        rm ./rollback_parser.py
+        tegraflash_generate_bupgen_script
+    fi
+
+    if [ -e ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ]; then
+        cp ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ./odmfuse_pkc.xml
+    fi
+    tegraflash_custom_pre
+    cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
+    rm -f doflash.sh
+    cat > doflash.sh <<END
+#!/bin/sh
+MACHINE=${MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra234-flash-helper.sh $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCT} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+END
+    chmod +x doflash.sh
+
+    if [ -e ./odmfuse_pkc.xml ]; then
+        cat > burnfuses.sh <<END
+#!/bin/sh
+MACHINE=${MACHINE} ./tegra234-flash-helper.sh -c "burnfuses odmfuse_pkc.xml" --no-flash $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCT} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+END
+        chmod +x burnfuses.sh
+    fi
+
+    if [ "${TEGRA_SPIFLASH_BOOT}" = "1" ]; then
+        rm -f dosdcard.sh
+        cat > dosdcard.sh <<END
+#!/bin/sh
+MACHINE=${MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra234-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCT} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+END
+        chmod +x dosdcard.sh
+    elif [ "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ]; then
+        rm -f doflash.sh
+        cat > doflash.sh <<END
+#!/bin/sh
+./nvflashxmlparse --split=flash-sdcard.xml.in --output=flash-mmc.xml.in --sdcard-size=${TEGRAFLASH_SDCARD_SIZE} flash.xml.in
+MACHINE=${MACHINE} ./tegra234-flash-helper.sh $DATAARGS flash-mmc.xml.in ${DTBFILE} ${EMMC_BCT} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+END
+        chmod +x doflash.sh
+        rm -f dosdcard.sh
+        cat > dosdcard.sh <<END
+#!/bin/sh
+./nvflashxmlparse --split=flash-sdcard.xml.in --output=flash-mmc.xml.in --sdcard-size=${TEGRAFLASH_SDCARD_SIZE} flash.xml.in
+MACHINE=${MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} BOARDREV=\${BOARDREV:-${TEGRA_BOARDREV}} ./tegra234-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash-sdcard.xml.in ${DTBFILE} ${EMMC_BCT} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+END
+        chmod +x dosdcard.sh
+    fi
+    tegraflash_custom_post
+    tegraflash_custom_sign_pkg
+    tegraflash_finalize_pkg
+    cd $oldwd
+}
+
 create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
 def tegraflash_bupgen_strip_cmd(d):
@@ -423,10 +572,20 @@ oe_make_bup_payload() {
         for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
             cp $f .
         done
+    elif [ "${SOC_FAMILY}" = "tegra234" ]; then
+        for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dts*; do
+            cp $f .
+        done
+        for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dtbo; do
+            cp $f .
+        done
+        for f in ${STAGING_DATADIR}/tegraflash/tegra234-*-bpmp-*.dtb; do
+            cp $f .
+        done
+    fi
 	if [ -e ${STAGING_DATADIR}/tegraflash/cbo.dtb ]; then
             cp ${STAGING_DATADIR}/tegraflash/cbo.dtb .
 	fi
-    fi
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
         cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         boardcfg=board_config_${MACHINE}.xml
