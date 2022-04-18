@@ -46,6 +46,10 @@ do_install:append:tegra194() {
     install -m 0644 ${S}/etc/X11/xorg.conf.t194_ref ${D}${sysconfdir}/X11/xorg.conf
 }
 
+do_install:append:tegra243() {
+    install -m 0644 ${S}/etc/X11/xorg.conf ${D}${sysconfdir}/X11/xorg.conf
+}
+
 PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup ${PN}-container-csv"
 FILES:${PN}-udev = "${sysconfdir}/udev/rules.d"
 FILES:${PN}-xorg = "${sysconfdir}/X11"
