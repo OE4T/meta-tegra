@@ -1,7 +1,7 @@
 HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD-3-Clause"
 
-L4T_DEB_SOCNAME = "t194"
+L4T_DEB_SOCNAME ?= "t194"
 SRC_SOC_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}_arm64.deb;subdir=tegra-mmapi"
 PV .= "${@l4t_bsp_debian_version_suffix(d)}"
 
