@@ -163,9 +163,13 @@ bootimg_from_bundled_initramfs() {
 do_deploy:append:tegra194() {
     bootimg_from_bundled_initramfs
 }
+do_deploy:append:tegra234() {
+    bootimg_from_bundled_initramfs
+}
 
 EXTRADEPLOYDEPS = ""
 EXTRADEPLOYDEPS:tegra194 = "tegra194-flashtools-native:do_populate_sysroot"
+EXTRADEPLOYDEPS:tegra234 = "tegra234-flashtools-native:do_populate_sysroot"
 do_deploy[depends] += "${EXTRADEPLOYDEPS}"
 
 COMPATIBLE_MACHINE = "(tegra)"
