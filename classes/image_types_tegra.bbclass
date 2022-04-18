@@ -177,6 +177,40 @@ tegraflash_create_flash_config:tegra194() {
         > $destdir/flash.xml.in
 }
 
+tegraflash_create_flash_config:tegra234() {
+    local destdir="$1"
+    local lnxfile="$2"
+
+    cat "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | sed \
+        -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
+        -e"s,MB1FILE,mb1_t234_prod.bin," \
+        -e"s,CAMERAFW,camera-rtcpu-t234-rce.img," \
+        -e"s,SPEFILE,spe_t234.bin," \
+        -e"s,TOSFILE,${TOSIMGFILENAME}," \
+        -e"s,EKSFILE,eks.img," \
+        -e"s,RECNAME,recovery," -e"s,RECSIZE,66060288," -e"s,RECDTB-NAME,recovery-dtb," \
+        -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
+        -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
+        -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
+        -e"s,PSCBL1FILE,psc_bl1_t234_prod.bin," \
+        -e"s,TSECFW,," \
+        -e"s,NVHOSTNVDEC,nvdec_t234_prod.fw," \
+        -e"s,MB2BLFILE,mb2_t234.bin," \
+        -e"s,XUSB_FW,xusb_t234_prod.bin," \
+        -e"s,BPFFILE,${BPF_FILE}," \
+        -e"s,BPFDTB_FILE,${BPFDTB_FILE}," \
+        -e"s,PSCFW,pscfw_t234_prod.bin," \
+        -e"s,MCE_IMAGE,mce_flash_o10_cr_prod.bin," \
+        -e"s,WB0FILE,sc7_t234_prod.bin," \
+        -e"s,PSCRF_IMAGE,psc_rf_t234_prod.bin," \
+        -e"s,MB2RF_IMAGE,nvtboot_cpurf_t234.bin," \
+        -e"s,TBCDTB-FILE,uefi_jetson_with_dtb.bin," \
+        -e"s,DCE,dce.bin," \
+        -e"s,APPUUID,," \
+	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
+        > $destdir/flash.xml.in
+}
+
 BOOTFILES = ""
 
 BOOTFILES:tegra194 = "\
