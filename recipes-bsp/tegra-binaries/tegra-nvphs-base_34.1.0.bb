@@ -15,6 +15,7 @@ SRC_URI[init.sha256sum] = "${INITSUM}"
 NVPHSD_MACHINE_CONF = "nvphsd.conf"
 NVPHSD_MACHINE_CONF:tegra186 = "nvphsd.conf.t186"
 NVPHSD_MACHINE_CONF:tegra194 = "nvphsd.conf.t194"
+NVPHSD_MACHINE_CONF:tegra234 = "nvphsd_common.conf"
 
 do_install() {
     install -d ${D}${sbindir} ${D}${sysconfdir} ${D}${libdir}
