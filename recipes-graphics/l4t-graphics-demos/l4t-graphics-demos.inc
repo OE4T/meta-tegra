@@ -2,7 +2,7 @@ HOMEPAGE = "https://developer.nvidia.com/embedded"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-L4T_DEB_SOCNAME = "t194"
+L4T_DEB_SOCNAME ?= "t194"
 SRC_SOC_DEBS = "nvidia-l4t-graphics-demos_${PV}_arm64.deb;subdir=l4t-graphics-demos"
 PV .= "${@l4t_bsp_debian_version_suffix(d)}"
 
