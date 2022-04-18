@@ -46,7 +46,7 @@ do_install:append:tegra194() {
     install -m 0644 ${S}/etc/X11/xorg.conf.t194_ref ${D}${sysconfdir}/X11/xorg.conf
 }
 
-do_install:append:tegra243() {
+do_install:append:tegra234() {
     install -m 0644 ${S}/etc/X11/xorg.conf ${D}${sysconfdir}/X11/xorg.conf
 }
 
