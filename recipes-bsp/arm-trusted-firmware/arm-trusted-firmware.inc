@@ -10,7 +10,7 @@ HOMEPAGE = "https://www.github.com/ARM-software/arm-trusted-firmware"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://docs/license.rst;md5=b2c740efedc159745b9b31f88ff03dde"
 
-COMPATIBLE_MACHINE = "(tegra186|tegra194)"
+COMPATIBLE_MACHINE = "(tegra186|tegra194|tegra234)"
 
 PACKAGECONFIG ??= "optee"
 PACKAGECONFIG[trusty] = "SPD=trusty"
