@@ -7,7 +7,7 @@ INHIBIT_DEFAULT_DEPS = "1"
 inherit native
 
 SRC_URI = " \
-    file://tegra194-flash-helper.sh \
+    file://${SOC_FAMILY}-flash-helper.sh \
     file://nvflashxmlparse.py \
     file://make-sdcard.sh \
     file://tegra-signimage-helper.sh \
@@ -16,9 +16,9 @@ SRC_URI = " \
 S = "${WORKDIR}"
 
 do_install() {
-    install -d ${D}${bindir}/tegra194-flash
-    install -m 0755 ${S}/tegra194-flash-helper.sh ${D}${bindir}/tegra194-flash/
-    install -m 0755 ${S}/nvflashxmlparse.py ${D}${bindir}/tegra194-flash/nvflashxmlparse
-    install -m 0755 ${S}/make-sdcard.sh ${D}${bindir}/tegra194-flash/make-sdcard
-    install -m 0755 ${S}/tegra-signimage-helper.sh ${D}${bindir}/tegra194-flash/tegra-signimage-helper
+    install -d ${D}${bindir}/${SOC_FAMILY}-flash
+    install -m 0755 ${S}/${SOC_FAMILY}-flash-helper.sh ${D}${bindir}/${SOC_FAMILY}-flash/
+    install -m 0755 ${S}/nvflashxmlparse.py ${D}${bindir}/${SOC_FAMILY}-flash/nvflashxmlparse
+    install -m 0755 ${S}/make-sdcard.sh ${D}${bindir}/${SOC_FAMILY}-flash/make-sdcard
+    install -m 0755 ${S}/tegra-signimage-helper.sh ${D}${bindir}/${SOC_FAMILY}-flash/tegra-signimage-helper
 }
