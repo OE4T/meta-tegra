@@ -38,6 +38,3 @@ L4T_DEB_SOCNAME = "t234"
 NVPMODEL ?= "nvpmodel_p3701_0000"
 NVPOWER ?= "jetsonpower_t234"
 NVFANCONTROL ?= "nvfancontrol_p3701_0000"
-
-# L4T_BSP_NAME = "T186"
-# L4T_SRCS_NAME = "Sources/T186"

@@ -1,6 +1,4 @@
 SOC_FAMILY = "tegra234"
-L4T_BSP_NAME = "T186"
-L4T_BSP_PREFIX = "Jetson"
 
 require tegra-binaries-${PV}.inc
 
