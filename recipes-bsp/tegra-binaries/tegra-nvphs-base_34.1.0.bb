@@ -19,16 +19,11 @@ INITSUM = "aae9f9cf02fd0a0159f772b3582422164989131617a971df8ebdbff1339c59fd"
 >>>>>>>> 390a51f3 (tegra-binaries: update for 34.1.0):recipes-bsp/tegra-binaries/tegra-nvphs-base_34.1.0.bb
 SRC_URI[init.sha256sum] = "${INITSUM}"
 
-NVPHSD_MACHINE_CONF = "nvphsd.conf"
-NVPHSD_MACHINE_CONF:tegra186 = "nvphsd.conf.t186"
-NVPHSD_MACHINE_CONF:tegra194 = "nvphsd.conf.t194"
-NVPHSD_MACHINE_CONF:tegra234 = "nvphsd_common.conf"
-
 do_install() {
     install -d ${D}${sbindir} ${D}${sysconfdir} ${D}${libdir}
     install -m 0755 ${S}/usr/sbin/nvphs* ${S}/usr/sbin/nvsetprop ${D}${sbindir}/
     install -m 0644 ${S}/etc/nvphsd_common.conf ${D}${sysconfdir}/
-    install -m 0644 ${S}/etc/${NVPHSD_MACHINE_CONF} ${D}${sysconfdir}/nvphsd.conf
+    install -m 0644 ${S}/etc/nvphsd.conf.t194 ${D}${sysconfdir}/
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/tegra/libnvphsd* ${D}${libdir}/
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/tegra/libnvgov* ${D}${libdir}/
 }
