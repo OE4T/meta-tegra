@@ -33,6 +33,7 @@ XUSBDEPS:tegra194 = "${PN}-tegra194-xusb"
 RDEPENDS:${PN}-xusb = "${XUSBDEPS}"
 FWDEPS = ""
 FWDEPS:tegra194 = "${PN}-tegra194 ${PN}-vic"
+FWDEPS:tegra234 = "${PN}-tegra234 ${PN}-vic"
 RDEPENDS:${PN} = "${FWDEPS} ${PN}-xusb"
 
 INHIBIT_PACKAGE_STRIP = "1"
