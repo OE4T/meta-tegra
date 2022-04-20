@@ -8,6 +8,7 @@ inherit native
 
 SRC_URI = " \
     file://tegra194-flash-helper.sh \
+    file://tegra234-flash-helper.sh \
     file://nvflashxmlparse.py \
     file://make-sdcard.sh \
     file://tegra-signimage-helper.sh \
