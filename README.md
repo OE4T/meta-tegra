@@ -22,7 +22,7 @@ Also supported thanks to community support:
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
-branch: master
+branch: kirkstone
 LAYERSERIES_COMPAT: kirkstone
 
 
