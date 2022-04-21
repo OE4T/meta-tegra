@@ -38,3 +38,5 @@ L4T_DEB_SOCNAME = "t234"
 NVPMODEL ?= "nvpmodel_p3701_0000"
 NVPOWER ?= "jetsonpower_t234"
 NVFANCONTROL ?= "nvfancontrol_p3701_0000"
+
+MACHINE_EXTRA_RRECOMMENDS += "nvidia-display-driver"
