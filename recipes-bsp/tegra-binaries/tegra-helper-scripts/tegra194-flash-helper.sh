@@ -221,7 +221,7 @@ case "$boardid" in
 esac
 
 ramcodeargs=
-if [ "$board_id" = "2888" -a "$board_sku" = "0008" ]; then
+if [ "$boardid" = "2888" -a "$board_sku" = "0008" ]; then
     # AGX Xavier Industrial
     ramcodeargs="--ramcode 1"
 fi
