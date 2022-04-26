@@ -231,10 +231,10 @@ case "$boardid" in
 esac
 
 ramcodeargs=
-if [ "$board_id" = "2888" -a "$board_sku" = "0004" ]; then
+if [ "$boardid" = "2888" -a "$board_sku" = "0004" ]; then
     # 32GB AGX Xavier
     ramcodeargs="--ramcode 2"
-elif [ "$board_id" = "3668" -a "$board_version" = "301" ]; then
+elif [ "$boardid" = "3668" -a "$board_version" = "301" ]; then
     # Xavier NX A03
     ramcodeargs="--ramcode 1"
 fi
