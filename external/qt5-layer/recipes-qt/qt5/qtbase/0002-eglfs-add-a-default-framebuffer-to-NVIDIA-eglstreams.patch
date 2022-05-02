@@ -1,4 +1,4 @@
-From 21c76227755fd8820887997d2abec29d02045018 Mon Sep 17 00:00:00 2001
+From dca3ec9fd32197f239f22c5ba4710a95e6d6e169 Mon Sep 17 00:00:00 2001
 From: Kurt Kiefer <kurt.kiefer@arthrex.com>
 Date: Thu, 14 Apr 2022 14:35:32 -0700
 Subject: [PATCH] eglfs: add a default framebuffer to NVIDIA eglstreams
@@ -9,13 +9,14 @@ the output mode but not issue a page flip.
 
 This change adds a default framebuffer to the egldevice driver for
 use with the initial calls to set the CRTC mode and plane.
+
 ---
- .../qeglfskmsegldevicescreen.cpp              | 61 ++++++++++++++++++-
+ .../qeglfskmsegldevicescreen.cpp              | 66 +++++++++++++++++--
  .../qeglfskmsegldevicescreen.h                |  3 +
- 2 files changed, 62 insertions(+), 2 deletions(-)
+ 2 files changed, 65 insertions(+), 4 deletions(-)
 
 diff --git a/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms_egldevice/qeglfskmsegldevicescreen.cpp b/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms_egldevice/qeglfskmsegldevicescreen.cpp
-index 5a62e437c4..f65f675e0f 100644
+index 5a62e437c4..55e5e2048c 100644
 --- a/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms_egldevice/qeglfskmsegldevicescreen.cpp
 +++ b/src/plugins/platforms/eglfs/deviceintegration/eglfs_kms_egldevice/qeglfskmsegldevicescreen.cpp
 @@ -49,11 +49,68 @@ Q_DECLARE_LOGGING_CATEGORY(qLcEglfsKmsDebug)
@@ -87,7 +88,21 @@ index 5a62e437c4..f65f675e0f 100644
      const int remainingScreenCount = qGuiApp->screens().count();
      qCDebug(qLcEglfsKmsDebug, "Screen dtor. Remaining screens: %d", remainingScreenCount);
      if (!remainingScreenCount && !device()->screenConfig()->separateScreens())
-@@ -98,7 +155,7 @@ void QEglFSKmsEglDeviceScreen::waitForFlip()
+@@ -87,10 +144,11 @@ void QEglFSKmsEglDeviceScreen::waitForFlip()
+         if (currentMode)
+             drmModeFreeCrtc(currentMode);
+         if (alreadySet) {
++            static bool ok = false;
+             // Maybe detecting the DPMS mode could help here, but there are no properties
+             // exposed on the connector apparently. So rely on an env var for now.
+-            static bool alwaysDoSet = qEnvironmentVariableIntValue("QT_QPA_EGLFS_ALWAYS_SET_MODE");
+-            if (!alwaysDoSet) {
++            static bool alwaysDoSet = qEnvironmentVariableIntValue("QT_QPA_EGLFS_ALWAYS_SET_MODE", &ok);
++            if (ok ? !alwaysDoSet : false) {
+                 qCDebug(qLcEglfsKmsDebug, "Mode already set");
+                 return;
+             }
+@@ -98,7 +156,7 @@ void QEglFSKmsEglDeviceScreen::waitForFlip()
  
          qCDebug(qLcEglfsKmsDebug, "Setting mode");
          int ret = drmModeSetCrtc(fd, op.crtc_id,
@@ -96,7 +111,7 @@ index 5a62e437c4..f65f675e0f 100644
                                   &op.connector_id, 1,
                                   &op.modes[op.mode]);
          if (ret)
-@@ -110,7 +167,7 @@ void QEglFSKmsEglDeviceScreen::waitForFlip()
+@@ -110,7 +168,7 @@ void QEglFSKmsEglDeviceScreen::waitForFlip()
  
          if (op.wants_forced_plane) {
              qCDebug(qLcEglfsKmsDebug, "Setting plane %u", op.forced_plane_id);
