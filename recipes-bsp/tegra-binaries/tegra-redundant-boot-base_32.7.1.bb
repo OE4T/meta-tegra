@@ -9,7 +9,7 @@ require tegra-debian-libraries-common.inc
 MAINSUM = "25a6e3a394d879edaee76de33b90d6d6b24219e212a5024c2c9fdbeb1b67603d"
 MAINSUM:tegra210 = "c5ad8c7c1e8508e37aa33bd990840b320c6261fc542cd9cbae5834058b2a7122"
 
-SRC_URI:append:tegra210 = " file://Convert-l4t_payload_updater_t210-to-Python3.patch"
+SRC_URI:append:tegra210 = " file://Convert-l4t_payload_updater_t210-to-Python3-R32.7.1.patch"
 
 do_install() {
 	install -d ${D}${sbindir}
