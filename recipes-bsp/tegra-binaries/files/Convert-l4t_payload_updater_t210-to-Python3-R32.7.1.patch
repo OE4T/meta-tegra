@@ -1,0 +1,122 @@
+Index: build/usr/sbin/l4t_payload_updater_t210
+===================================================================
+--- build.orig/usr/sbin/l4t_payload_updater_t210
++++ build/usr/sbin/l4t_payload_updater_t210
+@@ -1,4 +1,4 @@
+-#!/usr/bin/python
++#!/usr/bin/env python3
+ #
+ # Copyright (c) 2019-2021, NVIDIA CORPORATION.  All rights reserved.
+ #
+@@ -23,8 +23,8 @@
+     import commands
+
+ if sys.hexversion < 0x02070000:
+-  print >> sys.stderr, "Python 2.7 or newer is required."
+-  sys.exit(1)
++    print >> sys.stderr, "Python 2.7 or newer is required."
++    sys.exit(1)
+
+ def parse_args():
+     parser = argparse.ArgumentParser(description=textwrap.dedent('''\
+@@ -314,15 +314,13 @@
+         return boot_dev_size
+
+     def _get_board_type(self):
+-        if "jetson-nano-devkit-emmc" in self.system_spec:
+-            return "nano-emmc"
+-        elif "jetson-nano-devkit" in self.system_spec:
+-            return "nano-qspi-sd"
+-        elif "jetson-nano-qspi" in self.system_spec:
+-            return "nano-qspi"
+-        elif "jetson-nano-2gb-devkit" in self.system_spec:
+-            return "nano-qspi-sd"
+-        elif "jetson-tx1-devkit" in self.system_spec:
++        boardid, fab, sku = self.system_spec.split('-')[:3]
++        if boardid == "3448":
++            if sku in ["0000", "0003"]:
++                return "nano-qspi-sd"
++            if sku == "0002":
++                return "nano-emmc"
++        elif boardid == "2180":
+             return "tx1"
+         else:
+             sys.stderr.write("Error. Invalid board config name " + self.system_spec + "\r\n")
+@@ -395,7 +393,7 @@
+         main_boot_dev_path = boot_dev_info['main']['dev_path']
+
+
+-        if main_boot_dev_path is not "":
++        if main_boot_dev_path != "":
+             main_boot_dev = open(main_boot_dev_path, 'rb')
+
+             boot_block_size_log_2 = self._get_bct_prop(bct_device=main_boot_dev, bct_base_offset=0, bct_property="boot_block_size_log_2")
+@@ -778,7 +776,7 @@
+                 self._skip_boot_parts()
+                 continue
+
+-            if part_name_base is 'BCT' and part_name is not 'BCT':
++            if part_name_base == 'BCT' and part_name != 'BCT':
+                 # all entries in "boot_part_name_update_order_list" containing "BCT" become
+                 # aliases of the one updatable BCT entry in the payload, each BCT alias will
+                 # simply have a different intra_part_offset so that the same payload image
+@@ -786,7 +784,7 @@
+                 blob_entry = copy.deepcopy(blob_entry)
+                 blob_entry['intra_part_offset'] = bct_offset
+                 blob_entry['part_name'] = part_name
+-            elif part_name is 'NVC_R' or part_name is 'NVC-1' or part_name is 'VER_b' or part_name in BFS1_list or part_name in KFS1_list:
++            elif part_name == 'NVC_R' or part_name == 'NVC-1' or part_name == 'VER_b' or part_name in BFS1_list or part_name in KFS1_list:
+                 # similarily for "NVC_R" or "NVC-1" or "BFS-1" or "KFS-1" or VER_b,
+                 # they will be an alias to the one updatable payload entry
+                 # and will be copied to the system under the those partition if one exists
+@@ -1053,7 +1051,7 @@
+                 sys.exit(1)
+
+         for blob_entry in self.blob_entry_list:
+-            if blob_entry['updatable'] == False:
++            if blob_entry['updatable'] is False:
+                 continue
+
+             part_name = str(blob_entry['part_name'])
+@@ -1167,9 +1165,9 @@
+             try:
+                 boot_partition_wr_en = open(self.system_boot_dev_info[dev]['write_en_path'], 'r+')
+
+-                if write_enable == True:
++                if write_enable is True:
+                     boot_partition_wr_en.write(str(0))
+-                elif write_enable == False:
++                elif write_enable is False:
+                     boot_partition_wr_en.write(str(1))
+
+                 boot_partition_wr_en.close()
+@@ -1188,7 +1186,7 @@
+         print ("Uncompressed\r\n" \
+               "   Blob Size: " + "{:,}".format(self.blob_header_dict['uncomp_blob_size']) + " bytes")
+         print ("   Accessory:", end=" ")
+-        if self.accessory_present == True:
++        if self.accessory_present is True:
+             print (format(self.blob_header_dict['accessory'], "#018x"))
+         else:
+             print ("Not Present")
+@@ -1198,9 +1196,9 @@
+         print ("ENTRY TABLE:")
+         print ("|", end=" ")
+         for idx, entry_name in enumerate(self.entry_name_tuple):
+-            if entry_name is "intra_part_offset":
++            if entry_name == "intra_part_offset":
+                 continue
+-            elif (entry_name is "updatable") and (self.print_all is False):
++            elif (entry_name == "updatable") and (self.print_all is False):
+                 continue
+             else:
+                 print (entry_name.center(self.blob_entry_max_width_list[idx]) + " |", end=" ")
+@@ -1239,7 +1237,7 @@
+             self._set_boot_part_write_en(write_enable=True)
+
+         for blob_entry in self.blob_entry_list:
+-            if blob_entry['updatable'] == False:
++            if blob_entry['updatable'] is False:
+                 continue
+
+             skip_write = False
