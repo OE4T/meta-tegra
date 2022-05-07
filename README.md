@@ -23,7 +23,7 @@ Also supported thanks to community support:
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: master
-LAYERSERIES_COMPAT: kirkstone
+LAYERSERIES_COMPAT: langdale
 
 
 CUDA toolchain compatibility note
