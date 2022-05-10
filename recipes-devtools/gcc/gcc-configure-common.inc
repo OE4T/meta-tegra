@@ -17,6 +17,7 @@ GCCPIE ??= ""
 
 EXTRA_OECONF = "\
     --enable-version-specific-runtime-libs \
+    --with-gxx-include-dir=${includedir}/c++/${BINV} \
     ${@['--enable-clocale=generic', ''][d.getVar('USE_NLS') != 'no']} \
     --with-gnu-ld \
     --enable-shared \
