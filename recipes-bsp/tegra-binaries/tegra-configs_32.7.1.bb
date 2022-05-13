@@ -23,6 +23,7 @@ SRC_URI[x11.sha256sum] = "${X11SUM}"
 SRC_URI += "\
     file://0001-Patch-udev-rules-for-OE-use.patch \
     file://0002-Patch-nv.sh-script-for-OE-use.patch \
+    file://nv-l4t-bootloader-config.sh \
 "
 
 do_install() {
@@ -32,6 +33,9 @@ do_install() {
     install -m 0644 ${S}/etc/udev/rules.d/99-tegra-devices.rules ${D}${sysconfdir}/udev/rules.d
     install -m 0644 ${S}/etc/udev/rules.d/99-tegra-mmc-ra.rules ${D}${sysconfdir}/udev/rules.d
     install -m 0644 ${S}/etc/udev/rules.d/99-nv-l4t-usb-host-config.rules ${D}${sysconfdir}/udev/rules.d
+
+    install -d ${D}/opt/nvidia/l4t-bootloader-config
+    install -m 0755 ${WORKDIR}/nv-l4t-bootloader-config.sh ${D}/opt/nvidia/l4t-bootloader-config/nv-l4t-bootloader-config.sh
 
     install -d ${D}${sysconfdir}/X11
 
@@ -48,10 +52,12 @@ do_install:append:tegra210() {
     install -m 0644 ${S}/etc/X11/xorg.conf ${D}${sysconfdir}/X11/
 }
 
-PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup"
+PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup ${PN}-bootloader"
 FILES:${PN}-udev = "${sysconfdir}/udev/rules.d"
 FILES:${PN}-xorg = "${sysconfdir}/X11"
 FILES:${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
 FILES:${PN}-nvstartup = "${sbindir}"
+FILES_${PN}-bootloader = "/opt/nvidia/l4t-bootloader-config/"
 RDEPENDS:${PN}-udev = "udev"
 RDEPENDS:${PN}-nvstartup = "bash"
+RDEPENDS_${PN}-bootloader = "bash"

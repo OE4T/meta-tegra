@@ -28,7 +28,7 @@ do_install:tegra210() {
 PACKAGES = "tegra-redundant-boot-nvbootctrl ${PN} ${PN}-dev"
 FILES:tegra-redundant-boot-nvbootctrl = "${sbindir}/nvbootctrl"
 FILES:${PN} += "/opt/ota_package"
-RDEPENDS:${PN} = "tegra-redundant-boot-nvbootctrl setup-nv-boot-control-service"
+RDEPENDS:${PN} = "tegra-redundant-boot-nvbootctrl setup-nv-boot-control-service tegra-configs-bootloader"
 RDEPENDS:${PN}:tegra210 = "setup-nv-boot-control-service python3-core"
 INSANE_SKIP:${PN} = "ldflags"
 RDEPENDS:tegra-redundant-boot-nvbootctrl = "setup-nv-boot-control"
