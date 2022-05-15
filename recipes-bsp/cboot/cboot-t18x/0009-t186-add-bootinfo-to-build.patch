@@ -1,7 +1,7 @@
-From c8464b48b01c888e9f946b827518f41698fc3364 Mon Sep 17 00:00:00 2001
+From 8311ca25bd5e5be5bcac14ff7ef5253b7cc8bf97 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 28 Dec 2020 07:48:50 -0800
-Subject: [PATCH 8/9] t186: add bootinfo to build
+Subject: [PATCH 09/14] t186: add bootinfo to build
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -21,5 +21,5 @@ index 049adac..8569cc8 100644
  
  GLOBAL_INCLUDES += \
 -- 
-2.27.0
+2.34.1
 

@@ -1,7 +1,7 @@
-From d5ee869bef3947f2cbb99089e433a7b4db908c41 Mon Sep 17 00:00:00 2001
+From c2a3fdc201d9acc431c9066900538100657109b3 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 10 Jul 2021 04:31:11 -0700
-Subject: [PATCH] Restore fallback path for failed extlinux booting
+Subject: [PATCH 12/17] Restore fallback path for failed extlinux booting
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -36,5 +36,5 @@ index 64cb399..182cd3c 100644
  
  fallback:
 -- 
-2.30.2
+2.34.1
 

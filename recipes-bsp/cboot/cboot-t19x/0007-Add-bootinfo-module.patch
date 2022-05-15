@@ -1,7 +1,7 @@
-From 84684f71bac61ae969dbeeb30f5a815d4ca294bc Mon Sep 17 00:00:00 2001
+From 95dab882a5fe769ce90fb5514625f17d0277299a Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 28 Dec 2020 05:58:46 -0800
-Subject: [PATCH 07/11] Add bootinfo module
+Subject: [PATCH 07/17] Add bootinfo module
 
 for accessing variables that can be set via the tegra-bootinfo
 utility in tegra-boot-tools.
@@ -434,5 +434,5 @@ index 0000000..cd679c3
 +
 +} /* tegrabl_bootinfo_getvar */
 -- 
-2.30.2
+2.34.1
 

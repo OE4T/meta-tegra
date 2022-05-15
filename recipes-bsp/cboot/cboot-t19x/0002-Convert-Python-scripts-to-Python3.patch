@@ -1,7 +1,7 @@
-From a8510657f1e24efd7c073807b8cd451179e35828 Mon Sep 17 00:00:00 2001
+From a7be873804ac6a4f0d3be1af0169b904ad7fed88 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 22 Jan 2020 06:57:17 -0800
-Subject: [PATCH 02/11] Convert Python scripts to Python3
+Subject: [PATCH 02/17] Convert Python scripts to Python3
 
 ---
  bootloader/partner/t18x/cboot/build/get_branch_name.py    | 4 ++--
@@ -42,5 +42,5 @@ index 1c90bc5..19f0062 100755
 -        f.write(struct.pack('%ds' % (length), version_string))
 +        f.write(struct.pack('%ds' % (length), version_string.encode('utf-8')))
 -- 
-2.30.2
+2.34.1
 

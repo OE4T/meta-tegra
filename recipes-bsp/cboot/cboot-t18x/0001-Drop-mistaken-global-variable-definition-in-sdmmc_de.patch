@@ -1,7 +1,7 @@
-From d8bee04385ee424441e7dacab64d576ba39c7498 Mon Sep 17 00:00:00 2001
+From 907a7902271cfe2ee006809e4a2c7baeb44d7aa8 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 2 Feb 2021 09:43:51 -0800
-Subject: [PATCH] Drop mistaken global variable definition in sdmmc_defs
+Subject: [PATCH 01/14] Drop mistaken global variable definition in sdmmc_defs
 
 which looks like it was meant to be a typedef, but the
 code actually uses the struct tag in all declarations,
@@ -26,5 +26,5 @@ index 0130ad8..77e86fc 100644
  #define SDMMC_BLOCK_SIZE_LOG2			9U	/* 512 bytes */
  
 -- 
-2.27.0
+2.34.1
 

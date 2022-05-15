@@ -1,7 +1,7 @@
-From 4ef3356039c0949394072cb3867a7ec54fef86f0 Mon Sep 17 00:00:00 2001
+From 254b87152b46d67ca872d0a0c12fd3f8b153743c Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 15 Nov 2020 08:39:41 -0800
-Subject: [PATCH] Support A/B slot for kernel on SDcards and USB devices
+Subject: [PATCH 17/17] Support A/B slot for kernel on SDcards and USB devices
 
 The kernel and DTB loader for USB and SDcard devices
 wasn't checking for A/B slot, and just hard-coded the
@@ -111,5 +111,5 @@ index 182cd3c..335352b 100644
  	if (err != TEGRABL_NO_ERROR) {
  		goto fail;
 -- 
-2.32.0
+2.34.1
 

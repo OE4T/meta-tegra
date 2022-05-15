@@ -1,7 +1,7 @@
-From 4e64b8bfe4f6f8153d37b5a394a22601ac1a2a81 Mon Sep 17 00:00:00 2001
+From 9ffb579fc24083d01ffd077093dcad9a42344e35 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 28 Dec 2020 06:10:05 -0800
-Subject: [PATCH 06/11] Add bootinfo module definition to tegrabl_error
+Subject: [PATCH 06/17] Add bootinfo module definition to tegrabl_error
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -38,5 +38,5 @@ index 0c210be..60d04ee 100644
  
  /**
 -- 
-2.30.2
+2.34.1
 

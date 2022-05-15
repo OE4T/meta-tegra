@@ -1,7 +1,7 @@
-From 3f6235e88a8bcfa76efcd56afa66c7771ed4bcfc Mon Sep 17 00:00:00 2001
+From f1212a3db7bfcbce788dc71ac88c86ff680d8658 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 17 Nov 2020 07:51:45 -0800
-Subject: [PATCH 09/11] tegrabl_cbo: support A/B slots
+Subject: [PATCH 09/17] tegrabl_cbo: support A/B slots
 
 Flash layouts include two CPUBL-CFG partitions for A/B support,
 so update the code to handle this.
@@ -12,7 +12,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 15 insertions(+), 2 deletions(-)
 
 diff --git a/bootloader/partner/common/lib/cbo/tegrabl_cbo.c b/bootloader/partner/common/lib/cbo/tegrabl_cbo.c
-index e149f68..cbc7e52 100644
+index 04831db..2cd4cc9 100644
 --- a/bootloader/partner/common/lib/cbo/tegrabl_cbo.c
 +++ b/bootloader/partner/common/lib/cbo/tegrabl_cbo.c
 @@ -17,6 +17,9 @@
@@ -60,5 +60,5 @@ index e149f68..cbc7e52 100644
  	}
  	partition_size = partition.partition_info->total_size;
 -- 
-2.30.2
+2.34.1
 

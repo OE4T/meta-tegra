@@ -1,7 +1,7 @@
-From dd3b772573a42cb8f27c78859ff0b537b15991b3 Mon Sep 17 00:00:00 2001
+From 5ed3d5fc3f3003f5f244ecdb9cc93bdbddc8bfcb Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 17 Nov 2020 05:12:29 -0800
-Subject: [PATCH 03/11] macros.mk: fix GNU make 4.3 compatibility
+Subject: [PATCH 03/17] macros.mk: fix GNU make 4.3 compatibility
 
 Backport of lk upstream commit
 77f5dac5252a9c1a28baab6224431a06b475dba1.
@@ -27,5 +27,5 @@ index b489007..c6165cd 100644
  # test if two files are different, replacing the first
  # with the second if so
 -- 
-2.30.2
+2.34.1
 
