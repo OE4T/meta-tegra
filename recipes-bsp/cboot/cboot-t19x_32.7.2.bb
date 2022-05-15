@@ -39,6 +39,4 @@ TARGET_SOC = "t194"
 COMPATIBLE_MACHINE = "(tegra194)"
 PROVIDES += "virtual/bootloader"
 
-L4T_VERSION = "32.7.2"
-L4T_SRCS_NAME = "sources/T186"
 require cboot-l4t.inc
