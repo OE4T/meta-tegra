@@ -8,7 +8,7 @@ DEPENDS = "tegra186-flashtools-native dtc-native"
 
 UBOOT_EXTLINUX = "1"
 
-inherit cboot-extlinux-config
+inherit cboot-extlinux-config kernel-artifact-names
 
 TEGRA_SIGNING_ARGS ??= ""
 TEGRA_SIGNING_EXCLUDE_TOOLS ??= ""
@@ -37,7 +37,7 @@ do_configure() {
 do_compile() {
     if [ -n "${INITRAMFS_IMAGE}" ]; then
         if [ "${INITRAMFS_IMAGE_BUNDLE}" = "1" ]; then
-	    cp -L ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-initramfs-${MACHINE}.bin ${B}/${KERNEL_IMAGETYPE}
+	    cp -L ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${INITRAMFS_LINK_NAME}.bin ${B}/${KERNEL_IMAGETYPE}
 	else
 	    cp -L ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${MACHINE}.bin ${B}/${KERNEL_IMAGETYPE}
 	    cp -L ${DEPLOY_DIR_IMAGE}/${INITRAMFS_IMAGE}-${MACHINE}.cpio.gz ${B}/initrd
