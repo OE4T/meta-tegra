@@ -13,7 +13,6 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-$
     file://0010-t194-add-bootinfo-to-build.patch \
     file://0011-Add-machine-ID-to-kernel-command-line.patch \
     file://0012-Restore-fallback-path-for-failed-extlinux-booting.patch \
-    file://0012-bmp-support-A-B-slots.patch \
     file://0013-Fix-ext4-sparse-file-handling.patch \
     file://0014-extlinux-support-timeouts-under-1-sec.patch \
     file://0015-Fix-ext4-multi-block-linear-directory-traversal.patch \
@@ -21,7 +20,8 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-$
     file://0017-Support-A-B-slot-for-kernel-on-SDcards-and-USB-devic.patch \
 "
 
-SRC_URI[sha256sum] = "73325dc2551bb312e53e50bf84c8f9828b4dc08faab9c238c6823cc14ca15287"
+
+SRC_URI[sha256sum] = "76e1105810bd5827facea9547e25bcc7a9cd4e1dda56a2b1c19c687b65c27f93"
 
 PACKAGECONFIG ??= "bootdev-select ethernet display shell recovery extlinux"
 PACKAGECONFIG[bootdev-select] = "CONFIG_ENABLE_BOOT_DEVICE_SELECT=1,,"
@@ -39,4 +39,6 @@ TARGET_SOC = "t194"
 COMPATIBLE_MACHINE = "(tegra194)"
 PROVIDES += "virtual/bootloader"
 
+L4T_VERSION = "32.7.2"
+L4T_SRCS_NAME = "sources/T186"
 require cboot-l4t.inc

@@ -1,7 +1,7 @@
-From 985c95330349269a0a8c8bede1b64fff4361ef53 Mon Sep 17 00:00:00 2001
+From 2d6d2098a303d6ed49cc4d6d4b574a90aee0a3d4 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 28 Dec 2020 06:25:49 -0800
-Subject: [PATCH 11/11] Add machine ID to kernel command line
+Subject: [PATCH 11/17] Add machine ID to kernel command line
 
 Set CONFIG_ENABLE_MACHINE_ID during the build
 to enable.
@@ -21,7 +21,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 48 insertions(+)
 
 diff --git a/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c b/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c
-index 9dd11f5..fa36759 100644
+index c587a0b..9e921e9 100644
 --- a/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c
 +++ b/bootloader/partner/t19x/common/lib/linuxboot/t194/linuxboot_helper.c
 @@ -54,6 +54,10 @@
@@ -94,5 +94,5 @@ index 9dd11f5..fa36759 100644
  	{ NULL, NULL, NULL},
  };
 -- 
-2.30.2
+2.34.1
 

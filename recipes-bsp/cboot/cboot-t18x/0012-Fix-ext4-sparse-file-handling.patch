@@ -1,14 +1,14 @@
-From 8f02b2dff03a2b0ce0cb0c182c3c899523969ef6 Mon Sep 17 00:00:00 2001
+From 3b4e04b85d95e826fd2e20b396a72897a22272f9 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 8 Jun 2021 06:47:15 -0700
-Subject: [PATCH] Fix ext4 sparse file handling
+Subject: [PATCH 12/14] Fix ext4 sparse file handling
 
 ---
- bootloader/partner/common/lib/fs/ext4/ext4.c | 24 +++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ bootloader/partner/common/lib/fs/ext4/ext4.c | 28 +++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/bootloader/partner/common/lib/fs/ext4/ext4.c b/bootloader/partner/common/lib/fs/ext4/ext4.c
-index 0fca9e2..d57fb27 100644
+index c994c0f..1370755 100644
 --- a/bootloader/partner/common/lib/fs/ext4/ext4.c
 +++ b/bootloader/partner/common/lib/fs/ext4/ext4.c
 @@ -188,6 +188,7 @@ static int ext4_read_extent(ext2_t *ext2, struct ext4_extent_header *extent_head
@@ -43,7 +43,7 @@ index 0fca9e2..d57fb27 100644
          extent++;
      }
  
-@@ -694,6 +704,8 @@ fail:
+@@ -704,6 +714,8 @@ fail:
  ssize_t ext4_read_file(filecookie *fcookie, void *buf, off_t offset, size_t len)
  {
      ext2_file_t *file = NULL;
@@ -51,15 +51,19 @@ index 0fca9e2..d57fb27 100644
 +    off_t actsize;
  
      LTRACEF("\n");
-     file = (ext2_file_t *)fcookie;
-@@ -704,7 +716,17 @@ ssize_t ext4_read_file(filecookie *fcookie, void *buf, off_t offset, size_t len)
+ 
+@@ -726,7 +738,21 @@ ssize_t ext4_read_file(filecookie *fcookie, void *buf, off_t offset, size_t len)
          return -1;
      }
  
--    return ext4_read_data_from_extent(file->ext2, &file->inode, buf);
+-    return ext4_read_data_from_extent(file->ext2, &file->inode, buf, len);
 +    actsize = file->inode.e2di_size;
 +    actsize |= (off_t) file->inode.e2di_size_high << 32;
-+    bytes_read = ext4_read_data_from_extent(file->ext2, &file->inode, buf);
++    if (len != 0 && actsize > (off_t) len) {
++        TRACEF("actual file size exceeds buffer size\n");
++        return ERR_NOT_VALID;
++    }
++    bytes_read = ext4_read_data_from_extent(file->ext2, &file->inode, buf, len);
 +    if (bytes_read < 0)
 +        return bytes_read;
 +    if (actsize > (off_t) bytes_read) {
@@ -72,5 +76,5 @@ index 0fca9e2..d57fb27 100644
  
  static const struct fs_api ext4_api = {
 -- 
-2.30.2
+2.34.1
 

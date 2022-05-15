@@ -1,7 +1,7 @@
-From 310686635f504f45bef1217b0a5d5377f7ad7b92 Mon Sep 17 00:00:00 2001
+From 94c6ffd4332e4f307834c1da838db9aac0dbc40a Mon Sep 17 00:00:00 2001
 From: Kurt Kiefer <kekiefer@gmail.com>
 Date: Thu, 1 Apr 2021 08:29:25 -0700
-Subject: [PATCH] bmp: support A/B slots
+Subject: [PATCH 11/14] bmp: support A/B slots
 
 Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
  1 file changed, 21 insertions(+)
 
 diff --git a/bootloader/partner/t18x/cboot/app/kernel_boot/kernel_boot.c b/bootloader/partner/t18x/cboot/app/kernel_boot/kernel_boot.c
-index 79bd566..93f845e 100644
+index ebb915b..670f358 100644
 --- a/bootloader/partner/t18x/cboot/app/kernel_boot/kernel_boot.c
 +++ b/bootloader/partner/t18x/cboot/app/kernel_boot/kernel_boot.c
-@@ -234,6 +234,10 @@ static status_t kernel_boot(void)
+@@ -150,6 +150,10 @@ static status_t kernel_boot(void)
  	bool is_enter_fastboot = false;
  #endif
  
@@ -23,7 +23,7 @@ index 79bd566..93f845e 100644
  #if defined(IS_T186)
  	tegrabl_error_t ret = TEGRABL_NO_ERROR;
  	bool is_skip_menu = true;
-@@ -284,9 +288,26 @@ static status_t kernel_boot(void)
+@@ -200,9 +204,26 @@ static status_t kernel_boot(void)
  #endif
  
  #if defined(CONFIG_ENABLE_DISPLAY) && defined(CONFIG_ENABLE_NVBLOB)
@@ -51,5 +51,5 @@ index 79bd566..93f845e 100644
  #if defined(IS_T186)
  	tegrabl_profiler_record("Load BMP blob", 0, DETAILED);
 -- 
-2.29.2
+2.34.1
 

@@ -1,7 +1,7 @@
-From 12b3460fda8600622f70fdd1b8cee21a3cf916cf Mon Sep 17 00:00:00 2001
+From c7e6a9d7b78ebe1dacbd1d6b90789024ad11ee7c Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Thu, 19 Nov 2020 07:32:29 -0800
-Subject: [PATCH 4/9] Fix spurious console=none warning
+Subject: [PATCH 05/14] Fix spurious console=none warning
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -26,5 +26,5 @@ index 16fb54a..b99f7f1 100644
  	len = tegrabl_snprintf(ptr, remain, "%s ",
  			tegrabl_linuxboot_prepare_cmdline(dtb_cmdline));
 -- 
-2.27.0
+2.34.1
 
