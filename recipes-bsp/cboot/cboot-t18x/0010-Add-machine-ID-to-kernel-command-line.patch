@@ -1,7 +1,7 @@
-From 1125fe6b72d70c56262b572090738394d76f0d65 Mon Sep 17 00:00:00 2001
+From 667b4dc4d74f89f28da156e12f935dc7fce7cbd8 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 28 Dec 2020 07:52:45 -0800
-Subject: [PATCH 9/9] Add machine ID to kernel command line
+Subject: [PATCH 10/14] Add machine ID to kernel command line
 
 Set CONFIG_ENABLE_MACHINE_ID during the build
 to enable.
@@ -17,7 +17,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 48 insertions(+)
 
 diff --git a/bootloader/partner/t18x/common/lib/linuxboot/t186/linuxboot_helper.c b/bootloader/partner/t18x/common/lib/linuxboot/t186/linuxboot_helper.c
-index b47a211..a5d799c 100644
+index c5b6d0e..1948236 100644
 --- a/bootloader/partner/t18x/common/lib/linuxboot/t186/linuxboot_helper.c
 +++ b/bootloader/partner/t18x/common/lib/linuxboot/t186/linuxboot_helper.c
 @@ -48,6 +48,10 @@
@@ -79,7 +79,7 @@ index b47a211..a5d799c 100644
  static struct tegrabl_linuxboot_param extra_params[] = {
  	{ "tegraid", add_tegraid, NULL },
  	{ "maxcpus", add_maxcpus, NULL },
-@@ -530,6 +575,9 @@ static struct tegrabl_linuxboot_param extra_params[] = {
+@@ -531,6 +576,9 @@ static struct tegrabl_linuxboot_param extra_params[] = {
  	{ "sdhci_tegra.en_boot_part_access", tegrabl_linuxboot_add_string, "1" },
  #if defined(CONFIG_ENABLE_NVDEC)
  	{ "nvdec_enabled", tegrabl_linuxboot_add_nvdec_enabled_info, NULL },
@@ -90,5 +90,5 @@ index b47a211..a5d799c 100644
  	{ NULL, NULL, NULL},
  };
 -- 
-2.27.0
+2.34.1
 

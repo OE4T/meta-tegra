@@ -1,7 +1,7 @@
-From 8945853bf2fc67965e419d00bc1b25c283ab8558 Mon Sep 17 00:00:00 2001
+From f675188a41031000db92986d84da6f7b8149e656 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 9 Jun 2021 04:41:32 -0700
-Subject: [PATCH] extlinux: support timeouts under 1 sec
+Subject: [PATCH 14/17] extlinux: support timeouts under 1 sec
 
 Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
@@ -10,10 +10,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/bootloader/partner/common/lib/linuxboot/extlinux_boot.c b/bootloader/partner/common/lib/linuxboot/extlinux_boot.c
-index 908a7e6..45ee903 100644
+index 9ff405c..a1e1338 100644
 --- a/bootloader/partner/common/lib/linuxboot/extlinux_boot.c
 +++ b/bootloader/partner/common/lib/linuxboot/extlinux_boot.c
-@@ -193,7 +193,7 @@ static tegrabl_error_t parse_conf_file(void *conf_load_addr, struct conf *extlin
+@@ -203,7 +203,7 @@ static tegrabl_error_t parse_conf_file(void *conf_load_addr, struct conf *extlin
  	if (timeout != NULL) {
  		/* extlinux.conf timeout is 1/10 of a second */
  		user_input_wait_timeout_ms = tegrabl_utils_strtoul(timeout, NULL, BASE_10);
@@ -23,5 +23,5 @@ index 908a7e6..45ee903 100644
  		user_input_wait_timeout_ms = 0UL;
  	}
 -- 
-2.30.2
+2.34.1
 

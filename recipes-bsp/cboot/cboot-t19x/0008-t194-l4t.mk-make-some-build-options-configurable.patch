@@ -1,7 +1,7 @@
-From 1cc702cef00bd9e0f40af6ddcc09e347c28e1f68 Mon Sep 17 00:00:00 2001
+From df67c0f65a7bcc5a1eebb07b673d03abf8eff6aa Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 17 Nov 2020 05:36:58 -0800
-Subject: [PATCH 08/11] t194/l4t.mk: make some build options configurable
+Subject: [PATCH 08/17] t194/l4t.mk: make some build options configurable
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
@@ -43,5 +43,5 @@ index 4617932..b4fa2ff 100644
  MODULE_DEPS +=	\
  	lib/lwip \
 -- 
-2.30.2
+2.34.1
 
