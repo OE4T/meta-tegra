@@ -44,7 +44,7 @@ def tegra_kernel_image(d):
         return '${DEPLOY_DIR_IMAGE}/${IMAGE_UBOOT}-${MACHINE}.bin'
     if d.getVar('INITRAMFS_IMAGE'):
         if bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')):
-            img = '${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-initramfs-${MACHINE}.cboot'
+            img = '${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-{INITRAMFS_LINK_NAME}.cboot'
         else:
             img = '${DEPLOY_DIR_IMAGE}/${INITRD_IMAGE}-${MACHINE}.cboot'
         return img
