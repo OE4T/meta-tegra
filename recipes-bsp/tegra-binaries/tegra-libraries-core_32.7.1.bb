@@ -38,3 +38,8 @@ SOC_SPECIFIC_LIBS_tegra210 = ""
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
 RRECOMMENDS_${PN} = "kernel-module-nvgpu"
+
+# This package includes files that were moved from tegra-libraries so we need to mark it as a conflict
+# to have a successful apt upgrade.
+RREPLACES_${PN} = "tegra-libraries"
+RCONFLICTS_${PN} = "tegra-libraries"

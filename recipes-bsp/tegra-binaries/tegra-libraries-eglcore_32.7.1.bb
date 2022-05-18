@@ -23,6 +23,9 @@ do_install() {
 }
 
 pkg_postinst_${PN}() {
+    # Delete old library file / symlink if it exists so the symlink command below does not fail.
+    rm -f $D/usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0
+
     # argus and scf libraries hard-coded to use this path
     install -d $D/usr/lib/aarch64-linux-gnu/tegra-egl
     ln $D${libdir}/libEGL_nvidia.so.0 $D/usr/lib/aarch64-linux-gnu/tegra-egl/
@@ -31,3 +34,8 @@ pkg_postinst_${PN}() {
 FILES_${PN} += "${datadir}/glvnd/egl_vendor.d"
 CONTAINER_CSV_FILES += "${datadir}/glvnd/egl_vendor.d/*"
 CONTAINER_CSV_EXTRA = "lib, /usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0"
+
+# This package includes files that were moved from tegra-libraries so we need to mark it as a conflict
+# to have a successful apt upgrade.
+RREPLACES_${PN} = "tegra-libraries"
+RCONFLICTS_${PN} = "tegra-libraries"

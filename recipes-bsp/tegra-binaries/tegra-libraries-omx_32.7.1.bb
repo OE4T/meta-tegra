@@ -19,3 +19,8 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
 
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
+
+# This package includes files that were moved from tegra-libraries so we need to mark it as a conflict
+# to have a successful apt upgrade.
+RREPLACES_${PN} = "tegra-libraries"
+RCONFLICTS_${PN} = "tegra-libraries"
