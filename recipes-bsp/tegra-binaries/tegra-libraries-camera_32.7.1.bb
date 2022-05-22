@@ -71,8 +71,3 @@ FILES_${PN}-nvtunerd = "${sbindir}/nvtunerd"
 RDEPENDS_${PN} = "tegra-argus-daemon"
 
 CONTAINER_CSV_FILES_append = "${@bb.utils.contains('PACKAGECONFIG', 'x11', ' ${libdir}/libv4l/plugins/*', '', d)}"
-
-# This package includes files that were moved from tegra-libraries, tegra-libraries-argus, tegra-libraries-libv4l-plugins
-#  so we need to mark them as conflicts to have a successful apt upgrade.
-RREPLACES_${PN} = "tegra-libraries tegra-libraries-argus tegra-libraries-libv4l-plugins"
-RCONFLICTS_${PN} = "tegra-libraries tegra-libraries-argus tegra-libraries-libv4l-plugins"

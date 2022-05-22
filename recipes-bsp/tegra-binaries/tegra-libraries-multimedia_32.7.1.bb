@@ -58,8 +58,3 @@ FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
 FILES_${PN}-osd = "${libdir}/libnvosd*"
 RDEPENDS_${PN}-osd = "liberation-fonts"
-
-# This package includes files that were moved from tegra-libraries and tegra-libraries-libnvosd so we need to mark
-# them as conflicts to have a successful apt upgrade.
-RREPLACES_${PN} = "tegra-libraries tegra-libraries-libnvosd"
-RCONFLICTS_${PN} = "tegra-libraries tegra-libraries-libnvosd"

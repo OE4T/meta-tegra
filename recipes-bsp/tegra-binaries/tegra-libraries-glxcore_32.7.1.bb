@@ -16,8 +16,3 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libGLX_nvidia.so.0 \
     tegra/libnvidia-glcore.so.${L4T_VERSION} \
 "
-
-# This package includes files that were moved from tegra-libraries so we need to mark it as a conflict
-# to have a successful apt upgrade.
-RREPLACES_${PN} = "tegra-libraries"
-RCONFLICTS_${PN} = "tegra-libraries"

@@ -12,8 +12,3 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra-egl/libGLESv1_CM_nvidia.so.1 \
     tegra-egl/libGLESv2_nvidia.so.2 \
 "
-
-# This package includes files that were moved from tegra-libraries so we need to mark it as a conflict
-# to have a successful apt upgrade.
-RREPLACES_${PN} = "tegra-libraries"
-RCONFLICTS_${PN} = "tegra-libraries"
