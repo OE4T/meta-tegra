@@ -9,11 +9,11 @@ To fix SIGSEGVs during caps negotiation.
  gstnvvconv.c | 51 ++++++++++++++++++++++++++++-----------------------
  1 file changed, 28 insertions(+), 23 deletions(-)
 
-diff --git a/gstnvvconv.c b/gstnvvconv.c
-index 2019c11..d5774b4 100644
---- a/gstnvvconv.c
-+++ b/gstnvvconv.c
-@@ -2094,6 +2094,23 @@ gst_nvvconv_get_unit_size (GstBaseTransform * btrans, GstCaps * caps,
+Index: gst-nvvidconv/gstnvvconv.c
+===================================================================
+--- gst-nvvidconv.orig/gstnvvconv.c
++++ gst-nvvidconv/gstnvvconv.c
+@@ -1916,6 +1916,23 @@ gst_nvvconv_get_unit_size (GstBaseTransf
    return ret;
  }
  
@@ -37,7 +37,7 @@ index 2019c11..d5774b4 100644
  /**
    * Given the pad in direction and the given caps,
    * fixate the caps on the other pad.
-@@ -2121,28 +2138,13 @@ gst_nvvconv_fixate_caps (GstBaseTransform * btrans,
+@@ -1943,29 +1960,13 @@ gst_nvvconv_fixate_caps (GstBaseTransfor
    gboolean have_nvfeature = FALSE;
  
    space = GST_NVVCONV (btrans);
@@ -55,8 +55,9 @@ index 2019c11..d5774b4 100644
 -  gst_caps_features_free (ift);
 -
 -  if (have_nvfeature) {
--    for (i = 0; i < index; i++) {
--      gst_caps_remove_structure (othercaps, i);
+-    while (index > 0) {
+-      gst_caps_remove_structure (othercaps, 0);
+-      index--;
 -    }
 -  }
 -
@@ -73,7 +74,7 @@ index 2019c11..d5774b4 100644
    GST_DEBUG_OBJECT (space, "trying to fixate othercaps %" GST_PTR_FORMAT
        " based on caps %" GST_PTR_FORMAT, othercaps, caps);
  
-@@ -2215,7 +2217,10 @@ gst_nvvconv_fixate_caps (GstBaseTransform * btrans,
+@@ -2038,7 +2039,10 @@ gst_nvvconv_fixate_caps (GstBaseTransfor
      gint numerator, denominator;
  
      /* from_pix_ar should be fixed */
