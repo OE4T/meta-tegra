@@ -10,11 +10,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  util/drmutil.h      | 4 ++++
  3 files changed, 17 insertions(+)
 
-diff --git a/gstnvdrmvideosink.c b/gstnvdrmvideosink.c
-index f703495..c842c05 100644
---- a/gstnvdrmvideosink.c
-+++ b/gstnvdrmvideosink.c
-@@ -359,6 +359,7 @@ gst_nv_drm_video_sink_show_frame (GstVideoSink * video_sink, GstBuffer * buf)
+Index: gst-nvdrmvideosink/gstnvdrmvideosink.c
+===================================================================
+--- gst-nvdrmvideosink.orig/gstnvdrmvideosink.c
++++ gst-nvdrmvideosink/gstnvdrmvideosink.c
+@@ -359,6 +359,7 @@ gst_nv_drm_video_sink_show_frame (GstVid
  
          if (sink->is_tegra_drm) {
            if (in_surface->surfaceList[0].layout == NVBUF_LAYOUT_BLOCK_LINEAR) {
@@ -22,9 +22,9 @@ index f703495..c842c05 100644
              switch (sink->chip_id) {
                case TEGRA_CHIPID_TEGRA19:
                case TEGRA_CHIPID_TEGRA21:
-@@ -372,6 +373,12 @@ gst_nv_drm_video_sink_show_frame (GstVideoSink * video_sink, GstBuffer * buf)
-                 modifiers[hm] = DRM_FORMAT_MOD_NVIDIA_16BX2_BLOCK(nvblocksize[hm]);
-                 break;
+@@ -390,6 +391,12 @@ gst_nv_drm_video_sink_show_frame (GstVid
+               g_print ("Failed to set parameters of block linear data \n");
+               return GST_FLOW_ERROR;
              }
 +#else
 +            /* assuming t194 and later */
@@ -33,13 +33,13 @@ index f703495..c842c05 100644
 +            modifiers[hm] |= 1 << 22;
 +#endif /* HAVE_NVSOCSYSAPI */
            }
-           else {
-             modifiers[hm] = DRM_FORMAT_MOD_LINEAR;
-diff --git a/util/drmutil.c b/util/drmutil.c
-index a9bd43e..8d30b61 100644
---- a/util/drmutil.c
-+++ b/util/drmutil.c
-@@ -124,7 +124,9 @@ drm_util_init (int *fd, drmModeConnector ** conn_info_s, int *conn_id_s,
+         }
+       }
+Index: gst-nvdrmvideosink/util/drmutil.c
+===================================================================
+--- gst-nvdrmvideosink.orig/util/drmutil.c
++++ gst-nvdrmvideosink/util/drmutil.c
+@@ -124,7 +124,9 @@ drm_util_init (int *fd, drmModeConnector
    drmModeCrtc *crtc_info = NULL;
    drmModePlane *plane_info = NULL;
    drmVersion *version = NULL;
@@ -49,15 +49,15 @@ index a9bd43e..8d30b61 100644
    int is;
    int ret = 0;
  
-@@ -161,6 +163,7 @@ drm_util_init (int *fd, drmModeConnector ** conn_info_s, int *conn_id_s,
+@@ -166,6 +168,7 @@ drm_util_init (int *fd, drmModeConnector
+       plane_index = 0;
    }
-   drmFreeVersion(version);
  
 +#ifdef HAVE_NVSOCSYSAPI
    err = NvTegraSysInit(NvSysSocAutoDetect);
    if (NvSocSysError == err) {
      *chipId = TEGRA_CHIPID_UNKNOWN;
-@@ -168,6 +171,9 @@ drm_util_init (int *fd, drmModeConnector ** conn_info_s, int *conn_id_s,
+@@ -173,6 +176,9 @@ drm_util_init (int *fd, drmModeConnector
    else {
      *chipId = NvTegraSysGetChipId();
    }
@@ -65,12 +65,12 @@ index a9bd43e..8d30b61 100644
 +  *chipId = 0;
 +#endif
  
-   if (drmSetClientCap (*fd, DRM_CLIENT_CAP_UNIVERSAL_PLANES, 1)) {
-     g_print ("Failed to set universal planes \n");
-diff --git a/util/drmutil.h b/util/drmutil.h
-index 9948ac3..819b489 100644
---- a/util/drmutil.h
-+++ b/util/drmutil.h
+   if (drmSetClientCap (*fd, DRM_CLIENT_CAP_ATOMIC, 1)) {
+       g_print ("Failed to set atomic cap \n");
+Index: gst-nvdrmvideosink/util/drmutil.h
+===================================================================
+--- gst-nvdrmvideosink.orig/util/drmutil.h
++++ gst-nvdrmvideosink/util/drmutil.h
 @@ -33,7 +33,11 @@
  
  #include "xf86drm.h"
