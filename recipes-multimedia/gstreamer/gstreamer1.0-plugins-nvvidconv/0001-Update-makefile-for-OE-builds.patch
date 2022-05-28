@@ -12,13 +12,14 @@ Index: gst-nvvidconv/Makefile
 ===================================================================
 --- gst-nvvidconv.orig/Makefile
 +++ gst-nvvidconv/Makefile
-@@ -26,18 +26,14 @@
+@@ -26,23 +26,22 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
  SO_NAME := libgstnvvidconv.so
 +prefix ?= /usr
 +exec_prefix ?= $(prefix)
 +libdir ?= $(exec_prefix)/lib
++CUDA_VERSION ?= 11.4
  
 -CC := gcc
 -
@@ -34,7 +35,15 @@ Index: gst-nvvidconv/Makefile
  PKGS := gstreamer-1.0 \
  	gstreamer-base-1.0 \
  	gstreamer-video-1.0 \
-@@ -50,22 +46,23 @@ CFLAGS += -fPIC
+ 	gstreamer-allocators-1.0 \
+-	glib-2.0
++	glib-2.0 \
++	cuda-$(CUDA_VERSION) \
++	cudart-$(CUDA_VERSION)
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+@@ -50,22 +49,23 @@ CFLAGS += -fPIC
  
  CFLAGS += `pkg-config --cflags $(PKGS)`
  
