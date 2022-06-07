@@ -12,3 +12,9 @@ DEVSUM = "eb555f81d063dccae3065665673a4f479beedb28a1fed17e6bde7b68ede2b439"
 DEVSUM:x86-64 = "3836e570295b6448ceea91d26688ebd1e7300f29474a89caf7f48334589c78fa"
 
 BBCLASSEXTEND = "native nativesdk"
+
+PACKAGES =+ "${PN}-devso-symlink"
+FILES:${PN}-devso-symlink = "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/libcublas${SOLIBSDEV}"
+RDEPENDS:${PN}-devso-symlink = "${PN}"
+INSANE_SKIP:${PN}-devso-symlink = "dev-so libdir"
+RDEPENDS:${PN}-dev += "${PN}-devso-symlink"
