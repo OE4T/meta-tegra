@@ -18,3 +18,4 @@ FILES:${PN}-devso-symlink = "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/lib
 RDEPENDS:${PN}-devso-symlink = "${PN}"
 INSANE_SKIP:${PN}-devso-symlink = "dev-so libdir"
 RDEPENDS:${PN}-dev += "${PN}-devso-symlink"
+RPROVIDES:${PN}-devso-symlink += "libcublas.so()(64bit) cublas libcublas.so"
