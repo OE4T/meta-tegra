@@ -176,12 +176,6 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 RDEPENDS:${KERNEL_PACKAGE_NAME}-base = ""
 
-# XXX--
-#  L4T EA kit disables these kernel modules by default
-KERNEL_MODULE_PROBECONF = "mttcan"
-module_conf_mttcan = "blacklist mttcan"
-# --XXX
-
 # kernel.bbclass automatically adds a dependency on the intramfs image
 # even if INITRAMFS_IMAGE_BUNDLE is disabled.  This creates a circular
 # dependency for tegra builds, where we need to combine initramfs (as an
