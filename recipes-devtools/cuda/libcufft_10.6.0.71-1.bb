@@ -7,8 +7,3 @@ DEVSUM:x86-64 = "f2b5e67fa4e749e6e5b22688e5afa57817e752a1182c09646603051f695d6b3
 
 BBCLASSEXTEND = "native nativesdk"
 
-PACKAGES =+ "${PN}-devso-symlink"
-FILES:${PN}-devso-symlink = "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/libcufft${SOLIBSDEV}"
-RDEPENDS:${PN}-devso-symlink = "${PN}"
-INSANE_SKIP:${PN}-devso-symlink = "dev-so libdir"
-RDEPENDS:${PN}-dev += "${PN}-devso-symlink"
