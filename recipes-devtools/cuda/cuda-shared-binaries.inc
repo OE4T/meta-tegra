@@ -1,5 +1,4 @@
 CUDA_PKG ?= "${BPN} ${BPN}-dev"
-REPLACE_STUBS ?= "1"
 
 require cuda-binaries-common-defs.inc
 
@@ -50,13 +49,6 @@ do_compile() {
 	rmdir ${B}/usr/local/cuda-${CUDA_VERSION}/targets/${HOST_ARCH}-${HOST_OS}
 	rmdir ${B}/usr/local/cuda-${CUDA_VERSION}/targets
     fi
-    if [ "${REPLACE_STUBS}" = "1" ]; then
-        for f in ${B}/usr/local/cuda-${CUDA_VERSION}/lib/stubs/lib*.so; do
-	    [ -f $f ] || continue
-	    fname=`basename $f`
-	    ln -sf ../${fname}.${CUDA_VERSION} $f
-        done
-    fi
     if [ -d ${B}/usr/lib/pkgconfig ]; then
         for f in ${B}/usr/lib/pkgconfig/*; do
             sed -i -r -e's,^(libdir=.*/)lib[^/]*$,\1${baselib},' \
@@ -89,13 +81,18 @@ do_install() {
     rm -f ${D}${prefix}/local/cuda-${CUDA_VERSION}/DOCS
 }
 
+PACKAGES =+ "${PN}-stubs"
 FILES:${PN} += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBS} ${prefix}/local/cuda-${CUDA_VERSION}/bin"
-FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/extras ${prefix}/local/cuda-${CUDA_VERSION}/include ${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/stubs \
+FILES:${PN}-stubs = "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/stubs"
+FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/extras ${prefix}/local/cuda-${CUDA_VERSION}/include \
                     ${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBSDEV}"
 FILES:${PN}-staticdev += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*.a"
-
+RDEPENDS:${PN}-dev = "${PN}-stubs"
+ALLOW_EMPTY:${PN}-stubs = "1"
+EXCLUDE_PACKAGES_FROM_SHLIBS = "${PN}-stubs"
 INSANE_SKIP:${PN} = "ldflags libdir"
 INSANE_SKIP:${PN}-dev = "ldflags libdir dev-elf"
+INSANE_SKIP:${PN}-stubs = "ldflags libdir dev-so"
 
 sysroot_stage_dirs:append() {
     sysroot_stage_dir $from${prefix}/local/cuda-${CUDA_VERSION} $to${prefix}/local/cuda-${CUDA_VERSION}
