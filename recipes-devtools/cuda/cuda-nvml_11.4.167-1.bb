@@ -8,5 +8,7 @@ DEVSUM:x86-64 = "fdf44b776046816e898d56c4c120a41968b158e402503ebe04a9302f3748131
 
 ALLOW_EMPTY:${PN} = "1"
 FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/nvml/example"
+EXCLUDE_PACKAGES_FROM_SHLIBS = ""
+PRIVATE_LIBS = "libnvidia-ml.so.1"
 
 BBCLASSEXTEND = "native nativesdk"
