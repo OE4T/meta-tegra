@@ -174,7 +174,7 @@ do_deploy[depends] += "${EXTRADEPLOYDEPS}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-RDEPENDS:${KERNEL_PACKAGE_NAME}-base = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '${KERNEL_PACKAGE_NAME}-image'}"
+RRECOMMENDS:${KERNEL_PACKAGE_NAME}-base = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '${KERNEL_PACKAGE_NAME}-image'}"
 
 # kernel.bbclass automatically adds a dependency on the intramfs image
 # even if INITRAMFS_IMAGE_BUNDLE is disabled.  This creates a circular
