@@ -1,4 +1,4 @@
-require gcc-configure-common.inc
+require gcc-8-configure-common.inc
 
 SUMMARY = "Runtime libraries from GCC"
 

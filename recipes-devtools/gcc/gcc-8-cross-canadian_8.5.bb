@@ -1,5 +1,5 @@
 require gcc-${PV}.inc
-require gcc-cross-canadian.inc
+require gcc-8-cross-canadian.inc
 
 
 

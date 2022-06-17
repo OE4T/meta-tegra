@@ -1,6 +1,6 @@
 BPN = "libgcc"
 
-require gcc-configure-common.inc
+require gcc-8-configure-common.inc
 
 INHIBIT_DEFAULT_DEPS = "1"
 

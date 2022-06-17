@@ -1,5 +1,5 @@
-require gcc-multilib-config.inc
-require gcc-shared-source.inc
+require gcc-8-multilib-config.inc
+require gcc-8-shared-source.inc
 #
 # Build the list of lanaguages to build.
 #
