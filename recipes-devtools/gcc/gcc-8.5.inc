@@ -1,4 +1,4 @@
-require gcc-common.inc
+require gcc-8-common.inc
 
 # Third digit in PV should be incremented after a minor release
 

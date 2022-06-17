@@ -14,7 +14,7 @@ PN = "gcc-8-cross-${TARGET_ARCH}"
 # Ignore how TARGET_ARCH is computed.
 TARGET_ARCH[vardepvalue] = "${TARGET_ARCH}"
 
-require gcc-configure-common.inc
+require gcc-8-configure-common.inc
 
 # While we want the 'gnu' hash style, we explicitly set it to sysv here to
 # ensure that any recipe which doesn't obey our LDFLAGS (which also set it to

@@ -1,5 +1,5 @@
 GCCMULTILIB = "--enable-multilib"
-require gcc-configure-common.inc
+require gcc-8-configure-common.inc
 
 DEPENDS += "virtual/${TARGET_PREFIX}cuda-gcc"
 SECURITY_STRINGFORMAT = "-Wformat -Wformat-security"
