@@ -27,7 +27,7 @@
 # any exception handler, we can safely symlink to libgcc.a.
 #
 
-require libgcc-common.inc
+require libgcc-8-common.inc
 
 DEPENDS = "virtual/${TARGET_PREFIX}gcc"
 

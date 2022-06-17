@@ -1,4 +1,4 @@
-require libgcc-common.inc
+require libgcc-8-common.inc
 
 DEPENDS = "virtual/${TARGET_PREFIX}cuda-gcc virtual/${TARGET_PREFIX}cuda-g++ virtual/${MLPREFIX}libc"
 STAGING_BINDIR_TOOLCHAIN:append = "-${BINV}"

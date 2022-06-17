@@ -1,5 +1,5 @@
 require gcc-${PV}.inc
-require gcc-runtime.inc
+require gcc-8-runtime.inc
 
 # Disable ifuncs for libatomic on arm conflicts -march/-mcpu
 EXTRA_OECONF:append:arm = " libat_cv_have_ifunc=no "

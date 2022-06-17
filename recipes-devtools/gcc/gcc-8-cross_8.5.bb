@@ -1,3 +1,3 @@
 require gcc-${PV}.inc
-require gcc-cross.inc
+require gcc-8-cross.inc
 
