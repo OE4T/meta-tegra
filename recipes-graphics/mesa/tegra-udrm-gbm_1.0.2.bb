@@ -18,4 +18,9 @@ S = "${WORKDIR}/git"
 
 inherit meson pkgconfig
 
+do_install:append() {
+    ln -s tegra-udrm_gbm.so ${D}${libdir}/gbm/nvidia-drm_gbm.so
+}
+
 FILES:${PN} += "${libdir}/gbm"
+INSANE_SKIP:${PN} += "dev-so"
