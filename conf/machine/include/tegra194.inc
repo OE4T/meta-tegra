@@ -39,3 +39,5 @@ L4T_DEB_SOCNAME = "t194"
 NVPMODEL ?= "nvpmodel_t194"
 NVPOWER ?= "jetsonpower_t194"
 NVFANCONTROL ?= "nvfancontrol_p2888"
+
+MACHINE_EXTRA_RRECOMMENDS += "kernel-module-tegra-udrm"
