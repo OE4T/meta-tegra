@@ -132,5 +132,5 @@ do_install:append:tegra210() {
 
 PACKAGES = "${PN}-dev"
 FILES:${PN}-dev = "${datadir}"
-RDEPENDS:${PN}-dev = ""
+RRECOMMENDS:${PN}-dev = ""
 PACKAGE_ARCH = "${MACHINE_ARCH}"
