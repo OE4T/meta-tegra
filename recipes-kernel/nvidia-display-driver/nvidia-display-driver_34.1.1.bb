@@ -1,6 +1,6 @@
 SUMMARY = "Linux kernel modules for Nvidia Display"
 DESCRIPTION = "${SUMMARY}"
-LICENSE = "MIT | GPLv2"
+LICENSE = "MIT | GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=1d5fa2a493e937d5a4b96e5e03b90f7c"
 
 inherit module
@@ -16,7 +16,10 @@ S = "${WORKDIR}/NVIDIA-kernel-module-source-TempVersion"
 B = "${S}"
 
 MODULES_MODULE_SYMVERS_LOCATION = "kernel-open"
-KERNEL_SPLIT_MODULES = "0"
+
+# adding INHIBIT_PACKAGE_DEBUG_SPLIT as workaround to avoid issues during
+# debug-splitting that's messing up the debug symbols of the .ko files.
+INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 
 EXTRA_OEMAKE += " \
     IGNORE_XEN_PRESENCE='1' \
@@ -33,8 +36,10 @@ do_compile() {
     oe_runmake CC="${KERNEL_CC}" LD="${KERNEL_LD}" AR="${KERNEL_AR}" modules
 }
 
-RPROVIDES_${PN} += " \
+RPROVIDES:${PN} += " \
     kernel-module-nvidia \
     kernel-module-nvidia-drm \
     kernel-module-nvidia-modeset \
 "
+
+PACKAGE_ARCH = "${MACHINE_ARCH}"
