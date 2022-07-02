@@ -12,7 +12,7 @@ INITRAMFS_FSTYPES:append = "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' e
 
 SERIAL_CONSOLES ?= "115200;ttyTCU0"
 
-KERNEL_MODULE_AUTOLOAD ?= "nvgpu"
+KERNEL_MODULE_AUTOLOAD ?= "nvgpu tegra-udrm"
 
 NVIDIA_CHIP = "0x19"
 
@@ -41,3 +41,6 @@ NVPOWER ?= "jetsonpower_t194"
 NVFANCONTROL ?= "nvfancontrol_p2888"
 
 MACHINE_EXTRA_RRECOMMENDS += "kernel-module-tegra-udrm"
+
+KERNEL_MODULE_PROBECONF += "tegra-udrm"
+module_conf_tegra-udrm = "options tegra-udrm modeset=1"
