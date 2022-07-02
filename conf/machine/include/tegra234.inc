@@ -12,7 +12,7 @@ INITRAMFS_FSTYPES:append = "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' e
 
 SERIAL_CONSOLES ?= "115200;ttyTCU0"
 
-KERNEL_MODULE_AUTOLOAD ?= "nvgpu"
+KERNEL_MODULE_AUTOLOAD ?= "nvgpu nvidia nvidia-drm nvidia-modeset"
 
 NVIDIA_CHIP = "0x23"
 
@@ -39,4 +39,7 @@ NVPMODEL ?= "nvpmodel_p3701_0000"
 NVPOWER ?= "jetsonpower_t234"
 NVFANCONTROL ?= "nvfancontrol_p3701_0000"
 
-MACHINE_EXTRA_RRECOMMENDS += "nvidia-display-driver"
+MACHINE_EXTRA_RRECOMMENDS += "kernel-module-nvidia kernel-module-nvidia-drm kernel-module-nvidia-modeset"
+
+KERNEL_MODULE_PROBECONF += "nvidia-drm"
+module_conf_nvidia-drm = "options nvidia-drm modeset=1"
