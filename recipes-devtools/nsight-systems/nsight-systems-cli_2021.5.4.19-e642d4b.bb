@@ -38,7 +38,7 @@ EXCLUDE_FROM_SHLIBS = "1"
 
 PACKAGES += "${PN}-qdstrmimporter"
 FILES_${PN} = " \
-    /opt/nvidia/${BPN}/${BASE_VERSION}/target-linux-armv8 \
+    /opt/nvidia/${BPN}/${BASE_VERSION}/target-linux-tegra-armv8 \
     /opt/nvidia/${BPN}/${BASE_VERSION}/bin \
 "
 FILES_${PN}-qdstrmimporter = "/opt/nvidia/${BPN}/${BASE_VERSION}/host-linux-armv8"
