@@ -1,4 +1,5 @@
 CUDA_PKG = "${BPN}"
+L4T_DEB_GROUP = "cuda-sanitizer-api"
 
 require cuda-shared-binaries.inc
 
