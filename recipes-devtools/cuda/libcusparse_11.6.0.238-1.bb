@@ -1,7 +1,0 @@
-require cuda-shared-binaries.inc
-
-COMPATIBLE_HOST:x86-64 = "(-)"
-MAINSUM = "a242dbb215962f93de693200f2df9973a1dedf05caed006b9bb3d4528c307b38"
-DEVSUM = "26141be23b96bc62882792093f230280d0ff1373f18ea4aa070619d4e2b72cb1"
-
-BBCLASSEXTEND = "native nativesdk"

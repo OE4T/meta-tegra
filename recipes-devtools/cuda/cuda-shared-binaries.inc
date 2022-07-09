@@ -4,9 +4,7 @@ require cuda-binaries-common-defs.inc
 
 L4T_DEB_GROUP ?= "${BPN}"
 L4T_DEB_FEED_BASE ??= "file://"
-CUDA_DOC_SUB_VERSION = "239"
-CUDA_DOC_SUB_VERSION:x86-64 = "167"
-CUDA_LICENSE_PKG ?= "cuda-documentation-${CUDA_VERSION_DASHED}_11.4.${CUDA_DOC_SUB_VERSION}-1_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
+CUDA_LICENSE_PKG ?= "cuda-documentation-${CUDA_VERSION_DASHED}_11.4.167-1_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
 SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb;name=%s;subdir=${BP}' \
                                 % (pkg, 'dev' if pkg.endswith('-dev') else 'main') for pkg in d.getVar('CUDA_PKG').split()])} \
 	           ${CUDA_LICENSE_PKG}"
@@ -14,7 +12,7 @@ SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGA
 
 SRC_URI[main.sha256sum] = "${MAINSUM}"
 SRC_URI[dev.sha256sum] = "${DEVSUM}"
-LICSUM = "f6f414061f1a6a38a40793c81dba0ca4cf76c3626b9afeaf5efa126b59884aa0"
+LICSUM = "1a9b7becad6f5d4b8017997168c16c641b970d62e7abca58e9f28ef622deb5d8"
 LICSUM:x86-64 = "302055a43edb3507a4a9768b8f8f2c711a250e1b283546416e92fe6de108169d"
 SRC_URI[lic.sha256sum] = "${LICSUM}"
 L4T_DEB_GROUP[lic] = "cuda-documentation"

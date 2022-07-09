@@ -1,8 +1,0 @@
-require cuda-shared-binaries.inc
-
-COMPATIBLE_HOST:x86-64 = "(-)"
-MAINSUM = "481625f71ad867e54124a620bb1a8c443108779552a48f703ff056bf32a79310"
-DEVSUM = "0312f8b49e2f9dbeab252776d10c6dadb78567b698c0972d337b7f75771817d2"
-
-RDEPENDS:${PN} = "libcublas"
-BBCLASSEXTEND = "native nativesdk"
