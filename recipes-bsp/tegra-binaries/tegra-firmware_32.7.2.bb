@@ -29,6 +29,11 @@ do_install:append:tegra210() {
     done
 }
 
+do_install::append:tegra194() {
+    cd ${D}/lib/firmware/gv11b
+    ln -s acr_ucode_prod.bin acr_ucode.bin
+}
+
 PACKAGES = "${PN}-rtl8822 ${PN}-brcm ${PN}-tegra186-xusb ${PN}-tegra194-xusb ${PN}-tegra210-xusb ${PN}-tegra186 ${PN}-tegra194 ${PN}-tegra210 ${PN}-xusb ${PN}"
 FILES:${PN}-brcm = "${nonarch_base_libdir}/firmware/brcm ${nonarch_base_libdir}/firmware/bcm4354.hcd ${nonarch_base_libdir}/firmware/nv-*-Version"
 FILES:${PN}-rtl8822 = "${nonarch_base_libdir}/firmware/rtl8822*"
