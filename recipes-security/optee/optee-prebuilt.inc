@@ -7,7 +7,7 @@ PV .= "${@l4t_bsp_debian_version_suffix(d)}"
 
 inherit l4t_deb_pkgfeed
 
-SRC_URI[sha256sum] = "df3db9095f992ee35f76c9a3c94e19c23b41ac066bade476d94c5357da3ebefd"
+SRC_URI[sha256sum] = "e2468b00cae45db096aef67173ef86ddca421ee5db8a54d6096eccdc047a8ed3"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
