@@ -13,7 +13,7 @@ Index: Linux_for_Tegra/nv_tegra/tos-scripts/gen_tos_part_img.py
 --- Linux_for_Tegra.orig/nv_tegra/tos-scripts/gen_tos_part_img.py
 +++ Linux_for_Tegra/nv_tegra/tos-scripts/gen_tos_part_img.py
 @@ -1,4 +1,4 @@
--#!/usr/bin/python
+-#!/usr/bin/python3
 +#!/usr/bin/env python3
  # Copyright (c) 2013-2021, NVIDIA CORPORATION. All rights reserved.
  #

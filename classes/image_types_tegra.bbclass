@@ -58,7 +58,7 @@ TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD ??=""
 
 TOSIMGFILENAME = "tos-optee.img"
 TOSIMGFILENAME:tegra194 = "tos-optee_t194.img"
-TOSIMGFILENAME:tegra234 = "tos-mon-only_t234.img"
+TOSIMGFILENAME:tegra234 = "tos-optee_t234.img"
 
 BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
 FLASHTOOLS_DIR = "${SOC_FAMILY}-flash"
@@ -261,7 +261,7 @@ BOOTFILES:tegra234 = "\
     pscfw_t234_prod.bin \
     mce_flash_o10_cr_prod.bin \
     sc7_t234_prod.bin \
-    dce.bin \
+    display-t234-dce.bin \
     psc_rf_t234_prod.bin \
     nvdec_t234_prod.fw \
     xusb_t234_prod.bin \
