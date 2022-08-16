@@ -11,7 +11,7 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
 ===================================================================
 --- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
 +++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
-@@ -479,13 +479,13 @@ function l4t_bup_gen()
+@@ -668,13 +668,13 @@ function l4t_bup_gen()
  	export OUT=$(pwd);
  
  	# get the bsp version to fill the entry list version.
@@ -19,9 +19,9 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
 -		source "${LDK_DIR}/nv_tegra/bsp_version"
 +	if [ -e "bsp_version" ]; then
 +		source bsp_version
- 		bsp_ver="${BSP_BRANCH}"
- 		bsp_ver+="${BSP_MAJOR}"
- 		bsp_ver+="${BSP_MINOR}"
+ 		BSP_VER="${BSP_BRANCH}"
+ 		BSP_VER+="${BSP_MAJOR}"
+ 		BSP_VER+="${BSP_MINOR}"
  	else
 -		echo "# Unknow release"
 +		echo "# Unknown release"
