@@ -3,7 +3,7 @@ require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native tegra-flashvars"
+DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native tegra-flashvars lz4-native"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
@@ -20,6 +20,7 @@ BOOTBINS:tegra194 = "\
     dram-ecc-t194.bin \
     eks.img \
     mb1_t194_prod.bin \
+    nvdisp-init.bin \
     nvtboot_applet_t194.bin \
     nvtboot_t194.bin \
     preboot_c10_prod_cr.bin \
@@ -105,7 +106,12 @@ do_install:append:tegra194() {
     install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
     install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}-override.cfg
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
-    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb ${D}${datadir}/tegraflash/
+    for f in ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb; do
+        install -m 0644 $f ${D}${datadir}/tegraflash/
+        compressedfile=$(basename "$f" .dtb)_lz4.dtb
+        lz4c -f $f ${D}${datadir}/tegraflash/$compressedfile
+        chmod 0644 ${D}${datadir}/tegraflash/$compressedfile
+    done
     install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
     if [ -n "${CBOOTOPTION_FILE}" ]; then
         install -m 0644 ${B}/cbo.dtb ${D}${datadir}/tegraflash/
