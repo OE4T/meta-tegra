@@ -8,19 +8,19 @@ Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
  Makefile.config | 29 +++++++++++++++++++----------
  1 file changed, 19 insertions(+), 10 deletions(-)
 
-diff --git a/Makefile.config b/Makefile.config
-index 7e45c45..271d1b2 100644
---- a/Makefile.config
-+++ b/Makefile.config
+Index: samples/Makefile.config
+===================================================================
+--- samples.orig/Makefile.config
++++ samples/Makefile.config
 @@ -6,6 +6,7 @@ PROTOBUF_TRIPLE ?= x86_64-linux-gnu
  SAFE_PDK ?= 0
  CPP_STANDARD ?= 14
  TARGET ?= $(shell uname -m)
 +BUILD_TYPE ?= release
+ CUSTOM_LD_FLAGS ?=
  
  ifeq ($(CUDA_INSTALL_DIR), )
-   CUDA_INSTALL_DIR ?= /usr/local/cuda
-@@ -40,11 +41,11 @@ CUDNN_LIBDIR = lib64
+@@ -47,11 +48,11 @@ CUDNN_LIBDIR = lib64
  ifeq ($(TARGET), aarch64)
    ifeq ($(shell uname -m), aarch64)
      CUDA_LIBDIR = lib64
@@ -35,7 +35,7 @@ index 7e45c45..271d1b2 100644
  else ifeq ($(TARGET), x86_64)
    CUDA_LIBDIR = lib64
    CC = g++
-@@ -60,7 +61,7 @@ else ########
+@@ -75,7 +76,7 @@ else ########
    $(error Auto-detection of platform failed. Please specify one of the following arguments to make: TARGET=[aarch64|x86_64|qnx])
  endif
  
@@ -44,7 +44,7 @@ index 7e45c45..271d1b2 100644
  ifeq ($(CC_MAJOR_VER), 4)
    CPP_STANDARD := 11
  endif
-@@ -117,7 +118,7 @@ endef
+@@ -132,7 +133,7 @@ endef
  ifneq ($(USE_QCC), 1)
  # Usage: $(call make-depend,source-file,object-file,depend-file)
  define make-depend
@@ -53,7 +53,7 @@ index 7e45c45..271d1b2 100644
  endef
  # Usage: $(call make-cuda-depend,source-file,object-file,depend-file,flags)
  define make-cuda-depend
-@@ -313,7 +314,15 @@ CFLAGSD = $(COMMON_FLAGS) -g
+@@ -328,7 +329,15 @@ CFLAGSD = $(COMMON_FLAGS) -g
  LFLAGS = $(COMMON_LD_FLAGS)
  LFLAGSD = $(COMMON_LD_FLAGS)
  
@@ -70,7 +70,7 @@ index 7e45c45..271d1b2 100644
  
  release: $(OUTDIR)/$(OUTNAME_RELEASE)
  debug: $(OUTDIR)/$(OUTNAME_DEBUG)
-@@ -328,25 +337,25 @@ test_release:
+@@ -343,25 +352,25 @@ test_release:
  
  $(OUTDIR)/$(OUTNAME_RELEASE): $(OBJS) $(CUOBJS)
  	$(ECHO) Linking: $@
@@ -100,6 +100,3 @@ index 7e45c45..271d1b2 100644
  
  ######################################################################### CU
  $(OBJDIR)/%.o: %.cu
--- 
-2.32.0
-
