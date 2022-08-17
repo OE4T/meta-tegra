@@ -10,12 +10,12 @@ COMPATIBLE_MACHINE = "(tegra)"
 inherit setuptools3 cmake cuda
 
 SRC_REPO = "github.com/NVIDIA/TensorRT.git;protocol=https"
-SRCBRANCH = "release/8.2"
+SRCBRANCH = "release/8.4"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH} \
            file://0001-Fixups-for-cross-building-in-OE.patch \
            "
-# 8.2.1 tag
-SRCREV = "6f38570b74066ef464744bc789f8512191f1cbc0"
+# 8.4.1 tag
+SRCREV = "b55c4710ce01f076c26710a48879fcb2661be4a9"
 
 S = "${WORKDIR}/git"
 
