@@ -1,9 +1,8 @@
 SUMMARY = "NVIDIA EGL/GLES GStreamer plugin"
 SECTION = "multimedia"
-LICENSE = "GPL-2.0-or-later & LGPL-2.0-or-later & MIT"
-LIC_FILES_CHKSUM = "file://COPYING;md5=73a5855a8119deb017f5f13cf327095d \
-                    file://COPYING.LIB;md5=21682e4e8fea52413fd26c60acb907e5 \
-                    file://ext/eglgles/gstegladaptation.c;beginline=9;endline=25;md5=51eafe984c428127773b6a95eb959d0b"
+LICENSE = "LGPL-2.0-or-later & MIT"
+LIC_FILES_CHKSUM = "file://gst-libs/gst/egl/LICENSE.libgstnvegl-1.0;md5=de0f9dfa389a77a904a5a2919a9e6b08 \
+                    file://LICENSE.libgstnveglglessink;md5=5cf2b0235eb3cb8f4073a66ecb29212a"
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstegl_src.tbz2"
 
