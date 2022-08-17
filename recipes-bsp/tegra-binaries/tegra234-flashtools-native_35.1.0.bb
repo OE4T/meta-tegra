@@ -51,21 +51,19 @@ do_install() {
     install -m 0755 ${S}/bootloader/dtbcheck.py ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/sw_memcfg_overlay.pl ${D}${BINDIR}
     sed -i -e's,^#!/usr/bin/perl,#!/usr/bin/env perl,' ${D}${BINDIR}/sw_memcfg_overlay.pl
-    install -m 0755 ${S}/bootloader/nv_smd_generator ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/BUP_generator.py ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}
     install -m 0644 ${S}/bootloader/l4t_bup_gen.func ${D}${BINDIR}
 
-    #install -m 0644 ${S}/bootloader/odmsign.func ${D}${BINDIR}
+    install -m 0644 ${S}/bootloader/odmsign.func ${D}${BINDIR}
 
-    install -m 0755 ${S}/bootloader/mkgpt ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mksparse ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/mkbootimg ${D}${BINDIR}
 
-    #install -d ${D}${BINDIR}/pkc
-    #install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}/pkc/
-    #install -m 0755 ${S}/pkc/nvsecuretool ${D}${BINDIR}/pkc/
-    #install -m 0755 ${S}/bootloader/tegrakeyhash ${D}${BINDIR}
+    install -d ${D}${BINDIR}/pkc
+    install -m 0755 ${S}/pkc/mkpkc ${D}${BINDIR}/pkc/
+    install -m 0755 ${S}/pkc/nvsecuretool ${D}${BINDIR}/pkc/
+    install -m 0755 ${S}/bootloader/tegrakeyhash ${D}${BINDIR}
 
     install -m 0755 ${S}/nv_tegra/tos-scripts/gen_tos_part_img.py ${D}${BINDIR}
 
