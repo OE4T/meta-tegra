@@ -23,4 +23,5 @@ do_install() {
 
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
+RPROVIDES:${PN} += "libcuda.so()(64bit)"
 RRECOMMENDS:${PN} = "kernel-module-nvgpu"
