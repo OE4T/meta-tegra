@@ -3,7 +3,7 @@ LICENSE = "MIT"
 
 PR = "r1"
 
-CUDA_COMPONENTS = "cuda-cupti cuda-gdb cuda-nvdisasm cuda-nvprof cuda-nvtx cuda-sanitizer"
+CUDA_COMPONENTS = "cuda-cupti cuda-gdb cuda-nvdisasm cuda-nvtx cuda-sanitizer"
 DEPENDS = "${CUDA_COMPONENTS}"
 
 do_fetch[noexec] = "1"
