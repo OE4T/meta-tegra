@@ -8,40 +8,43 @@ Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
  Makefile | 42 ++++++++++++++++++++----------------------
  1 file changed, 20 insertions(+), 22 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index f6063c8..185e864 100644
---- a/Makefile
-+++ b/Makefile
-@@ -10,23 +10,13 @@
+Index: gst-v4l2/Makefile
+===================================================================
+--- gst-v4l2.orig/Makefile
++++ gst-v4l2/Makefile
+@@ -10,49 +10,44 @@
  #
  ###############################################################################
  
 -SO_NAME := libgstnvvideo4linux2.so
 -
 -TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
+-
+-NVDS_VERSION:=6.0
 +prefix ?= /usr
 +exec_prefix ?= $(prefix)
 +libdir ?= $(exec_prefix)/lib
  
--NVDS_VERSION:=4.0
-+SO_NAME := libgstnvvideo4linux2.so
- 
 -ifeq ($(TARGET_DEVICE),aarch64)
 -  GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
 -  LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-  INCLUDES += -I/usr/src/jetson_multimedia_api/include/
 -  CFLAGS:=
--  LIBS:= -lnvbufsurface -lnvbufsurftransform
 -else
 -  GST_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/gst-plugins/
 -  LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/
--  CFLAGS:= -DUSE_V4L2_TARGET_NV_CODECSDK=1
--  LIBS:= -lnvbufsurface
+-  CFLAGS:= -DUSE_V4L2_TARGET_NV_CODECSDK=1 -DUSE_V4L2_TARGET_NV_X86=1 -DUSE_V4L2_GST_HEADER_VER_1_8
 -endif
++SO_NAME := libgstnvvideo4linux2.so
+ 
+-LIBS:= -lnvbufsurface -lnvbufsurftransform -lgstnvdsseimeta
 +LIBS:= -lnvbufsurface -lnvbufsurftransform
- 
  SRCS := $(wildcard *.c)
+-
+-INCLUDES += -I./ -I../
++INCLUDES += -I./
  
-@@ -36,23 +26,30 @@ PKGS := gstreamer-1.0 \
+ PKGS := gstreamer-1.0 \
  	gstreamer-base-1.0 \
  	gstreamer-video-1.0 \
  	gstreamer-allocators-1.0 \
@@ -78,7 +81,7 @@ index f6063c8..185e864 100644
  all: $(SO_NAME)
  
  %.o: %.c
-@@ -63,7 +60,8 @@ $(SO_NAME): $(OBJS)
+@@ -63,7 +58,8 @@ $(SO_NAME): $(OBJS)
  
  .PHONY: install
  install: $(SO_NAME)
@@ -88,6 +91,3 @@ index f6063c8..185e864 100644
  
  .PHONY: clean
  clean:
--- 
-2.32.0
-
