@@ -48,9 +48,9 @@ MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu \
                            kernel-module-max77620-thermal kernel-module-pwm-fan"
 MACHINE_HWCODECS = "gstreamer1.0-plugins-nvvideo4linux2"
 
-PREFERRED_PROVIDER_virtual/xserver ?= "xserver-xorg-tegra"
-PREFERRED_PROVIDER_virtual/xserver-xf86 ?= "xserver-xorg-tegra"
-XSERVER ?= "xserver-xorg-tegra xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-tegra-module-libwfb"
+PREFERRED_PROVIDER_virtual/xserver ?= "xserver-xorg"
+PREFERRED_PROVIDER_virtual/xserver-xf86 ?= "xserver-xorg"
+XSERVER ?= "xserver-xorg xf86-input-evdev xserver-xorg-video-nvidia xserver-xorg-module-libwfb"
 
 CUDA_VERSION ?= "11.4"
 CUDA_ARCHITECTURES ?= "${TEGRA_CUDA_ARCHITECTURE}"
