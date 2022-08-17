@@ -8,11 +8,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  etc/systemd/nvpower.sh | 81 +-----------------------------------------
  1 file changed, 1 insertion(+), 80 deletions(-)
 
-Index: tegra-nvpower-34.1.0-20220406120854/etc/systemd/nvpower.sh
+Index: tegra-nvpower-35.1.0-20220810203728/etc/systemd/nvpower.sh
 ===================================================================
---- tegra-nvpower-34.1.0-20220406120854.orig/etc/systemd/nvpower.sh
-+++ tegra-nvpower-34.1.0-20220406120854/etc/systemd/nvpower.sh
-@@ -89,92 +89,6 @@ function set_power_state_perm()
+--- tegra-nvpower-35.1.0-20220810203728.orig/etc/systemd/nvpower.sh
++++ tegra-nvpower-35.1.0-20220810203728/etc/systemd/nvpower.sh
+@@ -97,101 +97,6 @@ function set_power_state_perm()
  	fi
  }
  
@@ -43,8 +43,8 @@ Index: tegra-nvpower-34.1.0-20220406120854/etc/systemd/nvpower.sh
 -		elif [ "${SOCFAMILY}" = "tegra234" ]; then
 -			if [ "${machine}" = "p3701-0000-as-p3767-0000" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000.conf"
--			elif [ "${machine}" = "p3701-0000-as-p3767-0010" ]; then
--				conf_file="/etc/nvpmodel/nvpmodel_p3767_0010.conf"
+-			elif [ "${machine}" = "p3701-0000-as-p3767-0001" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001.conf"
 -			elif [ "${machine}" = "p3701-0000-as-p3769" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3769.conf"
 -			elif [ "${machine}" = "p3701-0000-as-p3770" ]; then
@@ -52,9 +52,16 @@ Index: tegra-nvpower-34.1.0-20220406120854/etc/systemd/nvpower.sh
 -			elif [ "${machine}" = "p3701-0000-as-pxxxx" ] || \
 -				[ "${machine}" = "e2421-1099-as-pxxxx" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_pxxxx.conf"
+-			elif [ "${machine}" = "p3701-0002" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3701_0002.conf"
 -			elif [ "${machine}" = "p3701-0000-as-p3701-0004" ] || \
 -				[ "${machine}" = "p3701-0004" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0004.conf"
+-			elif [ "${machine}" = "p3767-0000" ] || \
+-				[ "${machine}" = "p3767-0002" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000.conf"
+-			elif [ "${machine}" = "p3767-0001" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001.conf"
 -			else
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0000.conf"
 -			fi
@@ -87,6 +94,8 @@ Index: tegra-nvpower-34.1.0-20220406120854/etc/systemd/nvpower.sh
 -		if [ "${SOCFAMILY}" = "tegra234" ]; then
 -			if [ "${machine}" = "p3701-0002" ]; then
 -				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0002.conf"
+-			elif [[ "${machine}" =~ "p3767" ]]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3767.conf"
 -			else
 -				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0000.conf"
 -			fi
@@ -105,7 +114,7 @@ Index: tegra-nvpower-34.1.0-20220406120854/etc/systemd/nvpower.sh
  function cpu_hotplug()
  {
  	# CPU hotplug
-@@ -213,7 +127,7 @@ function set_cpu_governor()
+@@ -230,7 +135,7 @@ function set_cpu_governor()
  			*schedutil*)
  				# latest kernel is using the upstream driver and need to avoid setting
  				# schedutil governor on kstable.
@@ -114,7 +123,7 @@ Index: tegra-nvpower-34.1.0-20220406120854/etc/systemd/nvpower.sh
  					CPU_SCHEDUTIL_GOV=1
  				fi
  	        ;;
-@@ -445,8 +359,6 @@ SOCFAMILY=""
+@@ -478,8 +383,6 @@ SOCFAMILY=""
  
  set_socfamily
  set_power_state_perm
