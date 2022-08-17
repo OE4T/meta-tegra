@@ -2,8 +2,8 @@ CUDA_PKG = "${BPN}"
 
 require cuda-shared-binaries.inc
 
-MAINSUM = "9da644cf9ea45f918ab485e5c5dfac76bee2928d7ccb14f40a14d035193c98b2"
-MAINSUM:x86-64 = "2ecf7e58481c7f55374c1b7eb17022519ab1fe12a1df85ce9fc13c78d1e06d59"
+MAINSUM = "d30ff7c5fe0ef8c2394f433147cf447b12f3f8cf86f1e888a76429a56e88478a"
+MAINSUM:x86-64 = "b7e315fc80a7d95f99dc13652af2e83165f399f919acfc91066272d9e97e7c6f"
 
 # header files are populated by cuda-nvcc-headers recipes
 do_install:append() {
