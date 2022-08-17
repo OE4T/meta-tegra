@@ -56,12 +56,13 @@ do_install:append:tegra234() {
     install -m 0644 ${S}/etc/X11/xorg.conf.d/tegra-drm-outputclass.conf ${D}${sysconfdir}/X11/xorg.conf.d
 }
 
-PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup ${PN}-container-csv"
+PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup ${PN}-container-csv ${PN}-bootloader"
 FILES:${PN}-udev = "${sysconfdir}/udev/rules.d"
 FILES:${PN}-xorg = "${sysconfdir}/X11"
 FILES:${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
 FILES:${PN}-nvstartup = "${sbindir} ${sysconfdir}/sysctl.d"
 FILES:${PN}-container-csv = "${sysconfdir}/nvidia-container-runtime"
+FILES:${PN}-bootloader = "/opt/nvidia/l4t-bootloader-config"
 RDEPENDS:${PN}-udev = "udev"
 RDEPENDS:${PN}-nvstartup = "bash"
 RDEPENDS_${PN}-bootloader = "bash"
