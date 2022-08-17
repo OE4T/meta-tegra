@@ -7,7 +7,6 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/libgstnvdrmvideosink_src.t
 require recipes-bsp/tegra-sources/tegra-sources-35.1.0.inc
 
 SRC_URI += " \
-    file://0001-Work-around-lack-of-nvsocsysapi-header.patch \
     file://0001-Update-makefile-for-OE-builds.patch \
 "
 
