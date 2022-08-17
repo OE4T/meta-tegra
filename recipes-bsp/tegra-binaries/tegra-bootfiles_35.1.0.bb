@@ -9,8 +9,6 @@ BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
 BOARD_CFG ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${NVIDIA_BOARD_CFG}"
 PARTITION_FILE ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${PARTITION_LAYOUT_TEMPLATE}"
-SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
-CBOOTOPTION_FILE ?= ""
 ODMFUSE_FILE ?= ""
 
 BOOTBINS:tegra194 = "\
@@ -50,7 +48,7 @@ BOOTBINS:tegra234 = "\
     pscfw_t234_prod.bin \
     mce_flash_o10_cr_prod.bin \
     sc7_t234_prod.bin \
-    dce.bin \
+    display-t234-dce.bin \
     psc_rf_t234_prod.bin \
     nvdec_t234_prod.fw \
     xusb_t234_prod.bin \
@@ -67,20 +65,6 @@ BOOTBINS_MACHINE_SPECIFIC:tegra234 = ""
 
 do_compile() {
     :
-}
-
-do_compile:append:tegra194() {
-    ${STAGING_BINDIR_NATIVE}/tegra194-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
-    if [ -n "${CBOOTOPTION_FILE}" ]; then
-        dtc -I dts -O dtb -o ${B}/cbo.dtb ${CBOOTOPTION_FILE}
-    fi
-}
-
-do_compile:append:tegra234() {
-    ${STAGING_BINDIR_NATIVE}/tegra234-flash/nv_smd_generator ${SMD_CFG} ${B}/slot_metadata.bin
-    if [ -n "${CBOOTOPTION_FILE}" ]; then
-        dtc -I dts -O dtb -o ${B}/cbo.dtb ${CBOOTOPTION_FILE}
-    fi
 }
 
 do_install() {
@@ -103,7 +87,6 @@ do_install:append:jetson-xavier-nx-devkit-tx2-nx() {
 
 do_install:append:tegra194() {
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
-    install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
     install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}-override.cfg
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
     for f in ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb; do
@@ -113,21 +96,14 @@ do_install:append:tegra194() {
         chmod 0644 ${D}${datadir}/tegraflash/$compressedfile
     done
     install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
-    if [ -n "${CBOOTOPTION_FILE}" ]; then
-        install -m 0644 ${B}/cbo.dtb ${D}${datadir}/tegraflash/
-    fi
 }
 
 do_install:append:tegra234() {
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT}
-    install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/tegra234-*.dtsi ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra234-bpmp-*.dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra234* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
-    if [ -n "${CBOOTOPTION_FILE}" ]; then
-        install -m 0644 ${B}/cbo.dtb ${D}${datadir}/tegraflash/
-    fi
     # Copy each dtbo file
     if [ -n "${OVERLAY_DTB_FILE}" ]; then
         dtbo_files=$(echo "${OVERLAY_DTB_FILE}" | sed -e "s/,/ /g")

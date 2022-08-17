@@ -182,7 +182,6 @@ tegraflash_create_flash_config:tegra194() {
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
-        -e"s,SMDFILE,${SMDFILE}," \
         -e"s,APPUUID,," \
 	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
         > $destdir/flash.xml.in
@@ -216,7 +215,7 @@ tegraflash_create_flash_config:tegra234() {
         -e"s,PSCRF_IMAGE,psc_rf_t234_prod.bin," \
         -e"s,MB2RF_IMAGE,nvtboot_cpurf_t234.bin," \
         -e"s,TBCDTB-FILE,uefi_jetson_with_dtb.bin," \
-        -e"s,DCE,dce.bin," \
+        -e"s,DCE,display-t234-dce.bin," \
         -e"s,APPUUID,," \
 	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
         > $destdir/flash.xml.in
@@ -238,7 +237,6 @@ BOOTFILES:tegra194 = "\
     nvtboot_cpu_t194.bin \
     nvtboot_recovery_t194.bin \
     nvtboot_recovery_cpu_t194.bin \
-    slot_metadata.bin \
     spe_t194.bin \
     warmboot_t194_prod.bin \
     xusb_sil_rel_fw \
@@ -304,13 +302,6 @@ create_tegraflash_pkg:tegra194() {
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
-    if [ -e "${STAGING_DATADIR}/tegraflash/cbo.dtb" ]; then
-        cp "${STAGING_DATADIR}/tegraflash/cbo.dtb" .
-    else
-	rm -f ./cbo.dtb
-    fi
-    rm -f ./slot_metadata.bin
-    cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
     rm -rf ./rollback
     mkdir ./rollback
     cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
@@ -400,13 +391,6 @@ create_tegraflash_pkg:tegra234() {
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
-    if [ -e "${STAGING_DATADIR}/tegraflash/cbo.dtb" ]; then
-        cp "${STAGING_DATADIR}/tegraflash/cbo.dtb" .
-    else
-	rm -f ./cbo.dtb
-    fi
-    rm -f ./slot_metadata.bin
-    cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
 
     # Copy and update flashvars
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
@@ -583,9 +567,6 @@ oe_make_bup_payload() {
             cp $f .
         done
     fi
-	if [ -e ${STAGING_DATADIR}/tegraflash/cbo.dtb ]; then
-            cp ${STAGING_DATADIR}/tegraflash/cbo.dtb .
-	fi
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
         cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         boardcfg=board_config_${MACHINE}.xml
@@ -593,15 +574,15 @@ oe_make_bup_payload() {
         boardcfg=
     fi
     export boardcfg
-    rm -f ./slot_metadata.bin
-    cp ${STAGING_DATADIR}/tegraflash/slot_metadata.bin ./
-    mkdir ./rollback
-    cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
-    if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
-        cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* ./
-        sed -i -e 's,^function ,,' ./l4t_bup_gen.func
-        mv ./rollback_parser.py ./rollback/
-        tegraflash_generate_bupgen_script ./doflash.sh
+    if [ "${SOC_FAMILY}" = "tegra194" ]; then
+        mkdir ./rollback
+        cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
+        if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
+            cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* ./
+            sed -i -e 's,^function ,,' ./l4t_bup_gen.func
+            mv ./rollback_parser.py ./rollback/
+            tegraflash_generate_bupgen_script ./doflash.sh
+        fi
     fi
     tegraflash_custom_sign_bup
     for bup in ${WORKDIR}/bup-payload/${BUP_PAYLOAD_DIR}/*; do
