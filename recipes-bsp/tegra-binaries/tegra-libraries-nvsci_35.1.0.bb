@@ -24,4 +24,5 @@ do_install() {
 
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
+RPROVIDES:${PN} += "libnvscibuf.so()(64bit)"
 RRECOMMENDS:${PN} = "kernel-module-nvgpu"
