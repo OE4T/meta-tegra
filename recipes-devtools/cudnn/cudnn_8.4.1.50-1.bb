@@ -1,7 +1,7 @@
 SUMMARY = "NVIDIA CUDA Deep Neural Network library"
 HOMEPAGE = "https://developer.nvidia.com/cudnn"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v8.h;endline=48;md5=59218f2f10ab9e4132dda76c59e80fa1"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v8.h;endline=48;md5=23ac9d0dd5c70a72b69318b45ca3fee6"
 
 inherit l4t_deb_pkgfeed container-runtime-csv
 
@@ -13,8 +13,8 @@ SRC_COMMON_DEBS = "\
     libcudnn8_${PV}+cuda11.4_arm64.deb;name=lib;subdir=cudnn \
     libcudnn8-dev_${PV}+cuda11.4_arm64.deb;name=dev;subdir=cudnn \
 "
-SRC_URI[lib.sha256sum] = "025d1351143e6ebbf290f4fb787028a16a0f0dd1221e673cf718c7f18327a7f7"
-SRC_URI[dev.sha256sum] = "ac2866f7d14dd7aea376ad5204229805c274f65e3fdcf430609e552adc47c247"
+SRC_URI[lib.sha256sum] = "68a9e1515834a4ad7197cd624d6f9312d5b7ca31ca01b7a39f6aec9712b8c508"
+SRC_URI[dev.sha256sum] = "23f3097db03f7bb1d65a17c45fdbe31ce64959d9acb682acc0603e2e75428780"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
