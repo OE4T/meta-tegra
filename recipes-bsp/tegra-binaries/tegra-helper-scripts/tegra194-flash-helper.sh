@@ -305,7 +305,7 @@ tlk tos-optee_t194.img; \
 eks eks.img; \
 bootloader_dtb $dtb_file"
 
-bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG $TRIM_BPMP_DTB \
+bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --device_config $DEVICE_CONFIG \
          --misc_config tegra194-mb1-bct-misc-flash.cfg \
          --misc_cold_boot_config $MISC_COLD_BOOT_CONFIG \
@@ -439,8 +439,8 @@ if [ $bup_blob -ne 0 ]; then
     TOSFILE="tos-optee_t194.img"
     . "$here/l4t_bup_gen.func"
     spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}-${BOOTDEV}"
-    if [ $(expr length "$spec") -ge 64 ]; then
-	echo "ERR: TNSPEC must be shorter than 64 characters: $spec" >&2
+    if [ $(expr length "$spec") -ge 128 ]; then
+	echo "ERR: TNSPEC must be shorter than 128 characters: $spec" >&2
 	exit 1
     fi
     l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" "$sbk_keyfile" 0x19 || exit 1

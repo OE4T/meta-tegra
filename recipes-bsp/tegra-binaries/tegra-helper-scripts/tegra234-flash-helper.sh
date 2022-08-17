@@ -245,7 +245,7 @@ mts_mce mce_flash_o10_cr_prod.bin; \
 mb2_applet applet_t234.bin; \
 mb2_bootloader mb2_t234.bin; \
 xusb_fw xusb_t234_prod.bin; \
-dce_fw dce.bin; \
+dce_fw display-t234-dce.bin; \
 nvdec nvdec_t234_prod.fw; \
 bpmp_fw $BPF_FILE; \
 bpmp_fw_dtb $BPFDTB_FILE; \
@@ -256,7 +256,7 @@ spe_fw spe_t234.bin; \
 tlk tos-mon-only_t234.img; \
 eks eks.img"
 
-bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG $TRIM_BPMP_DTB \
+bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --device_config $DEVICE_CONFIG \
          --misc_config $MISC_CONFIG \
          --pinmux_config $PINMUX_CONFIG \
@@ -402,8 +402,8 @@ if [ $bup_blob -ne 0 ]; then
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
     spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}-${BOOTDEV}"
-    if [ $(expr length "$spec") -ge 64 ]; then
-    echo "ERR: TNSPEC must be shorter than 64 characters: $spec" >&2
+    if [ $(expr length "$spec") -ge 128 ]; then
+    echo "ERR: TNSPEC must be shorter than 128 characters: $spec" >&2
     exit 1
     fi
     l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" "$sbk_keyfile" 0x23 || exit 1
