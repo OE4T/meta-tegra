@@ -12,53 +12,63 @@ Index: gst-nvvidconv/Makefile
 ===================================================================
 --- gst-nvvidconv.orig/Makefile
 +++ gst-nvvidconv/Makefile
-@@ -26,23 +26,22 @@
+@@ -26,42 +26,36 @@
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
  SO_NAME := libgstnvvidconv.so
 +prefix ?= /usr
 +exec_prefix ?= $(prefix)
 +libdir ?= $(exec_prefix)/lib
-+CUDA_VERSION ?= 11.4
++CUDA_VER ?= 11.4
  
 -CC := gcc
 -
--GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
--LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-ARCH := $(shell uname -m)
+-
+-GST_INSTALL_DIR?=/usr/lib/$(ARCH)-linux-gnu/gstreamer-1.0/
+-LIB_INSTALL_DIR?=/usr/lib/$(ARCH)-linux-gnu/tegra/
 -CFLAGS:=
- LIBS:= -lnvbufsurface -lnvbufsurftransform
+ LIBS:= -lnvbufsurface -lnvbufsurftransform -lcudart
  
  SRCS := $(wildcard *.c)
  
+-ifdef CUDA_VER
+-CUDA_PATH := /usr/local/cuda-$(CUDA_VER)
+-else
+-CUDA_PATH := /usr/local/cuda
+-endif
+-INCLUDES += -I$(CUDA_PATH)/include
+-INCLUDES += -I$(CUDA_PATH)/targets/$(ARCH)-linux/include
+-
 -INCLUDES += -I./
 -
  PKGS := gstreamer-1.0 \
  	gstreamer-base-1.0 \
  	gstreamer-video-1.0 \
  	gstreamer-allocators-1.0 \
--	glib-2.0
-+	glib-2.0 \
-+	cuda-$(CUDA_VERSION) \
-+	cudart-$(CUDA_VERSION)
+ 	glib-2.0
  
++ifdef CUDA_VER
++PKGS += cuda-$(CUDA_VER) cudart-$(CUDA_VER)
++else
++CUDA_PATH := /usr/local/cuda
++INCLUDES += -I$(CUDA_PATH)/include
++INCLUDES += -I$(CUDA_PATH)/targets/$(ARCH)-linux/include
++endif
++
  OBJS := $(SRCS:.c=.o)
  
-@@ -50,22 +49,23 @@ CFLAGS += -fPIC
+ CFLAGS += -fPIC
  
  CFLAGS += `pkg-config --cflags $(PKGS)`
  
 -LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
+-LDFLAGS += -L$(CUDA_PATH)/targets/$(ARCH)-linux/lib/
 +LDFLAGS += -Wl,--no-undefined
  
  LIBS += `pkg-config --libs $(PKGS)`
  
- all: $(SO_NAME)
- 
- %.o: %.c
--	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
-+	$(CC) -c $< $(CFLAGS) -o $@
- 
- $(SO_NAME): $(OBJS)
+@@ -74,9 +68,10 @@ $(SO_NAME): $(OBJS)
  	$(CC) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
  
  .PHONY: install

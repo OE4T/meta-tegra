@@ -12,7 +12,7 @@ Index: gst-nvdrmvideosink/Makefile
 ===================================================================
 --- gst-nvdrmvideosink.orig/Makefile
 +++ gst-nvdrmvideosink/Makefile
-@@ -27,44 +27,46 @@
+@@ -27,47 +27,45 @@
  #
  ###############################################################################
  
@@ -24,16 +24,17 @@ Index: gst-nvdrmvideosink/Makefile
 -DEST_DIR ?= /usr/lib/aarch64-linux-gnu/gstreamer-1.0
  
  SRCS := gstnvdrmvideosink.c \
--	util/drmutil.c
--
+ 	util/drmutil.c \
+ 	util/vt_switch.c
+ 
 -INCLUDES += -I/usr/lib/aarch64-linux-gnu/glib-2.0/include/ \
 -	    -I./util/ \
 -	    -I/usr/include/ \
--	    -I/usr/include/drm/ \
+-	    -I/usr/include/libdrm/ \
 -	    -I../
-+	util/drmutil.c \
-+	util/vt_switch.c
- 
+-
+-INCLUDES += -I/usr/src/jetson_multimedia_api/include/
+-
  PKGS := glib-2.0 \
  	gstreamer-1.0 \
  	gstreamer-base-1.0 \
@@ -65,7 +66,6 @@ Index: gst-nvdrmvideosink/Makefile
  	$(CC) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
  
  .PHONY: install
-+
  install: $(SO_NAME)
 -	cp -vp $(SO_NAME) $(DEST_DIR)
 +	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
