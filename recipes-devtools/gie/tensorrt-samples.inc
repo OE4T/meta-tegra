@@ -12,7 +12,7 @@ SRC_COMMON_DEBS = "\
 
 SRC_URI:append = " file://0001-Makefile-fix-cross-compilation-issues.patch"
 
-SRC_URI[samples.sha256sum] = "aaf9d6823174f3f43652e66481bcd71894c4137f41a4e02967b433c7d71dfc44"
+SRC_URI[samples.sha256sum] = "e617ed3dfbe73e90ac07c859f154a7853b9657acdb72758d40fd23bb472325f8"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
@@ -22,7 +22,7 @@ LIC_FILES_CHKSUM = "file://../../../share/doc/libnvinfer-samples/copyright;md5=9
 
 S = "${WORKDIR}/tensorrt/usr/src/tensorrt/samples"
 
-DEPENDS = "cuda-cudart cuda-nvprof cudnn tegra-libraries-multimedia-utils tensorrt-core tensorrt-plugins libglvnd"
+DEPENDS = "cuda-cudart cuda-profiler-api cudnn tegra-libraries-multimedia-utils tensorrt-core tensorrt-plugins libglvnd"
 
 EXTRA_OEMAKE = ' \
     CUDA_INSTALL_DIR="${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}" \
