@@ -13,7 +13,7 @@ Index: git/parsers/caffe/caffeParser/caffeParser.cpp
 ===================================================================
 --- git.orig/parsers/caffe/caffeParser/caffeParser.cpp
 +++ git/parsers/caffe/caffeParser/caffeParser.cpp
-@@ -327,7 +327,7 @@ const IBlobNameToTensor* CaffeParser::pa
+@@ -328,7 +328,7 @@ const IBlobNameToTensor* CaffeParser::pa
          mModel = std::unique_ptr<trtcaffe::NetParameter>(new trtcaffe::NetParameter);
          google::protobuf::io::ArrayInputStream modelStream(modelBuffer, modelLength);
          google::protobuf::io::CodedInputStream codedModelStream(&modelStream);
@@ -22,7 +22,7 @@ Index: git/parsers/caffe/caffeParser/caffeParser.cpp
  
          if (!mModel->ParseFromCodedStream(&codedModelStream))
          {
-@@ -624,7 +624,7 @@ IBinaryProtoBlob* CaffeParser::parseBina
+@@ -625,7 +625,7 @@ IBinaryProtoBlob* CaffeParser::parseBina
  
      IstreamInputStream rawInput(&stream);
      CodedInputStream codedInput(&rawInput);
@@ -35,7 +35,7 @@ Index: git/parsers/caffe/caffeParser/readProto.h
 ===================================================================
 --- git.orig/parsers/caffe/caffeParser/readProto.h
 +++ git/parsers/caffe/caffeParser/readProto.h
-@@ -48,7 +48,7 @@ bool readBinaryProto(trtcaffe::NetParame
+@@ -49,7 +49,7 @@ bool readBinaryProto(trtcaffe::NetParame
  
      IstreamInputStream rawInput(&stream);
      CodedInputStream codedInput(&rawInput);
@@ -44,55 +44,6 @@ Index: git/parsers/caffe/caffeParser/readProto.h
  
      bool ok = net->ParseFromCodedStream(&codedInput);
      stream.close();
-Index: git/parsers/onnx/ModelImporter.cpp
-===================================================================
---- git.orig/parsers/onnx/ModelImporter.cpp
-+++ git/parsers/onnx/ModelImporter.cpp
-@@ -285,7 +285,7 @@ Status deserialize_onnx_model(void const
-     {
-         google::protobuf::io::CodedInputStream coded_input(&raw_input);
-         // Note: This WARs the very low default size limit (64MB)
--        coded_input.SetTotalBytesLimit(std::numeric_limits<int>::max(), std::numeric_limits<int>::max() / 4);
-+        coded_input.SetTotalBytesLimit(std::numeric_limits<int>::max());
-         ASSERT( (model->ParseFromCodedStream(&coded_input)) && "Failed to parse the ONNX model.", ErrorCode::kMODEL_DESERIALIZE_FAILED);
-     }
-     return Status::success();
-@@ -302,7 +302,7 @@ Status deserialize_onnx_model(int fd, bo
-     {
-         google::protobuf::io::CodedInputStream coded_input(&raw_input);
-         // Note: This WARs the very low default size limit (64MB)
--        coded_input.SetTotalBytesLimit(std::numeric_limits<int>::max(), std::numeric_limits<int>::max() / 4);
-+        coded_input.SetTotalBytesLimit(std::numeric_limits<int>::max());
-         ASSERT( (model->ParseFromCodedStream(&coded_input)) && "Failed to parse the ONNX model.", ErrorCode::kMODEL_DESERIALIZE_FAILED);
-     }
-     return Status::success();
-Index: git/parsers/onnx/common.hpp
-===================================================================
---- git.orig/parsers/onnx/common.hpp
-+++ git/parsers/onnx/common.hpp
-@@ -68,8 +68,7 @@ namespace common
-     raw_input.SetCloseOnDelete(true);
-     google::protobuf::io::CodedInputStream coded_input(&raw_input);
-     // Note: This WARs the very low default size limit (64MB)
--    coded_input.SetTotalBytesLimit(std::numeric_limits<int>::max(),
--                                   std::numeric_limits<int>::max()/4);
-+    coded_input.SetTotalBytesLimit(std::numeric_limits<int>::max());
-     return msg->ParseFromCodedStream(&coded_input);
-   }
- 
-Index: git/parsers/onnx/onnx_utils.hpp
-===================================================================
---- git.orig/parsers/onnx/onnx_utils.hpp
-+++ git/parsers/onnx/onnx_utils.hpp
-@@ -118,7 +118,7 @@ inline bool ParseFromFile_WAR(google::pr
- 
-     google::protobuf::io::CodedInputStream coded_input(&rawInput);
-     // Note: This WARs the very low default size limit (64MB)
--    coded_input.SetTotalBytesLimit(std::numeric_limits<int>::max(), std::numeric_limits<int>::max() / 4);
-+    coded_input.SetTotalBytesLimit(std::numeric_limits<int>::max());
-     return msg->ParseFromCodedStream(&coded_input);
- }
- 
 Index: git/parsers/onnx/third_party/onnx/onnx/proto_utils.h
 ===================================================================
 --- git.orig/parsers/onnx/third_party/onnx/onnx/proto_utils.h

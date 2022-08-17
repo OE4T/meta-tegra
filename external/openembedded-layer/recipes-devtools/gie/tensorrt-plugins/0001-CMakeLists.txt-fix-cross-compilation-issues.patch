@@ -13,7 +13,7 @@ Index: git/CMakeLists.txt
 ===================================================================
 --- git.orig/CMakeLists.txt
 +++ git/CMakeLists.txt
-@@ -57,6 +57,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_T
+@@ -58,6 +58,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_T
  option(BUILD_PLUGINS "Build TensorRT plugin" ON)
  option(BUILD_PARSERS "Build TensorRT parsers" ON)
  option(BUILD_SAMPLES "Build TensorRT samples" ON)
@@ -21,7 +21,7 @@ Index: git/CMakeLists.txt
  
  # C++14
  set(CMAKE_CXX_STANDARD 14)
-@@ -65,6 +66,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
+@@ -66,6 +67,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
  
  set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations ${CMAKE_CXX_FLAGS} -DBUILD_SYSTEM=cmake_oss")
  
@@ -31,20 +31,7 @@ Index: git/CMakeLists.txt
  ############################################################################################
  # Cross-compilation settings
  
-@@ -98,7 +102,11 @@ message(STATUS "Protobuf version set to
- find_package(Threads REQUIRED)
- if (BUILD_PLUGINS OR BUILD_PARSERS)
-     include(third_party/zlib.cmake)
--    include(third_party/protobuf.cmake)
-+    if (BUILD_PROTOBUF)
-+        include(third_party/protobuf.cmake)
-+    else()
-+        find_package(Protobuf REQUIRED)
-+    endif()
- endif()
- if(NOT CUB_ROOT_DIR)
-   if (CUDA_VERSION VERSION_LESS 11.0)
-@@ -115,27 +123,30 @@ include_directories(
+@@ -115,27 +119,32 @@ include_directories(
      ${CUDA_INCLUDE_DIRS}
      ${CUDNN_ROOT_DIR}/include
  )
@@ -58,9 +45,12 @@ Index: git/CMakeLists.txt
  find_library(CUBLASLT_LIB cublasLt HINTS
 -    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 -if(BUILD_PARSERS)
+-    configure_protobuf(${PROTOBUF_VERSION})
 +    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 +if(BUILD_PROTOBUF)
-     configure_protobuf(${PROTOBUF_VERSION})
++  configure_protobuf(${PROTOBUF_VERSION})
++else()
++  find_package(Protobuf REQUIRED)
  endif()
 -
  find_library_create_target(nvinfer nvinfer SHARED ${TRT_LIB_DIR})
@@ -82,7 +72,7 @@ Index: git/CMakeLists.txt
  if (DEFINED GPU_ARCHS)
    message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
    separate_arguments(GPU_ARCHS)
-@@ -178,6 +189,7 @@ set(GENCODES "${GENCODES} -gencode arch=
+@@ -178,6 +187,7 @@ set(GENCODES "${GENCODES} -gencode arch=
  if (${LATEST_SM} GREATER_EQUAL 70)
      set(BERT_GENCODES "${BERT_GENCODES} -gencode arch=compute_${LATEST_SM},code=compute_${LATEST_SM}")
  endif()
@@ -90,7 +80,7 @@ Index: git/CMakeLists.txt
  set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-declarations")
  
  ############################################################################################
-@@ -190,6 +202,8 @@ else()
+@@ -190,6 +200,8 @@ else()
  endif()
  
  if(BUILD_PARSERS)
@@ -103,7 +93,7 @@ Index: git/parsers/caffe/CMakeLists.txt
 ===================================================================
 --- git.orig/parsers/caffe/CMakeLists.txt
 +++ git/parsers/caffe/CMakeLists.txt
-@@ -47,7 +47,7 @@ target_include_directories(${SHARED_TARG
+@@ -48,7 +48,7 @@ target_include_directories(${SHARED_TARG
      PRIVATE caffeWeightFactory
      PRIVATE ../common
      PRIVATE ${Protobuf_INCLUDE_DIR}
@@ -112,7 +102,7 @@ Index: git/parsers/caffe/CMakeLists.txt
  )
  
  set_target_properties(${SHARED_TARGET}
-@@ -65,6 +65,7 @@ target_link_libraries(${SHARED_TARGET}
+@@ -66,6 +66,7 @@ target_link_libraries(${SHARED_TARGET}
      nvinfer
  )
  
@@ -120,7 +110,7 @@ Index: git/parsers/caffe/CMakeLists.txt
  # modify google namespace to avoid namespace collision.
  set(GOOGLE google_private)
  target_compile_definitions(${SHARED_TARGET}
-@@ -72,6 +73,7 @@ target_compile_definitions(${SHARED_TARG
+@@ -73,6 +74,7 @@ target_compile_definitions(${SHARED_TARG
      "-Dgoogle=${GOOGLE}"
      "-DGOOGLE_PROTOBUF_ARCH_64_BIT"
  )
@@ -128,7 +118,7 @@ Index: git/parsers/caffe/CMakeLists.txt
  
  set_target_properties(${SHARED_TARGET} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL")
  
-@@ -97,7 +99,7 @@ target_include_directories(${STATIC_TARG
+@@ -98,7 +100,7 @@ target_include_directories(${STATIC_TARG
      PRIVATE caffeWeightFactory
      PRIVATE ../common
      PRIVATE ${Protobuf_INCLUDE_DIR}
@@ -137,7 +127,7 @@ Index: git/parsers/caffe/CMakeLists.txt
  )
  
  set_target_properties(${STATIC_TARGET}
-@@ -114,6 +116,7 @@ target_link_libraries(${STATIC_TARGET}
+@@ -115,6 +117,7 @@ target_link_libraries(${STATIC_TARGET}
      ${Protobuf_LIBRARY}
  )
  
@@ -145,7 +135,7 @@ Index: git/parsers/caffe/CMakeLists.txt
  # modify google namespace to avoid namespace collision.
  set(GOOGLE google_private)
  target_compile_definitions(${STATIC_TARGET}
-@@ -121,6 +124,7 @@ target_compile_definitions(${STATIC_TARG
+@@ -122,6 +125,7 @@ target_compile_definitions(${STATIC_TARG
      "-Dgoogle=${GOOGLE}"
      "-DGOOGLE_PROTOBUF_ARCH_64_BIT"
  )
@@ -157,7 +147,7 @@ Index: git/parsers/onnx/CMakeLists.txt
 ===================================================================
 --- git.orig/parsers/onnx/CMakeLists.txt
 +++ git/parsers/onnx/CMakeLists.txt
-@@ -68,7 +68,7 @@ endif()
+@@ -69,7 +69,7 @@ endif()
  if (NOT TARGET protobuf::libprotobuf)
    FIND_PACKAGE(Protobuf REQUIRED)
  else()
@@ -170,7 +160,7 @@ Index: git/parsers/CMakeLists.txt
 ===================================================================
 --- git.orig/parsers/CMakeLists.txt
 +++ git/parsers/CMakeLists.txt
-@@ -21,8 +21,10 @@ add_custom_target(parsers DEPENDS
+@@ -22,8 +22,10 @@ add_custom_target(parsers DEPENDS
  
  add_subdirectory(caffe)
  
@@ -187,7 +177,7 @@ Index: git/plugin/CMakeLists.txt
 ===================================================================
 --- git.orig/plugin/CMakeLists.txt
 +++ git/plugin/CMakeLists.txt
-@@ -60,7 +60,7 @@ set(PLUGIN_LISTS
+@@ -67,7 +67,7 @@ set(PLUGIN_LISTS
      )
  
  # Add BERT sources if ${BERT_GENCODES} was populated
@@ -196,7 +186,7 @@ Index: git/plugin/CMakeLists.txt
      set(BERT_CU_SOURCES)
      set(PLUGIN_LISTS
          ${PLUGIN_LISTS}
-@@ -84,10 +84,14 @@ endforeach(PLUGIN_ITER)
+@@ -91,10 +91,14 @@ endforeach(PLUGIN_ITER)
  add_subdirectory(common)
  
  # Set gencodes
