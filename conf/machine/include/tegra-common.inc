@@ -58,5 +58,3 @@ CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_${TEGRA_CUDA_ARCHITECTURE} -
 
 L4T_BSP_ARCH = "tegra"
 L4T_BSP_PKGARCH = "${TEGRA_PKGARCH}"
-
-SMDFILE ?= "slot_metadata.bin"
