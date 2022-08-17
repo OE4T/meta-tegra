@@ -2,7 +2,7 @@ SECTION = "kernel"
 SUMMARY = "Linux for Tegra kernel recipe"
 DESCRIPTION = "Linux kernel from sources provided by Nvidia for Tegra processors."
 LICENSE = "GPL-2.0-only"
-LIC_FILES_CHKSUM = "file://COPYING;md5=d7810fab7487fb0aad327b76f1be7cd7"
+LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 
 inherit l4t_bsp
 require recipes-kernel/linux/linux-yocto.inc
@@ -14,7 +14,7 @@ DEPENDS:remove = "kern-tools-native"
 DEPENDS:append = " kern-tools-tegra-native"
 DEPENDS:append = "${@' wireless-regdb-native' if bb.utils.to_boolean(d.getVar('KERNEL_INTERNAL_WIRELESS_REGDB')) else ''}"
 
-LINUX_VERSION ?= "4.9.253"
+LINUX_VERSION ?= "5.10.104"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
@@ -22,9 +22,9 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "28d9fddded2c498439b985d34ab57de4bd4c13f0"
+SRCREV = "253a08629977f5003adca084c9a50ec8ba5e16b9"
 KBRANCH = "${SRCBRANCH}"
-SRC_REPO = "github.com/OE4T/linux-tegra-4.9;protocol=https"
+SRC_REPO = "github.com/OE4T/linux-tegra-5.10.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
            ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
@@ -135,7 +135,7 @@ bootimg_from_bundled_initramfs() {
             fi
             initramfs_base_name=${imageType}-${INITRAMFS_NAME}
             initramfs_symlink_name=${imageType}-${INITRAMFS_LINK_NAME}
-            ${STAGING_BINDIR_NATIVE}/tegra186-flash/mkbootimg \
+            ${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash/mkbootimg \
                                     --kernel $deployDir/${initramfs_base_name}.bin \
                                     --ramdisk ${WORKDIR}/initrd \
                                     --output $deployDir/${initramfs_base_name}.cboot
@@ -150,7 +150,7 @@ bootimg_from_bundled_initramfs() {
                 continue
             fi
 	    baseName=$imageType-${KERNEL_IMAGE_NAME}
-            ${STAGING_BINDIR_NATIVE}/tegra186-flash/mkbootimg \
+            ${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash/mkbootimg \
                                     --kernel $deployDir/${baseName}.bin \
                                     --ramdisk ${WORKDIR}/initrd \
                                     --output $deployDir/${baseName}.cboot
@@ -160,21 +160,21 @@ bootimg_from_bundled_initramfs() {
         done
     fi
 }
-do_deploy:append:tegra186() {
+do_deploy:append:tegra194() {
     bootimg_from_bundled_initramfs
 }
-do_deploy:append:tegra194() {
+do_deploy:append:tegra234() {
     bootimg_from_bundled_initramfs
 }
 
 EXTRADEPLOYDEPS = ""
-EXTRADEPLOYDEPS:tegra186 = "tegra186-flashtools-native:do_populate_sysroot"
-EXTRADEPLOYDEPS:tegra194 = "tegra186-flashtools-native:do_populate_sysroot"
+EXTRADEPLOYDEPS:tegra194 = "tegra194-flashtools-native:do_populate_sysroot"
+EXTRADEPLOYDEPS:tegra234 = "tegra234-flashtools-native:do_populate_sysroot"
 do_deploy[depends] += "${EXTRADEPLOYDEPS}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-RRECOMMENDS:${KERNEL_PACKAGE_NAME}-base = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '${KERNEL_PACKAGE_NAME}-image'}"
+RRECOMMENDS:${KERNEL_PACKAGE_NAME}-base = ""
 
 # kernel.bbclass automatically adds a dependency on the intramfs image
 # even if INITRAMFS_IMAGE_BUNDLE is disabled.  This creates a circular
