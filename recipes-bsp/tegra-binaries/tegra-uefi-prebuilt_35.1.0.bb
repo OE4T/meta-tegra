@@ -7,6 +7,14 @@ INHIBIT_DEFAULT_DEPS = "1"
 
 PROVIDES = "virtual/bootloader"
 
+DTB_OVERLAYS = "\
+   AcpiBoot.dtbo \
+   L4TConfiguration.dtbo \
+   L4TRootfsInfo.dtbo \
+   L4TRootfsABInfo.dtbo \
+   L4TRootfsBrokenInfo.dtbo \
+"
+
 inherit deploy
 
 do_install() {
@@ -17,6 +25,9 @@ do_install() {
 do_deploy() {
     install -d ${DEPLOYDIR}
     install -m 0644 ${S}/bootloader/uefi_jetson.bin ${DEPLOYDIR}/
+    for dtbo in ${DTB_OVERLAYS}; do
+	install -m 0644 ${S}/kernel/dtb/$dtbo ${DEPLOYDIR}/
+    done
 }
 
 PACKAGES = "l4t-launcher-prebuilt"
