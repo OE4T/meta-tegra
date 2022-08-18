@@ -1,8 +1,9 @@
 SUMMARY = "UEFI EDK2 Firmware"
 DESCRIPTION = "UEFI EDK2 Firmware for Arm reference platforms"
 HOMEPAGE = "https://github.com/tianocore/edk2"
-
 LICENSE = "BSD-2-Clause-Patent"
+
+PROVIDES = "virtual/bootloader"
 
 # EDK2
 LIC_FILES_CHKSUM = "file://License.txt;md5=2b415520383f7964e96700ae12b4570a"
@@ -16,7 +17,8 @@ EDK2_PLATFORMS_SRC_URI = "git://github.com/tianocore/edk2-platforms.git;branch=m
 SRC_URI = "\
     ${EDK2_SRC_URI};name=edk2;destsuffix=edk2;nobranch=1 \
     ${EDK2_PLATFORMS_SRC_URI};name=edk2-platforms;destsuffix=edk2/edk2-platforms;nobranch=1 \
-    file://0001-Fix-VLA-parameter-warning.patch \
+    file://unaligned.patch \
+    file://default.patch;patchdir=edk2-platforms \
 "
 
 SRCREV_FORMAT         = "edk2_edk2-platforms"
@@ -26,9 +28,6 @@ COMPATIBLE_MACHINE ?= "invalid"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 EDK2_BUILD_RELEASE = "1"
-# Release builds don't work with clang yet:
-# https://bugzilla.tianocore.org/show_bug.cgi?id=3758
-EDK2_BUILD_RELEASE:toolchain-clang = "0"
 
 EDK2_PLATFORM      = "unset"
 # build --platform
@@ -72,9 +71,14 @@ export BTOOLS_PATH = "${EDK_TOOLS_PATH}/BinWrappers/PosixLike"
 
 EDK_COMPILER ?= "GCC5"
 export GCC5_AARCH64_PREFIX = "${TARGET_PREFIX}"
+export GCC5_ARM_PREFIX = "${TARGET_PREFIX}"
 
 EDK_COMPILER:toolchain-clang = "CLANG38"
 export CLANG38_AARCH64_PREFIX = "${TARGET_PREFIX}"
+export CLANG38_ARM_PREFIX = "${TARGET_PREFIX}"
+
+#FIXME - arm32 doesn't work with clang due to a linker issue
+TOOLCHAIN:arm = "gcc"
 
 do_configure:prepend() {
     sed -i -e "s#-target ${HOST_ARCH}-linux-gnu*#-target ${HOST_SYS}#" ${S}/BaseTools/Conf/tools_def.template
@@ -110,7 +114,9 @@ do_install() {
 FILES:${PN} = "/firmware"
 SYSROOT_DIRS += "/firmware"
 # Skip QA check for relocations in .text of elf binaries
-INSANE_SKIP:${PN} = "textrel"
+INSANE_SKIP:${PN} += "textrel"
+# Build paths are currently embedded
+INSANE_SKIP:${PN} += "buildpaths"
 
 do_deploy() {
     # Copy the images to deploy directory
