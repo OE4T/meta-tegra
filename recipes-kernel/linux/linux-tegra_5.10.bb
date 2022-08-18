@@ -22,7 +22,7 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "253a08629977f5003adca084c9a50ec8ba5e16b9"
+SRCREV = "63c149056a7ef7bf146a747e7c8a179c1aaf72f7"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-tegra-5.10.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
@@ -118,8 +118,17 @@ do_apply_devicetree_overlays[depends] += "dtc-native:do_populate_sysroot"
 
 do_install:append() {
 	for dtbo in $(find ${KERNEL_OUTPUT_DIR}/dts/*.dtbo); do
-		dtbo_base_name=`basename $dtbo .$dtbo_ext`
+		dtbo_base_name=$(basename $dtbo)
 		install -m 0644 $dtbo ${D}/${KERNEL_IMAGEDEST}/$dtbo_base_name
+	done
+}
+
+OVERLAYS_TO_DEPLOY = '${@" ".join((d.getVar("OVERLAY_DTB_FILE") or "").split(","))}'
+do_deploy:append() {
+	for dtbo in ${OVERLAYS_TO_DEPLOY}; do
+		if [ -e ${KERNEL_OUTPUT_DIR}/dts/$dtbo ]; then
+			install -m 0644 ${KERNEL_OUTPUT_DIR}/dts/$dtbo $deployDir
+		fi
 	done
 }
 
