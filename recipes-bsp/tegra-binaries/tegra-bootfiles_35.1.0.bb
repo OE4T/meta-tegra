@@ -80,11 +80,6 @@ do_install() {
     [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
 }
 
-do_install:append:jetson-xavier-nx-devkit-tx2-nx() {
-    # XXX only 16GiB eMMC on tx2-nx
-    sed -i -e's,num_sectors="61071360",num_sectors="30777344",' ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
-}
-
 do_install:append:tegra194() {
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
     install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}-override.cfg
@@ -104,14 +99,6 @@ do_install:append:tegra234() {
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra234-bpmp-*.dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra234* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
-    # Copy each dtbo file
-    if [ -n "${OVERLAY_DTB_FILE}" ]; then
-        dtbo_files=$(echo "${OVERLAY_DTB_FILE}" | sed -e "s/,/ /g")
-        for dtbo_file in ${dtbo_files}
-        do
-            install -m 0644 ${S}/kernel/dtb/${dtbo_file} ${D}${datadir}/tegraflash/
-        done
-    fi
 }
 
 PACKAGES = "${PN}-dev"
