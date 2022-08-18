@@ -292,11 +292,6 @@ create_tegraflash_pkg:tegra194() {
         DATAARGS="--datafile ${DATAFILE}"
     fi
     cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-    if [ -n "${KERNEL_ARGS}" ]; then
-        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
-    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
-        fdtput -d ./${DTBFILE} /chosen bootargs
-    fi
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./uefi_jetson.bin
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${BOOTFILES}; do
@@ -383,11 +378,6 @@ create_tegraflash_pkg:tegra234() {
         DATAARGS="--datafile ${DATAFILE}"
     fi
     cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-    if [ -n "${KERNEL_ARGS}" ]; then
-        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
-    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
-        fdtput -d ./${DTBFILE} /chosen bootargs
-    fi
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./uefi_jetson.bin
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${BOOTFILES}; do
@@ -535,11 +525,6 @@ oe_make_bup_payload() {
         dtbf=`basename $dtb`
         rm -f ./$dtbf
         cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" ./$dtbf
-        if [ -n "${KERNEL_ARGS}" ]; then
-            fdtput -t s ./$dtbf /chosen bootargs "${KERNEL_ARGS}"
-        elif fdtget -t s ./$dtbf /chosen bootargs >/dev/null 2>&1; then
-            fdtput -d ./$dtbf /chosen bootargs
-        fi
     done
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./$tosimgfilename
