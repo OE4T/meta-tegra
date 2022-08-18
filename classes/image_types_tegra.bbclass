@@ -306,12 +306,14 @@ create_tegraflash_pkg:tegra194() {
     mkdir ./rollback
     cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
+    sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
     for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
         cp $f .
     done
     for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
         cp $f .
     done
+    cp ${DEPLOY_DIR_IMAGE}/*.dtbo .
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/tegra194-flash/* .
         mv ./rollback_parser.py ./rollback/
@@ -404,9 +406,7 @@ create_tegraflash_pkg:tegra234() {
     for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dts*; do
         cp $f .
     done
-    for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dtbo; do
-        cp $f .
-    done
+    cp ${DEPLOY_DIR_IMAGE}/*.dtbo .
     for f in ${STAGING_DATADIR}/tegraflash/tegra234-bpmp-*.dtb; do
         cp $f .
     done
@@ -548,8 +548,9 @@ oe_make_bup_payload() {
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
-    . ./flashvars
+    cp ${DEPLOY_DIR_IMAGE}/*.dtbo .
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
+        sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
         for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
             cp $f .
         done
@@ -557,16 +558,20 @@ oe_make_bup_payload() {
             cp $f .
         done
     elif [ "${SOC_FAMILY}" = "tegra234" ]; then
+        sed -i -e "s/@BPF_FILE@/${BPF_FILE}/" \
+	    -e "s/@BPFDTB_FILE@/${BPFDTB_FILE}/" \
+	    -e "s/@TBCDTB_FILE@/${TBCDTB_FILE}/" \
+	    -e "s/@WB0SDRAM_BCT@/${WB0SDRAM_BCT}/" \
+	    -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" \
+	    ./flashvars
         for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dts*; do
-            cp $f .
-        done
-        for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dtbo; do
             cp $f .
         done
         for f in ${STAGING_DATADIR}/tegraflash/tegra234-*-bpmp-*.dtb; do
             cp $f .
         done
     fi
+    . ./flashvars
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
         cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         boardcfg=board_config_${MACHINE}.xml
