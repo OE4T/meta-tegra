@@ -147,6 +147,7 @@ bootimg_from_bundled_initramfs() {
             ${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash/mkbootimg \
                                     --kernel $deployDir/${initramfs_base_name}.bin \
                                     --ramdisk ${WORKDIR}/initrd \
+                                    --cmdline "${KERNEL_ARGS}" \
                                     --output $deployDir/${initramfs_base_name}.cboot
             chmod 0644 $deployDir/${initramfs_base_name}.cboot
             ln -sf ${initramfs_base_name}.cboot $deployDir/${initramfs_symlink_name}.cboot
