@@ -11,7 +11,6 @@ SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 SRCREV = "39932b2cc4f44cdadd553cc931f3bebd4e348d10"
 
 SRC_URI += "\
-    file://0001-Tegra-workarounds.patch \
     file://nvidia_gbm.json \
 "
 
