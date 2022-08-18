@@ -2,7 +2,7 @@ EXTRA_OEMESON:append:tegra = " -Dglvnd=true"
 DEPENDS:append:tegra = " libglvnd"
 PROVIDES:tegra = "virtual/mesa virtual/libgbm"
 
-RDEPENDS:libgbm:append:tegra = " tegra-udrm-gbm"
+RDEPENDS:libgbm:append:tegra = " tegra-gbm-backend"
 
 # Workaround for the do_install:append() present in the OE-Core recipe
 do_install:prepend:tegra() {

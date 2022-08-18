@@ -31,6 +31,7 @@ PREFERRED_PROVIDER_v4l-utils = "${@'v4l-utils' if 'openembedded-layer' in d.getV
 PREFERRED_PROVIDER_virtual/bootlogo ?= "bootlogo-prebuilt"
 PREFERRED_PROVIDER_tensorrt-plugins ?= "tensorrt-plugins-prebuilt"
 PREFERRED_PROVIDER_tensorrt-trtexec ?= "tensorrt-trtexec-prebuilt"
+PREFERRED_RPROVIDER_tegra-gbm-backend ?= "tegra-libraries-gbm-backend"
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
 TEGRA_BLBLOCKSIZE ?= "${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}"
