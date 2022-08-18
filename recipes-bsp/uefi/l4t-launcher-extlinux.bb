@@ -47,11 +47,6 @@ do_compile() {
     fi
     if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
         cp -L ${DEPLOY_DIR_IMAGE}/${DTBFILE} ${B}/
-        if [ -n "${KERNEL_ARGS}" ]; then
-            fdtput -t s ${B}/${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
-        elif fdtget -t s ${B}/${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
-            fdtput -d ${B}/${DTBFILE} /chosen bootargs
-        fi
     fi
 }
 do_compile[depends] += "${@compute_dependencies(d)}"
