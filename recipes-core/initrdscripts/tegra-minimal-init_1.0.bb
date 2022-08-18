@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 SRC_URI = "\
     file://init-boot.sh \
     file://platform-preboot.sh \
-    ${@'file://platform-preboot-cboot.sh' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
+"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
@@ -27,5 +27,5 @@ do_install() {
     fi
 }
 
-RDEPENDS:${PN} = "${@'util-linux-blkid' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
+RDEPENDS:${PN} = "util-linux-blkid"
 FILES:${PN} = "/"
