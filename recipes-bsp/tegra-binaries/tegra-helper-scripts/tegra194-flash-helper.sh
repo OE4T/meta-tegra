@@ -317,7 +317,8 @@ bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --scr_config $SCR_CONFIG \
          --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
          --br_cmd_config $BR_CMD_CONFIG \
-         --dev_params $DEV_PARAMS"
+         --dev_params $DEV_PARAMS \
+         --overlay_dtb $OVERLAY_DTB_FILE"
 
 
 if [ $bup_blob -ne 0 -o "$sdcard" = "yes" ]; then
