@@ -7,6 +7,8 @@ require tegra-debian-libraries-common.inc
 
 MAINSUM = "86a9ea9b0674801670d9d78a7ce7db9c3f3db3d8949b0604c84aeb75214fb651"
 
+RPROVIDES:${PN} += "tegra-gbm-backend"
+
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvidia-allocator.so.1 \
 "
