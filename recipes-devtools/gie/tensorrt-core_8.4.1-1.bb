@@ -25,7 +25,7 @@ SRC_URI[nvpdev.sha256sum] = "${NVPDEVSHA256SUM}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=11;md5=f099d2358ef8a23caa6cbf96136cac44"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=11;md5=ddd2b55ba0ff98b2a932ed025ffe3f25"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
