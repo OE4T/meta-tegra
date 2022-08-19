@@ -253,7 +253,7 @@ sce_fw camera-rtcpu-sce.img; \
 rce_fw camera-rtcpu-t234-rce.img; \
 ape_fw adsp-fw.bin; \
 spe_fw spe_t234.bin; \
-tlk tos-mon-only_t234.img; \
+tlk tos-optee_t234.img; \
 eks eks.img"
 
 bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
