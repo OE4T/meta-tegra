@@ -64,7 +64,7 @@ compute_size() {
 }
 
 find_finalpart() {
-    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local blksize partnumber partname partsize partfile partguid parttype partfilltoend
     local appidx pline i
     i=0
     for pline in "${PARTS[@]}"; do
@@ -87,23 +87,25 @@ find_finalpart() {
 }
 
 make_partitions() {
-    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local blksize partnumber partname partsize partfile partguid parttype partfilltoend
     local i pline
     i=0
     for pline in "${PARTS[@]}"; do
 	if [ $i -ne $FINALPART ]; then
 	    eval "$pline"
+	    [ -n "$parttype" ] || parttype="8300"
 	    echo -n "$partname..."
-	    sgdisk "$output" --new=$partnumber:0:+$partsize --typecode=$partnumber:8300 -c $partnumber:$partname >/dev/null 2>&1
+	    sgdisk "$output" --new=$partnumber:0:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
 	fi
 	i=$(expr $i + 1)
     done
     eval "${PARTS[$FINALPART]}"
+    [ -n "$parttype" ] || parttype="8300"
     echo -n "$partname..."
     if [ $partfilltoend -eq 1 ]; then
-	sgdisk "$output" --largest-new=$partnumber --typecode=$partnumber:8300 -c $partnumber:$partname >/dev/null 2>&1
+	sgdisk "$output" --largest-new=$partnumber --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
     else
-	sgdisk "$output" --new=$partnumber:0:+$partsize --typecode=$partnumber:8300 -c $partnumber:$partname >/dev/null 2>&1
+	sgdisk "$output" --new=$partnumber:0:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
     fi
 }
 
@@ -125,7 +127,7 @@ copy_to_device() {
 }
 
 write_partitions_to_device() {
-    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local blksize partnumber partname partsize partfile partguid parttype partfilltoend
     local i dest pline
     i=0
     for pline in "${PARTS[@]}"; do
@@ -177,7 +179,7 @@ write_partitions_to_device() {
 
 write_partitions_to_image() {
     local -a partstart
-    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local blksize partnumber partname partsize partfile partguid parttype partfilltoend
     local i s e stuff partstart partend pline
 
     while read partnumber s e stuff; do
