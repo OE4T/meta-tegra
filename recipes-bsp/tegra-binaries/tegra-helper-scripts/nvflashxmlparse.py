@@ -43,6 +43,9 @@ class Partition(object):
         guid = element.find('unique_guid')
         self.partguid = "" if guid is None else validate_guid(guid.text.strip())
 
+        parttype = element.find('partition_type_guid')
+        self.parttype = "" if parttype is None else parttype.text.strip()
+
         alignment = element.find('align_boundary')
         if alignment is not None:
             alignval = int(alignment.text.strip(), base=0) # in bytes
@@ -82,8 +85,9 @@ class Partition(object):
 
         fname = element.find('filename')
         self.filename = "" if fname is None else fname.text.strip()
-        logging.info("Partition {}: id={}, type={}, start={}, size={}".format(self.name, self.id, self.type,
-                                                                              self.start_location, self.size))
+        logging.info("Partition {}: id={}, type={}, start={}, size={} parttype={}".format(self.name, self.id, self.type,
+                                                                                          self.start_location, self.size,
+                                                                                          self.parttype))
 
     def filltoend(self):
         return (self.alloc_attr & 0x800) == 0x800
@@ -258,14 +262,15 @@ Extracts partition information from an NVIDIA flash.xml file
         blksize = layout.devices[args.type].sector_size
         for n, part in enumerate(partitions):
             print("blksize={};partnumber={};partname=\"{}\";start_location={};partsize={};"
-                  "partfile=\"{}\";partguid=\"{}\";partfilltoend={}".format(blksize,
-                                                                            part.id,
-                                                                            part.name,
-                                                                            part.start_location,
-                                                                            part.size,
-                                                                            part.filename,
-                                                                            part.partguid,
-                                                                            1 if part.filltoend() else 0),
+                  "partfile=\"{}\";partguid=\"{}\";parttype=\"{}\";partfilltoend={}".format(blksize,
+                                                                                            part.id,
+                                                                                            part.name,
+                                                                                            part.start_location,
+                                                                                            part.size,
+                                                                                            part.filename,
+                                                                                            part.partguid,
+                                                                                            part.parttype,
+                                                                                            1 if part.filltoend() else 0),
                   file=outf)
     outf.close()
 
