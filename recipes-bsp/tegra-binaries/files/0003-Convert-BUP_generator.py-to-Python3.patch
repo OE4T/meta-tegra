@@ -106,7 +106,7 @@ Index: Linux_for_Tegra/bootloader/BUP_generator.py
          self.blob_type = 0
          self.entry_packing = '=40sIIII128s'
 -        self.entry_tuple = ('', 0, 0, 0, 0, '')
-+        self.entry_tuple = (b'', 0, 0, 0, 0, '')
++        self.entry_tuple = (b'', 0, 0, 0, 0, b'')
          self.param_c = 5
          self.outfile = 'ota.blob'
  
@@ -127,6 +127,15 @@ Index: Linux_for_Tegra/bootloader/BUP_generator.py
 +            entry_tuple = (part_name.encode('utf-8'), offset, length, version, op_mode, spec_info.encode('utf-8'))
              updated_entry = struct.pack(self.entry_packing, *entry_tuple)
              blob.write(updated_entry)
+ 
+@@ -392,7 +387,7 @@ class bmp_payload(payload):
+         payload.__init__(self, arg)
+         self.blob_type = 1
+         self.entry_packing = '=IIII36s'
+-        self.entry_tuple = (0, 0, 0, 0, '')
++        self.entry_tuple = (0, 0, 0, 0, b'')
+         self.param_c = 3
+         self.outfile = 'bmp.blob'
  
 @@ -404,7 +399,7 @@ class bmp_payload(payload):
  
