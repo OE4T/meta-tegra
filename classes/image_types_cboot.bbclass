@@ -10,6 +10,7 @@ oe_cbootimg_common() {
     ${STAGING_BINDIR_NATIVE}/tegra194-flash/mkbootimg \
         --kernel ${CBOOTIMG_KERNEL} \
         --ramdisk ${IMGDEPLOYDIR}/$1 \
+        --cmdline "${KERNEL_ARGS}" \
         --output "$outfile"
     [ -n "$2" ] || ln -sf $1.cboot ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.cboot
 }
