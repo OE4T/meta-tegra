@@ -2,6 +2,7 @@ DESCRIPTION = "EFI system partition image for Jetson platforms"
 LICENSE = "MIT"
 
 IMAGE_FEATURES = ""
+IMAGE_LINGUAS = ""
 COPY_LIC_MANIFEST = "0"
 COPY_LIC_DIRS = "0"
 COMPATIBLE_MACHINE = "(tegra)"
@@ -21,7 +22,7 @@ IMAGE_FSTYPES = "esp"
 SSTATE_SKIP_CREATION:task-image-complete = "0"
 SSTATE_SKIP_CREATION:task-image-qa = "0"
 do_image_complete[vardepsexclude] += "rm_work_rootfs"
-IMAGE_POSTPROCESS_COMMAND = "remove_unused_stuff;"
+IMAGE_PREPROCESS_COMMAND = "remove_unused_stuff;"
 inherit nopackages
 
 remove_unused_stuff() {
