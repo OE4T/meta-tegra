@@ -1,0 +1,25 @@
+From 13cc971cf7ab0bb8fe8528f2ebd65685a81b7ae3 Mon Sep 17 00:00:00 2001
+From: Atharva Nandanwar <anandanwar@sighthound.com>
+Date: Fri, 19 Aug 2022 15:25:18 -0600
+Subject: [PATCH] fix: remove buildpath for package qa
+
+* get EXTRA_CFLAGS for nvidia-modprobe
+---
+ mk/nvidia-modprobe.mk | 1 ++
+ 1 file changed, 1 insertions(+)
+
+diff --git a/mk/nvidia-modprobe.mk b/mk/nvidia-modprobe.mk
+index 3406222..c7af214 100644
+--- a/mk/nvidia-modprobe.mk
++++ b/mk/nvidia-modprobe.mk
+@@ -26,6 +26,7 @@ PATCH_FILE     := $(MAKE_DIR)/nvidia-modprobe.patch
+ ARFLAGS  := -rU
+ CPPFLAGS := -D_FORTIFY_SOURCE=2 -DNV_LINUX
+ CFLAGS   := -O2 -g -fdata-sections -ffunction-sections -fstack-protector -fno-strict-aliasing -fPIC
++CFLAGS   += $(NVIDIA_MODPROBE_EXTRA_CFLAGS)
+ 
+ ##### Private rules #####
+ 
+-- 
+2.34.1
+
