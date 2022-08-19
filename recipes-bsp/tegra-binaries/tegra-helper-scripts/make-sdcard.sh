@@ -95,7 +95,7 @@ make_partitions() {
 	    eval "$pline"
 	    [ -n "$parttype" ] || parttype="8300"
 	    echo -n "$partname..."
-	    sgdisk "$output" --new=$partnumber:0:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
+	    sgdisk "$output" -a 8 --new=$partnumber:0:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
 	fi
 	i=$(expr $i + 1)
     done
@@ -103,9 +103,9 @@ make_partitions() {
     [ -n "$parttype" ] || parttype="8300"
     echo -n "$partname..."
     if [ $partfilltoend -eq 1 ]; then
-	sgdisk "$output" --largest-new=$partnumber --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
+	sgdisk "$output" -a 8 --largest-new=$partnumber --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
     else
-	sgdisk "$output" --new=$partnumber:0:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
+	sgdisk "$output" -a 8 --new=$partnumber:0:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
     fi
 }
 
@@ -323,7 +323,7 @@ fi
 
 echo -n "Init..."
 [ -b "$output" ] || dd if=/dev/zero of="$output" bs=512 count=0 seek=$outsize status=none
-if ! sgdisk "$output" --clear --mbrtogpt >/dev/null 2>&1; then
+if ! sgdisk "$output" --clear --mbrtogpt --set-alignment=8 >/dev/null 2>&1; then
     echo "ERR: could not initialize GPT on $output" >&2
     exit 1
 fi
