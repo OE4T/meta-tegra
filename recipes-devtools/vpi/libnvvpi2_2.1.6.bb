@@ -36,10 +36,14 @@ do_compile() {
 
 do_install() {
     install -d ${D}/opt/nvidia/vpi2
-    cp -R --preserve=mode,timestamps ${B}/opt/nvidia/vpi2/etc ${D}/opt/nvidia/vpi2/
     cp -R --preserve=mode,timestamps ${B}/opt/nvidia/vpi2/include ${D}/opt/nvidia/vpi2/
     cp -R --preserve=mode,timestamps ${B}/opt/nvidia/vpi2/lib ${D}/opt/nvidia/vpi2/
     ln -snf lib/aarch64-linux-gnu ${D}/opt/nvidia/vpi2/lib64
+    install -d ${D}${sysconfdir}/ld.so.conf.d
+    install -m 0644 ${B}/opt/nvidia/vpi2/etc/ld.so.conf.d/vpi2.conf ${D}${sysconfdir}/ld.so.conf.d/
+    install -d ${D}${nonarch_base_libdir}/firmware
+    install -m 0644 ${B}/opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv/pva_auth_allowlist ${D}${nonarch_base_libdir}/firmware/
+    rm -f ${D}/opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv/pva_auth_allowlist
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
@@ -47,7 +51,7 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
 PACKAGES = "${PN} ${PN}-dev"
-FILES:${PN} = "/opt/nvidia/vpi2/lib/aarch64-linux-gnu/lib*${SOLIBS} /opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv /opt/nvidia/vpi2/lib64 /opt/nvidia/vpi2/etc"
+FILES:${PN} = "/opt/nvidia/vpi2/lib/aarch64-linux-gnu/lib*${SOLIBS} /opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv /opt/nvidia/vpi2/lib64 ${sysconfdir}/ld.so.conf.d ${nonarch_base_libdir}/firmware"
 FILES:${PN}-dev = "/opt/nvidia/vpi2/lib/aarch64-linux-gnu/lib*${SOLIBSDEV} /opt/nvidia/vpi2/include /opt/nvidia/vpi2/lib/aarch64-linux-gnu/cmake"
 RDEPENDS:${PN} += "tegra-libraries-nvsci"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
