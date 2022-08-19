@@ -67,6 +67,13 @@ do_compile() {
     :
 }
 
+do_compile:append:tegra194() {
+    for f in ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb; do
+        compressedfile=${B}/$(basename "$f" .dtb)_lz4.dtb
+        lz4c -f $f $compressedfile
+    done
+}
+
 do_install() {
     install -d ${D}${datadir}/tegraflash
     install -m 0644 ${S}/nv_tegra/bsp_version ${D}${datadir}/tegraflash/
@@ -86,9 +93,8 @@ do_install:append:tegra194() {
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
     for f in ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb; do
         install -m 0644 $f ${D}${datadir}/tegraflash/
-        compressedfile=$(basename "$f" .dtb)_lz4.dtb
-        lz4c -f $f ${D}${datadir}/tegraflash/$compressedfile
-        chmod 0644 ${D}${datadir}/tegraflash/$compressedfile
+        compressedfile=${B}/$(basename "$f" .dtb)_lz4.dtb
+	install -m 0644 $compressedfile ${D}${datadir}/tegraflash/
     done
     install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
 }
