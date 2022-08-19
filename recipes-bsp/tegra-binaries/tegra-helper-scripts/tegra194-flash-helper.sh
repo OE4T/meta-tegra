@@ -424,6 +424,8 @@ flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_c
 	      --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
 	      --cmd \"$tfcmd\" $skipuid \
 	      --cfg flash.xml \
+	      --boot_chain A \
+	      --bct_backup \
 	      $bctargs $ramcodeargs \
 	      --bins \"$BINSARGS\""
 
