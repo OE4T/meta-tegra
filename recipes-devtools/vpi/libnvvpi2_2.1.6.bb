@@ -23,9 +23,6 @@ B = "${S}"
 
 DEPENDS = "cuda-cudart libcufft tegra-libraries-multimedia-utils tegra-libraries-multimedia tegra-libraries-eglcore \
            tegra-libraries-pva tegra-libraries-nvsci tegra-libraries-cuda"
-# XXX--- see hack in do_install
-DEPENDS += "patchelf-native"
-# ---XXX
 SYSROOT_DIRS:append = " /opt"
 
 COMPATIBLE_MACHINE = "(tegra)"
