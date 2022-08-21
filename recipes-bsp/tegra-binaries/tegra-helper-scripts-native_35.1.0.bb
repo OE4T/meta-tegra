@@ -17,12 +17,10 @@ SRC_URI = " \
 S = "${WORKDIR}"
 
 do_install() {
-    install -d ${D}${bindir}/tegra194-flash ${D}${bindir}/tegra234-flash
-    install -m 0755 ${S}/tegra194-flash-helper.sh ${D}${bindir}/tegra194-flash/
-    install -m 0755 ${S}/nvflashxmlparse.py ${D}${bindir}/tegra194-flash/nvflashxmlparse
-    install -m 0755 ${S}/make-sdcard.sh ${D}${bindir}/tegra194-flash/make-sdcard
-    install -m 0755 ${S}/tegra-signimage-helper.sh ${D}${bindir}/tegra194-flash/tegra-signimage-helper
-    install -m 0755 ${S}/tegra234-flash-helper.sh ${D}${bindir}/tegra234-flash/
-    install -m 0755 ${S}/nvflashxmlparse.py ${D}${bindir}/tegra234-flash/nvflashxmlparse
-    install -m 0755 ${S}/make-sdcard.sh ${D}${bindir}/tegra234-flash/make-sdcard
+    install -d ${D}${bindir}/tegra-flash
+    install -m 0755 ${S}/tegra194-flash-helper.sh ${D}${bindir}/tegra-flash/
+    install -m 0755 ${S}/tegra234-flash-helper.sh ${D}${bindir}/tegra-flash/
+    install -m 0755 ${S}/nvflashxmlparse.py ${D}${bindir}/tegra-flash/nvflashxmlparse
+    install -m 0755 ${S}/make-sdcard.sh ${D}${bindir}/tegra-flash/make-sdcard
+    install -m 0755 ${S}/tegra-signimage-helper.sh ${D}${bindir}/tegra-flash/tegra-signimage-helper
 }
