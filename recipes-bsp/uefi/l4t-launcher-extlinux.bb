@@ -4,7 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native"
+DEPENDS = "tegra-flashtools-native dtc-native"
 
 UBOOT_EXTLINUX = "1"
 
@@ -28,7 +28,7 @@ def compute_dependencies(d):
     return deps
 
 
-PATH =. "${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash:"
+PATH =. "${STAGING_BINDIR_NATIVE}/tegra-flash:"
 
 do_configure() {
     :
