@@ -8,7 +8,7 @@ require conf/machine/include/arm/arch-armv8-2a.inc
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 INITRAMFS_IMAGE_BUNDLE ?= "0"
-INITRAMFS_FSTYPES:append = "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot cpio.gz.cboot.bup-payload'}"
+INITRAMFS_FSTYPES:append = "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot'}"
 
 SERIAL_CONSOLES ?= "115200;ttyTCU0"
 
@@ -20,7 +20,7 @@ TEGRA_BOARDID ?= "3701"
 TEGRA_FAB ?= "TS4"
 TEGRA_BOARDSKU ?= "0000"
 TEGRA_BOARDREV ?= "C.0"
-TEGRA_CHIPREV ?= "1"
+TEGRA_CHIPREV ?= "0"
 TEGRA_SIGNING_ENV = "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV}"
 TEGRA_CUDA_ARCHITECTURE = "72"
 
