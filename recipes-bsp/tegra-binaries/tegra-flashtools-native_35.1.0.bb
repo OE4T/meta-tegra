@@ -1,11 +1,9 @@
-SOC_FAMILY = "tegra194"
-
 require tegra-binaries-${PV}.inc
 
-WORKDIR = "${TMPDIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-${PR}"
+WORKDIR = "${TMPDIR}/work-shared/L4T-native-${PV}-${PR}"
 SSTATE_SWSPEC = "sstate:tegra-binaries-native::${PV}:${PR}::${SSTATE_VERSION}:"
-STAMP = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-${PR}"
-STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${SOC_FAMILY}-${PV}-*"
+STAMP = "${STAMPS_DIR}/work-shared/L4T-native-${PV}-${PR}"
+STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${PV}-*"
 
 SRC_URI += "\
            file://0003-Convert-BUP_generator.py-to-Python3.patch \
@@ -27,7 +25,7 @@ DEPENDS = "tegra-helper-scripts-native"
 
 do_compile[noexec] = "1"
 
-BINDIR = "${bindir}/tegra194-flash"
+BINDIR = "${bindir}/tegra-flash"
 
 addtask preconfigure after do_patch before do_configure
 
