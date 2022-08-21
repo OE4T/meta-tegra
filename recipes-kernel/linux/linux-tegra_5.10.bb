@@ -144,7 +144,7 @@ bootimg_from_bundled_initramfs() {
             fi
             initramfs_base_name=${imageType}-${INITRAMFS_NAME}
             initramfs_symlink_name=${imageType}-${INITRAMFS_LINK_NAME}
-            ${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash/mkbootimg \
+            ${STAGING_BINDIR_NATIVE}/tegra-flash/mkbootimg \
                                     --kernel $deployDir/${initramfs_base_name}.bin \
                                     --ramdisk ${WORKDIR}/initrd \
                                     --cmdline "${KERNEL_ARGS}" \
@@ -160,7 +160,7 @@ bootimg_from_bundled_initramfs() {
                 continue
             fi
 	    baseName=$imageType-${KERNEL_IMAGE_NAME}
-            ${STAGING_BINDIR_NATIVE}/${SOC_FAMILY}-flash/mkbootimg \
+            ${STAGING_BINDIR_NATIVE}/tegra-flash/mkbootimg \
                                     --kernel $deployDir/${baseName}.bin \
                                     --ramdisk ${WORKDIR}/initrd \
                                     --output $deployDir/${baseName}.cboot
@@ -170,17 +170,11 @@ bootimg_from_bundled_initramfs() {
         done
     fi
 }
-do_deploy:append:tegra194() {
-    bootimg_from_bundled_initramfs
-}
-do_deploy:append:tegra234() {
+do_deploy:append() {
     bootimg_from_bundled_initramfs
 }
 
-EXTRADEPLOYDEPS = ""
-EXTRADEPLOYDEPS:tegra194 = "tegra194-flashtools-native:do_populate_sysroot"
-EXTRADEPLOYDEPS:tegra234 = "tegra234-flashtools-native:do_populate_sysroot"
-do_deploy[depends] += "${EXTRADEPLOYDEPS}"
+do_deploy[depends] += "tegra-flashtools-native:do_populate_sysroot"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
