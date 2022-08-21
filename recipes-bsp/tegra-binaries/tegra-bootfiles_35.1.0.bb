@@ -3,7 +3,7 @@ require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "${SOC_FAMILY}-flashtools-native dtc-native tegra-flashvars lz4-native"
+DEPENDS = "tegra-flashtools-native dtc-native tegra-flashvars lz4-native"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
@@ -85,10 +85,11 @@ do_install() {
     done
     install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
     [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
+    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
+    install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
 }
 
 do_install:append:tegra194() {
-    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
     install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}-override.cfg
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
     for f in ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb; do
@@ -96,15 +97,12 @@ do_install:append:tegra194() {
         compressedfile=${B}/$(basename "$f" .dtb)_lz4.dtb
 	install -m 0644 $compressedfile ${D}${datadir}/tegraflash/
     done
-    install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
 }
 
 do_install:append:tegra234() {
-    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT}
     install -m 0644 ${S}/bootloader/tegra234-*.dtsi ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra234-bpmp-*.dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra234* ${D}${datadir}/tegraflash/
-    install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
 }
 
 PACKAGES = "${PN}-dev"
