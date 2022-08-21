@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 bup_blob=0
 keyfile=
 sbk_keyfile=
@@ -123,20 +124,38 @@ skipuid=""
 if [ -z "$CHIPREV" ]; then
     chipid=`$here/tegrarcm_v2 --uid | grep BR_CID | cut -d' ' -f2`
     if [ -z "$chipid" ]; then
-    echo "ERR: could not retrieve chip ID" >&2
-    exit 1
-    fi
-    if [ "${chipid:3:2}" != "00" -o "${chipid:6:2}" != "23" ]; then
-    echo "ERR: chip ID mismatch for Orin" >&2
-    exit 1
-    fi
-    case "${chipid:2:1}" in
-    8|9|d)
-        ;;
-    *)
-        echo "ERR: non-production chip found" >&2
+        echo "ERR: could not retrieve chip ID" >&2
         exit 1
-        ;;
+    fi
+    if [ "${chipid:6:2}" != "23" ]; then
+        echo "ERR: chip ID mismatch for Orin" >&2
+        exit 1
+    fi
+    flval="0x${chipid:2:1}"
+    flval=$(printf "%x" "$((flval & 0x8))")
+    tmp_1="0x${chipid:3:2}"
+    tmp_1=$(printf "%2.2x" "$((tmp_1 & 0xf0))")
+    flval="${flval}${tmp_1}"
+    case "${flval}" in
+        000)
+            echo "ERR: non-production chip found" >&2
+            exit 1
+            ;;
+        800)
+            # non-secured
+            break
+            ;;
+        810|820|830|840|850)
+            # RSA/ECDSA P-256/ECDSA P-512/ED25519/XMSS
+            break
+            ;;
+        890|8a0|8b0|8c0|8d0)
+            # SBK + RSA/ECDSA P-256/ECDSA P-512/ED25519/XMSS
+            break
+            ;;
+        *)
+            echo "ERR: unrecognized fused configuration 0x$flval" >&2
+            exit 1
     esac
     CHIPREV="${chipid:5:1}"
     skipuid="--skipuid"
@@ -144,11 +163,27 @@ fi
 
 if [ -z "$FAB" -o -z "$BOARDID" ]; then
     if ! python3 $flashappname ${inst_args} --chip 0x23 --applet mb1_t234_prod.bin $skipuid \
-         --bins "mb2_applet applet_t234.bin" --cmd "dump eeprom boardinfo ${cvm_bin};reboot recovery"; then
-    echo "ERR: could not retrieve EEPROM board information" >&2
-    exit 1
+         --bins "mb2_applet applet_t234.bin" --cmd "dump eeprom cvm ${cvm_bin}; dump custinfo ${custinfo_out}; reboot recovery"; then
+        echo "ERR: could not retrieve EEPROM board information" >&2
+        exit 1
     fi
+    # The chip_info.bin_bak file is created as a side effect of the above tegraflash.py invocation
+    if [ ! -e chip_info.bin_bak ]; then
+        echo "ERR: chip_info.bin_bak missing after dumping boardinfo" >&2
+        exit 1
+    fi
+    CHIP_SKU=$($here/chkbdinfo -C chip_info.bin_bak)
+    # XXX- these don't appear to be used
+    # chip_minor_revision=$($here/chkbdinfo -M chip_info.bin_bak)
+    # bootrom_revision=$($here/chkbdinfo -O chip_info.bin_bak)
+    # ramcode_id=$($here/chkbdinfo -R chip_info.bin_bak)
+    # -XXX
     skipuid=""
+fi
+
+if [ -z "$CHIP_SKU" ]; then
+    # see DEFAULT_CHIP_SKU in p3701.conf.common
+    CHIP_SKU="00:00:00:D0"
 fi
 
 if [ -n "$BOARDID" ]; then
@@ -182,6 +217,36 @@ fi
 [ -n "$FAB" ] || FAB=TS4
 [ -n "$fuselevel" ] || fuselevel=fuselevel_production
 [ -n "${BOOTDEV}" ] || BOOTDEV="mmcblk0p1"
+
+if [ "$BOARDID" = "3701" -a "$FAB" = "301" ]; then
+    RAMCODE=0
+fi
+
+if echo "$CHIP_SKU" | grep -q ":" 2>/dev/null; then
+    chip_sku=$(echo "$CHIP_SKU" | cut -d: -f4)
+else
+    chip_sku=$CHIP_SKU
+fi
+
+case $chip_sku in
+    00)
+        ;;
+    90|97|9E)
+        BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA990SA-A1,")
+        ;;
+    D0|D2)
+        BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA990M-A1,")
+        ;;
+    *)
+        echo "ERR: unrecognized chip SKU: $chip_sku" >&2
+        exit 1
+        ;;
+esac
+
+if [ "$BOARDID" = "3701" -a "$BOARDSKU" != "0000" ]; then
+    BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
+    dtb_file=$(echo "$dtb_file" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
+fi
 
 if [ "${fuselevel}" = "fuselevel_production" ]; then
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS_FILE}";
@@ -256,6 +321,10 @@ spe_fw spe_t234.bin; \
 tlk tos-optee_t234.img; \
 eks eks.img"
 
+custinfo_args=
+if [ -f "$custinfo_out" ]; then
+    custinfo_args="--cust_info $custinfo_out"
+fi
 bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --device_config $DEVICE_CONFIG \
          --misc_config $MISC_CONFIG \
@@ -272,8 +341,7 @@ bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --bldtb $BLDTB \
          --concat_cpubl_bldtb \
          --cpubl uefi_jetson.bin \
-         --cust_info ${custinfo_out}
-         --overlay_dtb $OVERLAY_DTB_FILE"
+         --overlay_dtb $OVERLAY_DTB_FILE $custinfo_args"
 
 if [ $bup_blob -ne 0 -o "$sdcard" = "yes" ]; then
     tfcmd=sign
@@ -293,43 +361,43 @@ fi
 temp_user_dir=
 if [ -n "$keyfile" ]; then
     if [ -n "$sbk_keyfile" ]; then
-    if [ -z "$user_keyfile" ]; then
-        rm -f "null_user_key.txt"
-        echo "0x00000000 0x00000000 0x00000000 0x00000000" > null_user_key.txt
-        user_keyfile=$(readlink -f null_user_key.txt)
-    fi
-    rm -rf signed_bootimg_dir
-    mkdir signed_bootimg_dir
-    cp "$kernfile" "$kernel_dtbfile" signed_bootimg_dir/
-    if [ -n "$MINRATCHET_CONFIG" ]; then
-        for f in $MINRATCHET_CONFIG; do
-        [ -e "$f" ] || continue
-        cp "$f" signed_bootimg_dir/
-        done
-    fi
-    oldwd="$PWD"
-    cd signed_bootimg_dir
-    if [ -x $here/l4t_sign_image.sh ]; then
-        signimg="$here/l4t_sign_image.sh";
-    else
-        hereparent=$(readlink -f "$here/.." 2>/dev/null)
-        if [ -n "$hereparent" -a -x "$hereparent/l4t_sign_image.sh" ]; then
-        signimg="$hereparent/l4t_sign_image.sh"
+        if [ -z "$user_keyfile" ]; then
+            rm -f "null_user_key.txt"
+            echo "0x00000000 0x00000000 0x00000000 0x00000000" > null_user_key.txt
+            user_keyfile=$(readlink -f null_user_key.txt)
         fi
-    fi
-    if [ -z "$signimg" ]; then
-        echo "ERR: missing l4t_sign_image script" >&2
-        exit 1
-    fi
-    "$signimg" --file "$kernfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x23 --split False $MINRATCHET_CONFIG &&
-        "$signimg" --file "$kernel_dtbfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x23 --split False $MINRATCHET_CONFIG
-    rc=$?
-    cd "$oldwd"
-    if [ $rc -ne 0 ]; then
-        echo "Error signing kernel image or device tree" >&2
-        exit 1
-    fi
-    temp_user_dir=signed_bootimg_dir
+        rm -rf signed_bootimg_dir
+        mkdir signed_bootimg_dir
+        cp "$kernfile" "$kernel_dtbfile" signed_bootimg_dir/
+        if [ -n "$MINRATCHET_CONFIG" ]; then
+            for f in $MINRATCHET_CONFIG; do
+                [ -e "$f" ] || continue
+                cp "$f" signed_bootimg_dir/
+            done
+        fi
+        oldwd="$PWD"
+        cd signed_bootimg_dir
+        if [ -x $here/l4t_sign_image.sh ]; then
+            signimg="$here/l4t_sign_image.sh";
+        else
+            hereparent=$(readlink -f "$here/.." 2>/dev/null)
+            if [ -n "$hereparent" -a -x "$hereparent/l4t_sign_image.sh" ]; then
+                signimg="$hereparent/l4t_sign_image.sh"
+            fi
+        fi
+        if [ -z "$signimg" ]; then
+            echo "ERR: missing l4t_sign_image script" >&2
+            exit 1
+        fi
+        "$signimg" --file "$kernfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x23 --split False $MINRATCHET_CONFIG &&
+            "$signimg" --file "$kernel_dtbfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x23 --split False $MINRATCHET_CONFIG
+        rc=$?
+        cd "$oldwd"
+        if [ $rc -ne 0 ]; then
+            echo "Error signing kernel image or device tree" >&2
+            exit 1
+        fi
+        temp_user_dir=signed_bootimg_dir
     fi
     CHIPID="0x23"
     tegraid="$CHIPID"
@@ -339,7 +407,7 @@ if [ -n "$keyfile" ]; then
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
     BINSARGS="--bins \"$BINSARGS\""
-    flashername=nvtboot_cpurf_t234.bin
+    flashername=uefi_jetson_with_dtb.bin
     BCT="--sdram_config"
     bctfilename=`echo $sdramcfg_files | cut -d, -f1`
     bctfile1name=`echo $sdramcfg_files | cut -d, -f2`
@@ -352,20 +420,20 @@ if [ -n "$keyfile" ]; then
     . "$here/odmsign.func"
     (odmsign_ext) || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
-    if [ -f flashcmd.txt ]; then
-        chmod +x flashcmd.txt
-        ln -sf flashcmd.txt ./secureflash.sh
-    else
-        echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
-    fi
-    rm -f APPFILE DATAFILE null_user_key.txt
+        if [ -f flashcmd.txt ]; then
+            chmod +x flashcmd.txt
+            ln -sf flashcmd.txt ./secureflash.sh
+        else
+            echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
+        fi
+        rm -f APPFILE DATAFILE null_user_key.txt
     fi
     if [ $bup_blob -eq 0 ]; then
-    if [ -n "$temp_user_dir" ]; then
-        cp "$temp_user_dir"/*.encrypt.signed .
-        rm -rf "$temp_user_dir"
-    fi
-    exit 0
+        if [ -n "$temp_user_dir" ]; then
+            cp "$temp_user_dir"/*.encrypt.signed .
+            rm -rf "$temp_user_dir"
+        fi
+        exit 0
     fi
     touch odmsign.func
 fi
@@ -379,18 +447,6 @@ flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_d
           $bctargs \
           --bins \"$BINSARGS\""
 
-# Create the custinfo file prior to flashing
-if ! python3 $flashappname --chip 0x23 --applet "mb1_t234_prod.bin" \
-    --skipuid --cfg "readinfo_t234_min_prod.xml" \
-    --dev_params ${DEV_PARAMS_DIAG_BOOT_FILE} \
-    --device_config ${DEVICE_CONFIG} \
-    --misc_config ${MISC_CONFIG} \
-    --bins "mb2_applet applet_t234.bin" \
-    --cmd "dump eeprom cvm cvm.bin; dump custinfo ${custinfo_out}; reboot recovery"; then
-    echo "ERR: could not retrieve custom info from board" >&2
-    exit 1
-fi
-
 if [ $bup_blob -ne 0 ]; then
     [ -z "$keyfile" ] || flashcmd="${flashcmd} --key \"$keyfile\""
     [ -z "$sbk_keyfile" ] || flashcmd="${flashcmd} --encrypt_key \"$sbk_keyfile\""
@@ -403,18 +459,18 @@ if [ $bup_blob -ne 0 ]; then
     . "$here/l4t_bup_gen.func"
     spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}-${BOOTDEV}"
     if [ $(expr length "$spec") -ge 128 ]; then
-    echo "ERR: TNSPEC must be shorter than 128 characters: $spec" >&2
-    exit 1
+        echo "ERR: TNSPEC must be shorter than 128 characters: $spec" >&2
+        exit 1
     fi
     l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" "$sbk_keyfile" 0x23 || exit 1
 else
     eval $flashcmd < /dev/null || exit 1
     if [ -n "$sdcard" ]; then
-    if [ -n "$pre_sdcard_sed" ]; then
-        rm -f signed/flash.xml.tmp.in
-        mv signed/flash.xml.tmp signed/flash.xml.tmp.in
-        sed $pre_sdcard_sed  signed/flash.xml.tmp.in > signed/flash.xml.tmp
-    fi
-    $here/make-sdcard $make_sdcard_args signed/flash.xml.tmp "$@"
+        if [ -n "$pre_sdcard_sed" ]; then
+            rm -f signed/flash.xml.tmp.in
+            mv signed/flash.xml.tmp signed/flash.xml.tmp.in
+            sed $pre_sdcard_sed  signed/flash.xml.tmp.in > signed/flash.xml.tmp
+        fi
+        $here/make-sdcard $make_sdcard_args signed/flash.xml.tmp "$@"
     fi
 fi
