@@ -1,9 +1,88 @@
 #!/bin/sh
 TARGET="@TARGET@"
 BOOTDEV="@BOOTDEV@"
+ESPMOUNT="@ESPMOUNT@"
+ESPVARDIR="@ESPVARDIR@"
 sysconfdir="@sysconfdir@"
+controlfile="${sysconfdir}/nv_boot_control.conf"
+nv_guid="781e084c-a330-417c-b678-38e696380cb9"
 
-[ ! -e "${sysconfdir}/nv_boot_control.conf" ] || exit 0
+fab=
+boardsku=
+boardrev=
+chiprev=
+mmc_only_hack=
+
+set_efi_var() {
+    local varname="$1"
+    local value="$2"
+
+    # Only set if it doesn't exist already
+    if efivar -n "${nv_guid}-$varname" >/dev/null 2>&1; then
+	return 0
+    fi
+    local datatmp=$(TMPDIR=$XDG_RUNTIME_DIR mktemp --tmpdir nvcvar.XXXXXX)
+    printf "%s" "$value" > "$datatmp"
+    efivar -w -f "$datatmp" -n "${nv_guid}-$varname"
+    if [ "$mmc_only_hack" = "yes" ]; then
+	if ! mountpoint -q "$ESPMOUNT"; then
+	    echo "ERR: cannot store EFI variable - ESP partition not mounted" >&2
+	    return 1
+	fi
+	if [ ! -e "$ESPVARDIR/${varname}-${nv_guid}" ]; then
+	    mkdir -p -m 0700 "$ESPVARDIR" || return 1
+	    cp "/sys/firmware/efi/efvars/${varname}-${nv_guid}" "$ESPVARDIR/" || return 1
+	fi
+    fi
+}
+
+gen_compat_2888() {
+    if [ "$fab" = "400" ]; then
+	mmc_only_hack=yes
+	if [ "$boardsku" = "0004" ]; then
+	    boardrev=
+	else
+	    if echo "$boardrev" | grep -q "^[ABCD]\."; then
+		boardrev="D.0"
+	    else
+		boardrev="E.0"
+	    fi
+	    boardsku="0001"
+	fi
+    elif [ "$fab" = "600" -a "$boardsku" = "0008" ]; then
+	boardrev=
+    fi
+    return 0
+}
+
+gen_compat_3668() {
+    if [ "$fab" != "301" ]; then
+	fab="100"
+    fi
+    boardsku=
+    boardrev=
+    chiprev=
+    return 0
+}
+
+gen_compat_3701() {
+    fab=
+    boardrev=
+    chiprev=
+    return 0
+}
+
+# boardspec should be piped into this function
+gen_compat_spec() {
+    IFS=- read boardid fab boardsku boardrev fuselevel chiprev
+    if gen_compat_$boardid 2>/dev/null; then
+	echo "$boardid-$fab-$boardsku-$boardrev-$fuselevel-$chiprev"
+	return 0
+    fi
+    echo ""
+}
+
+[ ! -e "$controlfile" ] || exit 0
 
 if [ ! -e "${sysconfdir}/nv_boot_control.template" ]; then
     echo "ERR: nv_boot_control.conf template file not found" >&2
@@ -15,9 +94,18 @@ if [ -z "${boardspec}" ]; then
     echo "ERR: could not retrieve boardspec for nv_boot_control.conf setup" >&2
     exit 1
 fi
+rc=0
+set_efi_var "TegraPlatformSpec" "${boardspec}-${TARGET}-${BOOTDEV}" || rc=1
 
-sed -e"s,@TNSPEC@,${boardspec}-${TARGET}-${BOOTDEV}," \
-    "${sysconfdir}/nv_boot_control.template" > "${sysconfdir}/nv_boot_control.conf"
-chmod 0644 "${sysconfdir}/nv_boot_control.conf"
-exit 0
+compatspec=$(echo "$boardspec" | gen_compat_spec)
+if [ -z "$compatspec" ]; then
+    compatsed="-e/^COMPATIBLE_SPEC/d"
+else
+    compatsed="-es,@COMPATIBLE_SPEC@,${compatspec}-${TARGET}-,"
+    set_efi_var "TegraPlatformCompatSpec" "${boardspec}-${TARGET}-" || rc=1
+fi
+sed -e"s,@TNSPEC@,${boardspec}-${TARGET}-${BOOTDEV}," $compatsed \
+    "${sysconfdir}/nv_boot_control.template" > "$controlfile" || rc=1
 
+chmod 0644 "$controlfile" || rc=1
+exit $rc
