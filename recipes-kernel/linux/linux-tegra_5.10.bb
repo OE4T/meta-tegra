@@ -7,12 +7,10 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 inherit l4t_bsp
 require recipes-kernel/linux/linux-yocto.inc
 
-KERNEL_INTERNAL_WIRELESS_REGDB ?= "${@bb.utils.contains('DISTRO_FEATURES', 'wifi', '1', '0', d)}"
 KERNEL_DISABLE_FW_USER_HELPER ?= "y"
 
 DEPENDS:remove = "kern-tools-native"
 DEPENDS:append = " kern-tools-tegra-native"
-DEPENDS:append = "${@' wireless-regdb-native' if bb.utils.to_boolean(d.getVar('KERNEL_INTERNAL_WIRELESS_REGDB')) else ''}"
 
 LINUX_VERSION ?= "5.10.104"
 PV = "${LINUX_VERSION}+git${SRCPV}"
@@ -30,7 +28,7 @@ SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
            ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
            ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
            ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
-           ${@'file://wireless_regdb.cfg' if d.getVar('KERNEL_INTERNAL_WIRELESS_REGDB') == '1' else ''} \
+	   file://spiflash.cfg \
 "
 
 PATH:prepend = "${STAGING_BINDIR_NATIVE}/kern-tools-tegra:"
@@ -197,12 +195,3 @@ python () {
             bb.warn('did not find it in %s' % ','.join(flags))
             pass
 }
-
-SRCTREECOVEREDTASKS += "do_kernel_add_regdb"
-do_kernel_add_regdb() {
-    if [ "${KERNEL_INTERNAL_WIRELESS_REGDB}" = "1" ]; then
-        cp ${STAGING_LIBDIR_NATIVE}/crda/db.txt ${S}/net/wireless/db.txt
-    fi
-}
-do_kernel_add_regdb[dirs] = "${S}"
-addtask kernel_add_regdb before do_compile after do_configure
