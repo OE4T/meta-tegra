@@ -6,7 +6,7 @@ case "$1" in
   start|restart)
       while [ ! -e /dev/disk/by-partlabel/kernel ]; do sleep 1; done
       sleep 2
-      /usr/sbin/nv_update_engine --verify < /dev/null
+      /usr/sbin/nvbootctrl verify < /dev/null
       ;;
   stop)
       ;;
