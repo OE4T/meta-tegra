@@ -18,13 +18,7 @@ do_install() {
     install -m 1777 -d ${D}/tmp
     mknod -m 622 ${D}/dev/console c 5 1
     install -d ${D}${sysconfdir}
-    if [ -e ${WORKDIR}/platform-preboot-cboot.sh ]; then
-        cat ${WORKDIR}/platform-preboot-cboot.sh ${WORKDIR}/platform-preboot.sh > ${WORKDIR}/platform-preboot.tmp
-        install -m 0644 ${WORKDIR}/platform-preboot.tmp ${D}${sysconfdir}/platform-preboot
-        rm ${WORKDIR}/platform-preboot.tmp
-    else
-	install -m 0644 ${WORKDIR}/platform-preboot.sh ${D}${sysconfdir}/platform-preboot
-    fi
+    install -m 0644 ${WORKDIR}/platform-preboot.sh ${D}${sysconfdir}/platform-preboot
 }
 
 RDEPENDS:${PN} = "util-linux-blkid"
