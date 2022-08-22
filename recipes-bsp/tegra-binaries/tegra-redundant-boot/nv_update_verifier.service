@@ -4,7 +4,7 @@ After=nvstartup.service dev-disk-by\x2dpartlabel-kernel.device
 
 [Service]
 Type=simple
-ExecStart=/usr/sbin/nv_update_engine --verify
+ExecStart=/usr/sbin/nvbootctrl verify
 
 [Install]
 WantedBy=multi-user.target
