@@ -7,12 +7,16 @@ SRC_URI = "\
     file://setup-nv-boot-control.sh.in \
     file://setup-nv-boot-control.service.in \
     file://setup-nv-boot-control.init.in \
+    file://esp.mount.in \
 "
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 TNSPEC_TARGET ?= "${MACHINE}"
 TNSPEC_BOOTDEV ?= "mmcblk0p1"
+ESPMOUNT ?= "/boot/efi"
+ESPMOUNTUNIT ?= "${@'-'.join(d.getVar('ESPMOUNT').split('/')[1:])}.mount"
+ESPVARDIR ?= "${ESPMOUNT}/EFI/NVDA/Variables"
 
 S = "${WORKDIR}"
 B = "${WORKDIR}/build"
@@ -22,12 +26,19 @@ inherit systemd update-rc.d
 do_compile() {
     sed -e's,@TARGET@,${TNSPEC_TARGET},g' \
         -e's,@BOOTDEV@,${TNSPEC_BOOTDEV},g' \
+        -e's,@ESPMOUNT@,${ESPMOUNT},g' \
+        -e's,@ESPVARDIR@,${ESPVARDIR},g' \
         -e's,@sysconfdir@,${sysconfdir},g' \
         ${S}/setup-nv-boot-control.sh.in >${B}/setup-nv-boot-control.sh
     sed -e's,@bindir@,${bindir},g' \
+        -e's,@ESPMOUNT@,${ESPMOUNT},g' \
         ${S}/setup-nv-boot-control.service.in >${B}/setup-nv-boot-control.service
     sed -e's,@bindir@,${bindir},g' \
+        -e's,@ESPMOUNT@,${ESPMOUNT},g' \
         ${S}/setup-nv-boot-control.init.in >${B}/setup-nv-boot-control.init
+    sed -e's,@ESPMOUNT@,${ESPMOUNT},g' \
+        ${S}/esp.mount.in >${B}/${ESPMOUNTUNIT}
+
 }
 
 do_install() {
@@ -37,6 +48,15 @@ do_install() {
     install -m 0644 ${B}/setup-nv-boot-control.service ${D}${systemd_system_unitdir}/
     install -d ${D}${sysconfdir}/init.d
     install -m 0755 ${B}/setup-nv-boot-control.init ${D}${sysconfdir}/init.d/setup-nv-boot-control
+    install -d ${D}${systemd_system_unitdir}
+    install -m 0644 ${B}/${ESPMOUNTUNIT} ${D}${systemd_system_unitdir}/
+}
+
+pkg_postinst:${PN}() {
+    if [ ! -d $D${systemd_system_unitdir}/local-fs.target.wants ]; then
+        mkdir -p $D${systemd_system_unitdir}/local-fs.target.wants
+    fi
+    ln -sf ../${ESPMOUNTUNIT} $D${systemd_system_unitdir}/local-fs.target.wants/
 }
 
 PACKAGES =+ "${PN}-service"
@@ -46,7 +66,7 @@ INITSCRIPT_PARAMS = "defaults 12"
 SYSTEMD_PACKAGES = "${PN}-service"
 SYSTEMD_SERVICE:${PN}-service = "setup-nv-boot-control.service"
 RDEPENDS:${PN}-service = "${PN}"
-RDEPENDS:${PN} = "tegra-nv-boot-control-config tegra-eeprom-tool-boardspec"
+RDEPENDS:${PN} = "efivar tegra-nv-boot-control-config tegra-eeprom-tool-boardspec"
 
 FILES:${PN} = "${bindir}/setup-nv-boot-control"
 FILES:${PN}-service = "${sysconfdir} ${systemd_system_unitdir}"
