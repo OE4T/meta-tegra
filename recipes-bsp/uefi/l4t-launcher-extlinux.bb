@@ -79,7 +79,7 @@ do_sign_files:tegra234() {
 addtask sign_files after do_create_extlinux_config before do_install
 
 do_install() {
-    install -d ${D}/boot/extlinux
+    install -d ${D}/boot/extlinux ${D}/boot/efi
     install -m 0644 ${B}/${KERNEL_IMAGETYPE} ${B}/${KERNEL_IMAGETYPE}.sig ${D}/boot/
     if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
         install -m 0644 ${B}/${DTBFILE} ${B}/${DTBFILE}.sig ${D}/boot/
