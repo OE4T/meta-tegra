@@ -331,17 +331,21 @@ fi
 find_finalpart || exit 1
 make_partitions || exit 1
 echo "[OK]"
-if ! sgdisk "$output" --verify >/dev/null 2>&1; then
-    echo "ERR: verification failed for $output" >&2
-    exit 1
-fi
 if [ -b "$output" ]; then
-    sleep 1
+    if ! udevadm settle >/dev/null 2>&1; then
+	sleep 1
+    fi
     if ! $SUDO partprobe "$output" >/dev/null 2>&1; then
 	echo "ERR: partprobe failed after partitioning $output" >&2
 	exit 1
     fi
-    sleep 1
+    if ! udevadm settle >/dev/null 2>&1; then
+	sleep 1
+    fi
+fi
+if ! sgdisk "$output" --verify >/dev/null 2>&1; then
+    echo "ERR: verification failed for $output" >&2
+    exit 1
 fi
 if type -p bmaptool >/dev/null 2>&1; then
     HAVEBMAPTOOL=yes
