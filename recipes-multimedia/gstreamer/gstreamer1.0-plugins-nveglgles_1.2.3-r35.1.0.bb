@@ -8,7 +8,9 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstegl_src.tbz2"
 
 require recipes-bsp/tegra-sources/tegra-sources-35.1.0.inc
 
-SRC_URI += " file://0001-Makefile-fixes-for-OE-builds.patch"
+SRC_URI += " file://0001-Makefile-fixes-for-OE-builds.patch \
+             file://0002-Fix-builds-without-x11.patch \
+"
 
 DEPENDS = "tegra-mmapi gstreamer1.0 glib-2.0-native gstreamer1.0-plugins-base virtual/egl virtual/libgles2 cuda-cudart cuda-driver"
 
