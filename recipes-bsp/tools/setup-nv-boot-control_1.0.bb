@@ -50,6 +50,8 @@ do_install() {
     install -m 0755 ${B}/setup-nv-boot-control.init ${D}${sysconfdir}/init.d/setup-nv-boot-control
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${B}/${ESPMOUNTUNIT} ${D}${systemd_system_unitdir}/
+    install -d ${D}/opt/nvidia
+    ln -snf ${ESPMOUNT} ${D}/opt/nvidia/esp
 }
 
 pkg_postinst:${PN}() {
@@ -68,7 +70,7 @@ SYSTEMD_SERVICE:${PN}-service = "setup-nv-boot-control.service"
 RDEPENDS:${PN}-service = "${PN}"
 RDEPENDS:${PN} = "efivar tegra-nv-boot-control-config tegra-eeprom-tool-boardspec"
 
-FILES:${PN} = "${bindir}/setup-nv-boot-control"
+FILES:${PN} = "${bindir}/setup-nv-boot-control /opt/nvidia"
 FILES:${PN}-service = "${sysconfdir} ${systemd_system_unitdir}"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
