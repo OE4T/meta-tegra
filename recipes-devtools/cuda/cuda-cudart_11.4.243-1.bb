@@ -7,10 +7,7 @@ MAINSUM:x86-64 = "cfaf9b30c5078c57fd9cf8590266c895fb37a659600757a55f6bbf910ec483
 DEVSUM = "80d56fc569c73163fdbc94068a2941ca1622bc7b06da872f33408567b06d5cec"
 DEVSUM:x86-64 = "f33d271bd7fc1b8d3d9fb5a535585eee0edf531f07167d0af0bca0524e687ff1"
 
-inherit container-runtime-csv siteinfo
-CONTAINER_CSV_FILES += " \
-    ${sysconfdir}/ld.so.conf.d/cuda-${CUDA_VERSION_DASHED}.conf \
-"
+inherit siteinfo
 
 do_compile:append() {
     echo "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}" > ${B}/cuda-${CUDA_VERSION_DASHED}.conf

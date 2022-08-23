@@ -18,11 +18,9 @@ DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-lib
 
 S = "${WORKDIR}/gst-nvarguscamera"
 
-inherit pkgconfig container-runtime-csv features_check
+inherit pkgconfig features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"
-
-CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 do_install() {
 	oe_runmake install DESTDIR="${D}"

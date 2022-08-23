@@ -98,8 +98,5 @@ sysroot_stage_dirs:append() {
     sysroot_stage_dir $from${prefix}/local/cuda-${CUDA_VERSION} $to${prefix}/local/cuda-${CUDA_VERSION}
 }
 
-inherit container-runtime-csv
-CONTAINER_CSV_FILES = "${prefix}/local/*"
-
 COMPATIBLE_MACHINE:class-target = "(tegra)"
 PACKAGE_ARCH:class-target = "${TEGRA_PKGARCH}"
