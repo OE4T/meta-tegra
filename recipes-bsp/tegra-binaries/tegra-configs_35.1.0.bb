@@ -20,6 +20,7 @@ SRC_URI += "\
     file://0001-Patch-udev-rules-for-OE-use.patch \
     file://0002-Patch-nv.sh-script-for-OE-use.patch \
     file://nv-l4t-bootloader-config.sh \
+    file://l4t.csv \
 "
 
 do_install() {
@@ -40,9 +41,15 @@ do_install() {
     install -d ${D}${sysconfdir}/sysctl.d
     install -m 0644 ${S}/etc/sysctl.d/60-nvsciipc.conf ${D}${sysconfdir}/sysctl.d/
 
+    # We use a statically generated file by using 
+    # https://gist.github.com/dwalkes/0e2dea422f2df93bcc9badc0512a6855
+    # and oe-pkgdata-util file-path <libname> for oe4t-missing.csv 
+    # libraries generated from the script and few hand-modified changes
+    # Removed *.json file as this created errors
+    # Please create an issue for a missing file in the passthrough
+    # FIXME: create a mechanism to dynamically generate l4t.csv based on the installed libraries
     install -d ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
-    grep '^dev,' ${S}/etc/nvidia-container-runtime/host-files-for-container.d/l4t.csv > ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/l4t.csv
-    chmod 0644 ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d/l4t.csv
+    install -m 0644 ${WORKDIR}/l4t.csv ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
 }
 
 do_install:append:tegra194() {
