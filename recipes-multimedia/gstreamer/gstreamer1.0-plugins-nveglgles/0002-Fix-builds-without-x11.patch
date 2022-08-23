@@ -1,0 +1,25 @@
+From f8603aa8b513452ea5a8c196557b8ac6ad770915 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kurt.kiefer@arthrex.com>
+Date: Tue, 23 Aug 2022 10:17:08 -0700
+Subject: [PATCH] Fix builds without x11
+
+Signed-off-by: Kurt Kiefer <kurt.kiefer@arthrex.com>
+---
+ gst-egl/ext/eglgles/gsteglglessink.c | 2 ++
+ 1 file changed, 2 additions(+)
+
+diff --git a/ext/eglgles/gsteglglessink.c b/ext/eglgles/gsteglglessink.c
+index 87ee57a..6713923 100644
+--- a/ext/eglgles/gsteglglessink.c
++++ b/ext/eglgles/gsteglglessink.c
+@@ -107,8 +107,10 @@
+ #include <gst/video/gstvideopool.h>
+ #include <gst/video/videooverlay.h>
+
++#ifdef USE_EGL_X11
+ #include <X11/Xlib.h>
++#endif
+
+ #include "gstegladaptation.h"
+ #include "video_platform_wrapper.h"
+ 
