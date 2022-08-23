@@ -16,5 +16,3 @@ do_install() {
     install_libraries
     ln -s libgstnvdsseimeta.so.1.0.0 ${D}${libdir}/libgstnvdsseimeta.so
 }
-
-CONTAINER_CSV_FILES = "${libdir}/*.so*"

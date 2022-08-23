@@ -70,5 +70,3 @@ FILES:${PN} += "${libdir}/libv4l/plugins"
 FILES:tegra-libraries-argus-daemon-base = "${sbindir}/nvargus-daemon"
 FILES:${PN}-nvtunerd = "${sbindir}/nvtunerd"
 RDEPENDS:${PN} = "tegra-argus-daemon"
-
-CONTAINER_CSV_FILES:append = "${@bb.utils.contains('PACKAGECONFIG', 'x11', ' ${libdir}/libv4l/plugins/*', '', d)}"

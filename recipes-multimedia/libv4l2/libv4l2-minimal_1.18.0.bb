@@ -16,7 +16,7 @@ SRC_URI[sha256sum] = "6cb60d822eeed20486a03cc23e0fc65956fbc1e85e0c1a7477f68bbd98
 
 S = "${WORKDIR}/v4l-utils-${PV}"
 
-inherit autotools gettext pkgconfig container-runtime-csv features_check
+inherit autotools gettext pkgconfig features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
@@ -28,9 +28,6 @@ do_install:append:tegra() {
     rm -rf ${D}${libdir}/libv4l/plugins
 }
 
-CONTAINER_CSV_BASENAME = "libv4l"
-CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/libv4l/ov* ${libdir}/libv4l/*.so"
-
 PACKAGES =+ "libv4l libv4l-dev"
 RPROVIDES:${PN}-dbg += "libv4l-dbg"
 FILES:libv4l += "${libdir}/libv4l*${SOLIBS} ${libdir}/libv4l/*.so ${libdir}/libv4l/plugins/*.so \
@@ -39,7 +36,5 @@ FILES:libv4l += "${libdir}/libv4l*${SOLIBS} ${libdir}/libv4l/*.so ${libdir}/libv
 FILES:libv4l-dev += "${includedir} ${libdir}/pkgconfig \
                      ${libdir}/libv4l*${SOLIBSDEV} ${libdir}/*.la \
                      ${libdir}/v4l*${SOLIBSDEV} ${libdir}/libv4l/*.la ${libdir}/libv4l/plugins/*.la"
-RDEPENDS:libv4l = " ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', '${CONTAINER_CSV_PKGNAME}', '', d)}"
-RDEPENDS:${PN}:remove = " ${@bb.utils.contains('DISTRO_FEATURES', 'virtualization', '${CONTAINER_CSV_PKGNAME}', '', d)}"
 RRECOMMENDS:libv4l = "tegra-libraries-multimedia-v4l"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"

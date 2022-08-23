@@ -28,5 +28,3 @@ pkg_postinst:${PN}() {
 }
 
 FILES:${PN} += "${datadir}/glvnd/egl_vendor.d"
-CONTAINER_CSV_FILES += "${datadir}/glvnd/egl_vendor.d/*"
-CONTAINER_CSV_EXTRA = "lib, /usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0"

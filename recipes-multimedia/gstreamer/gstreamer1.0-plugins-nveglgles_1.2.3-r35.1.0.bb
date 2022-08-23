@@ -20,11 +20,9 @@ EXTRA_OEMAKE = "CUDA_VER=${CUDA_VERSION} ${PACKAGECONFIG_CONFARGS}"
 
 S = "${WORKDIR}/gstegl_src/gst-egl"
 
-inherit pkgconfig container-runtime-csv features_check
+inherit pkgconfig features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"
-
-CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 do_install() {
     oe_runmake install DESTDIR="${D}"

@@ -2,7 +2,6 @@ DESCRIPTION = "NVIDIA Fan Control"
 L4T_DEB_COPYRIGHT_MD5 = "0131b26a89a8fbf5ca06d10b85ba2540"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-nvfancontrol"
-TEGRA_LIBRARIES_CONTAINER_CSV = ""
 DEPENDS = "tegra-nvpower"
 
 require tegra-debian-libraries-common.inc

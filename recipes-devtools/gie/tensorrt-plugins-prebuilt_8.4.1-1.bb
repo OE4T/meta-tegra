@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA TensorRT Prebuilt Plugins for deep learning"
 LICENSE = "Proprietary"
 
-inherit l4t_deb_pkgfeed container-runtime-csv features_check
+inherit l4t_deb_pkgfeed features_check
 
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 
@@ -45,8 +45,6 @@ MAJVER = "${@extract_majver(d)}"
 S = "${WORKDIR}/tensorrt"
 
 DEPENDS = "cuda-cudart cudnn tensorrt-core libcublas"
-
-CONTAINER_CSV_FILES = "${libdir}/*.so*"
 
 do_configure() {
     :
