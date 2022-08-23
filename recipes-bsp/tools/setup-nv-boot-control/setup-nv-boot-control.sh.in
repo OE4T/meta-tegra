@@ -18,27 +18,29 @@ set_efi_var() {
     local value="$2"
 
     # Only set if it doesn't exist already
-    if efivar -n "${nv_guid}-$varname" >/dev/null 2>&1; then
-	return 0
-    fi
-    local datatmp=$(TMPDIR=$XDG_RUNTIME_DIR mktemp --tmpdir nvcvar.XXXXXX)
-    printf "%s" "$value" > "$datatmp"
-    efivar -w -f "$datatmp" -n "${nv_guid}-$varname"
     if [ "$mmc_only_hack" = "yes" ]; then
 	if ! mountpoint -q "$ESPMOUNT"; then
 	    echo "ERR: cannot store EFI variable - ESP partition not mounted" >&2
 	    return 1
 	fi
 	if [ ! -e "$ESPVARDIR/${varname}-${nv_guid}" ]; then
+	    local datatmp=$(TMPDIR=$XDG_RUNTIME_DIR mktemp --tmpdir nvcvar.XXXXXX)
+	    printf "%s%s" "\x07\x00\x00\x00" "$value" > "$datatmp"
 	    mkdir -p -m 0700 "$ESPVARDIR" || return 1
-	    cp "/sys/firmware/efi/efvars/${varname}-${nv_guid}" "$ESPVARDIR/" || return 1
+	    cp "$datatmp" "$ESPVARDIR/${varname}-${nv_guid}" || return 1
 	fi
+    else
+	if efivar -n "${nv_guid}-$varname" >/dev/null 2>&1; then
+	    return 0
+	fi
+	local datatmp=$(TMPDIR=$XDG_RUNTIME_DIR mktemp --tmpdir nvcvar.XXXXXX)
+	printf "%s" "$value" > "$datatmp"
+	efivar -w -f "$datatmp" -n "${nv_guid}-$varname"
     fi
 }
 
 gen_compat_2888() {
     if [ "$fab" = "400" ]; then
-	mmc_only_hack=yes
 	if [ "$boardsku" = "0004" ]; then
 	    boardrev=
 	else
@@ -82,6 +84,17 @@ gen_compat_spec() {
     echo ""
 }
 
+# boardspec should be piped into this function
+needs_mmc_hack() {
+    IFS=- read boardid fab boardsku boardrev fuselevel chiprev
+    if [ "$boardid" = "2888" -a "$fab" = "400" ]; then
+	echo "yes"
+    else
+	echo ""
+    fi
+    return 0
+}
+
 [ ! -e "$controlfile" ] || exit 0
 
 if [ ! -e "${sysconfdir}/nv_boot_control.template" ]; then
@@ -95,8 +108,8 @@ if [ -z "${boardspec}" ]; then
     exit 1
 fi
 rc=0
+mmc_only_hack=$(echo "$boardspec" | needs_mmc_hack)
 set_efi_var "TegraPlatformSpec" "${boardspec}-${TARGET}-${BOOTDEV}" || rc=1
-
 compatspec=$(echo "$boardspec" | gen_compat_spec)
 if [ -z "$compatspec" ]; then
     compatsed="-e/^COMPATIBLE_SPEC/d"
