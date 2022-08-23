@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA TensorRT Core (GPU Inference Engine) for deep learning"
 LICENSE = "Proprietary"
 
-inherit l4t_deb_pkgfeed container-runtime-csv features_check
+inherit l4t_deb_pkgfeed features_check
 
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 
@@ -44,8 +44,6 @@ BASEVER = "${@extract_basever(d)}"
 MAJVER = "${@extract_majver(d)}"
 
 S = "${WORKDIR}/tensorrt"
-
-CONTAINER_CSV_FILES = "${libdir}/*.so*"
 
 do_configure() {
     :

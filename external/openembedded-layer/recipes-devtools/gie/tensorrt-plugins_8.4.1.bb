@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = " \
   file://parsers/onnx/LICENSE;md5=90c6355a9a91565fe861cb12af3c1af1 \
 "
 
-inherit cuda cmake container-runtime-csv pkgconfig
+inherit cuda cmake pkgconfig
 
 SRC_REPO = "github.com/NVIDIA/TensorRT.git;protocol=https"
 SRCBRANCH = "release/8.4"
@@ -24,8 +24,6 @@ S = "${WORKDIR}/git"
 DEPENDS += "zlib libcublas cudnn cuda-cudart cuda-nvrtc protobuf protobuf-native tensorrt-core"
 
 COMPATIBLE_MACHINE = "(tegra)"
-
-CONTAINER_CSV_FILES = "${libdir}/*.so*"
 
 PACKAGECONFIG ??= " \
     plugin \
