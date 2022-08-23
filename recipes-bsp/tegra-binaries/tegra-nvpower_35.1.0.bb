@@ -2,7 +2,6 @@ DESCRIPTION = "nvpower tool and configuration files"
 L4T_DEB_COPYRIGHT_MD5 = "fab0c15b4bbf7f8d5ac2bd6673d4211c"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-core"
-TEGRA_LIBRARIES_CONTAINER_CSV = ""
 
 require tegra-debian-libraries-common.inc
 

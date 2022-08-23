@@ -12,9 +12,7 @@ SRC_URI += " file://0001-Update-makefile-for-OE-builds.patch"
 
 S = "${WORKDIR}/gst-nvtee"
 
-inherit pkgconfig container-runtime-csv
-
-CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
+inherit pkgconfig
 
 do_install() {
 	oe_runmake install DESTDIR="${D}"

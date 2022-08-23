@@ -12,8 +12,6 @@ do_install:append() {
     done
 }
 
-CONTAINER_CSV_FILES = ""
-CONTAINER_CSV_PKGNAME = ""
 FILES:${PN} = "${prefix}/local/cuda-${CUDA_VERSION}/include"
 FILES:${PN}-dev = ""
 

@@ -6,9 +6,8 @@ L4T_DEB_TRANSLATED_BPN ?= "${@d.getVar('BPN').replace('tegra-libraries-', 'nvidi
 LIC_FILES_CHKSUM = "file://usr/share/doc/${L4T_DEB_TRANSLATED_BPN}/copyright;md5=${L4T_DEB_COPYRIGHT_MD5}"
 
 COMPATIBLE_MACHINE = "(tegra)"
-TEGRA_LIBRARIES_CONTAINER_CSV ?= "container-runtime-csv"
 
-inherit l4t_deb_pkgfeed ${TEGRA_LIBRARIES_CONTAINER_CSV}
+inherit l4t_deb_pkgfeed
 
 SRC_SOC_DEBS = "${L4T_DEB_TRANSLATED_BPN}_${PV}_arm64.deb;subdir=${BP};name=main"
 SRC_URI[main.sha256sum] = "${MAINSUM}"
@@ -39,7 +38,5 @@ INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INSANE_SKIP = "dev-so ldflags"
-
-CONTAINER_CSV_FILES = "${libdir}/*.so*"
 
 PACKAGE_ARCH = "${L4T_BSP_PKGARCH}"

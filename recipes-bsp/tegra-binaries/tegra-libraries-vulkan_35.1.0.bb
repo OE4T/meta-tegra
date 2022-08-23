@@ -28,4 +28,3 @@ do_install() {
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
 FILES:${PN} += "/usr/lib/aarch64-linux-gnu"
-CONTAINER_CSV_FILES:append = "${@bb.utils.contains('DISTRO_FEATURES', 'x11', ' ${sysconfdir}/vulkan/icd.d/* /usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json', '', d)}"

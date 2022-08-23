@@ -2,7 +2,6 @@ DESCRIPTION = "nvpmodel tool and configuration files"
 L4T_DEB_COPYRIGHT_MD5 = "859d1cdffa6db892caf6acf77a9264ef"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-nvpmodel"
-TEGRA_LIBRARIES_CONTAINER_CSV = ""
 
 require tegra-debian-libraries-common.inc
 
