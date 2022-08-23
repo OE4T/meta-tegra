@@ -27,11 +27,9 @@ CFLAGS += "-fcommon"
 
 S = "${WORKDIR}/gst-v4l2"
 
-inherit gettext pkgconfig container-runtime-csv features_check
+inherit gettext pkgconfig features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"
-
-CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 remove_headers() {
 	rm ${WORKDIR}/nvbuf_utils.h 

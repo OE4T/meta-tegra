@@ -10,8 +10,6 @@ MAINSUM = "4d9c90003b1d63737f4494262d19ca8c32618cec49dd585f8bbb0d459c07545f"
 XUSBSUM = "6bcdda8cd577feaab54aeee44612055d2d5d9e93539c99e31af45833d5bf1aa0"
 SRC_URI[xusb.sha256sum] = "${XUSBSUM}"
 
-CONTAINER_CSV_FILES = "${nonarch_base_libdir}/firmware/tegra*"
-
 do_install() {
     install -d ${D}${nonarch_base_libdir}
     cp -R -f ${S}/lib/firmware ${D}${nonarch_base_libdir}

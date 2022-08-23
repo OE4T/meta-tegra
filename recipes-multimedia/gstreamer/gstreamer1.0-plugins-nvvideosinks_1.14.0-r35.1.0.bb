@@ -18,9 +18,7 @@ REQUIRED_DISTRO_FEATURES = "x11 opengl"
 
 S = "${WORKDIR}/gst-plugins-nv-video-sinks"
 
-inherit gettext pkgconfig container-runtime-csv cuda features_check
-
-CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
+inherit gettext pkgconfig cuda features_check
 
 EXTRA_OEMAKE = "CUDA_VER=${CUDA_VERSION}"
 

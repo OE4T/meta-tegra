@@ -2,7 +2,6 @@ DESCRIPTION = "Sound configuration files provided by L4T"
 L4T_DEB_COPYRIGHT_MD5 = "0a282b202b51eab090698fcda604cb76"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-init"
-TEGRA_LIBRARIES_CONTAINER_CSV = ""
 
 require tegra-debian-libraries-common.inc
 

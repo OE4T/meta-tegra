@@ -21,10 +21,6 @@ TEGRA_PLUGINS = "\
     libv4l2_nvcuvidvideocodec.so \
 "
 
-CONTAINER_CSV_FILES += " \
-    ${libdir}/libv4l/plugins/*.so \
-"
-
 do_install() {
     install_libraries
     install -d ${D}${libdir}/libv4l/plugins

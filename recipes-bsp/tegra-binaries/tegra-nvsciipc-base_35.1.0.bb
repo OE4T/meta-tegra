@@ -3,7 +3,6 @@ L4T_DEB_COPYRIGHT_MD5 = "fe65a18c0cbf70d19e3d6202a8c825b6"
 DEPENDS = "tegra-libraries-core"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-tools"
-TEGRA_LIBRARIES_CONTAINER_CSV = ""
 
 require tegra-debian-libraries-common.inc
 

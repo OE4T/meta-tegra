@@ -21,8 +21,6 @@ do_install() {
     install -Dpm 644 ${B}/tegra.conf ${D}${sysconfdir}/ld.so.conf.d/tegra.conf
 }
 
-CONTAINER_CSV_FILES = "${libdir}/libdrm_nvdc.so ${libdir}/tegra/libdrm.so.2"
-
 DEBIAN_NOAUTONAME:${PN} = "1"
 DEBIAN_NOAUTONAME:${PN}-dev = "1"
 DEBIAN_NOAUTONAME:${PN}-dbg = "1"
