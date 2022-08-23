@@ -3,7 +3,7 @@ HOMEPAGE = "https://developer.nvidia.com/cudnn"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v8.h;endline=48;md5=23ac9d0dd5c70a72b69318b45ca3fee6"
 
-inherit l4t_deb_pkgfeed container-runtime-csv
+inherit l4t_deb_pkgfeed
 
 L4T_DEB_GROUP = "cudnn"
 

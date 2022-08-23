@@ -14,11 +14,9 @@ DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libdrm tegra-libra
 
 S = "${WORKDIR}/gst-nvdrmvideosink"
 
-inherit pkgconfig container-runtime-csv features_check
+inherit pkgconfig features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"
-
-CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 CFLAGS:append = " -fpic"
 

@@ -2,7 +2,6 @@ DESCRIPTION = "Broadcom patchram utility for Tegra modules with on-board Bluetoo
 L4T_DEB_COPYRIGHT_MD5 = "8ccbe1d1f4886f348bc2690c9e743af4"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-firmware"
-TEGRA_LIBRARIES_CONTAINER_CSV = ""
 
 require tegra-debian-libraries-common.inc
 

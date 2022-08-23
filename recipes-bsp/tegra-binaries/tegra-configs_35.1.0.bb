@@ -2,7 +2,6 @@ DESCRIPTION = "Miscellaneous configuration files provided by L4T"
 L4T_DEB_COPYRIGHT_MD5 = "5e719af08f160720e26b2a78670d44bd"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-configs"
-TEGRA_LIBRARIES_CONTAINER_CSV = ""
 
 require tegra-debian-libraries-common.inc
 

@@ -17,13 +17,11 @@ SRC_URI += "\
 
 S = "${WORKDIR}/gst-nvvidconv"
 
-inherit pkgconfig container-runtime-csv features_check
+inherit pkgconfig features_check
 
 EXTRA_OEMAKE = "CUDA_VER=${CUDA_VERSION}"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
-
-CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 do_install() {
 	oe_runmake install DESTDIR="${D}"
