@@ -64,23 +64,6 @@ do_compile_devicetree_overlays() {
 		export DTC_FLAGS="${KERNEL_DTC_FLAGS}"
 	fi
 	oe_runmake dtb-overlays CC="${KERNEL_CC} $cc_extra " LD="${KERNEL_LD}" ${KERNEL_EXTRA_ARGS}
-	# Prune out the overlays that are not compatible with at least
-	# one of our device trees
-	for dtbo in ${B}/arch/arm64/boot/dts/*.dtbo; do
-		overlaycompat=$(fdtget "$dtbo" / compatible 2>/dev/null || echo "")
-		keep=no
-		if [ -n "$overlaycompat" ]; then
-			for dtbf in ${KERNEL_DEVICETREE}; do
-				dtb=$(get_real_dtb_path_in_kernel $(normalize_dtb "$dtbf"))
-				compat=$(fdtget "$dtb" / compatible)
-				if overlay_compatible "$overlaycompat" "$compat"; then
-					keep=yes
-					break
-				fi
-			done
-		fi
-		[ "$keep" = "yes" ] || rm -f "$dtbo"
-	done
 }
 do_compile_devicetree_overlays[dirs] = "${B}"
 do_compile_devicetree_overlays[depends] += "dtc-native:do_populate_sysroot"
