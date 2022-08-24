@@ -301,7 +301,7 @@ mts_proper mts_c10_prod_cr.bin; \
 bpmp_fw bpmp-2_t194.bin; \
 bpmp_fw_dtb $BPFDTB_FILE; \
 spe_fw spe_t194.bin; \
-tlk tos-optee_t194.img; \
+tos tos-optee_t194.img; \
 eks eks.img; \
 bootloader_dtb $dtb_file"
 
@@ -317,7 +317,7 @@ bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --scr_config $SCR_CONFIG \
          --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
          --br_cmd_config $BR_CMD_CONFIG \
-         --dev_params $DEV_PARAMS \
+         --dev_params $DEV_PARAMS,$DEV_PARAMS_B \
          --overlay_dtb $OVERLAY_DTB_FILE"
 
 
@@ -426,6 +426,7 @@ flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_c
 	      --cfg flash.xml \
 	      --boot_chain A \
 	      --bct_backup \
+	      --secondary_gpt_backup \
 	      $bctargs $ramcodeargs \
 	      --bins \"$BINSARGS\""
 

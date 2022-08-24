@@ -235,7 +235,7 @@ case $chip_sku in
         BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA990SA-A1,")
         ;;
     D0|D2)
-        BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA990M-A1,")
+        BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TE990M-A1,")
         ;;
     *)
         echo "ERR: unrecognized chip SKU: $chip_sku" >&2
@@ -243,14 +243,25 @@ case $chip_sku in
         ;;
 esac
 
+if [ "$chip_sku" = "00" -o "$chip_sku" = "D0" ] &&
+       [ "$FAB" = "400" -o "$FAB" = "TS4" -o "$FAB" = "RC1" ]; then
+    PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000-a04.dtsi"
+    PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000-a04.dtsi"
+fi
+if [ "$chip_sku" = "D2" ]; then
+    PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000-a04.dtsi"
+    PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000-a04.dtsi"
+fi
+
 if [ "$BOARDID" = "3701" -a "$BOARDSKU" != "0000" ]; then
     BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
     dtb_file=$(echo "$dtb_file" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
 fi
 
 if [ "${fuselevel}" = "fuselevel_production" ]; then
-    sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS_FILE}";
-    sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS_DIAG_BOOT_FILE}";
+    sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS}";
+    sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS_B}";
+    sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${EMC_FUSE_DEV_PARAMS}";
 fi
 
 rm -f ${MACHINE}_bootblob_ver.txt
@@ -328,13 +339,14 @@ fi
 bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --device_config $DEVICE_CONFIG \
          --misc_config $MISC_CONFIG \
+         --scr_config $SCR_CONFIG \
          --pinmux_config $PINMUX_CONFIG \
          --gpioint_config $GPIOINT_CONFIG \
          --pmic_config $PMIC_CONFIG \
          --pmc_config $PMC_CONFIG \
          --prod_config $PROD_CONFIG \
          --br_cmd_config $BR_CMD_CONFIG \
-         --dev_params $DEV_PARAMS_FILE \
+         --dev_params $DEV_PARAMS,$DEV_PARAMS_B \
          --deviceprod_config $DEVICEPROD_CONFIG \
          --wb0sdram_config $WB0SDRAM_BCT \
          --mb2bct_cfg $MB2BCT_CFG \
@@ -444,6 +456,9 @@ flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_d
           --applet mb1_t234_prod.bin \
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
+          --boot_chain A \
+          --bct_backup \
+          --secondary_gpt_backup \
           $bctargs \
           --bins \"$BINSARGS\""
 
