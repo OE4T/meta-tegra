@@ -24,7 +24,7 @@ ODMDATA ?= "0xB8190000"
 EMMC_BCT ?= "tegra194-mb1-bct-memcfg-p3668-0001-a00.cfg"
 EMMC_BCT_OVERRIDE ?= "tegra194-memcfg-sw-override.cfg"
 NVIDIA_BOARD ?= "t186ref"
-OVERLAY_DTB_FILE ?= "L4TConfiguration.dtbo,tegra194-p3668-p3509-overlay.dtbo"
+OVERLAY_DTB_FILE ?= "${TEGRA_BOOTCONTROL_OVERLAYS}tegra194-p3668-p3509-overlay.dtbo"
 
 OTABOOTDEV ?= "/dev/mtdblock0"
 OTAGPTDEV ?= "/dev/mtdblock0"
