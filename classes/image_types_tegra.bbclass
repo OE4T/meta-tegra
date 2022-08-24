@@ -163,7 +163,8 @@ tegraflash_create_flash_config:tegra194() {
     local destdir="$1"
     local lnxfile="$2"
 
-    cat "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | sed \
+    sed -e"s,MB1FILE,mb1_b_t194_prod.bin,2" "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | \
+	sed \
         -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
         -e"s,TEGRABOOT,nvtboot_t194.bin," \
         -e"s,MTSPREBOOT,preboot_c10_prod_cr.bin," \
@@ -298,6 +299,7 @@ create_tegraflash_pkg:tegra194() {
     for f in ${BOOTFILES}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
+    cp mb1_t194_prod.bin mb1_b_t194_prod.bin
     rm -rf ./rollback
     mkdir ./rollback
     cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
@@ -536,6 +538,7 @@ oe_make_bup_payload() {
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     cp ${DEPLOY_DIR_IMAGE}/*.dtbo .
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
+        cp mb1_t194_prod.bin mb1_b_t194_prod.bin
         sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
         for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
             cp $f .
