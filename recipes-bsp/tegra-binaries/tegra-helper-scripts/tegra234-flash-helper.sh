@@ -1,5 +1,4 @@
 #!/bin/bash
-set -x
 bup_blob=0
 keyfile=
 sbk_keyfile=
