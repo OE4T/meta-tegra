@@ -39,6 +39,7 @@ BOOTBINS:tegra234 = "\
     eks.img \
     mb1_t234_prod.bin \
     mb2_t234.bin \
+    mb2rf_t234.bin \
     preboot_c10_prod_cr.bin \
     mce_c10_prod_cr.bin \
     mts_c10_prod_cr.bin \
@@ -85,12 +86,12 @@ do_install() {
     done
     install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
     [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
-    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
+    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT}
     install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
 }
 
 do_install:append:tegra194() {
-    install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}-override.cfg
+    install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT_OVERRIDE}
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
     for f in ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb; do
         install -m 0644 $f ${D}${datadir}/tegraflash/
@@ -100,7 +101,7 @@ do_install:append:tegra194() {
 }
 
 do_install:append:tegra234() {
-    install -m 0644 ${S}/bootloader/tegra234-*.dtsi ${D}${datadir}/tegraflash/
+    install -m 0644 ${S}/bootloader/tegra234-*.dts* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra234-bpmp-*.dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra234* ${D}${datadir}/tegraflash/
 }
