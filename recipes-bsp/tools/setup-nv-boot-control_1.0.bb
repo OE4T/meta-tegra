@@ -12,8 +12,6 @@ SRC_URI = "\
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-TNSPEC_TARGET ?= "${MACHINE}"
-TNSPEC_BOOTDEV ?= "mmcblk0p1"
 ESPMOUNT ?= "/boot/efi"
 ESPMOUNTUNIT ?= "${@'-'.join(d.getVar('ESPMOUNT').split('/')[1:])}.mount"
 ESPVARDIR ?= "${ESPMOUNT}/EFI/NVDA/Variables"
@@ -24,7 +22,7 @@ B = "${WORKDIR}/build"
 inherit systemd update-rc.d
 
 do_compile() {
-    sed -e's,@TARGET@,${TNSPEC_TARGET},g' \
+    sed -e's,@TARGET@,${TNSPEC_MACHINE},g' \
         -e's,@BOOTDEV@,${TNSPEC_BOOTDEV},g' \
         -e's,@ESPMOUNT@,${ESPMOUNT},g' \
         -e's,@ESPVARDIR@,${ESPVARDIR},g' \
