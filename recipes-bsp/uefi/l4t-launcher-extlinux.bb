@@ -8,9 +8,6 @@ DEPENDS = "tegra-flashtools-native dtc-native"
 
 inherit l4t-extlinux-config kernel-artifact-names
 
-TEGRA_SIGNING_ARGS ??= ""
-TEGRA_SIGNING_EXCLUDE_TOOLS ??= ""
-TEGRA_SIGNING_EXTRA_DEPS ??= ""
 KERNEL_ARGS ??= ""
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 
@@ -50,40 +47,14 @@ do_compile() {
 do_compile[depends] += "${@compute_dependencies(d)}"
 do_compile[cleandirs] = "${B}"
 
-# Override this function in a bbappend to handle alternative
-# signing mechanisms
-sign_files() {
-    tegra-signimage-helper ${TEGRA_SIGNING_ARGS} --chip ${NVIDIA_CHIP} "$@"
-}
-
-do_sign_files() {
-    files_to_sign="${KERNEL_IMAGETYPE}"
-    if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
-        files_to_sign="$files_to_sign ${DTBFILE}"
-    fi
-    if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
-        files_to_sign="$files_to_sign initrd"
-    fi
-    sign_files $files_to_sign
-}
-do_sign_files[dirs] = "${B}"
-do_sign_files[depends] += "${TEGRA_SIGNING_EXTRA_DEPS}"
-
-# Tegra234 Orin doesn't use this signing mechanism
-do_sign_files:tegra234() {
-    :
-}
-
-addtask sign_files after do_create_extlinux_config before do_install
-
 do_install() {
     install -d ${D}/boot/extlinux ${D}/boot/efi
-    install -m 0644 ${B}/${KERNEL_IMAGETYPE} ${B}/${KERNEL_IMAGETYPE}.sig ${D}/boot/
+    install -m 0644 ${B}/${KERNEL_IMAGETYPE} ${D}/boot/
     if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
-        install -m 0644 ${B}/${DTBFILE} ${B}/${DTBFILE}.sig ${D}/boot/
+        install -m 0644 ${B}/${DTBFILE} ${D}/boot/
     fi
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
-        install -m 0644 ${B}/initrd ${B}/initrd.sig ${D}/boot/
+        install -m 0644 ${B}/initrd ${D}/boot/
     fi
     install -m 0644 ${B}/extlinux.conf ${D}/boot/extlinux/
 }
