@@ -11,7 +11,7 @@ LIC_FILES_CHKSUM = "file://License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-platforms/License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-chips-platform.efi;md5=549bbaa72578510a18ba3c324465027c"
 
-DEPENDS += "dtc-native"
+DEPENDS += "dtc-native tegra-bootfiles"
 
 EDK2_SRC_URI = "gitsm://github.com/NVIDIA/edk2.git;protocol=https;branch=rel-35-edk2-stable-202205"
 EDK2_PLATFORMS_SRC_URI = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=rel-35-upstream-20220208"
@@ -58,6 +58,9 @@ def nvidia_edk2_packages_path(d):
 PACKAGES_PATH = "${@nvidia_edk2_packages_path(d)}"
 
 EDK2_BIN_NAME = "uefi_jetson.bin"
+NVDISPLAY_INIT_DEFAULT = ""
+NVDISPLAY_INIT_DEFAULT:tegra194 = "${STAGING_DATADIR}/tegraflash/nvdisp-init.bin"
+NVDISPLAY_INIT ?= "${NVDISPLAY_INIT_DEFAULT}"
 EDK2_EXTRA_BUILD = '-D "BUILDID_STRING=v${PV}" -D "BUILD_DATE_TIME=${@format_build_date(d)}" -D "BUILD_PROJECT_TYPE=EDK2" -D "GENFW_FLAGS=--zero"'
 
 def format_build_date(d):
@@ -69,7 +72,13 @@ do_compile:append() {
     mkdir ${B}/images
     python3 ${S_EDK2_NVIDIA}/Silicon/NVIDIA/Tools/FormatUefiBinary.py \
         ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/FV/UEFI_NS.Fv \
-        ${B}/images/${EDK2_BIN_NAME}
+        ${B}/images/${EDK2_BIN_NAME}.tmp
+    if [ -n "${NVDISPLAY_INIT}" ]; then
+        cat "${NVDISPLAY_INIT}" ${B}/images/${EDK2_BIN_NAME}.tmp > ${B}/images/${EDK2_BIN_NAME}
+	rm ${B}/images/${EDK2_BIN_NAME}.tmp
+    else
+	mv ${B}/images/${EDK2_BIN_NAME}.tmp ${B}/images/${EDK2_BIN_NAME}
+    fi
     python3 ${S_EDK2_NVIDIA}/Silicon/NVIDIA/Tools/FormatUefiBinary.py \
         ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/AARCH64/L4TLauncher.efi \
         ${B}/images/BOOTAA64.efi
