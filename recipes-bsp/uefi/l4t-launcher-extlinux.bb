@@ -6,8 +6,6 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS = "tegra-flashtools-native dtc-native"
 
-UBOOT_EXTLINUX = "1"
-
 inherit l4t-extlinux-config kernel-artifact-names
 
 TEGRA_SIGNING_ARGS ??= ""
