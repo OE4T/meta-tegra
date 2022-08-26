@@ -89,6 +89,7 @@ tegraflash_post_sign_pkg() {
 tegraflash_post_sign_pkg:tegra194() {
     mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     [ "${TEGRA_SPIFLASH_BOOT}" = "1" -o "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ] || rm -f ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    sed -i -e"s,APPFILE_b,${IMAGE_BASENAME}.img," secureflash.xml
     sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
     if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" -a "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" != "1" ]; then
         mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_DATA}" ${DATAFILE}.img
@@ -165,6 +166,7 @@ tegraflash_create_flash_config:tegra194() {
 
     sed -e"s,MB1FILE,mb1_b_t194_prod.bin,2" "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | \
 	sed \
+        -e"s,LNXFILE_b,$lnxfile," \
         -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
         -e"s,TEGRABOOT,nvtboot_t194.bin," \
         -e"s,MTSPREBOOT,preboot_c10_prod_cr.bin," \
