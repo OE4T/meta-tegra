@@ -17,7 +17,7 @@ PACKAGE_INSTALL = "${EFI_PROVIDER}"
 
 inherit core-image
 
-IMAGE_FSTYPES = "esp"
+IMAGE_FSTYPES:forcevariable = "esp"
 
 SSTATE_SKIP_CREATION:task-image-complete = "0"
 SSTATE_SKIP_CREATION:task-image-qa = "0"
