@@ -1,8 +1,9 @@
 #!/bin/sh
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
-mount -t proc proc /proc
-mount -t devtmpfs none /dev
-mount -t sysfs sysfs /sys
+mount -t proc proc -o nosuid,nodev,noexec /proc
+mount -t devtmpfs none -o nosuid /dev
+mount -t sysfs sysfs -o nosuid,nodev,noexec /sys
+mount -t efivarfs efivarfs -o nosuid,nodev,noexec /sys/firmware/efi/efivars
 
 rootdev=""
 opt="rw"
