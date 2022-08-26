@@ -26,7 +26,7 @@ do_install:append:tegra194() {
 python () {
     if bb.utils.to_boolean(d.getVar('TEGRA_BYPASS_TNSPEC_CHECK'), False):
         return
-    machine = d.getVar('MACHINE')
+    machine = d.getVar('TNSPEC_MACHINE')
     if machine and len(machine) > 31:
-        bb.warn('MACHINE name must be less than 32 characters for bootloader update payload generation')
+        bb.warn('TNSPEC_MACHINE name must be less than 32 characters for bootloader update payload generation')
 }
