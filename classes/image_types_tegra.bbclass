@@ -89,7 +89,7 @@ tegraflash_post_sign_pkg() {
 tegraflash_post_sign_pkg:tegra194() {
     mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     [ "${TEGRA_SPIFLASH_BOOT}" = "1" -o "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ] || rm -f ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
-    sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
+    sed -i -e"s,APPFILE_b,${IMAGE_BASENAME}.img," -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
     if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" -a "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" != "1" ]; then
         mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_DATA}" ${DATAFILE}.img
         sed -i -e"s,DATAFILE,${DATAFILE}.img," secureflash.xml
@@ -99,7 +99,7 @@ tegraflash_post_sign_pkg:tegra194() {
 tegraflash_post_sign_pkg:tegra234() {
     mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     [ "${TEGRA_SPIFLASH_BOOT}" = "1" -o "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ] || rm -f ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
-    sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
+    sed -i -e"s,APPFILE_b,${IMAGE_BASENAME}.img," -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
     if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" -a "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" != "1" ]; then
         mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_DATA}" ${DATAFILE}.img
         sed -i -e"s,DATAFILE,${DATAFILE}.img," secureflash.xml
@@ -165,6 +165,7 @@ tegraflash_create_flash_config:tegra194() {
 
     sed -e"s,MB1FILE,mb1_b_t194_prod.bin,2" "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | \
 	sed \
+        -e"s,LNXFILE_b,$lnxfile," \
         -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
         -e"s,TEGRABOOT,nvtboot_t194.bin," \
         -e"s,MTSPREBOOT,preboot_c10_prod_cr.bin," \
@@ -183,7 +184,7 @@ tegraflash_create_flash_config:tegra194() {
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
-        -e"s,APPUUID,," \
+        -e"s,APPUUID_b,," -e"s,APPUUID,," \
 	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
         > $destdir/flash.xml.in
 }
@@ -193,6 +194,7 @@ tegraflash_create_flash_config:tegra234() {
     local lnxfile="$2"
 
     cat "${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}" | sed \
+        -e"s,LNXFILE_b,$lnxfile," \
         -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
         -e"s,MB1FILE,mb1_t234_prod.bin," \
         -e"s,CAMERAFW,camera-rtcpu-t234-rce.img," \
@@ -217,7 +219,7 @@ tegraflash_create_flash_config:tegra234() {
         -e"s,MB2RF_IMAGE,mb2rf_t234.bin," \
         -e"s,TBCDTB-FILE,uefi_jetson_with_dtb.bin," \
         -e"s,DCE,display-t234-dce.bin," \
-        -e"s,APPUUID,," \
+        -e"s,APPUUID_b,," -e"s,APPUUID,," \
 	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
         > $destdir/flash.xml.in
 }
