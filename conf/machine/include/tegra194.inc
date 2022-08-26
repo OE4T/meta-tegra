@@ -25,10 +25,6 @@ TEGRA_SIGNING_ENV = "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEG
 
 TEGRA_CUDA_ARCHITECTURE = "72"
 
-UBOOT_EXTLINUX ?= ""
-
-TEGRA_ESSENTIAL_EXTRA_RDEPENDS ?= "l4t-launcher-extlinux"
-
 require conf/machine/include/tegra-common.inc
 
 EFI_PROVIDER ?= "l4t-launcher"
