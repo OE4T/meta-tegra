@@ -3,7 +3,7 @@ require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "tegra-flashtools-native dtc-native tegra-flashvars lz4-native"
+DEPENDS = "tegra-flashtools-native dtc-native tegra-flashvars lz4-native coreutils-native"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
@@ -73,6 +73,8 @@ do_compile:append:tegra194() {
         compressedfile=${B}/$(basename "$f" .dtb)_lz4.dtb
         lz4c -f $f $compressedfile
     done
+    cp ${S}/bootloader/nvdisp-init.bin ${B}
+    truncate --size=393216 ${B}/nvdisp-init.bin
 }
 
 do_install() {
@@ -91,6 +93,7 @@ do_install() {
 }
 
 do_install:append:tegra194() {
+    install -m 0644 ${B}/nvdisp-init.bin ${D}${datadir}/tegraflash/
     install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT_OVERRIDE}
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
     for f in ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb; do
