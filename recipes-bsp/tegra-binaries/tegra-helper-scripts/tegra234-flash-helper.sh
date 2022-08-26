@@ -286,14 +286,14 @@ if [ $bup_blob -ne 0 ]; then
     kernfile="${kernfile:-boot.img}"
     appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
 elif [ $no_flash -eq 0 -a -z "$sdcard" ]; then
-    appfile_sed="-es,APPFILE,$appfile, -es,DATAFILE,$datafile,"
+    appfile_sed="-es,APPFILE_b,$appfile, -es,APPFILE,$appfile, -es,DATAFILE,$datafile,"
 else
-    pre_sdcard_sed="-es,APPFILE,$appfile,"
+    pre_sdcard_sed="-es,APPFILE_b,$appfile, -es,APPFILE,$appfile,"
     if [ -n "$datafile" ]; then
     pre_sdcard_sed="$pre_sdcard_sed -es,DATAFILE,$datafile,"
     touch DATAFILE
     fi
-    touch APPFILE
+    touch APPFILE APPFILE_b
 fi
 
 dtb_file_basename=$(basename "$dtb_file")
@@ -437,7 +437,7 @@ if [ -n "$keyfile" ]; then
         else
             echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
         fi
-        rm -f APPFILE DATAFILE null_user_key.txt
+        rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
     fi
     if [ $bup_blob -eq 0 ]; then
         if [ -n "$temp_user_dir" ]; then
