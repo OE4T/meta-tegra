@@ -1,4 +1,4 @@
-inherit image_types image_types_cboot image_types_esp python3native perlnative kernel-artifact-names
+inherit image_types image_types_cboot image_types_tegra_esp python3native perlnative kernel-artifact-names
 
 IMAGE_TYPES += "tegraflash"
 
