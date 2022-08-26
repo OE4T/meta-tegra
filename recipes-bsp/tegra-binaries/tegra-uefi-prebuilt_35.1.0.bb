@@ -7,6 +7,8 @@ INHIBIT_DEFAULT_DEPS = "1"
 
 PROVIDES = "virtual/bootloader"
 
+DEPENDS = "coreutils-native"
+
 DTB_OVERLAYS = "\
    AcpiBoot.dtbo \
    L4TConfiguration.dtbo \
@@ -17,6 +19,16 @@ DTB_OVERLAYS = "\
 
 inherit deploy
 
+do_compile() {
+    cp ${S}/bootloader/uefi_jetson.bin ${B}
+}
+
+do_compile:tegra194() {
+    cp ${S}/bootloader/nvdisp-init.bin ${B}
+    truncate --size=393216 ${B}/nvdisp-init.bin
+    cat ${B}/nvdisp-init.bin ${S}/bootloader/uefi_jetson.bin > ${B}/uefi_jetson.bin
+}
+
 do_install() {
     install -d ${D}${EFIDIR}
     install -m 0644 ${S}/bootloader/BOOTAA64.efi ${D}${EFIDIR}/${EFI_BOOT_IMAGE}
@@ -24,7 +36,7 @@ do_install() {
 
 do_deploy() {
     install -d ${DEPLOYDIR}
-    install -m 0644 ${S}/bootloader/uefi_jetson.bin ${DEPLOYDIR}/
+    install -m 0644 ${B}/uefi_jetson.bin ${DEPLOYDIR}/
     for dtbo in ${DTB_OVERLAYS}; do
 	install -m 0644 ${S}/kernel/dtb/$dtbo ${DEPLOYDIR}/
     done
