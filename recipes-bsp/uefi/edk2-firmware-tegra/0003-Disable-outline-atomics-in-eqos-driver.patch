@@ -1,0 +1,10 @@
+Index: edk2-tegra/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
+===================================================================
+--- edk2-tegra.orig/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
++++ edk2-tegra/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
+@@ -110,4 +110,4 @@
+ 
+ [BuildOptions]
+   *_*_*_PP_FLAGS = -DUPDATED_PAD_CAL -DMACSEC_SUPPORT
+-  *_*_*_CC_FLAGS = -DUPDATED_PAD_CAL -DMACSEC_SUPPORT
++  *_*_*_CC_FLAGS = -DUPDATED_PAD_CAL -DMACSEC_SUPPORT -mno-outline-atomics

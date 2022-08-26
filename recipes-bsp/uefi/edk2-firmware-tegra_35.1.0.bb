@@ -37,6 +37,7 @@ SRC_URI = "\
 SRCREV_FORMAT = "edk2_edk2-platforms_edk2-non-osi_edk2-nvidia_edk2-nvidia-non-osi"
 
 SRC_URI += "file://0002-Replace-libc-mem-calls-with-EDK2-defined-calls.patch"
+SRC_URI += "file://0003-Disable-outline-atomics-in-eqos-driver.patch"
 
 S = "${WORKDIR}/edk2-tegra/edk2"
 S:task-patch = "${WORKDIR}/edk2-tegra"
