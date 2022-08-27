@@ -13,6 +13,7 @@ SRC_URI = "\
 COMPATIBLE_MACHINE = "(tegra)"
 
 ESPMOUNT ?= "/boot/efi"
+NVIDIA_ESPMOUNT ?= "/opt/nvidia/esp"
 ESPMOUNTUNIT ?= "${@'-'.join(d.getVar('ESPMOUNT').split('/')[1:])}.mount"
 ESPVARDIR ?= "${ESPMOUNT}/EFI/NVDA/Variables"
 
@@ -25,6 +26,7 @@ do_compile() {
     sed -e's,@TARGET@,${TNSPEC_MACHINE},g' \
         -e's,@BOOTDEV@,${TNSPEC_BOOTDEV},g' \
         -e's,@ESPMOUNT@,${ESPMOUNT},g' \
+        -e's,@NVIDIA_ESPMOUNT@,${NVIDIA_ESPMOUNT},g' \
         -e's,@ESPVARDIR@,${ESPVARDIR},g' \
         -e's,@sysconfdir@,${sysconfdir},g' \
         ${S}/setup-nv-boot-control.sh.in >${B}/setup-nv-boot-control.sh
@@ -48,8 +50,7 @@ do_install() {
     install -m 0755 ${B}/setup-nv-boot-control.init ${D}${sysconfdir}/init.d/setup-nv-boot-control
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${B}/${ESPMOUNTUNIT} ${D}${systemd_system_unitdir}/
-    install -d ${D}/opt/nvidia ${ESPMOUNT}
-    ln -snf ${ESPMOUNT} ${D}/opt/nvidia/esp
+    install -d ${D}${ESPMOUNT} ${D}${NVIDIA_ESPMOUNT}
 }
 
 pkg_postinst:${PN}() {
