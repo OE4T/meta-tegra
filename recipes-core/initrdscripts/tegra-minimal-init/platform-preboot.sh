@@ -11,7 +11,7 @@ for bootarg in `cat /proc/cmdline`; do
 done
 if [ "$foundslotsfx" != "yes" ]; then
     # This variable file contains a type (should be 6) followed by the value (should be 0 or 1)
-    bcdata=$(echo $(hexdump -n 8 -e '2/4 " %u"' /sys/firmware/efi/efivars/BootChainFwCurrent-781e084c-a330-417c-b678-38e696380cb9 2>/dev/null))
+    bcdata=$(echo $(hexdump -n 8 -e '2/4 " %u"' /sys/firmware/efi/efivars/BootChainOsCurrent-781e084c-a330-417c-b678-38e696380cb9 2>/dev/null))
     if [ "$(echo "$bcdata" | cut -d' ' -f1)" = "6" ]; then
 	slotnum=$(echo "$bcdata" | cut -d' ' -f2)
 	[ "$slotnum" != "1" ] || slotsfx="_b"
