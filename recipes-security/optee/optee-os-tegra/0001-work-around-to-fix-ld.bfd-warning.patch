@@ -1,0 +1,31 @@
+From cedd1e8788ee9149fee85adf1a6ae5d978b9e8f4 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Sun, 28 Aug 2022 20:48:19 +0100
+Subject: [PATCH] work around to fix ld.bfd warning
+
+This happen when using binutils version 2.39
+
+aarch64-oe4t-linux-ld.bfd: warning: build/core/unpaged.o has a LOAD segment with RWX permissions
+aarch64-oe4t-linux-ld.bfd: warning: build/core/init.o has a LOAD segment with RWX permissions
+aarch64-oe4t-linux-ld.bfd: warning: build/core/tee.elf has a LOAD segment with RWX permissions
+
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ core/arch/arm/kernel/link.mk | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/core/arch/arm/kernel/link.mk b/core/arch/arm/kernel/link.mk
+index 51808b8..45ecf05 100644
+--- a/core/arch/arm/kernel/link.mk
++++ b/core/arch/arm/kernel/link.mk
+@@ -25,6 +25,7 @@ link-ldflags += -T $(link-script-pp) -Map=$(link-out-dir)/tee.map
+ link-ldflags += --sort-section=alignment
+ link-ldflags += --fatal-warnings
+ link-ldflags += --gc-sections
++link-ldflags += --no-warn-rwx-segments
+ 
+ link-ldadd  = $(LDADD)
+ link-ldadd += $(ldflags-external)
+-- 
+2.32.0
+
