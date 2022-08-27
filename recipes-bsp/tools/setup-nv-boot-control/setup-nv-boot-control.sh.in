@@ -2,6 +2,7 @@
 TARGET="@TARGET@"
 BOOTDEV="@BOOTDEV@"
 ESPMOUNT="@ESPMOUNT@"
+NVESPMOUNT="@NVIDIA_ESPMOUNT@"
 ESPVARDIR="@ESPVARDIR@"
 sysconfdir="@sysconfdir@"
 controlfile="${sysconfdir}/nv_boot_control.conf"
@@ -94,6 +95,15 @@ needs_mmc_hack() {
     fi
     return 0
 }
+
+# NVIDIA tools will try to mount the ESP partition dynamically
+# if it's not already mounted at @NVIDIA_ESPMOUNT@, so bind-mount
+# it there if we've mounted that partition at a more typical location.
+if [ -n "$NVESPMOUNT" -a "$NVESPMOUNT" != "$ESPMOUNT" ]; then
+    if mountpoint -q "$ESPMOUNT" && ! mountpoint -q "$NVESPMOUNT"; then
+	mount --bind "$ESPMOUNT" "$NVESPMOUNT"
+    fi
+fi
 
 [ ! -e "$controlfile" ] || exit 0
 

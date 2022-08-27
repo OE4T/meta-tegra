@@ -5,7 +5,7 @@ DESC="Set up redundant boot configuration"
 case "$1" in
   start|restart)
       mkdir -p -m0755 /run/nv_boot_control
-      if ! mountpoint -q /boot/efi; then
+      if ! mountpoint -q @ESPMOUNT@; then
 	  mount -t vfat /dev/disk/by-partlabel/esp @ESPMOUNT@
       fi
       @bindir@/setup-nv-boot-control
