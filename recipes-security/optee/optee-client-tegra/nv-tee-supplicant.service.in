@@ -1,0 +1,10 @@
+[Unit]
+Description=OP-TEE Client Supplicant
+
+[Service]
+Type=simple
+ExecStart=@sbindir@/tee-supplicant
+Restart=always
+
+[Install]
+WantedBy=basic.target

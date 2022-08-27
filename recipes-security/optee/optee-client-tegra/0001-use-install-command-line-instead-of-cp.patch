@@ -1,0 +1,54 @@
+From e6e2a18eb382b9cfaa3c9b45493360ca8aa5e40f Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Fri, 26 Aug 2022 02:32:43 +0100
+Subject: [PATCH] use install command line instead of cp
+
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ Makefile | 33 +++++++++++++++++++++------------
+ 1 file changed, 21 insertions(+), 12 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index d7aa316..5711b60 100644
+--- a/Makefile
++++ b/Makefile
+@@ -135,15 +135,24 @@ checkpatch-all-files: checkpatch-pre-req
+ distclean: clean
+ 
+ copy_export: build
+-	mkdir -p $(DESTDIR)$(SBINDIR) $(DESTDIR)$(LIBDIR) $(DESTDIR)$(INCLUDEDIR)
+-	cp config.mk $(DESTDIR)/$(INCLUDEDIR)/optee_client_config.mk
+-	cp -a ${O}/libteec/libteec.so* $(DESTDIR)$(LIBDIR)
+-	cp -a ${O}/libteec/libteec.a $(DESTDIR)$(LIBDIR)
+-	cp ${O}/tee-supplicant/tee-supplicant $(DESTDIR)$(SBINDIR)
+-	cp public/*.h $(DESTDIR)$(INCLUDEDIR)
+-	cp libckteec/include/*.h $(DESTDIR)$(INCLUDEDIR)
+-	cp -a ${O}/libckteec/libckteec.so* $(DESTDIR)$(LIBDIR)
+-	cp -a ${O}/libckteec/libckteec.a $(DESTDIR)$(LIBDIR)
+-	cp libseteec/include/*.h $(DESTDIR)$(INCLUDEDIR)
+-	cp -a ${O}/libseteec/libseteec.so* $(DESTDIR)$(LIBDIR)
+-	cp -a ${O}/libseteec/libseteec.a $(DESTDIR)$(LIBDIR)
++	install -d $(DESTDIR)$(SBINDIR) $(DESTDIR)$(LIBDIR) $(DESTDIR)$(INCLUDEDIR)
++	install -m 0644 config.mk $(DESTDIR)/$(INCLUDEDIR)/optee_client_config.mk
++	install -m 0644 ${O}/libteec/libteec.so.1.0.0 $(DESTDIR)$(LIBDIR)
++	ln -s libteec.so.1.0.0 $(DESTDIR)$(LIBDIR)/libteec.so.1.0
++	ln -s libteec.so.1.0 $(DESTDIR)$(LIBDIR)/libteec.so.1
++	ln -s libteec.so.1 $(DESTDIR)$(LIBDIR)/libteec.so
++	install -m 0644 ${O}/libteec/libteec.a $(DESTDIR)$(LIBDIR)
++	install -m 0755 ${O}/tee-supplicant/tee-supplicant $(DESTDIR)$(SBINDIR)
++	install -m 0644 public/*.h $(DESTDIR)$(INCLUDEDIR)
++	install -m 0644 libckteec/include/*.h $(DESTDIR)$(INCLUDEDIR)
++	install -m 0644 ${O}/libckteec/libckteec.so.0.1.0 $(DESTDIR)$(LIBDIR)
++	ln -s libckteec.so.0.1.0 $(DESTDIR)$(LIBDIR)/libckteec.so.0.1
++	ln -s libckteec.so.0.1 $(DESTDIR)$(LIBDIR)/libckteec.so.0
++	ln -s libckteec.so.0 $(DESTDIR)$(LIBDIR)/libckteec.so
++	install -m 0644 ${O}/libckteec/libckteec.a $(DESTDIR)$(LIBDIR)
++	install -m 0644 libseteec/include/*.h $(DESTDIR)$(INCLUDEDIR)
++	install -m 0644 ${O}/libseteec/libseteec.so.0.1.0 $(DESTDIR)$(LIBDIR)
++	ln -s libseteec.so.0.1.0 $(DESTDIR)$(LIBDIR)/libseteec.so.0.1
++	ln -s libseteec.so.0.1 $(DESTDIR)$(LIBDIR)/libseteec.so.0
++	ln -s libseteec.so.0 $(DESTDIR)$(LIBDIR)/libseteec.so
++	install -m 0644 ${O}/libseteec/libseteec.a $(DESTDIR)$(LIBDIR)
+-- 
+2.32.0
+
