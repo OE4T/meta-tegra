@@ -13,20 +13,25 @@ unpack_tar_in_tar() {
 }
 
 python do_unpack() {
-    src_uri = (d.getVar('SRC_URI', True) or "").split()
-    rootdir = d.getVar('WORKDIR', True)
-    p_dir = os.path.join(d.getVar('S', True), 'patches')
+    src_uri = (d.getVar('SRC_URI') or "").split()
+    rootdir = d.getVar('WORKDIR')
+    p_dir = os.path.join(d.getVar('S'), 'patches')
     bb.utils.remove(p_dir, True)
     try:
         fetcher = bb.fetch2.Fetch(src_uri, d)
-        urldata = fetcher.ud[src_uri[0]]
-        urldata.setup_localpath(d)
     except bb.fetch2.BBFetchException as e:
         raise bb.build.FuncFailed(e)
-
-    if urldata.localpath.endswith(".tbz2"):
-        d.setVar('SRC_ARCHIVE', urldata.localpath)
-        bb.build.exec_func("unpack_tar_in_tar", d)
+    other_src_uris = []
+    for s in src_uri:
+        urldata = fetcher.ud[s]
+        urldata.setup_localpath(d)
+        if urldata.localpath.endswith(".tbz2"):
+            d.setVar('SRC_ARCHIVE', urldata.localpath)
+            bb.build.exec_func("unpack_tar_in_tar", d)
+        else:
+            other_src_uris.append(s)
+    if other_src_uris:
+        fetcher.unpack(d.getVar('WORKDIR'), urls=other_src_uris)
 }
 
 COMPATIBLE_MACHINE = "tegra"
