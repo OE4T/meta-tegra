@@ -11,7 +11,7 @@ LIC_FILES_CHKSUM = "file://License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-platforms/License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-chips-platform.efi;md5=549bbaa72578510a18ba3c324465027c"
 
-DEPENDS += "dtc-native tegra-bootfiles"
+DEPENDS += "dtc-native nvdisp-init"
 
 EDK2_SRC_URI = "gitsm://github.com/NVIDIA/edk2.git;protocol=https;branch=rel-35-edk2-stable-202205"
 EDK2_PLATFORMS_SRC_URI = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=rel-35-upstream-20220208"
@@ -59,7 +59,7 @@ PACKAGES_PATH = "${@nvidia_edk2_packages_path(d)}"
 
 EDK2_BIN_NAME = "uefi_jetson.bin"
 NVDISPLAY_INIT_DEFAULT = ""
-NVDISPLAY_INIT_DEFAULT:tegra194 = "${STAGING_DATADIR}/tegraflash/nvdisp-init.bin"
+NVDISPLAY_INIT_DEFAULT:tegra194 = "${DEPLOY_DIR_IMAGE}/nvdisp-init.bin"
 NVDISPLAY_INIT ?= "${NVDISPLAY_INIT_DEFAULT}"
 EDK2_EXTRA_BUILD = '-D "BUILDID_STRING=v${PV}" -D "BUILD_DATE_TIME=${@format_build_date(d)}" -D "BUILD_PROJECT_TYPE=EDK2" -D "GENFW_FLAGS=--zero"'
 
