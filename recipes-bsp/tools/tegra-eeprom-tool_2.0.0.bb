@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=22c98979a7dd9812d2455ff5dbc88771"
 DEPENDS = "libedit"
 
 SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
-SRC_URI[sha256sum] = "da9f10e6b54a7c26946878421702da0880acb759e49beb448db571f0b0b0a938"
+SRC_URI[sha256sum] = "866d0e8b3b31ce477f8b01c8b3b5e002a082d982c7a2b1d34bcbe258ab563b00"
 
 inherit cmake pkgconfig
 
