@@ -10,8 +10,9 @@ SRC_URI += "file://use-nvjpeg-for-plugin-name.patch"
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base libjpeg-turbo tegra-libraries-multimedia tegra-libraries-multimedia-utils"
 
-S = "${WORKDIR}/gstjpeg_src/gst-jpeg/gst-jpeg-1.0"
-CFLAGS += "-I${WORKDIR}/gstjpeg_src/nv_headers -DUSE_TARGET_TEGRA"
+S = "${WORKDIR}/gstjpeg_src"
+AUTOTOOLS_SCRIPT_PATH = "${S}/gst-jpeg/gst-jpeg-1.0"
+CFLAGS += "-I${S}/nv_headers -DUSE_TARGET_TEGRA"
 EXTRA_OECONF = "--disable-examples"
 EXTRA_OEMAKE = "JPEG_LIBS=-lnvjpeg"
 
