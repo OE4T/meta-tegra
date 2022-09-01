@@ -1,7 +1,7 @@
-Index: gst-jpeg-1.0/ext/jpeg/Makefile.am
+Index: gstjpeg_src/gst-jpeg/gst-jpeg-1.0/ext/jpeg/Makefile.am
 ===================================================================
---- gst-jpeg-1.0.orig/ext/jpeg/Makefile.am
-+++ gst-jpeg-1.0/ext/jpeg/Makefile.am
+--- gstjpeg_src/gst-jpeg/gst-jpeg-1.0.orig/ext/jpeg/Makefile.am
++++ gstjpeg_src/gst-jpeg/gst-jpeg-1.0/ext/jpeg/Makefile.am
 @@ -1,16 +1,16 @@
 -plugin_LTLIBRARIES = libgstjpeg.la
 +plugin_LTLIBRARIES = libgstnvjpeg.la
