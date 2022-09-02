@@ -11,7 +11,8 @@ LIC_FILES_CHKSUM = "file://License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-platforms/License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-chips-platform.efi;md5=549bbaa72578510a18ba3c324465027c"
 
-DEPENDS += "dtc-native nvdisp-init"
+DEPENDS += "dtc-native"
+DEPENDS:append:tegra194 = " nvdisp-init"
 
 EDK2_SRC_URI = "gitsm://github.com/NVIDIA/edk2.git;protocol=https;branch=rel-35-edk2-stable-202205"
 EDK2_PLATFORMS_SRC_URI = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=rel-35-upstream-20220208"
