@@ -1,4 +1,4 @@
-From 800ade095be320586162e08fe8dc94db56f8493f Mon Sep 17 00:00:00 2001
+From 3b39935086348e02389480e260e3bc4b14712a15 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Fri, 11 Mar 2022 11:20:55 -0800
 Subject: [PATCH] Fixups for cross building in OE
@@ -6,7 +6,8 @@ Subject: [PATCH] Fixups for cross building in OE
 ---
  python/CMakeLists.txt                | 9 ++-------
  python/include/ForwardDeclarations.h | 2 +-
- 2 files changed, 3 insertions(+), 8 deletions(-)
+ python/include/utils.h               | 2 +-
+ 3 files changed, 4 insertions(+), 9 deletions(-)
 
 diff --git a/python/CMakeLists.txt b/python/CMakeLists.txt
 index 5672db9..5f46c90 100644
@@ -55,6 +56,16 @@ index d9d891a..9a6c7a7 100644
  
  // We need to avoid making copies of PluginField because it does not own any of it's members.
  // When there are multiple PluginFields pointing to the same data in Python, bad things happen.
--- 
-2.32.0
-
+diff --git a/python/include/utils.h b/python/include/utils.h
+index f1d3a2d..6847b9a 100644
+--- a/python/include/utils.h
++++ b/python/include/utils.h
+@@ -111,7 +111,7 @@ inline size_t volume(const nvinfer1::Dims& dims)
+ template <typename T>
+ py::function getOverride(const T* self, const std::string& overloadName, bool showWarning = true)
+ {
+-    py::function overload = py::get_override(self, overloadName.c_str());
++    py::function overload = py::get_overload(self, overloadName.c_str());
+     if (!overload && showWarning)
+     {
+         std::cerr << "Method: " << overloadName
