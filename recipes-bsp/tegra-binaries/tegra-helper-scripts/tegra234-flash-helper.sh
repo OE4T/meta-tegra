@@ -12,6 +12,18 @@ dataimg=
 inst_args=""
 blocksize=4096
 
+# These functions are used in odmsign.func but do not
+# need to do anything when run from this script, as we
+# have already copied needed files to the current working
+# directory.
+mkfilesoft() {
+    :
+}
+
+cp2local() {
+    :
+}
+
 ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sdcard,spi-only,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
