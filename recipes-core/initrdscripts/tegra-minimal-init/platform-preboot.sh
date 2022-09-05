@@ -17,7 +17,13 @@ if [ "$foundslotsfx" != "yes" ]; then
 	[ "$slotnum" != "1" ] || slotsfx="_b"
     fi
 fi
+blkid --probe 2>/dev/null
 rootdev=`blkid -l -t PARTLABEL=APP$slotsfx | cut -d: -f1`
+if [ -z "$rootdev" ]; then
+    sleep 0.5
+    blkid --probe 2>/dev/null
+    rootdev=`blkid -l -t PARTLABEL=APP$slotsfx | cut -d: -f1`
+fi
 if [ -z "$rootdev" ]; then
     if [ -n "$mayberoot" ]; then
 	rootdev="$mayberoot"
