@@ -15,3 +15,4 @@ RDEPENDS:${PN}:append:tegra = " egl-wayland egl-gbm"
 EXTRA_OEMESON:append:tegra = " -Ddeprecated-wl-shell=true"
 
 RRECOMMENDS:${PN}:append:tegra = " kernel-module-tegra-udrm kernel-module-nvidia-drm"
+RRECOMMENDS:${PN}:append:tegra234 = " nvidia-drm-loadconf"
