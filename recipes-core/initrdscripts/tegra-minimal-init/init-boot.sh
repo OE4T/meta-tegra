@@ -33,7 +33,15 @@ if [ -n "$wait" -a ! -b "${rootdev}" ]; then
     done
 fi
 echo "Mounting ${rootdev}..."
-mount -t "${fstype}" -o "${opt}" "${rootdev}" /mnt || exec sh
+[ -d /mnt ] || mkdir -p /mnt
+count=0
+while [ $count -lt 5 ]; do
+    if mount -t "${fstype}" -o "${opt}" "${rootdev}" /mnt; then
+	break
+    fi
+    sleep 1.0
+done
+[ $count -lt 5 ] || exec sh
 
 [ ! -f /etc/platform-pre-switchroot ] || . /etc/platform-pre-switchroot
 
