@@ -25,7 +25,7 @@ set_efi_var() {
 	    return 1
 	fi
 	if [ ! -e "$ESPVARDIR/${varname}-${nv_guid}" ]; then
-	    local datatmp=$(TMPDIR=$XDG_RUNTIME_DIR mktemp --tmpdir nvcvar.XXXXXX)
+	    local datatmp=$(TMPDIR=$RUNTIME_DIRECTORY mktemp --tmpdir nvcvar.XXXXXX)
 	    printf "%s%s" "\x07\x00\x00\x00" "$value" > "$datatmp"
 	    mkdir -p -m 0700 "$ESPVARDIR" || return 1
 	    cp "$datatmp" "$ESPVARDIR/${varname}-${nv_guid}" || return 1
@@ -34,7 +34,7 @@ set_efi_var() {
 	if efivar -n "${nv_guid}-$varname" >/dev/null 2>&1; then
 	    return 0
 	fi
-	local datatmp=$(TMPDIR=$XDG_RUNTIME_DIR mktemp --tmpdir nvcvar.XXXXXX)
+	local datatmp=$(TMPDIR=$RUNTIME_DIRECTORY mktemp --tmpdir nvcvar.XXXXXX)
 	printf "%s" "$value" > "$datatmp"
 	efivar -w -f "$datatmp" -n "${nv_guid}-$varname"
     fi
