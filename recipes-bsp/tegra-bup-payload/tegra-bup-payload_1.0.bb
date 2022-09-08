@@ -27,7 +27,7 @@ ALLOW_EMPTY:${PN} = "1"
 
 do_install[depends] += "${@bup_dependency(d)}"
 FILES:${PN} = "/opt/ota_package/bl_update_payload"
-RDEPENDS:${PN} += "tegra-redundant-boot"
+RDEPENDS:${PN} += "tegra-redundant-boot-update-engine"
 # For UEFI build - remove once buildpaths issue is resolved there
 INSANE_SKIP:${PN} = "buildpaths"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
