@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-gbm"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "86a9ea9b0674801670d9d78a7ce7db9c3f3db3d8949b0604c84aeb75214fb651"
+MAINSUM = "b5fe862241eeac1535e7e658c04946c2c02fd192e69361378b543ae1d9c43065"
 
 RPROVIDES:${PN} += "tegra-gbm-backend"
 

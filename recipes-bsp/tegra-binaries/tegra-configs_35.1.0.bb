@@ -6,13 +6,13 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-configs"
 require tegra-debian-libraries-common.inc
 
 SRC_SOC_DEBS += "\
-    nvidia-l4t-init_${PV}_arm64.deb;subdir=${BP};name=init \
-    nvidia-l4t-x11_${PV}_arm64.deb;subdir=${BP};name=x11 \
+    ${@l4t_deb_pkgname(d, 'init')};subdir=${BP};name=init \
+    ${@l4t_deb_pkgname(d, 'x11')};subdir=${BP};name=x11 \
 "
 
 MAINSUM = "0afdf6258ee4e45b074f591a8035404ac815c68b89cb42f081fc8b9c32d1ec52"
-INITSUM = "b066cd3e878bf79aa7b1076d28654449d0584d0d43ab4f24da34b734a5359292"
-X11SUM = "457017241799666efec67ea11085e21223ecef5b479723045b21a6be4ae86e22"
+INITSUM = "9a7b2a92b8900af7d47a6d1f9e2c3c00e6fe78184c0bd02a8edfa72dcd2fa74b"
+X11SUM = "69dad44da79d31d34264b01c4f3539e1b2e4ce8d45e52ddb0997273881f47bd6"
 SRC_URI[init.sha256sum] = "${INITSUM}"
 SRC_URI[x11.sha256sum] = "${X11SUM}"
 
