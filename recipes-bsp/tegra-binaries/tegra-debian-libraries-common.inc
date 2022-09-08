@@ -1,7 +1,7 @@
 HOMEPAGE = "https://developer.nvidia.com/embedded"
 LICENSE = "Proprietary"
 
-L4T_DEB_COPYRIGHT_MD5 ??=""
+L4T_DEB_COPYRIGHT_MD5 ??= ""
 L4T_DEB_TRANSLATED_BPN ?= "${@d.getVar('BPN').replace('tegra-libraries-', 'nvidia-l4t-')}"
 LIC_FILES_CHKSUM = "file://usr/share/doc/${L4T_DEB_TRANSLATED_BPN}/copyright;md5=${L4T_DEB_COPYRIGHT_MD5}"
 
@@ -9,7 +9,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 inherit l4t_deb_pkgfeed
 
-SRC_SOC_DEBS = "${L4T_DEB_TRANSLATED_BPN}_${PV}_arm64.deb;subdir=${BP};name=main"
+SRC_SOC_DEBS = "${@l4t_deb_pkgname(d, d.getVar('L4T_DEB_TRANSLATED_BPN'))};subdir=${BP};name=main"
 SRC_URI[main.sha256sum] = "${MAINSUM}"
 
 PV = "${L4T_VERSION}${@l4t_bsp_debian_version_suffix(d)}"

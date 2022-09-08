@@ -8,7 +8,7 @@ require tegra-debian-libraries-common.inc
 LICENSE += "& BSD-3-Clause"
 LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-tegra/LICENSE.minigbm;md5=72f855f00b364ec8bdc025e1a36b39c3"
 
-MAINSUM = "bc911dbcd46503fcbea42425d7b92e316ccbc6ffc15d5a4c2a41c214c97db1a7"
+MAINSUM = "26463537a9d0b0438c89cbdabc3242d8e73410f023ed1d11ceb40a18e49b4fd7"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvgbm.so \
