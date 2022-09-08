@@ -45,7 +45,7 @@ UBOOT_EXTLINUX ?= ""
 TEGRA_ESSENTIAL_EXTRA_RDEPENDS ?= "${@'l4t-launcher-extlinux' if d.getVar('UBOOT_EXTLINUX') == '1' else ''}"
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda ext2"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${TEGRA_ESSENTIAL_EXTRA_RDEPENDS}"
-MACHINE_EXTRA_RDEPENDS = "tegra-nvphs tegra-nvs-service tegra-nvsciipc tegra-nvstartup tegra-nvfancontrol tegra-configs-udev"
+MACHINE_EXTRA_RDEPENDS = "tegra-nvphs tegra-nvs-service tegra-nvsciipc tegra-nvstartup tegra-nvfancontrol tegra-configs-udev tegra-redundant-boot"
 MACHINE_EXTRA_RRECOMMENDS = "kernel-module-nvgpu \
 			   kernel-module-snd-hda-tegra kernel-module-snd-hda-codec-hdmi kernel-module-ina3221 \
                            kernel-module-tegra-bpmp-thermal kernel-module-spi-tegra114 kernel-module-ahci \
