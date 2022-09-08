@@ -2,8 +2,8 @@ HOMEPAGE = "https://github.com/OP-TEE"
 LICENSE = "Proprietary"
 LIC_FILES_CHKSUM = "file://usr/share/doc/nvidia-l4t-optee/copyright;md5=38ef63b8f3232378d9f652f640ee0a3f"
 
-SRC_SOC_DEBS = "nvidia-l4t-optee_${PV}_arm64.deb;subdir=optee"
-PV .= "${@l4t_bsp_debian_version_suffix(d)}"
+SRC_SOC_DEBS = "${@l4t_deb_pkgname(d, 'optee')};subdir=optee"
+PV .= "${@l4t_bsp_debian_version_suffix(d, pkgname='nvidia-l4t-optee')}"
 
 inherit l4t_deb_pkgfeed
 
