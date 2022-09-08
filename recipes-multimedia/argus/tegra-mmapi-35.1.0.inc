@@ -1,10 +1,10 @@
 HOMEPAGE = "http://developer.nvidia.com"
 LICENSE = "Proprietary & BSD-3-Clause"
 
-SRC_COMMON_DEBS = "nvidia-l4t-jetson-multimedia-api_${PV}_arm64.deb;subdir=tegra-mmapi"
-PV .= "${@l4t_bsp_debian_version_suffix(d)}"
+SRC_COMMON_DEBS = "${@l4t_deb_pkgname(d, 'jetson-multimedia-api')};subdir=tegra-mmapi"
+PV .= "${@l4t_bsp_debian_version_suffix(d, pkgname='nvidia-l4t-jetson-multimedia-api')}"
 
-SRC_URI[sha256sum] = "34dafe432e3267355b8ab24fd27c65b73e39b4545933ef48dc2098a28e22fb1b"
+SRC_URI[sha256sum] = "7cf134ea26da03c12421ff91c2f9a0051d655704bfbb6917ff1d5ed678bd6600"
 
 inherit l4t_deb_pkgfeed features_check
 
