@@ -7,11 +7,11 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-tools"
 require tegra-debian-libraries-common.inc
 
 SRC_SOC_DEBS += "\
-    nvidia-l4t-init_${PV}_arm64.deb;subdir=${BP};name=init \
+    ${@l4t_deb_pkgname(d, 'init')};subdir=${BP};name=init \
 "
 
 MAINSUM = "8e4d140cdcd3349e93cc28d87e0e0c61dd091f9535f1e022812ecb0fe5e00bb2"
-INITSUM = "b066cd3e878bf79aa7b1076d28654449d0584d0d43ab4f24da34b734a5359292"
+INITSUM = "9a7b2a92b8900af7d47a6d1f9e2c3c00e6fe78184c0bd02a8edfa72dcd2fa74b"
 SRC_URI[init.sha256sum] = "${INITSUM}"
 
 do_install() {

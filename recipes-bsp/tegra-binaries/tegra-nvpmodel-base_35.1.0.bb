@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-nvpmodel"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "fd5b08c8d82a980298fbcd706f35ebdf8096767b0399e2a6563a8c8f1ae40312"
+MAINSUM = "e76670df5520d0863ff58687d06c0bec0624dff62da2f0df2584a18db609a1a1"
 
 # When left unset, l4t default setting will be used
 NVPMODEL_CONFIG_DEFAULT ??= ""

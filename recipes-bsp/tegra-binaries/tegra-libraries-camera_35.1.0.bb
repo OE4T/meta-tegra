@@ -9,12 +9,12 @@ LIC_FILES_CHKSUM += "\
     file://usr/share/doc/nvidia-tegra/LICENSE.libnvcam_imageencoder;md5=059e39d33711ff9e6a76760cffcf0811 \
 "
 
-SRC_SOC_DEBS += "nvidia-l4t-gstreamer_${PV}_arm64.deb;subdir=${BP};name=gstreamer"
-SRC_SOC_DEBS += "nvidia-l4t-core_${PV}_arm64.deb;subdir=${BP};name=core"
+SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP};name=gstreamer"
+SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'core')};subdir=${BP};name=core"
 
-MAINSUM = "9e9fcad6c4e994e7be195e921cd81fa28d49a5643a11e14ffe0957d906678175"
-GSTSUM = "3153152d43218172d808077022909d6968358d367908658ae88a667702b8914c"
-CORESUM = "bc911dbcd46503fcbea42425d7b92e316ccbc6ffc15d5a4c2a41c214c97db1a7"
+MAINSUM = "4867ffd8c89dda618a2b22e5469eddb58091f3867d4328dbef2d072228a1a994"
+GSTSUM = "16b2b02bcd3f0a4dce9c0a85976c5e0345e7e5af17a8ecab4fdf40797a5f74a0"
+CORESUM = "26463537a9d0b0438c89cbdabc3242d8e73410f023ed1d11ceb40a18e49b4fd7"
 SRC_URI[gstreamer.sha256sum] = "${GSTSUM}"
 SRC_URI[core.sha256sum] = "${CORESUM}"
 

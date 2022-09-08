@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-init"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "b066cd3e878bf79aa7b1076d28654449d0584d0d43ab4f24da34b734a5359292"
+MAINSUM = "9a7b2a92b8900af7d47a6d1f9e2c3c00e6fe78184c0bd02a8edfa72dcd2fa74b"
 
 do_install() {
     if [ -n "${TEGRA_AUDIO_DEVICE}" ]; then
