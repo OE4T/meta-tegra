@@ -15,10 +15,9 @@ do_install() {
 	install -d ${D}/opt/ota_package
 }
 
-PACKAGES = "tegra-redundant-boot-nvbootctrl ${PN} ${PN}-dev"
-FILES:tegra-redundant-boot-nvbootctrl = "${sbindir}/nvbootctrl"
-FILES:${PN} += "/opt/ota_package"
-RDEPENDS:${PN} = "tegra-redundant-boot-nvbootctrl setup-nv-boot-control-service tegra-configs-bootloader util-linux-lsblk"
+PACKAGES = "tegra-redundant-boot-update-engine ${PN} ${PN}-dev"
+FILES:tegra-redundant-boot-update-engine = "${sbindir}/nv_update_engine ${sbindir}/nv_bootloader_payload_updater /opt/ota_package"
+RDEPENDS:${PN} = "setup-nv-boot-control-service tegra-configs-bootloader"
 INSANE_SKIP:${PN} = "ldflags"
-RDEPENDS:tegra-redundant-boot-nvbootctrl = "setup-nv-boot-control"
-INSANE_SKIP:tegra-redundant-boot-nvbootctrl = "ldflags"
+RDEPENDS:tegra-redundant-boot-update-engine = "${PN} util-linux-lsblk"
+INSANE_SKIP:tegra-redundant-boot-update-engine = "ldflags"
