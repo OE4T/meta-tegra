@@ -5,12 +5,12 @@ LIC_FILES_CHKSUM = "file://usr/include/libdrm/nvidia/tegra_drm.h;endline=21;md5=
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-SRC_SOC_DEBS = "nvidia-l4t-weston_${PV}_arm64.deb;subdir=${BPN}"
-PV .= "${@l4t_bsp_debian_version_suffix(d)}"
+SRC_SOC_DEBS = "${@l4t_deb_pkgname(d, 'weston')};subdir=${BPN}"
+PV .= "${@l4t_bsp_debian_version_suffix(d, pkgname='nvidia-l4t-weston')}"
 
 inherit l4t_deb_pkgfeed
 
-SRC_URI[sha256sum] = "50f7d81de6a6b02b4c686e14fb1c7828f6a792f30697c2eeeab6a2fc378796ac"
+SRC_URI[sha256sum] = "6de41727198b848e1c404473e3ca30be183bc9667059c96e9f14774fa14689a2"
 
 S = "${WORKDIR}/${BPN}"
 B = "${S}"
