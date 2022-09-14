@@ -1,14 +1,14 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
 inherit ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd', '', d)}
 
-SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE:${PN} = "haveged.service"
+SYSTEMD_PACKAGES:tegra = "${PN}"
+SYSTEMD_SERVICE:${PN}:tegra = "haveged.service"
 
 # Based on init.d/service.redhat from 1.9.14
 # https://raw.githubusercontent.com/jirka-h/haveged/v1.9.14/init.d/service.redhat
-SRC_URI += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://haveged.service', '', d)}"
+SRC_URI:append:tegra = " ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://haveged.service', '', d)}"
 
-do_install:append() {
+do_install:append:tegra() {
     if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
 	install -d ${D}${systemd_system_unitdir}
 	install -m 755 ${WORKDIR}/haveged.service ${D}${systemd_system_unitdir}/haveged.service
