@@ -10,6 +10,7 @@ inherit l4t-extlinux-config kernel-artifact-names
 
 KERNEL_ARGS ??= ""
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
+DEPLOY_DIR_DTB ?= "${@'${DEPLOY_DIR_IMAGE}/devicetree' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else '${DEPLOY_DIR_IMAGE}'}"
 
 # Need to handle:
 #  a) Kernel with no initrd/initramfs
@@ -20,6 +21,8 @@ def compute_dependencies(d):
     initramfs_image = d.getVar('INITRAMFS_IMAGE') or ''
     if initramfs_image != '' and (d.getVar('INITRAMFS_IMAGE_BUNDLE') or '') != '1':
         deps += " %s:do_image_complete" % initramfs_image
+    if d.getVar("PREFERRED_PROVIDER_virtual/dtb"):
+        deps += " virtual/dtb:do_deploy"
     return deps
 
 
@@ -41,7 +44,7 @@ do_compile() {
 	cp -L ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${MACHINE}.bin ${B}/${KERNEL_IMAGETYPE}
     fi
     if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
-        cp -L ${DEPLOY_DIR_IMAGE}/${DTBFILE} ${B}/
+        cp -L ${DEPLOY_DIR_DTB}/${DTBFILE} ${B}/
     fi
 }
 do_compile[depends] += "${@compute_dependencies(d)}"
