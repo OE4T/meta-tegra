@@ -16,6 +16,8 @@ TEGRA_SIGNING_ARGS ??= ""
 TEGRA_SIGNING_ENV ??= ""
 TEGRA_SIGNING_EXCLUDE_TOOLS ??= ""
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
+DTB_EXTRA_DEPS ??= "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
+EXTERNAL_KERNEL_DEVICETREE ??= "${@'${RECIPE_SYSROOT}/boot/devicetree' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
 
 TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEGRA_BOARDREV};chiprev=${TEGRA_CHIPREV}"
 TEGRA_BUPGEN_STRIP_IMG_NAMES ??= ""
@@ -275,6 +277,31 @@ BOOTFILES:tegra234 = "\
     camera-rtcpu-sce.img \
 "
 
+copy_dtbs() {
+    local destination=$1
+    local dtb dtbf
+    for dtb in ${KERNEL_DEVICETREE}; do
+        dtbf=`basename $dtb`
+        if [ -e $destination/$dtbf ]; then
+            bbnote "Overwriting $destination/$dtbf with KERNEL_DEVICETREE content"
+            rm -f $destination/$dtbf
+        fi
+        bbnote "Copying KERNEL_DEVICETREE entry $dtbf to $destination"
+        cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" $destination/$dtbf
+    done
+    if [ -n "${EXTERNAL_KERNEL_DEVICETREE}" ]; then
+        for dtb in $(find "${EXTERNAL_KERNEL_DEVICETREE}" \( -name '*.dtb' -o -name '*.dtbo' \) -printf '%P\n' | sort); do
+            dtbf=`basename $dtb`
+            if [ -e $destination/$dtbf ]; then
+                bbnote "Overwriting $destination/$dtbf with EXTERNAL_KERNEL_DEVICETREE content"
+                rm -f $destination/$dtbf
+            fi
+            bbnote "Copying EXTERNAL_KERNEL_DEVICETREE entry $dtbf to $destination"
+            cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$dtbf" $destination/$dtbf
+        done
+    fi
+}
+
 create_tegraflash_pkg() {
     :
 }
@@ -295,7 +322,6 @@ create_tegraflash_pkg:tegra194() {
         cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
         DATAARGS="--datafile ${DATAFILE}"
     fi
-    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./uefi_jetson.bin
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${BOOTFILES}; do
@@ -314,6 +340,7 @@ create_tegraflash_pkg:tegra194() {
         cp $f .
     done
     cp ${DEPLOY_DIR_IMAGE}/*.dtbo .
+    copy_dtbs "${WORKDIR}/tegraflash"
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* .
         mv ./rollback_parser.py ./rollback/
@@ -382,7 +409,6 @@ create_tegraflash_pkg:tegra234() {
         cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
         DATAARGS="--datafile ${DATAFILE}"
     fi
-    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./uefi_jetson.bin
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${BOOTFILES}; do
@@ -405,6 +431,7 @@ create_tegraflash_pkg:tegra234() {
     for f in ${STAGING_DATADIR}/tegraflash/tegra234-bpmp-*.dtb; do
         cp $f .
     done
+    copy_dtbs "${WORKDIR}/tegraflash"
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* .
         rm ./rollback_parser.py
@@ -507,7 +534,7 @@ do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populat
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
                                  tegra-redundant-boot-rollback:do_populate_sysroot virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
-                                 virtual/bootloader:do_deploy virtual/secure-os:do_deploy ${TEGRA_ESP_IMAGE}:do_image_complete ${TEGRA_SIGNING_EXTRA_DEPS}"
+                                 virtual/bootloader:do_deploy virtual/secure-os:do_deploy ${TEGRA_ESP_IMAGE}:do_image_complete ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS}"
 IMAGE_TYPEDEP:tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 
 oe_make_bup_payload() {
@@ -526,11 +553,6 @@ oe_make_bup_payload() {
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
         cp "${STAGING_DATADIR}/tegraflash/${EMMC_BCT_OVERRIDE}" .
     fi
-    for dtb in ${KERNEL_DEVICETREE}; do
-        dtbf=`basename $dtb`
-        rm -f ./$dtbf
-        cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" ./$dtbf
-    done
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./$tosimgfilename
     cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./esp.img
@@ -563,6 +585,7 @@ oe_make_bup_payload() {
         done
     fi
     . ./flashvars
+    copy_dtbs "${WORKDIR}/bup-payload"
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
         cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         boardcfg=board_config_${MACHINE}.xml
@@ -604,5 +627,5 @@ create_bup_payload_image() {
 create_bup_payload_image[vardepsexclude] += "DATETIME"
 
 CONVERSIONTYPES += "bup-payload"
-CONVERSION_DEPENDS_bup-payload = "tegra-flashtools-native python3-pyyaml-native coreutils-native tegra-bootfiles tegra-redundant-boot-rollback dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy ${TEGRA_ESP_IMAGE}:do_image_complete ${TEGRA_SIGNING_EXTRA_DEPS}"
+CONVERSION_DEPENDS_bup-payload = "tegra-flashtools-native python3-pyyaml-native coreutils-native tegra-bootfiles tegra-redundant-boot-rollback dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy ${TEGRA_ESP_IMAGE}:do_image_complete ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS}"
 CONVERSION_CMD:bup-payload = "create_bup_payload_image ${type}"
