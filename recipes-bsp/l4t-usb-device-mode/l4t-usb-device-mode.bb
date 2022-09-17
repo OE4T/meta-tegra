@@ -30,4 +30,4 @@ do_install() {
 }
 
 RDEPENDS:${PN} = "libusbgx"
-
+RRECOMMENDS:${PN} = "kernel-module-ucsi-ccg"
