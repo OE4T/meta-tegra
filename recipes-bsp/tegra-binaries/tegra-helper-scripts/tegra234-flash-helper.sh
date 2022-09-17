@@ -255,13 +255,9 @@ case $chip_sku in
 esac
 
 if [ "$chip_sku" = "00" -o "$chip_sku" = "D0" ] &&
-       [ "$FAB" = "400" -o "$FAB" = "TS4" -o "$FAB" = "RC1" ]; then
-    PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000-a04.dtsi"
-    PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000-a04.dtsi"
-fi
-if [ "$chip_sku" = "D2" ]; then
-    PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000-a04.dtsi"
-    PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000-a04.dtsi"
+       echo "$FAB" | egrep -q '^(TS[123]|EB[123]|[012]00)$'; then
+    PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000.dtsi"
+    PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000.dtsi"
 fi
 
 if [ "$BOARDID" = "3701" -a "$BOARDSKU" != "0000" ]; then
