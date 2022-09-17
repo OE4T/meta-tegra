@@ -18,5 +18,5 @@ do_install:append:tegra() {
     sed -i -e's,^IMPORT_SCHEMAS=.*,IMPORT_SCHEMAS="l4t",' ${D}${sysconfdir}/default/usbgx
 }
 
-FILES:${PN}:tegra += "${datadir}/usbgx"
+FILES:${PN}:append:tegra = " ${datadir}/usbgx"
 PACKAGE_ARCH:tegra = "${MACHINE_ARCH}"
