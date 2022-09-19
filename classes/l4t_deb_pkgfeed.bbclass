@@ -28,7 +28,10 @@ def l4t_deb_src_uri(d):
                 group = d.getVarFlag('L4T_DEB_GROUP', name)
             group = group or d.getVar('L4T_DEB_GROUP') or pkgbase
             subdir = group[0:4] if group.startswith('lib') else group[0]
-            result.append("${L4T_DEB_FEED_BASE}/%s/pool/${L4T_DEB_COMP}/%s/%s/%s" % (debclass, subdir, group, pkg))
+            if d.getVar('L4T_DEB_FEED_SKIP_POOL_APPEND'):
+                result.append("${L4T_DEB_FEED_BASE}/%s" % pkg)
+            else:
+                result.append("${L4T_DEB_FEED_BASE}/%s/pool/${L4T_DEB_COMP}/%s/%s/%s" % (debclass, subdir, group, pkg))
         return result
 
     common_debs = (d.getVar('SRC_COMMON_DEBS') or '').split()
