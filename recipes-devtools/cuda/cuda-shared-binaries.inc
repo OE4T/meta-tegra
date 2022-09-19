@@ -12,8 +12,8 @@ SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGA
 
 SRC_URI[main.sha256sum] = "${MAINSUM}"
 SRC_URI[dev.sha256sum] = "${DEVSUM}"
-LICSUM = "f6f414061f1a6a38a40793c81dba0ca4cf76c3626b9afeaf5efa126b59884aa0"
-LICSUM:x86-64 = "bd038e4e8b6703c02026d303b4bbbfc9929f30f9c7e1dd5e0cdb8ebf214ea13e"
+LICSUM ?= "f6f414061f1a6a38a40793c81dba0ca4cf76c3626b9afeaf5efa126b59884aa0"
+LICSUM:x86-64 ?= "bd038e4e8b6703c02026d303b4bbbfc9929f30f9c7e1dd5e0cdb8ebf214ea13e"
 SRC_URI[lic.sha256sum] = "${LICSUM}"
 L4T_DEB_GROUP[lic] = "cuda-documentation"
 
@@ -23,7 +23,7 @@ inherit ${CUDA_DL_CLASS}
 
 DESCRIPTION = "CUDA package ${PN}"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/local/cuda-11.4/EULA.txt;md5=eabf6d52bdf58fa3d3cfe296cf1b17ee"
+LIC_FILES_CHKSUM ?= "file://usr/local/cuda-11.4/EULA.txt;md5=eabf6d52bdf58fa3d3cfe296cf1b17ee"
 
 DEPENDS ?= "cuda-cudart"
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
