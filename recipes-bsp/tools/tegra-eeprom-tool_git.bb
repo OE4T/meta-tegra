@@ -1,7 +1,7 @@
 DESCRIPTION = "Tegra ID EEPROM tools"
 HOMEPAGE = "https://github.com/OE4T/tegra-eeprom-tool"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=c4bff80c7e9a90aa351e9062b5572544"
+LIC_FILES_CHKSUM = "file://LICENSE;md5="22c98979a7dd9812d2455ff5dbc88771"
 
 DEPENDS = "libedit"
 
