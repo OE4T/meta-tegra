@@ -1,0 +1,77 @@
+From 940988ba215622cfc3c4521124026bcbbe244eeb Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 3 Oct 2022 04:28:28 -0700
+Subject: [PATCH] samples: apply fix for encoder unit test
+
+See dev forum post:
+https://forums.developer.nvidia.com/t/jetson-multimedia-api-35-1-0-encoder-unit-test-sample-failure/229588
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../encoder_unit_sample.cpp                   | 26 +------------------
+ 1 file changed, 1 insertion(+), 25 deletions(-)
+
+diff --git a/samples/unittest_samples/encoder_unit_sample/encoder_unit_sample.cpp b/samples/unittest_samples/encoder_unit_sample/encoder_unit_sample.cpp
+index 8af65f8..58182fb 100644
+--- a/samples/unittest_samples/encoder_unit_sample/encoder_unit_sample.cpp
++++ b/samples/unittest_samples/encoder_unit_sample/encoder_unit_sample.cpp
+@@ -809,14 +809,6 @@ encoder_process_blocking(context_t& ctx)
+                     break;
+                 }
+ 
+-                ret_val = NvBufSurfaceMap(nvbuf_surf, 0, j, NVBUF_MAP_READ_WRITE);
+-                if (ret_val)
+-                {
+-                    cerr << "NvBufSurfaceMap failed\n" << endl;
+-                    ctx.in_error = 1;
+-                    break;
+-                }
+-
+                 ret_val = NvBufSurfaceSyncForDevice(nvbuf_surf, 0, j);
+                 if (ret_val)
+                 {
+@@ -824,14 +816,6 @@ encoder_process_blocking(context_t& ctx)
+                     ctx.in_error = 1;
+                     break;
+                 }
+-
+-                ret_val = NvBufSurfaceUnMap(nvbuf_surf, 0, j);
+-                if (ret_val)
+-                {
+-                    cerr << "NvBufSurfaceUnMap failed\n" << endl;
+-                    ctx.in_error = 1;
+-                    break;
+-                }
+             }
+         }
+ 
+@@ -1154,17 +1138,9 @@ int main (int argc, char const *argv[])
+                 CHECK_ERROR(ret < 0,
+                     "Error while NvBufSurfaceFromFd at output plane", cleanup);
+ 
+-                ret = NvBufSurfaceMap(nvbuf_surf, 0, j, NVBUF_MAP_READ_WRITE);
+-                CHECK_ERROR(ret < 0,
+-                    "Error while NvBufSurfaceMap at output plane", cleanup);
+-
+                 ret = NvBufSurfaceSyncForDevice(nvbuf_surf, 0, j);
+                 CHECK_ERROR(ret < 0,
+                     "Error while NvBufSurfaceSyncForDevice at output plane", cleanup);
+-
+-                ret = NvBufSurfaceUnMap(nvbuf_surf, 0, j);
+-                CHECK_ERROR(ret < 0,
+-                    "Error while NvBufSurfaceUnMap at output plane", cleanup);
+             }
+         }
+ 
+@@ -1244,7 +1220,7 @@ cleanup:
+ 
+     if (ctx.in_error)
+     {
+-        cerr << "Encoder is in error << endl" << endl;
++        cerr << "Encoder is in error" << endl;
+     }
+ 
+     else
+-- 
+2.34.1
+
