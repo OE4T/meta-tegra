@@ -1,10 +1,10 @@
 [Unit]
 Description=Entropy Daemon based on the HAVEGE algorithm
+Before=systemd-random-seed.service
 
 [Service]
 Type=forking
 PIDFile=/run/haveged.pid
-Before=systemd-random-seed.service
 ExecStart=@SBIN_DIR@/haveged -w 1024 -v 1
 
 [Install]
