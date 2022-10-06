@@ -11,7 +11,7 @@ SRC_URI += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://haveged.s
 do_install:append() {
     if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
 	install -d ${D}${systemd_system_unitdir}
-	install -m 755 ${WORKDIR}/haveged.service ${D}${systemd_system_unitdir}/haveged.service
+	install -m 0644 ${WORKDIR}/haveged.service ${D}${systemd_system_unitdir}/haveged.service
 	sed -i -e "s,@SBIN_DIR@,${sbindir},g" ${D}${systemd_system_unitdir}/haveged.service
     fi
 }
