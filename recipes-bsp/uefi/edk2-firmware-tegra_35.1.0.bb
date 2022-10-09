@@ -24,7 +24,7 @@ EDK2_NVIDIA_NONOSI_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;pr
 SRCREV_edk2 = "7d82301fd1b08a16e144ac0a038ef7352c4b570c"
 SRCREV_edk2-non-osi = "7dcfcf88b8a99cc3ed381cb571d1f2e34e4734d4"
 SRCREV_edk2-nvidia = "716592d2a8ec2c7c26eb9c80d1b3b845a6984317"
-SRCREV_edk2-nvidia-non-osi = "6d6249728aeacbeaf9c7ed0cb029786c3a22c5f1"
+SRCREV_edk2-nvidia-non-osi = "5631d8434500652f53badf2885a24a46951b3e5b"
 SRCREV_edk2-platforms = "c9e377b00fc086fcb5a5b41663a0149bde9bcc2e"
 
 SRC_URI = "\
