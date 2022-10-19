@@ -5,7 +5,7 @@ inherit deploy
 
 DESCRIPTION = "UEFI EDK2 Firmware for Jetson platforms"
 
-LICENSE .= "& Proprietary"
+LICENSE .= " & Proprietary"
 
 LIC_FILES_CHKSUM = "file://License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-platforms/License.txt;md5=2b415520383f7964e96700ae12b4570a"
