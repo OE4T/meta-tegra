@@ -1,0 +1,67 @@
+From 3088da2e93ca40f45cef2b33f3fa595fccd73ddf Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 23 Oct 2022 05:53:33 -0700
+Subject: [PATCH] Update Makefile for OE compatibility
+
+* Use install instead of cp
+* Use GBS standard names for target directory variables
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile | 36 +++++++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 15 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index d7aa316..9be28f8 100644
+--- a/Makefile
++++ b/Makefile
+@@ -12,9 +12,9 @@ export VPREFIX
+ 
+ EXPORT_DIR ?= $(O)/export
+ DESTDIR ?= $(EXPORT_DIR)
+-SBINDIR ?= /usr/sbin
+-LIBDIR ?= /usr/lib
+-INCLUDEDIR ?= /usr/include
++sbindir ?= /usr/sbin
++libdir ?= /usr/lib
++includedir ?= /usr/include
+ 
+ .PHONY: all build build-libteec build-libckteec build-libseteec install copy_export \
+ 	clean cscope clean-cscope \
+@@ -135,15 +135,21 @@ checkpatch-all-files: checkpatch-pre-req
+ distclean: clean
+ 
+ copy_export: build
+-	mkdir -p $(DESTDIR)$(SBINDIR) $(DESTDIR)$(LIBDIR) $(DESTDIR)$(INCLUDEDIR)
+-	cp config.mk $(DESTDIR)/$(INCLUDEDIR)/optee_client_config.mk
+-	cp -a ${O}/libteec/libteec.so* $(DESTDIR)$(LIBDIR)
+-	cp -a ${O}/libteec/libteec.a $(DESTDIR)$(LIBDIR)
+-	cp ${O}/tee-supplicant/tee-supplicant $(DESTDIR)$(SBINDIR)
+-	cp public/*.h $(DESTDIR)$(INCLUDEDIR)
+-	cp libckteec/include/*.h $(DESTDIR)$(INCLUDEDIR)
+-	cp -a ${O}/libckteec/libckteec.so* $(DESTDIR)$(LIBDIR)
+-	cp -a ${O}/libckteec/libckteec.a $(DESTDIR)$(LIBDIR)
+-	cp libseteec/include/*.h $(DESTDIR)$(INCLUDEDIR)
+-	cp -a ${O}/libseteec/libseteec.so* $(DESTDIR)$(LIBDIR)
+-	cp -a ${O}/libseteec/libseteec.a $(DESTDIR)$(LIBDIR)
++	install -d $(DESTDIR)$(sbindir) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
++	install -m 0644 config.mk $(DESTDIR)/$(includedir)/optee_client_config.mk
++	install -m 0644 ${O}/libteec/libteec.so.1.0.0 $(DESTDIR)$(libdir)
++	ln -sf libteec.so.1.0.0 $(DESTDIR)$(libdir)/libteec.so.1.0
++	ln -sf libteec.so.1.0.0 $(DESTDIR)$(libdir)/libteec.so.1
++	install -m 0644 ${O}/libteec/libteec.a $(DESTDIR)$(libdir)
++	install -m 0755 ${O}/tee-supplicant/tee-supplicant $(DESTDIR)$(sbindir)
++	install -m 0644 public/*.h $(DESTDIR)$(includedir)
++	install -m 0644 libckteec/include/*.h $(DESTDIR)$(includedir)
++	install -m 0644 ${O}/libckteec/libckteec.so.0.1.0 $(DESTDIR)$(libdir)
++	ln -sf libckteec.so.0.1.0 $(DESTDIR)$(libdir)/libckteec.so.0.1
++	ln -sf libckteec.so.0.1.0 $(DESTDIR)$(libdir)/libckteec.so.0
++	install -m 0644 ${O}/libckteec/libckteec.a $(DESTDIR)$(libdir)
++	install -m 0644 libseteec/include/*.h $(DESTDIR)$(includedir)
++	install -m 0644 ${O}/libseteec/libseteec.so.0.1.0 $(DESTDIR)$(libdir)
++	ln -sf libseteec.so.0.1.0 $(DESTDIR)$(libdir)/libseteec.so.0.1
++	ln -sf libseteec.so.0.1.0 $(DESTDIR)$(libdir)/libseteec.so.0
++	install -m 0644 ${O}/libseteec/libseteec.a $(DESTDIR)$(libdir)
+-- 
+2.34.1
+

@@ -1,0 +1,202 @@
+From 5bf629c5e4e0a3d6812675891f4717e8fa2c5238 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 23 Oct 2022 07:14:08 -0700
+Subject: [PATCH] Update makefiles for OE builds
+
+- Remove the OPTEE_CLIENT_EXPORT references
+- Use install instead of cp to install host programs
+- Add LDFLAGS to nvhwkey-app build
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile                  |  4 ----
+ hwkey-agent/Makefile      |  4 ----
+ hwkey-agent/host/Makefile | 13 +++++--------
+ luks-srv/Makefile         |  4 ----
+ luks-srv/host/Makefile    | 14 +++++---------
+ 5 files changed, 10 insertions(+), 29 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index da3f40b..7671e2d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -4,8 +4,6 @@
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+ # TA_DEV_KIT_DIR: The base directory of the TA-devkit.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ SAMPLE_APPS_LIST := $(subst /,,$(dir $(wildcard */Makefile)))
+@@ -21,7 +19,6 @@ sample_apps:
+ 		$(MAKE) -C $$apps \
+ 			CROSS_COMPILE=$(CROSS_COMPILE) \
+ 			TA_DEV_KIT_DIR=$(TA_DEV_KIT_DIR) \
+-			OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 			O=$(O) || exit 1; \
+ 	done
+ 
+@@ -29,7 +26,6 @@ clean-apps:
+ 	@for apps in $(SAMPLE_APPS_LIST); do \
+ 		$(MAKE) -C $$apps \
+ 			TA_DEV_KIT_DIR=$(TA_DEV_KIT_DIR) \
+-			OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 			O=$(O) \
+ 			clean || exit 1; \
+ 	done
+diff --git a/hwkey-agent/Makefile b/hwkey-agent/Makefile
+index 7deda53..6557e0a 100644
+--- a/hwkey-agent/Makefile
++++ b/hwkey-agent/Makefile
+@@ -4,8 +4,6 @@
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+ # TA_DEV_KIT_DIR: The base directory of the TA-devkit.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ TARGET_DIR := $(notdir $(shell pwd))
+@@ -18,7 +16,6 @@ all:
+ 		O=$(O)/ta/$(TARGET_DIR)
+ 	$(MAKE) -C host \
+ 		CROSS_COMPILE=$(CROSS_COMPILE) \
+-		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 		O=$(O)/ca/$(TARGET_DIR) \
+ 		--no-builtin-variables
+ 
+@@ -29,7 +26,6 @@ clean:
+ 		O=$(O)/ta/$(TARGET_DIR) \
+ 		clean
+ 	$(MAKE) -C host \
+-		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 		O=$(O)/ca/$(TARGET_DIR) \
+ 		clean
+ 	rm -rf $(O)/ca/$(TARGET_DIR)
+diff --git a/hwkey-agent/host/Makefile b/hwkey-agent/host/Makefile
+index b7c2113..6807bbc 100644
+--- a/hwkey-agent/host/Makefile
++++ b/hwkey-agent/host/Makefile
+@@ -3,34 +3,31 @@
+ 
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ CC ?= $(CROSS_COMPILE)gcc
+ 
+ CFLAGS += -Wall -I../ta/include -I./include
+-CFLAGS += -I$(OPTEE_CLIENT_EXPORT)/include
+ CFLAGS += -fstack-protector-strong
+-LDADD += -lteec -L$(OPTEE_CLIENT_EXPORT)/lib
++LDADD += -lteec
+ 
+ SRCS = hwkey_agent_ca.c
+ OBJS = $(patsubst %.c,$(O)/%.o,$(SRCS))
+ BINARY = nvhwkey-app
+ 
+ .PHONY: all install
+-all: $(BINARY) install
++all: $(BINARY)
+ 
+ $(BINARY): $(OBJS)
+-	$(CC) -o $(O)/$@ $< $(LDADD)
++	$(CC) $(LDFLAGS) -o $(O)/$@ $< $(LDADD)
+ 
+ $(O)/%.o: %.c
+ 	mkdir -p $(O)
+ 	$(CC) $(CFLAGS) -c $< -o $@
+ 
+ install: $(BINARY)
+-	mkdir -p $(OPTEE_CLIENT_EXPORT)/sbin
+-	cp $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin
++	install -d $(DESTDIR)$(sbindir)
++	install -m 0755 $(O)/$(BINARY) $(DESTDIR)$(sbindir)/
+ 
+ .PHONY: clean
+ clean:
+diff --git a/luks-srv/Makefile b/luks-srv/Makefile
+index dd71d34..875e893 100644
+--- a/luks-srv/Makefile
++++ b/luks-srv/Makefile
+@@ -4,8 +4,6 @@
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+ # TA_DEV_KIT_DIR: The base directory of the TA-devkit.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ TARGET_DIR := $(notdir $(shell pwd))
+@@ -18,7 +16,6 @@ all: early_ta_dir
+ 		O=$(O)/early_ta/$(TARGET_DIR)
+ 	$(MAKE) -C host \
+ 		CROSS_COMPILE=$(CROSS_COMPILE) \
+-		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 		O=$(O)/ca/$(TARGET_DIR) \
+ 		--no-builtin-variables
+ 
+@@ -32,7 +29,6 @@ clean:
+ 		O=$(O)/early_ta/$(TARGET_DIR) \
+ 		clean
+ 	$(MAKE) -C host \
+-		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 		O=$(O)/ca/$(TARGET_DIR) \
+ 		clean
+ 	rm -rf $(O)/early_ta/$(TARGET_DIR)
+diff --git a/luks-srv/host/Makefile b/luks-srv/host/Makefile
+index c9a2dcc..7b72181 100644
+--- a/luks-srv/host/Makefile
++++ b/luks-srv/host/Makefile
+@@ -3,8 +3,6 @@
+ 
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ CC ?= $(CROSS_COMPILE)gcc
+@@ -12,10 +10,9 @@ LD ?= $(CROSS_COMPILE)ld
+ STRIP ?= $(CROSS_COMPILE)strip
+ 
+ CFLAGS += -Wall -I../ta/include -I./include
+-CFLAGS += -I$(OPTEE_CLIENT_EXPORT)/include
+ CFLAGS += -fstack-protector-strong
+ LDADD += -pthread -lpthread
+-LDADD += -lteec -L$(OPTEE_CLIENT_EXPORT)/lib
++LDADD += -lteec
+ LDFLAGS := -static
+ 
+ SRCS = luks_srv_ca.c
+@@ -23,20 +20,19 @@ OBJS = $(patsubst %.c,$(O)/%.o,$(SRCS))
+ BINARY = nvluks-srv-app
+ 
+ .PHONY: all install
+-all: $(BINARY) install
++all: $(BINARY)
+ 
+ $(BINARY): $(OBJS)
+ 	$(CC) $(LDFLAGS) -o $(O)/$@ $< $(LDADD)
+-	$(STRIP) $(O)/$@
+ 
+ $(O)/%.o: %.c
+ 	mkdir -p $(O)
+ 	$(CC) $(CFLAGS) -c $< -o $@
+ 
+ install: $(BINARY)
+-	mkdir -p $(OPTEE_CLIENT_EXPORT)/sbin
+-	cp $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin
++	install -d $(DESTDIR)$(sbindir)
++	install -m 0755 $(O)/$(BINARY) $(DESTDIR)$(sbindir)/
+ 
+ .PHONY: clean
+ clean:
+-	rm -f $(OBJS) $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin/$(BINARY)
++	rm -f $(OBJS) $(O)/$(BINARY)
+-- 
+2.34.1
+
