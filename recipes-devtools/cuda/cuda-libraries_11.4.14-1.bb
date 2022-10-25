@@ -6,11 +6,13 @@ CUDA_COMPONENTS = " \
     cuda-nvrtc \
     libcublas \
     libcufft \
-    libcudla \
     libcurand \
     libcusolver \
     libcusparse \
     libnpp \
+"
+CUDA_COMPONENTS:append:class-target = " \
+    libcudla \
 "
 DEPENDS = "${CUDA_COMPONENTS}"
 
