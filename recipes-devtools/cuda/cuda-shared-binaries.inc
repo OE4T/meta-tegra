@@ -85,6 +85,7 @@ PACKAGES =+ "${PN}-stubs"
 FILES:${PN} += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBS} ${prefix}/local/cuda-${CUDA_VERSION}/bin"
 FILES:${PN}-stubs = "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/stubs"
 FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/extras ${prefix}/local/cuda-${CUDA_VERSION}/include \
+                    ${prefix}/local/cuda-${CUDA_VERSION}/src \
                     ${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBSDEV}"
 FILES:${PN}-staticdev += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*.a"
 RDEPENDS:${PN}-dev = "${PN}-stubs"
