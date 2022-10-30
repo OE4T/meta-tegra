@@ -1,7 +1,7 @@
-From 90d286c1e2261bddabdb84ea1e9a217516c4e44c Mon Sep 17 00:00:00 2001
+From d7ad6c853a9df7fec6472b02ba3129054624c117 Mon Sep 17 00:00:00 2001
 From: Jose Quaresma <quaresma.jose@gmail.com>
 Date: Sun, 8 Nov 2020 12:49:03 +0000
-Subject: [PATCH 2/2] gstv4l2videodec: check if we have a pool before the
+Subject: [PATCH 5/7] gstv4l2videodec: check if we have a pool before the
  locking in video decoder set format
 
 There's a dead lock on nvv4l2decoder.
@@ -23,10 +23,10 @@ Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
  1 file changed, 9 insertions(+), 7 deletions(-)
 
 diff --git a/gstv4l2videodec.c b/gstv4l2videodec.c
-index fd80d68..ea64b38 100644
+index bce7627..b04e659 100644
 --- a/gstv4l2videodec.c
 +++ b/gstv4l2videodec.c
-@@ -743,14 +743,16 @@ gst_v4l2_video_dec_set_format (GstVideoDecoder * decoder,
+@@ -801,14 +801,16 @@ gst_v4l2_video_dec_set_format (GstVideoDecoder * decoder,
  #ifdef USE_V4L2_TARGET_NV
      if (self->is_drc == TRUE)
      {
@@ -51,5 +51,5 @@ index fd80d68..ea64b38 100644
          gst_v4l2_object_close (self->v4l2capture);
          gst_v4l2_object_open (self->v4l2output);
 -- 
-2.29.2
+2.34.1
 
