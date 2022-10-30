@@ -12,7 +12,7 @@ INITRAMFS_FSTYPES:append = "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' e
 
 SERIAL_CONSOLES ?= "115200;ttyTCU0"
 
-KERNEL_MODULE_AUTOLOAD ?= "nvgpu nvidia nvidia-drm"
+KERNEL_MODULE_AUTOLOAD ?= "nvmap nvgpu pwm-fan ina3221 nvidia nvidia-drm"
 
 NVIDIA_CHIP = "0x23"
 
