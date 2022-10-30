@@ -1,17 +1,18 @@
-From b38d37dc9dad6cb7097d4d524f274a0941f541d8 Mon Sep 17 00:00:00 2001
+From 79af9ca6b45ae89598eacdd407e55aaed294aa85 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Fri, 15 Apr 2022 21:20:30 +0100
-Subject: [PATCH 8/8] Makefile fixes for OE builds
+Subject: [PATCH 7/7] Makefile fixes for OE builds
 
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile | 42 ++++++++++++++++++++----------------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ Makefile | 44 ++++++++++++++++++++------------------------
+ 1 file changed, 20 insertions(+), 24 deletions(-)
 
-Index: gst-v4l2/Makefile
-===================================================================
---- gst-v4l2.orig/Makefile
-+++ gst-v4l2/Makefile
+diff --git a/Makefile b/Makefile
+index 21fe10e..90978fc 100644
+--- a/Makefile
++++ b/Makefile
 @@ -10,49 +10,44 @@
  #
  ###############################################################################
@@ -37,8 +38,7 @@ Index: gst-v4l2/Makefile
 -endif
 +SO_NAME := libgstnvvideo4linux2.so
  
--LIBS:= -lnvbufsurface -lnvbufsurftransform -lgstnvdsseimeta
-+LIBS:= -lnvbufsurface -lnvbufsurftransform
+ LIBS:= -lnvbufsurface -lnvbufsurftransform -lgstnvdsseimeta
  SRCS := $(wildcard *.c)
 -
 -INCLUDES += -I./ -I../
@@ -91,3 +91,6 @@ Index: gst-v4l2/Makefile
  
  .PHONY: clean
  clean:
+-- 
+2.34.1
+

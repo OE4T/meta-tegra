@@ -1,7 +1,7 @@
-From fb987d2657da10b886550f5d0dbf6e535ff5a95e Mon Sep 17 00:00:00 2001
+From e44664958ad6154c95d559011bc33c38751f9932 Mon Sep 17 00:00:00 2001
 From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
 Date: Fri, 26 Jun 2020 11:05:25 -0400
-Subject: [PATCH 3/3] v4l2bufferpool: Avoid set_flushing warning
+Subject: [PATCH 3/7] v4l2bufferpool: Avoid set_flushing warning
 
 The gst_buffer_pool_set_flushing() warns when that function is called
 on an inactive pool. Avoid the warning by checking the state, this is
@@ -14,10 +14,10 @@ Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/gstv4l2bufferpool.c b/gstv4l2bufferpool.c
-index f7d5638..cc60067 100644
+index 1023d4c..15345d1 100644
 --- a/gstv4l2bufferpool.c
 +++ b/gstv4l2bufferpool.c
-@@ -1241,7 +1241,7 @@ gst_v4l2_buffer_pool_flush_start (GstBufferPool * bpool)
+@@ -1269,7 +1269,7 @@ gst_v4l2_buffer_pool_flush_start (GstBufferPool * bpool)
    g_cond_broadcast (&pool->empty_cond);
    GST_OBJECT_UNLOCK (pool);
  
@@ -26,7 +26,7 @@ index f7d5638..cc60067 100644
      gst_buffer_pool_set_flushing (pool->other_pool, TRUE);
  }
  
-@@ -1252,7 +1252,7 @@ gst_v4l2_buffer_pool_flush_stop (GstBufferPool * bpool)
+@@ -1280,7 +1280,7 @@ gst_v4l2_buffer_pool_flush_stop (GstBufferPool * bpool)
  
    GST_DEBUG_OBJECT (pool, "stop flushing");
  
@@ -36,5 +36,5 @@ index f7d5638..cc60067 100644
  
  #ifndef USE_V4L2_TARGET_NV
 -- 
-2.29.2
+2.34.1
 
