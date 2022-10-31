@@ -7,13 +7,13 @@ SRC_REPO = "gitlab.freedesktop.org/glvnd/libglvnd.git;protocol=https"
 SRCBRANCH = "master"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 
-# v1.4.0 tag
-SRCREV = "8f3c5b17a21e2222ab3e5fd38870b915815aca49"
+# v1.5.0 tag
+SRCREV = "c7cdf0cc4395b57563294d1f340b6bb1b95366a0"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
-PROVIDES += "virtual/egl virtual/libgl virtual/libgles1 virtual/libgles2 virtual/libgles3"
+PROVIDES += "libglvnd virtual/egl virtual/libgl virtual/libgles1 virtual/libgles2 virtual/libgles3"
 
 DEPENDS = "l4t-nvidia-glheaders"
 
@@ -27,12 +27,13 @@ PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)}"
 
 PACKAGECONFIG[x11] = "-Dx11=enabled -Dglx=enabled,-Dx11=disabled -Dglx=disabled,libx11 libxext xorgproto,tegra-libraries-glxcore"
 
-RPROVIDES:${PN} += "libegl libgl libgles1 libgles2"
-RPROVIDES:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
+RPROVIDES:${PN} += "libglvnd libegl libgl libgles1 libgles2"
+RPROVIDES:${PN}-dev += "libglvnd-dev libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 RCONFLICTS:${PN} = "libegl libgl ligbles1 libgles2"
 RCONFLICTS:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 RREPLACES:${PN} = "libegl libgl libgles1 ligbles2"
-RREPLACESS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
+RREPLACES_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
+RPROVIDES:${PN}-dbg += "libglvnd-dbg"
 
 RDEPENDS:${PN}:append:tegra = " tegra-libraries-eglcore tegra-libraries-glescore"
 RDEPENDS:${PN}-dev:append:tegra = " l4t-nvidia-glheaders-dev"
