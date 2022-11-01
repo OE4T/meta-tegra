@@ -10,7 +10,9 @@ require recipes-bsp/tegra-sources/tegra-sources-35.1.0.inc
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl tegra-mmapi tegra-libraries-multimedia-utils"
 
-SRC_URI += " file://0001-Update-makefile-for-OE-builds.patch"
+SRC_URI += " file://0001-Update-makefile-for-OE-builds.patch \
+             file://0002-Skip-map-frame-in-pad-prepare-to-fix-spurious-warnin.patch \
+"
 
 S = "${WORKDIR}/gst-nvcompositor"
 
