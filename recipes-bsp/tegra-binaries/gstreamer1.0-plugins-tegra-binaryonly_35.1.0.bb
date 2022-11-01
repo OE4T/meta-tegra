@@ -37,6 +37,7 @@ do_install() {
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvtee*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvdrmvideo*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvidconv*
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstnvcompositor*
 }
 
 FILES_SOLIBSDEV = ""
