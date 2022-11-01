@@ -3,6 +3,7 @@ LICENSE = "MIT"
 
 PLUGINS = "\
     gstreamer1.0-plugins-nvarguscamerasrc \
+    gstreamer1.0-plugins-nvcompositor \
     gstreamer1.0-plugins-nvdrmvideosink \
     gstreamer1.0-plugins-nveglgles \
     gstreamer1.0-plugins-nvjpeg \
