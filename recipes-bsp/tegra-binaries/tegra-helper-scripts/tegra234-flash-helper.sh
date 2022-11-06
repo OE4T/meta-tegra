@@ -132,8 +132,9 @@ fi
 cvm_bin=$(mktemp cvm.bin.XXXXX)
 
 skipuid=""
-if [ -z "$CHIPREV" ]; then
-    chipid=`$here/tegrarcm_v2 --uid | grep BR_CID | cut -d' ' -f2`
+bootauth=""
+if [ -z "$CHIPREV" -o -z "$fuselevel" ]; then
+    chipid=$($here/tegrarcm_v2 --new_session --chip 0x23 ${inst_args} --uid | grep BR_CID | cut -d' ' -f2)
     if [ -z "$chipid" ]; then
         echo "ERR: could not retrieve chip ID" >&2
         exit 1
@@ -149,20 +150,24 @@ if [ -z "$CHIPREV" ]; then
     flval="${flval}${tmp_1}"
     case "${flval}" in
         000)
+            # The public L4T kit includes only production binaries
             echo "ERR: non-production chip found" >&2
             exit 1
             ;;
         800)
+            fuselevel="fuselevel_production"
+            bootauth="NS"
             # non-secured
-            break
             ;;
         810|820|830|840|850)
+            fuselevel="fuselevel_production"
+            bootauth="PKC"
             # RSA/ECDSA P-256/ECDSA P-512/ED25519/XMSS
-            break
             ;;
         890|8a0|8b0|8c0|8d0)
+            fuselevel="fuselevel_production"
+            bootauth="SBKPKC"
             # SBK + RSA/ECDSA P-256/ECDSA P-512/ED25519/XMSS
-            break
             ;;
         *)
             echo "ERR: unrecognized fused configuration 0x$flval" >&2
@@ -170,11 +175,37 @@ if [ -z "$CHIPREV" ]; then
     esac
     CHIPREV="${chipid:5:1}"
     skipuid="--skipuid"
+    case $bootauth in
+        PKC|SBKPKC)
+            if [ -z "$keyfile" -o -z "$sbk_keyfile" ]; then
+                echo "ERR: Target is configured for secure boot ($bootauth); use -u and -v options to specify key files" >&2
+                exit 1
+            fi
+            ;;
+        NS)
+            if [ -n "$keyfile" -o -n "$sbk_keyfile" ]; then
+                echo "WARN: Target is not secured; ignoring key files" >&2
+                keyfile=
+                sbk_keyfile=
+            fi
+            ;;
+    esac
 fi
 
 if [ -z "$FAB" -o -z "$BOARDID" ]; then
-    if ! python3 $flashappname ${inst_args} --chip 0x23 --applet mb1_t234_prod.bin $skipuid \
-         --bins "mb2_applet applet_t234.bin" --cmd "dump eeprom cvm ${cvm_bin}; dump custinfo ${custinfo_out}; reboot recovery"; then
+    if [ "$fuselevel" = "fuselevel_production" ]; then
+        sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${EMC_FUSE_DEV_PARAMS}";
+    fi
+    keyargs=
+    [ -z "$keyfile" ] || keyargs="$keyargs --key \"$keyfile\""
+    [ -z "$sbk_keyfile" ] || keyargs="$keyargs --encrypt_key \"$sbk_keyfile\""
+    rm -f rcm_state
+    if ! python3 $flashappname ${inst_args} --chip 0x23 $skipuid $keyargs \
+         --applet mb1_t234_prod.bin \
+         --dev_params $EMC_FUSE_DEV_PARAMS \
+         --cfg readinfo_t234_min_prod.xml \
+         --device_config $DEVICE_CONFIG --misc_config $MISC_CONFIG --bins "mb2_applet applet_t234.bin" \
+         --cmd "dump eeprom cvm ${cvm_bin}; dump custinfo ${custinfo_out}; reboot recovery"; then
         echo "ERR: could not retrieve EEPROM board information" >&2
         exit 1
     fi
@@ -183,7 +214,7 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
         echo "ERR: chip_info.bin_bak missing after dumping boardinfo" >&2
         exit 1
     fi
-    CHIP_SKU=$($here/chkbdinfo -C chip_info.bin_bak)
+    CHIP_SKU=$($here/chkbdinfo -C chip_info.bin_bak | tr -d '[:space:]')
     # XXX- these don't appear to be used
     # chip_minor_revision=$($here/chkbdinfo -M chip_info.bin_bak)
     # bootrom_revision=$($here/chkbdinfo -O chip_info.bin_bak)
@@ -271,14 +302,17 @@ if [ "${fuselevel}" = "fuselevel_production" ]; then
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${EMC_FUSE_DEV_PARAMS}";
 fi
 
+echo "Board ID($BOARDID) version($FAB) sku($BOARDSKU) revision($BOARDREV)"
+
 rm -f ${MACHINE}_bootblob_ver.txt
-echo "NV3" >${MACHINE}_bootblob_ver.txt
+echo "NV4" >${MACHINE}_bootblob_ver.txt
 . bsp_version
 echo "# R$BSP_BRANCH , REVISION: $BSP_MAJOR.$BSP_MINOR" >>${MACHINE}_bootblob_ver.txt
 echo "BOARDID=$BOARDID BOARDSKU=$BOARDSKU FAB=$FAB" >>${MACHINE}_bootblob_ver.txt
 date "+%Y%m%d%H%M%S" >>${MACHINE}_bootblob_ver.txt
-bytes=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f2`
-cksum=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1`
+printf "0x%x\n" $(( (BSP_BRANCH<<16) | (BSP_MAJOR<<8) | BSP_MINOR )) >>${MACHINE}_bootblob_ver.txt
+bytes=$(wc -c ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1)
+cksum=$(python3 -c "import zlib; print(\"%X\" % (zlib.crc32(open(\"${MACHINE}_bootblob_ver.txt\", \"rb\").read()) & 0xFFFFFFFF))")
 echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
 if [ -z "$sdcard" ]; then
     appfile=$(basename "$imgfile").img
@@ -367,12 +401,14 @@ if [ $bup_blob -ne 0 -o "$sdcard" = "yes" ]; then
     skipuid="--skipuid"
 else
     if [ -z "$sdcard" -a $no_flash -eq 0 -a "$spi_only" != "yes" ]; then
-    rm -f "$appfile"
-    $here/mksparse -b ${blocksize} --fillpattern=0 "$imgfile" "$appfile" || exit 1
-    if [ -n "$datafile" ]; then
-        rm -f "$datafile"
-        $here/mksparse -b ${blocksize} --fillpattern=0 "$dataimg" "$datafile" || exit 1
-    fi
+        rm -f "$appfile"
+        echo "Creating sparseimage ${appfile}..."
+        $here/mksparse -b ${blocksize} --fillpattern=0 "$imgfile" "$appfile" || exit 1
+        if [ -n "$datafile" ]; then
+            rm -f "$datafile"
+            echo "Creating sparseimage ${datafile}..."
+            $here/mksparse -b ${blocksize} --fillpattern=0 "$dataimg" "$datafile" || exit 1
+        fi
     fi
     tfcmd=${flash_cmd:-"flash;reboot"}
 fi
