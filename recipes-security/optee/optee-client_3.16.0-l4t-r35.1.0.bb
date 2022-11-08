@@ -42,7 +42,7 @@ do_install() {
     oe_runmake -C ${S} install DESTDIR="${D}"
     install -d ${D}${systemd_system_unitdir} ${D}${sysconfdir}/init.d
     install -m 0644 ${B}/tee-supplicant.service ${D}${systemd_system_unitdir}/
-    install -m 0755 ${B}/tee-supplicant.sh ${D}${sysconfdir}/init.d/
+    install -m 0755 ${B}/tee-supplicant.sh ${D}${sysconfdir}/init.d/tee-supplicant
 }
 
 SYSTEMD_SERVICE:${PN} = "tee-supplicant.service"
