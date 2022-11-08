@@ -4,9 +4,9 @@ DESC="OTA bootloader update verifier"
 
 case "$1" in
   start|restart)
-      while [ ! -e /dev/disk/by-partlabel/kernel ]; do sleep 1; done
-      sleep 2
+      echo -n "Running $DESC: "
       /usr/sbin/nvbootctrl verify < /dev/null
+      echo "[OK]"
       ;;
   stop)
       ;;
