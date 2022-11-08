@@ -1,6 +1,6 @@
 [Unit]
 Description=OTA bootloader update verifier
-After=nvstartup.service dev-disk-by\x2dpartlabel-kernel.device
+After=nvstartup.service
 
 [Service]
 Type=simple
