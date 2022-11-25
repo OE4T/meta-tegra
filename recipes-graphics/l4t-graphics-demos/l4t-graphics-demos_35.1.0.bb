@@ -22,6 +22,8 @@ PACKAGECONFIG[wayland] = ",,libxkbcommon wayland wayland-native weston libffi vi
 
 CONFIGURESTAMPFILE = "${WORKDIR}/configure.sstate"
 
+PARALLEL_MAKE = ""
+
 do_configure() {
     if [ -n "${CONFIGURESTAMPFILE}" ]; then
         if [ -e "${CONFIGURESTAMPFILE}" ]; then
