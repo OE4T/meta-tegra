@@ -15,3 +15,5 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libGLX_nvidia.so.0 \
     tegra/libnvidia-glcore.so.${L4T_VERSION} \
 "
+
+RDEPENDS:${PN} = "libxcb-glx"
