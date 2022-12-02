@@ -1,0 +1,23 @@
+From 42963cf3c4ba05b4cec2d9a6cea9296ade166dfe Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 2 Dec 2022 07:24:01 -0800
+Subject: [PATCH] Remove references to non-existent samples
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ usr/src/jetson_multimedia_api/argus/CMakeLists.txt | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/argus/CMakeLists.txt b/usr/src/jetson_multimedia_api/argus/CMakeLists.txt
+index 6da447c..eb2271c 100644
+--- a/argus/CMakeLists.txt
++++ b/argus/CMakeLists.txt
+@@ -34,8 +34,6 @@ add_subdirectory(samples/denoise)
+ add_subdirectory(samples/eglImage)
+ add_subdirectory(samples/gstVideoEncode)
+ add_subdirectory(samples/histogram)
+-add_subdirectory(samples/l4t_droid)
+-add_subdirectory(samples/l4tdroid_App)
+ add_subdirectory(samples/multiSensor)
+ add_subdirectory(samples/multiStream)
+ add_subdirectory(samples/oneShot)

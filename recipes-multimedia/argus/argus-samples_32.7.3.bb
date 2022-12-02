@@ -3,7 +3,10 @@ HOMEPAGE = "http://developer.nvidia.com"
 
 require tegra-mmapi-${PV}.inc
 
-SRC_URI += "file://0001-argus-apps-camera-replace-xxd-invocation-with-shell-.patch"
+SRC_URI += "\
+    file://0001-argus-apps-camera-replace-xxd-invocation-with-shell-.patch \
+    file://0002-Remove-references-to-non-existent-samples.patch \
+"
 
 DEPENDS = "tegra-mmapi virtual/egl virtual/libgles1 virtual/libgles2 jpeg expat gstreamer1.0 glib-2.0 coreutils-native"
 
