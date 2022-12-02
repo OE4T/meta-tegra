@@ -16,7 +16,7 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t18x.tbz2;downloadfilename=cboot_src_t18x-$
     file://0013-Fix-ext4-multi-block-linear-directory-traversal.patch \
     file://0014-ext2-fix-symlink-support-in-ext2_dir_lookup.patch \
 "
-SRC_URI[sha256sum] = "b89e52ba709ab371e055e538f914e38b296faa1b5e261d9a17fa498692f788ce"
+SRC_URI[sha256sum] = "7baa96326ab91aef919cc3b57cb265200df72889b15bc263fd6763eba0ca87da"
 
 PACKAGECONFIG ??= "display recovery"
 PACKAGECONFIG[display] = "CONFIG_ENABLE_DISPLAY=1,,"
