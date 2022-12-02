@@ -21,7 +21,7 @@ SRC_URI = "${L4T_URI_BASE}/cboot_src_t19x.tbz2;downloadfilename=cboot_src_t19x-$
 "
 
 
-SRC_URI[sha256sum] = "76e1105810bd5827facea9547e25bcc7a9cd4e1dda56a2b1c19c687b65c27f93"
+SRC_URI[sha256sum] = "6d398e587ff4d4b1a3fac67d63d2c7883df4cff1cb2eb524169fb582c59c338e"
 
 PACKAGECONFIG ??= "bootdev-select ethernet display shell recovery extlinux"
 PACKAGECONFIG[bootdev-select] = "CONFIG_ENABLE_BOOT_DEVICE_SELECT=1,,"

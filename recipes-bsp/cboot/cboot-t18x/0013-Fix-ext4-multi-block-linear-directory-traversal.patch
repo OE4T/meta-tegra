@@ -1,4 +1,4 @@
-From 589b034553a55591d8452d5d5e9ece980301b2f9 Mon Sep 17 00:00:00 2001
+From dddc150c427d8410e42aa5aa0ed2c74377712278 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Thu, 15 Jul 2021 05:27:46 -0700
 Subject: [PATCH 13/14] Fix ext4 multi-block linear directory traversal
@@ -9,10 +9,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 23 insertions(+), 18 deletions(-)
 
 diff --git a/bootloader/partner/common/lib/fs/ext4/ext4.c b/bootloader/partner/common/lib/fs/ext4/ext4.c
-index 1370755..403fc77 100644
+index bba3f23..a2853d3 100644
 --- a/bootloader/partner/common/lib/fs/ext4/ext4.c
 +++ b/bootloader/partner/common/lib/fs/ext4/ext4.c
-@@ -415,20 +415,26 @@ fail:
+@@ -443,20 +443,26 @@ fail:
  static int lookup_linear_dir(ext2_t *ext2, struct ext2fs_dinode *dir_inode, const char *name, uint8_t *buf,
                               inodenum_t *inum)
  {
@@ -45,7 +45,7 @@ index 1370755..403fc77 100644
          }
  
          /* walk through the directory entries, looking for the one that matches */
-@@ -436,17 +442,23 @@ static int lookup_linear_dir(ext2_t *ext2, struct ext2fs_dinode *dir_inode, cons
+@@ -464,17 +470,23 @@ static int lookup_linear_dir(ext2_t *ext2, struct ext2fs_dinode *dir_inode, cons
          while (pos < E2FS_BLOCK_SIZE(ext2->super_blk)) {
  
              ent = (struct ext2fs_dir_entry_2 *)&buf[pos];
@@ -74,7 +74,7 @@ index 1370755..403fc77 100644
                  *inum = LE32(ent->e2d_inode);
                  LTRACEF("match: inode %d\n", *inum);
                  file_entry_found = true;
-@@ -460,13 +472,6 @@ static int lookup_linear_dir(ext2_t *ext2, struct ext2fs_dinode *dir_inode, cons
+@@ -488,13 +500,6 @@ static int lookup_linear_dir(ext2_t *ext2, struct ext2fs_dinode *dir_inode, cons
              break;
          }
  

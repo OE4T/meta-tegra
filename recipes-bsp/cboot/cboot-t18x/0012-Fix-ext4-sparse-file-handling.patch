@@ -1,4 +1,4 @@
-From 3b4e04b85d95e826fd2e20b396a72897a22272f9 Mon Sep 17 00:00:00 2001
+From 62ab1dde8d8abf262d19710cda90ca859e6b3f25 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 8 Jun 2021 06:47:15 -0700
 Subject: [PATCH 12/14] Fix ext4 sparse file handling
@@ -8,7 +8,7 @@ Subject: [PATCH 12/14] Fix ext4 sparse file handling
  1 file changed, 27 insertions(+), 1 deletion(-)
 
 diff --git a/bootloader/partner/common/lib/fs/ext4/ext4.c b/bootloader/partner/common/lib/fs/ext4/ext4.c
-index c994c0f..1370755 100644
+index 6e8e2e7..bba3f23 100644
 --- a/bootloader/partner/common/lib/fs/ext4/ext4.c
 +++ b/bootloader/partner/common/lib/fs/ext4/ext4.c
 @@ -188,6 +188,7 @@ static int ext4_read_extent(ext2_t *ext2, struct ext4_extent_header *extent_head
@@ -43,7 +43,7 @@ index c994c0f..1370755 100644
          extent++;
      }
  
-@@ -704,6 +714,8 @@ fail:
+@@ -732,6 +742,8 @@ fail:
  ssize_t ext4_read_file(filecookie *fcookie, void *buf, off_t offset, size_t len)
  {
      ext2_file_t *file = NULL;
@@ -52,7 +52,7 @@ index c994c0f..1370755 100644
  
      LTRACEF("\n");
  
-@@ -726,7 +738,21 @@ ssize_t ext4_read_file(filecookie *fcookie, void *buf, off_t offset, size_t len)
+@@ -754,7 +766,21 @@ ssize_t ext4_read_file(filecookie *fcookie, void *buf, off_t offset, size_t len)
          return -1;
      }
  
