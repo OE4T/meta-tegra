@@ -42,7 +42,6 @@ UBOOT_EXTLINUX_KERNEL_ARGS ?= ""
 require conf/machine/include/tegra-common.inc
 
 L4T_BSP_NAME = "T186"
-L4T_SRCS_NAME = "sources/T186"
 L4T_BSP_PREFIX = "Jetson"
 L4T_DEB_SOCNAME = "t194"
 
