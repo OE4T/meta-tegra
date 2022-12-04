@@ -29,6 +29,7 @@ Options:
   -s size               Sets size of SDcard image when creating an image file (required)
   -b basename           Base filename for SDcard image (required if no output specified)
   -y                    Skip prompting for confirmation
+  --serial-number <sn>  Select USB /dev/sd[a-z] device based on serial number
 
 Confirmation is required if <output> is a device or if it is the name of
 a file that already exists.
@@ -66,6 +67,10 @@ compute_size() {
 find_finalpart() {
     local blksize partnumber partname partsize partfile partguid parttype partfilltoend
     local appidx pline i
+    if [ -n "$ignore_finalpart" ]; then
+	FINALPART=999
+	return 0
+    fi
     i=0
     for pline in "${PARTS[@]}"; do
 	eval "$pline"
@@ -99,13 +104,15 @@ make_partitions() {
 	fi
 	i=$(expr $i + 1)
     done
-    eval "${PARTS[$FINALPART]}"
-    [ -n "$parttype" ] || parttype="8300"
-    echo -n "$partname..."
-    if [ $partfilltoend -eq 1 ]; then
-	sgdisk "$output" -a 8 --largest-new=$partnumber --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
-    else
-	sgdisk "$output" -a 8 --new=$partnumber:0:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
+    if [ -z "$ignore_finalpart" ]; then
+	eval "${PARTS[$FINALPART]}"
+	[ -n "$parttype" ] || parttype="8300"
+	echo -n "$partname..."
+	if [ $partfilltoend -eq 1 ]; then
+	    sgdisk "$output" -a 8 --largest-new=$partnumber --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
+	else
+	    sgdisk "$output" -a 8 --new=$partnumber:0:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
+	fi
     fi
 }
 
@@ -158,6 +165,9 @@ write_partitions_to_device() {
 	fi
 	i=$(expr $i + 1)
     done
+    if [ -n "$ignore_finalpart" ]; then
+	return 0
+    fi
     eval "${PARTS[$FINALPART]}"
     if [ -n "$partfile" ]; then
 	if [ ! -e "$partfile" ]; then
@@ -225,7 +235,7 @@ confirm() {
     done
 }
 
-ARGS=$(getopt -o "yhs:b:" -n "$me" -- "$@")
+ARGS=$(getopt -l "serial-number:,keep-connection,no-final-part" -o "yhs:b:" -n "$me" -- "$@")
 if [ $? -ne 0 ]; then
     usage
     exit 1
@@ -237,25 +247,42 @@ unset ARGS
 preconfirmed=
 outsize=
 basename=
+wait_for_usb_device=
+keep_connection=
+serial_number=
+ignore_finalpart=
 while true; do
     case "$1" in
-	'-h')
+	--serial-number)
+	    wait_for_usb_device=yes
+	    serial_number="$2"
+	    shift 2
+	    ;;
+	--keep-connection)
+	    keep_connection=yes
+	    shift
+	    ;;
+	--no-final-part)
+	    ignore_finalpart=yes
+	    shift
+	    ;;
+	-h)
 	    usage
 	    exit 0
 	    ;;
-	'-y')
+	-y)
 	    preconfirmed=yes
 	    shift
 	    ;;
-	'-s')
+	-s)
 	    outsize=$(compute_size "$2")
 	    shift 2
 	    ;;
-	'-b')
+	-b)
 	    basename="$2"
 	    shift 2
 	    ;;
-	'--')
+	--)
 	    shift
 	    break
 	    ;;
@@ -277,6 +304,26 @@ output="$2"
 if [ -z "$cfgfile" ]; then
     echo "ERR: missing flash config file parameter" >&2
     exit 1
+fi
+
+if [ "$wait_for_usb_device" = "yes" ]; then
+    echo -n "Looking for USB storage device from $serial_number..."
+    output=
+    while [ -z "$output" ]; do
+	for candidate in /dev/sd[a-z]; do
+	    [ -b "$candidate" ] || continue
+	    cand_sernum=$(udevadm info --query=property $candidate | grep '^ID_SERIAL_SHORT=' | cut -d= -f2)
+	    if [ "$cand_sernum" = "$serial_number" ]; then
+		echo "[$candidate]"
+		output="$candidate"
+		break
+	    fi
+	done
+	if [ -z "$output" ]; then
+	    sleep 1
+	    echo -n "."
+	fi
+    done
 fi
 
 if [ -z "$output" ]; then
@@ -315,7 +362,7 @@ else
     fi
 fi
 
-mapfile PARTS < <("$here/nvflashxmlparse" -t sdcard "$cfgfile")
+mapfile PARTS < <("$here/nvflashxmlparse" -t rootfs "$cfgfile")
 if [ ${#PARTS[@]} -eq 0 ]; then
     echo "No partition definitions found in $cfgfile" >&2
     exit 1
@@ -361,4 +408,17 @@ else
     fi
 fi
 echo "[OK: $output]"
+if [ "$wait_for_usb_device" = "yes" -a "$keep_connection" != "yes" ]; then
+    echo "Disconnecting $output"
+    for tries in $(seq 1 30); do
+	if udisksctl power-off -b $output 2>/dev/null; then
+	    break
+	fi
+	sleep 1
+    done
+    if [ $tries -ge 30 ]; then
+        echo "WARN: failed to disconnect $output"
+    fi
+fi
+
 exit 0
