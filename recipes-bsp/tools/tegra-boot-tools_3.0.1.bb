@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=7a9217de7f233011b127382da9a035a1"
 DEPENDS = "zlib util-linux-libuuid systemd tegra-eeprom-tool"
 
 SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
-SRC_URI[sha256sum] = "2480eaf129e95b8f892c6cb4e1768f6b302d8e3f580866b6a59516c04a3ae6a3"
+SRC_URI[sha256sum] = "df765aec0838501b8f3400ee309f18a0ffe503b424196d39e86211e0e3f0f78e"
 
 OTABOOTDEV ??= "/dev/mmcblk0boot0"
 OTAGPTDEV ??= "/dev/mmcblk0boot1"
