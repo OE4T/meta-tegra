@@ -45,6 +45,10 @@ EXTRA_IMAGECMD:ext4 ?= "-i 4096 -b 4096"
 IMAGE_CLASSES += "image_types_tegra"
 IMAGE_FSTYPES += "tegraflash"
 
+TEGRAFLASH_INITRD_FLASH_IMAGE = "tegra-initrd-flash-initramfs"
+
+BOOT_PARTITIONS_ON_EMMC ?= "0"
+
 TEGRA_ESSENTIAL_EXTRA_RDEPENDS ??= ""
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda ext2"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${TEGRA_ESSENTIAL_EXTRA_RDEPENDS}"
