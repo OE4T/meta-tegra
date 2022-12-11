@@ -21,7 +21,7 @@ TEGRA_FAB ?= "TS4"
 TEGRA_BOARDSKU ?= "0000"
 TEGRA_BOARDREV ?= "C.0"
 TEGRA_CHIPREV ?= "0"
-TEGRA_SIGNING_ENV = "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV}"
+TEGRA_SIGNING_ENV = "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV} fuselevel=fuselevel_production"
 TEGRA_CUDA_ARCHITECTURE ?= "87"
 
 require conf/machine/include/tegra-common.inc
@@ -36,3 +36,5 @@ NVPOWER ?= "jetsonpower_t234"
 NVFANCONTROL ?= "nvfancontrol_p3701_0000"
 
 MACHINE_EXTRA_RRECOMMENDS += "kernel-module-nvidia kernel-module-nvidia-drm kernel-module-nvidia-modeset"
+
+PARTITION_LAYOUT_EXTERNAL ?= "flash_l4t_t234_nvme.xml"
