@@ -1,6 +1,8 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Jetson Modules
 ======================================================
 
+[![Join the chat at https://gitter.im/OE4T/initrd-flashing](https://badges.gitter.im/OE4T/initrd-flashing.svg)](https://gitter.im/OE4T/initrd-flashing?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Linux4Tegra release: R35.1.0
 JetPack release:     5.0.2
 
