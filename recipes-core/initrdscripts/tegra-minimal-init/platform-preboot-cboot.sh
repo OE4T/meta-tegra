@@ -8,8 +8,20 @@ for bootarg in `cat /proc/cmdline`; do
 	rootwait) wait="yes" ;;
     esac
 done
-rootdev=`blkid -l -t PARTLABEL=APP$slotsfx | cut -d: -f1`
+message="Waiting for APP$slotsfx partition..."
+for count in $(seq 1 10); do
+    blkid --probe 2>/dev/null
+    rootdev=`blkid -l -t PARTLABEL=APP$slotsfx | cut -d: -f1`
+    if [ -n "$rootdev" ]; then
+	echo "[OK: $rootdev]"
+	break
+    fi
+    echo -n "$message"
+    message="."
+    sleep 0.5
+done
 if [ -z "$rootdev" ]; then
+    echo "[FAIL]"
     if [ -n "$mayberoot" ]; then
 	rootdev="$mayberoot"
     else
