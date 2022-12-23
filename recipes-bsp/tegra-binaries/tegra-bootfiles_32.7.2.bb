@@ -9,6 +9,9 @@ BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
 BOARD_CFG ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${NVIDIA_BOARD_CFG}"
 PARTITION_FILE ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${PARTITION_LAYOUT_TEMPLATE}"
+PARTITION_FILE_EXTERNAL ?= "${DEFAULT_PARTITION_FILE_EXTERNAL}"
+DEFAULT_PARTITION_FILE_EXTERNAL = "${S}/tools/kernel_flash/${PARTITION_LAYOUT_EXTERNAL}"
+DEFAULT_PARTITION_FILE_EXTERNAL:tegra210 = ""
 SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
 CBOOTOPTION_FILE ?= ""
 ODMFUSE_FILE ?= ""
@@ -98,6 +101,24 @@ do_install() {
     done
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
     install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
+    if [ -n "${PARTITION_FILE_EXTERNAL}" -a -n "${PARTITION_LAYOUT_EXTERNAL}" ]; then
+        # For flashing to an external (USB/NVMe) device on targets where
+        # some of the boot partitions spill into the eMMC, preprocess the
+        # the XML files so the layout for the internal storage retains the
+        # those boot partitions, and remove the names of those partitions
+        # from the layout for the external storage.
+        if [ "${TNSPEC_BOOTDEV}" != "mmcblk0p1" -a "${BOOT_PARTITIONS_ON_EMMC}" = "1" ]; then
+            nvflashxmlparse --split=/dev/null --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} --change-device-type="nvme" ${PARTITION_FILE}
+	    chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
+            nvflashxmlparse --remove --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
+	    chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+        else
+	    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
+	    install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+        fi
+    else
+	install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
+    fi
     [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
 }
 
