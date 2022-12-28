@@ -138,6 +138,7 @@ bootimg_from_bundled_initramfs() {
             ${STAGING_BINDIR_NATIVE}/tegra186-flash/mkbootimg \
                                     --kernel $deployDir/${initramfs_base_name}.bin \
                                     --ramdisk ${WORKDIR}/initrd \
+                                    --cmdline "${KERNEL_ARGS}" \
                                     --output $deployDir/${initramfs_base_name}.cboot
             chmod 0644 $deployDir/${initramfs_base_name}.cboot
             ln -sf ${initramfs_base_name}.cboot $deployDir/${initramfs_symlink_name}.cboot
@@ -153,6 +154,7 @@ bootimg_from_bundled_initramfs() {
             ${STAGING_BINDIR_NATIVE}/tegra186-flash/mkbootimg \
                                     --kernel $deployDir/${baseName}.bin \
                                     --ramdisk ${WORKDIR}/initrd \
+                                    --cmdline "${KERNEL_ARGS}" \
                                     --output $deployDir/${baseName}.cboot
             chmod 0644 $deployDir/${baseName}.cboot
             ln -sf ${baseName}.cboot $deployDir/$imageType-${KERNEL_IMAGE_LINK_NAME}.cboot
