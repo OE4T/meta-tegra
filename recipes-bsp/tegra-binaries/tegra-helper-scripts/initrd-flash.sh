@@ -340,7 +340,7 @@ write_to_device() {
     local dev=$(wait_for_usb_storage "$session_id" "$devname")
     local opts="$3"
     local rewritefiles="secureflash.xml"
-    local datased simgname
+    local datased simgname rc=1
     if [ -z "$dev" ]; then
 	echo "ERR: could not find $devname" >&2
 	return 1
@@ -361,8 +361,11 @@ write_to_device() {
     # XXX
     simgname="${ROOTFS_IMAGE%.*}.img"
     sed -i -e"s,$simgname,$ROOTFS_IMAGE," -e"s,APPFILE_b,$ROOTFS_IMAGE," -e"s,APPFILE,$ROOTFS_IMAGE," $datased initrd-flash.xml
-    "$here/make-sdcard" -y $opts initrd-flash.xml "$dev"
+    if "$here/make-sdcard" -y $opts initrd-flash.xml "$dev"; then
+	rc=0
+    fi
     unmount_and_release "" "$dev"
+    return $rc
 }
 
 get_final_status() {
