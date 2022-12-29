@@ -139,6 +139,7 @@ copy_signed_binaries() {
 
 sign_binaries() {
     if [ -n "$PRESIGNED" ]; then
+	cp doflash.sh flash_signed.sh
 	if ! copy_bootloader_files bootloader_staging; then
 	    return 1
 	fi
@@ -171,7 +172,7 @@ sign_binaries() {
 	    cp signed/flash.idx flash.idx
 	    copy_signed_binaries
 	else
-	    cp flashcmd.txt doflash.sh
+	    cp flashcmd.txt flash_signed.sh
 	fi
     else
 	return 1
@@ -205,9 +206,9 @@ prepare_for_rcm_boot() {
 	    fi
 	    "$here/rewrite-tegraflash-args" -o rcm-boot.sh \
 					    --bins kernel=initrd-flash_sigheader.img${ksfx},kernel_dtb=${kdtbfilebase}_sigheader.dtb${ksfx},sce_fw=camera-rtcpu-sce_sigheader.img${binsfx},adsp_fw=adsp-fw_sigheader.bin${binsfx} \
-					    --cmd rcmboot --add="--securedev" doflash.sh || return 1
+					    --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
 	else
-	    "$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE --cmd rcmboot --add="--securedev" doflash.sh || return 1
+	    "$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
 	fi
 	# For t234: hack taken from odmsign.func
 	sed -i -e's,mb2_t234_with_mb2_bct_MB2,mb2_t234_with_mb2_cold_boot_bct_MB2,' rcm-boot.sh || return 1
