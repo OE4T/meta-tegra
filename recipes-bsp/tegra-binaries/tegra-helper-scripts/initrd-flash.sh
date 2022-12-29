@@ -139,6 +139,7 @@ copy_signed_binaries() {
 
 sign_binaries() {
     if [ -n "$PRESIGNED" ]; then
+	cp doflash.sh flash_signed.sh
 	if ! copy_bootloader_files bootloader_staging; then
 	    return 1
 	fi
@@ -147,16 +148,15 @@ sign_binaries() {
     if [ -z "$BOARDID" -o -z "$FAB" ]; then
 	wait_for_rcm
     fi
-    local flashin="flash.xml.in"
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
 	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" $instance_args \
-	      $flashin $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
+	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
 	if [ $have_odmsign_func -eq 0 ]; then
 	    cp signed/flash.xml.tmp secureflash.xml
 	    cp signed/flash.idx flash.idx
 	    copy_signed_binaries
 	else
-	    cp flashcmd.txt doflash.sh
+	    cp flashcmd.txt flash_signed.sh
 	fi
     else
 	return 1
@@ -170,7 +170,7 @@ sign_binaries() {
 
 prepare_for_rcm_boot() {
     if [ $have_odmsign_func -eq 1 ]; then
-	"$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE --cmd rcmboot --add="--securedev" doflash.sh || return 1
+	"$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
 	# For t234: hack taken from odmsign.func
 	sed -i -e's,mb2_t234_with_mb2_bct_MB2,mb2_t234_with_mb2_cold_boot_bct_MB2,' rcm-boot.sh || return 1
 	chmod +x rcm-boot.sh
