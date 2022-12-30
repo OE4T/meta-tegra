@@ -147,10 +147,25 @@ sign_binaries() {
     if [ -z "$BOARDID" -o -z "$FAB" ]; then
 	wait_for_rcm
     fi
-    local flashin="flash.xml.in"
+    if [  -e external-flash.xml.in ]; then
+	"$here/nvflashxmlparse" --extract --type rootfs --change-device-type=sdmmc_user -o external-flash.xml.tmp external-flash.xml.in
+	if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
+		  "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" $instance_args \
+		  external-flash.xml.tmp $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
+	    if [ $have_odmsign_func -eq 0 ]; then
+		cp signed/flash.xml.tmp external-secureflash.xml
+		copy_signed_binaries
+            else
+		mv secureflash.xml external-secureflash.xml
+	    fi
+	else
+	    return 1
+	fi
+	. ./boardvars.sh
+    fi
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
 	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" $instance_args \
-	      $flashin $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
+	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
 	if [ $have_odmsign_func -eq 0 ]; then
 	    cp signed/flash.xml.tmp secureflash.xml
 	    cp signed/flash.idx flash.idx
@@ -164,13 +179,36 @@ sign_binaries() {
     if ! copy_bootloader_files bootloader_staging; then
 	return 1
     fi
+    if [ "$CHIPID" = "0x18" ]; then
+	"$here/tegra-signimage-helper" --chip "$CHIPID" --nosplit --type kernel initrd-flash.img
+    fi
     . ./boardvars.sh
     return 0
 }
 
 prepare_for_rcm_boot() {
     if [ $have_odmsign_func -eq 1 ]; then
-	"$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE --cmd rcmboot --add="--securedev" doflash.sh || return 1
+	if [ "$CHIPID" = "0x18" ]; then
+	    local binsfx=".encrypt"
+	    local ksfx=".encrypt"
+	    local kdtbfilebase=$(basename kernel_$DTBFILE .dtb)
+	    if [ -n "$keyfile" ]; then
+		if [ -n "$sbk_keyfile" ]; then
+		    binsfx=".encrypt.signed"
+		else
+		    binsfix=".signed"
+		    ksfx=".signed"
+		fi
+	    fi
+	    if [ -n "$user_keyfile" ]; then
+		ksfx=".encrypt.signed"
+	    fi
+	    "$here/rewrite-tegraflash-args" -o rcm-boot.sh \
+					    --bins kernel=initrd-flash_sigheader.img${ksfx},kernel_dtb=${kdtbfilebase}_sigheader.dtb${ksfx},sce_fw=camera-rtcpu-sce_sigheader.img${binsfx},adsp_fw=adsp-fw_sigheader.bin${binsfx} \
+					    --cmd rcmboot --add="--securedev" doflash.sh || return 1
+	else
+	    "$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE --cmd rcmboot --add="--securedev" doflash.sh || return 1
+	fi
 	# For t234: hack taken from odmsign.func
 	sed -i -e's,mb2_t234_with_mb2_bct_MB2,mb2_t234_with_mb2_cold_boot_bct_MB2,' rcm-boot.sh || return 1
 	chmod +x rcm-boot.sh
@@ -341,6 +379,8 @@ write_to_device() {
     local opts="$3"
     local rewritefiles="secureflash.xml"
     local datased simgname rc=1
+    local extraarg
+
     if [ -z "$dev" ]; then
 	echo "ERR: could not find $devname" >&2
 	return 1
@@ -354,6 +394,9 @@ write_to_device() {
     else
 	datased="-e/DATAFILE/d"
     fi
+    if [ "$devname" = "mmcblk0" -a $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
+	extraarg="--honor-start-locations"
+    fi
     # XXX
     # For the pre-signed case, the flash layout will contain the
     # name of the sparseimage file, and we need to convert it back to
@@ -361,7 +404,7 @@ write_to_device() {
     # XXX
     simgname="${ROOTFS_IMAGE%.*}.img"
     sed -i -e"s,$simgname,$ROOTFS_IMAGE," -e"s,APPFILE_b,$ROOTFS_IMAGE," -e"s,APPFILE,$ROOTFS_IMAGE," $datased initrd-flash.xml
-    if "$here/make-sdcard" -y $opts initrd-flash.xml "$dev"; then
+    if "$here/make-sdcard" -y $opts $extraarg initrd-flash.xml "$dev"; then
 	rc=0
     fi
     unmount_and_release "" "$dev"
