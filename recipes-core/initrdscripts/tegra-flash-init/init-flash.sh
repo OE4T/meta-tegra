@@ -8,7 +8,7 @@ mount -t configfs configfs -o nosuid,nodev,noexec /sys/kernel/config
 [ ! /usr/sbin/wd_keepalive ] || /usr/sbin/wd_keepalive &
 
 sernum=$(cat /sys/devices/platform/efuse-burn/ecid 2>/dev/null)
-[ -n "$sernum" ] || sernum=$(cat /sys/module/tegra_fuse/tegra_chip_uid 2>/dev/null)
+[ -n "$sernum" ] || sernum=$(cat /sys/module/tegra_fuse/parameters/tegra_chip_uid 2>/dev/null)
 if [ -n "$sernum" ]; then
     # Restricted to 8 characters for the ID_MODEL tag
     sernum=$(printf "%x" "$sernum" | tail -c8)
@@ -163,6 +163,8 @@ else
 		    if setup_usb_export /dev/$dev $dev 2>&1 > /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
 			if wait_for_connect 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
 			    if wait_for_disconnect 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
+				sgdisk /dev/$dev --verify 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log
+				sgdisk /dev/$dev --print 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log
 				continue
 			    fi
 			fi
