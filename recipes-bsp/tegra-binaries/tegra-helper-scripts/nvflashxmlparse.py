@@ -148,22 +148,29 @@ class PartitionLayout(object):
 def extract_layout(infile, devtype, outf, new_devtype=None, sector_count=0):
     tree = ET.parse(infile)
     root = tree.getroot()
+    if devtype not in ["boot", "rootfs"]:
+        actual_devtype = devtype
     for dev in root.findall('device'):
         if devtype == "boot":
             if dev.get('type') not in boot_devices:
                 root.remove(dev)
+            else:
+                actual_devtype = dev.get('type')
         elif devtype == "rootfs":
             if dev.get('type') in boot_devices:
                 root.remove(dev)
+            else:
+                actual_devtype = dev.get('type')
         elif dev.get('type') != devtype:
             root.remove(dev)
+    logging.info("For devtype {}, actual devtype is {}".format(devtype, actual_devtype))
     devs = root.findall('device')
     if len(devs) != 1:
         raise RuntimeError("{} unexpectedly contains multiple devices after extraction".format(infile))
     dev = devs[0]
     if new_devtype:
-        if dev.get('type') != devtype:
-            raise RuntimeError("Could not convert device type {} to {}: old type not found".format(devtype, new_devtype))
+        if dev.get('type') != actual_devtype:
+            raise RuntimeError("Could not convert device type {} to {}: old type not found".format(actual_devtype, new_devtype))
         dev.set('type', new_devtype)
         dev.set('instance', '3' if new_devtype == 'sdmmc_user' else '0')
     if sector_count != 0:
