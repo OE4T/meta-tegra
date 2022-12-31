@@ -36,3 +36,6 @@ L4T_BSP_PREFIX = "Jetson"
 L4T_DEB_SOCNAME = "t186"
 
 NVPMODEL ?= "nvpmodel_t186"
+
+PARTITION_LAYOUT_EXTERNAL ?= "flash_l4t_nvme.xml"
+BOOT_PARTITIONS_ON_EMMC = "1"
