@@ -31,15 +31,16 @@ def br_cid_to_linux_uid(brcid):
         brcid = brcid[2:]
     if len(brcid) != 32 or not all(c in string.hexdigits for c in brcid):
         raise ValueError("BR_CID must be 32 hex digits")
-    brcid_chip = brcid[4:6]
+    brcid_chip = brcid[1:3]
+    brcid_chip2 = brcid[4:6]
     # See Linux driver for this mapping
     if brcid_chip == "21":
         linux_chip = 5
     elif brcid_chip == "18":
         linux_chip = 6
-    elif brcid_chip == "19":
+    elif brcid_chip == "80" and brcid_chip2 == "19":
         linux_chip = 7
-    elif brcid_chip == "23":
+    elif brcid_chip == "80" and brcid_chip2 == "23":
         linux_chip = 8
     else:
         raise RuntimeError("Unrecognized chip ID 0x{}".format(brcid_chip))
