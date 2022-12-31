@@ -1,15 +1,20 @@
 #!/bin/bash
 bup_blob=0
+rcm_boot=0
 keyfile=
 sbk_keyfile=
 user_keyfile=
+external_device=0
 no_flash=0
+to_sign=0
 flash_cmd=
 imgfile=
 dataimg=
 inst_args=""
+extdevargs=
+make_sdcard_args=
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,datafile:,usb-instance:,user_key:" -o "u:v:c:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sign,external-device,rcm-boot,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -26,6 +31,19 @@ while true; do
 	    ;;
 	--no-flash)
 	    no_flash=1
+	    shift
+	    ;;
+	--sign)
+	    to_sign=1
+	    shift
+	    ;;
+	--rcm-boot)
+	    rcm_boot=1
+	    shift
+	    ;;
+	--external-device)
+	    external_device=1
+	    extdevargs="--external_device"
 	    shift
 	    ;;
 	--datafile)
@@ -47,6 +65,18 @@ while true; do
 	    ;;
 	-v)
 	    sbk_keyfile="$2"
+	    shift 2
+	    ;;
+	-B)
+	    blocksize="$2"
+	    shift 2
+	    ;;
+	-s)
+	    make_sdcard_args="$make_sdcard_args -s $2"
+	    shift 2
+	    ;;
+	-b)
+	    make_sdcard_args="$make_sdcard_args -b $2"
 	    shift 2
 	    ;;
 	-c)
@@ -91,11 +121,20 @@ fi
 # attributes
 cvm_bin=$(mktemp cvm.bin.XXXXX)
 
+skipuid=""
+BR_CID=
+have_boardinfo=
 if [ -z "$BOARDID" -o -z "$FAB" ]; then
-    if ! python3 "$flashappname" ${inst_args} --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    BR_CID=$($here/tegrarcm_v2 ${inst_args} --uid | grep BR_CID | cut -d' ' -f2)
+    skipuid="--skipuid"
+    keyargs=
+    [ -z "$keyfile" ] || keyargs="$keyargs --key $keyfile"
+    [ -z "$sbk_keyfile" ] || keyargs="$keyargs --encrypt_key $sbk_keyfile"
+    if ! python3 "$flashappname" ${inst_args} $skipuid $keyargs --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
 	echo "ERR: could not retrieve EEPROM board information" >&2
 	exit 1
     fi
+    have_boardinfo=yes
 fi
 if [ -n "$BOARDID" ]; then
     boardid="$BOARDID"
@@ -111,7 +150,40 @@ else
     FAB="$board_version"
 fi
 
+if [ -z "$BOARDSKU" -a -n "$have_boardinfo" ]; then
+    BOARDSKU=`$here/chkbdinfo -k ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z]`
+fi
+if [ -z "$BOARDREV" -a -n "$have_boardinfo" ]; then
+    BOARDREV=`$here/chkbdinfo -r ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z]`
+fi
+if [ -z "$serial_number" -a -n "$have_boardinfo" ]; then
+    serial_number=$($here/chkbdinfo -a ${cvm_bin} | tr -d '[:space:]')
+fi
+[ -n "$fuselevel" ] || fuselevel=fuselevel_production
+
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
+
+rm -f boardvars.sh
+cat >boardvars.sh <<EOF
+BOARDID="$BOARDID"
+FAB="$FAB"
+fuselevel="$fuselevel"
+EOF
+if [ -n "$BOARDSKU" ]; then
+    echo "BOARDSKU=$BOARDSKU" >>boardvars.sh
+fi
+if [ -n "$BOARDREV" ]; then
+    echo "BOARDREV=$BOARDREV" >>boardvars.sh
+fi
+if [ -n "$serial_number" ]; then
+    echo "serial_number=$serial_number" >>boardvars.sh
+fi
+if [ -n "$usb_instance" ]; then
+    echo "usb_instance=$usb_instance" >>boardvars.sh
+fi
+if [ -n "$BR_CID" ]; then
+    echo "BR_CID=\"$BR_CID\"" >>boardvars.sh
+fi
 
 # The following defaults are drawn from
 # p2771-0000.conf.common in the L4T kit.
@@ -181,8 +253,7 @@ case "$BOARDID" in
 	exit 1
 	;;
 esac
-[ -n "$fuselevel" ] || fuselevel=fuselevel_production
-[ -n "${BOOTDEV}" ] || BOOTDEV="mmcblk0p1"
+[ -n "$BOOTDEV" ] || BOOTDEV="mmcblk0p1"
 
 rm -f ${MACHINE}_bootblob_ver.txt
 echo "NV3" >${MACHINE}_bootblob_ver.txt
@@ -193,20 +264,28 @@ date "+%Y%m%d%H%M%S" >>${MACHINE}_bootblob_ver.txt
 bytes=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f2`
 cksum=`cksum ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1`
 echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
-appfile_sed=
-if [ $bup_blob -ne 0 ]; then
-    appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
-    kernfile="${kernfile:-boot.img}"
-elif [ $no_flash -eq 0 ]; then
-    if [ -n "$imgfile" -a -e "$imgfile" ]; then
-	appfile_sed="-es,APPFILE,$imgfile, -es,DATAFILE,$dataimg,"
-    else
-	echo "ERR: rootfs image not specified or missing: $imgfile" >&2
-	exit 1
+if [ $external_device -eq 0 ]; then
+    appfile=$(basename "$imgfile").img
+    if [ -n "$dataimg" ]; then
+	datafile=$(basename "$dataimg").img
     fi
 else
-    touch APPFILE
-    [ -z "$dataimg" ] || touch DATAFILE
+    appfile="$imgfile"
+    datafile="$dataimg"
+fi
+appfile_sed=
+if [ $bup_blob -ne 0 -o $rcm_boot -ne 0 ]; then
+    kernfile="${kernfile:-boot.img}"
+    appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
+elif [ $no_flash -eq 0 -a $external_device -eq 0 ]; then
+    appfile_sed="-es,APPFILE_b,$appfile, -es,APPFILE,$appfile, -es,DATAFILE,$datafile,"
+elif [ $no_flash -ne 0 ]; then
+    touch APPFILE APPFILE_b DATAFILE
+else
+    pre_sdcard_sed="-es,APPFILE,$appfile,"
+    if [ -n "$datafile" ]; then
+	pre_sdcard_sed="$pre_sdcard_sed -es,DATAFILE,$datafile,"
+    fi
 fi
 
 dtb_file_basename=$(basename "$dtb_file")
@@ -215,7 +294,7 @@ rm -f "$kernel_dtbfile"
 cp "$dtb_file" "$kernel_dtbfile"
 
 sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB-FILE,$BPFDTB_FILE," \
-    -e"s,TBCDTB-FILE,$dtb_file," -e"s,KERNELDTB-FILE,$kernel_dtbfile," \
+    -e"s,TBCDTB-FILE,$dtb_file," -e"s,KERNELDTB-FILE,$kernel_dtbfile," -e"s, DTB_FILE,$kernel_dtbfile," \
     $appfile_sed "$flash_in" > flash.xml
 
 BINSARGS="mb2_bootloader nvtboot_recovery.bin; \
@@ -226,6 +305,16 @@ bpmp_fw_dtb $BPFDTB_FILE; \
 tlk tos-trusty.img; \
 eks eks.img; \
 bootloader_dtb $dtb_file"
+
+have_odmsign_func=0
+[ ! -e "$here/odmsign.func" ] || have_odmsign_func=1
+if [ -n "$keyfile" -o -n "$sbk_keyfile" -o -n "$user_keyfile" ] && [ $have_odmsign_func -eq 0 ]; then
+    echo "ERR: missing odmsign.func from secureboot package, signing not supported" >&2
+    exit 1
+fi
+if [ $rcm_boot -ne 0 ]; then
+    BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile; sce_fw camera-rtcpu-sce.img adsp_fw adsp-fw.bin"
+fi
 
 cfgappargs="--sdram_config $sdramcfg_file \
               --applet mb1_recovery_prod.bin"
@@ -238,9 +327,30 @@ bctargs="--misc_config $MISC_CONFIG \
 	      --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
 	      --br_cmd_config $BOOTROM_CONFIG \
 	      --dev_params $DEV_PARAMS"
-skipuid=""
+
+if [ $bup_blob -ne 0 -o $to_sign -ne 0 -o $external_device -eq 1 ]; then
+    tfcmd=sign
+    skipuid="--skipuid"
+elif [ $rcm_boot -ne 0 ]; then
+    tfcmd=rcmboot
+else
+    if [ $external_device -eq 0 -a $no_flash -eq 0 ]; then
+	rm -f "$appfile"
+	$here/mksparse -b ${blocksize} --fillpattern=0 "$imgfile" "$appfile" || exit 1
+	if [ -n "$datafile" ]; then
+	    rm -f "$datafile"
+	    $here/mksparse -b ${blocksize} --fillpattern=0 "$dataimg" "$datafile" || exit 1
+	fi
+    fi
+    tfcmd=${flash_cmd:-"flash;reboot"}
+fi
+
 temp_user_dir=
-if [ -n "$keyfile" ]; then
+want_signing=0
+if [ -n "$keyfile" ] || [ $rcm_boot -eq 1 ] || [ $no_flash -eq 1 -a $to_sign -eq 1 ]; then
+    want_signing=1
+fi
+if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     if [ -n "$sbk_keyfile" ]; then
 	if [ -z "$user_keyfile" ]; then
 	    rm -f "null_user_key.txt"
@@ -288,10 +398,8 @@ if [ -n "$keyfile" ]; then
     SOSARGS="--applet mb1_recovery_prod.bin "
     BCTARGS="$bctargs"
     rootfs_ab=0
-    rcm_boot=0
-    external_device=0
     . "$here/odmsign.func"
-    (odmsign_ext) || exit 1
+    (odmsign_ext_sign_and_flash) || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
 	if [ -f flashcmd.txt ]; then
 	    chmod +x flashcmd.txt
@@ -299,7 +407,7 @@ if [ -n "$keyfile" ]; then
 	else
 	    echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
 	fi
-	rm -f APPFILE DATAFILE null_user_key.txt
+	rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
     fi
     if [ $bup_blob -eq 0 ]; then
 	if [ -n "$temp_user_dir" ]; then
@@ -311,19 +419,12 @@ if [ -n "$keyfile" ]; then
     touch odmsign.func
 fi
 
-if [ $bup_blob -ne 0 ]; then
-    tfcmd=sign
-    skipuid="--skipuid"
-else
-    tfcmd=${flash_cmd:-"flash;reboot"}
-fi
-
 flashcmd="python3 $flashappname ${inst_args} --chip 0x18 --bl nvtboot_recovery_cpu.bin \
 	      $cfgappargs \
 	      --odmdata $odmdata \
 	      --cmd \"$tfcmd\" $skipuid \
 	      --cfg flash.xml \
-	      $bctargs \
+	      $bctargs $extdevargs \
 	      --bins \"$BINSARGS\""
 
 if [ $bup_blob -ne 0 ]; then
@@ -342,6 +443,31 @@ if [ $bup_blob -ne 0 ]; then
 	exit 1
     fi
     l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" "$sbk_keyfile" 0x18 || exit 1
+    exit 0
+fi
+
+if [ $to_sign -ne 0 ]; then
+    eval $flashcmd < /dev/null || exit 1
+    exit 0
+fi
+
+if [ $no_flash -ne 0 ]; then
+    echo "$flashcmd" | sed -e 's,--skipuid,,g' > flashcmd.txt
+    chmod +x flashcmd.txt
+    rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
 else
-    eval $flashcmd || exit 1
+    eval $flashcmd < /dev/null || exit 1
+    if [ $external_device -eq 1 ]; then
+	if [ -z "$serial_number" ]; then
+	    echo "ERR: missing serial number for initrd-flashing external device" >&2
+	    exit 1
+	fi
+	make_sdcard_args="$make_sdcard_args --serial-number $serial_number"
+	if [ -n "$pre_sdcard_sed" ]; then
+	    rm -f signed/flash.xml.tmp.in
+	    mv signed/flash.xml.tmp signed/flash.xml.tmp.in
+	    sed $pre_sdcard_sed  signed/flash.xml.tmp.in > signed/flash.xml.tmp
+	fi
+	$here/make-sdcard $make_sdcard_args signed/flash.xml.tmp "$@"
+    fi
 fi
