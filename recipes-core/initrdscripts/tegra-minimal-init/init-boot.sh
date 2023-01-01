@@ -34,6 +34,7 @@ fi
 echo "Mounting ${rootdev}..."
 mount -t "${fstype}" -o "${opt}" "${rootdev}" /mnt || exec sh
 
+[ ! -f /etc/platform-mount-boot-part ] || . /etc/platform-mount-boot-part
 [ ! -f /etc/platform-pre-switchroot ] || . /etc/platform-pre-switchroot
 
 echo "Switching to rootfs on ${rootdev}..."
