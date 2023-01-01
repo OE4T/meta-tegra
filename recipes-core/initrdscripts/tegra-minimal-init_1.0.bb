@@ -5,8 +5,9 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 SRC_URI = "\
     file://init-boot.sh \
     file://platform-preboot.sh \
-    ${@'file://platform-preboot-cboot.sh' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
-
+    ${@'file://platform-preboot-cboot.sh' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''} \
+    ${@'file://platform-mount-boot-part.sh' if d.getVar('TNSPEC_BOOTDEV') != 'mmcblk0p1' and not d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''} \
+"
 COMPATIBLE_MACHINE = "(tegra)"
 
 S = "${WORKDIR}"
@@ -25,7 +26,10 @@ do_install() {
     else
 	install -m 0644 ${WORKDIR}/platform-preboot.sh ${D}${sysconfdir}/platform-preboot
     fi
+    if [ -e ${WORKDIR}/platform-mount-boot-part.sh ]; then
+        install -m 0644 ${WORKDIR}/platform-mount-boot-part.sh ${D}${sysconfdir}/platform-mount-boot-part
+    fi
 }
 
-RDEPENDS:${PN} = "${@'util-linux-blkid' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
+RDEPENDS:${PN} = "util-linux-blkid"
 FILES:${PN} = "/"
