@@ -395,6 +395,11 @@ write_to_device() {
     else
 	datased="-e/DATAFILE/d"
     fi
+    if [ -n "$BOOTPARTFILE" ]; then
+	datased="$datased -es,BOOTPARTFILE,$BOOTPARTFILE,"
+    else
+	datased="$datased -e/BOOTPARTFILE/d"
+    fi
     if [ "$devname" = "mmcblk0" -a $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
 	extraarg="--honor-start-locations"
     fi
