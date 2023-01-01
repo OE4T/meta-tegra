@@ -15,6 +15,8 @@ PARTITION_FILE ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${PARTITION_LAYOUT_TEMPLA
 PARTITION_FILE_EXTERNAL ?= "${DEFAULT_PARTITION_FILE_EXTERNAL}"
 DEFAULT_PARTITION_FILE_EXTERNAL = "${S}/tools/kernel_flash/${PARTITION_LAYOUT_EXTERNAL}"
 DEFAULT_PARTITION_FILE_EXTERNAL:tegra210 = ""
+EXTRA_XML_SPLIT_ARGS = ""
+EXTRA_XML_SPLIT_ARGS:tegra186 = "--retain-app-boot-partition"
 SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
 CBOOTOPTION_FILE ?= ""
 ODMFUSE_FILE ?= ""
@@ -112,7 +114,7 @@ do_install() {
         # those boot partitions.  No preprocessing of the external layout
         # is needed with this version of the L4T.
         if [ "${TNSPEC_BOOTDEV}" != "mmcblk0p1" -a "${BOOT_PARTITIONS_ON_EMMC}" = "1" ]; then
-            nvflashxmlparse --split=/dev/null --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} --change-device-type="nvme" ${PARTITION_FILE}
+            nvflashxmlparse --split=/dev/null --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} --change-device-type="nvme" ${EXTRA_XML_SPLIT_ARGS} ${PARTITION_FILE}
 	    chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
             install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
 	    chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
