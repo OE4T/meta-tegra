@@ -11,7 +11,9 @@ uuids = {}
 ignore_partition_ids = False
 boot_devices = ["spi", "sdmmc_boot"]
 kernels_and_dtbs = ["kernel", "kernel_b", "kernel-dtb", "kernel-dtb_b",
-                    "recovery", "RECNAME", "recovery-dtb", "RECDTB-NAME"]
+                    "recovery", "RECNAME", "recovery-dtb", "RECDTB-NAME",
+                    "kernel-bootctrl", "kernel-bootctrl_b",
+                    "BOOTCTRLNAME", "BOOTCTRLNAME_b"]
 
 def generate_guid(guid):
     global uuids
