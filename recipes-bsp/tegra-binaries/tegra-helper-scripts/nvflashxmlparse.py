@@ -244,10 +244,13 @@ def replace_filename(part, maptree):
             if len(part) > 0 and part[len(part)-1].tag == 'description':
                 fnelem = ET.Element('filename')
                 fnelem.text = filename.text
+                fnelem.tail = filename.tail
                 part.insert(len(part)-1, fnelem)
                 logging.info("New filename element inserted for {}: {}".format(part.get('name'), fnelem.text))
             else:
-                ET.SubElement(part, 'filename').text = filename.text
+                fnelem = ET.SubElement(part, 'filename')
+                fnelem.text = filename.text
+                fnelem.tail = filename.tail
                 logging.info("New filename element appended for {}: {}".format(part.get('name'), part[len(part)-1].text))
             return
     logging.info("No rewrite applied for {}".format(part.get('name')))
