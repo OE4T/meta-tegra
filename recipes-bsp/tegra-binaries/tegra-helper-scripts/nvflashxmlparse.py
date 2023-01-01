@@ -179,7 +179,8 @@ def extract_layout(infile, devtype, outf, new_devtype=None, sector_count=0):
     outf.write("\n")
 
 
-def split_layout(infile, mmcf, sdcardf, new_devtype=None, sector_count=0):
+def split_layout(infile, mmcf, sdcardf, new_devtype=None, sector_count=0,
+                 retain_app_as_boot=False, app_boot_sectors=0):
     if new_devtype is None:
         new_devtype = "sdcard"
     sdcard_parts = ['APP', 'APP_b', 'UDA', 'RECROOTFS', 'esp']
@@ -193,7 +194,18 @@ def split_layout(infile, mmcf, sdcardf, new_devtype=None, sector_count=0):
             for partnode in dev.findall('partition'):
                 partname = partnode.get('name')
                 if partname in sdcard_parts:
-                    dev.remove(partnode)
+                    if retain_app_as_boot and partname.startswith('APP'):
+                        partnode.set('name', partname.replace('APP', 'BOOT'))
+                        sz = partnode.find('size')
+                        sz.text = " {} ".format(app_boot_sectors * 512)
+                        guid = partnode.find('unique_guid')
+                        if guid is not None:
+                            partnode.remove(guid)
+                        partnode.find('filename').text = " BOOTPARTFILE "
+                        logging.info("For eMMC, renamed {} -> {} with size {}".format(partname, partnode.get('name'), sz.text))
+                    else:
+                        dev.remove(partnode)
+                        logging.info("For eMMC, removed {}".format(partname))
     root = sdcardtree.getroot()
     for dev in root.findall('device'):
         if dev.get('type') == 'sdmmc_user':
@@ -206,6 +218,7 @@ def split_layout(infile, mmcf, sdcardf, new_devtype=None, sector_count=0):
                 partname = partnode.get('name')
                 if partname not in sdcard_parts + ['master_boot_record', 'primary_gpt', 'secondary_gpt']:
                     dev.remove(partnode)
+                    logging.info("For SDcard, removed {}".format(partname))
         else:
             root.remove(dev)
     mmctree.write(mmcf, encoding='unicode', xml_declaration=True)
@@ -307,6 +320,8 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
     parser.add_argument('--change-device-type', help='(for use with --split or --extract) change the <device> tag type attribute to the specifed value', action='store')
     parser.add_argument('--partitions-to-remove', help='(for use with --remove) list of partitions to remove', action='store')
     parser.add_argument('-S', '--sdcard-size', '--storage-size', help='storage size for use with --split or --extract', action='store', default="0")
+    parser.add_argument('--retain-app-boot-partition', help='(for use with --split) retain APP for booting on eMMC when splitting', action='store_true')
+    parser.add_argument('--app-boot-partition-size', help='size for the boot partition when --retain-app-boot-partition is used', action='store', default="524288")
     parser.add_argument('-o', '--output', help='file to write output to', action='store')
     parser.add_argument('-v', '--verbose', help='verbose logging', action='store_true')
     parser.add_argument('filename', help='name of the XML file to parse', action='store')
@@ -321,7 +336,8 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
             outf = sys.stdout
         if args.split:
             sdcardf = open(args.split, "w")
-            split_layout(args.filename, outf, sdcardf, args.change_device_type, size_to_sectors(args.sdcard_size))
+            split_layout(args.filename, outf, sdcardf, args.change_device_type, size_to_sectors(args.sdcard_size),
+                         args.retain_app_boot_partition, size_to_sectors(args.app_boot_partition_size))
             return 0
         if args.rewrite_contents_from:
             rewrite_layout(args.filename, args.rewrite_contents_from.split(','), outf)
