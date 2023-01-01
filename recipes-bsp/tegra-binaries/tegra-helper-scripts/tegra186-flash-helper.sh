@@ -10,11 +10,13 @@ to_sign=0
 flash_cmd=
 imgfile=
 dataimg=
+bootpartimg=
 inst_args=""
 extdevargs=
 make_sdcard_args=
+blocksize=4096
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sign,external-device,rcm-boot,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sign,external-device,rcm-boot,datafile:,bootpartfile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -48,6 +50,10 @@ while true; do
 	    ;;
 	--datafile)
 	    dataimg="$2"
+	    shift 2
+	    ;;
+	--bootpartfile)
+	    bootpartimg="$2"
 	    shift 2
 	    ;;
 	--usb-instance)
@@ -126,11 +132,10 @@ BR_CID=
 have_boardinfo=
 if [ -z "$BOARDID" -o -z "$FAB" ]; then
     BR_CID=$($here/tegrarcm_v2 ${inst_args} --uid | grep BR_CID | cut -d' ' -f2)
-    skipuid="--skipuid"
     keyargs=
     [ -z "$keyfile" ] || keyargs="$keyargs --key $keyfile"
     [ -z "$sbk_keyfile" ] || keyargs="$keyargs --encrypt_key $sbk_keyfile"
-    if ! python3 "$flashappname" ${inst_args} $skipuid $keyargs --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    if ! python3 "$flashappname" ${inst_args} --skipuid $keyargs --chip 0x18 --applet mb1_recovery_prod.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
 	echo "ERR: could not retrieve EEPROM board information" >&2
 	exit 1
     fi
@@ -269,22 +274,29 @@ if [ $external_device -eq 0 ]; then
     if [ -n "$dataimg" ]; then
 	datafile=$(basename "$dataimg").img
     fi
+    if [ -n "$bootpartimg" ]; then
+	bootpartfile=$(basename "$bootpartimg").img
+    fi
 else
     appfile="$imgfile"
     datafile="$dataimg"
+    bootpartfile="$bootpartimg"
 fi
 appfile_sed=
 if [ $bup_blob -ne 0 -o $rcm_boot -ne 0 ]; then
     kernfile="${kernfile:-boot.img}"
-    appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
+    appfile_sed="-e/APPFILE/d -e/DATAFILE/d -e/BOOTPARTFILE/d"
 elif [ $no_flash -eq 0 -a $external_device -eq 0 ]; then
-    appfile_sed="-es,APPFILE_b,$appfile, -es,APPFILE,$appfile, -es,DATAFILE,$datafile,"
+    appfile_sed="-es,APPFILE_b,$appfile, -es,APPFILE,$appfile, -es,DATAFILE,$datafile, -es,BOOTPARTFILE,$bootpartfile,"
 elif [ $no_flash -ne 0 ]; then
-    touch APPFILE APPFILE_b DATAFILE
+    touch APPFILE APPFILE_b DATAFILE BOOTPARTFILE
 else
     pre_sdcard_sed="-es,APPFILE,$appfile,"
     if [ -n "$datafile" ]; then
 	pre_sdcard_sed="$pre_sdcard_sed -es,DATAFILE,$datafile,"
+    fi
+    if [ -n "$bootpartfile" ]; then
+	pre_sdcard_sed="$pre_sdcard_sed -es,BOOTPARTFILE,$bootpartfile,"
     fi
 fi
 
@@ -340,6 +352,10 @@ else
 	if [ -n "$datafile" ]; then
 	    rm -f "$datafile"
 	    $here/mksparse -b ${blocksize} --fillpattern=0 "$dataimg" "$datafile" || exit 1
+	fi
+	if [ -n "$bootpartfile" ]; then
+	    rm -f "$bootpartfile"
+	    $here/mksparse -b ${blocksize} --fillpattern=0 "$bootpartimg" "$bootpartfile" || exit 1
 	fi
     fi
     tfcmd=${flash_cmd:-"flash;reboot"}
@@ -407,7 +423,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
 	else
 	    echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
 	fi
-	rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
+	rm -f APPFILE APPFILE_b DATAFILE BOOTPARTFILE null_user_key.txt
     fi
     if [ $bup_blob -eq 0 ]; then
 	if [ -n "$temp_user_dir" ]; then
@@ -454,7 +470,7 @@ fi
 if [ $no_flash -ne 0 ]; then
     echo "$flashcmd" | sed -e 's,--skipuid,,g' > flashcmd.txt
     chmod +x flashcmd.txt
-    rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
+    rm -f APPFILE APPFILE_b DATAFILE BOOTPARTFILE null_user_key.txt
 else
     eval $flashcmd < /dev/null || exit 1
     if [ $external_device -eq 1 ]; then
