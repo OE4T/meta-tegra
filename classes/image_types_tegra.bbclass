@@ -1,6 +1,6 @@
 inherit image_types image_types_cboot python3native perlnative kernel-artifact-names
 
-IMAGE_TYPES += "tegraflash"
+IMAGE_TYPES += "tegraflash ${TEGRA_BOOTPART_TYPE}"
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
 
@@ -41,9 +41,20 @@ RECROOTFSSIZE ?= "314572800"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
+IMAGE_TEGRAFLASH_BOOTPART ?= "${@'${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.bootpart.${IMAGE_TEGRAFLASH_FS_TYPE}' if d.getVar('TEGRA_BOOTPART_TYPE') else ''}"
 TEGRAFLASH_ROOTFS_EXTERNAL = "${@'1' if d.getVar('TNSPEC_BOOTDEV') != 'mmcblk0p1' else '0'}"
 ROOTFS_DEVICE_FOR_INITRD_FLASH = "${@tegra_rootfs_device(d)}"
 TEGRAFLASH_ERASE_MMC ?= "${TEGRAFLASH_ROOTFS_EXTERNAL}"
+
+# Need a copy of /boot to install in the eMMC only on TX2 devices with U-Boot
+def tegra_bootpart_type(d):
+    if d.getVar("SOC_FAMILY") != "tegra186" or not d.getVar("IMAGE_UBOOT") or not bb.utils.to_boolean(d.getVar("TEGRAFLASH_ROOTFS_EXTERNAL")):
+        return ""
+    return "tegrabootpart"
+
+TEGRA_BOOTPART_TYPE = "${@tegra_bootpart_type(d)}"
+TEGRA_BOOTPART_SIZE ?= "262144"
+BOOTPARTFILE ?= "${@'${IMAGE_LINK_NAME}.bootpart.${IMAGE_TEGRAFLASH_FS_TYPE}' if d.getVar('TEGRA_BOOTPART_TYPE') else ''}"
 
 def tegra_initrd_image(d):
     if d.getVar('IMAGE_UBOOT'):
@@ -447,6 +458,11 @@ create_tegraflash_pkg:tegra186() {
     cp "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ./initrd-flash.img
     if [ -n "${DATAFILE}" -a -n "${IMAGE_TEGRAFLASH_DATA}" ]; then
         cp "${IMAGE_TEGRAFLASH_DATA}" ${DATAFILE}
+        DATAARGS="--datafile ${DATAFILE}"
+    fi
+    if [ -n "${IMAGE_TEGRAFLASH_BOOTPART}" -a -n "${BOOTPARTFILE}" ]; then
+        cp "${IMAGE_TEGRAFLASH_BOOTPART}" ${BOOTPARTFILE}
+	DATAARGS="$DATAARGS --bootpartfile ${BOOTPARTFILE}"
     fi
     cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
     if [ -n "${KERNEL_ARGS}" ]; then
@@ -502,7 +518,7 @@ create_tegraflash_pkg:tegra186() {
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-MACHINE=${MACHINE} ./tegra186-flash-helper.sh $DATAARGS flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${MACHINE} ./tegra186-flash-helper.sh -B ${TEGRA_BLBLOCKSIZE} $DATAARGS flash.xml.in ${DTBFILE} ${MACHINE}.cfg ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
     chmod +x doflash.sh
     rm -f .env.initrd-flash
@@ -521,6 +537,7 @@ ODMDATA="${ODMDATA}"
 LNXFILE="${LNXFILE}"
 ROOTFS_IMAGE="${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
 DATAFILE="${DATAFILE}"
+BOOTPARTFILE="${BOOTPARTFILE}"
 EXTERNAL_ROOTFS_DRIVE=${TEGRAFLASH_ROOTFS_EXTERNAL}
 BOOT_PARTITIONS_ON_EMMC=${BOOT_PARTITIONS_ON_EMMC}
 END
@@ -711,7 +728,18 @@ do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populat
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''} \
                                  cboot:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} \
                                  ${@'linux-tegra-initrd-flash:do_deploy' if bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')) else '${TEGRAFLASH_INITRD_FLASH_IMAGE}:do_image_complete'}"
-IMAGE_TYPEDEP:tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
+IMAGE_TYPEDEP:tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE} ${TEGRA_BOOTPART_TYPE}"
+
+IMAGE_CMD:tegrabootpart = "create_bootpart_image"
+IMAGE_TYPEDEP:tegrabootpart = "${IMAGE_TEGRAFLASH_FS_TYPE}"
+
+create_bootpart_image() {
+    local fstype="${IMAGE_TEGRAFLASH_FS_TYPE}"
+    dd if=/dev/zero of=${IMGDEPLOYDIR}/${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.bootpart.$fstype seek=${TEGRA_BOOTPART_SIZE} count=0 bs=1024
+    mkfs.$fstype -F -d ${IMAGE_ROOTFS}/boot ${IMGDEPLOYDIR}/${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.bootpart.$fstype
+    fsck.$fstype -pvfD ${IMGDEPLOYDIR}/${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.bootpart.$fstype || [ $? -le 3 ]
+    ln -sf ${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.bootpart.$fstype ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.bootpart.$fstype
+}
 
 oe_make_bup_payload() {
     PATH="${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}:${PATH}"
