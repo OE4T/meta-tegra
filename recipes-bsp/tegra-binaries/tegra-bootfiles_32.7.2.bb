@@ -15,8 +15,10 @@ PARTITION_FILE ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${PARTITION_LAYOUT_TEMPLA
 PARTITION_FILE_EXTERNAL ?= "${DEFAULT_PARTITION_FILE_EXTERNAL}"
 DEFAULT_PARTITION_FILE_EXTERNAL = "${S}/tools/kernel_flash/${PARTITION_LAYOUT_EXTERNAL}"
 DEFAULT_PARTITION_FILE_EXTERNAL:tegra210 = ""
-EXTRA_XML_SPLIT_ARGS = ""
-EXTRA_XML_SPLIT_ARGS:tegra186 = "--retain-app-boot-partition"
+EXTRA_XML_SPLIT_ARGS = "--change-device-type=sdcard"
+EXTRA_XML_SPLIT_ARGS:tegra186 = "--change-device-type=nvme --retain-app-boot-partition"
+FILTER_EXTERNAL_PARTITIONS = "false"
+FILTER_EXTERNAL_PARTITIONS:tegra186 = "true"
 SMD_CFG ?= "${S}/bootloader/smd_info.cfg"
 CBOOTOPTION_FILE ?= ""
 ODMFUSE_FILE ?= ""
@@ -111,13 +113,18 @@ do_install() {
         # For flashing to an external (USB/NVMe) device on targets where
         # some of the boot partitions spill into the eMMC, preprocess the
         # the XML files so the layout for the internal storage retains the
-        # those boot partitions.  No preprocessing of the external layout
-        # is needed with this version of the L4T.
+        # those boot partitions.  For TX2 platforms, the kernel/DTBs/etc.
+        # partitions must be moved and filtered out of the external layout.
+        # That filtering is not required on Xavier.
         if [ "${TNSPEC_BOOTDEV}" != "mmcblk0p1" -a "${BOOT_PARTITIONS_ON_EMMC}" = "1" ]; then
-            nvflashxmlparse --split=/dev/null --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} --change-device-type="nvme" ${EXTRA_XML_SPLIT_ARGS} ${PARTITION_FILE}
+            nvflashxmlparse --split=/dev/null --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} ${EXTRA_XML_SPLIT_ARGS} ${PARTITION_FILE}
 	    chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
-            install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
-	    chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+	    if ${FILTER_EXTERNAL_PARTITIONS}; then
+                nvflashxmlparse --remove --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
+		chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+	    else
+		install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+	    fi
         else
 	    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
 	    install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
