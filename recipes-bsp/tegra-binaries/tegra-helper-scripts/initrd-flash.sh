@@ -187,11 +187,11 @@ run_rcm_boot() {
 		return 1
 	    fi
 	fi
-	./rcm-boot.sh
+	./rcm-boot.sh || return 1
     else
 	MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
 	       "$here/$FLASH_HELPER" --rcm-boot -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" \
-	       flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE
+	       flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE || return 1
     fi
 }
 
@@ -341,6 +341,8 @@ write_to_device() {
     local opts="$3"
     local rewritefiles="secureflash.xml"
     local datased simgname rc=1
+    local extraarg
+
     if [ -z "$dev" ]; then
 	echo "ERR: could not find $devname" >&2
 	return 1
@@ -354,6 +356,9 @@ write_to_device() {
     else
 	datased="-e/DATAFILE/d"
     fi
+    if [ "$devname" = "mmcblk0" -a $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
+	extraarg="--honor-start-locations"
+    fi
     # XXX
     # For the pre-signed case, the flash layout will contain the
     # name of the sparseimage file, and we need to convert it back to
@@ -361,7 +366,7 @@ write_to_device() {
     # XXX
     simgname="${ROOTFS_IMAGE%.*}.img"
     sed -i -e"s,$simgname,$ROOTFS_IMAGE," -e"s,APPFILE_b,$ROOTFS_IMAGE," -e"s,APPFILE,$ROOTFS_IMAGE," $datased initrd-flash.xml
-    if "$here/make-sdcard" -y $opts initrd-flash.xml "$dev"; then
+    if "$here/make-sdcard" -y $opts $extraarg initrd-flash.xml "$dev"; then
 	rc=0
     fi
     unmount_and_release "" "$dev"
