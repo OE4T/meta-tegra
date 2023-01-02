@@ -193,15 +193,15 @@ prepare_for_rcm_boot() {
 	    local binsfx=".encrypt"
 	    local ksfx=".encrypt"
 	    local kdtbfilebase=$(basename kernel_$DTBFILE .dtb)
-	    if [ -n "$keyfile" ]; then
-		if [ -n "$sbk_keyfile" ]; then
+	    if [ -n "$PRESIGNED" -o -n "$keyfile" ]; then
+		if [ -n "$PRESIGNED" -o -n "$sbk_keyfile" ]; then
 		    binsfx=".encrypt.signed"
 		else
 		    binsfix=".signed"
 		    ksfx=".signed"
 		fi
 	    fi
-	    if [ -n "$user_keyfile" ]; then
+	    if [ -n "$PRESIGNED" -o -n "$user_keyfile" ]; then
 		ksfx=".encrypt.signed"
 	    fi
 	    "$here/rewrite-tegraflash-args" -o rcm-boot.sh \
@@ -229,11 +229,11 @@ run_rcm_boot() {
 		return 1
 	    fi
 	fi
-	./rcm-boot.sh
+	./rcm-boot.sh || return 1
     else
 	MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
 	       "$here/$FLASH_HELPER" --rcm-boot -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" \
-	       flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE
+	       flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE || return 1
     fi
 }
 
