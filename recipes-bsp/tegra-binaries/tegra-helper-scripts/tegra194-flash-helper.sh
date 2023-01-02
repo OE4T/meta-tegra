@@ -513,13 +513,13 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     bl_userkey_encrypt_list=("xusb_sil_rel_fw")
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
-    if [ -n "$added_mb2_applet" ]; then
-	mv flashcmd.txt flashcmd.txt.orig
-	"$here/rewrite-tegraflash-args" -o flashcmd.txt --bins mb2_applet= flashcmd.txt.orig
-	rm flashcmd.txt.orig
-    fi
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
 	if [ -f flashcmd.txt ]; then
+	    if [ -n "$added_mb2_applet" ]; then
+		mv flashcmd.txt flashcmd.txt.orig
+		"$here/rewrite-tegraflash-args" -o flashcmd.txt --bins mb2_applet= flashcmd.txt.orig
+		rm flashcmd.txt.orig
+	    fi
 	    chmod +x flashcmd.txt
 	    ln -sf flashcmd.txt ./secureflash.sh
 	else
