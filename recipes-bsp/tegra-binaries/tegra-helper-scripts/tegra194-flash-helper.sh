@@ -27,6 +27,9 @@ mkfilesoft() {
 cp2local() {
     :
 }
+signimage() {
+    :
+}
 
 ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
@@ -423,7 +426,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
 	fi
 	rm -rf signed_bootimg_dir
 	mkdir signed_bootimg_dir
-	cp "$kernfile" "$kernel_dtbfile" signed_bootimg_dir/
+	cp "$kernfile" "$kernel_dtbfile" xusb_sil_rel_fw signed_bootimg_dir/
 	if [ -n "$MINRATCHET_CONFIG" ]; then
 	    for f in $MINRATCHET_CONFIG; do
 		[ -e "$f" ] || continue
@@ -444,12 +447,13 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
 	    echo "ERR: missing l4t_sign_image script" >&2
 	    exit 1
 	fi
-	"$signimg" --file "$kernfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG &&
-	    "$signimg" --file "$kernel_dtbfile"  --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG
+	"$signimg" --file "$kernfile" --type "kernel" --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG &&
+	    "$signimg" --file "$kernel_dtbfile" --type "kernel_dtb" --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG &&
+	    "$signimg" --file xusb_sil_rel_fw --type "xusb_fw" --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG
 	rc=$?
 	cd "$oldwd"
 	if [ $rc -ne 0 ]; then
-	    echo "Error signing kernel image or device tree" >&2
+	    echo "Error signing kernel image, device tree, or USB firmware" >&2
 	    exit 1
 	fi
 	temp_user_dir=signed_bootimg_dir
@@ -474,6 +478,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     NV_ARGS="--soft_fuses tegra194-mb1-soft-fuses-l4t.cfg "
     BCTARGS="$bctargs"
     rootfs_ab=0
+    bl_userkey_encrypt_list=("xusb_sil_rel_fw:xusb_fw")
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
     if [ -n "$added_mb2_applet" ]; then
