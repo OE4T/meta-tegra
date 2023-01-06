@@ -147,7 +147,8 @@ copy_to_device() {
 
 write_partitions_to_device() {
     local blksize partnumber partname partsize partfile partguid partfilltoend
-    local i dest pline destsize filesize
+    local i dest pline destsize filesize n_written
+    n_written=0
     i=0
     for pline in "${PARTS[@]}"; do
 	if [ $i -eq $FINALPART ]; then
@@ -171,12 +172,17 @@ write_partitions_to_device() {
 	    echo "ERR: cannot locate block device $dest" >&2
 	    return 1
 	fi
-	destsize=$(blockdev --getsize64 "$dest")
+	destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
+	if [ $n_written -eq 0 -a -z "$destsize" ]; then
+	    sleep 1
+	    destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
+	fi
 	echo "  Writing $partfile (size=$filesize) to $dest (size=$destsize)..."
 	if ! copy_to_device "$partfile" "$dest"; then
 	    echo "ERR: failed to write $partfile to $dest" >&2
 	    return 1
 	fi
+	n_written=$(expr $n_written + 1)
 	i=$(expr $i + 1)
     done
     if [ -n "$ignore_finalpart" ]; then
@@ -194,7 +200,11 @@ write_partitions_to_device() {
 	    echo "ERR: cannot locate block device $dest" >&2
 	    return 1
 	fi
-	destsize=$(blockdev --getsize64 "$dest")
+	destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
+	if [ $n_written -eq 0 -a -z "$destsize" ]; then
+	    sleep 1
+	    destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
+	fi
 	echo "  Writing $partfile (size=$filesize) to $dest (size=$destsize)..."
 	if ! copy_to_device "$partfile" "$dest"; then
 	    echo "ERR: failed to write $partfile to $dest" >&2
