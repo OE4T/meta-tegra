@@ -108,7 +108,6 @@ do_install() {
         install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/$f ${D}${datadir}/tegraflash
     done
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
-    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
     if [ -n "${PARTITION_FILE_EXTERNAL}" -a -n "${PARTITION_LAYOUT_EXTERNAL}" ]; then
         # For flashing to an external (USB/NVMe) device on targets where
         # some of the boot partitions spill into the eMMC, preprocess the
@@ -123,6 +122,10 @@ do_install() {
                 nvflashxmlparse --remove --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
 		chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
 	    else
+		# BUP generation will fail if the main XML file does not
+		# contain the kernel/DTB/etc, so save a copy of the
+		# original for that purpose.
+		install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}
 		install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
 	    fi
         else
