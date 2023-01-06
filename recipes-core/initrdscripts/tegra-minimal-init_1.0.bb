@@ -10,6 +10,8 @@ SRC_URI = "\
 "
 COMPATIBLE_MACHINE = "(tegra)"
 
+TNSPEC_BOOTDEV ??= "mmcblk0p1"
+
 S = "${WORKDIR}"
 
 do_install() {
@@ -26,6 +28,7 @@ do_install() {
     else
 	install -m 0644 ${WORKDIR}/platform-preboot.sh ${D}${sysconfdir}/platform-preboot
     fi
+    sed -i -e"s,@TNSPEC_BOOTDEV@,${TNSPEC_BOOTDEV},g" ${D}${sysconfdir}/platform-preboot
     if [ -e ${WORKDIR}/platform-mount-boot-part.sh ]; then
         install -m 0644 ${WORKDIR}/platform-mount-boot-part.sh ${D}${sysconfdir}/platform-mount-boot-part
     fi
@@ -33,3 +36,4 @@ do_install() {
 
 RDEPENDS:${PN} = "util-linux-blkid"
 FILES:${PN} = "/"
+PACKAGE_ARCH = "${MACHINE_ARCH}"
