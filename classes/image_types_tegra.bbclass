@@ -12,11 +12,6 @@ def tegra_default_rootfs_size(d):
 def tegra_rootfs_device(d):
     import re
     bootdev = d.getVar('TNSPEC_BOOTDEV')
-    # For Xavier NX booting from SDcard, the RCM booted kernel
-    # bypasses UEFI and doesn't get any overlays applied, such
-    # as the one that renames mmcblk1 -> mmcblk0
-    if bootdev.startswith("mmc") and d.getVar('TEGRA_SPIFLASH_BOOT') == "1":
-        return "mmcblk1"
     if bootdev.startswith("mmc") or bootdev.startswith("nvme"):
         return re.sub(r"p[0-9]+$", "", bootdev)
     return re.sub("[0-9]+$", "", bootdev)
@@ -82,6 +77,7 @@ IMAGE_TEGRAFLASH_DATA ??= ""
 
 BL_IS_CBOOT = "${@'1' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else '0'}"
 IMAGE_TEGRAFLASH_INITRD_FLASHER = "${DEPLOY_DIR_IMAGE}/${@'initrd-flash-kernel/Image-initrd-flash.cboot' if bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')) else '${TEGRAFLASH_INITRD_FLASH_IMAGE}-${MACHINE}.cboot'}"
+IMAGE_TEGRAFLASH_INITRD_FLASHER:tegra210 = ""
 
 TEGRA_SPIFLASH_BOOT ??= ""
 TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD ??=""
@@ -379,7 +375,7 @@ create_tegraflash_pkg:tegra210() {
     cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
     cp "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     cp "${IMAGE_TEGRAFLASH_KERNEL}" ./${LNXFILE}
-    cp "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ./initrd-flash.img
+    # cp "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ./initrd-flash.img
     if [ -n "${DATAFILE}" -a -n "${IMAGE_TEGRAFLASH_DATA}" ]; then
         cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
         DATAARGS="--datafile ${DATAFILE}"
@@ -720,6 +716,8 @@ EOF
 
 IMAGE_CMD:tegraflash = "create_tegraflash_pkg"
 TEGRAFLASH_PKG_DEPENDS = "${@'zip-native:do_populate_sysroot' if d.getVar('TEGRAFLASH_PACKAGE_FORMAT') == 'zip' else '${CONVERSION_DEPENDS_gz}:do_populate_sysroot'}"
+INITRDFLASH_DEPENDS = "${@'linux-tegra-initrd-flash:do_deploy' if bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')) else '${TEGRAFLASH_INITRD_FLASH_IMAGE}:do_image_complete'}"
+INITRDFLASH_DEPENDS:tegra210 = ""
 do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populate_sysroot coreutils-native:do_populate_sysroot \
                                  ${SOC_FAMILY}-flashtools-native:do_populate_sysroot gptfdisk-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
@@ -727,7 +725,7 @@ do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populat
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''} \
                                  cboot:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} \
-                                 ${@'linux-tegra-initrd-flash:do_deploy' if bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')) else '${TEGRAFLASH_INITRD_FLASH_IMAGE}:do_image_complete'}"
+                                 ${INITRDFLASH_DEPENDS}"
 IMAGE_TYPEDEP:tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE} ${TEGRA_BOOTPART_TYPE}"
 
 IMAGE_CMD:tegrabootpart = "create_bootpart_image"
@@ -756,7 +754,15 @@ oe_make_bup_payload() {
     # BUP generator really wants to use 'boot.img' for the LNX
     # partition contents
     cp $1 ./boot.img
-    tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img
+    # BUP generator must have a layout that includes kernel/DTB/etc.
+    # When those partitions are stripped from the main layout, we
+    # create a copy of the original with 'bupgen-' prefix, so use
+    # that if present.
+    local layoutsrc
+    if [ -e "${STAGING_DATADIR}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}" ]; then
+        layoutsrc="${STAGING_DATADIR}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}"
+    fi
+    tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img "$layoutsrc"
     cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
     cp "${STAGING_DATADIR}/tegraflash/${MACHINE}.cfg" .
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
