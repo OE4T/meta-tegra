@@ -251,9 +251,7 @@ unmount_and_release() {
     local mnt="$1"
     local dev="$2"
     if [ -n "$mnt" ]; then
-	if ! umount "$1"; then
-	    udisksctl unmount -b "$dev"
-	fi
+	udisksctl unmount -b "$dev"
     fi
     udisksctl power-off -b "$dev"
 }
