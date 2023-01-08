@@ -1,24 +1,17 @@
 CBOOTIMG_KERNEL ?= "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}"
 
-oe_cbootimg() {
-    bbfatal "This image type only supported on tegra186/tegra194 platforms"
-}
+CBOOTTOOLSDIRPFX = "tegra186"
+CBOOTTOOLSDIRPFX:tegra210 = "tegra210"
 
-oe_cbootimg_common() {
+oe_cbootimg() {
     outfile="$2"
     [ -n "$outfile" ] || outfile="${IMGDEPLOYDIR}/$1.cboot"
-    ${STAGING_BINDIR_NATIVE}/tegra186-flash/mkbootimg \
+    ${STAGING_BINDIR_NATIVE}/${CBOOTTOOLSDIRPFX}-flash/mkbootimg \
         --kernel ${CBOOTIMG_KERNEL} \
         --ramdisk ${IMGDEPLOYDIR}/$1 \
         --cmdline "${KERNEL_ARGS}" \
         --output "$outfile"
     [ -n "$2" ] || ln -sf $1.cboot ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.cboot
-}
-oe_cbootimg:tegra186() {
-    oe_cbootimg_common "$@"
-}
-oe_cbootimg:tegra194() {
-    oe_cbootimg_common "$@"
 }
 
 make_cboot_image() {
@@ -30,5 +23,5 @@ make_cboot_image[vardepsexclude] += "DATETIME"
 CONVERSIONTYPES =+ "cboot"
 IMAGE_TYPES += "cpio.gz.cboot"
 
-CONVERSION_DEPENDS_cboot = "tegra186-flashtools-native virtual/kernel:do_deploy"
+CONVERSION_DEPENDS_cboot = "${CBOOTTOOLSDIRPFX}-flashtools-native virtual/kernel:do_deploy"
 CONVERSION_CMD:cboot = "make_cboot_image ${type}"
