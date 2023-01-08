@@ -311,10 +311,12 @@ mount_partition() {
 unmount_and_release() {
     local mnt="$1"
     local dev="$2"
+    local i
     if [ -n "$mnt" ]; then
-	udisksctl unmount -b "$dev"
+	udisksctl unmount --force -b "$dev" 2>/dev/null
     fi
-    udisksctl power-off -b "$dev"
+    udisksctl power-off -b "$dev" || return 1
+    return 0
 }
 
 wait_for_usb_storage() {
@@ -454,7 +456,7 @@ generate_flash_package() {
 
     echo "reboot" >> "$mnt/flashpkg/conf/command_sequence"
 
-    unmount_and_release "$mnt" "$dev"
+    unmount_and_release "$mnt" "$dev" || return 1
 }
 
 write_to_device() {
@@ -497,7 +499,9 @@ write_to_device() {
     if "$here/make-sdcard" -y $opts $extraarg initrd-flash.xml "$dev"; then
 	rc=0
     fi
-    unmount_and_release "" "$dev"
+    if ! unmount_and_release "" "$dev"; then
+	rc=1
+    fi
     return $rc
 }
 
@@ -527,8 +531,8 @@ get_final_status() {
 	    cp "$logfile" "$logdir/"
 	done
     fi
-    unmount_and_release "$mnt" "$dev"
     echo "Final status: $final_status"
+    unmount_and_release "$mnt" "$dev" || return 1
     return 0
 }
 
