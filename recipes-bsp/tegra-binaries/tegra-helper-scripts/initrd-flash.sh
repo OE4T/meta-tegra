@@ -30,6 +30,7 @@ if [ ! -e .env.initrd-flash ]; then
 fi
 
 . .env.initrd-flash
+helper="$here/$FLASH_HELPER"
 
 # The .presigning-vars file is generated when binaries
 # are signed during the build
@@ -46,6 +47,7 @@ keyfile=
 sbk_keyfile=
 skip_bootloader=0
 early_final_status=0
+signargs=
 
 ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,user_key:,help,skip-bootloader" -o "u:v:h" -- "$@")
 if [ $? -ne 0 ]; then
@@ -92,6 +94,14 @@ while true; do
 	    ;;
     esac
 done
+
+if [ "$CHIPID" = "0x21" ]; then
+    [ -z "$keyfile" ] || signargs="-u \"$keyfile\""
+else
+    [ -z "$keyfile" ] || signargs="-u \"$keyfile\""
+    [ -z "$sbk_keyfile" ] || signargs="$signargs -v \"$sbk_keyfile\""
+    [ -z "$user_keyfile" ] || signargs="$signargs --user_key \"$user_keyfile\""
+fi
 
 # When the secureboot package is not installed, we have
 # to handle signing/RCM booting a bit differently, due to
@@ -148,35 +158,83 @@ sign_binaries() {
     if [ -z "$BOARDID" -o -z "$FAB" ]; then
 	wait_for_rcm
     fi
+    local signdir
+    local oldwd="$PWD"
+    # This rigmarole is needed because the t210 signing tools modify the original files
+    if [ "$CHIPID" = "0x21" ]; then
+        signdir=$(mktemp -p . -d flashsign.XXXXXX)
+	local f
+	for f in $(ls -1 | egrep -v '(signed|encrypt)'); do
+	    if [ -f "$f" ]; then
+		cp "$f" "$signdir/"
+	    fi
+	done
+    else
+	signdir="."
+    fi
+    cd "$signdir"
     if [  -e external-flash.xml.in ]; then
 	"$here/nvflashxmlparse" --extract --type rootfs --change-device-type=sdmmc_user -o external-flash.xml.tmp external-flash.xml.in
-	if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
-		  "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" $instance_args \
-		  external-flash.xml.tmp $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
+	local cmd="MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
+		  $helper --no-flash --sign $signargs $instance_args \
+		  external-flash.xml.tmp $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE"
+	if eval $cmd; then
 	    if [ $have_odmsign_func -eq 0 ]; then
-		cp signed/flash.xml.tmp external-secureflash.xml
-		copy_signed_binaries
+		local xmlfile
+		if [ -e signed/flash.xml.tmp ]; then
+		    cp signed/flash.xml.tmp "$oldwd/external-secureflash.xml"
+		    xmlfile="flash.xml.tmp"
+		else
+		    cp signed/flash.xml "$oldwd/external-secureflash.xml"
+		    xmlfile="flash.xml"
+		fi
+		copy_signed_binaries signed $xmlfile "$oldwd/"
             else
-		mv secureflash.xml external-secureflash.xml
+		if [ "$signdir" != "." ]; then
+		    copy_signed_binaries . secureflash.xml "$oldwd/"
+		    cp boardvars.sh "$oldwd/"
+		fi
+		mv secureflash.xml "$oldwd/external-secureflash.xml"
 	    fi
 	else
+	    cd "$oldwd"
 	    return 1
 	fi
 	. ./boardvars.sh
     fi
-    if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
-	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" $instance_args \
-	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
+    cmd="MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
+	      $helper --no-flash --sign $signargs $instance_args \
+	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE"
+    if eval $cmd; then
 	if [ $have_odmsign_func -eq 0 ]; then
-	    cp signed/flash.xml.tmp secureflash.xml
-	    cp signed/flash.idx flash.idx
-	    copy_signed_binaries
+	    local xmlfile
+	    if [ -e signed/flash.xml.tmp ]; then
+		cp signed/flash.xml.tmp "$oldwd/secureflash.xml"
+		xmlfile="flash.xml.tmp"
+	    else
+		cp signed/flash.xml "$oldwd/secureflash.xml"
+		xmlfile="flash.xml"
+	    fi
+	    if [ -e signed/flash.idx ]; then
+		cp signed/flash.idx flash.idx
+	    fi
+	    copy_signed_binaries signed $xmlfile "$oldwd"
 	else
-	    cp flashcmd.txt flash_signed.sh
+	    cp flashcmd.txt "$oldwd/flash_signed.sh"
+	    if [ "$CHIPID" = "0x21" ]; then
+		cp signed/*.bct .
+		copy_signed_binaries . secureflash.xml "$oldwd/"
+		cp rcm_*_*.rcm rcm_*dtb* nvtboot_recovery_cpu.bin.* rcm-flash.xml rcmbootcmd.txt "$oldwd/"
+		mv secureflash.xml "$oldwd/"
+		cp boardvars.sh "$oldwd/"
+	    fi
 	fi
     else
+	cd "$oldwd"
 	return 1
     fi
+    cd "$oldwd"
+    [ -z "$signdir" ] || rm -rf "$signdir"
     if ! copy_bootloader_files bootloader_staging; then
 	return 1
     fi
@@ -189,7 +247,10 @@ sign_binaries() {
 
 prepare_for_rcm_boot() {
     if [ $have_odmsign_func -eq 1 ]; then
-	if [ "$CHIPID" = "0x18" ]; then
+	if [ -e "rcmbootcmd.txt" ]; then
+	    sed -e"s,boot.img,initrd-flash.img," rcmbootcmd.txt > rcm-boot.sh
+	    chmod +x rcm-boot.sh
+	elif [ "$CHIPID" = "0x18" ]; then
 	    local binsfx=".encrypt"
 	    local ksfx=".encrypt"
 	    local kdtbfilebase=$(basename kernel_$DTBFILE .dtb)
@@ -231,9 +292,9 @@ run_rcm_boot() {
 	fi
 	./rcm-boot.sh || return 1
     else
-	MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
-	       "$here/$FLASH_HELPER" --rcm-boot -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" \
-	       flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE || return 1
+	local cmd="MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
+	       $helper --rcm-boot $signargs flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE"
+       eval $cmd || return 1
     fi
 }
 
@@ -297,43 +358,65 @@ wait_for_usb_storage() {
 
 copy_bootloader_files() {
     local dest="$1"
-    local partnumber partloc partname start_location partsize partfile partattrs partsha
+    local blksize partnumber partloc partname start_location partsize partfile partattrs partsha partfilltoend
     local devnum instnum
     local is_spi is_mmcboot
     rm -f "$dest/partitions.conf"
-    while IFS=", " read partnumber partloc start_location partsize partfile partattrs partsha; do
-	# Need to trim off leading blanks
-	devnum=$(echo "$partloc" | cut -d':' -f 1)
-	instnum=$(echo "$partloc" | cut -d':' -f 2)
-	partname=$(echo "$partloc" | cut -d':' -f 3)
-	# SPI is 3:0
-	# eMMC boot blocks (boot0/boot1) are 0:3
-	# eMMC user is 1:3
-	# NVMe (any external device) is 9:0
-	if [ $devnum -eq 3 -a $instnum -eq 0 ] || [ $devnum -eq 0 -a $instnum -eq 3 ]; then
+    if [ -e flash.idx ]; then
+	while IFS=", " read partnumber partloc start_location partsize partfile partattrs partsha; do
+	    # Need to trim off leading blanks
+	    devnum=$(echo "$partloc" | cut -d':' -f 1)
+	    instnum=$(echo "$partloc" | cut -d':' -f 2)
+	    partname=$(echo "$partloc" | cut -d':' -f 3)
+	    # SPI is 3:0
+	    # eMMC boot blocks (boot0/boot1) are 0:3
+	    # eMMC user is 1:3
+	    # NVMe (any external device) is 9:0
+	    if [ $devnum -eq 3 -a $instnum -eq 0 ] || [ $devnum -eq 0 -a $instnum -eq 3 ]; then
+		if [ -n "$partfile" ]; then
+		    cp "$partfile" "$dest/"
+		fi
+		if [ $devnum -eq 3 -a $instnum -eq 0 ]; then
+		    is_spi=yes
+		elif [ $devnum -eq 0 -a $instnum -eq 3 ]; then
+		    is_mmcboot=yes
+		fi
+		echo "$partname:$start_location:$partsize:$partfile" >> "$dest/partitions.conf"
+	    fi
+	done < flash.idx
+	if [ -n "$is_spi" ]; then
+	    if [ -n "$is_mmcboot" ]; then
+		echo "ERR: found bootloader entries for both SPI flash and eMMC boot partitions" >&2
+		return 1
+	    fi
+	    echo "spi" > "$dest/boot_device_type"
+	elif [ -n "$is_mmcboot" ]; then
+	    echo "mmcboot" > "$dest/boot_device_type"
+	else
+	    echo "ERR: no SPI or eMMC boot partition entries found" >&2
+	    return 1
+	fi
+    else
+	local line bootdevtype
+	while read line; do
+	    eval "$line"
 	    if [ -n "$partfile" ]; then
 		cp "$partfile" "$dest/"
 	    fi
-	    if [ $devnum -eq 3 -a $instnum -eq 0 ]; then
-		is_spi=yes
-	    elif [ $devnum -eq 0 -a $instnum -eq 3 ]; then
-		is_mmcboot=yes
-	    fi
-	    echo "$partname:$start_location:$partsize:$partfile" >> "$dest/partitions.conf"
-	fi
-    done < flash.idx
-    if [ -n "$is_spi" ]; then
-	if [ -n "$is_mmcboot" ]; then
-	    echo "ERR: found bootloader entries for both SPI flash and eMMC boot partitions" >&2
+	    start_location=$(expr $start_location \* $blksize)
+	    partsize=$(expr $partsize \* $blksize)
+	    echo "$partname:$start_location:$partsize:$partfile" >>"$dest/partitions.conf"
+	done < <("$here/nvflashxmlparse" -t boot secureflash.xml)
+	bootdevtype=$("$here/nvflashxmlparse" --boot-device secureflash.xml)
+	if [ "$bootdevtype" = "spi" ]; then
+	    echo "spi" > "$dest/boot_device_type"
+	elif [ "$bootdevtype" = "sdmmc_boot" ]; then
+	     echo "mmcboot" > "$dest/boot_device_type"
+	else
+	    echo "ERR: no SPI or eMMC boot partition entries found" >&2
 	    return 1
 	fi
-	echo "spi" > "$dest/boot_device_type"
-    elif [ -n "$is_mmcboot" ]; then
-	echo "mmcboot" > "$dest/boot_device_type"
-    else
-	echo "ERR: no SPI or eMMC boot partition entries found" >&2
-	return 1
-    fi
+	fi
     return 0
 }
 
