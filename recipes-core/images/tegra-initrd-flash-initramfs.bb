@@ -31,9 +31,10 @@ FORCE_RO_REMOVE ?= "1"
 
 inherit core-image
 
-# For U-boot on TX2 we normally don't generate a cboot (Android-style)
+# For U-boot platforms we normally don't generate a cboot (Android-style)
 # image, but we need one for initrd flashing.
 INITRAMFS_FSTYPES:append:tegra186 = "${@' cpio.gz.cboot' if not d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
+INITRAMFS_FSTYPES:append:tegra210 = "${@' cpio.gz.cboot' if not d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
 IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
 
 SSTATE_SKIP_CREATION:task-image-complete = "0"
