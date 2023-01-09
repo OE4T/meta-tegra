@@ -3,7 +3,106 @@ TARGET="@TARGET@"
 BOOTDEV="@BOOTDEV@"
 sysconfdir="@sysconfdir@"
 
-[ ! -e "${sysconfdir}/nv_boot_control.conf" ] || exit 0
+fab=
+boardsku=
+boardrev=
+chiprev=
+
+# TX1
+gen_compat_2180() {
+    fab=
+    boardsku=
+    boardrev=
+    chiprev=
+    return 0
+}
+# Nano
+gen_compat_3448() {
+    if echo "$fab" | grep -q "^0.."; then
+	fab="000"
+    elif echo "$fab" | grep -q "^1.."; then
+	fab="100"
+    elif echo "$fab" | grep -q "^2.."; then
+	fab="200"
+    else
+	fab="300"
+    fi
+    boardrev=
+    chiprev=
+    return 0
+}
+
+# TX2
+gen_compat_3310() {
+    if [ "$fab" != "B00" ] && echo "$fab" | grep -q "^[B-Z].."; then
+	fab="B01"
+    fi
+    boardsku=
+    boardrev=
+    chiprev=
+    return 0
+}
+
+# TX2i/TX2-4GB
+gen_compat_3489() {
+    if echo "$fab" | grep -q "^[012].."; then
+	fab="200"
+    else
+	fab="300"
+    fi
+    boardsku=
+    boardrev=
+    chiprev=
+    return 0
+}
+
+# TX2-NX
+gen_compat_3636() {
+    fab=
+    boardrev=
+    chiprev=
+    return 0
+}
+
+# AGX Xavier
+gen_compat_2888() {
+    if [ "$fab" = "400" ]; then
+	if [ "$boardsku" = "0004" ]; then
+	    boardrev=
+	else
+	    if echo "$boardrev" | grep -q "^[ABCD]\."; then
+		boardrev="D.0"
+	    else
+		boardrev="E.0"
+	    fi
+	    boardsku="0001"
+	fi
+    elif [ "$fab" = "600" -a "$boardsku" = "0008" ]; then
+	boardrev=
+    fi
+    return 0
+}
+
+# Xavier NX
+gen_compat_3668() {
+    if [ "$fab" != "301" ]; then
+	fab="100"
+    fi
+    boardsku=
+    boardrev=
+    chiprev=
+    return 0
+}
+
+# boardspec should be piped into this function
+gen_compat_spec() {
+    IFS=- read boardid fab boardsku boardrev fuselevel chiprev
+    if gen_compat_$boardid 2>/dev/null; then
+	echo "$boardid-$fab-$boardsku-$boardrev-$fuselevel-$chiprev"
+	return 0
+    fi
+    echo ""
+}
 
 if [ ! -e "${sysconfdir}/nv_boot_control.template" ]; then
     echo "ERR: nv_boot_control.conf template file not found" >&2
@@ -15,9 +114,14 @@ if [ -z "${boardspec}" ]; then
     echo "ERR: could not retrieve boardspec for nv_boot_control.conf setup" >&2
     exit 1
 fi
+compatspec=$(echo "$boardspec" | gen_compat_spec)
+if [ -z "$compatspec" ]; then
+    compatsed="-e/^COMPATIBLE_SPEC/d"
+else
+    compatsed="-es,@COMPATIBLE_SPEC@,${compatspec}-${TARGET}-,"
+fi
 
-sed -e"s,@TNSPEC@,${boardspec}-${TARGET}-${BOOTDEV}," \
-    "${sysconfdir}/nv_boot_control.template" > "${sysconfdir}/nv_boot_control.conf"
-chmod 0644 "${sysconfdir}/nv_boot_control.conf"
+sed -e"s,@TNSPEC@,${boardspec}-${TARGET}-${BOOTDEV}," $compatsed \
+    "${sysconfdir}/nv_boot_control.template" > "$RUNTIME_DIRECTORY/nv_boot_control.conf"
+chmod 0644 "$RUNTIME_DIRECTORY/nv_boot_control.conf"
 exit 0
-

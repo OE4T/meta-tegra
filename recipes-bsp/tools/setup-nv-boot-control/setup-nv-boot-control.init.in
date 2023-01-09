@@ -4,7 +4,9 @@ DESC="Set up redundant boot configuration"
 
 case "$1" in
   start|restart)
-      @bindir@/setup-nv-boot-control
+      mkdir -p /run/nv_boot_control
+      chmod 755 /run/nv_boot_control
+      RUNTIME_DIRECTORY=/run/nv_boot_control @bindir@/setup-nv-boot-control
       ;;
   stop)
       ;;
