@@ -1,8 +1,12 @@
 [Unit]
 Description=Set up redundant boot configuration
+DefaultDependencies=no
 Before=nv_update_verifier.service
 
 [Service]
+RuntimeDirectory=nv_boot_control
+RuntimeDirectoryPreserve=yes
+RuntimeDirectoryMode=0755
 Type=oneshot
 ExecStart=@bindir@/setup-nv-boot-control
 
