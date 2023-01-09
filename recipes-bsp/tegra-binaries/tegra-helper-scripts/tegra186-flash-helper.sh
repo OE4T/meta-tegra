@@ -132,6 +132,9 @@ BR_CID=
 have_boardinfo=
 if [ -z "$BOARDID" -o -z "$FAB" ]; then
     BR_CID=$($here/tegrarcm_v2 ${inst_args} --uid | grep BR_CID | cut -d' ' -f2)
+    if [ "${BR_CID:3:2}" != "18" ]; then
+	echo "ERR: chip ID mismatch for TX2" >&2
+    fi
     keyargs=
     [ -z "$keyfile" ] || keyargs="$keyargs --key $keyfile"
     [ -z "$sbk_keyfile" ] || keyargs="$keyargs --encrypt_key $sbk_keyfile"
