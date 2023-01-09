@@ -1,7 +1,7 @@
 DESCRIPTION = "Boot-related tools for Tegra platforms"
 HOMEPAGE = "https://github.com/OE4T/tegra-boot-tools"
 LICENSE = "MIT & BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=7a9217de7f233011b127382da9a035a1"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=481ed6124b0f84b3a5ad255a328bcaa5"
 
 DEFAULT_PREFERENCE = "-1"
 
@@ -12,7 +12,7 @@ SRCBRANCH = "master"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 SRCREV = "${AUTOREV}"
 
-PV = "2.99.0+git${SRCPV}"
+PV = "3.0.99+git${SRCPV}"
 S = "${WORKDIR}/git"
 
 DEBUG_BUILD = "1"
