@@ -173,7 +173,8 @@ sign_binaries() {
 	signdir="."
     fi
     cd "$signdir"
-    if [  -e external-flash.xml.in ]; then
+    # External layouts on t210 platforms never have signed binaries
+    if [  "$CHIPID" != "0x21" -a -e external-flash.xml.in ]; then
 	"$here/nvflashxmlparse" --extract --type rootfs --change-device-type=sdmmc_user -o external-flash.xml.tmp external-flash.xml.in
 	local cmd="MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
 		  $helper --no-flash --sign $signargs $instance_args \
@@ -234,7 +235,9 @@ sign_binaries() {
 	return 1
     fi
     cd "$oldwd"
-    [ -z "$signdir" ] || rm -rf "$signdir"
+    if [ "$signdir" != "." ]; then
+	rm -rf "$signdir"
+    fi
     if ! copy_bootloader_files bootloader_staging; then
 	return 1
     fi
@@ -547,6 +550,8 @@ step_banner() {
 }
 
 echo "Starting at $(date -Is)" | tee "$logfile"
+echo "Machine:       ${MACHINE}" | tee "$logfile"
+echo "Rootfs device: ${BOOTDEV}" | tee "$logfile"
 if ! wait_for_rcm 2>&1 | tee -a "$logfile"; then
     echo "ERR: Device not found at $(date -Is)" | tee -a "$logfile"
     exit 1
