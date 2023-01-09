@@ -35,6 +35,8 @@ inherit core-image
 # image, but we need one for initrd flashing.
 INITRAMFS_FSTYPES:append:tegra186 = "${@' cpio.gz.cboot' if not d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
 INITRAMFS_FSTYPES:append:tegra210 = "${@' cpio.gz.cboot' if not d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
+# But make sure we don't generate a BUP payload for this
+INITRAMFS_FSTYPES:remove = "cpio.gz.cboot.bup-payload"
 IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
 
 SSTATE_SKIP_CREATION:task-image-complete = "0"
