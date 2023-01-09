@@ -15,6 +15,8 @@ PARTITION_FILE ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${PARTITION_LAYOUT_TEMPLA
 PARTITION_FILE_EXTERNAL ?= "${DEFAULT_PARTITION_FILE_EXTERNAL}"
 DEFAULT_PARTITION_FILE_EXTERNAL = "${S}/tools/kernel_flash/${PARTITION_LAYOUT_EXTERNAL}"
 DEFAULT_PARTITION_FILE_EXTERNAL:tegra210 = ""
+PARTITION_FILE_EXTERNAL_FALLBACK = ""
+PARTITION_FILE_EXTERNAL_FALLBACK:tegra210 = "${S}/bootloader/${NVIDIA_BOARD}/cfg/flash_l4t_t210_max-spi_sd_p3448.xml"
 EXTRA_XML_SPLIT_ARGS = "--change-device-type=sdcard"
 EXTRA_XML_SPLIT_ARGS:tegra186 = "--change-device-type=nvme --retain-app-boot-partition"
 FILTER_EXTERNAL_PARTITIONS = "false"
@@ -132,6 +134,19 @@ do_install() {
 	    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
 	    install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
         fi
+    elif [ -n "${PARTITION_FILE_EXTERNAL_FALLBACK}" -a -n "${PARTITION_LAYOUT_EXTERNAL}" ]; then
+        # Synthesize an external layout from the fallback (SDcard)
+        # layout (for t210 platforms)
+        nvflashxmlparse --split=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} --output=/dev/null --change-device-type=nvme ${PARTITION_FILE_EXTERNAL_FALLBACK}
+	chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+	# eMMC-based platforms store boot partitions on eMMC, make
+	# sure the eMMC layout is retained for those
+        if [ "${TNSPEC_BOOTDEV}" != "mmcblk0p1" -a "${BOOT_PARTITIONS_ON_EMMC}" = "1" ]; then
+            nvflashxmlparse --split=/dev/null --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} ${EXTRA_XML_SPLIT_ARGS} ${PARTITION_FILE}
+	    chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
+	else
+	    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
+	fi
     else
 	install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
     fi
