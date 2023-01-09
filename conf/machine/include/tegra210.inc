@@ -43,3 +43,6 @@ TEGRA_BOARDREV ?= ""
 TEGRA_CHIPREV ?= "0"
 # Extracted from l4t_generate_soc_bup.sh for BOARDID=2180 and board=jetson-tx1-devkit
 TEGRA_BUPGEN_SPECS ?= "fab=100 fab=410"
+
+PARTITION_LAYOUT_EXTERNAL ?= "external_layout.xml"
+BOOT_PARTITIONS_ON_EMMC = "1"
