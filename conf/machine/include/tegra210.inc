@@ -8,9 +8,11 @@ KERNEL_IMAGETYPES ?= "${KERNEL_IMAGETYPE}"
 require conf/machine/include/soc-family.inc
 require conf/machine/include/arm/arch-armv8a.inc
 
-TEGRA_ESSENTIAL_EXTRA_RDEPENDS = "kernel-image u-boot-extlinux"
+TEGRA_ESSENTIAL_EXTRA_RDEPENDS = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'kernel-image u-boot-extlinux'}"
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
+IMAGE_UBOOT ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'u-boot'}"
+INITRAMFS_FSTYPES:append = "${@'' if not (d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1') else ' cpio.gz.cboot'}"
 
 TEGRA_AUDIO_DEVICE ?= "tegrahda"
 
