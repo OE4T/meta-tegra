@@ -2,6 +2,7 @@
 
 BOOTPART_SIZE=
 BOOTDEV_TYPE=unset
+IS_T210=
 
 program_spi_partition() {
     local partname="$1"
@@ -26,11 +27,17 @@ program_spi_partition() {
     # Multiple copies of the BCT get installed at erase-block boundaries
     # within the defined BCT partition
     if [ "$partname" = "BCT" ]; then
-	local slotsize=$(cat /sys/class/mtd/mtd0/erasesize)
+	local slotsize rounded_slot_size
+	if [ "$IS_T210" = "yes" ]; then
+	    slotsize=32768
+	    rounded_slot_size=$slotsize
+	else
+	    slotsize=$(cat /sys/class/mtd/mtd0/erasesize)
+	    rounded_slot_size=$(expr \( \( $slotsize \+ 511 \) / 512 \) \* 512)
+	fi
 	if [ -z "$slotsize" ]; then
 	    return 1
 	fi
-	local rounded_slot_size=$(expr \( \( $slotsize \+ 511 \) / 512 \) \* 512)
 	local curr_offset=$(expr $part_offset \+ $rounded_slot_size)
 	local copycount=$(expr $part_size / $rounded_slot_size)
 	local i=1
@@ -73,6 +80,22 @@ program_mmcboot_partition() {
 	echo "Writing $part_file (size=$file_size) to $partname on $bootpart (offset=$part_offset)"
 	if ! dd if="$part_file" of="$bootpart" bs=1 seek=$part_offset count=$file_size > /dev/null; then
 	    return 1
+	fi
+	# Multiple copies of the BCT get installed at 16KiB boundaries
+	# within the defined BCT partition
+	if [ "$partname" = "BCT" ]; then
+	    local slotsize=16384
+	    local curr_offset=$(expr $part_offset \+ $slotsize)
+	    local copycount=$(expr $part_size / $slotsize)
+	    local i=1
+	    while [ $i -lt $copycount ]; do
+		echo "Writing $part_file (size=$file_size) to BCT+$i (offset=$curr_offset)"
+		if ! dd if="$part_file" of="$bootpart" bs=1 seek=$curr_offset count=$file_size > /dev/null; then
+		    return 1
+		fi
+		i=$(expr $i \+ 1)
+		curr_offset=$(expr $curr_offset \+ $slotsize)
+	    done
 	fi
     fi
     return 0
@@ -144,4 +167,7 @@ program_boot_partitions() {
     return $rc
 }
 
+if [ "$(cat /sys/module/tegra_fuse/parameters/tegra_chip_id 2>/dev/null)" = "33" ]; then
+    IS_T210=yes
+fi
 program_boot_partitions "$@"
