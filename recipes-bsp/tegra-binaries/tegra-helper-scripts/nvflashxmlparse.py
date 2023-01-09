@@ -14,6 +14,9 @@ kernels_and_dtbs = ["kernel", "kernel_b", "kernel-dtb", "kernel-dtb_b",
                     "recovery", "RECNAME", "recovery-dtb", "RECDTB-NAME",
                     "kernel-bootctrl", "kernel-bootctrl_b",
                     "BOOTCTRLNAME", "BOOTCTRLNAME_b"]
+primary_gpt_types = ['GP1', 'protective_master_boot_record', 'primary_gpt']
+secondary_gpt_types = ['GPT', 'secondary_gpt']
+all_gpt_types = primary_gpt_types + secondary_gpt_types
 
 def generate_guid(guid):
     global uuids
@@ -95,9 +98,9 @@ class Partition(object):
         return (self.alloc_attr & 0x800) == 0x800
 
     def is_partition_table(self, primary_only=False):
-        if self.type in ['GP1', 'protective_master_boot_record', 'primary_gpt']:
+        if self.type in primary_gpt_types:
             return True
-        return not primary_only and self.type in ['GPT', 'secondary_gpt']
+        return not primary_only and self.type in secondary_gpt_types
 
 class Device(object):
     def __init__(self, element, devcount):
@@ -189,9 +192,17 @@ def split_layout(infile, mmcf, sdcardf, new_devtype=None, sector_count=0,
     mmctree = ET.parse(infile)
     sdcardtree = ET.parse(infile)
     root = mmctree.getroot()
+    devcount = 0
     for dev in root.findall('device'):
-        if dev.get('type') == 'sdmmc_user':
+        devcount += 1
+        devtype = dev.get('type')
+        # T210 layouts just use 'sdmmc' for both
+        if devtype == 'sdmmc':
+            devtype = 'sdmmc_boot' if devcount == 1 else 'sdmmc_user'
+        if devtype not in boot_devices:
             for partnode in dev.findall('partition'):
+                if partnode.get('type') in all_gpt_types:
+                    continue
                 partname = partnode.get('name')
                 if partname in sdcard_parts:
                     if retain_app_as_boot and partname.startswith('APP'):
@@ -202,23 +213,29 @@ def split_layout(infile, mmcf, sdcardf, new_devtype=None, sector_count=0,
                         if guid is not None:
                             partnode.remove(guid)
                         partnode.find('filename').text = " BOOTPARTFILE "
-                        logging.info("For eMMC, renamed {} -> {} with size {}".format(partname, partnode.get('name'), sz.text))
+                        logging.info("For {}, renamed {} -> {} with size {}".format(devtype, partname, partnode.get('name'), sz.text))
                     else:
                         dev.remove(partnode)
-                        logging.info("For eMMC, removed {}".format(partname))
+                        logging.info("For {}, removed {}".format(devtype, partname))
     root = sdcardtree.getroot()
     for dev in root.findall('device'):
-        if dev.get('type') == 'sdmmc_user':
-            if new_devtype:
+        devtype = dev.get('type')
+        # T210 layouts just use 'sdmmc' for both
+        if devtype == 'sdmmc':
+            devtype = 'sdmmc_boot' if devcount == 1 else 'sdmmc_user'
+        if devtype in ['sdmmc_user', 'sdcard']:
+            if new_devtype and devtype != new_devtype:
                 dev.set('type', new_devtype)
                 dev.set('instance', '3' if new_devtype == 'sdmmc_user' else '0')
             if sector_count != 0:
                 dev.set('num_sectors', str(sector_count))
             for partnode in dev.findall('partition'):
+                if partnode.get('type') in all_gpt_types:
+                    continue
                 partname = partnode.get('name')
-                if partname not in sdcard_parts + ['master_boot_record', 'primary_gpt', 'secondary_gpt']:
+                if partname not in sdcard_parts:
                     dev.remove(partnode)
-                    logging.info("For SDcard, removed {}".format(partname))
+                    logging.info("For {}, removed {}".format(new_devtype or "SDcard", partname))
         else:
             root.remove(dev)
     mmctree.write(mmcf, encoding='unicode', xml_declaration=True)
