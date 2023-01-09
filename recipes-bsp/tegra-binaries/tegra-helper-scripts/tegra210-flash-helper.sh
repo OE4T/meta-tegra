@@ -179,7 +179,8 @@ if [ -z "$BOARDID" -a -z "$FAB" ]; then
 	echo "ERR: chip does not identify as tegra210 ($chipid)" >&2
 	exit 1
     fi
-    if python3 $flashapp ${inst_args} --chip 0x21 --skipuid $keyfile_args --applet nvtboot_recovery.bin --cmd "dump eeprom boardinfo ${cvm_bin}"; then
+    cvmcmd="python3 $flashapp ${inst_args} --chip 0x21 --skipuid $keyfile_args --applet nvtboot_recovery.bin --cmd \"dump eeprom boardinfo ${cvm_bin}\""
+    if eval "$cvmcmd"; then
 	BOARDID=$($here/chkbdinfo -i ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z])
 	FAB=$($here/chkbdinfo -f ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z])
 	BOARDSKU=$($here/chkbdinfo -k ${cvm_bin} | tr -d ' ' | tr [a-z] [A-Z])
