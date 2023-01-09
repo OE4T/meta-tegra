@@ -389,7 +389,7 @@ if [ -n "$keyfile" ]; then
 	    fi
 	    flashcmd="$runflashapp ${inst_args} --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
 --bl ${RCM_TBCFILENAME}.signed --bldtb rcm_${dtb_file}.signed --applet rcm_1_signed.rcm --cfg rcm-flash.xml --chip 0x21 \
---lnx $localbootfile --tos tos-mon-only.img.signed --eks eks.img --kerneldtb rcm_${dtb_file}.signed $rcm_binargs --securedev \
+--lnx $localbootfile --tos tos-mon-only.img.signed --eks eks.img --kerneldtb rcm_${dtb_file}.signed $rcm_binargs $boardcfg --securedev \
 --cmd \"rcmboot\""
 	    if [ $no_flash -ne 0 ]; then
 		rm -f flashcmd.txt
@@ -408,7 +408,7 @@ if [ -n "$keyfile" ]; then
 	    echo "#!/bin/sh" > rcmbootcmd.txt
 	    echo "python3 $(basename $flashapp) ${inst_args} --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
 --bl ${RCM_TBCFILENAME}.signed --bldtb rcm_${dtb_file}.signed --applet rcm_1_signed.rcm --cfg rcm-flash.xml --chip 0x21 \
---lnx $localbootfile --tos tos-mon-only.img.signed --eks eks.img --kerneldtb rcm_${dtb_file}.signed $rcm_binargs --securedev \
+--lnx $localbootfile --tos tos-mon-only.img.signed --eks eks.img --kerneldtb rcm_${dtb_file}.signed $rcm_binargs $boardcfg --securedev \
 --cmd \"rcmboot\"" >> rcmbootcmd.txt
 	    rm -f flashcmd.txt
 	    echo "#!/bin/sh" > flashcmd.txt
@@ -467,7 +467,7 @@ if [ $to_sign -ne 0 -o $rcm_boot -ne 0 ]; then
     cp signed/rcm_1_encrypt.rcm .
     rcm_bootcmd="python3 $(basename $flashapp) ${inst_args} --bct \"$(basename $sdramcfg_file .cfg).bct\" --odmdata $odmdata \
 --bl ${RCM_TBCFILENAME}.encrypt --bldtb rcm_${dtb_file}.encrypt --applet rcm_1_encrypt.rcm --cfg rcm-flash.xml --chip 0x21 \
---lnx $kernfile --tos tos-mon-only.img.encrypt --eks eks.img --kerneldtb rcm_${dtb_file}.encrypt $signed_rcm_binargs --securedev \
+--lnx $kernfile --tos tos-mon-only.img.encrypt --eks eks.img --kerneldtb rcm_${dtb_file}.encrypt $signed_rcm_binargs $boardcfg --securedev \
 --cmd \"rcmboot\""
     if [ $rcm_boot -ne 0 ]; then
 	if [ $no_flash -ne 0 ]; then
