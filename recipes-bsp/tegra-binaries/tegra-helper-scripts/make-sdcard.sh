@@ -96,10 +96,11 @@ find_finalpart() {
 
 make_partitions() {
     local blksize partnumber partname partsize partfile partguid partfilltoend start_location
-    local i pline alignarg
+    local i pline alignarg sgdiskcmd
     if [ "$use_start_locations" = "yes" ]; then
 	alignarg="-a 1"
     fi
+    sgdiskcmd="sgdisk \"$output\" $alignarg"
     i=0
     for pline in "${PARTS[@]}"; do
 	if [ $i -ne $FINALPART ]; then
@@ -108,7 +109,7 @@ make_partitions() {
 		start_location=0
 	    fi
 	    printf "  [%02d] name=%s start=%s size=%s sectors\n" $partnumber $partname $start_location $partsize
-	    sgdisk "$output" $alignarg --new=$partnumber:$start_location:+$partsize --typecode=$partnumber:8300 -c $partnumber:$partname >/dev/null 2>&1
+	    sgdiskcmd="$sgdiskcmd --new=$partnumber:$start_location:+$partsize --typecode=$partnumber:8300 -c $partnumber:$partname"
 	fi
 	i=$(expr $i + 1)
     done
@@ -118,14 +119,18 @@ make_partitions() {
 	if [ "$use_start_locations" != "yes" ]; then
 	    start_location=0
 	fi
-	if [ $partfilltoend -eq 1 ]; then
-	    printf "  [%02d] name=%s (fills to end)\n" $partnumber $partname
-	    sgdisk "$output" $alignarg --largest-new=$partnumber --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
-	else
-	    printf "  [%02d] name=%s start=%s size=%s sectors\n" $partnumber $partname $start_location $partsize
-	    sgdisk "$output" $alignarg --new=$partnumber:$start_location:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
-	fi
+	printf "  [%02d] name=%s (fills to end)\n" $partnumber $partname
+	sgdiskcmd="$sgdiskcmd --largest-new=$partnumber --typecode=$partnumber:$parttype -c $partnumber:$partname"
     fi
+    local errlog=$(mktemp)
+    if ! eval "$sgdiskcmd" >/dev/null 2>"$errlog"; then
+	echo "ERR: partitioning failed" >&2
+	cat "$errlog" >&2
+	rm -f "$errlog"
+	return 1
+    fi
+    rm -f "$errlog"
+    return 0
 }
 
 copy_to_device() {
