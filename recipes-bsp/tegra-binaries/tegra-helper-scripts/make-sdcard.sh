@@ -68,7 +68,7 @@ compute_size() {
 }
 
 find_finalpart() {
-    local blksize partnumber partname partsize partfile partguid parttype partfilltoend
+    local blksize partnumber partname partsize partfile partguid partfilltoend
     local appidx pline i
     if [ -n "$ignore_finalpart" ]; then
 	FINALPART=999
@@ -95,21 +95,21 @@ find_finalpart() {
 }
 
 make_partitions() {
-    local blksize partnumber partname partsize partfile partguid parttype partfilltoend start_location
-    local i pline alignarg
+    local blksize partnumber partname partsize partfile partguid partfilltoend start_location
+    local i pline alignarg sgdiskcmd
     if [ "$use_start_locations" = "yes" ]; then
 	alignarg="-a 1"
     fi
+    sgdiskcmd="sgdisk \"$output\" $alignarg"
     i=0
     for pline in "${PARTS[@]}"; do
 	if [ $i -ne $FINALPART ]; then
 	    eval "$pline"
-	    [ -n "$parttype" ] || parttype="8300"
 	    if [ "$use_start_locations" != "yes" ]; then
 		start_location=0
 	    fi
 	    printf "  [%02d] name=%s start=%s size=%s sectors\n" $partnumber $partname $start_location $partsize
-	    sgdisk "$output" $alignarg --new=$partnumber:$start_location:+$partsize --typecode=$partnumber:8300 -c $partnumber:$partname >/dev/null 2>&1
+	    sgdiskcmd="$sgdiskcmd --new=$partnumber:$start_location:+$partsize --typecode=$partnumber:8300 -c $partnumber:$partname"
 	fi
 	i=$(expr $i + 1)
     done
@@ -119,14 +119,18 @@ make_partitions() {
 	if [ "$use_start_locations" != "yes" ]; then
 	    start_location=0
 	fi
-	if [ $partfilltoend -eq 1 ]; then
-	    printf "  [%02d] name=%s (fills to end)\n" $partnumber $partname
-	    sgdisk "$output" $alignarg --largest-new=$partnumber --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
-	else
-	    printf "  [%02d] name=%s start=%s size=%s sectors\n" $partnumber $partname $start_location $partsize
-	    sgdisk "$output" $alignarg --new=$partnumber:$start_location:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname >/dev/null 2>&1
-	fi
+	printf "  [%02d] name=%s (fills to end)\n" $partnumber $partname
+	sgdiskcmd="$sgdiskcmd --largest-new=$partnumber --typecode=$partnumber:$parttype -c $partnumber:$partname"
     fi
+    local errlog=$(mktemp)
+    if ! eval "$sgdiskcmd" >/dev/null 2>"$errlog"; then
+	echo "ERR: partitioning failed" >&2
+	cat "$errlog" >&2
+	rm -f "$errlog"
+	return 1
+    fi
+    rm -f "$errlog"
+    return 0
 }
 
 copy_to_device() {
@@ -147,8 +151,9 @@ copy_to_device() {
 }
 
 write_partitions_to_device() {
-    local blksize partnumber partname partsize partfile partguid parttype partfilltoend
-    local i dest pline destsize filesize
+    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local i dest pline destsize filesize n_written
+    n_written=0
     i=0
     for pline in "${PARTS[@]}"; do
 	if [ $i -eq $FINALPART ]; then
@@ -172,12 +177,17 @@ write_partitions_to_device() {
 	    echo "ERR: cannot locate block device $dest" >&2
 	    return 1
 	fi
-	destsize=$(blockdev --getsize64 "$dest")
+	destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
+	if [ $n_written -eq 0 -a -z "$destsize" ]; then
+	    sleep 1
+	    destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
+	fi
 	echo "  Writing $partfile (size=$filesize) to $dest (size=$destsize)..."
 	if ! copy_to_device "$partfile" "$dest"; then
 	    echo "ERR: failed to write $partfile to $dest" >&2
 	    return 1
 	fi
+	n_written=$(expr $n_written + 1)
 	i=$(expr $i + 1)
     done
     if [ -n "$ignore_finalpart" ]; then
@@ -195,7 +205,11 @@ write_partitions_to_device() {
 	    echo "ERR: cannot locate block device $dest" >&2
 	    return 1
 	fi
-	destsize=$(blockdev --getsize64 "$dest")
+	destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
+	if [ $n_written -eq 0 -a -z "$destsize" ]; then
+	    sleep 1
+	    destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
+	fi
 	echo "  Writing $partfile (size=$filesize) to $dest (size=$destsize)..."
 	if ! copy_to_device "$partfile" "$dest"; then
 	    echo "ERR: failed to write $partfile to $dest" >&2
@@ -206,7 +220,7 @@ write_partitions_to_device() {
 
 write_partitions_to_image() {
     local -a partstart
-    local blksize partnumber partname partsize partfile partguid parttype partfilltoend
+    local blksize partnumber partname partsize partfile partguid partfilltoend
     local i s e stuff partstart partend pline
 
     while read partnumber s e stuff; do
@@ -392,7 +406,7 @@ fi
 
 echo  "Creating partitions"
 [ -b "$output" ] || dd if=/dev/zero of="$output" bs=512 count=0 seek=$outsize status=none
-if ! sgdisk "$output" --clear --mbrtogpt --set-alignment=8 >/dev/null 2>&1; then
+if ! sgdisk "$output" --clear --mbrtogpt >/dev/null 2>&1; then
     echo "ERR: could not initialize GPT on $output" >&2
     exit 1
 fi
@@ -404,20 +418,12 @@ if ! sgdisk "$output" --verify >/dev/null 2>&1; then
     exit 1
 fi
 if [ -b "$output" ]; then
-    if ! udevadm settle >/dev/null 2>&1; then
-	sleep 1
-    fi
+    sleep 1
     if ! $SUDO partprobe "$output" >/dev/null 2>&1; then
 	echo "ERR: partprobe failed after partitioning $output" >&2
 	exit 1
     fi
-    if ! udevadm settle >/dev/null 2>&1; then
-	sleep 1
-    fi
-fi
-if ! sgdisk "$output" --verify >/dev/null 2>&1; then
-    echo "ERR: verification failed for $output" >&2
-    exit 1
+    sleep 1
 fi
 if type -p bmaptool >/dev/null 2>&1; then
     HAVEBMAPTOOL=yes
