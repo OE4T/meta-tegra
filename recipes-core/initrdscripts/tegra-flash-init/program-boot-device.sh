@@ -74,6 +74,22 @@ program_mmcboot_partition() {
 	if ! dd if="$part_file" of="$bootpart" bs=1 seek=$part_offset count=$file_size > /dev/null; then
 	    return 1
 	fi
+	# Multiple copies of the BCT get installed at 16KiB boundaries
+	# within the defined BCT partition
+	if [ "$partname" = "BCT" ]; then
+	    local slotsize=16384
+	    local curr_offset=$(expr $part_offset \+ $slotsize)
+	    local copycount=$(expr $part_size / $slotsize)
+	    local i=1
+	    while [ $i -lt $copycount ]; do
+		echo "Writing $part_file (size=$file_size) to BCT+$i (offset=$curr_offset)"
+		if ! dd if="$part_file" of="$bootpart" bs=1 seek=$curr_offset count=$file_size > /dev/null; then
+		    return 1
+		fi
+		i=$(expr $i \+ 1)
+		curr_offset=$(expr $curr_offset \+ $slotsize)
+	    done
+	fi
     fi
     return 0
 }
