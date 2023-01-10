@@ -148,6 +148,22 @@ sign_binaries() {
     if [ -z "$BOARDID" -o -z "$FAB" ]; then
 	wait_for_rcm
     fi
+    if [ -e external-flash.xml.in ]; then
+	"$here/nvflashxmlparse" --extract --type rootfs --change-device-type=sdmmc_user -o external-flash.xml.tmp external-flash.xml.in
+        if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
+		  "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" $instance_args \
+		  external-flash.xml.tmp $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
+	    if [ $have_odmsign_func -eq 0 ]; then
+		cp signed/flash.xml.tmp external-secureflash.xml
+		copy_signed_binaries
+	    else
+		mv secureflash.xml external-secureflash.xml
+	    fi
+	else
+	    return 1
+	fi
+	. ./boardvars.sh
+    fi
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
 	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" $instance_args \
 	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
@@ -209,11 +225,10 @@ unmount_and_release() {
     local mnt="$1"
     local dev="$2"
     if [ -n "$mnt" ]; then
-	if ! umount "$1"; then
-	    udisksctl unmount -b "$dev"
-	fi
+	udisksctl unmount --force -b "$dev"
     fi
-    udisksctl power-off -b "$dev"
+    udisksctl power-off -b "$dev" || return 1
+    return 0
 }
 
 wait_for_usb_storage() {
@@ -331,7 +346,7 @@ generate_flash_package() {
 
     echo "reboot" >> "$mnt/flashpkg/conf/command_sequence"
 
-    unmount_and_release "$mnt" "$dev"
+    unmount_and_release "$mnt" "$dev" || return 1
 }
 
 write_to_device() {
@@ -369,7 +384,9 @@ write_to_device() {
     if "$here/make-sdcard" -y $opts $extraarg initrd-flash.xml "$dev"; then
 	rc=0
     fi
-    unmount_and_release "" "$dev"
+    if ! unmount_and_release "" "$dev"; then
+	rc=1
+    fi
     return $rc
 }
 
@@ -399,7 +416,7 @@ get_final_status() {
 	    cp "$logfile" "$logdir/"
 	done
     fi
-    unmount_and_release "$mnt" "$dev"
+    unmount_and_release "$mnt" "$dev" || return 1
     echo "Final status: $final_status"
     return 0
 }
@@ -415,6 +432,8 @@ step_banner() {
 }
 
 echo "Starting at $(date -Is)" | tee "$logfile"
+echo "Machine:       ${MACHINE}" | tee "$logfile"
+echo "Rootfs device: ${BOOTDEV}" | tee "$logfile"
 if ! wait_for_rcm 2>&1 | tee -a "$logfile"; then
     echo "ERR: Device not found at $(date -Is)" | tee -a "$logfile"
     exit 1
