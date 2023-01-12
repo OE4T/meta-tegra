@@ -40,7 +40,7 @@ def br_cid_to_linux_uid(brcid):
         linux_chip = 6
     elif brcid_chip == "80" and brcid_chip2 == "19":
         linux_chip = 7
-    elif brcid_chip == "80" and brcid_chip2 == "23":
+    elif brcid_chip2 == "23":
         linux_chip = 8
     else:
         raise RuntimeError("Unrecognized chip ID 0x{}".format(brcid_chip))
