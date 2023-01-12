@@ -12,6 +12,9 @@ ignore_partition_ids = False
 boot_devices = ["spi", "sdmmc_boot"]
 kernels_and_dtbs = ["kernel", "kernel_b", "kernel-dtb", "kernel-dtb_b",
                     "recovery", "RECNAME", "recovery-dtb", "RECDTB-NAME"]
+primary_gpt_types = ['GP1', 'protective_master_boot_record', 'primary_gpt']
+secondary_gpt_types = ['GPT', 'secondary_gpt']
+all_gpt_types = primary_gpt_types + secondary_gpt_types
 
 def generate_guid(guid):
     global uuids
@@ -97,9 +100,9 @@ class Partition(object):
         return (self.alloc_attr & 0x800) == 0x800
 
     def is_partition_table(self, primary_only=False):
-        if self.type in ['GP1', 'protective_master_boot_record', 'primary_gpt']:
+        if self.type in primary_gpt_types:
             return True
-        return not primary_only and self.type in ['GPT', 'secondary_gpt']
+        return not primary_only and self.type in secondary_gpt_types
 
 class Device(object):
     def __init__(self, element, devcount):
@@ -193,9 +196,12 @@ def split_layout(infile, mmcf, sdcardf, new_devtype=None, sector_count=0):
     for dev in root.findall('device'):
         if dev.get('type') == 'sdmmc_user':
             for partnode in dev.findall('partition'):
+                if partnode.get('type') in all_gpt_types:
+                    continue
                 partname = partnode.get('name')
                 if partname in sdcard_parts:
                     dev.remove(partnode)
+                    logging.info("For {}, removed {}".format(dev.get('type'), partname))
     root = sdcardtree.getroot()
     for dev in root.findall('device'):
         if dev.get('type') == 'sdmmc_user':
@@ -205,9 +211,12 @@ def split_layout(infile, mmcf, sdcardf, new_devtype=None, sector_count=0):
             if sector_count != 0:
                 dev.set('num_sectors', str(sector_count))
             for partnode in dev.findall('partition'):
+                if partnode.get('type') in all_gpt_types:
+                    continue
                 partname = partnode.get('name')
-                if partname not in sdcard_parts + ['master_boot_record', 'primary_gpt', 'secondary_gpt']:
+                if partname not in sdcard_parts:
                     dev.remove(partnode)
+                    logging.info("For {}, removed {}".format(new_devtype or "SDcard", partname))
         else:
             root.remove(dev)
     mmctree.write(mmcf, encoding='unicode', xml_declaration=True)
