@@ -620,7 +620,15 @@ oe_make_bup_payload() {
     # BUP generator really wants to use 'boot.img' for the LNX
     # partition contents
     cp $1 ./boot.img
-    tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img
+    # BUP generator must have a layout that includes kernel/DTB/etc.
+    # When those partitions are stripped from the main layout, we
+    # create a copy of the original with 'bupgen-' prefix, so use
+    # that if present.
+    local layoutsrc
+    if [ -e "${STAGING_DATADIR}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}" ]; then
+        layoutsrc="${STAGING_DATADIR}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}"
+    fi
+    tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img "$layoutsrc"
     cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
     cp "${STAGING_DATADIR}/tegraflash/${EMMC_BCT}" .
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
