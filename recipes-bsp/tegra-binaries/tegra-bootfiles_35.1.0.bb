@@ -10,6 +10,7 @@ BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRID
 BOARD_CFG ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${NVIDIA_BOARD_CFG}"
 PARTITION_FILE ?= "${S}/bootloader/${NVIDIA_BOARD}/cfg/${PARTITION_LAYOUT_TEMPLATE}"
 PARTITION_FILE_EXTERNAL ?= "${S}/tools/kernel_flash/${PARTITION_LAYOUT_EXTERNAL}"
+EXTRA_XML_SPLIT_ARGS = "--change-device-type=sdcard"
 ODMFUSE_FILE ?= ""
 
 BOOTBINS:tegra194 = "\
@@ -95,10 +96,16 @@ do_install() {
     # those boot partitions, and remove the names of those partitions
     # from the layout for the external storage.
     if [ "${TNSPEC_BOOTDEV}" != "mmcblk0p1" -a "${BOOT_PARTITIONS_ON_EMMC}" = "1" ]; then
-        nvflashxmlparse --split=/dev/null --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} --change-device-type="nvme" ${PARTITION_FILE}
+        nvflashxmlparse -v --split=/dev/null --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} ${EXTRA_XML_SPLIT_ARGS} ${PARTITION_FILE}
 	chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
-        nvflashxmlparse --remove --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
-	chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+	# BUP generation will fail if the main XML file does not
+	# contain the kernel/DTB/etc, so save a copy of the
+	# original for that purpose, stripping out the APP
+	# partition so that the offsets of the partitions
+	# referenced during early boot match the split layout above.
+	nvflashxmlparse -v --remove --partitions-to-remove=APP --output=${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE} ${PARTITION_FILE}
+	chmod 0644 ${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}
+	install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
     else
 	install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
 	install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
