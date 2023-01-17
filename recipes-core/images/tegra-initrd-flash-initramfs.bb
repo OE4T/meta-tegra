@@ -31,13 +31,7 @@ FORCE_RO_REMOVE ?= "1"
 
 inherit core-image
 
-# For U-boot platforms we normally don't generate a cboot (Android-style)
-# image, but we need one for initrd flashing.
-INITRAMFS_FSTYPES:append:tegra186 = "${@' cpio.gz.cboot' if not d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
-INITRAMFS_FSTYPES:append:tegra210 = "${@' cpio.gz.cboot' if not d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else ''}"
-# But make sure we don't generate a BUP payload for this
-INITRAMFS_FSTYPES:remove = "cpio.gz.cboot.bup-payload"
-IMAGE_FSTYPES = "${INITRAMFS_FSTYPES}"
+IMAGE_FSTYPES = "${TEGRA_INITRD_FLASH_INITRAMFS_FSTYPES}"
 
 SSTATE_SKIP_CREATION:task-image-complete = "0"
 SSTATE_SKIP_CREATION:task-image-qa = "0"
