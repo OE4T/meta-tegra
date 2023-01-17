@@ -9,7 +9,7 @@ require conf/machine/include/arm/arch-armv8-2a.inc
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 INITRAMFS_IMAGE_BUNDLE ?= "1"
 IMAGE_UBOOT ?= ""
-INITRAMFS_FSTYPES:append = "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot cpio.gz.cboot.bup-payload'}"
+TEGRA_INITRAMFS_FSTYPES ?= "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot cpio.gz.cboot.bup-payload'}"
 
 TEGRA_AUDIO_DEVICE ?= "tegrahdat194ref"
 
@@ -25,7 +25,7 @@ TEGRA_BOARDSKU ?= "0001"
 TEGRA_BOARDREV ?= "H.0"
 TEGRA_CHIPREV ?= "2"
 TEGRA_MINRATCHET_CONFIG ?= "tegra194-mb1-bct-ratchet-p2888-0000-p2822-0000.cfg"
-TEGRA_SIGNING_ENV = "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV} fuselevel=fuselevel_production"
+TEGRA_SIGNING_ENV ?= "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV} fuselevel=fuselevel_production"
 
 TEGRA_CUDA_ARCHITECTURE = "72"
 

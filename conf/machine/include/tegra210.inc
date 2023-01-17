@@ -12,7 +12,7 @@ TEGRA_ESSENTIAL_EXTRA_RDEPENDS = "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 IMAGE_UBOOT ?= "${@'' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') else 'u-boot'}"
-INITRAMFS_FSTYPES:append = "${@'' if not (d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1') else ' cpio.gz.cboot'}"
+TEGRA_INITRAMFS_FSTYPES ?= "${@'' if not (d.getVar('PREFERRED_PROVIDER_virtual/bootloader').startswith('cboot') and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1') else ' cpio.gz.cboot'}"
 
 TEGRA_AUDIO_DEVICE ?= "tegrahda"
 
