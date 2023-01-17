@@ -57,7 +57,12 @@ EXTRA_IMAGECMD:ext4 ?= "-i 4096 -b 4096"
 IMAGE_CLASSES += "image_types_tegra"
 IMAGE_FSTYPES += "tegraflash"
 
-TEGRAFLASH_INITRD_FLASH_IMAGE = "tegra-initrd-flash-initramfs"
+INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
+INITRAMFS_IMAGE_BUNDLE ?= "0"
+TEGRA_INITRAMFS_FSTYPES ?= "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot cpio.gz.cboot.bup-payload'}"
+INITRAMFS_FSTYPES:append = "${TEGRA_INITRAMFS_FSTYPES}"
+TEGRA_INITRD_FLASH_INITRAMFS_FSTYPES ?= "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot'}"
+TEGRAFLASH_INITRD_FLASH_IMAGE ?= "tegra-initrd-flash-initramfs"
 
 BOOT_PARTITIONS_ON_EMMC ?= "0"
 
@@ -82,3 +87,6 @@ CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_${TEGRA_CUDA_ARCHITECTURE} -
 
 L4T_BSP_ARCH = "tegra"
 L4T_BSP_PKGARCH = "${TEGRA_PKGARCH}"
+
+EFI_PROVIDER ?= "l4t-launcher"
+TEGRA_SIGNING_ENV ?= "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV} fuselevel=fuselevel_production"

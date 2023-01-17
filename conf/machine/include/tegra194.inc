@@ -6,10 +6,6 @@ require conf/machine/include/soc-family.inc
 DEFAULTTUNE ?= "armv8a-crc"
 require conf/machine/include/arm/arch-armv8-2a.inc
 
-INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
-INITRAMFS_IMAGE_BUNDLE ?= "0"
-INITRAMFS_FSTYPES:append = "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot cpio.gz.cboot.bup-payload'}"
-
 SERIAL_CONSOLES ?= "115200;ttyTCU0"
 
 KERNEL_MODULE_AUTOLOAD ?= "nvmap nvgpu pwm-fan ina3221 tegra-udrm"
@@ -21,13 +17,10 @@ TEGRA_FAB ?= "400"
 TEGRA_BOARDSKU ?= "0001"
 TEGRA_BOARDREV ?= "H.0"
 TEGRA_CHIPREV ?= "2"
-TEGRA_SIGNING_ENV = "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV} fuselevel=fuselevel_production"
 
 TEGRA_CUDA_ARCHITECTURE ?= "72"
 
 require conf/machine/include/tegra-common.inc
-
-EFI_PROVIDER ?= "l4t-launcher"
 
 L4T_BSP_PREFIX = "Jetson"
 L4T_DEB_SOCNAME = "t194"
