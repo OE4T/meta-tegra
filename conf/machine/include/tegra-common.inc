@@ -12,6 +12,7 @@ KERNEL_IMAGETYPE ?= "Image.gz"
 KERNEL_ROOTSPEC_DEFAULT = "mmcblk${devnum}p${distro_bootpart}"
 KERNEL_ROOTSPEC ?= "root=/dev/${@d.getVar('TNSPEC_BOOTDEV') if d.getVar('TNSPEC_BOOTDEV') != 'mmcblk0p1' else d.getVar('KERNEL_ROOTSPEC_DEFAULT')} rw rootwait"
 KERNEL_ARGS ??= ""
+INITRAMFS_FSTYPES:append = " ${TEGRA_INITRAMFS_FSTYPES}"
 
 UBOOT_EXTLINUX ?= "1"
 UBOOT_EXTLINUX_FDTDIR ?= ""
@@ -46,7 +47,8 @@ EXTRA_IMAGECMD:ext4 ?= "-i 4096 -b 4096"
 IMAGE_CLASSES += "image_types_tegra"
 IMAGE_FSTYPES += "tegraflash"
 
-TEGRAFLASH_INITRD_FLASH_IMAGE = "tegra-initrd-flash-initramfs"
+TEGRAFLASH_INITRD_FLASH_IMAGE ?= "tegra-initrd-flash-initramfs"
+TEGRA_INITRD_FLASH_INITRAMFS_FSTYPES ?= "${@'${INITRAMFS_FSTYPES}' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else 'cpio.gz.cboot'}"
 
 BOOT_PARTITIONS_ON_EMMC ?= "0"
 
