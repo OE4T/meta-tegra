@@ -1,5 +1,5 @@
 L4T_BSP_NAME = "${L4T_SRCS_NAME}"
-SRC_URI = "${L4T_URI_BASE}/public_sources.tbz2;downloadfilename=Jetson-public_sources-${L4T_VERSION}.tbz2"
+SRC_URI = "https://developer.nvidia.com/downloads/remack-sdksjetpack-463r32releasev73sourcest186publicsourcestbz2;downloadfilename=Jetson-public_sources-${L4T_VERSION}.tbz2"
 SRC_URI[sha256sum] = "919b4091f0ea60dda2646feaca44bba7a7722d3343272795d9bac21797eea4eb"
 
 inherit l4t_bsp
