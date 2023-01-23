@@ -5,6 +5,7 @@ L4T_BSP_PREFIX = "Jetson-210"
 require tegra-binaries-${PV}.inc
 
 BSP_NAME_MANGLED = "${BSP_NAME_MANGLED_tegra210}"
+SB_NAME_MANGLED = "${SB_NAME_MANGLED_tegra210}"
 L4T_MD5SUM = "${L4T_MD5SUM_tegra210}"
 L4T_SHA256SUM = "${L4T_SHA256SUM_tegra210}"
 SB_MD5SUM = "${SB_MD5SUM_tegra210}"
