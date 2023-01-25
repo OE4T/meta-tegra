@@ -1,7 +1,7 @@
-From 7c9891dbcb5f4dcddc6d41b73d99e10579cfc300 Mon Sep 17 00:00:00 2001
+From 916d83cb06bb164e3681130f01daf6095561c3e2 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Wed, 30 Mar 2022 22:42:28 +0100
-Subject: [PATCH 6/9] samples: Rework makefiles and rules
+Subject: [PATCH 5/8] samples: Rework makefiles and rules
 
 * Make them more OE-friendly
 * Add install targets
@@ -10,41 +10,41 @@ Subject: [PATCH 6/9] samples: Rework makefiles and rules
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile        |  9 +-
- samples/00_video_decode/Makefile          | 10 +-
- samples/01_video_encode/Makefile          | 10 +-
- samples/02_video_dec_cuda/Makefile        | 20 +---
- samples/03_video_cuda_enc/Makefile        | 21 +---
- samples/04_video_dec_trt/Makefile         | 34 +++----
- samples/05_jpeg_encode/Makefile           | 11 +--
- samples/06_jpeg_decode/Makefile           | 10 +-
- samples/07_video_convert/Makefile         | 10 +-
- samples/08_video_dec_drm/Makefile         | 16 ++--
- samples/09_camera_jpeg_capture/Makefile   | 14 +--
- samples/10_camera_recording/Makefile      | 18 ++--
- samples/12_camera_v4l2_cuda/Makefile      | 20 +---
- samples/13_multi_camera/Makefile          | 14 +--
- samples/14_multivideo_decode/Makefile     | 10 +-
- samples/15_multivideo_encode/Makefile     | 10 +-
- samples/16_multivideo_transcode/Makefile  | 10 +-
- samples/Rules.mk                          | 96 +++++++++----------
- samples/backend/Makefile                  | 41 ++++----
- samples/common/algorithm/cuda/Makefile    | 17 ++--
- samples/common/algorithm/trt/Makefile     | 11 ++-
- samples/common/classes/Makefile           | 10 +-
- samples/frontend/Makefile                 | 42 ++++----
- .../camera_unit_sample/Makefile           | 10 +-
- .../decoder_unit_sample/Makefile          | 10 +-
- .../encoder_unit_sample/Makefile          | 10 +-
- .../transform_unit_sample/Makefile        | 10 +-
- samples/v4l2cuda/Makefile                 | 11 +--
+ Makefile                                      |  9 +-
+ samples/00_video_decode/Makefile              | 10 +-
+ samples/01_video_encode/Makefile              | 10 +-
+ samples/02_video_dec_cuda/Makefile            | 20 +---
+ samples/03_video_cuda_enc/Makefile            | 21 +---
+ samples/04_video_dec_trt/Makefile             | 34 +++----
+ samples/05_jpeg_encode/Makefile               | 11 +--
+ samples/06_jpeg_decode/Makefile               | 10 +-
+ samples/07_video_convert/Makefile             | 10 +-
+ samples/08_video_dec_drm/Makefile             | 16 ++--
+ samples/09_argus_camera_jpeg/Makefile         | 14 +--
+ samples/10_argus_camera_recording/Makefile    | 18 ++--
+ samples/12_v4l2_camera_cuda/Makefile          | 20 +---
+ samples/13_argus_multi_camera/Makefile        | 14 +--
+ samples/14_multivideo_decode/Makefile         | 10 +-
+ samples/15_multivideo_encode/Makefile         | 10 +-
+ samples/16_multivideo_transcode/Makefile      | 10 +-
+ samples/17_frontend/Makefile                  | 42 ++++----
+ samples/18_v4l2_camera_cuda_rgb/Makefile      | 11 +--
+ samples/Rules.mk                              | 96 +++++++++----------
+ samples/backend/Makefile                      | 41 ++++----
+ samples/common/algorithm/cuda/Makefile        | 17 ++--
+ samples/common/algorithm/trt/Makefile         | 11 ++-
+ samples/common/classes/Makefile               | 10 +-
+ .../camera_unit_sample/Makefile               | 10 +-
+ .../decoder_unit_sample/Makefile              | 10 +-
+ .../encoder_unit_sample/Makefile              | 10 +-
+ .../transform_unit_sample/Makefile            | 10 +-
  28 files changed, 208 insertions(+), 307 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 3729d4d..d1fcd9f 100644
+index 26b05cf..18e37d3 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -57,7 +57,7 @@ SUBDIRS = \
+@@ -58,7 +58,7 @@ SUBDIRS = \
  all:
  	@list='$(SUBDIRS)'; for subdir in $$list; do \
  		echo "Make in $$subdir";\
@@ -53,7 +53,7 @@ index 3729d4d..d1fcd9f 100644
  		if [ $$? -ne 0 ]; then exit 1; fi;\
  	done
  
-@@ -67,3 +67,10 @@ clean:
+@@ -68,3 +68,10 @@ clean:
  		echo "Clean in $$subdir";\
  		$(MAKE) -C $$subdir clean;\
  	done
@@ -408,10 +408,10 @@ index 5cb1be9..f59d7f7 100644
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS) image_rgba.*
-diff --git a/samples/09_camera_jpeg_capture/Makefile b/samples/09_camera_jpeg_capture/Makefile
-index 52ee562..0fd68f8 100644
---- a/samples/09_camera_jpeg_capture/Makefile
-+++ b/samples/09_camera_jpeg_capture/Makefile
+diff --git a/samples/09_argus_camera_jpeg/Makefile b/samples/09_argus_camera_jpeg/Makefile
+index 2fc7720..4372f8d 100644
+--- a/samples/09_argus_camera_jpeg/Makefile
++++ b/samples/09_argus_camera_jpeg/Makefile
 @@ -36,10 +36,9 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
  
  SRCS := \
@@ -447,10 +447,10 @@ index 52ee562..0fd68f8 100644
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-diff --git a/samples/10_camera_recording/Makefile b/samples/10_camera_recording/Makefile
-index c3fdce9..fb4551d 100644
---- a/samples/10_camera_recording/Makefile
-+++ b/samples/10_camera_recording/Makefile
+diff --git a/samples/10_argus_camera_recording/Makefile b/samples/10_argus_camera_recording/Makefile
+index 8a8eb57..21e2beb 100644
+--- a/samples/10_argus_camera_recording/Makefile
++++ b/samples/10_argus_camera_recording/Makefile
 @@ -36,12 +36,11 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
  
  SRCS := \
@@ -492,12 +492,12 @@ index c3fdce9..fb4551d 100644
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-diff --git a/samples/12_camera_v4l2_cuda/Makefile b/samples/12_camera_v4l2_cuda/Makefile
-index 0cc2e97..9a644db 100644
---- a/samples/12_camera_v4l2_cuda/Makefile
-+++ b/samples/12_camera_v4l2_cuda/Makefile
+diff --git a/samples/12_v4l2_camera_cuda/Makefile b/samples/12_v4l2_camera_cuda/Makefile
+index c6d086a..63f4338 100644
+--- a/samples/12_v4l2_camera_cuda/Makefile
++++ b/samples/12_v4l2_camera_cuda/Makefile
 @@ -33,33 +33,19 @@ include ../Rules.mk
- APP := camera_v4l2_cuda
+ APP := v4l2_camera_cuda
  
  SRCS := \
 -	camera_v4l2_cuda.cpp \
@@ -533,10 +533,10 @@ index 0cc2e97..9a644db 100644
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-diff --git a/samples/13_multi_camera/Makefile b/samples/13_multi_camera/Makefile
-index b600351..73cb468 100644
---- a/samples/13_multi_camera/Makefile
-+++ b/samples/13_multi_camera/Makefile
+diff --git a/samples/13_argus_multi_camera/Makefile b/samples/13_argus_multi_camera/Makefile
+index 6a28095..f556b2a 100644
+--- a/samples/13_argus_multi_camera/Makefile
++++ b/samples/13_argus_multi_camera/Makefile
 @@ -36,10 +36,9 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
  
  SRCS := \
@@ -665,6 +665,113 @@ index df65641..9b7394e 100644
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
+diff --git a/samples/17_frontend/Makefile b/samples/17_frontend/Makefile
+index 35f3f56..8bfafb3 100644
+--- a/samples/17_frontend/Makefile
++++ b/samples/17_frontend/Makefile
+@@ -30,6 +30,15 @@
+ 
+ include ../Rules.mk
+ 
++ifneq ($(HAVE_OPENCV), 1)
++all:
++	:
++install:
++	:
++clean:
++	:
++else
++
+ APP := frontend
+ 
+ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
+@@ -41,7 +50,6 @@ SRCS := \
+ 	StreamConsumer.cpp \
+ 	VideoEncodeStreamConsumer.cpp \
+ 	VideoEncoder.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp) \
+ 	$(ARGUS_UTILS_DIR)/Thread.cpp
+ 
+ ifeq ($(ENABLE_TRT), 1)
+@@ -49,18 +57,17 @@ SRCS += \
+ 	TRTStreamConsumer.cpp
+ endif
+ 
+-OBJS := $(SRCS:.cpp=.o)
++OBJS := $(notdir $(SRCS:.cpp=.o))
+ 
+ ifeq ($(ENABLE_TRT), 1)
+ CPPFLAGS += -DENABLE_TRT
+-OBJS += \
+-	$(ALGO_CUDA_DIR)/NvAnalysis.o \
+-	$(ALGO_CUDA_DIR)/NvCudaProc.o \
+-	$(ALGO_TRT_DIR)/trt_inference.o
++LINKDEPS = algo_cuda algo_trt
++EXTRAOBJS = $(ALGO_CUDA_OBJS) $(ALGO_TRT_OBJS)
+ endif
+ 
+ CPPFLAGS += \
+-	-I"$(ARGUS_UTILS_DIR)"
++	-I"$(ARGUS_UTILS_DIR)" \
++	$(shell pkg-config --cflags opencv4)
+ 
+ LDFLAGS += -lnvargus_socketclient -lopencv_objdetect
+ ifeq ($(ENABLE_TRT), 1)
+@@ -69,25 +76,18 @@ endif
+ 
+ all: $(APP)
+ 
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cu
+-	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
+-
+-$(ALGO_TRT_DIR)/%.o: $(ALGO_TRT_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(ALGO_TRT_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $< -o $@
+ 
+-$(APP): $(OBJS)
++%.o: $(ARGUS_UTILS_DIR)/%.cpp
++	@echo "Compiling: $<"
++	$(CPP) $(CPPFLAGS) -c $< -o $@
++
++$(APP): $(OBJS) $(LINKDEPS)
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(EXTRAOBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+ 
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
++endif
+diff --git a/samples/18_v4l2_camera_cuda_rgb/Makefile b/samples/18_v4l2_camera_cuda_rgb/Makefile
+index 1b3ec95..e484a51 100644
+--- a/samples/18_v4l2_camera_cuda_rgb/Makefile
++++ b/samples/18_v4l2_camera_cuda_rgb/Makefile
+@@ -26,15 +26,8 @@ SRCS := \
+ 	capture.cpp \
+ 	yuv2rgb.cu
+ 
+-ALL_CPPFLAGS := $(addprefix -Xcompiler ,$(filter-out -std=c++11, $(CPPFLAGS)))
+-
+-# CUDA code generation flags
+-GENCODE_SM53 := -gencode arch=compute_53,code=sm_53
+-GENCODE_SM62 := -gencode arch=compute_62,code=sm_62
+-GENCODE_SM72 := -gencode arch=compute_72,code=sm_72
+-GENCODE_SM87 := -gencode arch=compute_87,code=sm_87
+-GENCODE_SM_PTX := -gencode arch=compute_72,code=compute_72
+-GENCODE_FLAGS := $(GENCODE_SM53) $(GENCODE_SM62) $(GENCODE_SM72) $(GENCODE_SM87) $(GENCODE_SM_PTX)
++ALL_CPPFLAGS := $(NVCCFLAGS)
++ALL_CPPFLAGS += $(addprefix -Xcompiler ,$(filter-out -std=c++11, $(CPPFLAGS)))
+ 
+ all: $(APP)
+ 
 diff --git a/samples/Rules.mk b/samples/Rules.mk
 index 190c8e1..a4df626 100644
 --- a/samples/Rules.mk
@@ -970,91 +1077,6 @@ index 7336298..82e2bb8 100644
  
  %.o: %.cpp
  	@echo "Compiling: $<"
-diff --git a/samples/frontend/Makefile b/samples/frontend/Makefile
-index 35f3f56..8bfafb3 100644
---- a/samples/frontend/Makefile
-+++ b/samples/frontend/Makefile
-@@ -30,6 +30,15 @@
- 
- include ../Rules.mk
- 
-+ifneq ($(HAVE_OPENCV), 1)
-+all:
-+	:
-+install:
-+	:
-+clean:
-+	:
-+else
-+
- APP := frontend
- 
- ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
-@@ -41,7 +50,6 @@ SRCS := \
- 	StreamConsumer.cpp \
- 	VideoEncodeStreamConsumer.cpp \
- 	VideoEncoder.cpp \
--	$(wildcard $(CLASS_DIR)/*.cpp) \
- 	$(ARGUS_UTILS_DIR)/Thread.cpp
- 
- ifeq ($(ENABLE_TRT), 1)
-@@ -49,18 +57,17 @@ SRCS += \
- 	TRTStreamConsumer.cpp
- endif
- 
--OBJS := $(SRCS:.cpp=.o)
-+OBJS := $(notdir $(SRCS:.cpp=.o))
- 
- ifeq ($(ENABLE_TRT), 1)
- CPPFLAGS += -DENABLE_TRT
--OBJS += \
--	$(ALGO_CUDA_DIR)/NvAnalysis.o \
--	$(ALGO_CUDA_DIR)/NvCudaProc.o \
--	$(ALGO_TRT_DIR)/trt_inference.o
-+LINKDEPS = algo_cuda algo_trt
-+EXTRAOBJS = $(ALGO_CUDA_OBJS) $(ALGO_TRT_OBJS)
- endif
- 
- CPPFLAGS += \
--	-I"$(ARGUS_UTILS_DIR)"
-+	-I"$(ARGUS_UTILS_DIR)" \
-+	$(shell pkg-config --cflags opencv4)
- 
- LDFLAGS += -lnvargus_socketclient -lopencv_objdetect
- ifeq ($(ENABLE_TRT), 1)
-@@ -69,25 +76,18 @@ endif
- 
- all: $(APP)
- 
--$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
--	$(AT)$(MAKE) -C $(CLASS_DIR)
--
--$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cpp
--	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
--
--$(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cu
--	$(AT)$(MAKE) -C $(ALGO_CUDA_DIR)
--
--$(ALGO_TRT_DIR)/%.o: $(ALGO_TRT_DIR)/%.cpp
--	$(AT)$(MAKE) -C $(ALGO_TRT_DIR)
--
- %.o: %.cpp
- 	@echo "Compiling: $<"
- 	$(CPP) $(CPPFLAGS) -c $< -o $@
- 
--$(APP): $(OBJS)
-+%.o: $(ARGUS_UTILS_DIR)/%.cpp
-+	@echo "Compiling: $<"
-+	$(CPP) $(CPPFLAGS) -c $< -o $@
-+
-+$(APP): $(OBJS) $(LINKDEPS)
- 	@echo "Linking: $@"
--	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
-+	$(CPP) -o $@ $(OBJS) $(EXTRAOBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
- 
- clean:
- 	$(AT)rm -rf $(APP) $(OBJS)
-+endif
 diff --git a/samples/unittest_samples/camera_unit_sample/Makefile b/samples/unittest_samples/camera_unit_sample/Makefile
 index 790a322..ec63a2d 100644
 --- a/samples/unittest_samples/camera_unit_sample/Makefile
@@ -1179,28 +1201,6 @@ index 404429b..1ede2ab 100644
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-diff --git a/samples/v4l2cuda/Makefile b/samples/v4l2cuda/Makefile
-index 6a6c794..f856671 100644
---- a/samples/v4l2cuda/Makefile
-+++ b/samples/v4l2cuda/Makefile
-@@ -26,15 +26,8 @@ SRCS := \
- 	capture.cpp \
- 	yuv2rgb.cu
- 
--ALL_CPPFLAGS := $(addprefix -Xcompiler ,$(filter-out -std=c++11, $(CPPFLAGS)))
--
--# CUDA code generation flags
--GENCODE_SM53 := -gencode arch=compute_53,code=sm_53
--GENCODE_SM62 := -gencode arch=compute_62,code=sm_62
--GENCODE_SM72 := -gencode arch=compute_72,code=sm_72
--GENCODE_SM87 := -gencode arch=compute_87,code=sm_87
--GENCODE_SM_PTX := -gencode arch=compute_72,code=compute_72
--GENCODE_FLAGS := $(GENCODE_SM53) $(GENCODE_SM62) $(GENCODE_SM72) $(GENCODE_SM87) $(GENCODE_SM_PTX)
-+ALL_CPPFLAGS := $(NVCCFLAGS)
-+ALL_CPPFLAGS += $(addprefix -Xcompiler ,$(filter-out -std=c++11, $(CPPFLAGS)))
- 
- all: $(APP)
- 
 -- 
-2.32.0
+2.34.1
 
