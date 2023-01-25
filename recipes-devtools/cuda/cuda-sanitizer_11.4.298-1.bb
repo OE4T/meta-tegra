@@ -3,8 +3,8 @@ L4T_DEB_GROUP = "cuda-sanitizer-api"
 
 require cuda-shared-binaries.inc
 
-MAINSUM = "45cc2c68dff049bb8a13d7575966507edde62a94b5957ca7f11e47edfa7ee8cb"
-MAINSUM:x86-64 = "17bacbb045815ca3a7b58504414ba0e06b6afe430f5bfd59907a581029ea610e"
+MAINSUM = "5fbc7a7c778a387730003522c9442f1d321a0b41317529f47dd7dd5bf9f1f92c"
+MAINSUM:x86-64 = "0fe650b5d707c91f55f86d55a659c6dc9178579dd9e80d9cfbd92dc595bd03b3"
 
 FILES:${PN} += " \
     ${prefix}/local/cuda-${CUDA_VERSION}/compute-sanitizer/TreeLauncherSubreaper \

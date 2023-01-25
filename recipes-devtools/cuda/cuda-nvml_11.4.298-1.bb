@@ -3,8 +3,8 @@ CUDA_PKG = "${BPN}-dev"
 require cuda-shared-binaries.inc
 
 L4T_DEB_GROUP = "${BPN}-dev"
-DEVSUM = "233c3bd5307e3ef39b7882b906ed53770f003ed903b95879226c8e6092a7fb34"
-DEVSUM:x86-64 = "b3bc42992168164f691f594fb68be407d5310db2ba2525e011ee3855c024495d"
+DEVSUM = "8d66d8b56bdb79d3778f7a9dc20b433ad2aa191d38f663ae973340e1a5b91d3b"
+DEVSUM:x86-64 = "ea2efe3a6f938b14892e063c99ef4fa59804f47e60c2fd4f3494c39c549e19ce"
 
 ALLOW_EMPTY:${PN} = "1"
 FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/nvml/example"
