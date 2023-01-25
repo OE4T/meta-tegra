@@ -8,7 +8,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
 SRC_COMMON_DEBS = "${BPN}-${CUDA_VERSION_DASHED}_${PV}_arm64.deb;unpack=false"
 L4T_DEB_GROUP = "cuda-samples"
-SRC_URI[sha256sum] = "41d009cc25b96e09045cbcba2d8353eead22ecd3476198b00221ab136ac8a527"
+SRC_URI[sha256sum] = "58b2d1f5fbb5c1adc12d168042cebb2fdf4e279bc820cf3fc7f4431695d2f0b6"
 
 do_unpack_samples() {
     dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-11-4_${PV}_arm64.deb | \

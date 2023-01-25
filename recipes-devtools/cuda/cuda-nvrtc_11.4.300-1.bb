@@ -1,9 +1,9 @@
 require cuda-shared-binaries.inc
 
-MAINSUM = "9cfae20c24d580a28ab97cff977e8fe7a0248fd3335272f23391d0a16455e14f"
-MAINSUM:x86-64 = "c3583aac799a74c716d76ffacad8064104454681ad912afe25822ed17708a167"
-DEVSUM = "71240afeb550733de7292ac582a7ab8a16eef44225120de7cdd80ec3c8a8572f"
-DEVSUM:x86-64 = "95295f7f0c00153c3889b0d7055cfef3a314b0611bb833ce635c4d26849a340b"
+MAINSUM = "f0e4150e89624d85dc6aaaec09fad97e36d285212f6765b24db9e69b85c2f0b0"
+MAINSUM:x86-64 = "a4220f40dd1dffa24a65ace2dcafa4e21d3244e33ae2ec741d328279e8aa5931"
+DEVSUM = "204caec1733d39008af5840e22c4e620aff5ee44ecb329fab5b57d6eeea9e06a"
+DEVSUM:x86-64 = "df6e6bca6bb44e3bbb1980a86406e22c432ad0f1aedbd0a5f1e80efb475fab63"
 
 FILES:${PN}-dev:remove = "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/*${SOLIBSDEV}"
 FILES:${PN} += "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/libnvrtc-builtins.so"
