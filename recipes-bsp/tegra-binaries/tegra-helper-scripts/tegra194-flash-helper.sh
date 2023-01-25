@@ -27,8 +27,18 @@ mkfilesoft() {
 cp2local() {
     :
 }
+
 signimage() {
     :
+}
+
+process_l4t_conf_dtbo() {
+    :
+}
+
+partition_exists_in_PT_table() {
+    # Return failure status here 
+    return 1
 }
 
 ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
@@ -506,9 +516,11 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     BCT="--sdram_config"
     bctfilename=`echo $sdramcfg_files | cut -d, -f1`
     bctfile1name=`echo $sdramcfg_files | cut -d, -f2`
+    boot_chain_select="A"
     SOSARGS="--applet mb1_t194_prod.bin "
     NV_ARGS="--soft_fuses tegra194-mb1-soft-fuses-l4t.cfg "
-    BCTARGS="$bctargs --boot_chain A --bct_backup --secondary_gpt_backup"
+    BCTARGS="$bctargs --bct_backup --secondary_gpt_backup"
+    boot_chain_select="A"
     rootfs_ab=0
     bl_userkey_encrypt_list=("xusb_sil_rel_fw")
     . "$here/odmsign.func"
