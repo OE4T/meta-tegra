@@ -15,7 +15,7 @@ UBOOT_EXTLINUX_KERNEL_IMAGE ?= "/boot/${KERNEL_IMAGETYPE}"
 UBOOT_EXTLINUX_INITRD ?= "${@'/boot/initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1' else ''}"
 UBOOT_EXTLINUX_KERNEL_ARGS ?= "${KERNEL_ARGS}"
 
-TEGRA_BOOTCONTROL_OVERLAYS ?= "L4TConfiguration.dtbo,L4TRootfsInfo.dtbo"
+TEGRA_BOOTCONTROL_OVERLAYS ?= "L4TConfiguration.dtbo"
 
 TNSPEC_MACHINE ??= "${MACHINE}"
 TNSPEC_BOOTDEV ??= "mmcblk0p1"
@@ -34,7 +34,7 @@ PREFERRED_PROVIDER_tensorrt-plugins ?= "tensorrt-plugins-prebuilt"
 PREFERRED_PROVIDER_tensorrt-trtexec ?= "tensorrt-trtexec-prebuilt"
 PREFERRED_RPROVIDER_tegra-gbm-backend ?= "tegra-libraries-gbm-backend"
 
-USE_PREBUILT_OPTEE ?= "0"
+USE_PREBUILT_OPTEE ?= "1"
 
 PREFERRED_PROVIDER_virtual/secure-os ?= "${@'tos-prebuilt' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'tos-optee'}"
 PREFERRED_PROVIDER_optee-nvsamples ?= "${@'nvidia-l4t-optee' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'optee-nvsamples'}"
