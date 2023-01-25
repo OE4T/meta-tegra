@@ -1,14 +1,15 @@
-From 35ff09d78c84a8a94eaeb1d791ee6f67067afe0c Mon Sep 17 00:00:00 2001
+From 98915ba48a31a528ea24636604981c3d521cc75b Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Wed, 22 Jan 2020 05:53:04 -0800
+Date: Tue, 3 Jan 2023 10:20:22 -0800
 Subject: [PATCH] Convert BUP_generator.py to Python3
 
-%% original patch: 0003-Convert-BUP_generator.py-to-Python3.patch
+Ran it through 2to3 for the conversion, then
+made some additional fixes not caught by the tool.
 
-%% original patch: 0003-Convert-BUP_generator.py-to-Python3.patch
+Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- bootloader/BUP_generator.py | 192 ++++++++++++++----------------------
- 1 file changed, 76 insertions(+), 116 deletions(-)
+ bootloader/BUP_generator.py | 26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
 Index: Linux_for_Tegra/bootloader/BUP_generator.py
 ===================================================================
@@ -20,133 +21,16 @@ Index: Linux_for_Tegra/bootloader/BUP_generator.py
  #
  # Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
  #
-@@ -54,11 +54,6 @@ Appendix:
+@@ -52,7 +52,7 @@ Appendix:
+                   (extract all partition bins for "ota.blob" to "OUT/*.raw.bin" without displaying blob info)
+ """
+ 
+-from __future__ import print_function
++
  
  import copy
  import sys
--
--if sys.hexversion < 0x02070000:
--  print >> sys.stderr, "Python 2.7 or newer is required."
--  sys.exit(1)
--
- import os
- import sys
- import struct
-@@ -154,8 +149,8 @@ def generate_BUP(arg):
-     global top_var
- 
-     # Check "TOP" variable is set and is valid
--    if not os.environ.has_key("TOP") or not os.path.isdir(os.environ["TOP"]):
--        if not os.environ.has_key("ANDROID_BUILD_TOP") or \
-+    if "TOP" not in os.environ or not os.path.isdir(os.environ["TOP"]):
-+        if "ANDROID_BUILD_TOP" not in os.environ or \
-                 not os.path.isdir(os.environ["ANDROID_BUILD_TOP"]):
-             sys.stderr.write("Environment variable TOP not set or invalid.\n")
-             return
-@@ -163,11 +158,11 @@ def generate_BUP(arg):
-             top_var = "ANDROID_BUILD_TOP"
- 
-     # Check "OUT" variable is set and is valid
--    if not os.environ.has_key("OUT") or not os.path.isdir(os.environ["OUT"]):
-+    if "OUT" not in os.environ or not os.path.isdir(os.environ["OUT"]):
-         sys.stderr.write("Environment variable OUT not set or invalid.\n")
-         return
- 
--    print 'PARTITION INFO   :', arg.entry_list
-+    print('PARTITION INFO   :', arg.entry_list)
- 
-     if arg.blob_type == 'update':
-         payload_obj = update_payload(arg)
-@@ -190,8 +185,8 @@ def inspect_BUP(arg):
-         sys.stderr.write("Error. Last argument must be a path to a valid blob file. Exiting...\r\n")
-         sys.exit(1)
- 
--    print 'BLOB PATH:'
--    print os.path.realpath(arg.inspect_blob.name)
-+    print('BLOB PATH:')
-+    print(os.path.realpath(arg.inspect_blob.name))
- 
-     if arg.blob_type == 'update':
-         payload_obj = inspect_update_payload(arg)
-@@ -203,18 +198,18 @@ def inspect_BUP(arg):
-         sys.exit(1)
- 
-     if arg.inspect_mode is True and arg.check_entries is True:
--        print
-+        print()
-         payload_obj.check_entry_table()
-     elif arg.inspect_mode is True:
--        print
-+        print()
-         payload_obj.print_blob_header()
--        print
-+        print()
-         payload_obj.print_entry_table()
- 
--    print
-+    print()
-     if arg.inspect_extract_bin_list is not None:
-         # Check "OUT" variable is set and is valid if binary extraction is specified
--        if not os.environ.has_key("OUT") or not os.path.isdir(os.environ["OUT"]):
-+        if "OUT" not in os.environ or not os.path.isdir(os.environ["OUT"]):
-             sys.stderr.write("Environment variable OUT not set or invalid.\r\n" \
-                              "Error. Cannot save binaries. Exiting...\r\n"
-                             )
-@@ -237,7 +232,7 @@ class payload():
-         return version
- 
-     def __init__(self, args):
--        self.magic = bup_magic
-+        self.magic = bup_magic.encode('UTF-8')
-         self.version = self.gen_version()
-         self.blob_size_pos = struct.calcsize('=16sI')
-         self.header_packing = '=16sIIIIII'
-@@ -320,7 +315,7 @@ class update_payload(payload):
-         payload.__init__(self, arg)
-         self.blob_type = 0
-         self.entry_packing = '=40sIIII128s'
--        self.entry_tuple = ('', 0, 0, 0, 0, '')
-+        self.entry_tuple = (b'', 0, 0, 0, 0, b'')
-         self.param_c = 5
-         self.outfile = 'ota.blob'
- 
-@@ -331,7 +326,7 @@ class update_payload(payload):
- 
-             entry_info = self.entry_info_list[i]
-             if len(entry_info) != self.param_c:
--                print 'Invalid entry tuple:', entry_info
-+                print('Invalid entry tuple:', entry_info)
-                 return
- 
-             binary_name = payload.get_binary_name(self, entry_info[0])
-@@ -375,7 +370,7 @@ class update_payload(payload):
-             spec_info = entry_info[4]
-             offset = entry_update[0]
-             length = entry_update[1]
--            entry_tuple = (part_name, offset, length, version, op_mode, spec_info)
-+            entry_tuple = (part_name.encode('utf-8'), offset, length, version, op_mode, spec_info.encode('utf-8'))
-             updated_entry = struct.pack(self.entry_packing, *entry_tuple)
-             blob.write(updated_entry)
- 
-@@ -392,7 +387,7 @@ class bmp_payload(payload):
-         payload.__init__(self, arg)
-         self.blob_type = 1
-         self.entry_packing = '=IIII36s'
--        self.entry_tuple = (0, 0, 0, 0, '')
-+        self.entry_tuple = (0, 0, 0, 0, b'')
-         self.param_c = 3
-         self.outfile = 'bmp.blob'
- 
-@@ -404,7 +399,7 @@ class bmp_payload(payload):
- 
-             entry_info = self.entry_info_list[i]
-             if len(entry_info) != self.param_c:
--                print 'Invalid entry tuple:', entry_info
-+                print('Invalid entry tuple:', entry_info)
-                 return
- 
-             binary_name = payload.get_binary_name(self, entry_info[0])
-@@ -448,7 +443,7 @@ class inspect_update_payload(update_payl
+@@ -450,7 +450,7 @@ class inspect_update_payload(update_payl
          self.raw_extract_bin_list = arg.inspect_extract_bin_list
  
          self.blob_header_tuple = struct.unpack(self.header_packing, self.blob_file.read(struct.calcsize(self.header_packing)))
@@ -155,40 +39,7 @@ Index: Linux_for_Tegra/bootloader/BUP_generator.py
  
          # # Detect if optional accessory field (8 bytes) is present
          if self.blob_header_dict['header_size'] > struct.calcsize(self.header_packing):
-@@ -457,8 +452,8 @@ class inspect_update_payload(update_payl
- 
-         if not self._valid():
-             sys.stderr.write("Warning. Invalid input blob file. Results may be unexpected.\r\n" \
--                             "      Input magic: " + self.blob_header_dict['magic'] + "\r\n" \
--                             "   Expected magic: " + self.magic + "\r\n" \
-+                             "      Input magic: " + self.blob_header_dict['magic'].decode('utf-8') + "\r\n" \
-+                             "   Expected magic: " + self.magic.decode('utf-8') + "\r\n" \
-                              "    Input version: " + format(self.blob_header_dict['version'], "#010x") + "\r\n" \
-                              " Expected version: " + format(self.version, "#010x") + "\r\n" \
-                              "       Input type: " + str(self.blob_header_dict['type']) + "\r\n" \
-@@ -466,15 +461,15 @@ class inspect_update_payload(update_payl
-                             )
- 
-         if self.blob_header_dict['entry_count'] > arg.inspect_max_entries:
--            print
--            print "Blob header indicates " + str(self.blob_header_dict['entry_count']) + " partitions in this blob.\r\n" \
-+            print()
-+            print("Blob header indicates " + str(self.blob_header_dict['entry_count']) + " partitions in this blob.\r\n" \
-                   "Limiting display to the first " + str(arg.inspect_max_entries) + " partitions.\r\n" \
--                  "Use the '--max-entries' or '-m' option to specify otherwise."
--            self.blob_entry_list = range(arg.inspect_max_entries)
-+                  "Use the '--max-entries' or '-m' option to specify otherwise.")
-+            self.blob_entry_list = list(range(arg.inspect_max_entries))
-         else:
--            self.blob_entry_list = range(self.blob_header_dict['entry_count'])
-+            self.blob_entry_list = list(range(self.blob_header_dict['entry_count']))
- 
--        self.blob_entry_max_width_list = range(len(self.entry_name_tuple))
-+        self.blob_entry_max_width_list = list(range(len(self.entry_name_tuple)))
-         for i in range(len(self.blob_entry_max_width_list)):
-             self.blob_entry_max_width_list[i] = len(self.entry_name_tuple[i])
- 
-@@ -491,13 +486,17 @@ class inspect_update_payload(update_payl
+@@ -493,7 +493,7 @@ class inspect_update_payload(update_payl
          for idx, blob_entry in enumerate(self.blob_entry_list):
              try:
                  blob_entry_tuple = struct.unpack(self.entry_packing, self.blob_file.read(struct.calcsize(self.entry_packing)))
@@ -197,176 +48,47 @@ Index: Linux_for_Tegra/bootloader/BUP_generator.py
                  self.blob_entry_list[idx] = blob_entry_dict
  
                  for n in range(len(self.blob_entry_max_width_list)):
-                     try:
--                        if len(str(blob_entry_tuple[n]).strip(' \t\n\0')) > self.blob_entry_max_width_list[n]:
--                            self.blob_entry_max_width_list[n] = len(str(blob_entry_tuple[n]).strip(' \t\n\0'))
-+                        if n in [0, 5]:
-+                            val = blob_entry_tuple[n].decode('utf-8')
-+                        else:
-+                            val = str(blob_entry_tuple[n])
-+                        if len(val.strip(' \t\n\0')) > self.blob_entry_max_width_list[n]:
-+                            self.blob_entry_max_width_list[n] = len(val.strip(' \t\n\0'))
-                     except:
-                         pass
-             except:
-@@ -526,101 +525,62 @@ class inspect_update_payload(update_payl
-         return version
- 
-     def print_blob_header(self):
--        print "BLOB HEADER:"
--        print "       Magic: " + self.blob_header_dict['magic']
--        print "     Version: " + self.show_readable_version() \
--                               + " (" + format(self.blob_header_dict['version'], "#010x") + ")"
--        print "   Blob Size: " + "{:,}".format(self.blob_header_dict['blob_size']) + " bytes"
--        print " Header Size: " + "{:,}".format(self.blob_header_dict['header_size']) + " bytes"
--        print " Entry Count: " + str(self.blob_header_dict['entry_count']) + " partition(s)"
--        print "        Type: " + str(self.blob_header_dict['type']) + " (0 for update, 1 for BMP)"
--        print "Uncompressed\r\n" \
--              "   Blob Size: " + "{:,}".format(self.blob_header_dict['uncomp_blob_size']) + " bytes"
--        print "   Accessory:",
-+        print("BLOB HEADER:")
-+        print("       Magic: " + self.blob_header_dict['magic'].decode('utf-8'))
-+        print("     Version: " + self.show_readable_version() \
-+                               + " (" + format(self.blob_header_dict['version'], "#010x") + ")")
-+        print("   Blob Size: " + "{:,}".format(self.blob_header_dict['blob_size']) + " bytes")
-+        print(" Header Size: " + "{:,}".format(self.blob_header_dict['header_size']) + " bytes")
-+        print(" Entry Count: " + str(self.blob_header_dict['entry_count']) + " partition(s)")
-+        print("        Type: " + str(self.blob_header_dict['type']) + " (0 for update, 1 for BMP)")
-+        print("Uncompressed\r\n" \
-+              "   Blob Size: " + "{:,}".format(self.blob_header_dict['uncomp_blob_size']) + " bytes")
-+        print("   Accessory:",)
-         if self.accessory_present == True:
--            print format(self.blob_header_dict['accessory'], "#018x")
-+            print(format(self.blob_header_dict['accessory'], "#018x"))
-         else:
--            print "Not Present"
-+            print("Not Present")
-         return
- 
-     def print_entry_table(self):
--        print "ENTRY TABLE:"
--        print "|",
-+        print("ENTRY TABLE:")
-+        print("|", end='')
-         for idx, entry_name in enumerate(self.entry_name_tuple):
--            print entry_name.center(self.blob_entry_max_width_list[idx]) + " |",
--        print
-+            print(entry_name.center(self.blob_entry_max_width_list[idx]) + " |", end='')
-+        print()
+@@ -578,8 +578,8 @@ class inspect_update_payload(update_payl
+         part_name_list = list()
+         spec_info_list = list()
          for blob_entry in self.blob_entry_list:
--            print "|",
-+            print("|", end='')
-             try:
--                print str(blob_entry['part_name']).strip(' \t\n\0').rjust(self.blob_entry_max_width_list[0]) + " |",
--                print str(blob_entry['offset']).rjust(self.blob_entry_max_width_list[1]) + " |",
--                print str(blob_entry['part_size']).rjust(self.blob_entry_max_width_list[2]) + " |",
--                print str("{:x}".format(blob_entry['version'])).center(self.blob_entry_max_width_list[3]) + " |",
--                print str(blob_entry['op_mode']).center(self.blob_entry_max_width_list[4]) + " |",
--                print str(blob_entry['tnspec']).strip(' \t\n\0').ljust(self.blob_entry_max_width_list[5]) + " |"
-+                print(blob_entry['part_name'].decode('utf-8').strip(' \t\n\0').rjust(self.blob_entry_max_width_list[0]) + " |", end='')
-+                print(str(blob_entry['offset']).rjust(self.blob_entry_max_width_list[1]) + " |", end='')
-+                print(str(blob_entry['part_size']).rjust(self.blob_entry_max_width_list[2]) + " |", end='')
-+                print(str("{:x}".format(blob_entry['version'])).center(self.blob_entry_max_width_list[3]) + " |", end='')
-+                print(str(blob_entry['op_mode']).center(self.blob_entry_max_width_list[4]) + " |", end='')
-+                print(blob_entry['tnspec'].decode('utf-8').strip(' \t\n\0').ljust(self.blob_entry_max_width_list[5]) + " |")
-             except:
--                print "SKIPPED".center(sum(self.blob_entry_max_width_list) + (len(self.blob_entry_max_width_list)*2) + 3) + " |"
-+                print("SKIPPED".center(sum(self.blob_entry_max_width_list) + (len(self.blob_entry_max_width_list)*2) + 3) + " |")
-                 pass
-         return
- 
-     def check_entry_table(self):
--        print "Checking entry table ..."
-+        print("Checking entry table ...")
- 
-         # Find out all partitions that have tnspec
-+        part_names = set([e['part_name'].decode('utf-8').strip(' \t\n\0') for e in self.blob_entry_list if len(e['tnspec'].decode('utf-8').strip(' \t\n\0')) > 0])
-         # Find out all tnspec
--        part_name_list = list()
--        spec_info_list = list()
--        for blob_entry in self.blob_entry_list:
 -            part_name = str(blob_entry['part_name']).strip(' \t\n\0')
 -            tnspec = str(blob_entry['tnspec']).strip(' \t\n\0')
--
--            if tnspec == "":
--                continue
--
--            if len(part_name_list):
--                for idx, name in enumerate(part_name_list):
--                    if name == part_name:
--                        break
--                    else:
--                        if idx == (len(part_name_list) - 1):
--                            part_name_list.append(part_name)
--                            break
--            else:
--                part_name_list.append(part_name)
--
--            if len(spec_info_list):
--                for idx, spec in enumerate(spec_info_list):
--                    if spec == tnspec:
--                        break
--                    else:
--                        if idx == (len(spec_info_list) - 1):
--                            spec_info_list.append(tnspec)
--                            break
--            else:
--                spec_info_list.append(tnspec)
-+        spec_names = set([e['tnspec'].decode('utf-8').strip(' \t\n\0') for e in self.blob_entry_list if len(e['tnspec'].decode('utf-8').strip(' \t\n\0')) > 0])
++            part_name = str(blob_entry['part_name'].decode('utf-8')).strip(' \t\n\0')
++            tnspec = str(blob_entry['tnspec'].decode('utf-8')).strip(' \t\n\0')
  
--        # Verify every entry in spec_info_list must have an entry in part_name_list
+             if tnspec == "":
+                 continue
+@@ -609,16 +609,16 @@ class inspect_update_payload(update_payl
+         # Verify every entry in spec_info_list must have an entry in part_name_list
          valid = True
--        for part in part_name_list:
+         for part in part_name_list:
 -            blob_entry = filter(lambda entry: (str(entry['part_name']).strip(' \t\n\0') == part), self.blob_entry_list)
--            blob_entry = copy.deepcopy(blob_entry)
--
--            for spec in spec_info_list:
--                found = False
--                for idx, entry in enumerate(blob_entry):
++            blob_entry = [entry for entry in self.blob_entry_list if (str(entry['part_name'].decode('utf-8')).strip(' \t\n\0') == part)]
+             blob_entry = copy.deepcopy(blob_entry)
+ 
+             for spec in spec_info_list:
+                 found = False
+                 for idx, entry in enumerate(blob_entry):
 -                    e_spec = str(entry['tnspec']).strip(' \t\n\0')
--                    if spec == e_spec:
--                        found = True
++                    e_spec = str(entry['tnspec'].decode('utf-8')).strip(' \t\n\0')
+                     if spec == e_spec:
+                         found = True
 -                        blob_entry.remove(blob_entry[idx])
--                        break
--                if (found == False):
--                    valid = False
--                    sys.stderr.write("Error: " + "The " + part + " missed SPEC " + spec + ".\r\n")
-+        for part in part_names:
-+            missing = spec_names - set([e['tnspec'].decode('utf-8').strip(' \t\n\0') for e in self.blob_entry_list if e['part_name'].decode('utf-8').strip(' \t\n\0') == part])
-+            if len(missing) > 0:
-+                print("Error: partition {} missing for SPECs {}".format(part, ', '.join(sorted(missing))), file=sys.stderr)
-+                valid = False
++                        del blob_entry[idx]
+                         break
+                 if (found == False):
+                     valid = False
+@@ -639,7 +639,7 @@ class inspect_update_payload(update_payl
  
--        if (valid == False):
-+        if not valid:
-             sys.exit(1)
-         else:
--            print "Check entry table successful"
-+            print("Check entry table successful")
- 
-     def extract_binaries(self):
-         extract_bin_list = [extract_bin.strip(' \t\n\0') for extract_bin in self.raw_extract_bin_list.split(';')]
-@@ -630,14 +590,14 @@ class inspect_update_payload(update_payl
-         out_ext = ".raw.bin"
-         out_delim = "_"
- 
--        print "Saving partitions to \"" + out_path + "\""
--        print "File names are of format \"<part_name>[" + out_delim + "<op_str>][" + out_delim + "<tnspec>]" + out_ext + "\""
+         print ("Saving partitions to \"" + out_path + "\"")
+         print ("File names are of format \"<part_name>[" + out_delim + "<op_str>][" + out_delim + "<tnspec>]" + out_ext + "\"")
 -        print
-+        print("Saving partitions to \"" + out_path + "\"")
-+        print("File names are of format \"<part_name>[" + out_delim + "<op_str>][" + out_delim + "<tnspec>]" + out_ext + "\"")
 +        print()
  
          for blob_entry in self.blob_entry_list:
--            part_name = str(blob_entry['part_name']).strip(' \t\n\0')
-+            part_name = blob_entry['part_name'].decode('utf-8').strip(' \t\n\0')
-             op_mode = blob_entry['op_mode']
--            tnspec = str(blob_entry['tnspec']).strip(' \t\n\0')
-+            tnspec = blob_entry['tnspec'].decode('utf-8').strip(' \t\n\0')
- 
-             if op_mode == 0:
-                 op_str = ""
-@@ -653,7 +613,7 @@ class inspect_update_payload(update_payl
+             part_name = str(blob_entry['part_name'].decode('utf-8')).strip(' \t\n\0')
+@@ -660,7 +660,7 @@ class inspect_update_payload(update_payl
  
              if (part_name in extract_bin_set) or ("all" in extract_bin_set):
                  # Binary will be saved to <OUT>/<part_name>[_<op_str>][_<tnspec>].raw.bin
@@ -375,12 +97,3 @@ Index: Linux_for_Tegra/bootloader/BUP_generator.py
                  binary_path = os.path.join(out_path, binary_name)
  
                  try:
-@@ -669,7 +629,7 @@ class inspect_update_payload(update_payl
-                 # from "offset" of the specified partition name
-                 save_file.write(self.blob_file.read(int(blob_entry['part_size'])))
- 
--                print "Saved file \"" + binary_name + "\""
-+                print("Saved file \"" + binary_name + "\"")
- 
-                 # Remove partition name that was just saved from the list of
-                 # missing binaries (e.g. in extraction list but not in payload)
