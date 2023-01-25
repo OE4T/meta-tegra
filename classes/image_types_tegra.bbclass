@@ -226,8 +226,6 @@ tegraflash_create_flash_config:tegra234() {
         -e"s,NVHOSTNVDEC,nvdec_t234_prod.fw," \
         -e"s,MB2BLFILE,mb2_t234.bin," \
         -e"s,XUSB_FW,xusb_t234_prod.bin," \
-        -e"s,BPFFILE,${BPF_FILE}," \
-        -e"s,BPFDTB_FILE,${BPFDTB_FILE}," \
         -e"s,PSCFW,pscfw_t234_prod.bin," \
         -e"s,MCE_IMAGE,mce_flash_o10_cr_prod.bin," \
         -e"s,WB0FILE,sc7_t234_prod.bin," \
@@ -265,7 +263,6 @@ BOOTFILES:tegra194 = "\
 BOOTFILES:tegra234 = "\
     adsp-fw.bin \
     applet_t234.bin \
-    ${BPF_FILE} \
     camera-rtcpu-t234-rce.img \
     eks.img \
     mb1_t234_prod.bin \
@@ -287,7 +284,6 @@ BOOTFILES:tegra234 = "\
     tegrabl_carveout_id.h \
     pinctrl-tegra.h \
     tegra234-gpio.h \
-    gpio.h \
     readinfo_t234_min_prod.xml \
     camera-rtcpu-sce.img \
 "
@@ -471,13 +467,11 @@ create_tegraflash_pkg:tegra234() {
 
     # Copy and update flashvars
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
-    sed -i -e "s/@BPF_FILE@/${BPF_FILE}/" \
-    -e "s/@BPFDTB_FILE@/${BPFDTB_FILE}/" \
-    -e "s/@TBCDTB_FILE@/${TBCDTB_FILE}/" \
-    -e "s/@WB0SDRAM_BCT@/${WB0SDRAM_BCT}/" \
-    -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" \
-    ./flashvars
+    sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
 
+    for f in ${STAGING_DATADIR}/tegraflash/bpmp_t234-*.bin; do
+        cp $f .
+    done
     for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dts*; do
         cp $f .
     done
@@ -667,12 +661,10 @@ oe_make_bup_payload() {
             cp $f .
         done
     elif [ "${SOC_FAMILY}" = "tegra234" ]; then
-        sed -i -e "s/@BPF_FILE@/${BPF_FILE}/" \
-	    -e "s/@BPFDTB_FILE@/${BPFDTB_FILE}/" \
-	    -e "s/@TBCDTB_FILE@/${TBCDTB_FILE}/" \
-	    -e "s/@WB0SDRAM_BCT@/${WB0SDRAM_BCT}/" \
-	    -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" \
-	    ./flashvars
+        sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
+	for f in ${STAGING_DATADIR}/tegraflash/bpmp_t234-*.bin; do
+            cp $f .
+	done
         for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dts*; do
             cp $f .
         done
