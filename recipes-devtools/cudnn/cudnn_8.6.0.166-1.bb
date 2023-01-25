@@ -7,14 +7,14 @@ inherit l4t_deb_pkgfeed
 
 L4T_DEB_GROUP = "cudnn"
 
-DEPENDS = "libcublas"
+DEPENDS = "libcublas zlib"
 
 SRC_COMMON_DEBS = "\
     libcudnn8_${PV}+cuda11.4_arm64.deb;name=lib;subdir=cudnn \
     libcudnn8-dev_${PV}+cuda11.4_arm64.deb;name=dev;subdir=cudnn \
 "
-SRC_URI[lib.sha256sum] = "68a9e1515834a4ad7197cd624d6f9312d5b7ca31ca01b7a39f6aec9712b8c508"
-SRC_URI[dev.sha256sum] = "23f3097db03f7bb1d65a17c45fdbe31ce64959d9acb682acc0603e2e75428780"
+SRC_URI[lib.sha256sum] = "4a679b9676d4d1bfd2d7a3572eefc916706219ad006e38a8fd2377067fd635ee"
+SRC_URI[dev.sha256sum] = "f23632cb15ba1db209811086b5c31207d2da49478402422b9d9aaa9fe9dc0512"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
