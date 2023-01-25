@@ -1,7 +1,7 @@
-From 8c606a78724644e8bf6e1f085878cc72f413481c Mon Sep 17 00:00:00 2001
+From ff34572aae54759226dd70c2656074d4206fde01 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Wed, 30 Mar 2022 22:52:32 +0100
-Subject: [PATCH 7/9] trt_inference: use smart pointers during model
+Subject: [PATCH 6/8] trt_inference: use smart pointers during model
  conversions
 
 instead of the old, deprecated style of using raw pointers
@@ -93,5 +93,5 @@ index e0d072d..459be89 100644
  }
  
 -- 
-2.32.0
+2.34.1
 
