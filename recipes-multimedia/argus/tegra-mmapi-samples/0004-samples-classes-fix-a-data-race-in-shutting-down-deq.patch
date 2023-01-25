@@ -1,7 +1,7 @@
-From c4f70f1cc329154128e3f0f325484f9916caa391 Mon Sep 17 00:00:00 2001
+From 27de2fa4ef71a952a1c0fcbb8dd8b73b8d619f21 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Wed, 30 Mar 2022 22:04:38 +0100
-Subject: [PATCH 3/9] samples: classes: fix a data race in shutting down
+Subject: [PATCH 4/8] samples: classes: fix a data race in shutting down
  dequeue thread
 
 as well as a couple of other uses of pthread_join with
@@ -9,9 +9,9 @@ a possibly null (and thus invalid) thread id.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- .../common/classes/NvApplicationProfiler.cpp      |  5 +++-
- samples/common/classes/NvEglRenderer.cpp          |  6 ++++-
- samples/common/classes/NvV4l2ElementPlane.cpp     | 23 +++++++++++++++----
+ .../common/classes/NvApplicationProfiler.cpp  |  5 +++-
+ samples/common/classes/NvEglRenderer.cpp      |  6 ++++-
+ samples/common/classes/NvV4l2ElementPlane.cpp | 23 +++++++++++++++----
  3 files changed, 28 insertions(+), 6 deletions(-)
 
 diff --git a/samples/common/classes/NvApplicationProfiler.cpp b/samples/common/classes/NvApplicationProfiler.cpp
@@ -96,5 +96,5 @@ index bb67a5d..c755923 100644
      {
          ret = pthread_cond_timedwait(&plane_cond, &plane_lock, &timeToWait);
 -- 
-2.32.0
+2.34.1
 

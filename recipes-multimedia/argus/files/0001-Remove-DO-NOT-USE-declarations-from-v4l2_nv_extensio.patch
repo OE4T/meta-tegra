@@ -1,18 +1,18 @@
-From ffbfc4d696bbf87a20905418fbb94d4fcc8d9d7f Mon Sep 17 00:00:00 2001
+From 194ecaad5dcc62fe8b4f80bba47b97b14993556d Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Wed, 30 Mar 2022 22:22:00 +0100
-Subject: [PATCH 5/9] Remove DO NOT USE declarations from v4l2_nv_extensions.h
+Subject: [PATCH 1/8] Remove DO NOT USE declarations from v4l2_nv_extensions.h
 
 as they are now present in v4l2-controls.h and conflict
 with the definitions there.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- include/v4l2_nv_extensions.h              | 264 ------------------
+ include/v4l2_nv_extensions.h | 264 -----------------------------------
  1 file changed, 264 deletions(-)
 
 diff --git a/include/v4l2_nv_extensions.h b/include/v4l2_nv_extensions.h
-index 49fcfba..3ea4f7f 100644
+index 4d346b1..d3d6dea 100644
 --- a/include/v4l2_nv_extensions.h
 +++ b/include/v4l2_nv_extensions.h
 @@ -120,21 +120,6 @@
@@ -294,5 +294,5 @@ index 49fcfba..3ea4f7f 100644
  
  /**
 -- 
-2.32.0
+2.34.1
 
