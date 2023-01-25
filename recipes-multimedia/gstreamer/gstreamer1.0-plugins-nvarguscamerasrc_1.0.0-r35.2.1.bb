@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = "file://nvbuf_utils.h;endline=9;md5=e496d7a11e95b70c8d6bc8365
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvarguscamera_src.tbz2"
 TEGRA_SRC_SUBARCHIVE_OPTS = "--exclude=3rdpartyheaders.tbz2"
 
-require recipes-bsp/tegra-sources/tegra-sources-35.1.0.inc
+require recipes-bsp/tegra-sources/tegra-sources-35.2.1.inc
 
 SRC_URI += "\
     file://0001-Build-fixups.patch \

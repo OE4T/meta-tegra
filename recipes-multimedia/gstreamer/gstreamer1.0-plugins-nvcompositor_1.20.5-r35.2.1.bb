@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://nvbuf_utils.h;endline=9;md5=e496d7a11e95b70c8d6bc8365
 "
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvcompositor_src.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-35.1.0.inc
+require recipes-bsp/tegra-sources/tegra-sources-35.2.1.inc
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl tegra-mmapi tegra-libraries-multimedia-utils"
 
