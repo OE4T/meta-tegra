@@ -13,8 +13,8 @@ SRC_COMMON_DEBS = "\
     vpi2-dev_${PV}_arm64.deb;name=dev;subdir=vpi2 \
 "
 L4T_DEB_GROUP[dev] = "vpi2-dev"
-SRC_URI[lib.sha256sum] = "289002de2aee4013437ef6850bbe27859ab82aaf2acd772f685c3618cff7584d"
-SRC_URI[dev.sha256sum] = "d98f72064e9fd0a6b9ce8a8c76cd08e1bfd26034f512829d007e36869d3c48e6"
+SRC_URI[lib.sha256sum] = "f9d2a09bcbc480f8a8358522dad46d3a869010d1572951932d15111d22530c44"
+SRC_URI[dev.sha256sum] = "7e0983a76ef5d268e3f32e09382caf2a359e89318e22bfc767d0aba12121368c"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
@@ -22,7 +22,7 @@ S = "${WORKDIR}/vpi2"
 B = "${S}"
 
 DEPENDS = "cuda-cudart libcufft tegra-libraries-multimedia-utils tegra-libraries-multimedia tegra-libraries-eglcore \
-           tegra-libraries-pva tegra-libraries-nvsci tegra-libraries-cuda"
+           tegra-libraries-pva tegra-libraries-nvsci tegra-libraries-cuda libnpp"
 SYSROOT_DIRS:append = " /opt"
 
 COMPATIBLE_MACHINE = "(tegra)"
@@ -50,5 +50,5 @@ INHIBIT_SYSROOT_STRIP = "1"
 PACKAGES = "${PN} ${PN}-dev"
 FILES:${PN} = "/opt/nvidia/vpi2/lib/aarch64-linux-gnu/lib*${SOLIBS} /opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv /opt/nvidia/vpi2/lib64 ${sysconfdir}/ld.so.conf.d ${nonarch_base_libdir}/firmware"
 FILES:${PN}-dev = "/opt/nvidia/vpi2/lib/aarch64-linux-gnu/lib*${SOLIBSDEV} /opt/nvidia/vpi2/include /opt/nvidia/vpi2/lib/aarch64-linux-gnu/cmake"
-RDEPENDS:${PN} += "tegra-libraries-nvsci"
+RDEPENDS:${PN} += "tegra-libraries-nvsci tegra-libraries-cuda"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
