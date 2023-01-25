@@ -1,20 +1,20 @@
-From 250c0c9031615421204279eadb541652e5dee6df Mon Sep 17 00:00:00 2001
+From 88c64af0d0f97771df719070e9365211076cb502 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Wed, 30 Mar 2022 23:02:28 +0100
-Subject: [PATCH 9/9] camera_v4l2_cuda: add option for setting max frame count
+Subject: [PATCH 8/8] camera_v4l2_cuda: add option for setting max frame count
 
 to a allow for an automated timed run, instead of interactive.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- samples/12_camera_v4l2_cuda/camera_v4l2_cuda.cpp | 12 +++++++++++-
- samples/12_camera_v4l2_cuda/camera_v4l2_cuda.h   |  1 +
+ samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp | 12 +++++++++++-
+ samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h   |  1 +
  2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/samples/12_camera_v4l2_cuda/camera_v4l2_cuda.cpp b/samples/12_camera_v4l2_cuda/camera_v4l2_cuda.cpp
+diff --git a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
 index 44508d3..c755044 100644
---- a/samples/12_camera_v4l2_cuda/camera_v4l2_cuda.cpp
-+++ b/samples/12_camera_v4l2_cuda/camera_v4l2_cuda.cpp
+--- a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
++++ b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
 @@ -61,6 +61,7 @@ print_usage(void)
             "\t-f\t\tSet output pixel format of video device (supports only YUYV/YVYU/UYVY/VYUY/GREY/MJPEG)\n"
             "\t-r\t\tSet renderer frame rate (30 fps by default)\n"
@@ -69,10 +69,10 @@ index 44508d3..c755044 100644
          }
      }
  
-diff --git a/samples/12_camera_v4l2_cuda/camera_v4l2_cuda.h b/samples/12_camera_v4l2_cuda/camera_v4l2_cuda.h
+diff --git a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
 index 094e6db..d6149f6 100644
---- a/samples/12_camera_v4l2_cuda/camera_v4l2_cuda.h
-+++ b/samples/12_camera_v4l2_cuda/camera_v4l2_cuda.h
+--- a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
++++ b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
 @@ -73,6 +73,7 @@ typedef struct
      unsigned int cam_h;
      unsigned int frame;
@@ -82,5 +82,5 @@ index 094e6db..d6149f6 100644
      /* Global buffer ptr */
      nv_buffer * g_buff;
 -- 
-2.32.0
+2.34.1
 
