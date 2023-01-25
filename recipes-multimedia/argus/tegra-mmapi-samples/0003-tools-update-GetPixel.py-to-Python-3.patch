@@ -1,7 +1,7 @@
-From 61519d1939dc9f9028a0b148eea08cf6449f29ba Mon Sep 17 00:00:00 2001
+From 526726c3c8d89250337ef17eddc4f012274629b4 Mon Sep 17 00:00:00 2001
 From: Dan Walkes <danwalkes@trellis-logic.com>
 Date: Fri, 19 Aug 2022 10:05:15 -0500
-Subject: [PATCH] tools: update GetPixel.py to Python 3
+Subject: [PATCH 3/8] tools: update GetPixel.py to Python 3
 
 Reworked from the original at [1] for Jetpack 5, as 3
 of the 4 hunks were included in the tegra-mmpai-samples 35.1

@@ -4,11 +4,11 @@ LICENSE = "Proprietary & BSD-3-Clause"
 SRC_COMMON_DEBS = "${@l4t_deb_pkgname(d, 'jetson-multimedia-api')};subdir=tegra-mmapi"
 PV .= "${@l4t_bsp_debian_version_suffix(d, pkgname='nvidia-l4t-jetson-multimedia-api')}"
 
-SRC_URI[sha256sum] = "7cf134ea26da03c12421ff91c2f9a0051d655704bfbb6917ff1d5ed678bd6600"
+SRC_URI[sha256sum] = "a436cbfdbbef87b9be8e0defb4c6af5ffa4c4ba8bd957446577a9fb30334595f"
 
 inherit l4t_deb_pkgfeed features_check
 
-SRC_URI += "file://0005-Remove-DO-NOT-USE-declarations-from-v4l2_nv_extensio.patch"
+SRC_URI += "file://0001-Remove-DO-NOT-USE-declarations-from-v4l2_nv_extensio.patch"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
