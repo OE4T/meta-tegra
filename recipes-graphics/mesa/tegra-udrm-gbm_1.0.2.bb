@@ -6,7 +6,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=c43c2c3b83cc7c8460566fb6da10f02a"
 RPROVIDES:${PN} += "tegra-gbm-backend"
 
 DEPENDS = "mesa libdrm"
-RDEPENDS:${PN} = "tegra-libraries-gbm"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
