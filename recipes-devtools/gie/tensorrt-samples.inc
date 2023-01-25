@@ -12,7 +12,7 @@ SRC_COMMON_DEBS = "\
 
 SRC_URI:append = " file://0001-Makefile-fix-cross-compilation-issues.patch"
 
-SRC_URI[samples.sha256sum] = "e617ed3dfbe73e90ac07c859f154a7853b9657acdb72758d40fd23bb472325f8"
+SRC_URI[samples.sha256sum] = "05afdac3963b14a5a52de9ff040e901708ca29aef09a702e16b2a29823454adb"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
