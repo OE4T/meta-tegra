@@ -1,16 +1,16 @@
 HOMEPAGE = "https://developer.nvidia.com/embedded/linux-tegra"
-L4T_BSP_NAME ??= "Release"
+L4T_BSP_NAME ??= "release"
 L4T_SRCS_NAME ??= "sources"
 L4T_BSP_PREFIX ??= "Jetson"
 
-L4T_VERSION ?= "35.1.0"
+L4T_VERSION ?= "35.2.1"
 
 # Version (date-time stamp) suffixes for nvidia-l4t-* packages
 # in the package feeds.
-L4T_BSP_DEB_DEFAULT_VERSION = "20220825113828"
+L4T_BSP_DEB_DEFAULT_VERSION = "20230124153320"
 L4T_BSP_DEB_VERSION ?= "${L4T_BSP_DEB_DEFAULT_VERSION}"
-L4T_BSP_DEB_ORIG_VERSION = "20220810203728"
-L4T_BSP_DEB_PACKAGES_USING_ORIG_VERSION = "bootloader configs optee tools xusb-firmware"
+L4T_BSP_DEB_ORIG_VERSION = ""
+L4T_BSP_DEB_PACKAGES_USING_ORIG_VERSION = ""
 
 def l4t_bsp_debian_version_suffix(d, pkgname=None):
     if pkgname is None:
