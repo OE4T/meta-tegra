@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA v4l2camerasrc GStreamer plugin"
 SECTION = "multimedia"
 LICENSE = "BSD-3-Clause & Proprietary"
-LIC_FILES_CHKSUM = "file://nvbuf_utils.h;endline=9;md5=e496d7a11e95b70c8d6bc8365b28f8cb \
+LIC_FILES_CHKSUM = "file://nvbuf_utils.h;endline=9;md5=e74e59ff8c4105650b55b3a26f41d7ac \
                     file://README.txt;endline=25;md5=afc286435ccd143c9a10b5d7a8c1dee1 \
 "
 
@@ -10,7 +10,7 @@ TEGRA_SRC_SUBARCHIVE_OPTS = "--exclude=3rdpartyheaders.tbz2"
 TEGRA_SRC_EXTRA_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvarguscamera_src.tbz2"
 TEGRA_SRC_EXTRA_SUBARCHIVE_OPTS = "-C ${S} --strip-components=1 gst-nvarguscamera/nvbufsurface.h"
 
-require recipes-bsp/tegra-sources/tegra-sources-35.1.0.inc
+require recipes-bsp/tegra-sources/tegra-sources-35.2.1.inc
 
 SRC_URI += "\
     file://0001-Build-fixups.patch \
