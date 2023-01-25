@@ -1,5 +1,5 @@
 L4T_DEB_COPYRIGHT_MD5 = "20c2079c67a62b1d526f2a494b57586c"
-DEPENDS = "tegra-libraries-gbm tegra-libraries-eglcore"
+DEPENDS = "tegra-libraries-eglcore"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-gbm"
 
