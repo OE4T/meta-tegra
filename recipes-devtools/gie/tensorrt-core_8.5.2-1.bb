@@ -13,10 +13,10 @@ SRC_COMMON_DEBS = "\
     libnvparsers8_${PV}+cuda11.4_arm64.deb;downloadfilename=libnvparsers8_${PV}+cuda11.4_arm64.deb;name=nvp;subdir=tensorrt \
     libnvparsers-dev_${PV}+cuda11.4_arm64.deb;downloadfilename=libnvparsers-dev_${PV}+cuda11.4_arm64.deb;name=nvpdev;subdir=tensorrt \
 "
-LIBSHA256SUM = "dad970cd0d2fc6b6240cdce8cc37cf8ab04f90e1853c30c8a7644566d5f31de8"
-DEVSHA256SUM = "537d69a7580a7c1c055cdae87cb5af77d9cee1a59fa028449309dd5bdca6805a"
-NVPSHA256SUM = "6d720735d4f49422719b0c1293a56a71bf88692c6ed3492535086732098f7854"
-NVPDEVSHA256SUM = "a4a86ddb07ea73fba2fa8a5138c833010a7b12fab73b75024b80b8a8b22272d7"
+LIBSHA256SUM = "55012013528106fca0fb0fd3dbf73a54b8e441567fe7144d1523e5609f036c31"
+DEVSHA256SUM = "14ebffd144def765fdb3560c342984a9266761f3dbe7b3f8034f0fae7908360b"
+NVPSHA256SUM = "5ef03cac6744145037eb6ea00b63eaf4d99a04c41800fc5d76252d55bcc09801"
+NVPDEVSHA256SUM = "8d19d9cab1460564437c1d0e9b8a4f9a5ae93d949935a6cbbed0df6b6dafcd29"
 
 SRC_URI[lib.sha256sum] = "${LIBSHA256SUM}"
 SRC_URI[dev.sha256sum] = "${DEVSHA256SUM}"
@@ -29,7 +29,7 @@ LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=11;md
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-DEPENDS = "tegra-libraries-multimedia"
+DEPENDS = "tegra-libraries-multimedia libcudla"
 
 def extract_basever(d):
     ver = d.getVar('PV').split('-')[0]
