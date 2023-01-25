@@ -3,8 +3,8 @@ L4T_DEB_GROUP = "cuda-thrust"
 
 require cuda-shared-binaries.inc
 
-MAINSUM = "7d1cd8f4526ecc031416a23293859bc3095170fe8c7f3c68d11cdc9ef4f90ddd"
-MAINSUM:x86-64 = "a649073b4ecbcaeffc1da5ed8c86e27afe642dd6fbc04e2bea3652be2b3c346b"
+MAINSUM = "1306a4ca4f83024bd3d02f24a2c911f69dd02c2ff6b6ef386a527e5bd717ff01"
+MAINSUM:x86-64 = "11e2b7e5a9ce2006e2be47084de365fc79b441c53c6fae371b4b7a8b09696224"
 
 FILES:${PN} = "${prefix}/local/cuda-${CUDA_VERSION}/include"
 FILES:${PN}-dev = ""
