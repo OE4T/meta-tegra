@@ -260,17 +260,23 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
     have_boardinfo="yes"
 fi
 
-if [ -z "$CHIP_SKU" ]; then
-    # see DEFAULT_CHIP_SKU in p3701.conf.common
-    CHIP_SKU="00:00:00:D0"
-fi
-
 if [ -n "$BOARDID" ]; then
     boardid="$BOARDID"
 else
     boardid=`$here/chkbdinfo -i ${cvm_bin} | tr -d '[:space:]'`
     BOARDID="$boardid"
 fi
+
+if [ -z "$CHIP_SKU" ]; then
+    # see DEFAULT_CHIP_SKU in p3701.conf.common
+    # or DFLT_CHIP_SKU in p3767.conf.common
+    if [ "$BOARDID" = "3767" ]; then
+	CHIP_SKU="00:00:00:D3"
+    else
+	CHIP_SKU="00:00:00:D0"
+    fi
+fi
+
 if [ -n "$FAB" ]; then
     board_version="$FAB"
 else
@@ -329,30 +335,54 @@ else
     chip_sku=$CHIP_SKU
 fi
 
-case $chip_sku in
-    00)
+if [ "$BOARDID" = "3701" ]; then
+    case $chip_sku in
+	00)
         ;;
-    90|97|9E)
-        BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA990SA-A1,")
-        ;;
-    D0|D2)
-        BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TE990M-A1,")
-        ;;
-    *)
-        echo "ERR: unrecognized chip SKU: $chip_sku" >&2
-        exit 1
-        ;;
-esac
-
-if [ "$chip_sku" = "00" -o "$chip_sku" = "D0" ] &&
-       echo "$FAB" | egrep -q '^(TS[123]|EB[123]|[012]00)$'; then
-    PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000.dtsi"
-    PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000.dtsi"
-fi
-
-if [ "$BOARDID" = "3701" -a "$BOARDSKU" != "0000" ]; then
-    BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
-    dtb_file=$(echo "$dtb_file" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
+	90|97|9E)
+            BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA990SA-A1,")
+            ;;
+	D0|D2)
+            BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TE990M-A1,")
+            ;;
+	*)
+            echo "ERR: unrecognized chip SKU: $chip_sku" >&2
+            exit 1
+            ;;
+    esac
+    if [ "$chip_sku" = "00" -o "$chip_sku" = "D0" ] &&
+	   echo "$FAB" | egrep -q '^(TS[123]|EB[123]|[012]00)$'; then
+	PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000.dtsi"
+	PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000.dtsi"
+    fi
+    if [  "$BOARDSKU" != "0000" ]; then
+	BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,3701-0000,3701-$BOARDSKU,")
+	dtb_file=$(echo "$dtb_file" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
+    fi
+elif [ "$BOARDID" = "3767" ]; then
+    PINMUXREV="a03"
+    BPFDTBREV="a02"
+    PMCREV="a03"
+    PMICREV="a02"
+    if [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0002" ]; then
+        if [ "$FAB" = "TS1" -o "$FAB" = "EB1" ]; then
+	    PINMUXREV="a01"
+	    BPFDTBREV="a00"
+	    PMCREV="a01"
+	    PMICREV="a00"
+	fi
+    fi
+    if [ "$BOARDSKU" = "0001" -o "$BOARDSKU" = "0003" -o "$BOARDSKU" = "0005" ]; then
+	EMMC_BCT="tegra234-p3767-0001-sdram-l4t.dts"
+	WB0SDRAM_BCT="tegra234-p3767-0001-wb0sdram-l4t.dts"
+    fi
+    if [ "$BOARDSKU" = "0003" -o "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
+	BPF_FILE="bpmp_t234-TE950M-A1_prod.bin"
+    fi
+    PINMUX_CONFIG=$(echo "$PINMUX_CONFIG" | sed -e"s,@PINMUXREV@,$PINMUXREV,")
+    PMC_CONFIG=$(echo "$PMC_CONFIG" | sed -e"s,@PMCREV@,$PMCREV,")
+    PMIC_CONFIG=$(echo "$PMIC_CONFIG" | sed -e"s,@PMICREV@,$PMICREV,")
+    BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,@BPFDTBREV@,$BPFDTBREV,")
 fi
 
 if [ "${fuselevel}" = "fuselevel_production" ]; then
@@ -416,7 +446,7 @@ else
     cp "$flash_in" flash.xml.tmp
 fi
 sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," \
-    -e"s,TBCDTB-FILE,$dtb_file," -e"s, DTB_FILE,$kernel_dtbfile," \
+    -e"s, DTB_FILE,$kernel_dtbfile," -e"s,BPFFILE,$BPF_FILE," \
     $appfile_sed flash.xml.tmp > flash.xml
 rm flash.xml.tmp
 
@@ -444,6 +474,7 @@ custinfo_args=
 if [ -f "$custinfo_out" ]; then
     custinfo_args="--cust_info $custinfo_out"
 fi
+
 bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --device_config $DEVICE_CONFIG \
          --misc_config $MISC_CONFIG \
