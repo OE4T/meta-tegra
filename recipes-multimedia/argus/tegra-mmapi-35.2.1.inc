@@ -8,7 +8,7 @@ SRC_URI[sha256sum] = "f31193c3bd0aedc145e22948c9e8f8f6f0eb5ee7f693299e34df6ee628
 
 inherit l4t_deb_pkgfeed features_check
 
-SRC_URI += "file://0005-Remove-DO-NOT-USE-declarations-from-v4l2_nv_extensio.patch"
+SRC_URI += "file://0001-Remove-DO-NOT-USE-declarations-from-v4l2_nv_extensio.patch"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
