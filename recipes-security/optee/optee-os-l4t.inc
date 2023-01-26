@@ -8,7 +8,6 @@ LIC_FILES_CHKSUM = " \
 "
 
 SRC_URI += "\
-    file://0001-core-link-add-no-warn-rwx-segments.patch \
     file://0002-core-arm.mk-add-fcommon-to-cflags.patch \
 "
 
