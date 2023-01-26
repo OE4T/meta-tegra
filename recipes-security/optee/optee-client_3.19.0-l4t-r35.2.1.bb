@@ -11,7 +11,7 @@ require optee-l4t.inc
 TEGRA_SRC_SUBARCHIVE_OPTS = "--strip-components=1 optee/optee_client"
 
 SRC_URI += "\
-    file://0001-Update-Makefile-for-OE-compatibility.patch \
+    file://0001-Update-Makefile-for-OE-compatibility.patch;striplevel=3 \
     file://tee-supplicant.service.in \
     file://tee-supplicant.sh.in \
 "
