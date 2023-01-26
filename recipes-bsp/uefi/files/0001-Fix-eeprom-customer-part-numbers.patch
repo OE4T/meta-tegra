@@ -1,0 +1,112 @@
+From b4c5bcae6aa5051aa14aca86b44e0b212aea1738 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 26 Jan 2023 03:30:38 -0800
+Subject: [PATCH 1/2] Fix eeprom customer part numbers
+
+---
+ Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c      | 18 ++++++++++++++----
+ .../TegraDeviceTreeOverlayLibCommon.c          | 17 +++++++----------
+ 2 files changed, 21 insertions(+), 14 deletions(-)
+
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
+index 7de8125..b56a6e3 100644
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
+@@ -49,7 +49,12 @@ PopulateEepromData (
+   if (ChipID == T194_CHIP_ID) {
+     T194EepromData  = (T194_EEPROM_DATA *)EepromData;
+     EepromBoardInfo = (TEGRA_EEPROM_BOARD_INFO *)BoardInfo;
+-    CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T194EepromData->PartNumber.Id, BOARD_ID_LEN);
++    if (T194EepromData->PartNumber.Leading[0] == 0xcc)
++    {
++        CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T194EepromData->PartNumber.Id+1, BOARD_ID_LEN-1);
++    } else {
++        CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T194EepromData->PartNumber.Id, BOARD_ID_LEN);
++    }
+     CopyMem ((VOID *)EepromBoardInfo->ProductId, (VOID *)&T194EepromData->PartNumber, sizeof (T194EepromData->PartNumber));
+     CopyMem ((VOID *)EepromBoardInfo->SerialNumber, (VOID *)&T194EepromData->SerialNumber, sizeof (T194EepromData->SerialNumber));
+     if ((CompareMem (T194EepromData->CustomerBlockSignature, EEPROM_CUSTOMER_BLOCK_SIGNATURE, sizeof (T194EepromData->CustomerBlockSignature)) == 0) &&
+@@ -62,7 +67,12 @@ PopulateEepromData (
+   } else if (ChipID == T234_CHIP_ID) {
+     T234EepromData  = (T234_EEPROM_DATA *)EepromData;
+     EepromBoardInfo = (TEGRA_EEPROM_BOARD_INFO *)BoardInfo;
+-    CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T234EepromData->PartNumber.Id, BOARD_ID_LEN);
++    if (T234EepromData->PartNumber.Leading[0] == 0xcc)
++    {
++        CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T234EepromData->PartNumber.Id+1, BOARD_ID_LEN-1);
++    } else {
++        CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T234EepromData->PartNumber.Id, BOARD_ID_LEN);
++    }
+     CopyMem ((VOID *)EepromBoardInfo->ProductId, (VOID *)&T234EepromData->PartNumber, sizeof (T234EepromData->PartNumber));
+     CopyMem ((VOID *)EepromBoardInfo->SerialNumber, (VOID *)&T234EepromData->SerialNumber, sizeof (T234EepromData->SerialNumber));
+     if ((CompareMem (T234EepromData->CustomerBlockSignature, EEPROM_CUSTOMER_BLOCK_SIGNATURE, sizeof (T234EepromData->CustomerBlockSignature)) == 0) &&
+@@ -105,7 +115,7 @@ ValidateEepromData (
+       return EFI_DEVICE_ERROR;
+     }
+ 
+-    if ((T194EepromData->Size <= ((UINTN)&T194EepromData->Reserved2 - (UINTN)T194EepromData))) {
++    if (T194EepromData->Size != 0 && (T194EepromData->Size <= ((UINTN)&T194EepromData->Reserved2 - (UINTN)T194EepromData))) {
+       DEBUG ((DEBUG_ERROR, "%a: Invalid size in eeprom %x\r\n", __FUNCTION__, T194EepromData->Size));
+       return EFI_DEVICE_ERROR;
+     }
+@@ -126,7 +136,7 @@ ValidateEepromData (
+       return EFI_DEVICE_ERROR;
+     }
+ 
+-    if ((T234EepromData->Size <= ((UINTN)&T234EepromData->Reserved2 - (UINTN)T234EepromData))) {
++    if (T234EepromData->Size != 0 && (T234EepromData->Size <= ((UINTN)&T234EepromData->Reserved2 - (UINTN)T234EepromData))) {
+       DEBUG ((DEBUG_ERROR, "%a: Invalid size in eeprom %x\r\n", __FUNCTION__, T234EepromData->Size));
+       return EFI_DEVICE_ERROR;
+     }
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
+index 3d9106b..227ced5 100644
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
+@@ -148,7 +148,6 @@ MatchId (
+   INTN                 FabId, BoardFabId, i;
+   INTN                 BoardIdLen;
+   CONST CHAR8          *BoardId        = NULL;
+-  CONST CHAR8          *NvidiaIdPrefix = "699";
+ 
+   BOOLEAN  Matched = FALSE;
+ 
+@@ -209,7 +208,11 @@ match_type_done:
+   }
+ 
+   for (i = 0; i < BoardInfo->IdCount; i++) {
+-    BoardId    = (CHAR8 *)(&BoardInfo->ProductIds[i].Id);
++    if (BoardInfo->ProductIds[i].Leading[0] == 0xcc) {
++      BoardId    = (CHAR8 *)(&BoardInfo->ProductIds[i].Id) + 1;
++    } else {
++      BoardId    = (CHAR8 *)(&BoardInfo->ProductIds[i].Id);
++    }
+     BoardIdLen = strlen (BoardId);
+     BoardFabId = GetFabId (BoardId);
+     DEBUG ((
+@@ -217,21 +220,15 @@ match_type_done:
+       "%a: check if overlay node id %a match with %a\n",
+       __FUNCTION__,
+       Id,
+-      BoardInfo->ProductIds[i]
++      BoardId
+       ));
+ 
+     switch (MatchType) {
+       case BOARD_ID_MATCH_EXACT:
+-        // Check if it is a Nvidia board.
+-        if (!CompareMem (&BoardInfo->ProductIds[i], NvidiaIdPrefix, 3)) {
++        if (IdLen == BoardIdLen) {
+           if (!CompareMem (IdStr, BoardId, IdLen)) {
+             Matched = TRUE;
+           }
+-        } else if (IdLen < PRODUCT_ID_LEN) {
+-          // Non-nvidia sensor board ids starts from byte 21 instead of 20.
+-          if (!CompareMem (IdStr, ((void *)&BoardInfo->ProductIds[i])+1, IdLen)) {
+-            Matched = TRUE;
+-          }
+         }
+ 
+         break;
+-- 
+2.34.1
+
