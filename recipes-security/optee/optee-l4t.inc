@@ -5,7 +5,7 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/nvidia-jetson-optee-source
 inherit l4t_bsp python3native
 require recipes-bsp/tegra-sources/tegra-sources-${L4T_VERSION}.inc
 
-DEPENDS = "python3-pyelftools-native python3-cryptography-native"
+DEPENDS = "python3-pyelftools-native python3-cryptography-native standalone-mm-optee-tegra"
 # python3-cryptography needs the legacy provider, so set OPENSSL_MODULES to the
 # right path until this is relocated automatically.
 export OPENSSL_MODULES="${STAGING_LIBDIR_NATIVE}/ossl-modules"
@@ -24,4 +24,9 @@ EXTRA_OEMAKE = "\
     CFLAGS64='${TOOLCHAIN_OPTIONS} ${DEBUG_PREFIX_MAP}' \
     platform-aflags-generic='${DEBUG_PREFIX_MAP} -pipe' \
     TA_DEV_KIT_DIR=${TA_DEV_KIT_DIR} \
+    CFG_WITH_STMM_SP=y CFG_STMM_PATH=../build/standalone_mm_optee.bin \
 "
+
+do_compile:prepend() {
+    cp ${STAGING_DATADIR}/edk2-nvidia/standalone_mm_optee.bin ${B}/
+}
