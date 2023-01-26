@@ -22,7 +22,9 @@ TNSPEC_BOOTDEV ??= "mmcblk0p1"
 TNSPEC ?= "${TEGRA_BOARDID}-${TEGRA_FAB}-${TEGRA_BOARDSKU}-${TEGRA_BOARDREV}-1-${TEGRA_CHIPREV}-${TNSPEC_MACHINE}-${TNSPEC_BOOTDEV}"
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-tegra"
-PREFERRED_PROVIDER_virtual/bootloader ?= "tegra-uefi-prebuilt"
+PREFERRED_PROVIDER_virtual/bootloader ?= "edk2-firmware-tegra"
+OPTEE_MM_PROVIDER = "${@'tegra-uefi-prebuilt' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader') == 'tegra-uefi-prebuilt' else 'standalone-mm-optee-tegra'}"
+PREFERRED_PROVIDER_standalone-mm-optee-tegra ?= "${OPTEE_MM_PROVIDER}"
 LIBGLVND_PROVIDER = "${@'libglvnd' if 'openembedded-layer' in d.getVar('BBFILE_COLLECTIONS').split() else 'libglvnd-tegra'}"
 PREFERRED_PROVIDER_libglvnd = "${LIBGLVND_PROVIDER}"
 PREFERRED_PROVIDER_virtual/egl = "${LIBGLVND_PROVIDER}"
@@ -36,7 +38,7 @@ PREFERRED_PROVIDER_tensorrt-plugins ?= "tensorrt-plugins-prebuilt"
 PREFERRED_PROVIDER_tensorrt-trtexec ?= "tensorrt-trtexec-prebuilt"
 PREFERRED_RPROVIDER_tegra-gbm-backend ?= "tegra-libraries-gbm-backend"
 
-USE_PREBUILT_OPTEE ?= "1"
+USE_PREBUILT_OPTEE ?= "0"
 
 PREFERRED_PROVIDER_virtual/secure-os ?= "${@'tos-prebuilt' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'tos-optee'}"
 PREFERRED_PROVIDER_optee-nvsamples ?= "${@'nvidia-l4t-optee' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'optee-nvsamples'}"
@@ -47,7 +49,7 @@ PREFERRED_RPROVIDER_optee-nvsamples ?= "${@'nvidia-l4t-optee-nvsamples' if oe.ty
 PREFERRED_RPROVIDER_optee-nvsamples-hwkey-agent ?= "${@'nvidia-l4t-optee-nvsamples-hwkey-agent' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'optee-nvsamples-hwkey-agent'}"
 PREFERRED_RPROVIDER_optee-nvsamples-luks-srv ?= "${@'nvidia-l4t-optee-nvsamples-luks-srv' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'optee-nvsamples-luks-srv'}"
 
-TEGRA_OPTEE_VERSION ?= "${@'' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else '3.16.0-l4t%'}"
+TEGRA_OPTEE_VERSION ?= "${@'' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else '3.19.0-l4t%'}"
 PREFERRED_VERSION_optee-os = "${TEGRA_OPTEE_VERSION}"
 PREFERRED_VERSION_optee-os-tadevkit = "${TEGRA_OPTEE_VERSION}"
 PREFERRED_VERSION_optee-client = "${TEGRA_OPTEE_VERSION}"
