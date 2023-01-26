@@ -1,0 +1,22 @@
+From 2e41a04dd4b5b21d4a2858ae59ed982eca3cbfb1 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 26 Jan 2023 03:33:12 -0800
+Subject: [PATCH 2/2] Disable outline atomics in eqos driver
+
+---
+ Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
+index c6df85a..5a0be64 100644
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
+@@ -110,4 +110,4 @@
+ 
+ [BuildOptions]
+   *_*_*_PP_FLAGS = -DUPDATED_PAD_CAL -DMACSEC_SUPPORT
+-  *_*_*_CC_FLAGS = -DUPDATED_PAD_CAL -DMACSEC_SUPPORT -Wno-unused-function -Wno-self-assign
++  *_*_*_CC_FLAGS = -DUPDATED_PAD_CAL -DMACSEC_SUPPORT -Wno-unused-function -Wno-self-assign -mno-outline-atomics
+-- 
+2.34.1
+
