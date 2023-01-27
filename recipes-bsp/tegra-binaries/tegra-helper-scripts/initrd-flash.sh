@@ -14,6 +14,7 @@ Options:
   -h|--help             Displays this usage information
   --skip-bootloader     Skip boot partition programming
   --usb-instance        USB instance of Jetson device
+  --erase-nvme          Erase NVME drive during flashing
 
 Options passed through to flash helper:
   -u                    PKC key file for signing
@@ -46,8 +47,9 @@ keyfile=
 sbk_keyfile=
 skip_bootloader=0
 early_final_status=0
+erase_nvme=0
 
-ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,user_key:,help,skip-bootloader" -o "u:v:h" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,user_key:,help,skip-bootloader,erase-nvme" -o "u:v:h" -- "$@")
 if [ $? -ne 0 ]; then
     usage >&2
     exit 1
@@ -67,6 +69,10 @@ while true; do
 	    ;;
 	--skip-bootloader)
 	    skip_bootloader=1
+	    shift
+	    ;;
+	--erase-nvme)
+	    erase_nvme=1
 	    shift
 	    ;;
 	-u)
@@ -187,8 +193,9 @@ sign_binaries() {
 prepare_for_rcm_boot() {
     if [ $have_odmsign_func -eq 1 ]; then
 	"$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
-	# For t234: hack taken from odmsign.func
-	sed -i -e's,mb2_t234_with_mb2_bct_MB2,mb2_t234_with_mb2_cold_boot_bct_MB2,' rcm-boot.sh || return 1
+	if [ "$CHIPID" = "0x23" ]; then
+	    sed -i -e's,mb2_t234_with_mb2_bct_MB2,mb2_t234_with_mb2_cold_boot_bct_MB2,' -e's, uefi_jetson, rcmboot_uefi_jetson,' rcm-boot.sh || return 1
+	fi
 	chmod +x rcm-boot.sh
     fi
 }
@@ -224,11 +231,18 @@ mount_partition() {
 unmount_and_release() {
     local mnt="$1"
     local dev="$2"
+    local remain=3
     if [ -n "$mnt" ]; then
 	udisksctl unmount --force -b "$dev"
     fi
-    udisksctl power-off -b "$dev" || return 1
-    return 0
+    while [ $remain -gt 0 ]; do
+	if udisksctl power-off -b "$dev"; then
+	    return 0
+	fi
+	sleep 1
+	remain=$(expr $remain - 1)
+    done
+    return 1
 }
 
 wait_for_usb_storage() {
@@ -337,6 +351,9 @@ generate_flash_package() {
 	cp bootloader_staging/* "$mnt/flashpkg/bootloader"
     fi
 
+    if [ $erase_nvme -eq 1 ]; then
+	echo "erase-nvme" >> "$mnt/flashpkg/conf/command_sequence"
+    fi
     if [ $EXTERNAL_ROOTFS_DRIVE -eq 1 -a $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
 	echo "export-devices mmcblk0 $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
     else
