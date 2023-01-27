@@ -407,8 +407,14 @@ fi
 echo  "Creating partitions"
 [ -b "$output" ] || dd if=/dev/zero of="$output" bs=512 count=0 seek=$outsize status=none
 if ! sgdisk "$output" --clear --mbrtogpt >/dev/null 2>&1; then
-    echo "ERR: could not initialize GPT on $output" >&2
-    exit 1
+    if ! sgdisk "$output" --zap-all >/dev/null 2>&1; then
+	echo "ERR: could not initialize GPT on $output" >&2
+	exit 1
+    fi
+    if ! sgdisk "$output" --clear --mbrtogpt >/dev/null 2>&1; then
+	echo "ERR: could not initialize GPT on $output after --zap-all" >&2
+	exit 1
+    fi
 fi
 
 find_finalpart || exit 1
