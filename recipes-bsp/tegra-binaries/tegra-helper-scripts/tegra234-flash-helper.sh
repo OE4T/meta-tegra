@@ -37,7 +37,7 @@ process_l4t_conf_dtbo() {
 }
 
 partition_exists_in_PT_table() {
-    # Return failure status here 
+    # Return failure status here
     return 1
 }
 
@@ -164,8 +164,8 @@ if [ -n "$keyfile" -o -n "$sbk_keyfile" -o -n "$user_keyfile" ] && [ $have_odmsi
     exit 1
 fi
 
-if [ $rcm_boot -eq 1 ]; then
-    OVERLAY_DTB_FILE=$(echo "$OVERLAY_DTB_FILE" | sed -e's!BootOrder[^.]*\.dtbo\(,\|$\)!!')
+if [ $rcm_boot -eq 1 -a $to_sign -eq 0 ]; then
+    OVERLAY_DTB_FILE=$(echo "$OVERLAY_DTB_FILE" | sed -e's!L4TConfiguration[^.]*\.dtbo!L4TConfiguration-rcmboot.dtbo!' -e's!BootOrder[^.]*\.dtbo\(,\|$\)!!')
 fi
 
 # Temp file for storing cvm.bin in, if we need to query the board for its
@@ -596,6 +596,11 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     bl_userkey_encrypt_list=("xusb_t234_prod.bin")
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
+    cp uefi_jetson.bin rcmboot_uefi_jetson.bin
+    rcm_overlay_dtb=$(echo "$OVERLAY_DTB_FILE" | sed -e's!L4TConfiguration[^.]*\.dtbo!L4TConfiguration-rcmboot.dtbo!' -e's!BootOrder[^.]*\.dtbo\(,\|$\)!!')
+    rcmbootsigncmd="python3 $flashappname --chip 0x23 --odmdata $odmdata --bldtb rcm-$BLDTB --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtb \
+                    --cmd \"sign rcmboot_uefi_jetson.bin bootloader_stage2 A_cpu-bootloader\""
+    eval $rcmbootsigncmd || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
         if [ -f flashcmd.txt ]; then
             chmod +x flashcmd.txt
