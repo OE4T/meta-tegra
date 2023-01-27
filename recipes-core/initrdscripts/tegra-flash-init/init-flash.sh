@@ -158,6 +158,13 @@ else
 		    echo "/dev/mmcblk0 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
 		fi
 		;;
+	    erase-nvme)
+		if [ -b /dev/nvme0n1 ]; then
+		    blkdiscard -f /dev/nvme0n1 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-nvme.log
+		else
+		    echo "/dev/nvme0n1 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-nvme.log
+		fi
+		;;
 	    export-devices)
 		for dev in $args; do
 		    if setup_usb_export /dev/$dev $dev 2>&1 > /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
