@@ -365,9 +365,14 @@ if [ "$BOARDID" = "3701" ]; then
 	PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000.dtsi"
 	PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000.dtsi"
     fi
-    if [  "$BOARDSKU" != "0000" ]; then
+    if ! [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0001" -o "$BOARDSKU" = "0002" ]; then
 	BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,3701-0000,3701-$BOARDSKU,")
-	dtb_file=$(echo "$dtb_file" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
+	if [ "$BOARDSKU" = "0005" ]; then
+	    EMMC_BCT=$(echo "$EMMC_BCT" | sed -e"s,3701-0000,3701-$BOARDSKU,")
+	    WB0SDRAM_BCT=$(echo "$WB0SDRAM_BCT" | sed -e"s,3701-0000,3701-$BOARDSKU,")
+	else
+	    dtb_file=$(echo "$dtb_file" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
+	fi
     fi
 elif [ "$BOARDID" = "3767" ]; then
     PINMUXREV="a03"
@@ -598,7 +603,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     (odmsign_ext_sign_and_flash) || exit 1
     cp uefi_jetson.bin rcmboot_uefi_jetson.bin
     rcm_overlay_dtb=$(echo "$OVERLAY_DTB_FILE" | sed -e's!L4TConfiguration[^.]*\.dtbo!L4TConfiguration-rcmboot.dtbo!' -e's!BootOrder[^.]*\.dtbo\(,\|$\)!!')
-    rcmbootsigncmd="python3 $flashappname --chip 0x23 --odmdata $odmdata --bldtb rcm-$BLDTB --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtb \
+    rcmbootsigncmd="python3 $flashappname --chip 0x23 --odmdata $odmdata --bldtb $BLDTB --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtb \
                     --cmd \"sign rcmboot_uefi_jetson.bin bootloader_stage2 A_cpu-bootloader\""
     eval $rcmbootsigncmd || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
