@@ -7,7 +7,7 @@ INHIBIT_DEFAULT_DEPS = "1"
 
 PROVIDES = "virtual/bootloader standalone-mm-optee-tegra"
 
-DEPENDS = "coreutils-native"
+DEPENDS = "coreutils-native dtc-native"
 
 DTB_OVERLAYS = "\
    AcpiBoot.dtbo \
@@ -49,6 +49,8 @@ do_deploy() {
     for dtbo in ${DTB_OVERLAYS}; do
 	install -m 0644 ${S}/kernel/dtb/$dtbo ${DEPLOYDIR}/
     done
+    install -m 0644 ${S}/kernel/dtb/L4TConfiguration.dtbo ${DEPLOYDIR}/L4TConfiguration-rcmboot.dtbo
+    fdtput -t s ${DEPLOYDIR}/L4TConfiguration-rcmboot.dtbo /fragment@0/__overlay__/firmware/uefi/variables/gNVIDIATokenSpaceGuid/DefaultBootPriority data boot.img
 }
 
 PACKAGES = "l4t-launcher-prebuilt standalone-mm-optee-tegra-prebuilt"
