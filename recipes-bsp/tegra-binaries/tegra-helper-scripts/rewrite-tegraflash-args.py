@@ -17,12 +17,13 @@ def main():
                   "pinmux_config=", "scr_config=", "scr_cold_boot_config=",
                   "pmc_config=", "pmic_config=", "gpioint_config=", "uphy_config=", "br_cmd_config=",
                   "prod_config=", "device_config=", "applet-cpu=", "bpf=", "skipsanitize",
-                  "encrypt_key=", "nv_key=", "nvencrypt_key=", "cl=", "soft_fuses=", "cust_info=", "fuse_info=",
+                  "encrypt_key=", "enable_user_kdk", "nv_key=", "nvencrypt_key=", "cl=", "soft_fuses=", "cust_info=",
                   "deviceprod_config=", "rcm_bct=","mem_bct=", "mem_bct_cold_boot=", "mb1_cold_boot_bct=", "wb0sdram_config=",
                   "minratchet_config=", "blversion=", "output_dir=", "nv_nvratchet=", "nv_oemratchet=", "image_dirs=",
                   "trim_bpmp_dtb", "cpubl=", "concat_cpubl_bldtb", "external_device", "sparseupdate", "ratchet_blob=",
                   "applet_softfuse=", "secondary_gpt_backup", "boot_chain=", "bct_backup",
-                  "mb1_bin=", "psc_bl1_bin="]
+                  "mb1_bin=", "psc_bl1_bin=", "rcmboot_pt_layout=", "coldboot_pt_layout=", "rcmboot_bct_cfg=", "coldboot_bct_cfg=",
+                  "dce_base_dtb=", "dce_overlay_dtb="]
     parser = argparse.ArgumentParser(
         description="""
 Extracts/manipulates partition information in an NVIDIA flash layout XML file
@@ -40,6 +41,12 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
     with open(args.filename, "r") as f:
         orig_cmd = shlex.split(f.readline().rstrip())
     tf_opts, tf_args = getopt.getopt(orig_cmd[1:], 'h', tf_options)
+
+    if args.remove:
+        to_remove = set(args.remove.split(','))
+        logging.info("Removing: {}".format(', '.join(to_remove)))
+        new_opts = [opt_tuple for opt_tuple in tf_opts if opt_tuple[0] not in to_remove]
+        tf_opts = new_opts
 
     if args.add:
         for newopt in args.add.split(','):
@@ -100,12 +107,6 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
                     tf_opts[bins_index] = (tf_opts[bins_index][0], binlist_str)
                 else:
                     tf_opts.append(("--bins", binlist_str))
-    if args.remove:
-        to_remove = set(args.remove.split(','))
-        logging.info("Removing: {}".format(', '.join(to_remove)))
-        new_opts = [opt_tuple for opt_tuple in tf_opts if opt_tuple[0] not in to_remove]
-        tf_opts = new_opts
-
     if args.output:
         outf = open(args.output, "w")
     else:
