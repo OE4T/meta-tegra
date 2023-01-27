@@ -29,6 +29,7 @@ BOOTBINS:tegra194 = "\
     nvtboot_recovery_t194.bin \
     nvtboot_recovery_cpu_t194.bin \
     spe_t194.bin \
+    xusb_sil_rel_fw \
     warmboot_t194_prod.bin \
 "
 
@@ -102,14 +103,19 @@ do_install() {
 	# referenced during early boot match the split layout above.
 	nvflashxmlparse -v --remove --partitions-to-remove=APP --output=${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE} ${PARTITION_FILE}
 	chmod 0644 ${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}
-	install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+	# Work around too-small partition sizes for kernel and
+	# kernel_dtb partitions in NVMe layouts (specifically t234)
+	nvflashxmlparse -v --update-parttype-sizes-from=${PARTITION_FILE}:kernel,kernel_dtb --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
+	chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
     else
 	install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
-	install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+	# Work around too-small partition sizes for kernel and
+	# kernel_dtb partitions in NVMe layouts (specifically t234)
+	nvflashxmlparse -v --update-parttype-sizes-from=${PARTITION_FILE}:kernel,kernel_dtb --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
+	chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
     fi
     [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT}
-    install -m 0644 ${S}/bootloader/xusb_sil_rel_fw ${D}${datadir}/tegraflash/
 }
 
 do_install:append:tegra194() {
