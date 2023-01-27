@@ -29,7 +29,7 @@ LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=11;md
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-DEPENDS = "tegra-libraries-multimedia"
+DEPENDS = "tegra-libraries-multimedia libcudla"
 
 def extract_basever(d):
     ver = d.getVar('PV').split('-')[0]
