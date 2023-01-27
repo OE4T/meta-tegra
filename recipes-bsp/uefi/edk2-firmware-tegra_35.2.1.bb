@@ -4,6 +4,7 @@ DESCRIPTION = "UEFI EDK2 Firmware for Jetson platforms"
 
 PROVIDES = "virtual/bootloader"
 
+DEPENDS += "dtc-native"
 DEPENDS:append:tegra194 = " nvdisp-init"
 
 inherit deploy
@@ -37,6 +38,8 @@ do_compile:append() {
 	fbase=$(basename "$f" ".dtb")
 	cp $f ${B}/images/$fbase.dtbo
     done
+    cp ${B}/images/L4TConfiguration.dtbo ${B}/images/L4TConfiguration-rcmboot.dtbo
+    fdtput -t s ${B}/images/L4TConfiguration-rcmboot.dtbo /fragment@0/__overlay__/firmware/uefi/variables/gNVIDIATokenSpaceGuid/DefaultBootPriority data boot.img
 }
 do_compile[depends] += "${NVDISPLAY_INIT_DEPS}"
 
