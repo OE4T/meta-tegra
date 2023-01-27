@@ -264,6 +264,30 @@ def rewrite_layout(infile, mapfiles, outf):
     intree.write(outf, encoding='unicode', xml_declaration=True)
     outf.write("\n")
 
+def update_part_size(part, tmpltree):
+    partname = part.get('name')
+    oldsize = part.find('size')
+    for dev in tmpltree.findall('device'):
+        for tmplnode in dev.findall('partition'):
+            if partname == tmplnode.get('name'):
+                newsize = tmplnode.find('size')
+                logging.info("Updating size of partition {} from {} to {}".format(partname,
+                                                                                  oldsize.text.strip(),
+                                                                                  newsize.text.strip()))
+                oldsize.text = " " + newsize.text.strip() + " "
+                return
+
+def update_sizes(infile, template, parttypes, outf):
+    intree = ET.parse(infile)
+    tmpltree = ET.parse(template)
+    root = intree.getroot()
+    for dev in root.findall('device'):
+        for part in dev.findall('partition'):
+            if part.get('type') in parttypes:
+                update_part_size(part, tmpltree)
+    intree.write(outf, encoding='unicode', xml_declaration=True)
+    outf.write("\n")
+
 def remove_from_layout(infile, to_remove, outf):
     intree = ET.parse(infile)
     root = intree.getroot()
@@ -316,6 +340,7 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
     cmdgroup.add_argument('-b', '--boot-device', help='print the device type holding boot partitions', action='store_true')
     cmdgroup.add_argument('-e', '--extract', help='generate a new XML file extracting just the specified device type', action='store_true')
     cmdgroup.add_argument('--rewrite-contents-from', help='rewrite the <filename> entries in the output XML with the entries in the specified layout(s)', action='store')
+    cmdgroup.add_argument('--update-parttype-sizes-from', help='layout:comma-separated list of parttypes for updating sizes in output XML', action='store')
     cmdgroup.add_argument('-s', '--split', help='XML output file for MMC-SDcard/external split on Jetson AGX Xavier', action='store')
     cmdgroup.add_argument('--remove', help='Remove partitions from the XML layout', action='store_true')
     parser.add_argument('--change-device-type', help='(for use with --split or --extract) change the <device> tag type attribute to the specifed value', action='store')
@@ -328,7 +353,7 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
     args = parser.parse_args()
     logging.basicConfig(format='%(message)s', level=logging.INFO if args.verbose else logging.WARNING)
 
-    if args.split or args.rewrite_contents_from or args.extract or args.remove:
+    if args.split or args.rewrite_contents_from or args.extract or args.remove or args.update_parttype_sizes_from:
         if args.output:
             outf = open(args.output, "w")
         else:
@@ -339,6 +364,10 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
             return 0
         if args.rewrite_contents_from:
             rewrite_layout(args.filename, args.rewrite_contents_from.split(','), outf)
+            return 0
+        if args.update_parttype_sizes_from:
+            template_layout, parttypenames = args.update_parttype_sizes_from.split(':')
+            update_sizes(args.filename, template_layout, parttypenames.split(','), outf)
             return 0
         if args.extract:
             extract_layout(args.filename, args.type, outf, args.change_device_type, size_to_sectors(args.sdcard_size))
