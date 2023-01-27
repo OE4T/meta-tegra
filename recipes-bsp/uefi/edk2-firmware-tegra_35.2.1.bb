@@ -14,6 +14,8 @@ EDK2_BIN_NAME = "uefi_jetson.bin"
 NVDISPLAY_INIT_DEFAULT = ""
 NVDISPLAY_INIT_DEFAULT:tegra194 = "${DEPLOY_DIR_IMAGE}/nvdisp-init.bin"
 NVDISPLAY_INIT ?= "${NVDISPLAY_INIT_DEFAULT}"
+NVDISPLAY_INIT_DEPS = ""
+NVDISPLAY_INIT_DEPS:tegra194 = "nvdisp-init:do_deploy"
 
 do_compile:append() {
     rm -rf ${B}/images
@@ -36,6 +38,7 @@ do_compile:append() {
 	cp $f ${B}/images/$fbase.dtbo
     done
 }
+do_compile[depends] += "${NVDISPLAY_INIT_DEPS}"
 
 do_install() {
     install -d ${D}${EFIDIR}
