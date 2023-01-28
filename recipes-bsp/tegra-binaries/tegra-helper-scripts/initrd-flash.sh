@@ -357,7 +357,7 @@ generate_flash_package() {
     if [ $EXTERNAL_ROOTFS_DRIVE -eq 1 -a $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
 	echo "export-devices mmcblk0 $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
     else
-	[ $EXTERNAL_ROOTFS_DRIVE -eq 0 ] || echo "erase-mmc" >> "$mnt/flashpkg/conf/command_sequence"
+	[ $EXTERNAL_ROOTFS_DRIVE -eq 0 -o $NO_INTERNAL_STORAGE -eq 1 ] || echo "erase-mmc" >> "$mnt/flashpkg/conf/command_sequence"
 	echo "export-devices $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
     fi
 
