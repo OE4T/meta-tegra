@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-core"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "7dba0260836caaa6ed11881f9f43a0fbb7ed090378acd872c5c9906c8b3d6530"
+MAINSUM = "1f859d400c4d4bc0a41119bee18074d48d8fa3396a5adf521b0182b08be2d5ab"
 
 INHIBIT_DEFAULT_DEPS = "1"
 

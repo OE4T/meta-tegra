@@ -10,7 +10,7 @@ LIC_FILES_CHKSUM += "\
     file://usr/share/doc/nvidia-tegra/LICENSE.libnvjpeg;md5=1b873f8976e4e3683c04133e3035be98 \
 "
 
-MAINSUM = "4436047f22806da010a3f23ff2bd66a04fe7f92ea9a8e930b501b26c042b1591"
+MAINSUM = "505ca0ca10fd91eae99f0c441beb73b543e796d9c0d013122684a1fa2db7a29e"
 
 inherit features_check
 
