@@ -108,7 +108,13 @@ do_install() {
 	nvflashxmlparse -v --update-parttype-sizes-from=${PARTITION_FILE}:kernel,kernel_dtb --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
 	chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
     else
-	install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
+	if [ "${TEGRAFLASH_NO_INTERNAL_STORAGE}" = "1" ]; then
+	    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}
+            nvflashxmlparse --extract -t boot --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE} ${PARTITION_FILE}
+	    chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
+	else
+	    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
+	fi
 	# Work around too-small partition sizes for kernel and
 	# kernel_dtb partitions in NVMe layouts (specifically t234)
 	nvflashxmlparse -v --update-parttype-sizes-from=${PARTITION_FILE}:kernel,kernel_dtb --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
