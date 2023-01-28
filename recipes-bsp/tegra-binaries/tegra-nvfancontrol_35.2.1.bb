@@ -6,7 +6,7 @@ DEPENDS = "tegra-nvpower"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "03f094a100cb3813a3f56dcd9ea2017e7db4cabbdc390e29842f2784baa6f513"
+MAINSUM = "4580e112f26c8f6767b4f6e8426d9964e2907ddaa2ac950a95ccc13c8100723f"
 
 SRC_URI += "\
    file://nvfancontrol.init \

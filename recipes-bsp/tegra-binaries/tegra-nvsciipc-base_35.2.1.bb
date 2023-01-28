@@ -10,8 +10,8 @@ SRC_SOC_DEBS += "\
     ${@l4t_deb_pkgname(d, 'init')};subdir=${BP};name=init \
 "
 
-MAINSUM = "68d616cb239c56368605c497a0b876121d676f2ef9965d314424e7941da53db1"
-INITSUM = "485ce62b1d9171d0fa010004de87ebede4d6a8b3bde7fb3c25c70f2f083ef107"
+MAINSUM = "342d62df7bba36332fea289584b4153ccf8ad7d5bec17afd5fef0958b31e822f"
+INITSUM = "36b53071e126e9ddf6017e745f47165727ff1c7eb1eedea53a0aec41363dc044"
 SRC_URI[init.sha256sum] = "${INITSUM}"
 
 do_install() {
