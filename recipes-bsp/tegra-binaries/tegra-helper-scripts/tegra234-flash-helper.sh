@@ -504,7 +504,7 @@ bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --deviceprod_config $DEVICEPROD_CONFIG \
          --wb0sdram_config $WB0SDRAM_BCT \
          --mb2bct_cfg $MB2BCT_CFG \
-         --bldtb $BLDTB \
+         --bldtb $dtb_file \
          --concat_cpubl_bldtb \
          --cpubl uefi_jetson.bin \
          --overlay_dtb $OVERLAY_DTB_FILE $custinfo_args"
@@ -603,7 +603,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     (odmsign_ext_sign_and_flash) || exit 1
     cp uefi_jetson.bin rcmboot_uefi_jetson.bin
     rcm_overlay_dtb=$(echo "$OVERLAY_DTB_FILE" | sed -e's!L4TConfiguration[^.]*\.dtbo!L4TConfiguration-rcmboot.dtbo!' -e's!BootOrder[^.]*\.dtbo\(,\|$\)!!')
-    rcmbootsigncmd="python3 $flashappname --chip 0x23 --odmdata $odmdata --bldtb $BLDTB --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtb \
+    rcmbootsigncmd="python3 $flashappname --chip 0x23 --odmdata $odmdata --bldtb $dtb_file --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtb \
                     --cmd \"sign rcmboot_uefi_jetson.bin bootloader_stage2 A_cpu-bootloader\""
     eval $rcmbootsigncmd || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
