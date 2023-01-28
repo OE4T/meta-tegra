@@ -8,7 +8,7 @@ require conf/machine/include/arm/arch-armv8-2a.inc
 
 SERIAL_CONSOLES ?= "115200;ttyTCU0"
 
-KERNEL_MODULE_AUTOLOAD ?= "nvmap nvgpu pwm-fan ina3221 nvidia nvidia-drm"
+KERNEL_MODULE_AUTOLOAD ?= "nvmap nvgpu pwm-fan ina3221 nvidia-drm"
 
 NVIDIA_CHIP = "0x23"
 
@@ -28,6 +28,6 @@ NVPMODEL ?= "nvpmodel_p3701_0000"
 NVPOWER ?= "jetsonpower_t234"
 NVFANCONTROL ?= "nvfancontrol_p3701_0000"
 
-MACHINE_EXTRA_RRECOMMENDS += "kernel-module-nvidia kernel-module-nvidia-drm kernel-module-nvidia-modeset"
+MACHINE_EXTRA_RRECOMMENDS += "kernel-module-nvidia kernel-module-nvidia-drm kernel-module-nvidia-modeset kernel-module-userspace-alert"
 
 PARTITION_LAYOUT_EXTERNAL ?= "flash_l4t_t234_nvme.xml"
