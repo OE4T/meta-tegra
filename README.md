@@ -11,6 +11,7 @@ Boards supported:
 * Jetson Xavier NX Development Kit
 * Jetson Xavier NX eMMC module in dev kit or Nano carrier board
 * Jetson AGX Orin development kit
+* Jetson Orin NX 16GB in Xavier NX carrier
 
 Community supported:
 * Clara AGX development kit
