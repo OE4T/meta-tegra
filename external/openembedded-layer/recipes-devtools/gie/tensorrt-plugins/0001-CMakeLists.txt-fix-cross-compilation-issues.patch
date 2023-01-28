@@ -1,18 +1,7 @@
-From 856bfb6202058c406f6cfb47b4a2b89826a5e8c4 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Thu, 16 Sep 2021 22:44:16 +0100
-Subject: [PATCH] CMakeLists.txt: fix cross compilation issues.
-
-Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
-Signed-off-by: Matt Madison <matt@madison.systems>
----
- CMakeLists.txt | 21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
-
-Index: git/CMakeLists.txt
+Index: TensorRT/CMakeLists.txt
 ===================================================================
---- git.orig/CMakeLists.txt
-+++ git/CMakeLists.txt
+--- TensorRT.orig/CMakeLists.txt
++++ TensorRT/CMakeLists.txt
 @@ -58,6 +58,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_T
  option(BUILD_PLUGINS "Build TensorRT plugin" ON)
  option(BUILD_PARSERS "Build TensorRT parsers" ON)
@@ -21,9 +10,9 @@ Index: git/CMakeLists.txt
  
  # C++14
  set(CMAKE_CXX_STANDARD 14)
-@@ -66,6 +67,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
- 
- set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations ${CMAKE_CXX_FLAGS} -DBUILD_SYSTEM=cmake_oss")
+@@ -70,6 +71,9 @@ else()
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_SYSTEM=cmake_oss")
+ endif()
  
 +# otherwise the installation directories are empty by default
 +include(GNUInstallDirs)
@@ -31,19 +20,17 @@ Index: git/CMakeLists.txt
  ############################################################################################
  # Cross-compilation settings
  
-@@ -115,27 +119,32 @@ include_directories(
-     ${CUDA_INCLUDE_DIRS}
+@@ -120,19 +124,21 @@ include_directories(
      ${CUDNN_ROOT_DIR}/include
  )
-+
  find_library(CUDNN_LIB cudnn HINTS
--    ${CUDA_TOOLKIT_ROOT_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib)
+-    ${CUDA_TOOLKIT_ROOT_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib/x64 lib)
 +    ${CUDA_TOOLKIT_TARGET_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib)
  find_library(CUBLAS_LIB cublas HINTS
--    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
+-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
 +    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
  find_library(CUBLASLT_LIB cublasLt HINTS
--    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
+-    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
 -if(BUILD_PARSERS)
 -    configure_protobuf(${PROTOBUF_VERSION})
 +    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
@@ -52,35 +39,35 @@ Index: git/CMakeLists.txt
 +else()
 +  find_package(Protobuf REQUIRED)
  endif()
--
+ 
  find_library_create_target(nvinfer nvinfer SHARED ${TRT_LIB_DIR})
  find_library_create_target(nvuffparser nvparsers SHARED ${TRT_LIB_DIR})
  
--find_library(CUDART_LIB cudart HINTS ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib64)
+-find_library(CUDART_LIB cudart HINTS ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib/x64 lib64)
 +find_library(CUDART_LIB cudart HINTS ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib lib64)
- find_library(RT_LIB rt)
  
- set(CUDA_LIBRARIES ${CUDART_LIB})
- 
+ if (NOT MSVC)
+     find_library(RT_LIB rt)
+@@ -143,6 +149,10 @@ set(CUDA_LIBRARIES ${CUDART_LIB})
  ############################################################################################
  # CUDA targets
--
+ 
 +if (SKIP_GPU_ARCHS)
-+    set(GENCODES "")
-+    set(BERT_GENCODES "")
++  set(GENCODES "")
++  set(BERT_GENCODES "")
 +else()
  if (DEFINED GPU_ARCHS)
    message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
    separate_arguments(GPU_ARCHS)
-@@ -178,6 +187,7 @@ set(GENCODES "${GENCODES} -gencode arch=
- if (${LATEST_SM} GREATER_EQUAL 70)
+@@ -189,6 +199,7 @@ if (${LATEST_SM} GREATER_EQUAL 70)
      set(BERT_GENCODES "${BERT_GENCODES} -gencode arch=compute_${LATEST_SM},code=compute_${LATEST_SM}")
+     set(STABLE_DIFFUSION_GENCODES "${STABLE_DIFFUSION_GENCODES} -gencode arch=compute_${LATEST_SM},code=compute_${LATEST_SM}")
  endif()
 +endif()
- set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-declarations")
  
- ############################################################################################
-@@ -190,6 +200,8 @@ else()
+ if(NOT MSVC)
+     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-declarations")
+@@ -207,6 +218,8 @@ else()
  endif()
  
  if(BUILD_PARSERS)
@@ -89,10 +76,27 @@ Index: git/CMakeLists.txt
      add_subdirectory(parsers)
  else()
      find_library_create_target(nvcaffeparser nvparsers SHARED ${TRT_OUT_DIR} ${TRT_LIB_DIR})
-Index: git/parsers/caffe/CMakeLists.txt
+Index: TensorRT/parsers/CMakeLists.txt
 ===================================================================
---- git.orig/parsers/caffe/CMakeLists.txt
-+++ git/parsers/caffe/CMakeLists.txt
+--- TensorRT.orig/parsers/CMakeLists.txt
++++ TensorRT/parsers/CMakeLists.txt
+@@ -22,8 +22,10 @@ add_custom_target(parsers DEPENDS
+ 
+ add_subdirectory(caffe)
+ 
+-add_definitions("-D_PROTOBUF_INSTALL_DIR=${Protobuf_INSTALL_DIR}")
+-add_compile_options("-Dgoogle=google_private")
++if(BUILD_PROTOBUF)
++    add_definitions("-D_PROTOBUF_INSTALL_DIR=${Protobuf_INSTALL_DIR}")
++    add_compile_options("-Dgoogle=google_private")
++endif()
+ set(TENSORRT_ROOT ${PROJECT_SOURCE_DIR})
+ set(TENSORRT_BUILD ${TRT_OUT_DIR} ${TRT_LIB_DIR})
+ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${TRT_OUT_DIR})
+Index: TensorRT/parsers/caffe/CMakeLists.txt
+===================================================================
+--- TensorRT.orig/parsers/caffe/CMakeLists.txt
++++ TensorRT/parsers/caffe/CMakeLists.txt
 @@ -48,7 +48,7 @@ target_include_directories(${SHARED_TARG
      PRIVATE caffeWeightFactory
      PRIVATE ../common
@@ -143,11 +147,11 @@ Index: git/parsers/caffe/CMakeLists.txt
  
  set_target_properties(${STATIC_TARGET} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL")
  
-Index: git/parsers/onnx/CMakeLists.txt
+Index: TensorRT/parsers/onnx/CMakeLists.txt
 ===================================================================
---- git.orig/parsers/onnx/CMakeLists.txt
-+++ git/parsers/onnx/CMakeLists.txt
-@@ -69,7 +69,7 @@ endif()
+--- TensorRT.orig/parsers/onnx/CMakeLists.txt
++++ TensorRT/parsers/onnx/CMakeLists.txt
+@@ -63,7 +63,7 @@ set(API_TESTS_SOURCES
  if (NOT TARGET protobuf::libprotobuf)
    FIND_PACKAGE(Protobuf REQUIRED)
  else()
@@ -156,29 +160,22 @@ Index: git/parsers/onnx/CMakeLists.txt
  endif()
  
  if(NOT TARGET onnx_proto)
-Index: git/parsers/CMakeLists.txt
+Index: TensorRT/plugin/CMakeLists.txt
 ===================================================================
---- git.orig/parsers/CMakeLists.txt
-+++ git/parsers/CMakeLists.txt
-@@ -22,8 +22,10 @@ add_custom_target(parsers DEPENDS
- 
- add_subdirectory(caffe)
- 
--add_definitions("-D_PROTOBUF_INSTALL_DIR=${Protobuf_INSTALL_DIR}")
--add_compile_options("-Dgoogle=google_private")
-+if(BUILD_PROTOBUF)
-+    add_definitions("-D_PROTOBUF_INSTALL_DIR=${Protobuf_INSTALL_DIR}")
-+    add_compile_options("-Dgoogle=google_private")
-+endif()
- set(TENSORRT_ROOT ${PROJECT_SOURCE_DIR})
- set(TENSORRT_BUILD ${TRT_OUT_DIR} ${TRT_LIB_DIR})
- set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${TRT_OUT_DIR})
-Index: git/plugin/CMakeLists.txt
-===================================================================
---- git.orig/plugin/CMakeLists.txt
-+++ git/plugin/CMakeLists.txt
-@@ -67,7 +67,7 @@ set(PLUGIN_LISTS
-     )
+--- TensorRT.orig/plugin/CMakeLists.txt
++++ TensorRT/plugin/CMakeLists.txt
+@@ -26,7 +26,8 @@ set(PLUGIN_EXPORT_MAP ${TARGET_DIR}/expo
+ if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
+     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
+ endif()
+-set(ENABLED_SMS "-DENABLE_SM72 -DENABLE_SM75 -DENABLE_SM80 -DENABLE_SM86 -DENABLE_SM87 -DENABLE_SM89 -DENABLE_SM90")
++
++message(STATUS "Enabled SM: ${ENABLED_SMS}")
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLED_SMS}")
+ set(PLUGIN_SOURCES)
+ set(PLUGIN_CU_SOURCES)
+@@ -70,7 +71,7 @@ set(PLUGIN_LISTS
+ )
  
  # Add BERT sources if ${BERT_GENCODES} was populated
 -if(BERT_GENCODES)
@@ -186,20 +183,21 @@ Index: git/plugin/CMakeLists.txt
      set(BERT_CU_SOURCES)
      set(PLUGIN_LISTS
          ${PLUGIN_LISTS}
-@@ -91,10 +91,14 @@ endforeach(PLUGIN_ITER)
+@@ -110,10 +111,15 @@ endforeach(PLUGIN_ITER)
  add_subdirectory(common)
  
  # Set gencodes
--set_source_files_properties(${PLUGIN_CU_SOURCES} PROPERTIES COMPILE_FLAGS ${GENCODES})
+-set_source_files_properties(${PLUGIN_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${GENCODES} ${ENABLED_SMS}")
 +if(GENCODES)
-+    set_source_files_properties(${PLUGIN_CU_SOURCES} PROPERTIES COMPILE_FLAGS ${GENCODES})
++    set_source_files_properties(${PLUGIN_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${GENCODES} ${ENABLED_SMS}")
 +endif()
++
  list(APPEND PLUGIN_SOURCES "${PLUGIN_CU_SOURCES}")
  if (BERT_CU_SOURCES)
--    set_source_files_properties(${BERT_CU_SOURCES} PROPERTIES COMPILE_FLAGS ${BERT_GENCODES})
+-    set_source_files_properties(${BERT_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${BERT_GENCODES} ${ENABLED_SMS}")
 +    if(BERT_GENCODES)
-+        set_source_files_properties(${BERT_CU_SOURCES} PROPERTIES COMPILE_FLAGS ${BERT_GENCODES})
++        set_source_files_properties(${BERT_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${BERT_GENCODES} ${ENABLED_SMS}")
 +    endif()
      list(APPEND PLUGIN_SOURCES "${BERT_CU_SOURCES}")
  endif()
- 
+ if (STABLE_DIFFUSION_CU_SOURCES)
