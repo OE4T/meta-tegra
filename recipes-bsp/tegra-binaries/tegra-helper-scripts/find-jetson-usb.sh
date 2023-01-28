@@ -33,7 +33,7 @@ check_jetson() {
     if [ "$idVendor" = "0955" ]; then
 	idProduct=$(cat "$usbpath/idProduct" 2>/dev/null)
 	case "$idProduct" in
-	    7018|7418|7c18|7019|7819|7919|7023|7223|7e19)
+	    7019|7819|7919|7023|7223|7323|7e19)
 		if [ -f "$usbpath/busnum" -a -f "$usbpath/devpath" ]; then
 		    return 0
 		fi
