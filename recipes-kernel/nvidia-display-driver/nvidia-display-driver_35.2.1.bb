@@ -36,6 +36,9 @@ do_compile() {
     oe_runmake CC="${KERNEL_CC}" LD="${KERNEL_LD}" AR="${KERNEL_AR}" modules
 }
 
+KERNEL_MODULE_PROBECONF = "nvidia"
+module_conf_nvidia = 'options nvidia rm_firmware_active="all" NVreg_RegistryDwords="RMHdcpKeyglobZero=1"'
+
 RPROVIDES:${PN} += " \
     kernel-module-nvidia \
     kernel-module-nvidia-drm \
