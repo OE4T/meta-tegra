@@ -7,10 +7,16 @@ require tegra-debian-libraries-common.inc
 
 MAINSUM = "36b53071e126e9ddf6017e745f47165727ff1c7eb1eedea53a0aec41363dc044"
 
+SRC_URI += "file://asound.conf.tegra-hda-p3767-p3509"
+
 do_install() {
     if [ -n "${TEGRA_AUDIO_DEVICE}" ]; then
         install -d ${D}${sysconfdir}
-        install -m 0644 ${S}/etc/asound.conf.${TEGRA_AUDIO_DEVICE} ${D}${sysconfdir}/asound.conf
+	if [ -e "${WORKDIR}/asound.conf.${TEGRA_AUDIO_DEVICE}" ]; then
+            install -m 0644 ${WORKDIR}/asound.conf.${TEGRA_AUDIO_DEVICE} ${D}${sysconfdir}/asound.conf
+	else
+            install -m 0644 ${S}/etc/asound.conf.${TEGRA_AUDIO_DEVICE} ${D}${sysconfdir}/asound.conf
+	fi
     fi
 
     install -d ${D}${datadir}/alsa/cards ${D}${datadir}/alsa/init/postinit
