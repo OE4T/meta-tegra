@@ -11,6 +11,7 @@ SRC_URI[core3d.sha256sum] = "${CORE3DSUM}"
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libcuda.so.1.1 \
     tegra/libnvidia-ptxjitcompiler.so.${L4T_VERSION} \
+    tegra/libnvidia-nvvm.so.${L4T_VERSION} \
 "
 
 do_install() {
@@ -18,6 +19,8 @@ do_install() {
     ln -sf libcuda.so.1.1 ${D}${libdir}/libcuda.so
     ln -sf libcuda.so.1.1 ${D}${libdir}/libcuda.so.1
     ln -sf libnvidia-ptxjitcompiler.so.${L4T_VERSION} ${D}${libdir}/libnvidia-ptxjitcompiler.so.1
+    ln -sf libnvidia-nvvm.so.${L4T_VERSION} ${D}${libdir}/libnvidia-nvvm.so.4
+    ln -sf libnvidia-nvvm.so.${L4T_VERSION} ${D}${libdir}/libnvidia-nvvm.so
 
     # This is done to fix docker passthroughs
     # libnvcucompat.so is part of base passthrough and will get mounted to /usr/lib/aarch64-linux-gnu
