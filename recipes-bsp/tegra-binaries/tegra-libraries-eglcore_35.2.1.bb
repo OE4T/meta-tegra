@@ -13,6 +13,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvidia-glsi.so.${L4T_VERSION} \
     tegra/libnvidia-glvkspirv.so.${L4T_VERSION} \
     tegra/libnvidia-rmapi-tegra.so.${L4T_VERSION} \
+    tegra/libnvidia-rtcore.so.${L4T_VERSION} \
 "
 
 do_install() {
