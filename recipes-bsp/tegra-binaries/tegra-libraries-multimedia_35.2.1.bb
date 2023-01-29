@@ -30,6 +30,13 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvmedia_dla.so \
     tegra/libnvmedialdc.so \
     tegra/libnvmedia_eglstream.so \
+    tegra/libnvmedia_ide_parser.so \
+    tegra/libnvmedia_ide_sci.so \
+    tegra/libnvmedia_iep_sci.so \
+    tegra/libnvmedia_ijpd_sci.so \
+    tegra/libnvmedia_ijpe_sci.so \
+    tegra/libnvmedia_iofa_sci.so \
+    tegra/libnvmedia_sci_overlay.so \
     tegra/libnvmedia_tensor.so \
     tegra/libnvmm.so \
     tegra/libnvmm_contentpipe.so \
@@ -40,6 +47,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvmmlite_utils.so \
     tegra/libnvmmlite_video.so \
     tegra/libnvofsdk.so \
+    tegra/libnvoggopus.so \
     tegra/libnvosd.so \
     tegra/libnvparser.so \
     tegra/libnvtracebuf.so \
