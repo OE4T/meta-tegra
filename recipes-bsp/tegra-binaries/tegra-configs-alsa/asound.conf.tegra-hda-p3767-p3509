@@ -1,0 +1,15 @@
+pcm.!default {
+	type plug
+	slave {
+		pcm "hw:HDA,3"
+		channels 2
+		rate 48000
+	}
+	hint.description "Tegra HDA Soundcard"
+}
+
+ctl.!default {
+	type hw
+	card HDA
+}
+
