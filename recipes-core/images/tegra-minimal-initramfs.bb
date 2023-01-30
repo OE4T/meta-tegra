@@ -13,6 +13,9 @@ PACKAGE_INSTALL = "\
     ${TEGRA_INITRD_INSTALL} \
 "
 
+# Bind DTB/DTBO extra dependencies
+do_rootfs[depends] += " ${DTB_EXTRA_DEPS}"
+
 IMAGE_FEATURES = ""
 IMAGE_LINGUAS = ""
 
