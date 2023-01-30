@@ -32,8 +32,8 @@ CBOOT_SYMLINK ?= "cboot-${MACHINE}.bin"
 inherit python3native deploy nopackages
 
 def cboot_version_number(d):
-    ver = d.getVar('PV').split('.')
-    return '%02d.%02d.%02d' % (int(ver[0]), int(ver[1]), int(ver[2]))
+    ver = d.getVar('PV').split('-')[0].split('.')
+    return '.'.join(['%02d' % int(vn) for vn in ver[:3]])
 
 CBOOT_VERSION ?= "${@cboot_version_number(d)}${TARGET_VENDOR}"
 
