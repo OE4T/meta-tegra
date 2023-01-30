@@ -34,7 +34,7 @@ DEPENDS = "tegra-libraries-multimedia"
 def extract_basever(d):
     ver = d.getVar('PV').split('-')[0]
     components = ver.split('.')
-    return '%s.%s.%s' % (components[0], components[1], components[2])
+    return '.'.join(components[:3])
 
 def extract_majver(d):
     ver = d.getVar('PV').split('-')[0]
