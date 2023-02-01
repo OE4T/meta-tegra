@@ -8,7 +8,7 @@ require tegra-debian-libraries-common.inc
 LICENSE = "Apache-2.0"
 LIC_FILES_CHKSUM = "file://usr/share/doc/nvidia-tegra/LICENSE.brcm_patchram_plus.gz;md5=56c49a020a7573ba8a805f8df531b806"
 
-MAINSUM = "941a93e2f9080a86bcd4a52f06cd394d45896cf67702ded4e312e8f5f733e67d"
+MAINSUM = "ad2dd6671a42307dedfc477a805f4b5e6b0117d53e02eb06a8b7133e95d38d39"
 
 do_install() {
     install -d ${D}${sbindir}
