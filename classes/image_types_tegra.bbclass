@@ -46,6 +46,7 @@ IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLAS
 TEGRAFLASH_ROOTFS_EXTERNAL = "${@'1' if d.getVar('TNSPEC_BOOTDEV') != 'mmcblk0p1' else '0'}"
 ROOTFS_DEVICE_FOR_INITRD_FLASH = "${@tegra_rootfs_device(d)}"
 TEGRAFLASH_NO_INTERNAL_STORAGE ??= "0"
+OVERLAY_DTB_FILE ??= ""
 
 def tegra_initrd_image(d):
     if d.getVar('IMAGE_UBOOT'):
@@ -297,20 +298,42 @@ copy_dtbs() {
             bbnote "Overwriting $destination/$dtbf with KERNEL_DEVICETREE content"
             rm -f $destination/$dtbf
         fi
-        bbnote "Copying KERNEL_DEVICETREE entry $dtbf to $destination"
-        cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" $destination/$dtbf
+        bbnote "Copying KERNEL_DEVICETREE entry $dtb to $destination"
+        cp -L "${DEPLOY_DIR_IMAGE}/$dtb" $destination/$dtbf
     done
     if [ -n "${EXTERNAL_KERNEL_DEVICETREE}" ]; then
-        for dtb in $(find "${EXTERNAL_KERNEL_DEVICETREE}" \( -name '*.dtb' -o -name '*.dtbo' \) -printf '%P\n' | sort); do
+        for dtb in $(find "${EXTERNAL_KERNEL_DEVICETREE}" \( -name '*.dtb' \) -printf '%P\n' | sort); do
             dtbf=`basename $dtb`
             if [ -e $destination/$dtbf ]; then
                 bbnote "Overwriting $destination/$dtbf with EXTERNAL_KERNEL_DEVICETREE content"
                 rm -f $destination/$dtbf
             fi
-            bbnote "Copying EXTERNAL_KERNEL_DEVICETREE entry $dtbf to $destination"
-            cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$dtbf" $destination/$dtbf
+            bbnote "Copying EXTERNAL_KERNEL_DEVICETREE entry $dtb to $destination"
+            cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$dtb" $destination/$dtbf
         done
     fi
+}
+
+copy_dtb_overlays() {
+    local destination=$1
+    local dtb dtbf extdtb
+    local extraoverlays=$(echo "${OVERLAY_DTB_FILE}" | sed -e"s/,/ /g")
+    if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
+        extraoverlays="$extraoverlays L4TConfiguration-rcmboot.dtbo"
+    fi
+    for dtb in ${TEGRA_BOOTCONTROL_OVERLAYS} ${TEGRA_PLUGIN_MANAGER_OVERLAYS} $extraoverlays; do
+        dtbf=`basename $dtb`
+        if [ -n "${EXTERNAL_KERNEL_DEVICETREE}" ]; then
+            local extdtb=$(find "${EXTERNAL_KERNEL_DEVICETREE}" -name $dtbf -printf '%P' 2>/dev/null)
+	    if [ -n "$extdtb" ]; then
+	        bbnote "Copying external overlay $extdtb to $destination"
+		cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$extdtb" $destination/$dtbf
+		continue
+	    fi
+	fi
+	bbnote "Copying overlay $dtb to $destination"
+	cp -L "${DEPLOY_DIR_IMAGE}/$dtb" $destination/$dtbf
+    done
 }
 
 create_tegraflash_pkg() {
@@ -347,14 +370,18 @@ create_tegraflash_pkg:tegra194() {
     cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t${@d.getVar('NVIDIA_CHIP')[2:]}x ./rollback/
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
+    cat >> ./flashvars <<EOF
+BOOTCONTROL_OVERLAYS="${@','.join(d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split())}"
+PLUGIN_MANAGER_OVERLAYS="${@','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split())}"
+EOF
     for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
         cp $f .
     done
     for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
         cp $f .
     done
-    cp ${DEPLOY_DIR_IMAGE}/*.dtbo .
     copy_dtbs "${WORKDIR}/tegraflash"
+    copy_dtb_overlays "${WORKDIR}/tegraflash"
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* .
 	if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
@@ -470,6 +497,10 @@ create_tegraflash_pkg:tegra234() {
     # Copy and update flashvars
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
+    cat >> ./flashvars <<EOF
+BOOTCONTROL_OVERLAYS="${@','.join(d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split())}"
+PLUGIN_MANAGER_OVERLAYS="${@','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split())}"
+EOF
 
     for f in ${STAGING_DATADIR}/tegraflash/bpmp_t234-*.bin; do
         cp $f .
@@ -477,11 +508,11 @@ create_tegraflash_pkg:tegra234() {
     for f in ${STAGING_DATADIR}/tegraflash/tegra234-*.dts*; do
         cp $f .
     done
-    cp ${DEPLOY_DIR_IMAGE}/*.dtbo .
     for f in ${STAGING_DATADIR}/tegraflash/tegra234-bpmp-*.dtb; do
         cp $f .
     done
     copy_dtbs "${WORKDIR}/tegraflash"
+    copy_dtb_overlays "${WORKDIR}/tegraflash"
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* .
 	if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
@@ -654,10 +685,13 @@ oe_make_bup_payload() {
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
-    cp ${DEPLOY_DIR_IMAGE}/*.dtbo .
+    sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
+    cat >> ./flashvars <<EOF
+BOOTCONTROL_OVERLAYS="${@','.join(d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split())}"
+PLUGIN_MANAGER_OVERLAYS="${@','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split())}"
+EOF
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
         cp mb1_t194_prod.bin mb1_b_t194_prod.bin
-        sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
         for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
             cp $f .
         done
@@ -665,7 +699,6 @@ oe_make_bup_payload() {
             cp $f .
         done
     elif [ "${SOC_FAMILY}" = "tegra234" ]; then
-        sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
 	for f in ${STAGING_DATADIR}/tegraflash/bpmp_t234-*.bin; do
             cp $f .
 	done
@@ -678,6 +711,7 @@ oe_make_bup_payload() {
     fi
     . ./flashvars
     copy_dtbs "${WORKDIR}/bup-payload"
+    copy_dtb_overlays "${WORKDIR}/bup-payload"
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
         cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         boardcfg=board_config_${MACHINE}.xml
@@ -719,5 +753,8 @@ create_bup_payload_image() {
 create_bup_payload_image[vardepsexclude] += "DATETIME"
 
 CONVERSIONTYPES += "bup-payload"
-CONVERSION_DEPENDS_bup-payload = "tegra-flashtools-native python3-pyyaml-native coreutils-native tegra-bootfiles tegra-redundant-boot-rollback dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy ${TEGRA_ESP_IMAGE}:do_image_complete ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS}"
+CONVERSION_DEPENDS_bup-payload = "tegra-flashtools-native python3-pyyaml-native coreutils-native tegra-bootfiles \
+                                  tegra-redundant-boot-rollback dtc-native \
+                                  virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy \
+                                  ${TEGRA_ESP_IMAGE}:do_image_complete ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS}"
 CONVERSION_CMD:bup-payload = "create_bup_payload_image ${type}"
