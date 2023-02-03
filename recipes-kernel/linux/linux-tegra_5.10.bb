@@ -4,7 +4,7 @@ DESCRIPTION = "Linux kernel from sources provided by Nvidia for Tegra processors
 LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 
-inherit l4t_bsp
+inherit l4t_bsp tegra-uefi-signing
 require recipes-kernel/linux/linux-yocto.inc
 
 KERNEL_DISABLE_FW_USER_HELPER ?= "y"
@@ -97,6 +97,35 @@ do_apply_devicetree_overlays() {
 do_apply_devicetree_overlays[dirs] = "${B}"
 do_apply_devicetree_overlays[depends] += "dtc-native:do_populate_sysroot"
 
+addtask apply_devicetree_overlays after do_compile_devicetree_overlays before do_install
+
+# Override this function in a bbappend to
+# implement other signing mechanisms
+sign_kernel_image_and_dtb_files() {
+    if [ -n "${TEGRA_UEFI_DB_KEY}" -a -n "${TEGRA_UEFI_DB_CERT}" ]; then
+        tegra_uefi_sbsign "$1"
+        shift
+	while [ $# -gt 0 ]; do
+            tegra_uefi_attach_sign "$1"
+	    shift
+	done
+    fi
+}
+
+do_sign_kernel_and_dtbs() {
+    local dtb dtbf alldtbs
+    alldtbs=""
+    for dtbf in ${KERNEL_DEVICETREE}; do
+        dtb=$(get_real_dtb_path_in_kernel $(normalize_dtb "$dtbf"))
+	alldtbs="$alldtbs $dtb"
+    done
+    sign_kernel_image_and_dtb_files ${KERNEL_OUTPUT_DIR}/${KERNEL_IMAGETYPE} $alldtbs
+}
+do_sign_kernel_and_dtbs[dirs] = "${B}"
+do_sign_kernel_and_dtbs[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
+
+addtask sign_kernel_and_dtbs after do_compile before do_install
+
 do_install:append() {
 	for dtbo in $(find ${KERNEL_OUTPUT_DIR}/dts/*.dtbo); do
 		dtbo_base_name=$(basename $dtbo)
@@ -111,9 +140,30 @@ do_deploy:append() {
 			install -m 0644 ${KERNEL_OUTPUT_DIR}/dts/$dtbo $deployDir
 		fi
 	done
+	if [ -n "${TEGRA_UEFI_DB_KEY}" -a -n "${TEGRA_UEFI_DB_CERT}" ]; then
+		for dtbf in ${KERNEL_DEVICETREE}; do
+			dtb=$(normalize_dtb "$dtbf")
+			dtb_ext=${dtb##*.}
+			dtb_path=$(get_real_dtb_path_in_kernel "$dtb")
+			dtb_base_name=$(basename $dtb .$dtb_ext)
+			install -m 0644 $dtb_path.signed $deployDir/$dtb_base_name-${KERNEL_DTB_NAME}.$dtb_ext.signed
+			if [ "${KERNEL_IMAGETYPE_SYMLINK}" = "1" ] ; then
+				ln -sf $dtb_base_name-${KERNEL_DTB_NAME}.$dtb_ext.signed $deployDir/$dtb_base_name.$dtb_ext.signed
+			fi
+			if [ -n "${KERNEL_DTB_LINK_NAME}" ] ; then
+				ln -sf $dtb_base_name-${KERNEL_DTB_NAME}.$dtb_ext.signed $deployDir/$dtb_base_name-${KERNEL_DTB_LINK_NAME}.$dtb_ext.signed
+			fi
+		done
+	fi
 }
 
-addtask apply_devicetree_overlays after do_compile_devicetree_overlays before do_install
+# Override this function in a bbappend to
+# implement other signing mechanisms
+sign_bootimg() {
+    if [ -n "${TEGRA_UEFI_DB_KEY}" -a -n "${TEGRA_UEFI_DB_CERT}" ]; then
+        tegra_uefi_attach_sign "$1"
+    fi
+}
 
 bootimg_from_bundled_initramfs() {
     if [ ! -z "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" = "1" ]; then
@@ -130,6 +180,7 @@ bootimg_from_bundled_initramfs() {
                                     --ramdisk ${WORKDIR}/initrd \
                                     --cmdline "${KERNEL_ARGS}" \
                                     --output $deployDir/${initramfs_base_name}.cboot
+	    sign_bootimg $deployDir/${initramfs_base_name}.cboot
             chmod 0644 $deployDir/${initramfs_base_name}.cboot
             ln -sf ${initramfs_base_name}.cboot $deployDir/${initramfs_symlink_name}.cboot
         done
@@ -144,7 +195,9 @@ bootimg_from_bundled_initramfs() {
             ${STAGING_BINDIR_NATIVE}/tegra-flash/mkbootimg \
                                     --kernel $deployDir/${baseName}.bin \
                                     --ramdisk ${WORKDIR}/initrd \
+                                    --cmdline "${KERNEL_ARGS}" \
                                     --output $deployDir/${baseName}.cboot
+	    sign_bootimg $deployDir/${initramfs_base_name}.cboot
             chmod 0644 $deployDir/${baseName}.cboot
             ln -sf ${baseName}.cboot $deployDir/$imageType-${KERNEL_IMAGE_LINK_NAME}.cboot
             ln -sf ${baseName}.cboot $deployDir/$imageType.cboot
@@ -155,7 +208,7 @@ do_deploy:append() {
     bootimg_from_bundled_initramfs
 }
 
-do_deploy[depends] += "tegra-flashtools-native:do_populate_sysroot"
+do_deploy[depends] += "tegra-flashtools-native:do_populate_sysroot ${TEGRA_UEFI_SIGNING_TASKDEPS}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
