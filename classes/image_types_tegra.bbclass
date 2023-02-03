@@ -21,6 +21,20 @@ def tegra_rootfs_device(d):
         return re.sub(r"p[0-9]+$", "", bootdev)
     return re.sub("[0-9]+$", "", bootdev)
 
+def tegra_dtb_extra_deps(d):
+    deps = []
+    if d.getVar('PREFERRED_PROVIDER_virtual/dtb'):
+        deps.append('virtual/dtb:do_populate_sysroot')
+    if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT'):
+        deps.append('tegra-uefi-keys-dtb:do_populate_sysroot')
+    return ' '.join(deps)
+
+def tegra_bootcontrol_overlay_list(d):
+    overlays = d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split()
+    if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT'):
+        overlays.append('UefiDefaultSecurityKeys.dtbo')
+    return ','.join(overlays)
+
 IMAGE_ROOTFS_SIZE ?= "${@tegra_default_rootfs_size(d)}"
 
 KERNEL_ARGS ??= ""
@@ -28,7 +42,7 @@ TEGRA_SIGNING_ARGS ??= ""
 TEGRA_SIGNING_ENV ??= ""
 TEGRA_SIGNING_EXCLUDE_TOOLS ??= ""
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
-DTB_EXTRA_DEPS ??= "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
+DTB_EXTRA_DEPS ??= "${@tegra_dtb_extra_deps(d)}"
 EXTERNAL_KERNEL_DEVICETREE ??= "${@'${RECIPE_SYSROOT}/boot/devicetree' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
 
 TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEGRA_BOARDREV};chiprev=${TEGRA_CHIPREV}"
@@ -47,6 +61,7 @@ TEGRAFLASH_ROOTFS_EXTERNAL = "${@'1' if d.getVar('TNSPEC_BOOTDEV') != 'mmcblk0p1
 ROOTFS_DEVICE_FOR_INITRD_FLASH = "${@tegra_rootfs_device(d)}"
 TEGRAFLASH_NO_INTERNAL_STORAGE ??= "0"
 OVERLAY_DTB_FILE ??= ""
+USE_UEFI_SIGNED_FILES ?= "${@'true' if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT') else 'false'}"
 
 def tegra_initrd_image(d):
     if d.getVar('IMAGE_UBOOT'):
@@ -296,20 +311,26 @@ copy_dtbs() {
         dtbf=`basename $dtb`
         if [ -e $destination/$dtbf ]; then
             bbnote "Overwriting $destination/$dtbf with KERNEL_DEVICETREE content"
-            rm -f $destination/$dtbf
+            rm -f $destination/$dtbf $destination/$dtbf.signed
         fi
         bbnote "Copying KERNEL_DEVICETREE entry $dtb to $destination"
         cp -L "${DEPLOY_DIR_IMAGE}/$dtb" $destination/$dtbf
+	if ${USE_UEFI_SIGNED_FILES}; then
+            cp -L "${DEPLOY_DIR_IMAGE}/$dtb.signed" $destination/$dtbf.signed
+	fi
     done
     if [ -n "${EXTERNAL_KERNEL_DEVICETREE}" ]; then
         for dtb in $(find "${EXTERNAL_KERNEL_DEVICETREE}" \( -name '*.dtb' \) -printf '%P\n' | sort); do
             dtbf=`basename $dtb`
             if [ -e $destination/$dtbf ]; then
                 bbnote "Overwriting $destination/$dtbf with EXTERNAL_KERNEL_DEVICETREE content"
-                rm -f $destination/$dtbf
+                rm -f $destination/$dtbf $destination/$dtbf.signed
             fi
             bbnote "Copying EXTERNAL_KERNEL_DEVICETREE entry $dtb to $destination"
             cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$dtb" $destination/$dtbf
+	    if ${USE_UEFI_SIGNED_FILES}; then
+                cp -L "${DEPLOY_DIR_IMAGE}/$dtb.signed" $destination/$dtbf.signed
+	    fi
         done
     fi
 }
@@ -320,6 +341,9 @@ copy_dtb_overlays() {
     local extraoverlays=$(echo "${OVERLAY_DTB_FILE}" | sed -e"s/,/ /g")
     if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         extraoverlays="$extraoverlays L4TConfiguration-rcmboot.dtbo"
+    fi
+    if ${USE_UEFI_SIGNED_FILES}; then
+        extraoverlays="$extraoverlays UefiDefaultSecurityKeys.dtbo"
     fi
     for dtb in ${TEGRA_BOOTCONTROL_OVERLAYS} ${TEGRA_PLUGIN_MANAGER_OVERLAYS} $extraoverlays; do
         dtbf=`basename $dtb`
@@ -371,7 +395,7 @@ create_tegraflash_pkg:tegra194() {
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
     cat >> ./flashvars <<EOF
-BOOTCONTROL_OVERLAYS="${@','.join(d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split())}"
+BOOTCONTROL_OVERLAYS="${@tegra_bootcontrol_overlay_list(d)}"
 PLUGIN_MANAGER_OVERLAYS="${@','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split())}"
 EOF
     for f in ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg; do
@@ -498,7 +522,7 @@ create_tegraflash_pkg:tegra234() {
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
     cat >> ./flashvars <<EOF
-BOOTCONTROL_OVERLAYS="${@','.join(d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split())}"
+BOOTCONTROL_OVERLAYS="${@tegra_bootcontrol_overlay_list(d)}"
 PLUGIN_MANAGER_OVERLAYS="${@','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split())}"
 EOF
 
@@ -687,7 +711,7 @@ oe_make_bup_payload() {
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
     cat >> ./flashvars <<EOF
-BOOTCONTROL_OVERLAYS="${@','.join(d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split())}"
+BOOTCONTROL_OVERLAYS="${@tegra_bootcontrol_overlay_list(d)}"
 PLUGIN_MANAGER_OVERLAYS="${@','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split())}"
 EOF
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
