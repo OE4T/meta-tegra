@@ -9,16 +9,6 @@ PROVIDES = "virtual/bootloader standalone-mm-optee-tegra"
 
 DEPENDS = "coreutils-native dtc-native"
 
-DTB_OVERLAYS = "\
-   AcpiBoot.dtbo \
-   BootOrderNvme.dtbo \
-   BootOrderPxe.dtbo \
-   BootOrderSata.dtbo \
-   BootOrderUfs.dtbo \
-   BootOrderUsb.dtbo \
-   L4TConfiguration.dtbo \
-"
-
 inherit deploy
 
 do_compile() {
@@ -46,7 +36,8 @@ do_install() {
 do_deploy() {
     install -d ${DEPLOYDIR}
     install -m 0644 ${B}/uefi_jetson.bin ${DEPLOYDIR}/
-    for dtbo in ${DTB_OVERLAYS}; do
+    for dtbo in ${TEGRA_BOOTCONTROL_OVERLAYS}; do
+	[ -e ${S}/kernel/dtb/$dtbo ] || continue
 	install -m 0644 ${S}/kernel/dtb/$dtbo ${DEPLOYDIR}/
     done
     install -m 0644 ${S}/kernel/dtb/L4TConfiguration.dtbo ${DEPLOYDIR}/L4TConfiguration-rcmboot.dtbo
