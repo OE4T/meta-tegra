@@ -16,6 +16,10 @@ UBOOT_EXTLINUX_INITRD ?= "${@'/boot/initrd' if d.getVar('INITRAMFS_IMAGE') != ''
 UBOOT_EXTLINUX_KERNEL_ARGS ?= "${KERNEL_ARGS}"
 
 TEGRA_BOOTCONTROL_OVERLAYS ?= "L4TConfiguration.dtbo"
+TEGRA_PLUGIN_MANAGER_OVERLAYS ??= ""
+# The following variable is deprecated; add new overlays
+# to one of the above instead.
+OVERLAY_DTB_FILE ?= ""
 
 TNSPEC_MACHINE ??= "${MACHINE}"
 TNSPEC_BOOTDEV ??= "mmcblk0p1"
