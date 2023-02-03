@@ -6,7 +6,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS = "tegra-flashtools-native dtc-native"
 
-inherit l4t-extlinux-config kernel-artifact-names
+inherit l4t-extlinux-config kernel-artifact-names tegra-uefi-signing
 
 KERNEL_ARGS ??= ""
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
@@ -50,28 +50,42 @@ do_compile() {
 do_compile[depends] += "${@compute_dependencies(d)}"
 do_compile[cleandirs] = "${B}"
 
-do_install() {
-    install -d ${D}/boot/extlinux ${D}/boot/efi
-    install -m 0644 ${B}/${KERNEL_IMAGETYPE} ${D}/boot/
-    if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
-        install -m 0644 ${B}/${DTBFILE} ${D}/boot/
+# Override this function in a bbappend to
+# implement other signing mechanisms
+sign_extlinux_files() {
+    if [ -n "${TEGRA_UEFI_DB_KEY}" -a -n "${TEGRA_UEFI_DB_CERT}" ]; then
+        while [ $# -gt 0 ]; do
+	    tegra_uefi_split_sign "$1"
+	    shift
+	done
     fi
-    if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
-        install -m 0644 ${B}/initrd ${D}/boot/
-    fi
-    install -m 0644 ${B}/extlinux.conf ${D}/boot/extlinux/
 }
 
-do_install:tegra234() {
+do_sign_files() {
+    local files_to_sign="extlinux.conf"
+    if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
+        files_to_sign="${DTBFILE}"
+    fi
+    if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
+        files_to_sign="$files_to_sign initrd"
+    fi
+    sign_extlinux_files $files_to_sign
+}
+do_sign_files[dirs] = "${B}"
+do_sign_files[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
+
+addtask sign_files after do_compile do_create_extlinux_config before do_install
+
+do_install() {
     install -d ${D}/boot/extlinux
     install -m 0644 ${B}/${KERNEL_IMAGETYPE} ${D}/boot/
     if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
-        install -m 0644 ${B}/${DTBFILE} ${D}/boot/
+        install -m 0644 ${B}/${DTBFILE}* ${D}/boot/
     fi
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
-        install -m 0644 ${B}/initrd ${D}/boot/
+        install -m 0644 ${B}/initrd* ${D}/boot/
     fi
-    install -m 0644 ${B}/extlinux.conf ${D}/boot/extlinux/
+    install -m 0644 ${B}/extlinux.conf* ${D}/boot/extlinux/
 }
 
 FILES:${PN} = "/boot"
