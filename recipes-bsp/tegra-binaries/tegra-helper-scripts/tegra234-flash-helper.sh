@@ -164,8 +164,25 @@ if [ -n "$keyfile" -o -n "$sbk_keyfile" -o -n "$user_keyfile" ] && [ $have_odmsi
     exit 1
 fi
 
+rcm_bootcontrol_overlay="L4TConfiguration-rcmboot.dtbo"
 if [ $rcm_boot -eq 1 -a $to_sign -eq 0 ]; then
-    OVERLAY_DTB_FILE=$(echo "$OVERLAY_DTB_FILE" | sed -e's!L4TConfiguration[^.]*\.dtbo!L4TConfiguration-rcmboot.dtbo!' -e's!BootOrder[^.]*\.dtbo\(,\|$\)!!')
+    overlay_dtb_files="$rcm_bootcontrol_overlay"
+else
+    overlay_dtb_files="$BOOTCONTROL_OVERLAYS"
+fi
+if [ -z "$overlay_dtb_files" ]; then
+    overlay_dtb_files="$PLUGIN_MANAGER_OVERLAYS"
+elif [ -n "$PLUGIN_MANAGER_OVERLAYS" ]; then
+    overlay_dtb_files="$overlay_dtb_files,$PLUGIN_MANAGER_OVERLAYS"
+fi
+if [ -z "$overlay_dtb_files" ]; then
+    overlay_dtb_files="$OVERLAY_DTB_FILE"
+elif [ -n "$OVERLAY_DTB_FILE" ]; then
+    overlay_dtb_files="$overlay_dtb_files,$OVERLAY_DTB_FILE"
+fi
+overlay_dtb_arg=
+if [ -n "$overlay_dtb_files" ]; then
+    overlay_dtb_arg="--overlay_dtb $overlay_dtb_files"
 fi
 
 # Temp file for storing cvm.bin in, if we need to query the board for its
@@ -507,7 +524,7 @@ bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --bldtb $dtb_file \
          --concat_cpubl_bldtb \
          --cpubl uefi_jetson.bin \
-         --overlay_dtb $OVERLAY_DTB_FILE $custinfo_args"
+         $overlay_dtb_arg $custinfo_args"
 
 if [ $bup_blob -ne 0 -o $to_sign -ne 0 -o "$sdcard" = "yes" -o $external_device -eq 1 ]; then
     tfcmd=sign
@@ -602,8 +619,14 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
     cp uefi_jetson.bin rcmboot_uefi_jetson.bin
-    rcm_overlay_dtb=$(echo "$OVERLAY_DTB_FILE" | sed -e's!L4TConfiguration[^.]*\.dtbo!L4TConfiguration-rcmboot.dtbo!' -e's!BootOrder[^.]*\.dtbo\(,\|$\)!!')
-    rcmbootsigncmd="python3 $flashappname --chip 0x23 --odmdata $odmdata --bldtb $dtb_file --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtb \
+    rcm_overlay_dtbs="$rcm_bootcontrol_overlay"
+    if [ -n "$PLUGIN_MANAGER_OVERLAYS" ]; then
+	rcm_overlay_dtbs="$rcm_overlay_dtbs,$PLUGIN_MANAGER_OVERLAYS"
+    fi
+    if [ -n "$OVERLAY_DTB_FILE" ]; then
+	rcm_overlay_dtbs="$rcm_overlay_dtbs,$OVERLAY_DTB_FILE"
+    fi
+    rcmbootsigncmd="python3 $flashappname --chip 0x23 --odmdata $odmdata --bldtb $dtb_file --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtbs \
                     --cmd \"sign rcmboot_uefi_jetson.bin bootloader_stage2 A_cpu-bootloader\""
     eval $rcmbootsigncmd || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
