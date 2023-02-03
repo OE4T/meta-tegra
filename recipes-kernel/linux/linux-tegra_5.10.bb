@@ -104,7 +104,7 @@ do_install:append() {
 	done
 }
 
-OVERLAYS_TO_DEPLOY = '${@" ".join((d.getVar("OVERLAY_DTB_FILE") or "").split(","))}'
+OVERLAYS_TO_DEPLOY = '${TEGRA_PLUGIN_MANAGER_OVERLAYS} ${@" ".join((d.getVar("OVERLAY_DTB_FILE") or "").split(","))}'
 do_deploy:append() {
 	for dtbo in ${OVERLAYS_TO_DEPLOY}; do
 		if [ -e ${KERNEL_OUTPUT_DIR}/dts/$dtbo ]; then
