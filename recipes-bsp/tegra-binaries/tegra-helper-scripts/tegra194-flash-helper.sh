@@ -419,6 +419,22 @@ if [ $rcm_boot -ne 0 ]; then
     BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile"
 fi
 
+overlay_dtb_files="$BOOTCONTROL_OVERLAYS"
+if [ -z "$overlay_dtb_files" ]; then
+    overlay_dtb_files="$PLUGIN_MANAGER_OVERLAYS"
+elif [ -n "$PLUGIN_MANAGER_OVERLAYS" ]; then
+    overlay_dtb_files="$overlay_dtb_files,$PLUGIN_MANAGER_OVERLAYS"
+fi
+if [ -z "$overlay_dtb_files" ]; then
+    overlay_dtb_files="$OVERLAY_DTB_FILE"
+elif [ -n "$OVERLAY_DTB_FILE" ]; then
+    overlay_dtb_files="$overlay_dtb_files,$OVERLAY_DTB_FILE"
+fi
+overlay_dtb_arg=
+if [ -n "$overlay_dtb_files" ]; then
+    overlay_dtb_arg="--overlay_dtb $overlay_dtb_files"
+fi
+
 bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --device_config $DEVICE_CONFIG \
          --misc_config tegra194-mb1-bct-misc-flash.cfg \
@@ -432,7 +448,7 @@ bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
          --br_cmd_config $BR_CMD_CONFIG \
          --dev_params $DEV_PARAMS,$DEV_PARAMS_B \
-         --overlay_dtb $OVERLAY_DTB_FILE"
+         $overlay_dtb_arg"
 
 
 if [ $bup_blob -ne 0 -o $to_sign -ne 0 -o "$sdcard" = "yes" -o $external_device -eq 1 ]; then
