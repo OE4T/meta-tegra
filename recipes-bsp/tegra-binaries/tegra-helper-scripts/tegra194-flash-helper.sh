@@ -379,7 +379,11 @@ fi
 dtb_file_basename=$(basename "$dtb_file")
 kernel_dtbfile="kernel_$dtb_file_basename"
 rm -f "$kernel_dtbfile"
-cp "$dtb_file" "$kernel_dtbfile"
+if [ -e "$dtb_file.signed" ]; then
+    cp "$dtb_file.signed" "$kernel_dtbfile"
+else
+    cp "$dtb_file" "$kernel_dtbfile"
+fi
 
 if [ "$spi_only" = "yes" -o $external_device -eq 1 ]; then
     if [ ! -e "$here/nvflashxmlparse" ]; then
@@ -484,7 +488,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
 	fi
 	rm -rf signed_bootimg_dir
 	mkdir signed_bootimg_dir
-	cp "$kernfile" "$kernel_dtbfile" xusb_sil_rel_fw signed_bootimg_dir/
+	cp xusb_sil_rel_fw signed_bootimg_dir/
 	if [ -n "$MINRATCHET_CONFIG" ]; then
 	    for f in $MINRATCHET_CONFIG; do
 		[ -e "$f" ] || continue
@@ -505,9 +509,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
 	    echo "ERR: missing l4t_sign_image script" >&2
 	    exit 1
 	fi
-	"$signimg" --file "$kernfile" --type "kernel" --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG &&
-	    "$signimg" --file "$kernel_dtbfile" --type "kernel_dtb" --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG &&
-	    "$signimg" --file xusb_sil_rel_fw --type "xusb_fw" --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG
+	"$signimg" --file xusb_sil_rel_fw --type "xusb_fw" --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG
 	rc=$?
 	cd "$oldwd"
 	if [ $rc -ne 0 ]; then
