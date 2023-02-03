@@ -1,0 +1,54 @@
+From c3533b8da1e1425801d2fc0bcd231e13d593f16b Mon Sep 17 00:00:00 2001
+From: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+Date: Tue, 19 Feb 2019 20:07:45 +0800
+Subject: [PATCH] configure: Fixup build dependencies for cross-compiling
+
+When cross-compiling, custom header files and libraries need to be
+specified. sbsign assumes that all the dependencies are located
+under /usr/include and /usr/lib.
+
+Prepend these paths with a placeholder that can be replaced with the
+actual paths once they are resolved.
+
+Upstream status: inappropriate [OE specific]
+
+Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
+
+Taken from :
+https://github.com/intel/luv-yocto/tree/master/meta-luv/recipes-devtools/sbsigntool/sbsigntool
+
+Corrected typo error and ported to version 0.9.2
+
+Signed-off-by: Naveen Saini <naveen.kumar.saini@intel.com>
+---
+ configure.ac | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 1459e91..3e34c8d 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -70,7 +70,10 @@ AM_CONDITIONAL(TEST_BINARY_FORMAT, [ test "$EFI_ARCH" = "arm" -o "$EFI_ARCH" = "
+ ##
+ # no consistent view of where gnu-efi should dump the efi stuff, so find it
+ ##
+-for path in /lib /lib64 /usr/lib /usr/lib64 /usr/lib32 /lib/efi /lib64/efi /usr/lib/efi /usr/lib64/efi /usr/lib/gnuefi /usr/lib64/gnuefi ; do
++for path in RECIPE_SYSROOT/lib RECIPE_SYSROOT/lib64 RECIPE_SYSROOT/usr/lib \
++            RECIPE_SYSROOT/usr/lib64 RECIPE_SYSROOT/usr/lib32 \
++            RECIPE_SYSROOT/lib/efi RECIPE_SYSROOT/lib64/efi \
++            RECIPE_SYSROOT/usr/lib/efi RECIPE_SYSROOT/usr/lib64/efi; do
+     if test -e $path/crt0-efi-$EFI_ARCH.o; then
+        CRTPATH=$path
+     fi
+@@ -79,7 +82,7 @@ if test -z "$CRTPATH"; then
+    AC_MSG_ERROR([cannot find the gnu-efi crt path])
+ fi
+ 
+-EFI_CPPFLAGS="-I/usr/include/efi -I/usr/include/efi/$EFI_ARCH \
++EFI_CPPFLAGS="-IRECIPE_SYSROOT/usr/include/efi -IRECIPE_SYSROOT/usr/include/efi/$EFI_ARCH \
+  -DEFI_FUNCTION_WRAPPER"
+ CPPFLAGS_save="$CPPFLAGS"
+ CPPFLAGS="$CPPFLAGS $EFI_CPPFLAGS"
+-- 
+2.7.4
+
