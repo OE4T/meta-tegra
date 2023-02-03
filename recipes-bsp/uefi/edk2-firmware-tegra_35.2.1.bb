@@ -7,7 +7,7 @@ PROVIDES = "virtual/bootloader"
 DEPENDS += "dtc-native"
 DEPENDS:append:tegra194 = " nvdisp-init"
 
-inherit deploy
+inherit deploy tegra-uefi-signing
 
 EDK2_PLATFORM = "Jetson"
 EDK2_PLATFORM_DSC = "Platform/NVIDIA/Jetson/Jetson.dsc"
@@ -42,6 +42,22 @@ do_compile:append() {
     fdtput -t s ${B}/images/L4TConfiguration-rcmboot.dtbo /fragment@0/__overlay__/firmware/uefi/variables/gNVIDIATokenSpaceGuid/DefaultBootPriority data boot.img
 }
 do_compile[depends] += "${NVDISPLAY_INIT_DEPS}"
+
+# Override this function in a bbappend to
+# implement other signing mechanisms
+sign_efi_app() {
+    if [ -n "${TEGRA_UEFI_DB_KEY}" -a -n "${TEGRA_UEFI_DB_CERT}" ]; then
+        tegra_uefi_sbsign "$1"
+    fi
+}
+
+do_sign_efi_launcher() {
+    sign_efi_app images/BOOTAA64.efi
+}
+do_sign_efi_launcher[dirs] = "${B}"
+do_sign_efi_launcher[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
+
+addtask sign_efi_launcher after do_compile before do_install
 
 do_install() {
     install -d ${D}${EFIDIR}
