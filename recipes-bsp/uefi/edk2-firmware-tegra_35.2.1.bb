@@ -55,9 +55,9 @@ INSANE_SKIP:l4t-launcher = "buildpaths"
 do_deploy() {
     install -d ${DEPLOYDIR}
     install -m 0644 ${B}/images/${EDK2_BIN_NAME} ${DEPLOYDIR}/
-    for f in ${B}/images/*.dtbo; do
-	[ -e "$f" ] || continue
-	install -m 0644 $f ${DEPLOYDIR}/
+    for dtb in ${TEGRA_BOOTCONTROL_OVERLAYS} L4TConfiguration-rcmboot.dtbo; do
+	[ -e ${B}/images/$dtb ] || continue
+	install -m 0644 ${B}/images/$dtb ${DEPLOYDIR}/
     done
 }
 
