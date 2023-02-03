@@ -1,7 +1,10 @@
 # l4t-extlinux-config.bbclass
 #
 # This class allow the extlinux.conf generation for use with
-# the L4TLauncher UEFI boot application.
+# the L4TLauncher UEFI boot application, which is derived from
+# the extlinux.conf support in the older cboot bootloader on
+# Tegra platforms.
+#
 # This is adapted from OE-Core's uboot-extlinux-config class,
 # and uses the same variable names (with one addition), but
 # has the following differences:
@@ -16,9 +19,10 @@
 #  6. UBOOT_EXTLINUX_CONSOLE is not used, and
 #     UBOOT_EXTLINUX_KERNEL_ARGS defaults to null string, due to
 #     common boot args being inserted into the device tree.
-#  7. If no timeout is set, L4TLauncher defaults to waiting indefinitely,
-#     so we set a default timeout of 30 (= 3 seconds) when there is
-#     only one entry.
+#  7. An APPEND line *must* begin with "${cbootargs} " to be appended
+#     to the kernel command line. (It is automatically prepended
+#     in this bbclass.) ** NB: In L4T R35.2.1, a bug in the L4TLauncher
+#     code also requires this line to be present.
 #  8. L4TLauncher uses 'LINUX' instead of 'KERNEL' for the kernel image.
 #
 # External variables:
@@ -60,8 +64,6 @@ python do_create_extlinux_config() {
     cfg += 'MENU TITLE %s\n' % d.getVar('UBOOT_EXTLINUX_MENU_TITLE')
 
     timeout =  localdata.getVar('UBOOT_EXTLINUX_TIMEOUT')
-    if not timeout and len(labels) == 1:
-        timeout = '30'
     if timeout:
         cfg += 'TIMEOUT %s\n' % timeout
 
@@ -84,10 +86,6 @@ python do_create_extlinux_config() {
         if not menu_description:
             menu_description = label
 
-        root = localdata.getVar('UBOOT_EXTLINUX_ROOT')
-        if not root:
-            bb.fatal('UBOOT_EXTLINUX_ROOT not defined')
-
         kernel_image = localdata.getVar('UBOOT_EXTLINUX_KERNEL_IMAGE')
 
         fdt = localdata.getVar('UBOOT_EXTLINUX_FDT')
@@ -102,10 +100,19 @@ python do_create_extlinux_config() {
 
         kernel_args = localdata.getVar('UBOOT_EXTLINUX_KERNEL_ARGS')
         if kernel_args:
-            kernel_args = root + ' ' + kernel_args
+            kernel_args = '${cbootargs} ' + kernel_args
+            cfg += '\tAPPEND ' + kernel_args + '\n'
         else:
-            kernel_args = root
-        cfg += '\tAPPEND ' + kernel_args + '\n'
+            # This line is required when using unpatched UEFI 35.2.1
+            cfg += '\tAPPEND ${cbootargs}\n'
+
+    # When signing, input length is expected to be an even multiple
+    # of 16 bytes; otherwise the signing tool will pad it with 0x80,
+    # which could cause it to be unparseable by ordinary mortals
+    # (and their tools).  Pad it with linefeeds here to prevent that.
+    cfgextra = len(cfg) % 16
+    if cfgextra > 0:
+        cfg += '\n' * (16 - cfgextra)
 
     try:
         with open(cfile, 'w') as cfgfile:
@@ -113,7 +120,7 @@ python do_create_extlinux_config() {
     except OSError:
         bb.fatal('Unable to open %s' % (cfile))
 }
-UBOOT_EXTLINUX_VARS = "CONSOLE MENU_DESCRIPTION ROOT KERNEL_IMAGE FDT KERNEL_ARGS INITRD"
+UBOOT_EXTLINUX_VARS = "CONSOLE MENU_DESCRIPTION KERNEL_IMAGE FDT KERNEL_ARGS INITRD"
 do_create_extlinux_config[vardeps] += "${@' '.join(['UBOOT_EXTLINUX_%s_%s' % (v, l) for v in d.getVar('UBOOT_EXTLINUX_VARS').split() for l in d.getVar('UBOOT_EXTLINUX_LABELS').split()])}"
 do_create_extlinux_config[vardepsexclude] += "OVERRIDES"
 
