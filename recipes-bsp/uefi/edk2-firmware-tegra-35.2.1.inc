@@ -34,6 +34,7 @@ SRCREV_FORMAT = "edk2_edk2-platforms_edk2-non-osi_edk2-nvidia_edk2-nvidia-non-os
 SRC_URI += "file://0001-Fix-eeprom-customer-part-numbers.patch;patchdir=.."
 SRC_URI += "file://0002-Disable-outline-atomics-in-eqos-driver.patch;patchdir=.."
 SRC_URI += "file://0003-Fix-RCM-boot-detection.patch;patchdir=.."
+SRC_URI += "file://0004-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=.."
 
 S = "${WORKDIR}/edk2-tegra/edk2"
 

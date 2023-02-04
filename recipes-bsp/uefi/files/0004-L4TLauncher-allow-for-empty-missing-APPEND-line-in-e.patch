@@ -1,0 +1,56 @@
+From d0bad270fe96822f3c6021a4f8ee352d39711af5 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 4 Feb 2023 06:31:24 -0800
+Subject: [PATCH] L4TLauncher: allow for empty/missing APPEND line in
+ extlinux.conf
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../Application/L4TLauncher/L4TLauncher.c     | 30 ++++++++++---------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
+
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
+index 2e1849b..ac53522 100644
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
+@@ -1265,21 +1265,23 @@ ExtLinuxBoot (
+   EFI_HANDLE                 KernelHandle      = NULL;
+   EFI_LOADED_IMAGE_PROTOCOL  *ImageInfo;
+ 
+-  // Process Args
+-  ArgSize = StrSize (BootOption->BootArgs) + MAX_CBOOTARG_SIZE;
+-  NewArgs = AllocateCopyPool (ArgSize, BootOption->BootArgs);
+-  if (NewArgs == NULL) {
+-    Status = EFI_OUT_OF_RESOURCES;
+-    goto Exit;
+-  }
++  // Process Args if present
++  if (BootOption->BootArgs != NULL) {
++    ArgSize = StrSize (BootOption->BootArgs) + MAX_CBOOTARG_SIZE;
++    NewArgs = AllocateCopyPool (ArgSize, BootOption->BootArgs);
++    if (NewArgs == NULL) {
++      Status = EFI_OUT_OF_RESOURCES;
++      goto Exit;
++    }
+ 
+-  Status = gBS->LocateProtocol (&gAndroidBootImgProtocolGuid, NULL, (VOID **)&AndroidBootProtocol);
+-  if (!EFI_ERROR (Status)) {
+-    if (AndroidBootProtocol->AppendArgs != NULL) {
+-      Status = AndroidBootProtocol->AppendArgs (NewArgs, ArgSize);
+-      if (EFI_ERROR (Status)) {
+-        ErrorPrint (L"%a: Failed to get platform addition arguments\r\n", __FUNCTION__);
+-        goto Exit;
++    Status = gBS->LocateProtocol (&gAndroidBootImgProtocolGuid, NULL, (VOID **)&AndroidBootProtocol);
++    if (!EFI_ERROR (Status)) {
++      if (AndroidBootProtocol->AppendArgs != NULL) {
++        Status = AndroidBootProtocol->AppendArgs (NewArgs, ArgSize);
++        if (EFI_ERROR (Status)) {
++          ErrorPrint (L"%a: Failed to get platform addition arguments\r\n", __FUNCTION__);
++          goto Exit;
++        }
+       }
+     }
+   }
+-- 
+2.34.1
+
