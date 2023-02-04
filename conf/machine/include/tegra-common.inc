@@ -6,14 +6,11 @@ PACKAGE_EXTRA_ARCHS:append = " ${TEGRA_PKGARCH} ${SOC_FAMILY_PKGARCH}"
 KERNEL_IMAGETYPES ?= "Image.gz Image"
 KERNEL_IMAGETYPE ?= "Image"
 
-KERNEL_ROOTSPEC ?= "root=/dev/mmcblk0p1 rootfstype=ext4 rw rootwait"
 KERNEL_ARGS ??= ""
 
-UBOOT_EXTLINUX_FDTDIR ?= ""
-UBOOT_EXTLINUX_ROOT ?= "${KERNEL_ROOTSPEC}"
 UBOOT_EXTLINUX_KERNEL_IMAGE ?= "/boot/${KERNEL_IMAGETYPE}"
-UBOOT_EXTLINUX_INITRD ?= "${@'/boot/initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1' else ''}"
 UBOOT_EXTLINUX_KERNEL_ARGS ?= "${KERNEL_ARGS}"
+UBOOT_EXTLINUX_INITRD ?= "${@'/boot/initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1' else ''}"
 
 TEGRA_BOOTCONTROL_OVERLAYS ?= "L4TConfiguration.dtbo"
 TEGRA_PLUGIN_MANAGER_OVERLAYS ??= ""
