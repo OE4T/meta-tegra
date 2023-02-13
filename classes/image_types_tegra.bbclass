@@ -139,6 +139,7 @@ tegraflash_post_sign_pkg() {
     cp secureflash.xml initrd-secureflash.xml
     sed -i -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
     if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" ]; then
+        mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_DATA}" ${DATAFILE}.img
         sed -i -e"s,DATAFILE,${DATAFILE}.img," secureflash.xml
     fi
     cat > .presigning-vars <<EOF
