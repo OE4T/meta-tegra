@@ -1,89 +1,548 @@
-From b4c5bcae6aa5051aa14aca86b44e0b212aea1738 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Thu, 26 Jan 2023 03:30:38 -0800
-Subject: [PATCH 1/2] Fix eeprom customer part numbers
+From 7bf42144f03ee69f087c861a2062e3c0f318391f Mon Sep 17 00:00:00 2001
+From: Ashish Singhal <ashishsingha@nvidia.com>
+Date: Mon, 10 Oct 2022 22:41:55 -0600
+Subject: [PATCH 1/1] fix: correct eeprom customer part number handling
 
+Ensure customer part number format is supported in all
+part number processing paths.
+
+Fixes #33
+
+Signed-off-by: Bob Morgan <bobm@nvidia.com>
+Tested-by: Ashish Singhal <ashishsingha@nvidia.com>
+Reviewed-by: Ashish Singhal <ashishsingha@nvidia.com>
 ---
- Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c      | 18 ++++++++++++++----
- .../TegraDeviceTreeOverlayLibCommon.c          | 17 +++++++----------
- 2 files changed, 21 insertions(+), 14 deletions(-)
+ Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c     |   9 +-
+ .../Include/Library/PlatformResourceLib.h     |  10 +-
+ .../NVIDIA/Include/NVIDIABoardConfiguration.h |   8 +-
+ Silicon/NVIDIA/Include/Protocol/Eeprom.h      | 173 +++++++++++-------
+ .../NVIDIA/Library/OemMiscLib/OemMiscLib.c    |   8 +-
+ .../PlatformResourceLib/T194ResourceConfig.c  |   8 +-
+ .../PlatformResourceLib/T234ResourceConfig.c  |   8 +-
+ .../TegraDeviceTreeKernelOverlayLib.c         |   6 +-
+ .../TegraDeviceTreeOverlayLib.c               |  13 +-
+ .../TegraDeviceTreeOverlayLibCommon.c         |  21 +--
+ .../TegraDeviceTreeOverlayLibCommon.h         |  12 +-
+ 11 files changed, 146 insertions(+), 130 deletions(-)
 
-diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
-index 7de8125..b56a6e3 100644
---- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
-+++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
-@@ -49,7 +49,12 @@ PopulateEepromData (
+diff --git a/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c b/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
+index 7de8125..d4e53be 100644
+--- a/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
++++ b/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
+@@ -2,7 +2,7 @@
+ 
+   EEPROM Driver
+ 
+-  Copyright (c) 2019-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++  Copyright (c) 2019-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+   SPDX-License-Identifier: BSD-2-Clause-Patent
+ 
+@@ -43,13 +43,15 @@ PopulateEepromData (
+   T194_EEPROM_DATA         *T194EepromData;
+   T234_EEPROM_DATA         *T234EepromData;
+   TEGRA_EEPROM_BOARD_INFO  *EepromBoardInfo;
++  CONST CHAR8              *BoardId;
+ 
+   ChipID = TegraGetChipID ();
+ 
    if (ChipID == T194_CHIP_ID) {
      T194EepromData  = (T194_EEPROM_DATA *)EepromData;
      EepromBoardInfo = (TEGRA_EEPROM_BOARD_INFO *)BoardInfo;
 -    CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T194EepromData->PartNumber.Id, BOARD_ID_LEN);
-+    if (T194EepromData->PartNumber.Leading[0] == 0xcc)
-+    {
-+        CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T194EepromData->PartNumber.Id+1, BOARD_ID_LEN-1);
-+    } else {
-+        CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T194EepromData->PartNumber.Id, BOARD_ID_LEN);
-+    }
++    BoardId         = TegraBoardIdFromPartNumber (&T194EepromData->PartNumber);
++    CopyMem ((VOID *)EepromBoardInfo->BoardId, BoardId, TEGRA_BOARD_ID_LEN);
      CopyMem ((VOID *)EepromBoardInfo->ProductId, (VOID *)&T194EepromData->PartNumber, sizeof (T194EepromData->PartNumber));
      CopyMem ((VOID *)EepromBoardInfo->SerialNumber, (VOID *)&T194EepromData->SerialNumber, sizeof (T194EepromData->SerialNumber));
      if ((CompareMem (T194EepromData->CustomerBlockSignature, EEPROM_CUSTOMER_BLOCK_SIGNATURE, sizeof (T194EepromData->CustomerBlockSignature)) == 0) &&
-@@ -62,7 +67,12 @@ PopulateEepromData (
+@@ -62,7 +64,8 @@ PopulateEepromData (
    } else if (ChipID == T234_CHIP_ID) {
      T234EepromData  = (T234_EEPROM_DATA *)EepromData;
      EepromBoardInfo = (TEGRA_EEPROM_BOARD_INFO *)BoardInfo;
 -    CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T234EepromData->PartNumber.Id, BOARD_ID_LEN);
-+    if (T234EepromData->PartNumber.Leading[0] == 0xcc)
-+    {
-+        CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T234EepromData->PartNumber.Id+1, BOARD_ID_LEN-1);
-+    } else {
-+        CopyMem ((VOID *)EepromBoardInfo->BoardId, (VOID *)&T234EepromData->PartNumber.Id, BOARD_ID_LEN);
-+    }
++    BoardId         = TegraBoardIdFromPartNumber (&T234EepromData->PartNumber);
++    CopyMem ((VOID *)EepromBoardInfo->BoardId, BoardId, TEGRA_BOARD_ID_LEN);
      CopyMem ((VOID *)EepromBoardInfo->ProductId, (VOID *)&T234EepromData->PartNumber, sizeof (T234EepromData->PartNumber));
      CopyMem ((VOID *)EepromBoardInfo->SerialNumber, (VOID *)&T234EepromData->SerialNumber, sizeof (T234EepromData->SerialNumber));
      if ((CompareMem (T234EepromData->CustomerBlockSignature, EEPROM_CUSTOMER_BLOCK_SIGNATURE, sizeof (T234EepromData->CustomerBlockSignature)) == 0) &&
-@@ -105,7 +115,7 @@ ValidateEepromData (
-       return EFI_DEVICE_ERROR;
+diff --git a/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h b/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h
+index 778d884..ffa3285 100644
+--- a/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h
++++ b/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h
+@@ -1,6 +1,6 @@
+ /** @file
+ *
+-*  Copyright (c) 2020-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++*  Copyright (c) 2020-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ *
+ *  SPDX-License-Identifier: BSD-2-Clause-Patent
+ *
+@@ -61,11 +61,9 @@ typedef struct {
+   UINTN              FuseBaseAddr;
+   TEGRA_FUSE_INFO    *FuseList;
+   UINTN              FuseCount;
+-  CHAR8              CvmBoardId[BOARD_ID_LEN + 1];
+-  CHAR8              CvbBoardId[BOARD_ID_LEN + 1];
+-  CHAR8              CvmProductId[PRODUCT_ID_LEN + 1];
+-  CHAR8              CvbProductId[PRODUCT_ID_LEN + 1];
+-  CHAR8              SerialNumber[SERIAL_NUM_LEN];
++  CHAR8              CvmProductId[TEGRA_PRODUCT_ID_LEN + 1];
++  CHAR8              CvbProductId[TEGRA_PRODUCT_ID_LEN + 1];
++  CHAR8              SerialNumber[TEGRA_SERIAL_NUM_LEN];
+ } TEGRA_BOARD_INFO;
+ 
+ #pragma pack(1)
+diff --git a/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h b/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h
+index 129b2a2..62cbf77 100644
+--- a/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h
++++ b/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h
+@@ -1,6 +1,6 @@
+ /** @file
+ *
+-*  Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++*  Copyright (c) 2021-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ *
+ *  SPDX-License-Identifier: BSD-2-Clause-Patent
+ *
+@@ -9,8 +9,8 @@
+ #ifndef __NVIDIA_BOARD_CONFIGURATION_H__
+ #define __NVIDIA_BOARD_CONFIGURATION_H__
+ 
+-#define BOARD_ID_LEN    13
+-#define PRODUCT_ID_LEN  30
+-#define SERIAL_NUM_LEN  15
++#define TEGRA_BOARD_ID_LEN    13
++#define TEGRA_PRODUCT_ID_LEN  30
++#define TEGRA_SERIAL_NUM_LEN  15
+ 
+ #endif //__NVIDIA_BOARD_CONFIGURATION_H__
+diff --git a/Silicon/NVIDIA/Include/Protocol/Eeprom.h b/Silicon/NVIDIA/Include/Protocol/Eeprom.h
+index 3849330..cc58fc2 100644
+--- a/Silicon/NVIDIA/Include/Protocol/Eeprom.h
++++ b/Silicon/NVIDIA/Include/Protocol/Eeprom.h
+@@ -1,7 +1,7 @@
+ /** @file
+   NVIDIA EEPROM Protocol
+ 
+-  Copyright (c) 2019-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++  Copyright (c) 2019-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+   SPDX-License-Identifier: BSD-2-Clause-Patent
+ 
+@@ -21,6 +21,9 @@
+ #define CAMERA_EEPROM_PART_OFFSET  21
+ #define CAMERA_EEPROM_PART_NAME    "LPRD"
+ 
++#define NVIDIA_EEPROM_BOARD_ID_PREFIX   "699"
++#define CUSTOMER_EEPROM_BOARD_ID_MAGIC  0xcc
++
+ /**
+  * @brief The Product Part Number structure that is embedded into
+  * EEPROM layout structure
+@@ -56,6 +59,17 @@ typedef struct {
+   UINT8    Ending;     /* 41 */
+   UINT8    Pad[8];     /* 42 */
+ } TEGRA_EEPROM_PART_NUMBER;
++
++typedef struct {
++  /* 20 - 49 */
++  UINT8    CustEepromMagic; /* 20 */
++  UINT8    Data[29];        /* 21 */
++} CUST_EEPROM_PART_NUMBER;
++
++typedef union {
++  TEGRA_EEPROM_PART_NUMBER    TegraEepromPartNumber;
++  CUST_EEPROM_PART_NUMBER     CustEepromPartNumber;
++} EEPROM_PART_NUMBER;
+ #pragma pack()
+ 
+ /**
+@@ -76,7 +90,7 @@ typedef struct {
+  * @param DisplayConfig - Reflects any spl reworks/changes related to Display
+  * @param ReworkLevel - Syseng Rework Level
+  * @param Reserved0 - Reserved bytes
+- * @param PartNumber - asset_tracker_field_1 - 699 or 600 BOM Number
++ * @param PartNumber - asset_tracker_field_1
+  * @param WifiMacAddress - MAC address for primary wifi chip
+  * @param BtMacAddress - MAC address for bluetooth chip
+  * @param SecWifiMacAddress - MAC address for secondary wifi chip
+@@ -95,37 +109,37 @@ typedef struct {
+  */
+ #pragma pack(1)
+ typedef struct {
+-  UINT16                      Version;                       /* 00 */
+-  UINT16                      Size;                          /* 02 */
+-  UINT16                      BoardNumber;                   /* 04 */
+-  UINT16                      Sku;                           /* 06 */
+-  UINT8                       Fab;                           /* 08 */
+-  UINT8                       Revision;                      /* 09 */
+-  UINT8                       MinorRevision;                 /* 10 */
+-  UINT8                       MemoryType;                    /* 11 */
+-  UINT8                       PowerConfig;                   /* 12 */
+-  UINT8                       MiscConfig;                    /* 13 */
+-  UINT8                       ModemConfig;                   /* 14 */
+-  UINT8                       TouchConfig;                   /* 15 */
+-  UINT8                       DisplayConfig;                 /* 16 */
+-  UINT8                       ReworkLevel;                   /* 17 */
+-  UINT8                       Reserved0[2];                  /* 18 */
+-  TEGRA_EEPROM_PART_NUMBER    PartNumber;                    /* 20 - 49 */
+-  UINT8                       WifiMacAddress[6];             /* 50 */
+-  UINT8                       BtMacAddress[6];               /* 56 */
+-  UINT8                       SecWifiMacAddress[6];          /* 62 */
+-  UINT8                       EthernetMacAddress[6];         /* 68 */
+-  UINT8                       SerialNumber[15];              /* 74 */
+-  UINT8                       Reserved1[61];                 /* 89 */
+-  UINT8                       CustomerBlockSignature[4];     /* 150 */
+-  UINT16                      CustomerBlockLength;           /* 154 */
+-  UINT8                       CustomerTypeSignature[2];      /* 156 */
+-  UINT16                      CustomerVersion;               /* 158 */
+-  UINT8                       CustomerWifiMacAddress[6];     /* 160 */
+-  UINT8                       CustomerBtMacAddress[6];       /* 166 */
+-  UINT8                       CustomerEthernetMacAddress[6]; /* 172 */
+-  UINT8                       Reserved2[77];                 /* 178 */
+-  UINT8                       Checksum;                      /* 255 */
++  UINT16                Version;                             /* 00 */
++  UINT16                Size;                                /* 02 */
++  UINT16                BoardNumber;                         /* 04 */
++  UINT16                Sku;                                 /* 06 */
++  UINT8                 Fab;                                 /* 08 */
++  UINT8                 Revision;                            /* 09 */
++  UINT8                 MinorRevision;                       /* 10 */
++  UINT8                 MemoryType;                          /* 11 */
++  UINT8                 PowerConfig;                         /* 12 */
++  UINT8                 MiscConfig;                          /* 13 */
++  UINT8                 ModemConfig;                         /* 14 */
++  UINT8                 TouchConfig;                         /* 15 */
++  UINT8                 DisplayConfig;                       /* 16 */
++  UINT8                 ReworkLevel;                         /* 17 */
++  UINT8                 Reserved0[2];                        /* 18 */
++  EEPROM_PART_NUMBER    PartNumber;                          /* 20 - 49 */
++  UINT8                 WifiMacAddress[6];                   /* 50 */
++  UINT8                 BtMacAddress[6];                     /* 56 */
++  UINT8                 SecWifiMacAddress[6];                /* 62 */
++  UINT8                 EthernetMacAddress[6];               /* 68 */
++  UINT8                 SerialNumber[15];                    /* 74 */
++  UINT8                 Reserved1[61];                       /* 89 */
++  UINT8                 CustomerBlockSignature[4];           /* 150 */
++  UINT16                CustomerBlockLength;                 /* 154 */
++  UINT8                 CustomerTypeSignature[2];            /* 156 */
++  UINT16                CustomerVersion;                     /* 158 */
++  UINT8                 CustomerWifiMacAddress[6];           /* 160 */
++  UINT8                 CustomerBtMacAddress[6];             /* 166 */
++  UINT8                 CustomerEthernetMacAddress[6];       /* 172 */
++  UINT8                 Reserved2[77];                       /* 178 */
++  UINT8                 Checksum;                            /* 255 */
+ } T194_EEPROM_DATA;
+ #pragma pack()
+ 
+@@ -148,7 +162,7 @@ typedef struct {
+  * @param ReworkLevel - Syseng Rework Level
+  * @param Reserved0 - Reserved byte
+  * @param NumEthernetMacs - Number of ethernet mac addresses
+- * @param PartNumber - asset_tracker_field_1 - 699 or 600 BOM Number
++ * @param PartNumber - asset_tracker_field_1
+  * @param WifiMacAddress - MAC address for primary wifi chip
+  * @param BtMacAddress - MAC address for bluetooth chip
+  * @param SecWifiMacAddress - MAC address for secondary wifi chip
+@@ -168,48 +182,67 @@ typedef struct {
+  */
+ #pragma pack(1)
+ typedef struct {
+-  UINT16                      Version;                       /* 00 */
+-  UINT16                      Size;                          /* 02 */
+-  UINT16                      BoardNumber;                   /* 04 */
+-  UINT16                      Sku;                           /* 06 */
+-  UINT8                       Fab;                           /* 08 */
+-  UINT8                       Revision;                      /* 09 */
+-  UINT8                       MinorRevision;                 /* 10 */
+-  UINT8                       MemoryType;                    /* 11 */
+-  UINT8                       PowerConfig;                   /* 12 */
+-  UINT8                       MiscConfig;                    /* 13 */
+-  UINT8                       ModemConfig;                   /* 14 */
+-  UINT8                       TouchConfig;                   /* 15 */
+-  UINT8                       DisplayConfig;                 /* 16 */
+-  UINT8                       ReworkLevel;                   /* 17 */
+-  UINT8                       Reserved0;                     /* 18 */
+-  UINT8                       NumEthernetMacs;               /* 19 */
+-  TEGRA_EEPROM_PART_NUMBER    PartNumber;                    /* 20 - 49 */
+-  UINT8                       WifiMacAddress[6];             /* 50 */
+-  UINT8                       BtMacAddress[6];               /* 56 */
+-  UINT8                       SecWifiMacAddress[6];          /* 62 */
+-  UINT8                       EthernetMacAddress[6];         /* 68 */
+-  UINT8                       SerialNumber[15];              /* 74 */
+-  UINT8                       Reserved1[61];                 /* 89 */
+-  UINT8                       CustomerBlockSignature[4];     /* 150 */
+-  UINT16                      CustomerBlockLength;           /* 154 */
+-  UINT8                       CustomerTypeSignature[2];      /* 156 */
+-  UINT16                      CustomerVersion;               /* 158 */
+-  UINT8                       CustomerWifiMacAddress[6];     /* 160 */
+-  UINT8                       CustomerBtMacAddress[6];       /* 166 */
+-  UINT8                       CustomerEthernetMacAddress[6]; /* 172 */
+-  UINT8                       CustomerNumEthernetMacs;       /* 178 */
+-  UINT8                       Reserved2[76];                 /* 179 */
+-  UINT8                       Checksum;                      /* 255 */
++  UINT16                Version;                             /* 00 */
++  UINT16                Size;                                /* 02 */
++  UINT16                BoardNumber;                         /* 04 */
++  UINT16                Sku;                                 /* 06 */
++  UINT8                 Fab;                                 /* 08 */
++  UINT8                 Revision;                            /* 09 */
++  UINT8                 MinorRevision;                       /* 10 */
++  UINT8                 MemoryType;                          /* 11 */
++  UINT8                 PowerConfig;                         /* 12 */
++  UINT8                 MiscConfig;                          /* 13 */
++  UINT8                 ModemConfig;                         /* 14 */
++  UINT8                 TouchConfig;                         /* 15 */
++  UINT8                 DisplayConfig;                       /* 16 */
++  UINT8                 ReworkLevel;                         /* 17 */
++  UINT8                 Reserved0;                           /* 18 */
++  UINT8                 NumEthernetMacs;                     /* 19 */
++  EEPROM_PART_NUMBER    PartNumber;                          /* 20 - 49 */
++  UINT8                 WifiMacAddress[6];                   /* 50 */
++  UINT8                 BtMacAddress[6];                     /* 56 */
++  UINT8                 SecWifiMacAddress[6];                /* 62 */
++  UINT8                 EthernetMacAddress[6];               /* 68 */
++  UINT8                 SerialNumber[15];                    /* 74 */
++  UINT8                 Reserved1[61];                       /* 89 */
++  UINT8                 CustomerBlockSignature[4];           /* 150 */
++  UINT16                CustomerBlockLength;                 /* 154 */
++  UINT8                 CustomerTypeSignature[2];            /* 156 */
++  UINT16                CustomerVersion;                     /* 158 */
++  UINT8                 CustomerWifiMacAddress[6];           /* 160 */
++  UINT8                 CustomerBtMacAddress[6];             /* 166 */
++  UINT8                 CustomerEthernetMacAddress[6];       /* 172 */
++  UINT8                 CustomerNumEthernetMacs;             /* 178 */
++  UINT8                 Reserved2[76];                       /* 179 */
++  UINT8                 Checksum;                            /* 255 */
+ } T234_EEPROM_DATA;
+ #pragma pack()
+ 
+ typedef struct {
+-  CHAR8    BoardId[BOARD_ID_LEN + 1];
+-  CHAR8    ProductId[PRODUCT_ID_LEN + 1];
+-  CHAR8    SerialNumber[SERIAL_NUM_LEN];
++  CHAR8    BoardId[TEGRA_BOARD_ID_LEN + 1];
++  CHAR8    ProductId[TEGRA_PRODUCT_ID_LEN + 1];
++  CHAR8    SerialNumber[TEGRA_SERIAL_NUM_LEN];
+   UINT8    MacAddr[NET_ETHER_ADDR_LEN];
+   UINT8    NumMacs;
+ } TEGRA_EEPROM_BOARD_INFO;
+ 
++static inline
++CONST CHAR8 *
++TegraBoardIdFromPartNumber (
++  CONST EEPROM_PART_NUMBER  *PartNumber
++  )
++{
++  CONST CHAR8  *BoardId;
++
++  if (CompareMem (PartNumber->TegraEepromPartNumber.Leading, NVIDIA_EEPROM_BOARD_ID_PREFIX, 3) == 0) {
++    BoardId = (CONST CHAR8 *)(PartNumber->TegraEepromPartNumber.Id);
++  } else if ((PartNumber)->CustEepromPartNumber.CustEepromMagic == CUSTOMER_EEPROM_BOARD_ID_MAGIC) {
++    BoardId = (CONST CHAR8 *)(PartNumber->CustEepromPartNumber.Data);
++  } else {
++    BoardId = "InvalidBoardId";
++  }
++
++  return BoardId;
++}
++
+ #endif
+diff --git a/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c b/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c
+index 190a743..a5ad236 100644
+--- a/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c
++++ b/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c
+@@ -1,7 +1,7 @@
+ /** @file
+ *  OemMiscLib.c
+ *
+-*  Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++*  Copyright (c) 2021-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ *
+ *  SPDX-License-Identifier: BSD-2-Clause-Patent
+ *
+@@ -539,7 +539,7 @@ OemGetAssetTag (
+   )
+ {
+   if (AssetTag == NULL) {
+-    UINTN  AssetTagLen = (PRODUCT_ID_LEN + 1);
++    UINTN  AssetTagLen = (TEGRA_PRODUCT_ID_LEN + 1);
+     AssetTag = AllocateZeroPool (AssetTagLen * sizeof (CHAR16));
+     if (AssetTag == NULL) {
+       DEBUG ((DEBUG_ERROR, "%a: Out of Resources.\r\n", __FUNCTION__));
+@@ -571,7 +571,7 @@ OemGetSerialNumber (
+   )
+ {
+   if (SerialNumber == NULL) {
+-    SerialNumber = AllocateZeroPool (SERIAL_NUM_LEN * sizeof (CHAR16));
++    SerialNumber = AllocateZeroPool (TEGRA_SERIAL_NUM_LEN * sizeof (CHAR16));
+     if (SerialNumber == NULL) {
+       DEBUG ((DEBUG_ERROR, "%a: Out of Resources.\r\n", __FUNCTION__));
+       return NULL;
+@@ -580,7 +580,7 @@ OemGetSerialNumber (
+     AsciiStrToUnicodeStrS (
+       EepromInfo->SerialNumber,
+       SerialNumber,
+-      (SERIAL_NUM_LEN * sizeof (CHAR16))
++      (TEGRA_SERIAL_NUM_LEN * sizeof (CHAR16))
+       );
+   }
+ 
+diff --git a/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c b/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c
+index 7407874..70ec240 100644
+--- a/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c
++++ b/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c
+@@ -1,6 +1,6 @@
+ /** @file
+ *
+-*  Copyright (c) 2018-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++*  Copyright (c) 2018-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ *
+ *  SPDX-License-Identifier: BSD-2-Clause-Patent
+ *
+@@ -253,13 +253,11 @@ T194GetBoardInfo (
+   BoardInfo->FuseBaseAddr = T194_FUSE_BASE_ADDRESS;
+   BoardInfo->FuseList     = T194FloorsweepingFuseList;
+   BoardInfo->FuseCount    = sizeof (T194FloorsweepingFuseList) / sizeof (T194FloorsweepingFuseList[0]);
+-  CopyMem ((VOID *)BoardInfo->CvmBoardId, (VOID *)T194EepromData->PartNumber.Id, BOARD_ID_LEN);
+-  CopyMem ((VOID *)BoardInfo->CvmProductId, (VOID *)&T194EepromData->PartNumber, sizeof (T194EepromData->PartNumber));
++  CopyMem ((VOID *)&BoardInfo->CvmProductId, (VOID *)&T194EepromData->PartNumber, sizeof (T194EepromData->PartNumber));
+   CopyMem ((VOID *)BoardInfo->SerialNumber, (VOID *)&T194EepromData->SerialNumber, sizeof (T194EepromData->SerialNumber));
+ 
+   T194EepromData = (T194_EEPROM_DATA *)EepromData->CvbEepromData;
+-  CopyMem ((VOID *)BoardInfo->CvbBoardId, (VOID *)T194EepromData->PartNumber.Id, BOARD_ID_LEN);
+-  CopyMem ((VOID *)BoardInfo->CvbProductId, (VOID *)&T194EepromData->PartNumber, sizeof (T194EepromData->PartNumber));
++  CopyMem ((VOID *)&BoardInfo->CvbProductId, (VOID *)&T194EepromData->PartNumber, sizeof (T194EepromData->PartNumber));
+ 
+   return TRUE;
+ }
+diff --git a/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c b/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c
+index 09356b5..7c607ea 100644
+--- a/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c
++++ b/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c
+@@ -1,6 +1,6 @@
+ /** @file
+ *
+-*  Copyright (c) 2020-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++*  Copyright (c) 2020-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ *
+ *  SPDX-License-Identifier: BSD-2-Clause-Patent
+ *
+@@ -385,13 +385,11 @@ T234GetBoardInfo (
+   BoardInfo->FuseBaseAddr = T234_FUSE_BASE_ADDRESS;
+   BoardInfo->FuseList     = T234FloorsweepingFuseList;
+   BoardInfo->FuseCount    = sizeof (T234FloorsweepingFuseList) / sizeof (T234FloorsweepingFuseList[0]);
+-  CopyMem ((VOID *)BoardInfo->CvmBoardId, (VOID *)T234EepromData->PartNumber.Id, BOARD_ID_LEN);
+-  CopyMem ((VOID *)BoardInfo->CvmProductId, (VOID *)&T234EepromData->PartNumber, sizeof (T234EepromData->PartNumber));
++  CopyMem ((VOID *)&BoardInfo->CvmProductId, (VOID *)&T234EepromData->PartNumber, sizeof (T234EepromData->PartNumber));
+   CopyMem ((VOID *)BoardInfo->SerialNumber, (VOID *)&T234EepromData->SerialNumber, sizeof (T234EepromData->SerialNumber));
+ 
+   T234EepromData = (T234_EEPROM_DATA *)EepromData->CvbEepromData;
+-  CopyMem ((VOID *)BoardInfo->CvbBoardId, (VOID *)T234EepromData->PartNumber.Id, BOARD_ID_LEN);
+-  CopyMem ((VOID *)BoardInfo->CvbProductId, (VOID *)&T234EepromData->PartNumber, sizeof (T234EepromData->PartNumber));
++  CopyMem ((VOID *)&BoardInfo->CvbProductId, (VOID *)&T234EepromData->PartNumber, sizeof (T234EepromData->PartNumber));
+ 
+   return TRUE;
+ }
+diff --git a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c
+index da4bf90..7dec51a 100644
+--- a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c
++++ b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c
+@@ -1,7 +1,7 @@
+ /** @file
+   Tegra Device Tree Overlay Library
+ 
+-  Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++  Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+   SPDX-License-Identifier: BSD-2-Clause-Patent
+ 
+@@ -67,7 +67,7 @@ ReadBoardInfo (
+   }
+ 
+   BoardInfo->IdCount    = ProtocolCount;
+-  BoardInfo->ProductIds = (TEGRA_EEPROM_PART_NUMBER *)AllocateZeroPool (BoardInfo->IdCount * sizeof (TEGRA_EEPROM_PART_NUMBER));
++  BoardInfo->ProductIds = (EEPROM_PART_NUMBER *)AllocateZeroPool (BoardInfo->IdCount * sizeof (EEPROM_PART_NUMBER));
+ 
+   for (i = 0; i < ProtocolCount; i++) {
+     Status = gBS->HandleProtocol (
+@@ -80,7 +80,7 @@ ReadBoardInfo (
+       return EFI_NOT_FOUND;
      }
  
--    if ((T194EepromData->Size <= ((UINTN)&T194EepromData->Reserved2 - (UINTN)T194EepromData))) {
-+    if (T194EepromData->Size != 0 && (T194EepromData->Size <= ((UINTN)&T194EepromData->Reserved2 - (UINTN)T194EepromData))) {
-       DEBUG ((DEBUG_ERROR, "%a: Invalid size in eeprom %x\r\n", __FUNCTION__, T194EepromData->Size));
-       return EFI_DEVICE_ERROR;
-     }
-@@ -126,7 +136,7 @@ ValidateEepromData (
-       return EFI_DEVICE_ERROR;
-     }
+-    CopyMem ((VOID *)(&BoardInfo->ProductIds[i]), (VOID *)&Eeprom->ProductId, PRODUCT_ID_LEN);
++    CopyMem ((VOID *)(&BoardInfo->ProductIds[i]), (VOID *)&Eeprom->ProductId, TEGRA_PRODUCT_ID_LEN);
+   }
  
--    if ((T234EepromData->Size <= ((UINTN)&T234EepromData->Reserved2 - (UINTN)T234EepromData))) {
-+    if (T234EepromData->Size != 0 && (T234EepromData->Size <= ((UINTN)&T234EepromData->Reserved2 - (UINTN)T234EepromData))) {
-       DEBUG ((DEBUG_ERROR, "%a: Invalid size in eeprom %x\r\n", __FUNCTION__, T234EepromData->Size));
-       return EFI_DEVICE_ERROR;
-     }
-diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
-index 3d9106b..227ced5 100644
---- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
-+++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
-@@ -148,7 +148,6 @@ MatchId (
+   if (BoardInfo->IdCount == 0) {
+diff --git a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c
+index 13056df..5458d7f 100644
+--- a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c
++++ b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c
+@@ -1,7 +1,7 @@
+ /** @file
+   Tegra Device Tree Overlay Library
+ 
+-  Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++  Copyright (c) 2021-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+   SPDX-License-Identifier: BSD-2-Clause-Patent
+ 
+@@ -44,18 +44,13 @@ ReadBoardInfo (
+   BoardInfo->FuseList     = TegraBoardInfo->FuseList;
+   BoardInfo->FuseCount    = TegraBoardInfo->FuseCount;
+   BoardInfo->IdCount      = 2; /*CVM and CVB*/
+-  BoardInfo->ProductIds   = (TEGRA_EEPROM_PART_NUMBER *)AllocateZeroPool (BoardInfo->IdCount * sizeof (TEGRA_EEPROM_PART_NUMBER));
+-  CopyMem ((VOID *)&BoardInfo->ProductIds[0], (VOID *)TegraBoardInfo->CvmProductId, PRODUCT_ID_LEN);
+-  CopyMem ((VOID *)&BoardInfo->ProductIds[1], (VOID *)TegraBoardInfo->CvbProductId, PRODUCT_ID_LEN);
++  BoardInfo->ProductIds   = (EEPROM_PART_NUMBER *)AllocateZeroPool (BoardInfo->IdCount * sizeof (EEPROM_PART_NUMBER));
++  CopyMem ((VOID *)&BoardInfo->ProductIds[0], (VOID *)TegraBoardInfo->CvmProductId, TEGRA_PRODUCT_ID_LEN);
++  CopyMem ((VOID *)&BoardInfo->ProductIds[1], (VOID *)TegraBoardInfo->CvbProductId, TEGRA_PRODUCT_ID_LEN);
+ 
+   DEBUG ((DEBUG_INFO, "Cvm Product Id: %a \n", (CHAR8 *)TegraBoardInfo->CvmProductId));
+   DEBUG ((DEBUG_INFO, "Cvb Product Id: %a \n", (CHAR8 *)TegraBoardInfo->CvbProductId));
+ 
+-  if (TegraBoardInfo->CvmBoardId == NULL) {
+-    DEBUG ((DEBUG_WARN, "%a: Failed to get board id from BCT\n.", __FUNCTION__));
+-    return EFI_NOT_FOUND;
+-  }
+-
+   return EFI_SUCCESS;
+ }
+ 
+diff --git a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
+index 3d9106b..96cb302 100644
+--- a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
++++ b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
+@@ -1,7 +1,7 @@
+ /** @file
+   Tegra Device Tree Overlay Library
+ 
+-  Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++  Copyright (c) 2021-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+   SPDX-License-Identifier: BSD-2-Clause-Patent
+ 
+@@ -147,8 +147,7 @@ MatchId (
+   BOARD_ID_MATCH_TYPE  MatchType = BOARD_ID_MATCH_EXACT;
    INTN                 FabId, BoardFabId, i;
    INTN                 BoardIdLen;
-   CONST CHAR8          *BoardId        = NULL;
+-  CONST CHAR8          *BoardId        = NULL;
 -  CONST CHAR8          *NvidiaIdPrefix = "699";
++  CONST CHAR8          *BoardId = NULL;
  
    BOOLEAN  Matched = FALSE;
  
-@@ -209,7 +208,11 @@ match_type_done:
+@@ -209,7 +208,7 @@ match_type_done:
    }
  
    for (i = 0; i < BoardInfo->IdCount; i++) {
 -    BoardId    = (CHAR8 *)(&BoardInfo->ProductIds[i].Id);
-+    if (BoardInfo->ProductIds[i].Leading[0] == 0xcc) {
-+      BoardId    = (CHAR8 *)(&BoardInfo->ProductIds[i].Id) + 1;
-+    } else {
-+      BoardId    = (CHAR8 *)(&BoardInfo->ProductIds[i].Id);
-+    }
++    BoardId    = TegraBoardIdFromPartNumber (&BoardInfo->ProductIds[i]);
      BoardIdLen = strlen (BoardId);
      BoardFabId = GetFabId (BoardId);
      DEBUG ((
-@@ -217,21 +220,15 @@ match_type_done:
+@@ -217,21 +216,13 @@ match_type_done:
        "%a: check if overlay node id %a match with %a\n",
        __FUNCTION__,
        Id,
@@ -95,18 +554,48 @@ index 3d9106b..227ced5 100644
        case BOARD_ID_MATCH_EXACT:
 -        // Check if it is a Nvidia board.
 -        if (!CompareMem (&BoardInfo->ProductIds[i], NvidiaIdPrefix, 3)) {
-+        if (IdLen == BoardIdLen) {
-           if (!CompareMem (IdStr, BoardId, IdLen)) {
-             Matched = TRUE;
-           }
+-          if (!CompareMem (IdStr, BoardId, IdLen)) {
+-            Matched = TRUE;
+-          }
 -        } else if (IdLen < PRODUCT_ID_LEN) {
 -          // Non-nvidia sensor board ids starts from byte 21 instead of 20.
 -          if (!CompareMem (IdStr, ((void *)&BoardInfo->ProductIds[i])+1, IdLen)) {
 -            Matched = TRUE;
 -          }
++        if (!CompareMem (IdStr, BoardId, IdLen)) {
++          Matched = TRUE;
          }
  
          break;
+diff --git a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h
+index 02c7d92..2141932 100644
+--- a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h
++++ b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h
+@@ -1,6 +1,6 @@
+ /** @file
+ *
+-*  Copyright (c) 2021-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++*  Copyright (c) 2021-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ *
+ *  SPDX-License-Identifier: BSD-2-Clause-Patent
+ *
+@@ -13,11 +13,11 @@
+ #include <Library/PlatformResourceLib.h>
+ 
+ typedef struct {
+-  UINTN                       FuseBaseAddr;
+-  TEGRA_FUSE_INFO             *FuseList;
+-  UINTN                       FuseCount;
+-  TEGRA_EEPROM_PART_NUMBER    *ProductIds;
+-  UINTN                       IdCount;
++  UINTN                 FuseBaseAddr;
++  TEGRA_FUSE_INFO       *FuseList;
++  UINTN                 FuseCount;
++  EEPROM_PART_NUMBER    *ProductIds;
++  UINTN                 IdCount;
+ } OVERLAY_BOARD_INFO;
+ 
+ EFI_STATUS
 -- 
-2.34.1
+2.17.1
 
