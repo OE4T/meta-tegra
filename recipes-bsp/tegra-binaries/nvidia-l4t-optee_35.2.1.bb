@@ -76,7 +76,7 @@ FILES:${PN}-nvsamples-hwkey-agent = "\
     ${nonarch_base_libdir}/optee_armtz/82154947-c1bc-4bdf-b89d-04f93c0ea97c.ta \
 "
 FILES:${PN}-nvsamples-luks-srv = "\
-    ${sbindir}/nvhwkey-app \
+    ${sbindir}/nvluks-srv-app \
 "
 FILES:${PN}-base-tas = "\
     ${nonarch_base_libdir}/optee_armtz/023f8f1a-292a-432b-8fc4-de8471358067.ta \
