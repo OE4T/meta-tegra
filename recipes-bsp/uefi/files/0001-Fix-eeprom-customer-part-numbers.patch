@@ -25,10 +25,10 @@ Reviewed-by: Ashish Singhal <ashishsingha@nvidia.com>
  .../TegraDeviceTreeOverlayLibCommon.h         |  12 +-
  11 files changed, 146 insertions(+), 130 deletions(-)
 
-diff --git a/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c b/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
 index 7de8125..d4e53be 100644
---- a/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
-+++ b/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Drivers/EepromDxe/Eeprom.c
 @@ -2,7 +2,7 @@
  
    EEPROM Driver
@@ -65,10 +65,10 @@ index 7de8125..d4e53be 100644
      CopyMem ((VOID *)EepromBoardInfo->ProductId, (VOID *)&T234EepromData->PartNumber, sizeof (T234EepromData->PartNumber));
      CopyMem ((VOID *)EepromBoardInfo->SerialNumber, (VOID *)&T234EepromData->SerialNumber, sizeof (T234EepromData->SerialNumber));
      if ((CompareMem (T234EepromData->CustomerBlockSignature, EEPROM_CUSTOMER_BLOCK_SIGNATURE, sizeof (T234EepromData->CustomerBlockSignature)) == 0) &&
-diff --git a/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h b/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h
 index 778d884..ffa3285 100644
---- a/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h
-+++ b/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Include/Library/PlatformResourceLib.h
 @@ -1,6 +1,6 @@
  /** @file
  *
@@ -92,10 +92,10 @@ index 778d884..ffa3285 100644
  } TEGRA_BOARD_INFO;
  
  #pragma pack(1)
-diff --git a/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h b/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h
 index 129b2a2..62cbf77 100644
---- a/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h
-+++ b/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Include/NVIDIABoardConfiguration.h
 @@ -1,6 +1,6 @@
  /** @file
  *
@@ -116,10 +116,10 @@ index 129b2a2..62cbf77 100644
 +#define TEGRA_SERIAL_NUM_LEN  15
  
  #endif //__NVIDIA_BOARD_CONFIGURATION_H__
-diff --git a/Silicon/NVIDIA/Include/Protocol/Eeprom.h b/Silicon/NVIDIA/Include/Protocol/Eeprom.h
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Include/Protocol/Eeprom.h edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Include/Protocol/Eeprom.h
 index 3849330..cc58fc2 100644
---- a/Silicon/NVIDIA/Include/Protocol/Eeprom.h
-+++ b/Silicon/NVIDIA/Include/Protocol/Eeprom.h
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Include/Protocol/Eeprom.h
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Include/Protocol/Eeprom.h
 @@ -1,7 +1,7 @@
  /** @file
    NVIDIA EEPROM Protocol
@@ -348,10 +348,10 @@ index 3849330..cc58fc2 100644
 +}
 +
  #endif
-diff --git a/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c b/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c
 index 190a743..a5ad236 100644
---- a/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c
-+++ b/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/OemMiscLib/OemMiscLib.c
 @@ -1,7 +1,7 @@
  /** @file
  *  OemMiscLib.c
@@ -388,10 +388,10 @@ index 190a743..a5ad236 100644
        );
    }
  
-diff --git a/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c b/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c
 index 7407874..70ec240 100644
---- a/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c
-+++ b/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/PlatformResourceLib/T194ResourceConfig.c
 @@ -1,6 +1,6 @@
  /** @file
  *
@@ -416,10 +416,10 @@ index 7407874..70ec240 100644
  
    return TRUE;
  }
-diff --git a/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c b/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c
 index 09356b5..7c607ea 100644
---- a/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c
-+++ b/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/PlatformResourceLib/T234ResourceConfig.c
 @@ -1,6 +1,6 @@
  /** @file
  *
@@ -444,10 +444,10 @@ index 09356b5..7c607ea 100644
  
    return TRUE;
  }
-diff --git a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c
 index da4bf90..7dec51a 100644
---- a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c
-+++ b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeKernelOverlayLib.c
 @@ -1,7 +1,7 @@
  /** @file
    Tegra Device Tree Overlay Library
@@ -475,10 +475,10 @@ index da4bf90..7dec51a 100644
    }
  
    if (BoardInfo->IdCount == 0) {
-diff --git a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c
 index 13056df..5458d7f 100644
---- a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c
-+++ b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLib.c
 @@ -1,7 +1,7 @@
  /** @file
    Tegra Device Tree Overlay Library
@@ -510,10 +510,10 @@ index 13056df..5458d7f 100644
    return EFI_SUCCESS;
  }
  
-diff --git a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
 index 3d9106b..96cb302 100644
---- a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
-+++ b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.c
 @@ -1,7 +1,7 @@
  /** @file
    Tegra Device Tree Overlay Library
@@ -567,10 +567,10 @@ index 3d9106b..96cb302 100644
          }
  
          break;
-diff --git a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h
 index 02c7d92..2141932 100644
---- a/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h
-+++ b/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h
+--- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/TegraDeviceTreeOverlayLib/TegraDeviceTreeOverlayLibCommon.h
 @@ -1,6 +1,6 @@
  /** @file
  *
