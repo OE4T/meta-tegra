@@ -13,7 +13,6 @@ inherit deploy tegra-uefi-signing
 
 do_compile() {
     cp ${S}/bootloader/uefi_jetson.bin ${S}/bootloader/BOOTAA64.efi ${B}
-    install -m 0644  ${D}${EFIDIR}/${EFI_BOOT_IMAGE}
 }
 
 do_compile:tegra194() {
