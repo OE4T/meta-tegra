@@ -1,0 +1,99 @@
+From 46c90f75cfcdf43522ab76d65d17d7bd8e4cfbfb Mon Sep 17 00:00:00 2001
+From: Lalaland <ethan.steinberg@gmail.com>
+Date: Sat, 22 Oct 2022 16:52:35 -0700
+Subject: [PATCH] Fix casts to void* (#4275)
+
+* Fix casts to void*
+
+* Improve tests
+
+* style: pre-commit fixes
+
+* remove c style cast
+
+Co-authored-by: pre-commit-ci[bot] <66853113+pre-commit-ci[bot]@users.noreply.github.com>
+Co-authored-by: Aaron Gokaslan <aaronGokaslan@gmail.com>
+---
+ include/pybind11/cast.h |  6 ++----
+ tests/test_class.cpp    | 18 +++++++++++++++++-
+ tests/test_class.py     |  2 ++
+ 3 files changed, 21 insertions(+), 5 deletions(-)
+
+diff --git a/include/pybind11/cast.h b/include/pybind11/cast.h
+index a0e32281..518a6f93 100644
+--- a/include/pybind11/cast.h
++++ b/include/pybind11/cast.h
+@@ -1179,11 +1179,9 @@ enable_if_t<cast_is_temporary_value_reference<T>::value, T> cast_safe(object &&)
+     pybind11_fail("Internal error: cast_safe fallback invoked");
+ }
+ template <typename T>
+-enable_if_t<std::is_same<void, intrinsic_t<T>>::value, void> cast_safe(object &&) {}
++enable_if_t<std::is_void<T>::value, void> cast_safe(object &&) {}
+ template <typename T>
+-enable_if_t<detail::none_of<cast_is_temporary_value_reference<T>,
+-                            std::is_same<void, intrinsic_t<T>>>::value,
+-            T>
++enable_if_t<detail::none_of<cast_is_temporary_value_reference<T>, std::is_void<T>>::value, T>
+ cast_safe(object &&o) {
+     return pybind11::cast<T>(std::move(o));
+ }
+diff --git a/tests/test_class.cpp b/tests/test_class.cpp
+index c8b8071d..ba039405 100644
+--- a/tests/test_class.cpp
++++ b/tests/test_class.cpp
+@@ -364,6 +364,8 @@ TEST_SUBMODULE(class_, m) {
+ 
+     protected:
+         virtual int foo() const { return value; }
++        virtual void *void_foo() { return static_cast<void *>(&value); }
++        virtual void *get_self() { return static_cast<void *>(this); }
+ 
+     private:
+         int value = 42;
+@@ -372,6 +374,8 @@ TEST_SUBMODULE(class_, m) {
+     class TrampolineB : public ProtectedB {
+     public:
+         int foo() const override { PYBIND11_OVERRIDE(int, ProtectedB, foo, ); }
++        void *void_foo() override { PYBIND11_OVERRIDE(void *, ProtectedB, void_foo, ); }
++        void *get_self() override { PYBIND11_OVERRIDE(void *, ProtectedB, get_self, ); }
+     };
+ 
+     class PublicistB : public ProtectedB {
+@@ -381,11 +385,23 @@ TEST_SUBMODULE(class_, m) {
+         // (in Debug builds only, tested with icpc (ICC) 2021.1 Beta 20200827)
+         ~PublicistB() override{}; // NOLINT(modernize-use-equals-default)
+         using ProtectedB::foo;
++        using ProtectedB::get_self;
++        using ProtectedB::void_foo;
+     };
+ 
++    m.def("read_foo", [](const void *original) {
++        const int *ptr = reinterpret_cast<const int *>(original);
++        return *ptr;
++    });
++
++    m.def("pointers_equal",
++          [](const void *original, const void *comparison) { return original == comparison; });
++
+     py::class_<ProtectedB, TrampolineB>(m, "ProtectedB")
+         .def(py::init<>())
+-        .def("foo", &PublicistB::foo);
++        .def("foo", &PublicistB::foo)
++        .def("void_foo", &PublicistB::void_foo)
++        .def("get_self", &PublicistB::get_self);
+ 
+     // test_brace_initialization
+     struct BraceInitialization {
+diff --git a/tests/test_class.py b/tests/test_class.py
+index ff9196f0..e7822e77 100644
+--- a/tests/test_class.py
++++ b/tests/test_class.py
+@@ -313,6 +313,8 @@ def test_bind_protected_functions():
+ 
+     b = m.ProtectedB()
+     assert b.foo() == 42
++    assert m.read_foo(b.void_foo()) == 42
++    assert m.pointers_equal(b.get_self(), b)
+ 
+     class C(m.ProtectedB):
+         def __init__(self):
