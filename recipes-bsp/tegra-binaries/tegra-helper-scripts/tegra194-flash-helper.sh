@@ -153,7 +153,7 @@ cvm_bin=$(mktemp cvm.bin.XXXXX)
 skipuid=""
 bootauth=""
 BR_CID=
-if [ -z "$CHIPREV" -o -z "$fuselevel" ]; then
+if [ -z "$CHIPREV" ]; then
     BR_CID=$($here/tegrarcm_v2 ${inst_args} --uid | grep BR_CID | cut -d' ' -f2)
     chipid="$BR_CID"
     if [ -z "$chipid" ]; then
@@ -217,6 +217,7 @@ fi
 if [ -z "$serial_number" -a -n "$have_boardinfo" ]; then
     serial_number=$($here/chkbdinfo -a ${cvm_bin} | tr -d '[:space:]')
 fi
+[ -n "$fuselevel" ] || fuselevel=fuselevel_production
 
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
 
@@ -301,7 +302,6 @@ done
 
 [ -n "$BOARDID" ] || BOARDID=2888
 [ -n "$FAB" ] || FAB=400
-[ -n "$fuselevel" ] || fuselevel=fuselevel_production
 [ -n "$BOOTDEV" ] || BOOTDEV="mmcblk0p1"
 
 rm -f ${MACHINE}_bootblob_ver.txt
