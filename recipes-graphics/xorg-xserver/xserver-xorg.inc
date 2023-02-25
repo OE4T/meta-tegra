@@ -75,6 +75,7 @@ INSANE_SKIP:${MLPREFIX}xf86-video-modesetting-tegra = "xorg-driver-abi"
 XSERVER_RRECOMMENDS = "xkeyboard-config rgb xserver-xf86-config xkbcomp xf86-input-libinput"
 RRECOMMENDS:${PN} += "${XSERVER_RRECOMMENDS}"
 RRECOMMENDS:${PN}-xwayland += "${XSERVER_RRECOMMENDS}"
+RDEPENDS:${PN} = "libxcvt"
 RDEPENDS:${PN}-xvfb += "xkeyboard-config"
 RDEPENDS:${PN}-module-exa = "${PN} (= ${EXTENDPKGV})"
 
@@ -153,6 +154,8 @@ do_install:append () {
 	# Its assumed base-files creates this for us
 	rmdir ${D}${localstatedir}/log/
         sed -i -e 's,${libdir}/xorg/modules,${prefix}/lib*/xorg/modules,' ${D}${mandir}/man5/xorg.conf.5
+	# remove cvt binary since it's provided by libxcvt
+	rm -f ${D}${bindir}/cvt
 }
 
 # Add runtime provides for the ABI versions of the video and input subsystems,
