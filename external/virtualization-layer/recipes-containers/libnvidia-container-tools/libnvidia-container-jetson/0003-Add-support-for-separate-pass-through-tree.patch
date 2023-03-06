@@ -1,0 +1,257 @@
+From 8f7c32038119c4183067310af459a08fcbfc834a Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 5 Mar 2023 08:47:33 -0800
+Subject: [PATCH] Add support for separate pass-through tree
+
+So we can export stock L4T pre-built userland binaries to
+containers, instead of the versions we build from sources,
+to avoid glibc and other shared library mismatches inside
+NVIDIA's containers.
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile           |  3 +++
+ src/jetson_mount.c | 57 +++++++++++++++++++++++++++++++++++++---------
+ src/nvc_info.c     | 31 +++++++++++++++++++++----
+ src/utils.c        | 12 ++++++++++
+ src/utils.h        |  1 +
+ 5 files changed, 88 insertions(+), 16 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index b4becad3..a2c1f10b 100644
+--- a/Makefile
++++ b/Makefile
+@@ -142,6 +142,9 @@ LIB_LDLIBS_SHARED  += -lelf
+ else
+ LIB_LDLIBS_STATIC  += -l:libelf.a
+ endif
++ifneq ($(PASSTHRU_ROOT),)
++LIB_CPPFLAGS       += -DPASSTHRU_ROOT="$(PASSTHRU_ROOT)"
++endif
+ ifeq ($(WITH_TIRPC), yes)
+ LIB_CPPFLAGS       += -isystem $(DEPS_DIR)$(includedir)/tirpc -DWITH_TIRPC
+ LIB_LDLIBS_STATIC  += -l:libtirpc.a
+diff --git a/src/jetson_mount.c b/src/jetson_mount.c
+index 5cf94c81..d5b6844d 100644
+--- a/src/jetson_mount.c
++++ b/src/jetson_mount.c
+@@ -21,13 +21,25 @@
+ #define stringify(s__) stringify__(s__)
+ #define stringify__(s__) #s__
+ static const char *hostlibdir = stringify(HOST_LIBDIR) "/";
++#ifdef PASSTHRU_ROOT
++static const char *passthrudir = stringify(PASSTHRU_ROOT) "/";
++#else
++static const char *passthrudir = NULL;
++#endif
+ 
+ static int
+ resolve_symlink(struct error *err, const char *src, char *dst)
+ {
+-        ssize_t n;
++        ssize_t n = -1;
++        char passthrusrc[PATH_MAX];
+ 
+-        n = readlink(src, dst, PATH_MAX);
++        if (passthrudir != NULL) {
++                if (path_join(err, passthrusrc, passthrudir, src) < 0)
++                return -1;
++                n = readlink(passthrusrc, dst, PATH_MAX);
++        }
++        if (n < 0)
++                n = readlink(src, dst, PATH_MAX);
+         if (n < 0 || n >= PATH_MAX)
+                 return -1;
+ 
+@@ -58,6 +70,13 @@ mount_jetson_files(struct error *err, const char *root, const struct nvc_contain
+                 if (path_new(err, src, root) < 0)
+                         goto fail;
+ 
++                if (passthrudir != NULL && str_has_prefix(paths[i], passthrudir)) {
++                        if (path_join(err, dst, cnt->cfg.rootfs, paths[i] + (strlen(passthrudir)-1)) < 0)
++                                goto fail;
++                        if (path_append(err, src, paths[i]) < 0)
++                                goto fail;
++                        goto mount_prep;
++                }
+                 if (dir != NULL) {
+                         size_t hostlibdirlen = strlen(hostlibdir);
+                         /*
+@@ -102,6 +121,7 @@ mount_jetson_files(struct error *err, const char *root, const struct nvc_contain
+                 if (path_append(err, dst, (samepath ? paths[i] : file)) < 0)
+                         goto fail;
+ 
++         mount_prep:
+                 if (file_mode(err, src, &mode) < 0)
+                         goto fail;
+                 if (file_create(err, dst, NULL, cnt->uid, cnt->gid, mode) < 0)
+@@ -131,35 +151,50 @@ create_jetson_symlinks(struct error *err, const char *root, const struct nvc_con
+         char src[PATH_MAX];
+         char src_lnk[PATH_MAX];
+         char dst[PATH_MAX];
+-        char *file;
++        size_t hostlibdirlen = strlen(hostlibdir);
+ 
+         for (size_t i = 0; i < size; ++i) {
+-                file = basename(paths[i]);
+                 if (!match_jetson_symlink_flags(paths[i], cnt->flags))
+                         continue;
+ 
+                 if (path_new(err, src, root) < 0)
+                         return (-1);
++                if (path_new(err, dst, cnt->cfg.rootfs) < 0)
++                        return (-1);
+ 
+                 if (path_append(err, src, paths[i]) < 0)
+                         return (-1);
++                if (path_append(err, dst, paths[i]) < 0)
++                        return (-1);
+ 
+                 if (resolve_symlink(err, src, src_lnk) < 0)
+                         return (-1);
+ 
+-                if (str_has_prefix(file, "lib")) {
+-                        if (path_resolve_full(err, dst, cnt->cfg.rootfs, cnt->cfg.libs_dir) < 0)
++                /* Move symlinks residing directly in /usr/lib (not in subdirs) on host to /usr/lib/aarch64-linux-gnu in container */
++                if (str_has_prefix(src, hostlibdir) && strchr(src+hostlibdirlen, '/') == NULL &&
++                    (strcmp(hostlibdir, cnt->cfg.libs_dir) != 0 && !str_has_prefix(src, cnt->cfg.libs_dir))) {
++                        char tmp[PATH_MAX];
++                        if (path_join(err, tmp, cnt->cfg.rootfs, cnt->cfg.libs_dir) < 0)
+                                 return (-1);
+-                        if (path_append(err, dst, file) < 0)
++                        if (path_append(err, tmp, basename(src)) < 0)
+                                 return (-1);
+-                } else {
+-                        if (path_new(err, dst, cnt->cfg.rootfs) < 0)
++                        log_infof("%s: moving symlink at %s to %s", __func__, dst, tmp);
++                        strcpy(dst, tmp);
++                }
++                if (str_has_prefix(src_lnk, hostlibdir) &&
++                    (strcmp(hostlibdir, cnt->cfg.libs_dir) != 0 && str_has_prefix(src_lnk, cnt->cfg.libs_dir) && strchr(src_lnk+hostlibdirlen, '/') != NULL)) {
++                        char tmp[PATH_MAX], sub[PATH_MAX], *cp;
++                        strcpy(sub, src_lnk+hostlibdirlen);
++                        for (cp = sub + strlen(sub); cp > sub && *cp != '/'; cp--);
++                        *cp = '\0';
++                        if (path_join(err, tmp, cnt->cfg.libs_dir, sub) < 0)
+                                 return (-1);
+-                        if (path_append(err, dst, paths[i]) < 0)
++                        if (path_append(err, tmp, basename(src_lnk)) < 0)
+                                 return (-1);
++                        log_infof("%s: %s rewritten to %s", __func__, src_lnk, tmp);
++                        strcpy(src_lnk, tmp);
+                 }
+ 
+-                printf("src: %s, src_lnk: %s, dst: %s\n", src, src_lnk, dst);
+                 if (remove(dst) < 0 && errno != ENOENT)
+                         return (-1);
+ 
+diff --git a/src/nvc_info.c b/src/nvc_info.c
+index fd0e60f1..e0c03da9 100644
+--- a/src/nvc_info.c
++++ b/src/nvc_info.c
+@@ -23,7 +23,15 @@
+ #include "jetson_info.h"
+ #include "xfuncs.h"
+ 
+-#define MAX_BINS (nitems(utility_bins) + \
++#define stringify(s__) stringify__(s__)
++#define stringify__(s__) #s__
++#ifdef PASSTHRU_ROOT
++static const char *passthrudir = stringify(PASSTHRU_ROOT) "/";
++#else
++static const char *passthrudir = NULL;
++#endif
++
++#define MAX_BINS (nitems(utility_bins) +        \
+                   nitems(compute_bins))
+ #define MAX_LIBS (nitems(utility_libs) + \
+                   nitems(compute_libs) + \
+@@ -402,10 +410,20 @@ static int
+ lookup_jetson_libs(struct error *err, struct nvc_jetson_info *info, const char *root)
+ {
+         char path[PATH_MAX];
++        char passthrulib[PATH_MAX], passthrupath[PATH_MAX];
+ 
+         for (size_t i = 0; i < info->nlibs; ++i) {
+-                if (path_resolve(err, path, root, info->libs[i]) < 0)
+-                        return (-1);
++                int ok = 0;
++                if (passthrudir != NULL && path_join(err, passthrulib, passthrudir, info->libs[i]) >= 0) {
++                        if (path_join(err, passthrupath, root, passthrulib) >= 0 && file_or_symlink_exists(err, passthrupath)) {
++                                strcpy(path, passthrupath);
++                                ok = 1;
++                        }
++                }
++                if (!ok && path_resolve(err, path, root, info->libs[i]) < 0) {
++                        log_infof("%s: could not find path for %s", __func__, info->libs[i]);
++                        continue;
++                }
+ 
+                 free(info->libs[i]);
+                 info->libs[i] = NULL;
+@@ -418,6 +436,7 @@ lookup_jetson_libs(struct error *err, struct nvc_jetson_info *info, const char *
+                 info->libs[i] = xstrdup(err, path);
+                 if (info->libs[i] == NULL)
+                         return (-1);
++                log_infof("%s: found library %s", __func__, path);
+         }
+ 
+         array_pack(info->libs, &info->nlibs);
+@@ -458,15 +477,17 @@ lookup_jetson_symlinks(struct error *err, struct nvc_jetson_info *info, const ch
+ {
+         (void) root;
+ 
+-        char path[PATH_MAX];
++        char path[PATH_MAX], passthrupath[PATH_MAX];
+         struct stat s;
+ 
+         for (size_t i = 0; i < info->nsyms; ++i) {
+                 strcpy(path, info->syms[i]);
++                if (passthrudir != NULL && path_join(err, passthrupath, passthrudir, info->syms[i]) < 0)
++                        return (-1);
+                 free(info->syms[i]);
+                 info->syms[i] = NULL;
+ 
+-                if (lstat(path, &s) < 0) {
++                if (lstat(passthrupath, &s) < 0 && lstat(path, &s) < 0) {
+                         log_warnf("missing symlink %s", path);
+                         continue;
+                 }
+diff --git a/src/utils.c b/src/utils.c
+index 1baab823..81a456e4 100644
+--- a/src/utils.c
++++ b/src/utils.c
+@@ -658,6 +658,18 @@ file_exists(struct error *err, const char *path)
+         return (rv == 0);
+ }
+ 
++int
++file_or_symlink_exists(struct error *err, const char *path)
++{
++        int rv;
++
++        if ((rv = faccessat(AT_FDCWD, path, F_OK, AT_SYMLINK_NOFOLLOW)) < 0 && errno != ENOENT) {
++                error_set(err, "file/symlink lookup failed: %s", path);
++                return (-1);
++        }
++        return (rv == 0);
++}
++
+ int
+ file_exists_at(struct error *err, const char *dir, const char *path)
+ {
+diff --git a/src/utils.h b/src/utils.h
+index 4beb86da..95d0834c 100644
+--- a/src/utils.h
++++ b/src/utils.h
+@@ -73,6 +73,7 @@ int  file_unmap(struct error *, const char *, void *, size_t);
+ int  file_create(struct error *, const char *, const char *, uid_t, gid_t, mode_t);
+ int  file_remove(struct error *, const char *);
+ int  file_exists(struct error *, const char *);
++int  file_or_symlink_exists(struct error *, const char *);
+ int  file_exists_at(struct error *, const char *, const char *);
+ int  file_mode(struct error *, const char *, mode_t *);
+ int  file_read_line(struct error *, const char *, char *, size_t);
+-- 
+2.34.1
+
