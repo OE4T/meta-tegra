@@ -49,6 +49,7 @@ SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=l
            file://0003-Fix-mapping-of-library-paths-for-jetson-mounts.patch \
            file://0004-Fix-build.h-generation-for-cross-builds.patch \
            file://0005-Update-makefile-for-statically-linking-external-libt.patch \
+           file://0006-Add-support-for-separate-pass-through-tree.patch \
            "
 
 SRC_URI[modprobe.md5sum] = "f82b649e7a0f1d1279264f9494e7cf43"
@@ -73,9 +74,10 @@ def build_date(d):
         return 'DATE=' + dt.isoformat(timespec='minutes')
     return ''
 
-# We need to link with libelf, otherwise we need to
-# include bmake-native which does not exist at the moment.
-EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} JETSON=TRUE WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${@build_date(d)} ${PACKAGECONFIG_CONFARGS}"
+# This must match the setting in tegra-container-passthrough recipe
+PASSTHRU_ROOT = "${datadir}/nvidia-container-passthrough"
+
+EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PASSTHRU_ROOT=${PASSTHRU_ROOT} PLATFORM=${HOST_ARCH} JETSON=TRUE WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${@build_date(d)} ${PACKAGECONFIG_CONFARGS}"
 
 CFLAGS:prepend = " -I=/usr/include/tirpc-1.2.6 "
 
@@ -92,3 +94,4 @@ do_install () {
 }
 
 INSANE_SKIP:${PN} = "already-stripped"
+RDEPENDS:${PN} = "tegra-container-passthrough"
