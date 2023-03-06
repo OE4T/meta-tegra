@@ -43,6 +43,7 @@ SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=l
            git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=git/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} \
            file://0001-Fix-mapping-of-library-paths-for-jetson-mounts.patch \
            file://0002-OE-cross-build-fixups.patch \
+           file://0003-Add-support-for-separate-pass-through-tree.patch \
            "
 
 # tag: v0.11.0+jetpack
@@ -64,7 +65,10 @@ def build_date(d):
         return 'DATE=' + dt.isoformat(timespec='minutes')
     return ''
 
-EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} JETSON=TRUE WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${@build_date(d)} ${PACKAGECONFIG_CONFARGS}"
+# This must match the setting in tegra-container-passthrough recipe
+PASSTHRU_ROOT = "${datadir}/nvidia-container-passthrough"
+
+EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PASSTHRU_ROOT=${PASSTHRU_ROOT} PLATFORM=${HOST_ARCH} JETSON=TRUE WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${@build_date(d)} ${PACKAGECONFIG_CONFARGS}"
 
 CFLAGS:prepend = " -I=/usr/include/tirpc-1.2.6 "
 
@@ -85,3 +89,5 @@ do_install () {
     # See note about licensing above
     find ${D}${datadir}/doc -type f -name 'COPYING*' -delete
 }
+
+RDEPENDS:${PN} = "tegra-container-passthrough"
