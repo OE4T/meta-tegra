@@ -19,7 +19,7 @@ if [ "$foundslotsfx" != "yes" ]; then
 fi
 
 message="Waiting for APP$slotsfx partition..."
-for count in $(seq 1 10); do
+for count in $(seq 1 20); do
     blkid --probe 2>/dev/null
     rootdev=`blkid -l -t PARTLABEL=APP$slotsfx | cut -d: -f1`
     if [ -n "$rootdev" ]; then
