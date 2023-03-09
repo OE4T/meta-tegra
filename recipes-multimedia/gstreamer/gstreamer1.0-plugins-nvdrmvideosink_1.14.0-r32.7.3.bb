@@ -8,7 +8,11 @@ require recipes-bsp/tegra-sources/tegra-sources-32.7.3.inc
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libdrm tegra-libraries-multimedia-utils tegra-mmapi nvbufsurface-headers"
 
-SRC_URI += " file://0001-Update-makefile-for-OE-builds.patch"
+SRC_URI += "\
+    file://0001-Update-makefile-for-OE-builds.patch \
+    file://0002-Fix-screen-blanking-when-stopping-pipeline.patch \
+"
+
 S = "${WORKDIR}/gst-nvdrmvideosink"
 
 inherit pkgconfig container-runtime-csv features_check

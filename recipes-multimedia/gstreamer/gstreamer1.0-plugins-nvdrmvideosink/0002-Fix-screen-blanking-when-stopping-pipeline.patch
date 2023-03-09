@@ -1,0 +1,37 @@
+From 4b56e4077ae66a2a2744a4807929bee43cb36695 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 9 Mar 2023 05:44:10 -0800
+Subject: [PATCH] Fix screen blanking when stopping pipeline
+
+Taken from https://forums.developer.nvidia.com/t/issue-with-nvdrmvideosink-null-state/231013/6
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ gstnvdrmvideosink.c | 14 --------------
+ 1 file changed, 14 deletions(-)
+
+diff --git a/gstnvdrmvideosink.c b/gstnvdrmvideosink.c
+index bd7a120..1a5a625 100644
+--- a/gstnvdrmvideosink.c
++++ b/gstnvdrmvideosink.c
+@@ -997,20 +997,6 @@ gst_nvdrmvideosink_stop (GstBaseSink * base_sink)
+     } else {
+       GST_DEBUG_OBJECT (sink, "Set crtc to NULL passed \n");
+     }
+-  } else {
+-    guint crtc_id = sink->crtc_id;
+-    guint pl_id = sink->plane_id;
+-    guint nvheight = sink->height;
+-    guint nvwidth = sink->width;
+-
+-    if (drmModeSetPlane (sink->fd, pl_id, crtc_id,
+-            0, 0, 0, 0, nvwidth,
+-            nvheight, 0, 0, (nvwidth) << 16, (nvheight) << 16)) {
+-      GST_ERROR_OBJECT (sink, "Set plane to NULL failed\n");
+-      return FALSE;
+-    } else {
+-      GST_DEBUG_OBJECT (sink, "Set plane to NULL passed \n");
+-    }
+   }
+ 
+   drmModeFreeConnector (sink->conn_info);
