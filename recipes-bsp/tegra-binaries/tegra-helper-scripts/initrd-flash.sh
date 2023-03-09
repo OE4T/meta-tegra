@@ -272,12 +272,7 @@ prepare_for_rcm_boot() {
 					    --bins kernel=initrd-flash_sigheader.img${ksfx},kernel_dtb=${kdtbfilebase}_sigheader.dtb${ksfx},sce_fw=camera-rtcpu-sce_sigheader.img${binsfx},adsp_fw=adsp-fw_sigheader.bin${binsfx} \
 					    --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
 	else
-	    local addargs="--securedev"
-	    if [ "$CHIPID" = "0x19" -a -z "$PRESIGNED" -a -e external-flash.xml.in ]; then
-		# Must skip the UID check if we've already talked to the Xavier, to prevent a hang
-		addargs="--securedev,--skipuid"
-	    fi
-	    "$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE --cmd rcmboot --add="$addargs" flash_signed.sh || return 1
+	    "$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
 	fi
 	chmod +x rcm-boot.sh
     fi
