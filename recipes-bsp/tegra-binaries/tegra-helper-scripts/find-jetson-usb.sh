@@ -52,12 +52,12 @@ find_jetson() {
 	    printf "%s-%s" $(cat "$usbpath/busnum") $(cat "$usbpath/devpath")
 	    return 0
 	fi
-    done < <(ls -d /sys/bus/usb/devices/usb*/*-* 2>/dev/null | grep -v ':')
+    done < <(ls -d /sys/bus/usb/devices/*-* 2>/dev/null | grep -v ':')
     return 1
 }
 
 find_buspath() {
-    usbpath=$(ls -d /sys/bus/usb/devices/usb*/$1 2>/dev/null)
+    usbpath=$(ls -d /sys/bus/usb/devices/$1 2>/dev/null)
     if [ -z "$usbpath" ]; then
 	return 1
     fi
