@@ -14,7 +14,10 @@ OPENCV_CUDA_SUPPORT ?= "${@'cuda dnn' if opencv_cuda_flags(d) else ''}"
 PACKAGECONFIG:append:cuda = " ${OPENCV_CUDA_SUPPORT}"
 EXTRA_OECMAKE:append:cuda = ' -DOPENCV_CUDA_DETECTION_NVCC_FLAGS="-ccbin ${CUDAHOSTCXX}"'
 
-SRC_URI:append:cuda = " file://0001-Fix-search-paths-in-FindCUDNN.cmake.patch"
+SRC_URI:append:cuda = " \
+    file://0001-Fix-search-paths-in-FindCUDNN.cmake.patch \
+    file://0002-Fix-broken-override-of-CUDA_TOOLKIT_TARGET_DIR-setti.patch \
+"
 
 OPTICALFLOW_MD5 = "a73cd48b18dcc0cc8933b30796074191"
 OPTICALFLOW_HASH = "edb50da3cf849840d680249aa6dbef248ebce2ca"

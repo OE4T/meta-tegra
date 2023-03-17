@@ -1,7 +1,7 @@
-From 75afa574e33befbe7f7f67f828d5d38f498d39fa Mon Sep 17 00:00:00 2001
+From 295390cc1fb80eaedb2d9a29a1528be362e86265 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 19 Aug 2020 04:53:27 -0700
-Subject: [PATCH] Fix search paths in FindCUDNN.cmake
+Subject: [PATCH 1/2] Fix search paths in FindCUDNN.cmake
 
 CuDNN libraries are not located in the CUDA toolkit
 for Tegra platforms.
@@ -12,7 +12,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 6 insertions(+), 3 deletions(-)
 
 diff --git a/cmake/FindCUDNN.cmake b/cmake/FindCUDNN.cmake
-index 90d8b2ea78..9efee59385 100644
+index df64db39e6..9c6bc6d971 100644
 --- a/cmake/FindCUDNN.cmake
 +++ b/cmake/FindCUDNN.cmake
 @@ -41,9 +41,12 @@ The following cache variables will be set if cuDNN was found. They may also be s
@@ -32,5 +32,5 @@ index 90d8b2ea78..9efee59385 100644
  
  # find the include
 -- 
-2.25.1
+2.34.1
 

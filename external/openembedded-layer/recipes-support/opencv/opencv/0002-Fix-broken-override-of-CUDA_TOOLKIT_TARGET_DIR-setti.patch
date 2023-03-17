@@ -1,0 +1,28 @@
+From e869296a0da1cbaf2c9863f9c4bfa007bac2deb1 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 17 Mar 2023 06:47:40 -0700
+Subject: [PATCH 2/2] Fix broken override of CUDA_TOOLKIT_TARGET_DIR setting
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ cmake/OpenCVDetectCUDA.cmake | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/cmake/OpenCVDetectCUDA.cmake b/cmake/OpenCVDetectCUDA.cmake
+index a3d987a2b8..08d4ce04d1 100644
+--- a/cmake/OpenCVDetectCUDA.cmake
++++ b/cmake/OpenCVDetectCUDA.cmake
+@@ -11,7 +11,9 @@ endif()
+ #set(OPENCV_CMAKE_CUDA_DEBUG 1)
+ 
+ if(CUDA_TOOLKIT_ROOT_DIR)
+-  set(CUDA_TOOLKIT_TARGET_DIR ${CUDA_TOOLKIT_ROOT_DIR})
++  if(NOT CUDA_TOOLKIT_TARGET_DIR)
++    set(CUDA_TOOLKIT_TARGET_DIR ${CUDA_TOOLKIT_ROOT_DIR})
++  endif()
+ endif()
+ 
+ if(((NOT CMAKE_VERSION VERSION_LESS "3.9.0")  # requires https://gitlab.kitware.com/cmake/cmake/merge_requests/663
+-- 
+2.34.1
+
