@@ -25,7 +25,7 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
                     file://src/${GO_IMPORT}/vendor/gopkg.in/yaml.v3/LICENSE;md5=3c91c17266710e16afdbb2b6d15c761c \
 "
 
-SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=master"
+SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=main"
 SRCREV = "56ad97b8e51245795c7610e275116ae5417a7c34"
 
 GO_IMPORT = "github.com/NVIDIA/nvidia-container-toolkit"
