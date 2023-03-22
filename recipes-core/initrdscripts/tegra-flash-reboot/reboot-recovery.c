@@ -2,6 +2,7 @@
 #include <linux/reboot.h>
 #include <sys/reboot.h>
 #include <sys/syscall.h>
+#include <unistd.h>
 
 static inline int sys_reboot(const void *arg) {
 	return (int) syscall(SYS_reboot, LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART2, arg);
