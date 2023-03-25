@@ -672,7 +672,7 @@ if [ $bup_blob -ne 0 ]; then
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
-    spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}-${BOOTDEV}"
+    spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}-"
     if [ $(expr length "$spec") -ge 128 ]; then
         echo "ERR: TNSPEC must be shorter than 128 characters: $spec" >&2
         exit 1
