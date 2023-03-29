@@ -69,14 +69,30 @@ gen_compat_3668() {
 }
 
 gen_compat_3701() {
-    fab=
+    boardrev=
+    if [ "$boardsku" = "0000" -o "$boardsku" = "0004" ]; then
+	if echo "$fab" | egrep -q "^([012][0-9][0-9]|TS|EB)"; then
+	    fab="000"
+	else
+	    fab="300"
+	fi
+    fi
+    if [ "$boardksu" = "0005" ]; then
+	fab=""
+    fi
     boardrev=
     chiprev=
     return 0
 }
 
 gen_compat_3767() {
-    fab=
+    if [ "$boardsku" = "0000" -o "$boardsku" = "0002" ]; then
+	if ! echo "$fab" | egrep -q "^(TS|EB)"; then
+	    fab="000"
+	fi
+    else
+	fab=
+    fi
     boardrev=
     chiprev=
     return 0
