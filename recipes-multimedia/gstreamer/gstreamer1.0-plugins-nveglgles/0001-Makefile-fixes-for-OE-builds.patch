@@ -10,10 +10,10 @@ Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
  pre-gen-source_64/config.h |  6 +--
  2 files changed, 34 insertions(+), 17 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index 5c96775..6aae564 100644
---- a/Makefile
-+++ b/Makefile
+Index: gst-egl/Makefile
+===================================================================
+--- gst-egl.orig/Makefile
++++ gst-egl/Makefile
 @@ -16,8 +16,11 @@ ifeq ($(CUDA_VER),)
  endif
  endif
@@ -27,7 +27,7 @@ index 5c96775..6aae564 100644
  
  SRCS := ext/eglgles/gstegladaptation.c \
  	ext/eglgles/gstegladaptation_egl.c \
-@@ -29,33 +32,47 @@ SRCS := ext/eglgles/gstegladaptation.c \
+@@ -29,33 +32,48 @@ SRCS := ext/eglgles/gstegladaptation.c \
  INCLUDES += -I./pre-gen-source_64/ \
          -I./gst-libs \
          -I./gst-libs/gst/egl \
@@ -37,12 +37,10 @@ index 5c96775..6aae564 100644
          -I./
  
  PKGS := glib-2.0 \
--        gstreamer-1.0 \
--        gstreamer-base-1.0 \
+         gstreamer-1.0 \
+         gstreamer-base-1.0 \
 -        gstreamer-video-1.0
-+	gstreamer-1.0 \
-+	gstreamer-base-1.0 \
-+	gstreamer-video-1.0 \
++        gstreamer-video-1.0 \
 +	glesv2 \
 +	egl \
 +	cudart-$(CUDA_VER) \
@@ -65,6 +63,7 @@ index 5c96775..6aae564 100644
 -	-DUSE_EGL_TEGRA \
 -	-DUSE_EGL_WAYLAND
 +	-DUSE_EGL_TEGRA
++
 +ifneq ($(USE_X11),)
 +CFLAGS += -DHAVE_X11 -DUSE_EGL_X11
 +endif
@@ -77,8 +76,8 @@ index 5c96775..6aae564 100644
 -LDFLAGS = -Wl,--no-undefined -L/usr/lib/aarch64-linux-gnu/tegra -L/usr/local/cuda-$(CUDA_VER)/targets/aarch64-linux/lib/
 +LDFLAGS += -Wl,--no-undefined
  
--LIBS = -lnvbuf_utils -lnvbufsurface -lGLESv2 -lEGL -lX11 -lm -lcuda -lcudart -lwayland-client -lwayland-egl
-+LIBS = -lnvbuf_utils -lnvbufsurface -lm
+-LIBS = -lnvbufsurface -lGLESv2 -lEGL -lX11 -lm -lcuda -lcudart -lwayland-client -lwayland-egl
++LIBS = -lnvbufsurface -lm
  
  LIBS += `pkg-config --libs $(PKGS)`
  
@@ -86,7 +85,7 @@ index 5c96775..6aae564 100644
  all: $(SO_NAME)
  
  %.o: %.c
-@@ -66,9 +83,9 @@ $(SO_NAME): $(OBJS)
+@@ -66,9 +84,9 @@ $(SO_NAME): $(OBJS)
  
  .PHONY: install
  install: $(SO_NAME)
@@ -98,11 +97,11 @@ index 5c96775..6aae564 100644
  clean:
  	rm -rf $(OBJS) $(SO_NAME)
 -
-diff --git a/pre-gen-source_64/config.h b/pre-gen-source_64/config.h
-index f2b6187..721c9ab 100644
---- a/pre-gen-source_64/config.h
-+++ b/pre-gen-source_64/config.h
-@@ -507,7 +507,7 @@
+Index: gst-egl/pre-gen-source_64/config.h
+===================================================================
+--- gst-egl.orig/pre-gen-source_64/config.h
++++ gst-egl/pre-gen-source_64/config.h
+@@ -524,7 +524,7 @@
  /* #undef HAVE_WASAPI */
  
  /* Define to enable wayland sink (used by wayland ). */
@@ -111,7 +110,7 @@ index f2b6187..721c9ab 100644
  
  /* Define to enable WebP (used by webp ). */
  /* #undef HAVE_WEBP */
-@@ -540,7 +540,7 @@
+@@ -557,7 +557,7 @@
  /* #undef HAVE_WS2TCPIP_H */
  
  /* Define if you have X11 library */
@@ -120,7 +119,7 @@ index f2b6187..721c9ab 100644
  
  /* Define to enable xvid plugins (used by xvid). */
  /* #undef HAVE_XVID */
-@@ -622,7 +622,7 @@
+@@ -639,7 +639,7 @@
  /* #undef USE_EGL_RPI */
  
  /* Use X11 EGL window system */
@@ -129,6 +128,3 @@ index f2b6187..721c9ab 100644
  
  /* Version number of package */
  #define VERSION "1.2.3"
--- 
-2.32.0
-
