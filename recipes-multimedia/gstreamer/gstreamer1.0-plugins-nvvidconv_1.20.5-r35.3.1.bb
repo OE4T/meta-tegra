@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA video converter GStreamer plugin"
 SECTION = "multimedia"
 LICENSE = "BSD-3-Clause & Proprietary"
-LIC_FILES_CHKSUM = "file://nvbufsurface.h;endline=9;md5=7b9355c0d0bf82c6b3ca2dd270b27d38 \
+LIC_FILES_CHKSUM = "file://nvbufsurface.h;endline=9;md5=25279494f0285af8ac21bc9d4e679c91 \
                     file://README.txt;endline=26;md5=d4da79f8cebc6b73ce481b090afa99ae \
 "
 
