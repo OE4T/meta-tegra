@@ -12,23 +12,21 @@ Index: gst-nvcompositor/Makefile
 ===================================================================
 --- gst-nvcompositor.orig/Makefile
 +++ gst-nvcompositor/Makefile
-@@ -25,25 +25,22 @@
+@@ -25,24 +25,20 @@
  # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
 -SO_NAME := libgstnvcompositor.so
+-
+-CC := gcc
 +prefix ?= /usr
 +exec_prefix ?= $(prefix)
 +libdir ?= $(exec_prefix)/lib
  
--CC := gcc
-+SO_NAME := libgstnvcompositor.so
- 
 -GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
 -LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
 -CFLAGS:=
--LIBS:= -lnvbuf_utils
-+LIBS:= -lnvbufsurftransform -lnvbufsurface
++SO_NAME := libgstnvcompositor.so
  
  SRCS := $(wildcard *.c)
  
@@ -45,14 +43,15 @@ Index: gst-nvcompositor/Makefile
  
  OBJS := $(SRCS:.c=.o)
  
-@@ -52,22 +49,23 @@ CFLAGS += -fPIC \
+@@ -51,22 +47,23 @@ CFLAGS += -fPIC \
  
  CFLAGS += `pkg-config --cflags $(PKGS)`
  
 -LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
 +LDFLAGS += -Wl,--no-undefined
  
- LIBS += `pkg-config --libs $(PKGS)`
+-LIBS += `pkg-config --libs $(PKGS)`
++LIBS := -lnvbufsurftransform -lnvbufsurface `pkg-config --libs $(PKGS)`
  
  all: $(SO_NAME)
  
