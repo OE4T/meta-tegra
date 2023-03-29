@@ -7,6 +7,8 @@ require tegra-debian-libraries-common.inc
 
 MAINSUM = "e9cc802f0d40e58b1ddeba7fa7d1c2b77afb8e135c275d565814da5fbcc516cc"
 
+DEPENDS = "tegra-libraries-core"
+
 # When left unset, l4t default setting will be used
 NVPMODEL_CONFIG_DEFAULT ??= ""
 
