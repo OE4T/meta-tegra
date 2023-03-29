@@ -48,8 +48,8 @@ Index: gst-plugins-nv-video-sinks/Makefile
 -LDFLAGS = -Wl,--no-undefined -L/usr/lib/aarch64-linux-gnu/tegra -L/usr/local/cuda-$(CUDA_VER)/targets/aarch64-linux/lib/
 +LDFLAGS += -Wl,--no-undefined
  
--LIBS = -lnvbuf_utils -lnvbufsurface -lGLESv2 -lEGL -lX11 -lm -lcuda -lcudart
-+LIBS = -lnvbufsurface -lnvbuf_utils -lm
+-LIBS = -lnvbufsurface -lGLESv2 -lEGL -lX11 -lm -lcuda -lcudart
++LIBS = -lnvbufsurface -lm
  
  LIBS += `pkg-config --libs $(PKGS)`
  
