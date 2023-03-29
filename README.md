@@ -1,8 +1,8 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Jetson Modules
 ======================================================
 
-Jetson Linux release: R35.2.1
-JetPack release:      5.1.0
+Jetson Linux release: R35.3.1
+JetPack release:      5.1.1
 
 Boards supported:
 * Jetson AGX Xavier development kit
@@ -10,6 +10,7 @@ Boards supported:
 * Jetson Xavier NX eMMC module in dev kit or Nano carrier board
 * Jetson AGX Orin development kit
 * Jetson Orin NX 16GB (p3767-0000) in Xavier NX (p3509) carrier
+* Jetson Orin Nano development kit
 
 Community supported:
 * Clara AGX development kit
