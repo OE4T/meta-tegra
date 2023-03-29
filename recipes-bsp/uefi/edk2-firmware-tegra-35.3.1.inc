@@ -9,16 +9,16 @@ LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopD
 
 DEPENDS += "dtc-native"
 
-EDK2_SRC_URI = "gitsm://github.com/NVIDIA/edk2.git;protocol=https;branch=main-edk2-stable202208"
-EDK2_PLATFORMS_SRC_URI = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=main-upstream-20220830"
-EDK2_NVIDIA_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r35.2.1-updates"
+EDK2_SRC_URI = "gitsm://github.com/NVIDIA/edk2.git;protocol=https;branch=main-edk2-stable202208-updates"
+EDK2_PLATFORMS_SRC_URI = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r35.3.1-upstream-20220830-updates"
+EDK2_NVIDIA_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r35.3.1-updates"
 EDK2_NONOSI_SRC_URI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=main-upstream-20220830"
-EDK2_NVIDIA_NONOSI_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r35.2.1-updates"
+EDK2_NVIDIA_NONOSI_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r35.3.1-updates"
 
 SRCREV_edk2 = "7ba0a31b503cd0bf82a97e90f460ad7586ba80c4"
 SRCREV_edk2-non-osi = "61662e8596dd9a64e3372f9a3ba6622d2628607c"
-SRCREV_edk2-nvidia = "c647e59d6032aa721989e0824579de192b925277"
-SRCREV_edk2-nvidia-non-osi = "19cd8f09d3d10e6ca21232e244fc8b3be401bff8"
+SRCREV_edk2-nvidia = "63e71c987193cc57333994ca5b82a62c40fed5da"
+SRCREV_edk2-nvidia-non-osi = "952a02747566005181ec3248d7a9a5a24533e9dd"
 SRCREV_edk2-platforms = "3c3b1168017073c2bb2d97336c5929ebae805be1"
 
 SRC_URI = "\
@@ -31,7 +31,6 @@ SRC_URI = "\
 
 SRCREV_FORMAT = "edk2_edk2-platforms_edk2-non-osi_edk2-nvidia_edk2-nvidia-non-osi"
 
-SRC_URI += "file://0001-Fix-eeprom-customer-part-numbers.patch;patchdir=.."
 SRC_URI += "file://0002-Disable-outline-atomics-in-eqos-driver.patch;patchdir=.."
 SRC_URI += "file://0003-Fix-RCM-boot-detection.patch;patchdir=.."
 SRC_URI += "file://0004-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=.."
