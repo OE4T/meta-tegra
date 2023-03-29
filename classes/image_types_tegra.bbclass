@@ -638,7 +638,7 @@ def tegraflash_bupgen_strip_cmd(d):
 
 tegraflash_generate_bupgen_script() {
     local outfile="${1:-./generate_bup_payload.sh}"
-    local spec__ sdramcfg fab boardsku boardrev
+    local spec__ sdramcfg fab boardsku boardrev bup_type buptype_arg
     rm -f $outfile
     cat <<EOF > $outfile
 #!/bin/bash
@@ -658,9 +658,15 @@ EOF
     boardsku="${TEGRA_BOARDSKU}"
     boardrev="${TEGRA_BOARDREV}"
     for spec__ in ${@' '.join(['"%s"' % entry for entry in d.getVar('TEGRA_BUPGEN_SPECS').split()])}; do
+        bup_type=""
         eval $spec__
+        if [ -n "$bup_type" ]; then
+            buptype_arg="--bup-type $bup_type"
+        else
+            buptype_arg=""
+        fi
         cat <<EOF >> $outfile
-MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" ./${SOC_FAMILY}-flash-helper.sh --bup ./flash-stripped.xml.in ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
+MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" ./${SOC_FAMILY}-flash-helper.sh --bup $buptype_arg ./flash-stripped.xml.in ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
 EOF
     done
     chmod +x $outfile
@@ -765,8 +771,6 @@ EOF
 create_bup_payload_image() {
     local type="$1"
     oe_make_bup_payload ${IMGDEPLOYDIR}/${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.${type}
-    install -m 0644 ${WORKDIR}/bup-payload/bl_update_payload ${IMGDEPLOYDIR}/${IMAGE_NAME}.bup-payload
-    ln -sf ${IMAGE_NAME}.bup-payload ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.bup-payload
     for f in ${WORKDIR}/bup-payload/*_only_payload; do
         [ -e $f ] || continue
         sfx=$(basename $f _payload)
