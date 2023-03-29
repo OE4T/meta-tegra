@@ -1,5 +1,6 @@
 #!/bin/bash
 bup_blob=0
+bup_type=
 rcm_boot=0
 keyfile=
 sbk_keyfile=
@@ -41,7 +42,7 @@ partition_exists_in_PT_table() {
     return 1
 }
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -56,6 +57,10 @@ while true; do
         no_flash=1
         shift
         ;;
+    --bup-type)
+	bup_type="$2"
+	shift 2
+	;;
     --no-flash)
         no_flash=1
         shift
@@ -366,7 +371,10 @@ if [ "$BOARDID" = "3701" ]; then
     case $chip_sku in
 	00)
         ;;
-	90|97|9E)
+	90)
+            BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TE992M-A1,")
+            ;;
+	97|9E)
             BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA990SA-A1,")
             ;;
 	D0|D2)
@@ -384,9 +392,12 @@ if [ "$BOARDID" = "3701" ]; then
     fi
     if ! [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0001" -o "$BOARDSKU" = "0002" ]; then
 	BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,3701-0000,3701-$BOARDSKU,")
-	if [ "$BOARDSKU" = "0005" ]; then
+	if [ "$BOARDSKU" = "0005" -o "$BOARDSKU" = "0008" ]; then
 	    EMMC_BCT=$(echo "$EMMC_BCT" | sed -e"s,3701-0000,3701-$BOARDSKU,")
 	    WB0SDRAM_BCT=$(echo "$WB0SDRAM_BCT" | sed -e"s,3701-0000,3701-$BOARDSKU,")
+	    if [ "$BOARDSKU" = "0008" ]; then
+		BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,3701-0000,3701-$BOARDSKU,")
+	    fi
 	else
 	    dtb_file=$(echo "$dtb_file" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
 	fi
@@ -407,6 +418,9 @@ elif [ "$BOARDID" = "3767" ]; then
     if [ "$BOARDSKU" = "0001" -o "$BOARDSKU" = "0003" -o "$BOARDSKU" = "0005" ]; then
 	EMMC_BCT="tegra234-p3767-0001-sdram-l4t.dts"
 	WB0SDRAM_BCT="tegra234-p3767-0001-wb0sdram-l4t.dts"
+    elif [ "$BOARDSKU" = "0004" ]; then
+	EMMC_BCT="tegra234-p3767-0004-sdram-l4t.dts"
+	WB0SDRAM_BCT="tegra234-p3767-0004-wb0sdram-l4t.dts"
     fi
     if [ "$BOARDSKU" = "0003" -o "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
 	BPF_FILE="bpmp_t234-TE950M-A1_prod.bin"
@@ -476,7 +490,7 @@ if [ "$spi_only" = "yes" -o $external_device -eq 1 ]; then
         exit 1
     fi
 fi
-if [ "$spi_only" = "yes" ]; then
+if [ "$spi_only" = "yes" ] || [ $bup_blob -ne 0 -a "$bup_type" = "bl" ]; then
     "$here/nvflashxmlparse" --extract -t boot -o flash.xml.tmp "$flash_in" || exit 1
 else
     cp "$flash_in" flash.xml.tmp

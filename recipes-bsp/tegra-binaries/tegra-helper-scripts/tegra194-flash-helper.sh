@@ -1,5 +1,6 @@
 #!/bin/bash
 bup_blob=0
+bup_type=
 rcm_boot=0
 keyfile=
 sbk_keyfile=
@@ -37,11 +38,10 @@ process_l4t_conf_dtbo() {
 }
 
 partition_exists_in_PT_table() {
-    # Return failure status here 
-    return 1
+    [ "$1" = "secondary_gpt_backup" -o "$1" = "BCT-boot-chain_backup" ]
 }
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -55,6 +55,10 @@ while true; do
 	    bup_blob=1
 	    no_flash=1
 	    shift
+	    ;;
+	--bup-type)
+	    bup_type="$2"
+	    shift 2
 	    ;;
 	--no-flash)
 	    no_flash=1
@@ -391,7 +395,7 @@ if [ "$spi_only" = "yes" -o $external_device -eq 1 ]; then
 	exit 1
     fi
 fi
-if [ "$spi_only" = "yes" ]; then
+if [ "$spi_only" = "yes" ] || [ $bup_blob -ne 0 -a "$bup_type" = "bl" ]; then
     "$here/nvflashxmlparse" --extract -t boot -o flash.xml.tmp "$flash_in" || exit 1
 else
     cp "$flash_in" flash.xml.tmp
@@ -474,7 +478,6 @@ else
     tfcmd=${flash_cmd:-"flash;reboot"}
 fi
 
-temp_user_dir=
 want_signing=0
 if [ -n "$keyfile" ] || [ $rcm_boot -eq 1 ] || [ $no_flash -eq 1 -a $to_sign -eq 1 ]; then
     want_signing=1
@@ -486,37 +489,6 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
 	    echo "0x00000000 0x00000000 0x00000000 0x00000000" > null_user_key.txt
 	    user_keyfile=$(readlink -f null_user_key.txt)
 	fi
-	rm -rf signed_bootimg_dir
-	mkdir signed_bootimg_dir
-	cp xusb_sil_rel_fw signed_bootimg_dir/
-	if [ -n "$MINRATCHET_CONFIG" ]; then
-	    for f in $MINRATCHET_CONFIG; do
-		[ -e "$f" ] || continue
-		cp "$f" signed_bootimg_dir/
-	    done
-	fi
-	oldwd="$PWD"
-	cd signed_bootimg_dir
-	if [ -x $here/l4t_sign_image.sh ]; then
-	    signimg="$here/l4t_sign_image.sh";
-	else
-	    hereparent=$(readlink -f "$here/.." 2>/dev/null)
-	    if [ -n "$hereparent" -a -x "$hereparent/l4t_sign_image.sh" ]; then
-		signimg="$hereparent/l4t_sign_image.sh"
-	    fi
-	fi
-	if [ -z "$signimg" ]; then
-	    echo "ERR: missing l4t_sign_image script" >&2
-	    exit 1
-	fi
-	"$signimg" --file xusb_sil_rel_fw --type "xusb_fw" --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x19 --split False $MINRATCHET_CONFIG
-	rc=$?
-	cd "$oldwd"
-	if [ $rc -ne 0 ]; then
-	    echo "Error signing kernel image, device tree, or USB firmware" >&2
-	    exit 1
-	fi
-	temp_user_dir=signed_bootimg_dir
     fi
     CHIPID="0x19"
     tegraid="$CHIPID"
@@ -525,10 +497,6 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     tbcdtbfilename="$dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
-    if ! echo "$BINSARGS" | grep -q "mb2_applet"; then
-	BINSARGS="$BINSARGS; mb2_applet nvtboot_applet_t194.bin"
-	added_mb2_applet="yes"
-    fi
     BINSARGS="--bins \"$BINSARGS\""
     flashername=nvtboot_recovery_cpu_t194.bin
     BCT="--sdram_config"
@@ -540,16 +508,10 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     BCTARGS="$bctargs --bct_backup --secondary_gpt_backup"
     boot_chain_select="A"
     rootfs_ab=0
-    bl_userkey_encrypt_list=("xusb_sil_rel_fw")
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
 	if [ -f flashcmd.txt ]; then
-	    if [ -n "$added_mb2_applet" ]; then
-		mv flashcmd.txt flashcmd.txt.orig
-		"$here/rewrite-tegraflash-args" -o flashcmd.txt --bins mb2_applet= flashcmd.txt.orig
-		rm flashcmd.txt.orig
-	    fi
 	    chmod +x flashcmd.txt
 	    ln -sf flashcmd.txt ./secureflash.sh
 	else
@@ -558,10 +520,6 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
 	rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
     fi
     if [ $bup_blob -eq 0 ]; then
-	if [ -n "$temp_user_dir" ]; then
-	    cp "$temp_user_dir"/*.encrypt.signed .
-	    rm -rf "$temp_user_dir"
-	fi
 	exit 0
     fi
     touch odmsign.func
