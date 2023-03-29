@@ -24,7 +24,6 @@ do_deploy() {
 	    initramfs_symlink_name=${imageType}-${INITRAMFS_LINK_NAME}
 	    oe_make_bup_payload ${DEPLOY_DIR_IMAGE}/${initramfs_symlink_name}.cboot
 	    install -d ${DEPLOYDIR}
-	    install -m 0644 ${WORKDIR}/bup-payload/bl_update_payload ${DEPLOYDIR}/${initramfs_symlink_name}.bup-payload
 	    for f in ${WORKDIR}/bup-payload/*_only_payload; do
 		[ -e $f ] || continue
 		sfx=$(basename $f _payload)
