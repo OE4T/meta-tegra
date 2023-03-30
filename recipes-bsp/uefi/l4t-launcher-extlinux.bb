@@ -10,7 +10,7 @@ inherit l4t-extlinux-config kernel-artifact-names tegra-uefi-signing
 
 KERNEL_ARGS ??= ""
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
-DEPLOY_DIR_DTB ?= "${@'${DEPLOY_DIR_IMAGE}/devicetree' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else '${DEPLOY_DIR_IMAGE}'}"
+EXTERNAL_KERNEL_DEVICETREE ?= "${@'${RECIPE_SYSROOT}/boot/devicetree' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
 
 # Need to handle:
 #  a) Kernel with no initrd/initramfs
@@ -21,8 +21,6 @@ def compute_dependencies(d):
     initramfs_image = d.getVar('INITRAMFS_IMAGE') or ''
     if initramfs_image != '' and (d.getVar('INITRAMFS_IMAGE_BUNDLE') or '') != '1':
         deps += " %s:do_image_complete" % initramfs_image
-    if d.getVar("PREFERRED_PROVIDER_virtual/dtb"):
-        deps += " virtual/dtb:do_deploy"
     return deps
 
 
@@ -43,12 +41,20 @@ do_compile() {
     else
 	cp -L ${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}-${MACHINE}.bin ${B}/${KERNEL_IMAGETYPE}
     fi
-    if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
-        cp -L ${DEPLOY_DIR_DTB}/${DTBFILE} ${B}/
-    fi
 }
 do_compile[depends] += "${@compute_dependencies(d)}"
-do_compile[cleandirs] = "${B}"
+do_compile[dirs] = "${B}"
+
+python do_concat_dtb_overlays() {
+   if d.getVar('UBOOT_EXTLINUX_FDT'):
+        oe4t.dtbutils.concat_dtb_overlays(d.getVar('DTBFILE'),
+                                          d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS'),
+                                          os.path.join(d.getVar('B'), d.getVar('DTBFILE')), d)
+}
+do_concat_dtb_overlays[dirs] = "${B}"
+do_concat_dtb_overlays[depends] += "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else 'virtual/kernel:do_deploy'}"
+
+addtask concat_dtb_overlays after do_configure before do_sign_files
 
 # Override this function in a bbappend to
 # implement other signing mechanisms
@@ -74,7 +80,7 @@ do_sign_files() {
 do_sign_files[dirs] = "${B}"
 do_sign_files[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
 
-addtask sign_files after do_compile do_create_extlinux_config before do_install
+addtask sign_files after do_compile do_create_extlinux_config do_concat_dtb_overlays before do_install
 
 do_install() {
     install -d ${D}/boot/extlinux
