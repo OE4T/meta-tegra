@@ -63,6 +63,9 @@ TEGRAFLASH_NO_INTERNAL_STORAGE ??= "0"
 OVERLAY_DTB_FILE ??= ""
 USE_UEFI_SIGNED_FILES ?= "${@'true' if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT') else 'false'}"
 
+TEGRA_EXT4_OPTIONS ?= "-O ^metadata_csum_seed"
+EXTRA_IMAGECMD:append:ext4 = " ${TEGRA_EXT4_OPTIONS}"
+
 def tegra_initrd_image(d):
     if d.getVar('IMAGE_UBOOT'):
         return ''
