@@ -220,6 +220,16 @@ run_rcm_boot() {
 
 mount_partition() {
     local dev="$1"
+    local mnt=$(cat /proc/mounts | grep "^$dev" | cut -d' ' -f2)
+    local i=$(echo $mnt|awk -F' ' '{print NF}')
+    while [ $i -ne 0 ]; do
+        local mnt=$(echo ${mnt} | cut -d' ' -f$i)
+		if ! umount "${mnt}" > /dev/null 2>&1; then
+            echo "ERR: unmount ${mnt} on device $dev failed" >&2
+            return 1
+        fi
+        i=$(expr $i - 1)
+    done
     if udisksctl mount -b "$dev" > /dev/null; then
 	cat /proc/mounts | grep "^$dev" | cut -d' ' -f2
 	return 0
