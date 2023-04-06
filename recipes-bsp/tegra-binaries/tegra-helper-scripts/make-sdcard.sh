@@ -150,6 +150,18 @@ copy_to_device() {
     return $rc
 }
 
+unmount_device() {
+    local dev="$1"
+    local mnt=$(cat /proc/mounts | grep "^$dev" | cut -d' ' -f2)
+    if [ -n "$mnt" ]; then
+        if ! umount "${mnt}" > /dev/null 2>&1; then
+            echo "ERR: unmount ${mnt} on device $dev failed" >&2
+            return 1
+        fi
+    fi
+    return 0
+}
+
 write_partitions_to_device() {
     local blksize partnumber partname partsize partfile partguid partfilltoend
     local i dest pline destsize filesize n_written
@@ -177,6 +189,10 @@ write_partitions_to_device() {
 	    echo "ERR: cannot locate block device $dest" >&2
 	    return 1
 	fi
+    if ! unmount_device "$dest"; then
+        echo "ERR: device unmount failed" >&2
+        return 1
+    fi
 	destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
 	if [ $n_written -eq 0 -a -z "$destsize" ]; then
 	    sleep 1
@@ -201,6 +217,10 @@ write_partitions_to_device() {
 	fi
 	filesize=$(stat -c "%s" "$partfile")
 	dest="/dev/$DEVNAME$PARTSEP$partnumber"
+    if ! unmount_device "$dest"; then
+        echo "ERR: device unmount failed" >&2
+        return 1
+    fi
 	if [ ! -b "$dest" ]; then
 	    echo "ERR: cannot locate block device $dest" >&2
 	    return 1
