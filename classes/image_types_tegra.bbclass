@@ -15,7 +15,7 @@ def tegra_rootfs_device(d):
     # For Xavier NX booting from SDcard, the RCM booted kernel
     # bypasses UEFI and doesn't get any overlays applied, such
     # as the one that renames mmcblk1 -> mmcblk0
-    if bootdev.startswith("mmc") and d.getVar('TEGRA_SPIFLASH_BOOT') == "1":
+    if d.getVar('NVIDIA_CHIP') == "0x19" and bootdev.startswith("mmc") and d.getVar('TEGRA_SPIFLASH_BOOT') == "1":
         return "mmcblk1"
     if bootdev.startswith("mmc") or bootdev.startswith("nvme"):
         return re.sub(r"p[0-9]+$", "", bootdev)
@@ -601,29 +601,12 @@ END
         chmod +x burnfuses.sh
     fi
 
-    if [ "${TEGRA_SPIFLASH_BOOT}" = "1" ]; then
-        rm -f dosdcard.sh
-        cat > dosdcard.sh <<END
+    rm -f dosdcard.sh
+    cat > dosdcard.sh <<END
 #!/bin/sh
 MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} fuselevel=\${fuselevel:-fuselevel_production} ./tegra234-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCT} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
-        chmod +x dosdcard.sh
-    elif [ "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ]; then
-        rm -f doflash.sh
-        cat > doflash.sh <<END
-#!/bin/sh
-./nvflashxmlparse --split=flash-sdcard.xml.in --output=flash-mmc.xml.in --sdcard-size=${TEGRAFLASH_SDCARD_SIZE} flash.xml.in
-MACHINE=${TNSPEC_MACHINE} ./tegra234-flash-helper.sh $DATAARGS flash-mmc.xml.in ${DTBFILE} ${EMMC_BCT} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
-END
-        chmod +x doflash.sh
-        rm -f dosdcard.sh
-        cat > dosdcard.sh <<END
-#!/bin/sh
-./nvflashxmlparse --split=flash-sdcard.xml.in --output=flash-mmc.xml.in --sdcard-size=${TEGRAFLASH_SDCARD_SIZE} flash.xml.in
-MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} BOARDREV=\${BOARDREV:-${TEGRA_BOARDREV}} fuselevel=\${fuselevel:-fuselevel_production} ./tegra234-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash-sdcard.xml.in ${DTBFILE} ${EMMC_BCT} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
-END
-        chmod +x dosdcard.sh
-    fi
+    chmod +x dosdcard.sh
     tegraflash_custom_post
     tegraflash_custom_sign_pkg
     tegraflash_finalize_pkg
