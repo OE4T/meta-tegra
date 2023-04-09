@@ -19,7 +19,8 @@ TEGRA_PLUGIN_MANAGER_OVERLAYS ??= ""
 OVERLAY_DTB_FILE ?= ""
 
 TNSPEC_MACHINE ??= "${MACHINE}"
-TNSPEC_BOOTDEV ??= "mmcblk0p1"
+TNSPEC_BOOTDEV_DEFAULT ??= "mmcblk0p1"
+TNSPEC_BOOTDEV ??= "${TNSPEC_BOOTDEV_DEFAULT}"
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-tegra"
 PREFERRED_PROVIDER_virtual/bootloader ?= "edk2-firmware-tegra"
