@@ -52,7 +52,8 @@ python do_concat_dtb_overlays() {
                                           os.path.join(d.getVar('B'), d.getVar('DTBFILE')), d)
 }
 do_concat_dtb_overlays[dirs] = "${B}"
-do_concat_dtb_overlays[depends] += "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else 'virtual/kernel:do_deploy'}"
+do_concat_dtb_overlays[depends] += "virtual/kernel:do_deploy"
+do_concat_dtb_overlays[depends] += "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
 
 addtask concat_dtb_overlays after do_configure before do_sign_files
 
