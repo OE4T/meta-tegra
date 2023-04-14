@@ -1,5 +1,8 @@
 require tegra-binaries-${PV}.inc
 
+SRC_URI += "https://developer.download.nvidia.com/embedded/L4T/${@l4t_release_dir(d)}/secureboot_overlay_${L4T_VERSION}.tbz2;name=sboverlay;subdir=sboverlay"
+SRC_URI[sboverlay.sha256sum] = "5036ce047cddc87c59770fd7114c46c010bb13d9ee7d8012cc8f9e2c71946762"
+
 WORKDIR = "${TMPDIR}/work-shared/L4T-native-${PV}-${PR}"
 SSTATE_SWSPEC = "sstate:tegra-binaries-native::${PV}:${PR}::${SSTATE_VERSION}:"
 STAMP = "${STAMPS_DIR}/work-shared/L4T-native-${PV}-${PR}"
@@ -12,6 +15,7 @@ SRC_URI += "\
            file://0010-Rework-logging-in-l4t_sign_image.sh.patch \
            file://0013-Fix-location-of-bsp_version-file-in-l4t_bup_gen.func.patch \
            file://0014-odmsign.func-fix-ODMDATA-and-overlay-DTB-handling-fo.patch \
+           file://0015-tegrasign_v3_internal-overlay.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
@@ -28,6 +32,12 @@ do_compile[noexec] = "1"
 BINDIR = "${bindir}/tegra-flash"
 
 addtask preconfigure after do_patch before do_configure
+
+add_overlay_files() {
+    cp ${WORKDIR}/sboverlay/Linux_for_Tegra/bootloader/tegrasign_v3_oemkey.yaml ${S}/bootloader/
+    cp ${WORKDIR}/sboverlay/Linux_for_Tegra/license.txt ${S}/
+}
+do_unpack[postfuncs] += "add_overlay_files"
 
 do_install() {
     install -d ${D}${BINDIR}
