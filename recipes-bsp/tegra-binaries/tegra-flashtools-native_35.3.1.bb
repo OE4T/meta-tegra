@@ -48,7 +48,7 @@ do_install() {
     install -m 0755 ${S}/bootloader/tegraparser_v2 ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/tegrarcm_v2 ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/tegrasign_v2 ${D}${BINDIR}
-    install -m 0755 ${S}/bootloader/tegrasign_v3*py ${D}${BINDIR}
+    install -m 0755 ${S}/bootloader/tegrasign_v3* ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/tegraopenssl ${D}${BINDIR}
     install -d ${D}${BINDIR}/pyfdt
     install -m 0644 ${S}/bootloader/pyfdt/*.py ${D}${BINDIR}/pyfdt/
