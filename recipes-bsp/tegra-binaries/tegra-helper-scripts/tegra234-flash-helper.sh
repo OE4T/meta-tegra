@@ -255,13 +255,13 @@ else
 fi
 
 have_boardinfo=
+keyargs=
+[ -z "$keyfile" ] || keyargs="$keyargs --key $keyfile"
+[ -z "$sbk_keyfile" ] || keyargs="$keyargs --encrypt_key $sbk_keyfile"
 if [ -z "$FAB" -o -z "$BOARDID" ]; then
     if [ "$fuselevel" = "fuselevel_production" ]; then
         sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${EMC_FUSE_DEV_PARAMS}";
     fi
-    keyargs=
-    [ -z "$keyfile" ] || keyargs="$keyargs --key $keyfile"
-    [ -z "$sbk_keyfile" ] || keyargs="$keyargs --encrypt_key $sbk_keyfile"
     rm -f rcm_state
     if ! python3 $flashappname ${inst_args} --chip 0x23 $skipuid $keyargs \
          --applet mb1_t234_prod.bin \
@@ -628,7 +628,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     if [ -n "$OVERLAY_DTB_FILE" ]; then
 	rcm_overlay_dtbs="$rcm_overlay_dtbs,$OVERLAY_DTB_FILE"
     fi
-    rcmbootsigncmd="python3 $flashappname --chip 0x23 --odmdata $odmdata --bldtb $dtb_file --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtbs \
+    rcmbootsigncmd="python3 $flashappname $keyargs --chip 0x23 --odmdata $odmdata --bldtb $dtb_file --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtbs \
                     --cmd \"sign rcmboot_uefi_jetson.bin bootloader_stage2 A_cpu-bootloader\""
     eval $rcmbootsigncmd || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
