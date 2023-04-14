@@ -1,0 +1,31 @@
+Index: Linux_for_Tegra/bootloader/tegraflash_impl_t234.py
+===================================================================
+--- Linux_for_Tegra.orig/bootloader/tegraflash_impl_t234.py
++++ Linux_for_Tegra/bootloader/tegraflash_impl_t234.py
+@@ -1848,7 +1848,7 @@ class TFlashT23x_Base(object):
+             xml_tree = ElementTree.parse(file)
+             mode = xml_tree.getroot().get('mode')
+ 
+-            for file_nodes in xml_tree.getiterator('file'):
++            for file_nodes in xml_tree.iter('file'):
+                 filename = file_nodes.get('name')
+                 if 'dce' in filename:
+                     continue
+@@ -2214,7 +2214,7 @@ class TFlashT23x_Base(object):
+             if values['--concat_cpubl_bldtb'] is True:
+                 bl_dtb_file = values['--bldtb']
+                 cpubl_bin_file = filename
+-                cpubl_with_dtb = cpubl_bin_file.split('.', 1)[0] + '_with_dtb.bin'
++                cpubl_with_dtb = os.path.splitext(cpubl_bin_file)[0] + '_with_dtb.bin'
+                 info_print('Concatenating bl dtb:(' + bl_dtb_file + '), to cpubl binary: ' + cpubl_bin_file)
+                 if not os.path.exists(bl_dtb_file):
+                     raise tegraflash_exception('Could not find ' + bl_dtb_file)
+@@ -3000,7 +3000,7 @@ class TFlashT23x_Base(object):
+         info_print('Concatenating bl dtb to cpubl binary')
+         bl_dtb_file = values['--bldtb']
+         cpubl_bin_file = values['--cpubl']
+-        cpubl_with_dtb = cpubl_bin_file.split('.', 1)[0] + '_with_dtb.bin'
++        cpubl_with_dtb = os.path.splitext(cpubl_bin_file)[0] + '_with_dtb.bin'
+         if not os.path.exists(bl_dtb_file):
+             raise tegraflash_exception('Could not find ' + bl_dtb_file)
+         if not os.path.exists(cpubl_bin_file):
