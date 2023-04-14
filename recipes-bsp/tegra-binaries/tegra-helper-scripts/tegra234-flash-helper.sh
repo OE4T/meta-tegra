@@ -549,7 +549,6 @@ else
     tfcmd=${flash_cmd:-"flash;reboot"}
 fi
 
-temp_user_dir=
 want_signing=0
 if [ -n "$keyfile" ] || [ $rcm_boot -eq 1 ] || [ $no_flash -eq 1 -a $to_sign -eq 1 ]; then
     want_signing=1
@@ -561,37 +560,6 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
             echo "0x00000000 0x00000000 0x00000000 0x00000000" > null_user_key.txt
             user_keyfile=$(readlink -f null_user_key.txt)
         fi
-        rm -rf signed_bootimg_dir
-        mkdir signed_bootimg_dir
-        cp xusb_t234_prod.bin signed_bootimg_dir/
-        if [ -n "$MINRATCHET_CONFIG" ]; then
-            for f in $MINRATCHET_CONFIG; do
-                [ -e "$f" ] || continue
-                cp "$f" signed_bootimg_dir/
-            done
-        fi
-        oldwd="$PWD"
-        cd signed_bootimg_dir
-        if [ -x $here/l4t_sign_image.sh ]; then
-            signimg="$here/l4t_sign_image.sh";
-        else
-            hereparent=$(readlink -f "$here/.." 2>/dev/null)
-            if [ -n "$hereparent" -a -x "$hereparent/l4t_sign_image.sh" ]; then
-                signimg="$hereparent/l4t_sign_image.sh"
-            fi
-        fi
-        if [ -z "$signimg" ]; then
-            echo "ERR: missing l4t_sign_image script" >&2
-            exit 1
-        fi
-	"$signimg" --file xusb_t234_prod.bin --type "xusb_fw" --key "$keyfile" --encrypt_key "$user_keyfile" --chip 0x23 --split False $MINRATCHET_CONFIG
-        rc=$?
-        cd "$oldwd"
-        if [ $rc -ne 0 ]; then
-            echo "Error signing xusb firmware" >&2
-            exit 1
-        fi
-        temp_user_dir=signed_bootimg_dir
     fi
     CHIPID="0x23"
     tegraid="$CHIPID"
@@ -617,7 +585,6 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     BCTARGS="$bctargs --bct_backup --secondary_gpt_backup"
     L4T_CONF_DTBO="L4TConfiguration.dtbo"
     rootfs_ab=0
-    bl_userkey_encrypt_list=("xusb_t234_prod.bin")
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
     cp uefi_jetson.bin rcmboot_uefi_jetson.bin
@@ -641,10 +608,6 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
         rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
     fi
     if [ $bup_blob -eq 0 ]; then
-        if [ -n "$temp_user_dir" ]; then
-            cp "$temp_user_dir"/*.encrypt.signed .
-            rm -rf "$temp_user_dir"
-        fi
         exit 0
     fi
     touch odmsign.func
