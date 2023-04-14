@@ -1,6 +1,6 @@
 require tegra-binaries-${PV}.inc
 
-SRC_URI += "https://developer.download.nvidia.com/embedded/L4T/${@l4t_release_dir(d)}/secureboot_overlay_${L4T_VERSION}.tbz2;name=sboverlay;subdir=sboverlay"
+SRC_URI += "https://developer.download.nvidia.com/embedded/L4T/r35_Release_v2.1/secureboot_overlay_35.2.1.tbz2;name=sboverlay;subdir=sboverlay"
 SRC_URI[sboverlay.sha256sum] = "5036ce047cddc87c59770fd7114c46c010bb13d9ee7d8012cc8f9e2c71946762"
 
 WORKDIR = "${TMPDIR}/work-shared/L4T-native-${PV}-${PR}"
