@@ -11,7 +11,7 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
 ===================================================================
 --- Linux_for_Tegra.orig/bootloader/l4t_bup_gen.func
 +++ Linux_for_Tegra/bootloader/l4t_bup_gen.func
-@@ -668,13 +668,13 @@ function l4t_bup_gen()
+@@ -703,13 +703,13 @@ function l4t_bup_gen()
  	export OUT=$(pwd);
  
  	# get the bsp version to fill the entry list version.
@@ -28,3 +28,30 @@ Index: Linux_for_Tegra/bootloader/l4t_bup_gen.func
  		echo "bootloader update payload creation failed"
  		exit 1
  	fi
+@@ -742,7 +742,7 @@ function l4t_bup_gen()
+ 	if [ ${clean_up} -ne 0 ]; then
+ 		rm signed -rIf;
+ 		rm multi_signed -rIf;
+-		rm encrypted_signed -rIf;
++		rm enc_signed -rIf;
+ 		rm encrypted_signed_t19x -rIf;
+ 		rm -f "${OUT}"/rollback.bin
+ 		exit 0;
+@@ -752,7 +752,7 @@ function l4t_bup_gen()
+ 	# check PKC and SBK keys:
+ 	# No PKC: the images are in signed/, file extention is .encrypt
+ 	# PKC: the images are in signed/, file extention is .signed
+-	# PKC+SBK: the images are in encrypted_signed*/, file extention is encrypt.signed
++	# PKC+SBK: the images are in enc_signed*/, file extention is encrypt.signed
+ 	if [ ! -z "${keyfile}" ]; then
+ 		if [ ! -f "${keyfile}" ]; then
+ 			echo "Error: No such file: '${OUT}/${keyfile}'."
+@@ -772,7 +772,7 @@ function l4t_bup_gen()
+ 			if [ "${tegra_soc}" == "t19x" ]; then
+ 				SIGNED_DIR="encrypted_signed_t19x"
+ 			else
+-				SIGNED_DIR="encrypted_signed"
++				SIGNED_DIR="enc_signed"
+ 			fi
+ 
+ 			echo "Encrypting with ${sbk_keyfile} ..."
