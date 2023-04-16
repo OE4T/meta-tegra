@@ -16,6 +16,7 @@ SRC_URI += "\
            file://0013-Fix-location-of-bsp_version-file-in-l4t_bup_gen.func.patch \
            file://0014-odmsign.func-fix-ODMDATA-and-overlay-DTB-handling-fo.patch \
            file://0015-tegrasign_v3_internal-overlay.patch \
+           file://0016-Update-tegraflash_impl_t234.py.patch \
            "
 S = "${WORKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"

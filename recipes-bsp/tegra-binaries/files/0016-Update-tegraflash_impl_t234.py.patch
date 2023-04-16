@@ -1,0 +1,13 @@
+Index: Linux_for_Tegra/bootloader/tegraflash_impl_t234.py
+===================================================================
+--- Linux_for_Tegra.orig/bootloader/tegraflash_impl_t234.py
++++ Linux_for_Tegra/bootloader/tegraflash_impl_t234.py
+@@ -1853,7 +1853,7 @@ class TFlashT23x_Base(object):
+             xml_tree = ElementTree.parse(file)
+             mode = xml_tree.getroot().get('mode')
+ 
+-            for file_nodes in xml_tree.getiterator('file'):
++            for file_nodes in xml_tree.iter('file'):
+                 filename = file_nodes.get('name')
+                 if 'dce' in filename:
+                     continue
