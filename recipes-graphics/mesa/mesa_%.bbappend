@@ -10,8 +10,9 @@ do_install:prepend:tegra() {
     touch ${D}${includedir}/EGL/eglplatform.h
 }
 
+# Remove the dummy file we installed above
 do_install:append:tegra() {
-    rm -rf ${D}${includedir}/EGL
+    rm -f ${D}${includedir}/EGL/eglplatform.h
 }
 
 PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"
