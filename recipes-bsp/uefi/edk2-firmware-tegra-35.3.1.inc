@@ -35,6 +35,7 @@ SRC_URI += "file://0002-Disable-outline-atomics-in-eqos-driver.patch;patchdir=..
 SRC_URI += "file://0003-Fix-RCM-boot-detection.patch;patchdir=.."
 SRC_URI += "file://0004-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=.."
 SRC_URI += "file://0005-Use-bfd-linker.patch;patchdir=.."
+SRC_URI += "file://0006-fix-ensure-termination-of-TnSpec-variables.patch;patchdir=.."
 
 S = "${WORKDIR}/edk2-tegra/edk2"
 
