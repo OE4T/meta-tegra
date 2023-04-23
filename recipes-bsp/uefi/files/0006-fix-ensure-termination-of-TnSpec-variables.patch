@@ -1,0 +1,70 @@
+From dec32802e949e9a52dc0256a3532584fd379014b Mon Sep 17 00:00:00 2001
+From: Dan Walkes <danwalkes@trellis-logic.com>
+Date: Sun, 23 Apr 2023 12:34:16 -0600
+Subject: [PATCH] fix: ensure termination of TnSpec variables
+
+GetTnSpec at [1] allocates memory for mPlatformCompatSpec
+at [2] based on the size returned by GetVariable at [3]
+which is ultimately provided to FwPackageGetImageIndex at [4] and
+passed to FwPackageCheckTnSpec at [5].  The FwPackageCheckTnSpec
+function assumes the values are null terminated strings at [6]
+when in fact they are not stored this way in practice (when running
+with Jetpack or OE4T, see example variable content at [7]).
+
+There may be other cases where null termination should be added to
+values returned by GetVariable, and this likely needs further review.
+This fix addresses only CompatSpec and FullSpec variables which are
+necessary for supporting Capule Updates (see [8])) on OE4T Jetpack 5.x.
+
+1:https://github.com/NVIDIA/edk2-nvidia/blob/8d42d1cfd61af8a9ef7f136366a1885887e4a7cd/Silicon/NVIDIA/Library/FmpDeviceLib/TegraFmp.c#L239
+2: https://github.com/NVIDIA/edk2-nvidia/blob/8d42d1cfd61af8a9ef7f136366a1885887e4a7cd/Silicon/NVIDIA/Library/FmpDeviceLib/TegraFmp.c#L265
+3: https://github.com/NVIDIA/edk2-nvidia/blob/8d42d1cfd61af8a9ef7f136366a1885887e4a7cd/Silicon/NVIDIA/Library/FmpDeviceLib/TegraFmp.c#L247
+4:
+https://github.com/NVIDIA/edk2-nvidia/blob/8d42d1cfd61af8a9ef7f136366a1885887e4a7cd/Silicon/NVIDIA/Library/FmpDeviceLib/TegraFmp.c#L593
+5: https://github.com/NVIDIA/edk2-nvidia/blob/8d42d1cfd61af8a9ef7f136366a1885887e4a7cd/Silicon/NVIDIA/Library/FwPackageLib/FwPackageLib.c#L236
+6:
+https://github.com/NVIDIA/edk2-nvidia/blob/8d42d1cfd61af8a9ef7f136366a1885887e4a7cd/Silicon/NVIDIA/Library/FwPackageLib/FwPackageLib.c#L133
+7: https://matrix.to/#/!YBfWVpJwNVtkmqVCPS:gitter.im/$0poxR3SlvbW5XWtKBLm7Rps7pbTAaxYA6KhhqgbVk00?via=gitter.im&via=matrix.org&via=3dvisionlabs.com
+8:
+https://docs.nvidia.com/jetson/archives/r35.3.1/DeveloperGuide/text/SD/Bootloader/UpdateAndRedundancy.html#generating-the-capsule-update-payload
+
+Signed-off-by: Dan Walkes <danwalkes@trellis-logic.com>
+---
+ Silicon/NVIDIA/Library/FmpDeviceLib/TegraFmp.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/FmpDeviceLib/TegraFmp.c b/Silicon/NVIDIA/Library/FmpDeviceLib/TegraFmp.c
+index 5a4e706f..09bf0730 100644
+--- edk2-tegra.a/edk2-nvidiaSilicon/NVIDIA/Library/FmpDeviceLib/TegraFmp.c
++++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/FmpDeviceLib/TegraFmp.c
+@@ -169,7 +169,8 @@ GetFuseSettings (
+     return EFI_SUCCESS;
+   }
+ 
+-  mPlatformSpec = (CHAR8 *)AllocateRuntimeZeroPool (Size);
++  // Add 1 for null termination so this pointer can be used with string functions
++  mPlatformSpec = (CHAR8 *)AllocateRuntimeZeroPool (Size+1);
+   if (mPlatformSpec == NULL) {
+     DEBUG ((DEBUG_ERROR, "%a: Spec alloc failed\n", __FUNCTION__));
+     return EFI_OUT_OF_RESOURCES;
+@@ -262,7 +263,8 @@ GetTnSpec (
+     goto UseDefault;
+   }
+ 
+-  mPlatformCompatSpec = (CHAR8 *)AllocateRuntimeZeroPool (Size);
++  // Add 1 for null termination so this pointer can be used with string functions
++  mPlatformCompatSpec = (CHAR8 *)AllocateRuntimeZeroPool (Size+1);
+   if (mPlatformCompatSpec == NULL) {
+     DEBUG ((DEBUG_ERROR, "%a: CompatSpec alloc failed\n", __FUNCTION__));
+     return EFI_OUT_OF_RESOURCES;
+@@ -287,7 +289,6 @@ GetTnSpec (
+     mPlatformCompatSpec = NULL;
+     return Status;
+   }
+-
+   goto Done;
+ 
+ UseDefault:
+-- 
+2.34.1
+
