@@ -1,5 +1,5 @@
 L4T_DEB_COPYRIGHT_MD5 = "3d9212d4d5911fa3200298cd55ed6621"
-DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-multimedia-utils tegra-libraries-nvsci pango cairo glib-2.0 gstreamer1.0 gstreamer1.0-plugins-base virtual/egl"
+DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-multimedia-utils tegra-libraries-nvsci pango cairo glib-2.0 virtual/egl"
 
 require tegra-debian-libraries-common.inc
 
@@ -19,7 +19,6 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvbufsurftransform.so.1.0.0 \
     tegra/libnvdecode2eglimage.so \
-    tegra/libnvdsbufferpool.so.1.0.0 \
     tegra/libnveventlib.so \
     tegra/libnvexif.so \
     tegra/libnvid_mapper.so.1.0.0 \
@@ -59,7 +58,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
 
 do_install() {
     install_libraries
-    for libname in nvdsbufferpool nvbufsurface nvbufsurftransform nvid_mapper; do
+    for libname in nvbufsurftransform nvid_mapper; do
 	ln -sf lib$libname.so.1.0.0 ${D}${libdir}/lib$libname.so.1
 	ln -sf lib$libname.so.1.0.0 ${D}${libdir}/lib$libname.so
     done
