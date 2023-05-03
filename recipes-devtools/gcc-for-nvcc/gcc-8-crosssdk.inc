@@ -9,4 +9,4 @@ SYSTEMLIBS1 = "${SDKPATHNATIVE}${libdir_nativesdk}/"
 GCCMULTILIB = "--disable-multilib"
 
 DEPENDS = "virtual/${TARGET_PREFIX}binutils gettext-native ${NATIVEDEPS}"
-PROVIDES = "virtual/${TARGET_PREFIX}cuda-gcc-crosssdk virtual/${TARGET_PREFIX}cuda-g++-crosssdk"
+PROVIDES = "virtual/${TARGET_PREFIX}cuda-gcc virtual/${TARGET_PREFIX}cuda-g++"

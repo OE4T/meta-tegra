@@ -11,8 +11,7 @@ CVE_PRODUCT = "gcc"
 inherit autotools gettext texinfo
 
 BPN = "gcc"
-COMPILERDEP = "virtual/${MLPREFIX}${TARGET_PREFIX}cuda-gcc:do_gcc_stash_builddir"
-COMPILERDEP:class-nativesdk = "virtual/${TARGET_PREFIX}cuda-gcc-crosssdk:do_gcc_stash_builddir"
+COMPILERDEP = "virtual/${TARGET_PREFIX}cuda-gcc:do_gcc_stash_builddir"
 
 python extract_stashed_builddir () {
     src = d.expand("${COMPONENTS_DIR}/${BUILD_ARCH}/gcc-8-stashed-builddir-${TARGET_SYS}")
