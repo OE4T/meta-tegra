@@ -10,6 +10,7 @@ Boards supported:
 * Jetson Xavier NX eMMC module in dev kit or Nano carrier board
 * Jetson AGX Orin development kit
 * Jetson Orin NX 16GB (p3767-0000) in Xavier NX (p3509) carrier
+* Jetson Orin NX 16GB (p3767-0000) in Orin Nano (p3768) carrier
 * Jetson Orin Nano development kit
 
 Community supported:
