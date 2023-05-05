@@ -26,3 +26,4 @@ def l4t_release_dir(d):
     return "r%s_Release_v%s.%s" % (verparts[0], verparts[1], verparts[2])
 
 L4T_URI_BASE ?= "https://developer.download.nvidia.com/embedded/L4T/${@l4t_release_dir(d)}/${L4T_BSP_NAME}"
+L4T_OVERLAY_URI_BASE ?= "https://developer.download.nvidia.com/embedded/L4T/${@l4t_release_dir(d)}"
