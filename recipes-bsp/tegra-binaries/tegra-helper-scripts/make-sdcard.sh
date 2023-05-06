@@ -96,7 +96,7 @@ find_finalpart() {
 
 make_partitions() {
     local blksize partnumber partname partsize partfile partguid partfilltoend start_location
-    local i pline alignarg sgdiskcmd
+    local i pline alignarg sgdiskcmd parttype
     if [ "$use_start_locations" = "yes" ]; then
 	alignarg="-a 1"
     fi
@@ -105,11 +105,12 @@ make_partitions() {
     for pline in "${PARTS[@]}"; do
 	if [ $i -ne $FINALPART ]; then
 	    eval "$pline"
+	    [ -n "$parttype" ] || parttype="0700"
 	    if [ "$use_start_locations" != "yes" ]; then
 		start_location=0
 	    fi
 	    printf "  [%02d] name=%s start=%s size=%s sectors\n" $partnumber $partname $start_location $partsize
-	    sgdiskcmd="$sgdiskcmd --new=$partnumber:$start_location:+$partsize --typecode=$partnumber:8300 -c $partnumber:$partname"
+	    sgdiskcmd="$sgdiskcmd --new=$partnumber:$start_location:+$partsize --typecode=$partnumber:$parttype -c $partnumber:$partname"
 	fi
 	i=$(expr $i + 1)
     done
