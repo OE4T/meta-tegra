@@ -31,6 +31,9 @@ BOOTBINS:tegra194 = "\
     spe_t194.bin \
     xusb_sil_rel_fw \
     warmboot_t194_prod.bin \
+    sce_t194.bin \
+    dram-ecc-t194.bin \
+    badpage.bin \
 "
 
 BOOTBINS:tegra234 = "\
@@ -75,6 +78,25 @@ do_compile:append:tegra194() {
     done
     cp ${S}/bootloader/nvdisp-init.bin ${B}
     truncate --size=393216 ${B}/nvdisp-init.bin
+}
+
+do_compile:append:tegra194() {
+    BL_DIR="${S}/bootloader"
+    # Create badpage.bin if it doesn't exist
+    if [ ! -f "${BL_DIR}/badpage.bin" ]; then
+        echo "creating dummy ${BL_DIR}/badpage.bin"
+        dd if=/dev/zero of="${BL_DIR}/badpage.bin" bs=4096 count=1;
+    else
+        echo "reusing existing ${BL_DIR}/badpage.bin"
+        # Clear BCH Header
+        dd if=/dev/zero of="${BL_DIR}/badpage.bin" bs=4096 seek=0 count=1;
+    fi;
+    printf 'NVDA' | dd of="${BL_DIR}/badpage.bin" bs=1 seek=0 count=4 conv=notrunc &> /dev/null
+
+    # Originally, the statement below used "printf '\x01'" to write 0x01 to the shell. But because of bitbake, \x01 won't be interpreted correctly
+    # Therefore, python is used to write 0x01 to the shell
+    python3 -c 'import sys; sys.stdout.buffer.write(bytes([0x01]))' | dd of="${BL_DIR}/badpage.bin" bs=1 seek=2976 count=1 conv=notrunc &> /dev/null
+    printf 'BINF' | dd of="${BL_DIR}/badpage.bin" bs=1 seek=2992 count=4 conv=notrunc &> /dev/null
 }
 
 do_install() {

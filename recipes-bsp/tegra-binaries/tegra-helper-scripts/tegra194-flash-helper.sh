@@ -303,6 +303,8 @@ case "$boardid" in
 		    BPFDTBREV="a04"
 		fi
 		;;
+		[06][0-9][0-9]) # 600 range is the board version of the Jetson AGX Xavier Industrial
+		;;
 	    *)
 		echo "ERR: unrecognized board version $board_version" >&2
 		exit 1
@@ -445,7 +447,7 @@ fi
 
 bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --device_config $DEVICE_CONFIG \
-         --misc_config tegra194-mb1-bct-misc-flash.cfg \
+         --misc_config $MISC_CONFIG  \
          --misc_cold_boot_config $MISC_COLD_BOOT_CONFIG \
          --pinmux_config $PINMUX_CONFIG \
          --gpioint_config $GPIOINT_CONFIG \
