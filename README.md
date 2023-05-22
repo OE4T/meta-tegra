@@ -15,6 +15,7 @@ Boards supported:
 
 Community supported:
 * Clara AGX development kit
+* Jetson AGX Xavier Industrial
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core

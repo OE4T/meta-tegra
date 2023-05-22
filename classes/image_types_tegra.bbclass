@@ -203,11 +203,13 @@ tegraflash_create_flash_config:tegra194() {
         -e"s,MTSPREBOOT,preboot_c10_prod_cr.bin," \
         -e"s,MTS_MCE,mce_c10_prod_cr.bin," \
         -e"s,MTSPROPER,mts_c10_prod_cr.bin," \
+        -e"s,SCEFILE,sce_t194.bin," \
         -e"s,MB1FILE,mb1_t194_prod.bin," \
         -e"s,BPFFILE,bpmp-2_t194.bin," \
         -e"s,TBCFILE,uefi_jetson.bin," \
         -e"s,CAMERAFW,camera-rtcpu-t194-rce.img," \
         -e"s,DRAMECCTYPE,dram_ecc," -e"s,DRAMECCFILE,dram-ecc-t194.bin," -e"s,DRAMECCNAME,dram-ecc-fw," \
+        -e"s,BADPAGETYPE,black_list_info," -e"s,BADPAGEFILE,badpage.bin," -e"s,BADPAGENAME,badpage-fw," \
         -e"s,SPEFILE,spe_t194.bin," \
         -e"s,WB0BOOT,warmboot_t194_prod.bin," \
         -e"s,TOSFILE,${TOSIMGFILENAME}," \
@@ -277,6 +279,9 @@ BOOTFILES:tegra194 = "\
     spe_t194.bin \
     warmboot_t194_prod.bin \
     xusb_sil_rel_fw \
+    sce_t194.bin \
+    dram-ecc-t194.bin \
+    badpage.bin \
 "
 
 BOOTFILES:tegra234 = "\
