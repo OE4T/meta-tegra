@@ -4,6 +4,8 @@ require gcc-8-configure-common.inc
 
 INHIBIT_DEFAULT_DEPS = "1"
 
+DEBUG_PREFIX_MAP:remove:class-target = "-fcanon-prefix-map"
+
 do_configure () {
 	install -d ${D}${base_libdir} ${D}${libdir}
 	mkdir -p ${B}/${BPN}
