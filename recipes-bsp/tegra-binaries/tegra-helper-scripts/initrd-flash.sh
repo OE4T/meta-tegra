@@ -24,6 +24,11 @@ Options passed through to flash helper:
 EOF
 }
 
+# Dry run doflash.sh to retrieve board specs
+./doflash.sh --no-flash
+
+. boardvars.sh
+
 # The build must generate these environment settings
 if [ ! -e .env.initrd-flash ]; then
     echo "Missing environment settings" >&2
