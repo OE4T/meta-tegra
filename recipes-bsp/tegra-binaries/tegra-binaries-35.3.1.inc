@@ -10,7 +10,12 @@ SRC_URI = "\
 SRC_URI[sha256sum] = "80a55504a2ce9cdc0a328edb6fd0690615c4ffde9c2b32f4e64e0a1a3432a2e2"
 SRC_URI[xusb.sha256sum] = "89ce71eb7d2b0df84346635d72c805e2b6832aa0e2b00360bec46d0aa0a6f40c"
 
-inherit l4t_bsp
+inherit l4t_bsp dos2unix
+
+# Override convert_crlf_to_lf task to only convert "*.cfg", "*.dts*" files
+do_convert_crlf_to_lf () {
+	find ${S} -type f "-(" -name "*.cfg" -o -name "*.dts*" "-)" -exec dos2unix {} \;
+}
 
 S = "${TMPDIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-${PR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
