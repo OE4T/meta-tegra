@@ -24,6 +24,8 @@ TEGRA_SIGNING_ARGS ??= ""
 TEGRA_SIGNING_ENV ??= ""
 TEGRA_SIGNING_EXCLUDE_TOOLS ??= ""
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
+DTB_EXTRA_DEPS ??= "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
+EXTERNAL_KERNEL_DEVICETREE ??= "${@'${RECIPE_SYSROOT}/boot/devicetree' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
 
 TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEGRA_BOARDREV};chiprev=${TEGRA_CHIPREV}"
 TEGRA_BUPGEN_STRIP_IMG_NAMES ??= ""
@@ -386,6 +388,41 @@ BOOTFILES:tegra194 = "\
     xusb_sil_rel_fw \
 "
 
+copy_dtbs() {
+    local destination=$1
+    local dtb dtbf
+    for dtb in ${KERNEL_DEVICETREE}; do
+        dtbf=`basename $dtb`
+        if [ -e $destination/$dtbf ]; then
+            bbnote "Overwriting $destination/$dtbf with KERNEL_DEVICETREE content"
+            rm -f $destination/$dtbf
+        fi
+        bbnote "Copying KERNEL_DEVICETREE entry $dtbf to $destination"
+        cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" $destination/$dtbf
+        if [ -n "${KERNEL_ARGS}" ]; then
+            fdtput -t s $destination/$dtbf /chosen bootargs "${KERNEL_ARGS}"
+        elif fdtget -t s $destination/$dtbf /chosen bootargs >/dev/null 2>&1; then
+            fdtput -d $destination/$dtbf /chosen bootargs
+        fi
+    done
+    if [ -n "${EXTERNAL_KERNEL_DEVICETREE}" ]; then
+        for dtb in $(find "${EXTERNAL_KERNEL_DEVICETREE}" \( -name '*.dtb' -o -name '*.dtbo' \) -printf '%P\n' | sort); do
+            dtbf=`basename $dtb`
+            if [ -e $destination/$dtbf ]; then
+                bbnote "Overwriting $destination/$dtbf with EXTERNAL_KERNEL_DEVICETREE content"
+                rm -f $destination/$dtbf
+            fi
+            bbnote "Copying EXTERNAL_KERNEL_DEVICETREE entry $dtbf to $destination"
+            cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$dtbf" $destination/$dtbf
+            if [ -n "${KERNEL_ARGS}" ]; then
+                fdtput -t s $destination/$dtbf /chosen bootargs "${KERNEL_ARGS}"
+            elif fdtget -t s $destination/$dtbf /chosen bootargs >/dev/null 2>&1; then
+                fdtput -d $destination/$dtbf /chosen bootargs
+            fi
+        done
+    fi
+}
+
 create_tegraflash_pkg() {
     :
 }
@@ -409,15 +446,7 @@ create_tegraflash_pkg:tegra210() {
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     echo "TBCFILENAME=${TBCFILENAME}" >> flashvars
     echo "RCM_TBCFILENAME=${RCM_TBCFILENAME}" >> flashvars
-    for f in ${KERNEL_DEVICETREE}; do
-        dtbf=`basename $f`
-        cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" ./
-        if [ -n "${KERNEL_ARGS}" ]; then
-            fdtput -t s ./$dtbf /chosen bootargs "${KERNEL_ARGS}"
-        elif fdtget -t s ./$dtbf /chosen bootargs >/dev/null 2>&1; then
-            fdtput -d ./$dtbf /chosen bootargs
-        fi
-    done
+# SHITTY SHIT
     cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/bootlogo-${MACHINE}.blob" ./${BMPBLOBFILENAME}
@@ -428,7 +457,7 @@ create_tegraflash_pkg:tegra210() {
         cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         echo "boardcfg_file=board_config_${MACHINE}.xml" >> flashvars
     fi
-
+    copy_dtbs "${STAGING_DATADIR}/tegraflash"
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/tegra210-flash/* .
         if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
@@ -520,12 +549,11 @@ create_tegraflash_pkg:tegra186() {
         cp "${IMAGE_TEGRAFLASH_BOOTPART}" ${BOOTPARTFILE}
 	DATAARGS="$DATAARGS --bootpartfile ${BOOTPARTFILE}"
     fi
-    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-    if [ -n "${KERNEL_ARGS}" ]; then
-        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
-    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
-        fdtput -d ./${DTBFILE} /chosen bootargs
-    fi
+
+
+# SHITTY SHIT
+
+
     cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/bootlogo-${MACHINE}.blob" ./${BMPBLOBFILENAME}
@@ -553,6 +581,7 @@ create_tegraflash_pkg:tegra186() {
             cp $fname ./
         done
     done
+    copy_dtbs "${STAGING_DATADIR}/tegraflash"
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
         if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
@@ -634,12 +663,7 @@ create_tegraflash_pkg:tegra194() {
         cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
         DATAARGS="--datafile ${DATAFILE}"
     fi
-    cp -L "${DEPLOY_DIR_IMAGE}/${DTBFILE}" ./${DTBFILE}
-    if [ -n "${KERNEL_ARGS}" ]; then
-        fdtput -t s ./${DTBFILE} /chosen bootargs "${KERNEL_ARGS}"
-    elif fdtget -t s ./${DTBFILE} /chosen bootargs >/dev/null 2>&1; then
-        fdtput -d ./${DTBFILE} /chosen bootargs
-    fi
+#SHITTY SHIT
     cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./${CBOOTFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     cp "${DEPLOY_DIR_IMAGE}/bootlogo-${MACHINE}.blob" ./${BMPBLOBFILENAME}
@@ -663,6 +687,7 @@ create_tegraflash_pkg:tegra194() {
     for f in ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb; do
         cp $f .
     done
+    copy_dtbs "${STAGING_DATADIR}/tegraflash"
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/tegra186-flash/* .
         if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
@@ -797,7 +822,7 @@ do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populat
                                  tegra-redundant-boot-rollback:do_populate_sysroot virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${IMAGE_UBOOT}:do_deploy ${IMAGE_UBOOT}:do_populate_lic' if d.getVar('IMAGE_UBOOT') != '' else  ''} \
-                                 cboot:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} \
+                                 cboot:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS} \
                                  ${TEGRAFLASH_INITRD_FLASH_DEPENDS}"
 IMAGE_TYPEDEP:tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE} ${TEGRA_BOOTPART_TYPE}"
 
@@ -841,16 +866,6 @@ oe_make_bup_payload() {
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
         cp "${STAGING_DATADIR}/tegraflash/${MACHINE}-override.cfg" .
     fi
-    for dtb in ${KERNEL_DEVICETREE}; do
-        dtbf=`basename $dtb`
-        rm -f ./$dtbf
-        cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" ./$dtbf
-        if [ -n "${KERNEL_ARGS}" ]; then
-            fdtput -t s ./$dtbf /chosen bootargs "${KERNEL_ARGS}"
-        elif fdtget -t s ./$dtbf /chosen bootargs >/dev/null 2>&1; then
-            fdtput -d ./$dtbf /chosen bootargs
-        fi
-    done
     cp "${DEPLOY_DIR_IMAGE}/cboot-${MACHINE}.bin" ./$cbootfilename
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./$tosimgfilename
     cp "${DEPLOY_DIR_IMAGE}/bootlogo-${MACHINE}.blob" ./$bmpblobfilename
@@ -859,6 +874,7 @@ oe_make_bup_payload() {
     done
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     . ./flashvars
+    copy_dtbs "${WORKDIR}/bup-payload"
     if [ "${SOC_FAMILY}" = "tegra186" ]; then
         for var in $FLASHVARS; do
             eval pat=$`echo $var`
@@ -930,6 +946,6 @@ create_bup_payload_image() {
 create_bup_payload_image[vardepsexclude] += "DATETIME"
 
 CONVERSIONTYPES += "bup-payload"
-CONVERSION_DEPENDS_bup-payload = "${SOC_FAMILY}-flashtools-native coreutils-native tegra-bootfiles tegra-redundant-boot-rollback dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS}"
+CONVERSION_DEPENDS_bup-payload = "${SOC_FAMILY}-flashtools-native coreutils-native tegra-bootfiles tegra-redundant-boot-rollback dtc-native virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy virtual/bootlogo:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS}"
 CONVERSION_CMD:bup-payload = "create_bup_payload_image ${type}"
 IMAGE_TYPES += "cpio.gz.cboot.bup-payload"
