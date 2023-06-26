@@ -64,7 +64,7 @@ IMAGE_FSTYPES += "tegraflash"
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 INITRAMFS_IMAGE_BUNDLE ?= "0"
-TEGRA_INITRAMFS_FSTYPES ?= "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot cpio.gz.cboot.bup-payload'}"
+TEGRA_INITRAMFS_FSTYPES ?= "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot cpio.gz.cboot.bup_payload'}"
 INITRAMFS_FSTYPES:append = "${TEGRA_INITRAMFS_FSTYPES}"
 TEGRA_INITRD_FLASH_INITRAMFS_FSTYPES ?= "${@'' if d.getVar('INITRAMFS_IMAGE_BUNDLE') == '1' else ' cpio.gz.cboot'}"
 TEGRAFLASH_INITRD_FLASH_IMAGE ?= "tegra-initrd-flash-initramfs"
