@@ -20,11 +20,11 @@ BUPFILENAME = "${@bupfile_basename(d)}"
 
 do_install() {
     install -d ${D}/opt/ota_package/
-    if [ -e ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.bl_only.bup_payload ]; then
-        install -m 0644 ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.bl_only.bup_payload ${D}/opt/ota_package/bl_only_payload
+    if [ -e ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.bl_only.bup-payload ]; then
+        install -m 0644 ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.bl_only.bup-payload ${D}/opt/ota_package/bl_only_payload
     fi
-    if [ -e ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.kernel_only.bup_payload ]; then
-        install -m 0644 ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.kernel_only.bup_payload ${D}/opt/ota_package/kernel_only_payload
+    if [ -e ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.kernel_only.bup-payload ]; then
+        install -m 0644 ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.kernel_only.bup-payload ${D}/opt/ota_package/kernel_only_payload
     fi
 }
 
