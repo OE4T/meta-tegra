@@ -766,7 +766,7 @@ create_bup_payload_image() {
         [ -e $f ] || continue
         sfx=$(basename $f _payload)
         install -m 0644 $f ${IMGDEPLOYDIR}/${IMAGE_NAME}.$sfx.bup_payload
-        ln -sf ${IMAGE_NAME}.$sfx.bup-payload ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.$sfx.bup_payload
+        ln -sf ${IMAGE_NAME}.$sfx.bup_payload ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.$sfx.bup_payload
     done
 }
 create_bup_payload_image[vardepsexclude] += "DATETIME"
