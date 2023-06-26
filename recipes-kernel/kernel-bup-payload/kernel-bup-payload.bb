@@ -27,7 +27,7 @@ do_deploy() {
 	    for f in ${WORKDIR}/bup-payload/*_only_payload; do
 		[ -e $f ] || continue
 		sfx=$(basename $f _payload)
-		install -m 0644 $f ${DEPLOYDIR}/${initramfs_symlink_name}.$sfx.bup_payload
+		install -m 0644 $f ${DEPLOYDIR}/${initramfs_symlink_name}.$sfx.bup-payload
 	    done
 	done
     fi
