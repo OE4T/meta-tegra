@@ -14,12 +14,12 @@ fstype="auto"
 
 if [ -z "$rootdev" ]; then
     for bootarg in `cat /proc/cmdline`; do
-	case "$bootarg" in
-	    root=*) rootdev="${bootarg##root=}" ;;
-	    ro) opt="ro" ;;
-	    rootwait) wait="yes" ;;
-        rootfstype=*) fstype="${bootarg##rootfstype=}" ;;
-	esac
+        case "$bootarg" in
+            root=*) rootdev="${bootarg##root=}" ;;
+            ro) opt="ro" ;;
+            rootwait) wait="yes" ;;
+            rootfstype=*) fstype="${bootarg##rootfstype=}" ;;
+        esac
     done
 fi
 
@@ -27,17 +27,18 @@ if [ -n "$wait" -a ! -b "${rootdev}" ]; then
     echo "Waiting for ${rootdev}..."
     count=0
     while [ $count -lt 25 ]; do
-	test -b "${rootdev}" && break
-	sleep 0.1
-	count=`expr $count + 1`
+        test -b "${rootdev}" && break
+        sleep 0.1
+        count=`expr $count + 1`
     done
 fi
+
 echo "Mounting ${rootdev}..."
 [ -d /mnt ] || mkdir -p /mnt
 count=0
 while [ $count -lt 5 ]; do
     if mount -t "${fstype}" -o "${opt}" "${rootdev}" /mnt; then
-	break
+        break
     fi
     sleep 1.0
 done
