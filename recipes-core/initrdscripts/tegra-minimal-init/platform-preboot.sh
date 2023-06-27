@@ -7,6 +7,7 @@ for bootarg in `cat /proc/cmdline`; do
 	root=*) mayberoot="${bootarg##root=}" ;;
 	ro) opt="ro" ;;
 	rootwait) wait="yes" ;;
+	rootfstype=*) fstype="${bootarg##rootfstype=}" ;;
     esac
 done
 
