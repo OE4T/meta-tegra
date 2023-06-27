@@ -35,8 +35,22 @@ fi
 if [ -z "$rootdev" ]; then
     echo "[FAIL]"
     if [ -n "$mayberoot" ]; then
-	rootdev="$mayberoot"
+        if [ "`echo $mayberoot | cut -c1-5`" = "UUID=" ]; then
+            rootuuid=`echo $mayberoot | cut -c6-`
+            rootdev="`blkid -t UUID=$rootuuid -l | awk -F: '{ print $1 }'`"
+        elif [ "`echo $mayberoot | cut -c1-9`" = "PARTUUID=" ]; then
+            rootpartuuid=`echo $mayberoot | cut -c10-`
+            rootdev="`blkid -t PARTUUID=$rootpartuuid -l | awk -F: '{ print $1 }'`"
+        elif [ "`echo $mayberoot | cut -c1-10`" = "PARTLABEL=" ]; then
+            rootpartlabel=`echo $mayberoot | cut -c11-`
+            rootdev="`blkid -t PARTLABEL=$rootpartlabel -l | awk -F: '{ print $1 }'`"
+        elif [ "`echo $mayberoot | cut -c1-6`" = "LABEL=" ]; then
+            rootlabel=`echo $mayberoot | cut -c7-`
+            rootdev="`blkid -t LABEL=$rootlabel -l | awk -F: '{ print $1 }'`"
+        else
+            rootdev="$mayberoot"
+        fi
     else
-	rootdev="/dev/@@TNSPEC_BOOTDEV@@"
+        rootdev="/dev/@@TNSPEC_BOOTDEV@@"
     fi
 fi
