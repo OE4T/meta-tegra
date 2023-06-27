@@ -37,6 +37,6 @@ if [ -z "$rootdev" ]; then
     if [ -n "$mayberoot" ]; then
 	rootdev="$mayberoot"
     else
-	rootdev="/dev/mmcblk0p1"
+	rootdev="/dev/@@TNSPEC_BOOTDEV@@"
     fi
 fi
