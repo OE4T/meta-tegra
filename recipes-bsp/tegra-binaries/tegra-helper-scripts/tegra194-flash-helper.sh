@@ -479,6 +479,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     BCTARGS="$bctargs"
     rootfs_ab=0
     bl_userkey_encrypt_list=("xusb_sil_rel_fw:xusb_fw")
+    POWEROFF=0
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
     if [ -n "$added_mb2_applet" ]; then
