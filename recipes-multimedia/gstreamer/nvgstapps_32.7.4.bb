@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA GStreamer applications"
 SECTION = "multimedia"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://nvgst_sample_apps/nvgstcapture-1.0/nvgstcapture-1.0_README.txt;endline=21;md5=1e4984aeb6db6056fdde4cd672eb1f6f \
+LIC_FILES_CHKSUM = "file://nvgst_sample_apps/nvgstcapture-1.0/nvgstcapture-1.0_README.txt;endline=21;md5=2740fce0d0cf56f98014f279a6d30dfd \
                     file://nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer-1.0_README.txt;endline=21;md5=694cc29d69c54345f88511643308aae5 \
 "
 
