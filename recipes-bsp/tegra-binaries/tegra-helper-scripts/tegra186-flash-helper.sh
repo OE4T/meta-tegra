@@ -417,6 +417,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     SOSARGS="--applet mb1_recovery_prod.bin "
     BCTARGS="$bctargs"
     rootfs_ab=0
+    POWEROFF=0
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then

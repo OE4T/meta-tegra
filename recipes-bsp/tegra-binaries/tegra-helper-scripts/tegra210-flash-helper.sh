@@ -356,6 +356,7 @@ if [ -n "$keyfile" ]; then
     BCT="--bct"
     bctfilename="$sdramcfg_file"
     flashappname=$(basename "$flashapp")
+    POWEROFF=0
     . "$here/odmsign.func"
     # Have to sign twice here in the no_flash/to_sign case
     # Once for RCM boot and once for normal (but not for BUP generation)
