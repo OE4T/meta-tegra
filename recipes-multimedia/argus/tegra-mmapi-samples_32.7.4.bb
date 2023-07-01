@@ -15,6 +15,7 @@ SRC_URI += "\
     file://0007-trt_inference-use-smart-pointers-during-model-conver.patch \
     file://0008-frontend-add-option-to-set-timeout.patch \
     file://0009-camera_v4l2_cuda-add-option-for-setting-max-frame-co.patch \
+    file://0010-NvJpegDecoder-do-not-use-libjpeg-internal-header.patch \
 "
 
 DEPENDS = "libdrm tegra-mmapi tegra-libraries-camera virtual/egl virtual/libgles1 virtual/libgles2 jpeg expat gstreamer1.0 glib-2.0 libv4l pango"
