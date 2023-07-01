@@ -1,0 +1,34 @@
+From 0a155440eed56a8ae51d9f31c08f9a15924dd0f6 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 1 Jul 2023 08:40:40 -0700
+Subject: [PATCH] NvJpegDecoder: do not use libjpeg internal header
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ samples/common/classes/NvJpegDecoder.cpp | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/samples/common/classes/NvJpegDecoder.cpp b/samples/common/classes/NvJpegDecoder.cpp
+index e88688c..a2ab9bb 100644
+--- a/samples/common/classes/NvJpegDecoder.cpp
++++ b/samples/common/classes/NvJpegDecoder.cpp
+@@ -32,7 +32,6 @@
+ #include <malloc.h>
+ #include "unistd.h"
+ #include "stdlib.h"
+-#include "jpegint.h"
+ 
+ #define MAX(a, b) ((a) > (b) ? (a) : (b))
+ #define ROUND_UP_4(num)  (((num) + 3) & ~3)
+@@ -120,7 +119,7 @@ NvJPEGDecoder::decodeToFd(int &fd, unsigned char * in_buf,
+ 
+     jpeg_start_decompress (&cinfo);
+ 
+-    if (cinfo.global_state != DSTATE_READY) {
++    if (cinfo.global_state != 202 /* DSTATE_READY from jpegint.h */) {
+         COMP_ERROR_MSG("JPEG format is not supported by libnvjpeg");
+         return -1;
+     }
+-- 
+2.34.1
+
