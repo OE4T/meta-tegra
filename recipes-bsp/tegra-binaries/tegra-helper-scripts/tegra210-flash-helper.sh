@@ -289,6 +289,7 @@ if [ -n "$keyfile" ]; then
     BCT="--bct"
     bctfilename="$sdramcfg_file"
     flashappname=$(basename "$flashapp")
+    POWEROFF=0
     . "$here/odmsign.func"
     (odmsign_ext) || exit 1
     binargs=

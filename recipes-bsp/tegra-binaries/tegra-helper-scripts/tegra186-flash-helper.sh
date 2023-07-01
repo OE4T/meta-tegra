@@ -290,6 +290,7 @@ if [ -n "$keyfile" ]; then
     rootfs_ab=0
     rcm_boot=0
     external_device=0
+    POWEROFF=0
     . "$here/odmsign.func"
     (odmsign_ext) || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
