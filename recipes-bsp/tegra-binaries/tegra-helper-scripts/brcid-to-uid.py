@@ -70,21 +70,12 @@ def br_cid_to_linux_uid(brcid):
     logging.info("X:      0x%x" % fuse_x)
     logging.info("Y:      0x%x" % fuse_y)
 
-    # N.B. The Linux driver (in both 4.9 and 5.10) has a
-    # bug that reuses the fuse_y value instead of the
-    # fuse_wafer value at bit offset 18 here (a typo in the
-    # FUSE_OPT_WAFER_ID definition using register 0x118
-    # instead of the correct 0x110), which is why there
-    # are two fuse_y references below.
-    #
-    # Also note that the Linux driver only uses the lot0
-    # field, and ignores lot1.
     linux_uid = (
         (linux_chip << 60) |
         ((fuse_vendor & 0xf) << 56) |
         ((fuse_fab & 0x3f) << 50) |
         ((recode_lot0(fuse_lot0) & 0x3ffffff) << 24) |
-        ((fuse_y & 0x3f) << 18) |
+        ((fuse_wafer & 0x3f) << 18) |
         ((fuse_x & 0x1ff) << 9) |
         (fuse_y & 0x1ff))
 
