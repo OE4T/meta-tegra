@@ -761,7 +761,7 @@ EOF
 
 create_bup_payload_image() {
     local type="$1"
-    oe_make_bup_payload ${IMGDEPLOYDIR}/${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.${type}
+    oe_make_bup_payload ${IMGDEPLOYDIR}/${IMAGE_NAME}.${type}
     for f in ${WORKDIR}/bup-payload/*_only_payload; do
         [ -e $f ] || continue
         sfx=$(basename $f _payload)

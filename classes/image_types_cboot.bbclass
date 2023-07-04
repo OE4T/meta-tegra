@@ -32,7 +32,7 @@ oe_cbootimg:tegra() {
 
 make_cboot_image() {
     local type="$1"
-    oe_cbootimg ${IMAGE_NAME}${IMAGE_NAME_SUFFIX}.${type}
+    oe_cbootimg ${IMAGE_NAME}.${type}
 }
 make_cboot_image[vardepsexclude] += "DATETIME"
 
