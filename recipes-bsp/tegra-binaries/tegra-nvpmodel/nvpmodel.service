@@ -1,13 +1,13 @@
 [Unit]
 Description=NVIDIA power model daemon
-Requires=nvstartup.service
-After=nvstartup.service
+Requires=nvstartup.service nvpower.service
+After=nvstartup.service nvpower.service
 Before=graphical.target display-manager.service
 
 [Service]
-Type=simple
+Type=oneshot
+RemainAfterExit=yes
 ExecStart=/usr/sbin/nvpmodel -f /etc/nvpmodel.conf
-Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
