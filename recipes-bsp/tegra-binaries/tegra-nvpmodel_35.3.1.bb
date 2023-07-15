@@ -24,4 +24,4 @@ inherit systemd update-rc.d
 INITSCRIPT_NAME = "nvpmodel"
 INITSCRIPT_PARAMS = "defaults"
 SYSTEMD_SERVICE:${PN} = "nvpmodel.service"
-RDEPENDS:${PN} = "tegra-nvpmodel-base"
+RDEPENDS:${PN} = "tegra-nvpmodel-base tegra-nvpower"
