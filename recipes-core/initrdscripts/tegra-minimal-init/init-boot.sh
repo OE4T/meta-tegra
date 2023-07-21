@@ -25,11 +25,9 @@ fi
 
 if [ -n "$wait" -a ! -b "${rootdev}" ]; then
     echo "Waiting for ${rootdev}..."
-    count=0
-    while [ $count -lt 25 ]; do
+    while true; do
         test -b "${rootdev}" && break
         sleep 0.1
-        count=`expr $count + 1`
     done
 fi
 
@@ -41,6 +39,7 @@ while [ $count -lt 5 ]; do
         break
     fi
     sleep 1.0
+    count=`expr $count + 1`
 done
 [ $count -lt 5 ] || exec sh
 
