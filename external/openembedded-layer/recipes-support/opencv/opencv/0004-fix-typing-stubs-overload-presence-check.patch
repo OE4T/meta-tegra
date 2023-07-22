@@ -1,0 +1,25 @@
+From fb315a8cea4a6b33e25358bccf2ce64ed2c0ebd2 Mon Sep 17 00:00:00 2001
+From: Vadim Levin <vadim.levin@xperience.ai>
+Date: Mon, 10 Jul 2023 14:30:44 +0300
+Subject: [PATCH 4/7] fix: typing stubs overload presence check
+
+---
+ modules/python/src2/typing_stubs_generation/generation.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/modules/python/src2/typing_stubs_generation/generation.py b/modules/python/src2/typing_stubs_generation/generation.py
+index f89200e0ed..ea6b64bde0 100644
+--- a/modules/python/src2/typing_stubs_generation/generation.py
++++ b/modules/python/src2/typing_stubs_generation/generation.py
+@@ -535,7 +535,7 @@ def check_overload_presence(node: Union[NamespaceNode, ClassNode]) -> bool:
+             otherwise.
+     """
+     for func_node in node.functions.values():
+-        if len(func_node.overloads):
++        if len(func_node.overloads) > 1:
+             return True
+     return False
+ 
+-- 
+2.34.1
+

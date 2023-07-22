@@ -1,0 +1,36 @@
+From bbca78d2f6e5bde35386d9edd9966a7312bb409b Mon Sep 17 00:00:00 2001
+From: Vadim Levin <vadim.levin@xperience.ai>
+Date: Mon, 10 Jul 2023 14:38:15 +0300
+Subject: [PATCH 5/7] fix: recursively re-export nested submodules
+
+---
+ .../python/src2/typing_stubs_generation/generation.py    | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/modules/python/src2/typing_stubs_generation/generation.py b/modules/python/src2/typing_stubs_generation/generation.py
+index ea6b64bde0..f41563e276 100644
+--- a/modules/python/src2/typing_stubs_generation/generation.py
++++ b/modules/python/src2/typing_stubs_generation/generation.py
+@@ -621,12 +621,17 @@ def _populate_reexported_symbols(root: NamespaceNode) -> None:
+     # Re-export all submodules to allow referencing symbols in submodules
+     # without submodule import. Example:
+     # `cv2.aruco.ArucoDetector` should be accessible without `import cv2.aruco`
+-    for submodule in root.namespaces.values():
+-        root.reexported_submodules.append(submodule.export_name)
++    def _reexport_submodule(ns: NamespaceNode) -> None:
++        for submodule in ns.namespaces.values():
++            ns.reexported_submodules.append(submodule.export_name)
++            _reexport_submodule(submodule)
++
++    _reexport_submodule(root)
+ 
+     # Special cases, symbols defined in possible pure Python submodules should be
+     root.reexported_submodules_symbols["mat_wrapper"].append("Mat")
+ 
++
+ def _write_reexported_symbols_section(module: NamespaceNode, output_stream: StringIO) -> None:
+     """Write re-export section for the given module.
+ 
+-- 
+2.34.1
+

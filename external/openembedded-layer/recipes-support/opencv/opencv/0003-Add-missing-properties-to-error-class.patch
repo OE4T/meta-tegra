@@ -1,0 +1,59 @@
+From a0aec233409846a3f62cf2df36aa91080eed37c6 Mon Sep 17 00:00:00 2001
+From: Avasam <samuel.06@hotmail.com>
+Date: Tue, 4 Jul 2023 17:50:33 -0400
+Subject: [PATCH 3/7] Add missing properties to error class
+
+---
+ .../src2/typing_stubs_generation/api_refinement.py  | 13 +++++++++++--
+ .../src2/typing_stubs_generation/nodes/__init__.py  |  2 +-
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+
+diff --git a/modules/python/src2/typing_stubs_generation/api_refinement.py b/modules/python/src2/typing_stubs_generation/api_refinement.py
+index f23167f914..599830f8d8 100644
+--- a/modules/python/src2/typing_stubs_generation/api_refinement.py
++++ b/modules/python/src2/typing_stubs_generation/api_refinement.py
+@@ -3,7 +3,8 @@ __all__ = [
+ ]
+ 
+ from typing import Sequence, Callable
+-from .nodes import NamespaceNode, FunctionNode, OptionalTypeNode
++
++from .nodes import NamespaceNode, FunctionNode, OptionalTypeNode, ClassProperty, PrimitiveTypeNode
+ from .ast_utils import find_function_node, SymbolName
+ 
+ 
+@@ -11,7 +12,7 @@ def apply_manual_api_refinement(root: NamespaceNode) -> None:
+     # Export OpenCV exception class
+     builtin_exception = root.add_class("Exception")
+     builtin_exception.is_exported = False
+-    root.add_class("error", (builtin_exception, ))
++    root.add_class("error", (builtin_exception, ), ERROR_CLASS_PROPERTIES)
+     for symbol_name, refine_symbol in NODES_TO_REFINE.items():
+         refine_symbol(root, symbol_name)
+ 
+@@ -46,3 +47,11 @@ NODES_TO_REFINE = {
+     SymbolName(("cv", ), (), "resize"): make_optional_arg("dsize"),
+     SymbolName(("cv", ), (), "calcHist"): make_optional_arg("mask"),
+ }
++ERROR_CLASS_PROPERTIES = (
++    ClassProperty("code", PrimitiveTypeNode.int_(), False),
++    ClassProperty("err", PrimitiveTypeNode.str_(), False),
++    ClassProperty("file", PrimitiveTypeNode.str_(), False),
++    ClassProperty("func", PrimitiveTypeNode.str_(), False),
++    ClassProperty("line", PrimitiveTypeNode.int_(), False),
++    ClassProperty("msg", PrimitiveTypeNode.str_(), False),
++)
+diff --git a/modules/python/src2/typing_stubs_generation/nodes/__init__.py b/modules/python/src2/typing_stubs_generation/nodes/__init__.py
+index 0ee1df93d9..82f8df8c92 100644
+--- a/modules/python/src2/typing_stubs_generation/nodes/__init__.py
++++ b/modules/python/src2/typing_stubs_generation/nodes/__init__.py
+@@ -7,5 +7,5 @@ from .constant_node import ConstantNode
+ from .type_node import (
+     TypeNode, OptionalTypeNode, UnionTypeNode, NoneTypeNode, TupleTypeNode,
+     ASTNodeTypeNode, AliasTypeNode, SequenceTypeNode, AnyTypeNode,
+-    AggregatedTypeNode, NDArrayTypeNode, AliasRefTypeNode,
++    AggregatedTypeNode, NDArrayTypeNode, AliasRefTypeNode, PrimitiveTypeNode
+ )
+-- 
+2.34.1
+
