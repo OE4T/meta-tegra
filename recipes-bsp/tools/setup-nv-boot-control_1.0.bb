@@ -8,6 +8,7 @@ SRC_URI = "\
     file://setup-nv-boot-control.service.in \
     file://setup-nv-boot-control.init.in \
     file://esp.mount.in \
+    file://uefi_common.func.in \
 "
 
 COMPATIBLE_MACHINE = "(tegra)"
@@ -25,11 +26,12 @@ inherit systemd update-rc.d
 do_compile() {
     sed -e's,@TARGET@,${TNSPEC_MACHINE},g' \
         -e's,@BOOTDEV@,${TNSPEC_BOOTDEV},g' \
-        -e's,@ESPMOUNT@,${ESPMOUNT},g' \
-        -e's,@NVIDIA_ESPMOUNT@,${NVIDIA_ESPMOUNT},g' \
-        -e's,@ESPVARDIR@,${ESPVARDIR},g' \
         -e's,@sysconfdir@,${sysconfdir},g' \
         ${S}/setup-nv-boot-control.sh.in >${B}/setup-nv-boot-control.sh
+    sed -e's,@ESPMOUNT@,${ESPMOUNT},g' \
+        -e's,@NVIDIA_ESPMOUNT@,${NVIDIA_ESPMOUNT},g' \
+        -e's,@ESPVARDIR@,${ESPVARDIR},g' \
+        ${S}/uefi_common.func.in >${B}/uefi_common.func
     sed -e's,@bindir@,${bindir},g' \
         -e's,@ESPMOUNT@,${ESPMOUNT},g' \
         ${S}/setup-nv-boot-control.service.in >${B}/setup-nv-boot-control.service
@@ -51,6 +53,7 @@ do_install() {
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${B}/${ESPMOUNTUNIT} ${D}${systemd_system_unitdir}/
     install -d ${D}${ESPMOUNT} ${D}${NVIDIA_ESPMOUNT}
+    install -m 0755 ${B}/uefi_common.func ${D}${bindir}/
 }
 
 pkg_postinst:${PN}() {
@@ -69,7 +72,11 @@ SYSTEMD_SERVICE:${PN}-service = "setup-nv-boot-control.service"
 RDEPENDS:${PN}-service = "${PN}"
 RDEPENDS:${PN} = "efivar tegra-nv-boot-control-config tegra-eeprom-tool-boardspec"
 
-FILES:${PN} = "${bindir}/setup-nv-boot-control /opt/nvidia ${ESPMOUNT}"
+FILES:${PN} = "\
+    ${bindir}/setup-nv-boot-control \
+    /opt/nvidia ${ESPMOUNT} \
+    ${bindir}/uefi_common.func \
+"
 FILES:${PN}-service = "${sysconfdir} ${systemd_system_unitdir}"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
