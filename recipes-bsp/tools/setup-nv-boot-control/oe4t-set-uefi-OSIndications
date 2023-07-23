@@ -1,0 +1,8 @@
+#!/bin/sh
+
+source /usr/bin/uefi_common.func
+
+rc=0
+value="\x04\x00\x00\x00\x00\x00\x00\x00"
+set_efi_var "OsIndications" "8be4df61-93ca-11d2-aa0d-00e098032b8c" "$value" || rc=1
+exit $rc

@@ -9,6 +9,7 @@ SRC_URI = "\
     file://setup-nv-boot-control.init.in \
     file://esp.mount.in \
     file://uefi_common.func.in \
+    file://oe4t-set-uefi-OSIndications \
 "
 
 COMPATIBLE_MACHINE = "(tegra)"
@@ -54,6 +55,7 @@ do_install() {
     install -m 0644 ${B}/${ESPMOUNTUNIT} ${D}${systemd_system_unitdir}/
     install -d ${D}${ESPMOUNT} ${D}${NVIDIA_ESPMOUNT}
     install -m 0755 ${B}/uefi_common.func ${D}${bindir}/
+    install -m 0755 ${S}/oe4t-set-uefi-OSIndications ${D}${bindir}/
 }
 
 pkg_postinst:${PN}() {
@@ -76,6 +78,7 @@ FILES:${PN} = "\
     ${bindir}/setup-nv-boot-control \
     /opt/nvidia ${ESPMOUNT} \
     ${bindir}/uefi_common.func \
+    ${bindir}/oe4t-set-uefi-OSIndications \
 "
 FILES:${PN}-service = "${sysconfdir} ${systemd_system_unitdir}"
 
