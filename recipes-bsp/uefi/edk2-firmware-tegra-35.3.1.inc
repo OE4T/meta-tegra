@@ -1,28 +1,25 @@
 require edk2-firmware.inc
+require edk2-firmware-core-tegra-35.3.1.inc
 require conf/image-uefi.conf
 
 LICENSE .= " & Proprietary"
 
-LIC_FILES_CHKSUM = "file://License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-platforms/License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-chips-platform.efi;md5=549bbaa72578510a18ba3c324465027c"
 
 DEPENDS += "dtc-native"
 
-EDK2_SRC_URI = "gitsm://github.com/NVIDIA/edk2.git;protocol=https;branch=main-edk2-stable202208-updates"
 EDK2_PLATFORMS_SRC_URI = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r35.3.1-upstream-20220830-updates"
 EDK2_NVIDIA_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r35.3.1-updates"
 EDK2_NONOSI_SRC_URI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=main-upstream-20220830"
 EDK2_NVIDIA_NONOSI_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r35.3.1-updates"
 
-SRCREV_edk2 = "7ba0a31b503cd0bf82a97e90f460ad7586ba80c4"
 SRCREV_edk2-non-osi = "61662e8596dd9a64e3372f9a3ba6622d2628607c"
 SRCREV_edk2-nvidia = "63e71c987193cc57333994ca5b82a62c40fed5da"
 SRCREV_edk2-nvidia-non-osi = "952a02747566005181ec3248d7a9a5a24533e9dd"
 SRCREV_edk2-platforms = "3c3b1168017073c2bb2d97336c5929ebae805be1"
 
-SRC_URI = "\
-    ${EDK2_SRC_URI};name=edk2;destsuffix=edk2-tegra/edk2;nobranch=1 \
+SRC_URI += "\
     ${EDK2_PLATFORMS_SRC_URI};name=edk2-platforms;destsuffix=edk2-tegra/edk2-platforms \
     ${EDK2_NONOSI_SRC_URI};name=edk2-non-osi;destsuffix=edk2-tegra/edk2-non-osi \
     ${EDK2_NVIDIA_SRC_URI};name=edk2-nvidia;destsuffix=edk2-tegra/edk2-nvidia \
