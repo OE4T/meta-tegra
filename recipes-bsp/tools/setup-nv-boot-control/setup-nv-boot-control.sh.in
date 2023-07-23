@@ -1,132 +1,10 @@
 #!/bin/sh
 TARGET="@TARGET@"
 BOOTDEV="@BOOTDEV@"
-ESPMOUNT="@ESPMOUNT@"
-NVESPMOUNT="@NVIDIA_ESPMOUNT@"
-ESPVARDIR="@ESPVARDIR@"
 sysconfdir="@sysconfdir@"
 controlfile="${sysconfdir}/nv_boot_control.conf"
-nv_guid="781e084c-a330-417c-b678-38e696380cb9"
 
-fab=
-boardsku=
-boardrev=
-chiprev=
-mmc_only_hack=
-
-set_efi_var() {
-    local varname="$1"
-    local value="$2"
-
-    # Only set if it doesn't exist already
-    if [ "$mmc_only_hack" = "yes" ]; then
-	if ! mountpoint -q "$ESPMOUNT"; then
-	    echo "ERR: cannot store EFI variable - ESP partition not mounted" >&2
-	    return 1
-	fi
-	if [ ! -e "$ESPVARDIR/${varname}-${nv_guid}" ]; then
-	    local datatmp=$(TMPDIR=$RUNTIME_DIRECTORY mktemp --tmpdir nvcvar.XXXXXX)
-	    printf "\x07\x00\x00\x00%s" "$value" > "$datatmp"
-	    mkdir -p -m 0700 "$ESPVARDIR" || return 1
-	    cp "$datatmp" "$ESPVARDIR/${varname}-${nv_guid}" || return 1
-	fi
-    else
-	if efivar -n "${nv_guid}-$varname" >/dev/null 2>&1; then
-	    return 0
-	fi
-	local datatmp=$(TMPDIR=$RUNTIME_DIRECTORY mktemp --tmpdir nvcvar.XXXXXX)
-	printf "%s" "$value" > "$datatmp"
-	efivar -w -f "$datatmp" -n "${nv_guid}-$varname"
-    fi
-}
-
-gen_compat_2888() {
-    if [ "$fab" = "400" ]; then
-	if [ "$boardsku" = "0004" ]; then
-	    boardrev=
-	else
-	    if echo "$boardrev" | grep -q "^[ABCD]\."; then
-		boardrev="D.0"
-	    else
-		boardrev="E.0"
-	    fi
-	    boardsku="0001"
-	fi
-    elif [ "$fab" = "600" -a "$boardsku" = "0008" ]; then
-	boardrev=
-    fi
-    return 0
-}
-
-gen_compat_3668() {
-    if [ "$fab" != "301" ]; then
-	fab="100"
-    fi
-    boardsku=
-    boardrev=
-    chiprev=
-    return 0
-}
-
-gen_compat_3701() {
-    boardrev=
-    if [ "$boardsku" = "0000" -o "$boardsku" = "0004" ]; then
-	if echo "$fab" | egrep -q "^([012][0-9][0-9]|TS|EB)"; then
-	    fab="000"
-	else
-	    fab="300"
-	fi
-    fi
-    if [ "$boardksu" = "0005" ]; then
-	fab=""
-    fi
-    boardrev=
-    chiprev=
-    return 0
-}
-
-gen_compat_3767() {
-    if [ "$boardsku" = "0000" -o "$boardsku" = "0002" ]; then
-	if ! echo "$fab" | egrep -q "^(TS|EB)"; then
-	    fab="000"
-	fi
-    else
-	fab=
-    fi
-    boardrev=
-    chiprev=
-    return 0
-}
-
-# boardspec should be piped into this function
-gen_compat_spec() {
-    IFS=- read boardid fab boardsku boardrev fuselevel chiprev
-    if gen_compat_$boardid 2>/dev/null; then
-	echo "$boardid-$fab-$boardsku-$boardrev-$fuselevel-$chiprev"
-	return 0
-    fi
-    echo ""
-}
-
-# boardspec should be piped into this function
-needs_mmc_hack() {
-    IFS=- read boardid fab boardsku boardrev fuselevel chiprev
-    if [ "$boardid" = "2888" -a "$fab" = "400" ]; then
-	echo "yes"
-    else
-	echo ""
-    fi
-    return 0
-}
-
-# NVIDIA tools will try to mount the ESP partition dynamically
-# if it's not already mounted at @NVIDIA_ESPMOUNT@, so bind-mount
-# it there if we've mounted that partition at a more typical location.
-if [ -n "$NVESPMOUNT" -a "$NVESPMOUNT" != "$ESPMOUNT" ]; then
-    if mountpoint -q "$ESPMOUNT" && ! mountpoint -q "$NVESPMOUNT"; then
-	mount --bind "$ESPMOUNT" "$NVESPMOUNT"
-    fi
-fi
+source /usr/bin/uefi_common.func
 
 [ ! -e "$controlfile" ] || exit 0
 
@@ -141,14 +19,13 @@ if [ -z "${boardspec}" ]; then
     exit 1
 fi
 rc=0
-mmc_only_hack=$(echo "$boardspec" | needs_mmc_hack)
-set_efi_var "TegraPlatformSpec" "${boardspec}-${TARGET}-" || rc=1
+set_efi_var "TegraPlatformSpec" "781e084c-a330-417c-b678-38e696380cb9" "${boardspec}-${TARGET}-" "write-once" || rc=1
 compatspec=$(echo "$boardspec" | gen_compat_spec)
 if [ -z "$compatspec" ]; then
     compatsed="-e/^COMPATIBLE_SPEC/d"
 else
     compatsed="-es,@COMPATIBLE_SPEC@,${compatspec}-${TARGET}-,"
-    set_efi_var "TegraPlatformCompatSpec" "${compatspec}-${TARGET}-" || rc=1
+    set_efi_var "TegraPlatformCompatSpec" "781e084c-a330-417c-b678-38e696380cb9" "${compatspec}-${TARGET}-" "write-once" || rc=1
 fi
 sed -e"s,@TNSPEC@,${boardspec}-${TARGET}-${BOOTDEV}," $compatsed \
     "${sysconfdir}/nv_boot_control.template" > "$controlfile" || rc=1
