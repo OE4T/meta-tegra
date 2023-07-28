@@ -14,6 +14,8 @@ BPN = "gcc"
 COMPILERDEP = "virtual/${MLPREFIX}${TARGET_PREFIX}cuda-gcc:do_gcc_stash_builddir"
 COMPILERDEP:class-nativesdk = "virtual/${TARGET_PREFIX}cuda-gcc-crosssdk:do_gcc_stash_builddir"
 
+TUNE_CCARGS:remove = "-mbranch-protection=standard"
+
 python extract_stashed_builddir () {
     src = d.expand("${COMPONENTS_DIR}/${BUILD_ARCH}/gcc-8-stashed-builddir-${TARGET_SYS}")
     dest = d.getVar("B")
