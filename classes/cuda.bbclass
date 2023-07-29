@@ -12,6 +12,8 @@ CUDA_LDFLAGS = "\
   -Wl,-rpath,/usr/local/cuda-${CUDA_VERSION}/${baselib} \
 "
 
+TUNE_CCARGS:remove:cuda = "-mbranch-protection=standard"
+
 LDFLAGS:prepend:cuda = "${TOOLCHAIN_OPTIONS} "
 LDFLAGS:append:cuda = " ${CUDA_LDFLAGS}"
 
