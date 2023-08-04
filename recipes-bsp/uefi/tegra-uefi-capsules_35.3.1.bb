@@ -71,3 +71,4 @@ do_install() {
 
 FILES:${PN} += "${CAPSULE_DIR}"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+INSANE_SKIP:${PN} += "buildpaths"
