@@ -11,13 +11,12 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvbuf_fdmap.so.1.0.0 \
-    tegra/libnvbuf_utils.so.1.0.0 \
     tegra/libnvbufsurface.so.1.0.0 \
 "
 
 do_install() {
     install_libraries
-    for libname in nvbufsurface nvbuf_utils; do
+    for libname in nvbufsurface; do
 	ln -sf lib$libname.so.1.0.0 ${D}${libdir}/lib$libname.so.1
 	ln -sf lib$libname.so.1.0.0 ${D}${libdir}/lib$libname.so
     done
