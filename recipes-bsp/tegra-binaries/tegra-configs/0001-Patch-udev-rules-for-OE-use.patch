@@ -8,10 +8,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  etc/udev/rules.d/99-tegra-devices.rules | 5 -----
  1 file changed, 5 deletions(-)
 
-diff --git a/etc/udev/rules.d/99-tegra-devices.rules b/etc/udev/rules.d/99-tegra-devices.rules
-index ed48477..7ca3242 100644
---- a/etc/udev/rules.d/99-tegra-devices.rules
-+++ b/etc/udev/rules.d/99-tegra-devices.rules
+Index: tegra-configs-35.4.1-20230801124926/etc/udev/rules.d/99-tegra-devices.rules
+===================================================================
+--- tegra-configs-35.4.1-20230801124926.orig/etc/udev/rules.d/99-tegra-devices.rules
++++ tegra-configs-35.4.1-20230801124926/etc/udev/rules.d/99-tegra-devices.rules
 @@ -3,7 +3,6 @@
  #
  
@@ -20,9 +20,9 @@ index ed48477..7ca3242 100644
  
  # root only devices
  KERNEL=="knvrm" OWNER="root" GROUP="root" MODE="0660"
-@@ -39,8 +38,4 @@ KERNEL=="ar*" OWNER="root" GROUP="video" MODE="0660"
- KERNEL=="camchar*" OWNER="root" GROUP="video" MODE="0660"
+@@ -67,8 +66,4 @@ KERNEL=="camchar*" OWNER="root" GROUP="v
  KERNEL=="capture-*" OWNER="root" GROUP="video" MODE="0660"
+ KERNEL=="cdi_tsc" OWNER="root" GROUP="video" MODE="0660"
  
 -# security related devices
 -KERNEL=="tegra-crypto" OWNER="root" GROUP="crypto" MODE="0660"
