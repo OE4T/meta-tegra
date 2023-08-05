@@ -9,11 +9,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  etc/systemd/nv.sh | 262 +---------------------------------------------
  1 file changed, 5 insertions(+), 257 deletions(-)
 
-Index: tegra-configs-34.0.1-20220315011106/etc/systemd/nv.sh
+Index: tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
 ===================================================================
---- tegra-configs-34.0.1-20220315011106.orig/etc/systemd/nv.sh
-+++ tegra-configs-34.0.1-20220315011106/etc/systemd/nv.sh
-@@ -73,12 +73,6 @@ if [ -e "/proc/device-tree/compatible" ]
+--- tegra-configs-35.4.1-20230801124926.orig/etc/systemd/nv.sh
++++ tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
+@@ -103,12 +103,6 @@ if [ -e "/proc/device-tree/compatible" ]
  	fi
  fi
  
@@ -26,7 +26,7 @@ Index: tegra-configs-34.0.1-20220315011106/etc/systemd/nv.sh
  if [ "$SOCFAMILY" = "Tegra13" ] &&
  	[ -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq ]; then
  	bash \
-@@ -101,11 +95,6 @@ if [ "$SOCFAMILY" != "tegra210" ]; then
+@@ -131,11 +125,6 @@ if [ "$SOCFAMILY" != "tegra210" ]; then
  	fi
  fi
  
@@ -38,7 +38,7 @@ Index: tegra-configs-34.0.1-20220315011106/etc/systemd/nv.sh
  # mmc read ahead size
  if [ -e /sys/block/mmcblk0/queue/read_ahead_kb ]; then
  	echo 2048 > /sys/block/mmcblk0/queue/read_ahead_kb
-@@ -121,260 +110,8 @@ if [ "$SOCFAMILY" = "tegra186" ] || [ "$
+@@ -151,260 +140,8 @@ if [ "$SOCFAMILY" = "tegra186" ] || [ "$
  	fi
  fi
  
