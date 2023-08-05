@@ -36,12 +36,11 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvcamlog.so \
     tegra/libnvcamv4l2.so \
     tegra/libnvcapture.so \
-    tegra/libnveglstream_camconsumer.so \
     tegra/libnveglstreamproducer.so \
     tegra/libnvfusacapinterface.so \
     tegra/libnvfusacap.so \
-    tegra/libnvisppg.so \
     tegra/libnvisp.so \
+    tegra/libnvisppg.so \
     tegra/libnvmedia_isp_ext.so \
     tegra/libnvfnet.so \
     tegra/libnvfnetstoredefog.so \
