@@ -30,12 +30,6 @@ BINDIR = "${bindir}/tegra-flash"
 
 addtask preconfigure after do_patch before do_configure
 
-add_overlay_files() {
-    cp ${WORKDIR}/sboverlay/Linux_for_Tegra/bootloader/tegrasign_v3_oemkey.yaml ${S}/bootloader/
-    cp ${WORKDIR}/sboverlay/Linux_for_Tegra/license.txt ${S}/
-}
-do_unpack[postfuncs] += "add_overlay_files"
-
 do_install() {
     install -d ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/chkbdinfo ${D}${BINDIR}
