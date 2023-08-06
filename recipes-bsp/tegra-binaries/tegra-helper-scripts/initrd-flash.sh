@@ -19,7 +19,6 @@ Options:
 Options passed through to flash helper:
   -u                    PKC key file for signing
   -v                    SBK key file for signing
-  --user_key            User key for signing
 
 EOF
 }
@@ -42,14 +41,13 @@ fi
 
 usb_instance=
 instance_args=
-user_keyfile=
 keyfile=
 sbk_keyfile=
 skip_bootloader=0
 early_final_status=0
 erase_nvme=0
 
-ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,user_key:,help,skip-bootloader,erase-nvme" -o "u:v:h" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,erase-nvme" -o "u:v:h" -- "$@")
 if [ $? -ne 0 ]; then
     usage >&2
     exit 1
@@ -61,10 +59,6 @@ while true; do
     case "$1" in
 	--usb-instance)
 	    usb_instance="$2"
-	    shift 2
-	    ;;
-	--user_key)
-	    user_keyfile="$2"
 	    shift 2
 	    ;;
 	--skip-bootloader)
@@ -107,13 +101,12 @@ if [ -e "$here/odmsign.func" ]; then
     have_odmsign_func=1
 fi
 if [ -n "$PRESIGNED" ]; then
-    if [ -n "$user_keyfile" -o -n "$keyfile" -o -n "$sbk_keyfile" ]; then
+    if [ -n "$keyfile" -o -n "$sbk_keyfile" ]; then
 	echo "WARN: binaries already signed; ignoring signing options" >&2
-	user_keyfile=
 	keyfile=
 	sbk_keyfile=
     fi
-elif [ -n "$keyfile" -o -n "$sbk_keyfile" -o -n "$user_keyfile" ] && [ $have_odmsign_func -eq 0 ]; then
+elif [ -n "$keyfile" -o -n "$sbk_keyfile" ] && [ $have_odmsign_func -eq 0 ]; then
     echo "ERR: missing odmsign.func from secureboot package, cannot sign binaries" >&2
     exit 1
 fi
@@ -157,7 +150,7 @@ sign_binaries() {
     if [ -e external-flash.xml.in ]; then
 	"$here/nvflashxmlparse" --extract --type rootfs --change-device-type=sdmmc_user -o external-flash.xml.tmp external-flash.xml.in
         if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
-		  "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" $instance_args \
+		  "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
 		  external-flash.xml.tmp $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
 	    if [ $have_odmsign_func -eq 0 ]; then
 		cp signed/flash.xml.tmp external-secureflash.xml
@@ -171,7 +164,7 @@ sign_binaries() {
 	. ./boardvars.sh
     fi
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
-	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" $instance_args \
+	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
 	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
 	if [ $have_odmsign_func -eq 0 ]; then
 	    cp signed/flash.xml.tmp secureflash.xml
@@ -213,7 +206,7 @@ run_rcm_boot() {
 	./rcm-boot.sh || return 1
     else
 	MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
-	       "$here/$FLASH_HELPER" --rcm-boot -u "$keyfile" -v "$sbk_keyfile" --user_key "$user_keyfile" \
+	       "$here/$FLASH_HELPER" --rcm-boot -u "$keyfile" -v "$sbk_keyfile" \
 	       flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE || return 1
     fi
 }
