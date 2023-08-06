@@ -29,10 +29,10 @@ def tegra_dtb_extra_deps(d):
         deps.append('tegra-uefi-keys-dtb:do_populate_sysroot')
     return ' '.join(deps)
 
-def tegra_bootcontrol_overlay_list(d):
+def tegra_bootcontrol_overlay_list(d, bup=False):
     overlays = d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split()
     if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT'):
-        overlays.append('UefiDefaultSecurityKeys.dtbo')
+        overlays.append('UefiUpdateSecurityKeys.dtbo' if bup else 'UefiDefaultSecurityKeys.dtbo')
     return ','.join(overlays)
 
 IMAGE_ROOTFS_SIZE ?= "${@tegra_default_rootfs_size(d)}"
@@ -54,6 +54,7 @@ LNXFILE ?= "boot.img"
 LNXSIZE ?= "83886080"
 TEGRA_RECOVERY_KERNEL_PART_SIZE ??= "83886080"
 RECROOTFSSIZE ?= "314572800"
+TEGRA_EXTERNAL_DEVICE_SECTORS ??= "122159104"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
@@ -220,6 +221,7 @@ tegraflash_create_flash_config:tegra194() {
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
         -e"s,APPUUID_b,," -e"s,APPUUID,," \
 	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
+	-e"s,NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
         > $destdir/flash.xml.in
 }
 
@@ -242,6 +244,8 @@ tegraflash_create_flash_config:tegra234() {
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
+        -e"s,BADPAGETYPE,black_list_info," -e"s,BADPAGEFILE,badpage.bin," -e"s,BADPAGENAME,bad-page," \
+	-e"s,FSIFW,fsi-fw-ecc.bin," \
         -e"s,PSCBL1FILE,psc_bl1_t234_prod.bin," \
         -e"s,TSECFW,," \
         -e"s,NVHOSTNVDEC,nvdec_t234_prod.fw," \
@@ -256,6 +260,7 @@ tegraflash_create_flash_config:tegra234() {
         -e"s,DCE,display-t234-dce.bin," \
         -e"s,APPUUID_b,," -e"s,APPUUID,," \
 	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
+	-e"s,NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
 	"$infile" \
         > $destdir/flash.xml.in
 }
@@ -310,6 +315,7 @@ BOOTFILES:tegra234 = "\
     tegra234-gpio.h \
     readinfo_t234_min_prod.xml \
     camera-rtcpu-sce.img \
+    fsi-fw-ecc.bin \
 "
 
 copy_dtbs() {
@@ -708,7 +714,7 @@ oe_make_bup_payload() {
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
     cat >> ./flashvars <<EOF
-BOOTCONTROL_OVERLAYS="${@tegra_bootcontrol_overlay_list(d)}"
+BOOTCONTROL_OVERLAYS="${@tegra_bootcontrol_overlay_list(d, bup=True)}"
 PLUGIN_MANAGER_OVERLAYS="${@','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split())}"
 EOF
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
