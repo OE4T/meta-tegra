@@ -4,7 +4,6 @@ bup_type=
 rcm_boot=0
 keyfile=
 sbk_keyfile=
-user_keyfile=
 spi_only=
 external_device=0
 sdcard=
@@ -41,7 +40,7 @@ partition_exists_in_PT_table() {
     [ "$1" = "secondary_gpt_backup" -o "$1" = "BCT-boot-chain_backup" ]
 }
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -92,10 +91,6 @@ while true; do
 	--usb-instance)
 	    usb_instance="$2"
 	    inst_args="--instance ${usb_instance}"
-	    shift 2
-	    ;;
-	--user_key)
-	    user_keyfile="$2"
 	    shift 2
 	    ;;
 	-u)
@@ -420,7 +415,7 @@ bootloader_dtb $dtb_file"
 
 have_odmsign_func=0
 [ ! -e "$here/odmsign.func" ] || have_odmsign_func=1
-if [ -n "$keyfile" -o -n "$sbk_keyfile" -o -n "$user_keyfile" ] && [ $have_odmsign_func -eq 0 ]; then
+if [ -n "$keyfile" -o -n "$sbk_keyfile" ] && [ $have_odmsign_func -eq 0 ]; then
     echo "ERR: missing odmsign.func from secureboot package, signing not supported" >&2
     exit 1
 fi
@@ -485,13 +480,6 @@ if [ -n "$keyfile" ] || [ $rcm_boot -eq 1 ] || [ $no_flash -eq 1 -a $to_sign -eq
     want_signing=1
 fi
 if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
-    if [ -n "$sbk_keyfile" ]; then
-	if [ -z "$user_keyfile" ]; then
-	    rm -f "null_user_key.txt"
-	    echo "0x00000000 0x00000000 0x00000000 0x00000000" > null_user_key.txt
-	    user_keyfile=$(readlink -f null_user_key.txt)
-	fi
-    fi
     CHIPID="0x19"
     tegraid="$CHIPID"
     localcfgfile="flash.xml"
@@ -508,7 +496,6 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     SOSARGS="--applet mb1_t194_prod.bin "
     NV_ARGS="--soft_fuses tegra194-mb1-soft-fuses-l4t.cfg "
     BCTARGS="$bctargs --bct_backup --secondary_gpt_backup"
-    boot_chain_select="A"
     rootfs_ab=0
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
@@ -519,7 +506,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
 	else
 	    echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
 	fi
-	rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
+	rm -f APPFILE APPFILE_b DATAFILE
     fi
     if [ $bup_blob -eq 0 ]; then
 	exit 0
@@ -535,7 +522,6 @@ flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_c
 	      --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
 	      --cmd \"$tfcmd\" $skipuid \
 	      --cfg flash.xml \
-	      --boot_chain A \
 	      --bct_backup \
 	      --secondary_gpt_backup \
 	      $bctargs $ramcodeargs $extdevargs \
@@ -570,7 +556,7 @@ fi
 if [ $no_flash -ne 0 ]; then
     echo "$flashcmd" | sed -e 's,--skipuid,,g' > flashcmd.txt
     chmod +x flashcmd.txt
-    rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
+    rm -f APPFILE APPFILE_b DATAFILE
 else
     eval $flashcmd < /dev/null || exit 1
     if [ -n "$sdcard" -o $external_device -eq 1 ]; then
