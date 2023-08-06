@@ -1,19 +1,21 @@
-From 5f263d373442ae6636c5f533ce192c6e1a06f781 Mon Sep 17 00:00:00 2001
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Date: Thu, 25 Jun 2020 16:46:23 -0400
+From 9b1466556525c9b3bbb92766f53043c6425974f0 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Sun, 6 Aug 2023 23:07:56 +0100
 Subject: [PATCH 1/7] v4l2videoenc: Fix negotiation caps leak
 
 Part-of: <https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requests/649>
+
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
- gstv4l2videoenc.c | 3 +++
+ gst-v4l2/gstv4l2videoenc.c | 3 +++
  1 file changed, 3 insertions(+)
 
 diff --git a/gstv4l2videoenc.c b/gstv4l2videoenc.c
-index a3dc7dd..35a62fd 100644
+index 232521d..9b1a5c7 100644
 --- a/gstv4l2videoenc.c
 +++ b/gstv4l2videoenc.c
-@@ -993,6 +993,9 @@ gst_v4l2_video_enc_negotiate (GstVideoEncoder * encoder)
+@@ -1180,6 +1180,9 @@ gst_v4l2_video_enc_negotiate (GstVideoEncoder * encoder)
      if (gst_caps_foreach (allowed_caps, negotiate_profile_and_level, &ctx)) {
        goto no_profile_level;
      }
@@ -24,5 +26,5 @@ index a3dc7dd..35a62fd 100644
  
  #ifndef USE_V4L2_TARGET_NV
 -- 
-2.34.1
+2.25.1
 
