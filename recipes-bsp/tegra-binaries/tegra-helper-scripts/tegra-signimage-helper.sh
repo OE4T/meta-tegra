@@ -1,14 +1,14 @@
 #!/bin/bash
 keyfile=
-user_keyfile=
+encrypt_keyfile=
 to_remove=
 split=True
 chip=
 encrypting=
 allfilestype=
-ratchet=
+enable_user_kdk=""
 
-ARGS=$(getopt -n $(basename "$0") -l "user_key:,chip:,nosplit,type:,minratchet_config:" -o "u:v:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "encrypt_key:,key:chip:,nosplit,type:,enable_user_kdk" -o "u:v:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -22,30 +22,24 @@ while true; do
 	    chip="$2"
 	    shift 2
 	    ;;
-	--user_key)
-	    user_keyfile="$2"
+	-v|--encrypt_key)
+	    encrypt_keyfile="$2"
 	    shift 2
 	    ;;
 	--type)
 	    allfilestype="$2"
 	    shift 2
 	    ;;
-	--minratchet_config)
-	    ratchet="--minratchet_config $2"
-	    shift 2
-	    ;;
 	--nosplit)
 	    split=False
 	    shift
 	    ;;
-	-u)
-	    keyfile="$2"
-	    shift 2
+	--enable_user_kdk)
+	    enable_user_kdk="--enable_user_kdk True"
+	    shift
 	    ;;
-	-v)
-	    # Accepted here to tell us that we need to
-	    # generate an all-zeros user_keyfile
-	    encrypting=yes
+	-u|--key)
+	    keyfile="$2"
 	    shift 2
 	    ;;
 	--)
@@ -61,6 +55,11 @@ done
 
 if [ -z "$chip" ]; then
     echo "ERR: --chip option not specified" >&2
+    exit 1
+fi
+
+if [ -n "$enable_user_kdk" -a "$chip" != "0x23" ]; then
+    echo "ERR: only chip 0x23 supports --enable_user_kdk" >&2
     exit 1
 fi
 
@@ -83,13 +82,6 @@ if [ "$keyfile" = "None" ]; then
     keyfile=""
 fi
 
-tmpuserkey=
-if [ -z "$user_keyfile" -a "$encrypting" = "yes" ]; then
-    tmpuserkey=$(mktemp)
-    echo "0x00000000 0x00000000 0x00000000 0x00000000" > "$tmpuserkey"
-    user_keyfile=$(readlink -f "$tmpuserkey")
-    echo "Using null key for encryption" >&2
-fi
 rc=0
 while [ -n "$1" ]; do
     filetosign="$1"
@@ -105,10 +97,9 @@ while [ -n "$1" ]; do
 	fi
 	echo "Setting --type $ftype for $filetosign" >&2
     fi
-    if ! "$signimg" --file "$filetosign"  --type "$ftype" --key "$keyfile" --encrypt_key "$user_keyfile" --chip "$chip" --split $split $ratchet; then
+    if ! "$signimg" --file "$filetosign"  --type "$ftype" --key "$keyfile" --encrypt_key "$encrypt_keyfile" --chip "$chip" --split $split $enable_user_kdk; then
 	echo "Error signing $filetosign" >&2
 	rc=1
     fi
 done
-[ -z "$tmpuserkey" ] || rm -f "$tmpuserkey"
 exit $rc
