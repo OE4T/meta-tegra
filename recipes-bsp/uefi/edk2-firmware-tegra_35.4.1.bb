@@ -21,7 +21,7 @@ NVDISPLAY_INIT_DEPS:tegra194 = "nvdisp-init:do_deploy"
 do_compile:append() {
     rm -rf ${B}/images
     mkdir ${B}/images
-    python3 ${S_EDK2_NVIDIA}/Silicon/NVIDIA/Tools/FormatUefiBinary.py \
+    python3 ${S_EDK2_NVIDIA}/Silicon/NVIDIA/edk2nv/FormatUefiBinary.py \
         ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/FV/UEFI_NS.Fv \
         ${B}/images/${EDK2_BIN_NAME}.tmp
     if [ -n "${NVDISPLAY_INIT}" ]; then
@@ -30,7 +30,7 @@ do_compile:append() {
     else
 	mv ${B}/images/${EDK2_BIN_NAME}.tmp ${B}/images/${EDK2_BIN_NAME}
     fi
-    python3 ${S_EDK2_NVIDIA}/Silicon/NVIDIA/Tools/FormatUefiBinary.py \
+    python3 ${S_EDK2_NVIDIA}/Silicon/NVIDIA/edk2nv/FormatUefiBinary.py \
         ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/AARCH64/L4TLauncher.efi \
         ${B}/images/BOOTAA64.efi
     for f in ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/AARCH64/Silicon/NVIDIA/Tegra/DeviceTree/DeviceTree/OUTPUT/*.dtb; do
