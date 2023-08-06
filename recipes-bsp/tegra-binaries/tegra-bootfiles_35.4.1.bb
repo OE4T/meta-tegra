@@ -62,6 +62,7 @@ BOOTBINS:tegra234 = "\
     tegra234-gpio.h \
     readinfo_t234_min_prod.xml \
     camera-rtcpu-sce.img \
+    fsi-fw-ecc.bin \
 "
 
 BOOTBINS_MACHINE_SPECIFIC:tegra194 = ""
@@ -99,6 +100,34 @@ do_compile:append:tegra194() {
     printf 'BINF' | dd of="${BL_DIR}/badpage.bin" bs=1 seek=2992 count=4 conv=notrunc &> /dev/null
 }
 
+do_compile:append:tegra234() {
+    BL_DIR="${S}/bootloader"
+    # Create badpage.bin if it doesn't exist
+    if [ ! -f "${BL_DIR}/badpage.bin" ]; then
+        echo "creating dummy ${BL_DIR}/badpage.bin"
+        dd if=/dev/zero of="${BL_DIR}/badpage.bin" bs=4096 count=1;
+    else
+        echo "reusing existing ${BL_DIR}/badpage.bin"
+        # Clear BCH Header
+        dd if=/dev/zero of="${BL_DIR}/badpage.bin" bs=4096 seek=0 count=1;
+    fi;
+    printf 'NVDA' | dd of="${BL_DIR}/badpage.bin" bs=1 seek=0 count=4 conv=notrunc &> /dev/null
+    printf 'BINF' | dd of="${BL_DIR}/badpage.bin" bs=1 seek=5120 count=4 conv=notrunc &> /dev/null
+}
+
+install_external_layout() {
+    bberror "No method for installing external partition layout file"
+}
+
+install_external_layout:tegra194() {
+    install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+}
+
+install_external_layout:tegra234() {
+    nvflashxmlparse -v --switch-to-prefixed-kernel-partitions --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
+    chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+}
+
 do_install() {
     PATH="${STAGING_BINDIR_NATIVE}/tegra-flash:${PATH}"
     install -d ${D}${datadir}/tegraflash
@@ -125,10 +154,7 @@ do_install() {
 	# referenced during early boot match the split layout above.
 	nvflashxmlparse -v --remove --partitions-to-remove=APP --output=${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE} ${PARTITION_FILE}
 	chmod 0644 ${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}
-	# Work around too-small partition sizes for kernel and
-	# kernel_dtb partitions in NVMe layouts (specifically t234)
-	nvflashxmlparse -v --update-parttype-sizes-from=${PARTITION_FILE}:kernel,kernel_dtb --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
-	chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+	install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
     else
 	if [ "${TEGRAFLASH_NO_INTERNAL_STORAGE}" = "1" ]; then
 	    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}
@@ -137,10 +163,7 @@ do_install() {
 	else
 	    install -m 0644 ${PARTITION_FILE} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}
 	fi
-	# Work around too-small partition sizes for kernel and
-	# kernel_dtb partitions in NVMe layouts (specifically t234)
-	nvflashxmlparse -v --update-parttype-sizes-from=${PARTITION_FILE}:kernel,kernel_dtb --output=${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL} ${PARTITION_FILE_EXTERNAL}
-	chmod 0644 ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
+	install_external_layout
     fi
     [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT}
