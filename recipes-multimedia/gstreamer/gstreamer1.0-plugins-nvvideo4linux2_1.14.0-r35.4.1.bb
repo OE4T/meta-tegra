@@ -17,7 +17,7 @@ SRC_URI += "\
     file://0006-Fix-resource-leak-in-nvv4l2decoder.patch \
     file://0007-Makefile-fixes-for-OE-builds.patch \
 "
-DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries-multimedia tegra-libraries-nvdsseimeta tegra-mmapi"
+DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl tegra-libraries-multimedia tegra-libraries-nvdsseimeta tegra-mmapi libgstnvcustomhelper"
 
 PACKAGECONFIG ??= "libv4l2"
 PACKAGECONFIG[libv4l2] = ",,v4l-utils,tegra-libraries-multimedia-v4l"
@@ -31,7 +31,6 @@ inherit gettext pkgconfig features_check
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 remove_headers() {
-	rm ${WORKDIR}/nvbuf_utils.h
 	rm ${WORKDIR}/nvbufsurface.h
 	rm ${WORKDIR}/v4l2_nv_extensions.h
 }
@@ -45,3 +44,4 @@ do_install() {
 	oe_runmake install DESTDIR="${D}"
 }
 FILES:${PN} = "${libdir}/gstreamer-1.0"
+RDEPENDS:${PN} += "libgstnvcustomhelper"
