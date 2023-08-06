@@ -11,7 +11,14 @@ uuids = {}
 ignore_partition_ids = False
 boot_devices = ["spi", "sdmmc_boot"]
 kernels_and_dtbs = ["kernel", "kernel_b", "kernel-dtb", "kernel-dtb_b",
+                    "A_kernel", "B_kernel", "A_kernel-dtb", "B_kernel-dtb",
                     "recovery", "RECNAME", "recovery-dtb", "RECDTB-NAME"]
+kernel_partname_map = {
+    "kernel": "A_kernel",
+    "kernel-dtb": "A_kernel-dtb",
+    "kernel_b" : "B_kernel",
+    "kernel-dtb_b" : "B_kernel-dtb"
+}
 primary_gpt_types = ['GP1', 'protective_master_boot_record', 'primary_gpt']
 secondary_gpt_types = ['GPT', 'secondary_gpt']
 all_gpt_types = primary_gpt_types + secondary_gpt_types
@@ -301,6 +308,18 @@ def remove_from_layout(infile, to_remove, outf):
     intree.write(outf, encoding='unicode', xml_declaration=True)
     outf.write("\n")
 
+def rename_kernel_partitions(infile, outf):
+    intree = ET.parse(infile)
+    root = intree.getroot()
+    for dev in root.findall('device'):
+        for part in dev.findall('partition'):
+            oldname = part.get('name')
+            if oldname in kernel_partname_map:
+                logging.info("Renaming {} to {}".format(oldname, kernel_partname_map[oldname]))
+                part.set('name', kernel_partname_map[oldname])
+    intree.write(outf, encoding='unicode', xml_declaration=True)
+    outf.write("\n")
+
 def size_to_sectors(sizespec):
     suffix = sizespec[-1:]
     if suffix in ['G', 'K', 'M']:
@@ -343,6 +362,7 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
     cmdgroup.add_argument('--update-parttype-sizes-from', help='layout:comma-separated list of parttypes for updating sizes in output XML', action='store')
     cmdgroup.add_argument('-s', '--split', help='XML output file for MMC-SDcard/external split on Jetson AGX Xavier', action='store')
     cmdgroup.add_argument('--remove', help='Remove partitions from the XML layout', action='store_true')
+    cmdgroup.add_argument('--switch-to-prefixed-kernel-partitions', help='Rename kernel partitions from kernel/kernel_b to A_kernel/B_kernel', action='store_true')
     parser.add_argument('--change-device-type', help='(for use with --split or --extract) change the <device> tag type attribute to the specifed value', action='store')
     parser.add_argument('--partitions-to-remove', help='(for use with --remove) list of partitions to remove', action='store')
     parser.add_argument('-S', '--sdcard-size', '--storage-size', help='storage size for use with --split or --extract', action='store', default="0")
@@ -353,7 +373,7 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
     args = parser.parse_args()
     logging.basicConfig(format='%(message)s', level=logging.INFO if args.verbose else logging.WARNING)
 
-    if args.split or args.rewrite_contents_from or args.extract or args.remove or args.update_parttype_sizes_from:
+    if args.split or args.rewrite_contents_from or args.extract or args.remove or args.update_parttype_sizes_from or args.switch_to_prefixed_kernel_partitions:
         if args.output:
             outf = open(args.output, "w")
         else:
@@ -374,6 +394,9 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
             return 0
         if args.remove:
             remove_from_layout(args.filename, args.partitions_to_remove, outf)
+            return 0
+        if args.switch_to_prefixed_kernel_partitions:
+            rename_kernel_partitions(args.filename, outf)
             return 0
         print("Internal error dispatching to XML transformation function", file=sys.stderr)
         return 1
