@@ -4,7 +4,6 @@ bup_type=
 rcm_boot=0
 keyfile=
 sbk_keyfile=
-user_keyfile=
 spi_only=
 external_device=0
 sdcard=
@@ -42,7 +41,7 @@ partition_exists_in_PT_table() {
     return 1
 }
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,user_key:" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -93,10 +92,6 @@ while true; do
     --usb-instance)
         usb_instance="$2"
         inst_args="--instance ${usb_instance}"
-        shift 2
-        ;;
-    --user_key)
-        user_keyfile="$2"
         shift 2
         ;;
     -u)
@@ -164,7 +159,7 @@ fi
 
 have_odmsign_func=0
 [ ! -e "$here/odmsign.func" ] || have_odmsign_func=1
-if [ -n "$keyfile" -o -n "$sbk_keyfile" -o -n "$user_keyfile" ] && [ $have_odmsign_func -eq 0 ]; then
+if [ -n "$keyfile" -o -n "$sbk_keyfile" ] && [ $have_odmsign_func -eq 0 ]; then
     echo "ERR: missing odmsign.func from secureboot package, signing not supported" >&2
     exit 1
 fi
@@ -395,12 +390,14 @@ if [ "$BOARDID" = "3701" ]; then
 	if [ "$BOARDSKU" = "0005" -o "$BOARDSKU" = "0008" ]; then
 	    EMMC_BCT=$(echo "$EMMC_BCT" | sed -e"s,3701-0000,3701-$BOARDSKU,")
 	    WB0SDRAM_BCT=$(echo "$WB0SDRAM_BCT" | sed -e"s,3701-0000,3701-$BOARDSKU,")
-	    if [ "$BOARDSKU" = "0008" ]; then
-		BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,3701-0000,3701-$BOARDSKU,")
-	    fi
 	else
 	    dtb_file=$(echo "$dtb_file" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
 	fi
+    fi
+    if [ "$BOARDSKU" = "0002" -o "$BOARDSKU" = "0008" ]; then
+	fsifw_binsarg="fsi_fw fsi-fw-ecc.bin;"
+    else
+	fsifw_binsarg=
     fi
 elif [ "$BOARDID" = "3767" ]; then
     PINMUXREV="a03"
@@ -512,7 +509,7 @@ bpmp_fw_dtb $BPFDTB_FILE; \
 sce_fw camera-rtcpu-sce.img; \
 rce_fw camera-rtcpu-t234-rce.img; \
 ape_fw adsp-fw.bin; \
-spe_fw spe_t234.bin; \
+spe_fw spe_t234.bin; $fsifw_binsarg \
 tos tos-optee_t234.img; \
 eks eks.img"
 
@@ -569,11 +566,6 @@ if [ -n "$keyfile" ] || [ $rcm_boot -eq 1 ] || [ $no_flash -eq 1 -a $to_sign -eq
 fi
 if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     if [ -n "$sbk_keyfile" ]; then
-        if [ -z "$user_keyfile" ]; then
-            rm -f "null_user_key.txt"
-            echo "0x00000000 0x00000000 0x00000000 0x00000000" > null_user_key.txt
-            user_keyfile=$(readlink -f null_user_key.txt)
-        fi
         rm -rf signed_bootimg_dir
         mkdir signed_bootimg_dir
         cp xusb_t234_prod.bin signed_bootimg_dir/
@@ -628,7 +620,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
         else
             echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
         fi
-        rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
+        rm -f APPFILE APPFILE_b DATAFILE
     fi
     if [ $bup_blob -eq 0 ]; then
         exit 0
@@ -642,7 +634,6 @@ flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_d
           --applet mb1_t234_prod.bin \
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
-          --boot_chain A \
           --bct_backup \
           --secondary_gpt_backup \
           $bctargs $extdevargs \
@@ -675,7 +666,7 @@ fi
 if [ $no_flash -ne 0 ]; then
     echo "$flashcmd" | sed -e 's,--skipuid,,g' > flashcmd.txt
     chmod +x flashcmd.txt
-    rm -f APPFILE APPFILE_b DATAFILE null_user_key.txt
+    rm -f APPFILE APPFILE_b DATAFILE
 else
     eval $flashcmd < /dev/null || exit 1
     if [ -n "$sdcard" -o $external_device -eq 1 ]; then
