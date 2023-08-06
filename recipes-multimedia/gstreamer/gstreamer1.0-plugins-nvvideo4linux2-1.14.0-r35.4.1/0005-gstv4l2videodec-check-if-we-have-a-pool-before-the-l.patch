@@ -1,6 +1,6 @@
-From d7ad6c853a9df7fec6472b02ba3129054624c117 Mon Sep 17 00:00:00 2001
-From: Jose Quaresma <quaresma.jose@gmail.com>
-Date: Sun, 8 Nov 2020 12:49:03 +0000
+From 354f881412547c397186e3af63160a86bee2f9f8 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Sun, 6 Aug 2023 23:18:52 +0100
 Subject: [PATCH 5/7] gstv4l2videodec: check if we have a pool before the
  locking in video decoder set format
 
@@ -18,38 +18,39 @@ So disable the the check for capture_plane_stopped on nvv4l2decoder if we don't 
 otherwise nvv4l2decoder will hang forever waiting for capture_plane_stopped.
 
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
- gstv4l2videodec.c | 16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ gst-v4l2/gstv4l2videodec.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
 diff --git a/gstv4l2videodec.c b/gstv4l2videodec.c
-index bce7627..b04e659 100644
+index d044897..f19bd71 100644
 --- a/gstv4l2videodec.c
 +++ b/gstv4l2videodec.c
-@@ -801,14 +801,16 @@ gst_v4l2_video_dec_set_format (GstVideoDecoder * decoder,
- #ifdef USE_V4L2_TARGET_NV
-     if (self->is_drc == TRUE)
-     {
--        g_mutex_lock (&self->v4l2capture->cplane_stopped_lock);
+@@ -914,14 +914,17 @@ gst_v4l2_video_dec_set_format (GstVideoDecoder * decoder,
+     if (is_cuvid == FALSE) {
+       if (self->is_drc == TRUE)
+       {
+-        g_mutex_lock(&self->v4l2capture->cplane_stopped_lock);
 -        while (self->v4l2capture->capture_plane_stopped != TRUE)
--        {
--            g_cond_wait (&self->v4l2capture->cplane_stopped_cond,
--                    &self->v4l2capture->cplane_stopped_lock);
-+      if (self->v4l2capture->pool ) {
++        if (self->v4l2capture->pool )
+         {
+-          g_cond_wait(&self->v4l2capture->cplane_stopped_cond,
+-                      &self->v4l2capture->cplane_stopped_lock);
 +          g_mutex_lock (&self->v4l2capture->cplane_stopped_lock);
 +          while (self->v4l2capture->capture_plane_stopped != TRUE)
 +          {
-+              g_cond_wait (&self->v4l2capture->cplane_stopped_cond,
-+                      &self->v4l2capture->cplane_stopped_lock);
++            g_cond_wait (&self->v4l2capture->cplane_stopped_cond,
++                        &self->v4l2capture->cplane_stopped_lock);
 +          }
 +          self->v4l2capture->capture_plane_stopped = FALSE;
 +          g_mutex_unlock (&self->v4l2capture->cplane_stopped_lock);
          }
 -        self->v4l2capture->capture_plane_stopped = FALSE;
--        g_mutex_unlock (&self->v4l2capture->cplane_stopped_lock);
-         gst_v4l2_object_close (self->v4l2output);
-         gst_v4l2_object_close (self->v4l2capture);
-         gst_v4l2_object_open (self->v4l2output);
+-        g_mutex_unlock(&self->v4l2capture->cplane_stopped_lock);
+         gst_v4l2_object_close(self->v4l2output);
+         gst_v4l2_object_close(self->v4l2capture);
+         gst_v4l2_object_open(self->v4l2output);
 -- 
-2.34.1
+2.25.1
 
