@@ -31,7 +31,6 @@ inherit gettext pkgconfig features_check
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 remove_headers() {
-	rm ${WORKDIR}/nvbuf_utils.h
 	rm ${WORKDIR}/nvbufsurface.h
 	rm ${WORKDIR}/v4l2_nv_extensions.h
 }

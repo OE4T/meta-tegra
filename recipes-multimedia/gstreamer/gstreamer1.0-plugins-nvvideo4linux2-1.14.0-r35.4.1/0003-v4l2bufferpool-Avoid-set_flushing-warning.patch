@@ -1,6 +1,6 @@
-From e44664958ad6154c95d559011bc33c38751f9932 Mon Sep 17 00:00:00 2001
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Date: Fri, 26 Jun 2020 11:05:25 -0400
+From 53590990764e58b51210d9054c2e1383ea9a10ef Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Sun, 6 Aug 2023 23:09:58 +0100
 Subject: [PATCH 3/7] v4l2bufferpool: Avoid set_flushing warning
 
 The gst_buffer_pool_set_flushing() warns when that function is called
@@ -8,16 +8,18 @@ on an inactive pool. Avoid the warning by checking the state, this is
 similar to what we do in gst_v4l2_object_unlock().
 
 Part-of: <https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requests/649>
+
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
- gstv4l2bufferpool.c | 4 ++--
+ gst-v4l2/gstv4l2bufferpool.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/gstv4l2bufferpool.c b/gstv4l2bufferpool.c
-index 1023d4c..15345d1 100644
+index 35cbb91..6303ff0 100644
 --- a/gstv4l2bufferpool.c
 +++ b/gstv4l2bufferpool.c
-@@ -1269,7 +1269,7 @@ gst_v4l2_buffer_pool_flush_start (GstBufferPool * bpool)
+@@ -1301,7 +1301,7 @@ gst_v4l2_buffer_pool_flush_start (GstBufferPool * bpool)
    g_cond_broadcast (&pool->empty_cond);
    GST_OBJECT_UNLOCK (pool);
  
@@ -26,7 +28,7 @@ index 1023d4c..15345d1 100644
      gst_buffer_pool_set_flushing (pool->other_pool, TRUE);
  }
  
-@@ -1280,7 +1280,7 @@ gst_v4l2_buffer_pool_flush_stop (GstBufferPool * bpool)
+@@ -1312,7 +1312,7 @@ gst_v4l2_buffer_pool_flush_stop (GstBufferPool * bpool)
  
    GST_DEBUG_OBJECT (pool, "stop flushing");
  
@@ -36,5 +38,5 @@ index 1023d4c..15345d1 100644
  
  #ifndef USE_V4L2_TARGET_NV
 -- 
-2.34.1
+2.25.1
 

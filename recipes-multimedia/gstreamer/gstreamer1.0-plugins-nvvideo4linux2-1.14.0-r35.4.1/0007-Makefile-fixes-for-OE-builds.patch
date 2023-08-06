@@ -1,16 +1,16 @@
-From bf7357bdaaa920a0e9d5f229fcb3f6060f1615d8 Mon Sep 17 00:00:00 2001
+From 8f5185cb08681042573cb7fa592dd9eaa2bdd49f Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Thu, 26 Jan 2023 00:06:19 +0000
+Date: Sun, 6 Aug 2023 23:27:09 +0100
 Subject: [PATCH 7/7] Makefile fixes for OE builds
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
- Makefile | 43 ++++++++++++++++++++-----------------------
+ gst-v4l2/Makefile | 43 ++++++++++++++++++++-----------------------
  1 file changed, 20 insertions(+), 23 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 87eac83..57414f0 100644
+index 6621c04..2102dd1 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -10,49 +10,45 @@
@@ -37,7 +37,7 @@ index 87eac83..57414f0 100644
 -endif
 +SO_NAME := libgstnvvideo4linux2.so
  
- LIBS:= -lnvbufsurface -lnvbufsurftransform -lgstnvdsseimeta
+ LIBS:= -lnvbufsurface -lnvbufsurftransform -lgstnvdsseimeta -lgstnvcustomhelper
  SRCS := $(wildcard *.c)
  
 -INCLUDES += -I./ -I../
