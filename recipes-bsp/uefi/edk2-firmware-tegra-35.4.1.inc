@@ -5,18 +5,19 @@ require conf/image-uefi.conf
 LICENSE .= " & Proprietary"
 
 LIC_FILES_CHKSUM += "file://../edk2-platforms/License.txt;md5=2b415520383f7964e96700ae12b4570a"
+LIC_FILES_CHKSUM += "file://../edk2-nvidia/LICENSE;md5=52d8683e3d65a77ef84cc863e3f24f25"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-chips-platform.efi;md5=549bbaa72578510a18ba3c324465027c"
 
 DEPENDS += "dtc-native"
 
-EDK2_PLATFORMS_SRC_URI = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r35.3.1-upstream-20220830-updates"
-EDK2_NVIDIA_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r35.3.1-updates"
+EDK2_PLATFORMS_SRC_URI = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r35.4.1-upstream-20220830-updates"
+EDK2_NVIDIA_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r35.4.1-updates"
 EDK2_NONOSI_SRC_URI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=main-upstream-20220830"
-EDK2_NVIDIA_NONOSI_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r35.3.1-updates"
+EDK2_NVIDIA_NONOSI_SRC_URI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r35.4.1-updates"
 
 SRCREV_edk2-non-osi = "61662e8596dd9a64e3372f9a3ba6622d2628607c"
-SRCREV_edk2-nvidia = "63e71c987193cc57333994ca5b82a62c40fed5da"
-SRCREV_edk2-nvidia-non-osi = "952a02747566005181ec3248d7a9a5a24533e9dd"
+SRCREV_edk2-nvidia = "8444db349648a77ed8e2e3047a93004c9cadb2d3"
+SRCREV_edk2-nvidia-non-osi = "b1a1a1ce9651261b0b47acceed9e3243b9baeda8"
 SRCREV_edk2-platforms = "3c3b1168017073c2bb2d97336c5929ebae805be1"
 
 SRC_URI += "\
@@ -32,7 +33,6 @@ SRC_URI += "file://0002-Disable-outline-atomics-in-eqos-driver.patch;patchdir=..
 SRC_URI += "file://0003-Fix-RCM-boot-detection.patch;patchdir=.."
 SRC_URI += "file://0004-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=.."
 SRC_URI += "file://0005-Use-bfd-linker.patch;patchdir=.."
-SRC_URI += "file://0006-fix-ensure-termination-of-TnSpec-variables.patch;patchdir=.."
 
 S = "${WORKDIR}/edk2-tegra/edk2"
 
