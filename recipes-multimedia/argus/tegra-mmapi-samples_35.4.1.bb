@@ -12,7 +12,7 @@ SRC_URI += "\
     file://0008-camera_v4l2_cuda-add-option-for-setting-max-frame-co.patch \
 "
 
-DEPENDS = "libdrm tegra-mmapi tegra-libraries-camera virtual/egl virtual/libgles1 virtual/libgles2 jpeg expat gstreamer1.0 glib-2.0 libv4l pango"
+DEPENDS = "libdrm tegra-mmapi tegra-libraries-camera virtual/egl virtual/libgles1 virtual/libgles2 jpeg expat gstreamer1.0 glib-2.0 libv4l pango vulkan-headers vulkan-loader"
 
 inherit pkgconfig cuda python3native features_check
 
