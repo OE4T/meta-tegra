@@ -12,7 +12,7 @@ SRC_URI += "file://0001-Remove-DO-NOT-USE-declarations-from-v4l2_nv_extensio.pat
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-LIC_FILES_CHKSUM = "file://LICENSE;md5=2cc00be68c1227a7c42ff3620ef75d05 \
+LIC_FILES_CHKSUM = "file://LICENSE.nvprop;md5=5c7c5200a29e873064f17b5bbf4d3c56 \
 		    file://argus/LICENSE.TXT;md5=271791ce6ff6f928d44a848145021687"
 
 S = "${WORKDIR}/tegra-mmapi/usr/src/jetson_multimedia_api"
