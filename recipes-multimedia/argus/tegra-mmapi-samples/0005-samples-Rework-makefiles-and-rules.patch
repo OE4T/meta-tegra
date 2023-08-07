@@ -1,6 +1,6 @@
-From 916d83cb06bb164e3681130f01daf6095561c3e2 Mon Sep 17 00:00:00 2001
+From fcca8881105274be7eed49bee434201b9e509c21 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Wed, 30 Mar 2022 22:42:28 +0100
+Date: Mon, 7 Aug 2023 21:37:45 +0100
 Subject: [PATCH 5/8] samples: Rework makefiles and rules
 
 * Make them more OE-friendly
@@ -9,41 +9,42 @@ Subject: [PATCH 5/8] samples: Rework makefiles and rules
 * Rework references to common classes and algorithms
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
- Makefile                                      |  9 +-
- samples/00_video_decode/Makefile              | 10 +-
- samples/01_video_encode/Makefile              | 10 +-
- samples/02_video_dec_cuda/Makefile            | 20 +---
- samples/03_video_cuda_enc/Makefile            | 21 +---
- samples/04_video_dec_trt/Makefile             | 34 +++----
- samples/05_jpeg_encode/Makefile               | 11 +--
- samples/06_jpeg_decode/Makefile               | 10 +-
- samples/07_video_convert/Makefile             | 10 +-
- samples/08_video_dec_drm/Makefile             | 16 ++--
- samples/09_argus_camera_jpeg/Makefile         | 14 +--
- samples/10_argus_camera_recording/Makefile    | 18 ++--
- samples/12_v4l2_camera_cuda/Makefile          | 20 +---
- samples/13_argus_multi_camera/Makefile        | 14 +--
- samples/14_multivideo_decode/Makefile         | 10 +-
- samples/15_multivideo_encode/Makefile         | 10 +-
- samples/16_multivideo_transcode/Makefile      | 10 +-
- samples/17_frontend/Makefile                  | 42 ++++----
- samples/18_v4l2_camera_cuda_rgb/Makefile      | 11 +--
- samples/Rules.mk                              | 96 +++++++++----------
- samples/backend/Makefile                      | 41 ++++----
- samples/common/algorithm/cuda/Makefile        | 17 ++--
- samples/common/algorithm/trt/Makefile         | 11 ++-
- samples/common/classes/Makefile               | 10 +-
- .../camera_unit_sample/Makefile               | 10 +-
- .../decoder_unit_sample/Makefile              | 10 +-
- .../encoder_unit_sample/Makefile              | 10 +-
- .../transform_unit_sample/Makefile            | 10 +-
- 28 files changed, 208 insertions(+), 307 deletions(-)
+ Makefile                                      |   9 +-
+ samples/00_video_decode/Makefile              |  10 +-
+ samples/01_video_encode/Makefile              |  10 +-
+ samples/02_video_dec_cuda/Makefile            |  20 +---
+ samples/03_video_cuda_enc/Makefile            |  21 +---
+ samples/04_video_dec_trt/Makefile             |  34 +++---
+ samples/05_jpeg_encode/Makefile               |  11 +-
+ samples/06_jpeg_decode/Makefile               |  10 +-
+ samples/07_video_convert/Makefile             |  10 +-
+ samples/08_video_dec_drm/Makefile             |  16 ++-
+ samples/09_argus_camera_jpeg/Makefile         |  14 +--
+ samples/10_argus_camera_recording/Makefile    |  18 ++--
+ samples/12_v4l2_camera_cuda/Makefile          |  20 +---
+ samples/13_argus_multi_camera/Makefile        |  14 +--
+ samples/14_multivideo_decode/Makefile         |  10 +-
+ samples/15_multivideo_encode/Makefile         |  10 +-
+ samples/16_multivideo_transcode/Makefile      |  10 +-
+ samples/17_frontend/Makefile                  |  42 ++++----
+ samples/18_v4l2_camera_cuda_rgb/Makefile      |  11 +-
+ samples/Rules.mk                              | 100 ++++++++----------
+ samples/backend/Makefile                      |  41 ++++---
+ samples/common/algorithm/cuda/Makefile        |  17 ++-
+ samples/common/algorithm/trt/Makefile         |  11 +-
+ samples/common/classes/Makefile               |  10 +-
+ .../camera_unit_sample/Makefile               |  10 +-
+ .../decoder_unit_sample/Makefile              |  10 +-
+ .../encoder_unit_sample/Makefile              |  10 +-
+ .../transform_unit_sample/Makefile            |  10 +-
+ 28 files changed, 209 insertions(+), 310 deletions(-)
 
-Index: jetson_multimedia_api/Makefile
-===================================================================
---- jetson_multimedia_api.orig/Makefile
-+++ jetson_multimedia_api/Makefile
+diff --git a/Makefile b/Makefile
+index 26b05cf..18e37d3 100644
+--- a/Makefile
++++ b/Makefile
 @@ -58,7 +58,7 @@ SUBDIRS = \
  all:
  	@list='$(SUBDIRS)'; for subdir in $$list; do \
@@ -64,10 +65,10 @@ Index: jetson_multimedia_api/Makefile
 +		echo "Install in $$subdir";\
 +		$(MAKE) -C $$subdir install;\
 +	done
-Index: jetson_multimedia_api/samples/00_video_decode/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/00_video_decode/Makefile
-+++ jetson_multimedia_api/samples/00_video_decode/Makefile
+diff --git a/samples/00_video_decode/Makefile b/samples/00_video_decode/Makefile
+index ca6a4d1..27100f9 100644
+--- a/samples/00_video_decode/Makefile
++++ b/samples/00_video_decode/Makefile
 @@ -34,23 +34,19 @@ APP := video_decode
  
  SRCS := \
@@ -95,10 +96,10 @@ Index: jetson_multimedia_api/samples/00_video_decode/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/01_video_encode/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/01_video_encode/Makefile
-+++ jetson_multimedia_api/samples/01_video_encode/Makefile
+diff --git a/samples/01_video_encode/Makefile b/samples/01_video_encode/Makefile
+index 650b888..a14f4b4 100644
+--- a/samples/01_video_encode/Makefile
++++ b/samples/01_video_encode/Makefile
 @@ -34,23 +34,19 @@ APP := video_encode
  
  SRCS := \
@@ -126,10 +127,10 @@ Index: jetson_multimedia_api/samples/01_video_encode/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/02_video_dec_cuda/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/02_video_dec_cuda/Makefile
-+++ jetson_multimedia_api/samples/02_video_dec_cuda/Makefile
+diff --git a/samples/02_video_dec_cuda/Makefile b/samples/02_video_dec_cuda/Makefile
+index 31e8de8..97f8a4c 100644
+--- a/samples/02_video_dec_cuda/Makefile
++++ b/samples/02_video_dec_cuda/Makefile
 @@ -34,33 +34,19 @@ APP := video_dec_cuda
  
  SRCS := \
@@ -167,10 +168,10 @@ Index: jetson_multimedia_api/samples/02_video_dec_cuda/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/03_video_cuda_enc/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/03_video_cuda_enc/Makefile
-+++ jetson_multimedia_api/samples/03_video_cuda_enc/Makefile
+diff --git a/samples/03_video_cuda_enc/Makefile b/samples/03_video_cuda_enc/Makefile
+index 7911c20..d0d0cc4 100644
+--- a/samples/03_video_cuda_enc/Makefile
++++ b/samples/03_video_cuda_enc/Makefile
 @@ -34,33 +34,20 @@ APP := video_cuda_enc
  
  SRCS := \
@@ -209,10 +210,10 @@ Index: jetson_multimedia_api/samples/03_video_cuda_enc/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/04_video_dec_trt/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/04_video_dec_trt/Makefile
-+++ jetson_multimedia_api/samples/04_video_dec_trt/Makefile
+diff --git a/samples/04_video_dec_trt/Makefile b/samples/04_video_dec_trt/Makefile
+index 2dcd621..1d35817 100644
+--- a/samples/04_video_dec_trt/Makefile
++++ b/samples/04_video_dec_trt/Makefile
 @@ -30,44 +30,36 @@
  
  include ../Rules.mk
@@ -271,10 +272,10 @@ Index: jetson_multimedia_api/samples/04_video_dec_trt/Makefile
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
 +endif
-Index: jetson_multimedia_api/samples/05_jpeg_encode/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/05_jpeg_encode/Makefile
-+++ jetson_multimedia_api/samples/05_jpeg_encode/Makefile
+diff --git a/samples/05_jpeg_encode/Makefile b/samples/05_jpeg_encode/Makefile
+index ebb6626..eebdb63 100644
+--- a/samples/05_jpeg_encode/Makefile
++++ b/samples/05_jpeg_encode/Makefile
 @@ -34,23 +34,20 @@ APP := jpeg_encode
  
  SRCS := \
@@ -303,10 +304,10 @@ Index: jetson_multimedia_api/samples/05_jpeg_encode/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/06_jpeg_decode/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/06_jpeg_decode/Makefile
-+++ jetson_multimedia_api/samples/06_jpeg_decode/Makefile
+diff --git a/samples/06_jpeg_decode/Makefile b/samples/06_jpeg_decode/Makefile
+index 3f28db9..4d769f0 100644
+--- a/samples/06_jpeg_decode/Makefile
++++ b/samples/06_jpeg_decode/Makefile
 @@ -34,23 +34,19 @@ APP := jpeg_decode
  
  SRCS := \
@@ -334,10 +335,10 @@ Index: jetson_multimedia_api/samples/06_jpeg_decode/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/07_video_convert/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/07_video_convert/Makefile
-+++ jetson_multimedia_api/samples/07_video_convert/Makefile
+diff --git a/samples/07_video_convert/Makefile b/samples/07_video_convert/Makefile
+index 7edeb29..8af6299 100644
+--- a/samples/07_video_convert/Makefile
++++ b/samples/07_video_convert/Makefile
 @@ -34,23 +34,19 @@ APP := video_convert
  
  SRCS := \
@@ -365,10 +366,10 @@ Index: jetson_multimedia_api/samples/07_video_convert/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/08_video_dec_drm/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/08_video_dec_drm/Makefile
-+++ jetson_multimedia_api/samples/08_video_dec_drm/Makefile
+diff --git a/samples/08_video_dec_drm/Makefile b/samples/08_video_dec_drm/Makefile
+index 5cb1be9..f59d7f7 100644
+--- a/samples/08_video_dec_drm/Makefile
++++ b/samples/08_video_dec_drm/Makefile
 @@ -34,12 +34,11 @@ APP := video_dec_drm
  
  SRCS := \
@@ -408,11 +409,11 @@ Index: jetson_multimedia_api/samples/08_video_dec_drm/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS) image_rgba.*
-Index: jetson_multimedia_api/samples/09_argus_camera_jpeg/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/09_argus_camera_jpeg/Makefile
-+++ jetson_multimedia_api/samples/09_argus_camera_jpeg/Makefile
-@@ -36,10 +36,9 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samp
+diff --git a/samples/09_argus_camera_jpeg/Makefile b/samples/09_argus_camera_jpeg/Makefile
+index 151f100..e9a2ce7 100644
+--- a/samples/09_argus_camera_jpeg/Makefile
++++ b/samples/09_argus_camera_jpeg/Makefile
+@@ -36,10 +36,9 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
  
  SRCS := \
  	main.cpp \
@@ -447,11 +448,11 @@ Index: jetson_multimedia_api/samples/09_argus_camera_jpeg/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/10_argus_camera_recording/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/10_argus_camera_recording/Makefile
-+++ jetson_multimedia_api/samples/10_argus_camera_recording/Makefile
-@@ -36,12 +36,11 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samp
+diff --git a/samples/10_argus_camera_recording/Makefile b/samples/10_argus_camera_recording/Makefile
+index c805ba1..c93854a 100644
+--- a/samples/10_argus_camera_recording/Makefile
++++ b/samples/10_argus_camera_recording/Makefile
+@@ -36,12 +36,11 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
  
  SRCS := \
  	main.cpp \
@@ -492,10 +493,10 @@ Index: jetson_multimedia_api/samples/10_argus_camera_recording/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/12_v4l2_camera_cuda/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/12_v4l2_camera_cuda/Makefile
-+++ jetson_multimedia_api/samples/12_v4l2_camera_cuda/Makefile
+diff --git a/samples/12_v4l2_camera_cuda/Makefile b/samples/12_v4l2_camera_cuda/Makefile
+index c6d086a..63f4338 100644
+--- a/samples/12_v4l2_camera_cuda/Makefile
++++ b/samples/12_v4l2_camera_cuda/Makefile
 @@ -33,33 +33,19 @@ include ../Rules.mk
  APP := v4l2_camera_cuda
  
@@ -533,11 +534,11 @@ Index: jetson_multimedia_api/samples/12_v4l2_camera_cuda/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/13_argus_multi_camera/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/13_argus_multi_camera/Makefile
-+++ jetson_multimedia_api/samples/13_argus_multi_camera/Makefile
-@@ -36,10 +36,9 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samp
+diff --git a/samples/13_argus_multi_camera/Makefile b/samples/13_argus_multi_camera/Makefile
+index 9f43a9a..3850508 100644
+--- a/samples/13_argus_multi_camera/Makefile
++++ b/samples/13_argus_multi_camera/Makefile
+@@ -36,10 +36,9 @@ ARGUS_UTILS_DIR := $(TOP_DIR)/argus/samples/utils
  
  SRCS := \
  	main.cpp \
@@ -572,10 +573,10 @@ Index: jetson_multimedia_api/samples/13_argus_multi_camera/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/14_multivideo_decode/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/14_multivideo_decode/Makefile
-+++ jetson_multimedia_api/samples/14_multivideo_decode/Makefile
+diff --git a/samples/14_multivideo_decode/Makefile b/samples/14_multivideo_decode/Makefile
+index 0e13ef9..80d5d6c 100644
+--- a/samples/14_multivideo_decode/Makefile
++++ b/samples/14_multivideo_decode/Makefile
 @@ -34,23 +34,19 @@ APP := multivideo_decode
  
  SRCS := \
@@ -603,10 +604,10 @@ Index: jetson_multimedia_api/samples/14_multivideo_decode/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/15_multivideo_encode/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/15_multivideo_encode/Makefile
-+++ jetson_multimedia_api/samples/15_multivideo_encode/Makefile
+diff --git a/samples/15_multivideo_encode/Makefile b/samples/15_multivideo_encode/Makefile
+index 2121764..9ac26e8 100644
+--- a/samples/15_multivideo_encode/Makefile
++++ b/samples/15_multivideo_encode/Makefile
 @@ -34,23 +34,19 @@ APP := multivideo_encode
  
  SRCS := \
@@ -634,10 +635,10 @@ Index: jetson_multimedia_api/samples/15_multivideo_encode/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/16_multivideo_transcode/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/16_multivideo_transcode/Makefile
-+++ jetson_multimedia_api/samples/16_multivideo_transcode/Makefile
+diff --git a/samples/16_multivideo_transcode/Makefile b/samples/16_multivideo_transcode/Makefile
+index df65641..9b7394e 100644
+--- a/samples/16_multivideo_transcode/Makefile
++++ b/samples/16_multivideo_transcode/Makefile
 @@ -34,23 +34,19 @@ APP := multivideo_transcode
  
  SRCS := \
@@ -665,10 +666,10 @@ Index: jetson_multimedia_api/samples/16_multivideo_transcode/Makefile
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/17_frontend/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/17_frontend/Makefile
-+++ jetson_multimedia_api/samples/17_frontend/Makefile
+diff --git a/samples/17_frontend/Makefile b/samples/17_frontend/Makefile
+index 35f3f56..8bfafb3 100644
+--- a/samples/17_frontend/Makefile
++++ b/samples/17_frontend/Makefile
 @@ -30,6 +30,15 @@
  
  include ../Rules.mk
@@ -750,10 +751,10 @@ Index: jetson_multimedia_api/samples/17_frontend/Makefile
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
 +endif
-Index: jetson_multimedia_api/samples/18_v4l2_camera_cuda_rgb/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/18_v4l2_camera_cuda_rgb/Makefile
-+++ jetson_multimedia_api/samples/18_v4l2_camera_cuda_rgb/Makefile
+diff --git a/samples/18_v4l2_camera_cuda_rgb/Makefile b/samples/18_v4l2_camera_cuda_rgb/Makefile
+index 1b3ec95..e484a51 100644
+--- a/samples/18_v4l2_camera_cuda_rgb/Makefile
++++ b/samples/18_v4l2_camera_cuda_rgb/Makefile
 @@ -26,15 +26,8 @@ SRCS := \
  	capture.cpp \
  	yuv2rgb.cu
@@ -772,10 +773,10 @@ Index: jetson_multimedia_api/samples/18_v4l2_camera_cuda_rgb/Makefile
  
  all: $(APP)
  
-Index: jetson_multimedia_api/samples/Rules.mk
-===================================================================
---- jetson_multimedia_api.orig/samples/Rules.mk
-+++ jetson_multimedia_api/samples/Rules.mk
+diff --git a/samples/Rules.mk b/samples/Rules.mk
+index 2e02397..71af5be 100644
+--- a/samples/Rules.mk
++++ b/samples/Rules.mk
 @@ -28,10 +28,6 @@
  #
  ###############################################################################
@@ -868,12 +869,12 @@ Index: jetson_multimedia_api/samples/Rules.mk
 -	-lpthread -lnvv4l2 -lEGL -lGLESv2 -lX11 \
 +	-lpthread -lv4l2 -lEGL -lGLESv2 -lX11 \
  	-lnvbufsurface -lnvbufsurftransform -lnvjpeg -lnvosd -ldrm \
--	-lcuda -lcudart \
+-	-lcuda -lcudart -lvulkan \
 -	-L"$(TARGET_ROOTFS)/$(CUDA_PATH)/lib64" \
 -	-L"$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)" \
 -	-L"$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)/nvidia" \
 -	-L"$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)/tegra"
-+	-lcuda -lcudart
++	-lcuda -lcudart -lvulkan
 +
 +.DEFAULT_GOAL: all
 +
@@ -905,10 +906,10 @@ Index: jetson_multimedia_api/samples/Rules.mk
 +install: $(APP)
 +	[ -z "$(APP)" ] || install -d $(DESTDIR)$(bindir)
 +	[ -z "$(APP)" ] || install -m 0755 $(APP) $(DESTDIR)$(bindir)
-Index: jetson_multimedia_api/samples/backend/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/backend/Makefile
-+++ jetson_multimedia_api/samples/backend/Makefile
+diff --git a/samples/backend/Makefile b/samples/backend/Makefile
+index 13389e8..145241d 100644
+--- a/samples/backend/Makefile
++++ b/samples/backend/Makefile
 @@ -30,28 +30,34 @@
  
  include ../Rules.mk
@@ -982,10 +983,10 @@ Index: jetson_multimedia_api/samples/backend/Makefile
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
 +endif
-Index: jetson_multimedia_api/samples/common/algorithm/cuda/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/common/algorithm/cuda/Makefile
-+++ jetson_multimedia_api/samples/common/algorithm/cuda/Makefile
+diff --git a/samples/common/algorithm/cuda/Makefile b/samples/common/algorithm/cuda/Makefile
+index e218d51..86c5a0d 100644
+--- a/samples/common/algorithm/cuda/Makefile
++++ b/samples/common/algorithm/cuda/Makefile
 @@ -28,6 +28,8 @@
  #
  ###############################################################################
@@ -1022,10 +1023,10 @@ Index: jetson_multimedia_api/samples/common/algorithm/cuda/Makefile
  clean:
 -	$(AT)rm -rf *.o
 +	$(AT)rm -rf *.o algo_cuda.built
-Index: jetson_multimedia_api/samples/common/algorithm/trt/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/common/algorithm/trt/Makefile
-+++ jetson_multimedia_api/samples/common/algorithm/trt/Makefile
+diff --git a/samples/common/algorithm/trt/Makefile b/samples/common/algorithm/trt/Makefile
+index f782ae0..e24ae57 100644
+--- a/samples/common/algorithm/trt/Makefile
++++ b/samples/common/algorithm/trt/Makefile
 @@ -28,17 +28,24 @@
  #
  ###############################################################################
@@ -1053,10 +1054,10 @@ Index: jetson_multimedia_api/samples/common/algorithm/trt/Makefile
  clean:
 -	$(AT)rm -rf $(APP) $(OBJS)
 +	$(AT)rm -rf $(APP) $(OBJS) algo_trt.built
-Index: jetson_multimedia_api/samples/common/classes/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/common/classes/Makefile
-+++ jetson_multimedia_api/samples/common/classes/Makefile
+diff --git a/samples/common/classes/Makefile b/samples/common/classes/Makefile
+index 7336298..82e2bb8 100644
+--- a/samples/common/classes/Makefile
++++ b/samples/common/classes/Makefile
 @@ -28,13 +28,21 @@
  #
  ###############################################################################
@@ -1080,10 +1081,10 @@ Index: jetson_multimedia_api/samples/common/classes/Makefile
  
  %.o: %.cpp
  	@echo "Compiling: $<"
-Index: jetson_multimedia_api/samples/unittest_samples/camera_unit_sample/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/unittest_samples/camera_unit_sample/Makefile
-+++ jetson_multimedia_api/samples/unittest_samples/camera_unit_sample/Makefile
+diff --git a/samples/unittest_samples/camera_unit_sample/Makefile b/samples/unittest_samples/camera_unit_sample/Makefile
+index 790a322..ec63a2d 100644
+--- a/samples/unittest_samples/camera_unit_sample/Makefile
++++ b/samples/unittest_samples/camera_unit_sample/Makefile
 @@ -35,23 +35,19 @@ APP := camera_sample
  SRCS := \
  	camera_unit_sample.cpp \
@@ -1111,10 +1112,10 @@ Index: jetson_multimedia_api/samples/unittest_samples/camera_unit_sample/Makefil
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/unittest_samples/decoder_unit_sample/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/unittest_samples/decoder_unit_sample/Makefile
-+++ jetson_multimedia_api/samples/unittest_samples/decoder_unit_sample/Makefile
+diff --git a/samples/unittest_samples/decoder_unit_sample/Makefile b/samples/unittest_samples/decoder_unit_sample/Makefile
+index 16b6a0a..e6f813a 100644
+--- a/samples/unittest_samples/decoder_unit_sample/Makefile
++++ b/samples/unittest_samples/decoder_unit_sample/Makefile
 @@ -33,23 +33,19 @@ include ../../Rules.mk
  APP := decode_sample
  
@@ -1142,10 +1143,10 @@ Index: jetson_multimedia_api/samples/unittest_samples/decoder_unit_sample/Makefi
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/unittest_samples/encoder_unit_sample/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/unittest_samples/encoder_unit_sample/Makefile
-+++ jetson_multimedia_api/samples/unittest_samples/encoder_unit_sample/Makefile
+diff --git a/samples/unittest_samples/encoder_unit_sample/Makefile b/samples/unittest_samples/encoder_unit_sample/Makefile
+index d372602..f1d6428 100644
+--- a/samples/unittest_samples/encoder_unit_sample/Makefile
++++ b/samples/unittest_samples/encoder_unit_sample/Makefile
 @@ -33,23 +33,19 @@ include ../../Rules.mk
  APP := encode_sample
  
@@ -1173,10 +1174,10 @@ Index: jetson_multimedia_api/samples/unittest_samples/encoder_unit_sample/Makefi
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
-Index: jetson_multimedia_api/samples/unittest_samples/transform_unit_sample/Makefile
-===================================================================
---- jetson_multimedia_api.orig/samples/unittest_samples/transform_unit_sample/Makefile
-+++ jetson_multimedia_api/samples/unittest_samples/transform_unit_sample/Makefile
+diff --git a/samples/unittest_samples/transform_unit_sample/Makefile b/samples/unittest_samples/transform_unit_sample/Makefile
+index 404429b..1ede2ab 100644
+--- a/samples/unittest_samples/transform_unit_sample/Makefile
++++ b/samples/unittest_samples/transform_unit_sample/Makefile
 @@ -33,23 +33,19 @@ include ../../Rules.mk
  APP := transform_sample
  
@@ -1204,3 +1205,6 @@ Index: jetson_multimedia_api/samples/unittest_samples/transform_unit_sample/Make
  
  clean:
  	$(AT)rm -rf $(APP) $(OBJS)
+-- 
+2.25.1
+
