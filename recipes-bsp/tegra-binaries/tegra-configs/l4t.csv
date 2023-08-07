@@ -42,9 +42,6 @@ dir, /lib/firmware/tegra19x
 lib, /lib/firmware/tegra19x/nvhost_nvdec040_ns.fw
 lib, /lib/firmware/tegra19x/nvhost_nvdec040_ns.fw
 lib, /lib/firmware/tegra23x/nvhost_nvdec050_desc_prod.bin
-lib, /usr/lib/aarch64-linux-gnu/tegra/libnvgstreamer-1.0.so
-sym, /usr/lib/aarch64-linux-gnu/libgstreamer-1.0.so.0.1603.99999
-sym, /usr/lib/aarch64-linux-gnu/tegra/libgstreamer-1.0.so.0
 sym, /usr/lib/aarch64-linux-gnu/libv4l2.so.0
 sym, /usr/lib/aarch64-linux-gnu/libv4l2.so.0.0.999999
 sym, /usr/lib/aarch64-linux-gnu/libv4lconvert.so.0.0.999999
@@ -133,6 +130,7 @@ lib, /usr/lib/libgstnvegl-1.0.so.0
 lib, /usr/lib/libgstnvdsseimeta.so.1.0.0
 lib, /usr/lib/libgstnvexifmeta.so
 lib, /usr/lib/libgstnvivameta.so
+lib, /usr/lib/aarch64-linux-gnu/tegra/libgstnvcustomhelper.so.1.0.0
 lib, /usr/lib/libjetsonpower.so
 lib, /usr/lib/libnvargus.so
 lib, /usr/lib/libnvargus_socketclient.so
@@ -261,6 +259,7 @@ sym, /usr/lib/gbm/tegra-udrm_gbm.so
 sym, /usr/lib/gbm/tegra_gbm.so
 sym, /usr/lib/libcuda.so
 sym, /usr/lib/libcuda.so.1
+sym, /usr/lib/aarch64-linux-gnu/tegra/libgstnvcustomhelper.so
 sym, /usr/lib/libgstnvdsseimeta.so.1
 sym, /usr/lib/libgstnvdsseimeta.so
 sym, /usr/lib/libnvbufsurface.so
