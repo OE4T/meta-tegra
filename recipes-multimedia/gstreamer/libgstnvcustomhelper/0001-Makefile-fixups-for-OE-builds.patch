@@ -1,0 +1,74 @@
+From 3ca17db9635a7e9f682c7d4870684fab44ff8e5a Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Wed, 9 Aug 2023 08:42:41 -0700
+Subject: [PATCH] Makefile fixups for OE builds
+
+Upstream-Status: Inappropriate [embedded specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile.public | 28 ++++++++--------------------
+ 1 file changed, 8 insertions(+), 20 deletions(-)
+
+diff --git a/Makefile.public b/Makefile.public
+index 6b97891..cd858fb 100644
+--- a/Makefile.public
++++ b/Makefile.public
+@@ -21,8 +21,8 @@
+ # DEALINGS IN THE SOFTWARE.                                                      
+ ################################################################################ 
+ 
+-CXX:= gcc
+ SRCS:= gst-nvcustomevent.c
++libdir ?= /usr/lib
+ 
+ INCS:= $(wildcard *.h)
+ OUT_DIR ?= .
+@@ -30,38 +30,26 @@ SO_NAME := libgstnvcustomhelper.so
+ LIB:= $(OUT_DIR)/$(SO_NAME)
+ OBJS :=  $(SRCS:%.c=$(OUT_DIR)/%.o)
+ 
+-TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
+-ifeq ($(TARGET_DEVICE),aarch64)
+-  LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-  CFLAGS:=
+-else
+-  NVDS_VERSION ?=6.2
+-  LIB_INSTALL_DIR ?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/
+-  CFLAGS:= -DDS_VERSION=\"6.2.1\"
+-endif
+-
+ CFLAGS+= -fPIC
+- 
++
+ LIBS := -shared -Wl,-no-undefined
+- 
+-LIBS+= -L$(LIB_INSTALL_DIR) -ldl\
+-        -Wl,-rpath,$(LIB_INSTALL_DIR)
+ 
+-PKGS:= gstreamer-1.0 gstreamer-base-1.0 gstreamer-video-1.0
++PKGS:= gstreamer-1.0
+ CFLAGS+= $(shell pkg-config --cflags $(PKGS))
+ LIBS+= $(shell pkg-config --libs $(PKGS))
+ 
+ all: $(LIB)
+ 
+ $(OUT_DIR)/%.o: %.c $(INCS) Makefile
+-	@echo $(CFLAGS)
+-	$(CXX) -c -o $@ $(CFLAGS) $<
++	$(CC) -c -o $@ $(CFLAGS) $<
+ 
+ $(LIB): $(OBJS) Makefile
+-	$(CXX) -o $@ $(OBJS) $(LIBS)
++	$(CC) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
+ 
+ install: $(LIB)
+-	cp -rv $(LIB) $(LIB_INSTALL_DIR)
++	install -d $(DESTDIR)$(libdir)
++	install -m0644 $(LIB) $(DESTDIR)$(libdir)/$(SO_NAME).1.0.0
++	ln -sf $(SO_NAME).1.0.0 $(DESTDIR)$(libdir)/$(SO_NAME)
+ 
+ clean:
+ 	rm -rf $(OBJS) $(LIB)
+-- 
+2.34.1
+
