@@ -22,7 +22,7 @@ S = "${WORKDIR}/vpi2"
 B = "${S}"
 
 DEPENDS = "cuda-cudart libcufft tegra-libraries-multimedia-utils tegra-libraries-multimedia tegra-libraries-eglcore \
-           tegra-libraries-pva tegra-libraries-nvsci tegra-libraries-cuda libnpp"
+           tegra-libraries-pva tegra-libraries-nvsci tegra-libraries-cuda libnpp cupva"
 SYSROOT_DIRS:append = " /opt"
 
 COMPATIBLE_MACHINE = "(tegra)"
@@ -39,8 +39,8 @@ do_install() {
     install -d ${D}${sysconfdir}/ld.so.conf.d
     install -m 0644 ${B}/opt/nvidia/vpi2/etc/ld.so.conf.d/vpi2.conf ${D}${sysconfdir}/ld.so.conf.d/
     install -d ${D}${nonarch_base_libdir}/firmware
-    install -m 0644 ${B}/opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv/pva_auth_allowlist ${D}${nonarch_base_libdir}/firmware/
-    rm -f ${D}/opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv/pva_auth_allowlist
+    install -m 0644 ${B}/opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv/vpi2_pva_auth_allowlist ${D}${nonarch_base_libdir}/firmware/
+    rm -f ${D}/opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv/vpi2_pva_auth_allowlist
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
