@@ -50,7 +50,7 @@ set_efi_var() {
         mkdir -p -m 0700 "$ESPVARDIR" || return 1
         cp "$datatmp" "$ESPVARDIR/${varname}-${guid}" || return 1
     else
-        if [ efivar -n "${guid}-$varname" >/dev/null 2>&1 ] && [ "$write_once" = "write-once" ]; then
+        if efivar -n "${guid}-$varname" >/dev/null 2>&1 && [ "$write_once" = "write-once" ]; then
             return 0
         fi
         local datatmp=$(TMPDIR=$RUNTIME_DIRECTORY mktemp --tmpdir nvcvar.XXXXXX)
