@@ -1,7 +1,7 @@
-From b444b8c909dfe7bb2645f8972499beb81fe26222 Mon Sep 17 00:00:00 2001
+From 5549f0b3ae9a1f11453ce4d745c2ce7d58098063 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Fri, 27 Jan 2023 06:40:49 -0800
-Subject: [PATCH] Fix RCM boot detection
+Subject: [PATCH 2/4] Fix RCM boot detection
 
 PlatformBootOrderLib was identifying any boot device path that
 had an NVIDIA-attached option to it as a 'boot.img' (aka RCM boot).
@@ -25,15 +25,16 @@ Logging levels are also increased in this patch, to make it
 easier to debug with a regular DEBUG mode build.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
 ---
  .../PlatformBootOrderLib.c                    | 37 ++++++++-----------
  .../PlatformBootOrderLib.inf                  |  1 +
  2 files changed, 17 insertions(+), 21 deletions(-)
 
-diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
-index d4cb9f6..42325f8 100644
---- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
-+++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
+diff --git a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
+index d4cb9f6e..42325f84 100644
+--- a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
++++ b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
 @@ -57,7 +57,6 @@ GetDevicePriority (
    EFI_STATUS                    Status;
    CHAR16                        OptionName[sizeof ("Boot####")];
@@ -111,10 +112,10 @@ index d4cb9f6..42325f8 100644
          mBootPriority[BootPriorityIndex].PriorityOrder = Priority;
          Priority++;
          break;
-diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
-index 277692b..403e474 100644
---- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
-+++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
+diff --git a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
+index 277692b3..403e4747 100644
+--- a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
++++ b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
 @@ -34,3 +34,4 @@
    gEfiGlobalVariableGuid
    gNVIDIATokenSpaceGuid

@@ -1,16 +1,17 @@
-From 2e41a04dd4b5b21d4a2858ae59ed982eca3cbfb1 Mon Sep 17 00:00:00 2001
+From 31aaffcda3acdb3cb76cd268003e1ab2ba658d65 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Thu, 26 Jan 2023 03:33:12 -0800
-Subject: [PATCH 2/2] Disable outline atomics in eqos driver
+Subject: [PATCH 1/4] Disable outline atomics in eqos driver
 
+Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
 ---
  Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
-index c6df85a..5a0be64 100644
---- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
-+++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
+diff --git a/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf b/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
+index c6df85ac..5a0be64f 100644
+--- a/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
++++ b/Silicon/NVIDIA/Drivers/EqosDeviceDxe/EqosDeviceDxe.inf
 @@ -110,4 +110,4 @@
  
  [BuildOptions]
