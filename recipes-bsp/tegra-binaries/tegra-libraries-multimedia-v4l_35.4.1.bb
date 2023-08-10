@@ -1,4 +1,4 @@
-L4T_DEB_COPYRIGHT_MD5 = "3d9212d4d5911fa3200298cd55ed6621"
+L4T_DEB_COPYRIGHT_MD5 = "8c84e973feeab684f7575379648f700c"
 DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-multimedia tegra-libraries-multimedia-utils"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-multimedia"
