@@ -1,4 +1,4 @@
-From 071b1a911c21b3a93c573bd121ce280842c06838 Mon Sep 17 00:00:00 2001
+From d5da3cd5e8044adfb0b485061d0fc84bb27c94a4 Mon Sep 17 00:00:00 2001
 From: Samuli Piippo <samuli.piippo@qt.io>
 Date: Tue, 14 Mar 2023 07:54:40 +0000
 Subject: [PATCH] Use bfd linker
@@ -14,15 +14,15 @@ Builds fails when using gold linker:
 12.2.0/ld: internal error in do_layout, at ../../gold/object.cc:1939
 | collect2: error: ld returned 1 exit status
 
-
+Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
 ---
- edk2/BaseTools/Conf/tools_def.template | 2 +-
+ BaseTools/Conf/tools_def.template | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/edk2/BaseTools/Conf/tools_def.template b/edk2/BaseTools/Conf/tools_def.template
-index 5ed1981..945c025 100755
---- a/edk2/BaseTools/Conf/tools_def.template
-+++ b/edk2/BaseTools/Conf/tools_def.template
+diff --git a/BaseTools/Conf/tools_def.template b/BaseTools/Conf/tools_def.template
+index 5ed19810b7..945c025291 100755
+--- a/BaseTools/Conf/tools_def.template
++++ b/BaseTools/Conf/tools_def.template
 @@ -1858,7 +1858,7 @@ DEFINE GCC_AARCH64_CC_XIPFLAGS     = -mstrict-align -mgeneral-regs-only
  DEFINE GCC_DLINK_FLAGS_COMMON      = -nostdlib --pie
  DEFINE GCC_DLINK2_FLAGS_COMMON     = -Wl,--script=$(EDK_TOOLS_PATH)/Scripts/GccBase.lds
@@ -32,3 +32,6 @@ index 5ed1981..945c025 100755
  DEFINE GCC_ARM_DLINK_FLAGS         = DEF(GCC_ARM_AARCH64_DLINK_COMMON) -z common-page-size=0x20 -Wl,--pic-veneer
  DEFINE GCC_AARCH64_DLINK_FLAGS     = DEF(GCC_ARM_AARCH64_DLINK_COMMON) -z common-page-size=0x20
  DEFINE GCC_ARM_AARCH64_ASLDLINK_FLAGS = -Wl,--defsym=PECOFF_HEADER_SIZE=0 DEF(GCC_DLINK2_FLAGS_COMMON) -z common-page-size=0x20
+-- 
+2.34.1
+

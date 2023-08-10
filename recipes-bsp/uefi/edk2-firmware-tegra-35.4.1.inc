@@ -29,10 +29,13 @@ SRC_URI += "\
 
 SRCREV_FORMAT = "edk2_edk2-platforms_edk2-non-osi_edk2-nvidia_edk2-nvidia-non-osi"
 
-SRC_URI += "file://0002-Disable-outline-atomics-in-eqos-driver.patch;patchdir=.."
-SRC_URI += "file://0003-Fix-RCM-boot-detection.patch;patchdir=.."
-SRC_URI += "file://0004-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=.."
-SRC_URI += "file://0005-Use-bfd-linker.patch;patchdir=.."
+# edk2-nvidia
+SRC_URI += "file://0001-Disable-outline-atomics-in-eqos-driver.patch;patchdir=../edk2-nvidia"
+SRC_URI += "file://0002-Fix-RCM-boot-detection.patch;patchdir=../edk2-nvidia"
+SRC_URI += "file://0003-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=../edk2-nvidia"
+
+# edk2
+SRC_URI += "file://0001-Use-bfd-linker.patch;patchdir=../edk2"
 
 S = "${WORKDIR}/edk2-tegra/edk2"
 
