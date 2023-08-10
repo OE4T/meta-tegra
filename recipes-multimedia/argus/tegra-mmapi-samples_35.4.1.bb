@@ -27,7 +27,7 @@ export GENCODE_FLAGS = "${CUDA_NVCC_ARG_FLAGS}"
 EXTRA_OEMAKE = 'VERBOSE=1 ${PACKAGECONFIG_CONFARGS} NVCCFLAGS="--shared -ccbin ${CUDAHOSTCXX} ${@cuda_extract_compiler('CXX', d)[1]}"'
 
 do_delete_headers() {
-    rm -rf ${S}/include/libjpeg-8b ${S}/include/nvbuf_utils.h
+    rm -rf ${S}/include/libjpeg-8b
 }
 
 addtask delete_headers before do_patch after do_unpack
