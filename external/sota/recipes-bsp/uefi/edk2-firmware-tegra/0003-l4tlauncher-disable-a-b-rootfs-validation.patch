@@ -1,0 +1,40 @@
+From 739813f08471028eae87002e19f55e8b59083fd6 Mon Sep 17 00:00:00 2001
+From: Ricardo Salveti <ricardo@foundries.io>
+Date: Mon, 27 Mar 2023 22:10:53 -0300
+Subject: [PATCH 3/3] l4tlauncher: disable a/b rootfs validation
+
+We don't support a/b rootfs, so disable the runtime bootcount and slot
+validation to avoid requiring nvbootctrl to be called during boot (to
+clear up the variables).
+
+This is to avoid forcing the device to boot in recovery after 3 boots
+without confirmation from nvbootctrl.
+
+Signed-off-by: Ricardo Salveti <ricardo@foundries.io>
+Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
+---
+ Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
+index a2f36473..ccecfd72 100644
+--- a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
++++ b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
+@@ -1530,10 +1530,10 @@ ProcessBootParams (
+   }
+ 
+   // Find valid Rootfs Chain. If not, select recovery kernel
+-  Status = ValidateRootfsStatus (BootParams);
+-  if (EFI_ERROR (Status)) {
+-    ErrorPrint (L"Failed to validate rootfs status: %r\r\n", Status);
+-  }
++  //Status = ValidateRootfsStatus (BootParams);
++  //if (EFI_ERROR (Status)) {
++  //  ErrorPrint (L"Failed to validate rootfs status: %r\r\n", Status);
++  //}
+ 
+   // Store the current boot chain in volatile variable to allow chain loading
+   Status = gRT->SetVariable (BOOT_OS_VARIABLE_NAME, &gNVIDIAPublicVariableGuid, EFI_VARIABLE_BOOTSERVICE_ACCESS|EFI_VARIABLE_RUNTIME_ACCESS, sizeof (BootParams->BootChain), &BootParams->BootChain);
+-- 
+2.34.1
+
