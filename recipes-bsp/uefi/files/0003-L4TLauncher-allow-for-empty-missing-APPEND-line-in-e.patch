@@ -1,18 +1,19 @@
-From d0bad270fe96822f3c6021a4f8ee352d39711af5 Mon Sep 17 00:00:00 2001
+From 9e77fe4f3a34eda6d131e33f9a5f11fbaa34d423 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 4 Feb 2023 06:31:24 -0800
-Subject: [PATCH] L4TLauncher: allow for empty/missing APPEND line in
+Subject: [PATCH 3/4] L4TLauncher: allow for empty/missing APPEND line in
  extlinux.conf
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
 ---
  .../Application/L4TLauncher/L4TLauncher.c     | 30 ++++++++++---------
  1 file changed, 16 insertions(+), 14 deletions(-)
 
-diff --git edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
-index 2e1849b..ac53522 100644
---- edk2-tegra.a/edk2-nvidia/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
-+++ edk2-tegra.b/edk2-nvidia/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
+diff --git a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
+index 2e1849b8..ac53522d 100644
+--- a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
++++ b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
 @@ -1265,21 +1265,23 @@ ExtLinuxBoot (
    EFI_HANDLE                 KernelHandle      = NULL;
    EFI_LOADED_IMAGE_PROTOCOL  *ImageInfo;
