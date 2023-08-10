@@ -1,0 +1,52 @@
+From ade039b7f95ca86f9bc8c574e15f618ebec33f35 Mon Sep 17 00:00:00 2001
+From: Ricardo Salveti <ricardo@foundries.io>
+Date: Mon, 27 Mar 2023 22:08:46 -0300
+Subject: [PATCH 2/3] l4tlauncher: support booting otaroot-based partitions
+
+Besides looking for the APP part-name (standard in emmc), also look for
+otaroot-based partitions when searching for extlinux configuration. This
+allows the device to boot from OTA-enabled rootfs.
+
+Signed-off-by: Ricardo Salveti <ricardo@foundries.io>
+Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
+---
+ Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c | 9 ++++++---
+ Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h | 1 +
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
+index 7bb70625..a2f36473 100644
+--- a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
++++ b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
+@@ -1024,10 +1024,13 @@ ProcessExtLinuxConfig (
+     return EFI_INVALID_PARAMETER;
+   }
+ 
+-  Status = FindPartitionInfo (DeviceHandle, ROOTFS_BASE_NAME, BootChain, NULL, RootFsHandle);
++  Status = FindPartitionInfo (DeviceHandle, OTAROOTFS_BASE_NAME, BootChain, NULL, RootFsHandle);
+   if (EFI_ERROR (Status)) {
+-    ErrorPrint (L"%a: Unable to find partition info\r\n", __FUNCTION__);
+-    return Status;
++    Status = FindPartitionInfo (DeviceHandle, ROOTFS_BASE_NAME, BootChain, NULL, RootFsHandle);
++    if (EFI_ERROR (Status)) {
++      ErrorPrint (L"%a: Unable to find partition info\r\n", __FUNCTION__);
++      return Status;
++    }
+   }
+ 
+   Status = OpenAndReadFileToBuffer (
+diff --git a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h
+index 4c3dedff..74ace3de 100644
+--- a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h
++++ b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h
+@@ -31,6 +31,7 @@
+ #define BOOT_OS_VARIABLE_NAME  L"BootChainOsCurrent"
+ 
+ #define ROOTFS_BASE_NAME        L"APP"
++#define OTAROOTFS_BASE_NAME     L"otaroot"
+ #define BOOTIMG_BASE_NAME       L"kernel"
+ #define BOOTIMG_DTB_BASE_NAME   L"kernel-dtb"
+ #define RECOVERY_BASE_NAME      L"recovery"
+-- 
+2.34.1
+
