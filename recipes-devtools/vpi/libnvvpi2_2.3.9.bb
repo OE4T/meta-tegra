@@ -39,7 +39,7 @@ do_install() {
     install -d ${D}${sysconfdir}/ld.so.conf.d
     install -m 0644 ${B}/opt/nvidia/vpi2/etc/ld.so.conf.d/vpi2.conf ${D}${sysconfdir}/ld.so.conf.d/
     install -d ${D}${nonarch_base_libdir}/firmware
-    install -m 0644 ${B}/opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv/vpi2_pva_auth_allowlist ${D}${nonarch_base_libdir}/firmware/
+    install -m 0644 ${B}/opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv/vpi2_pva_auth_allowlist ${D}${nonarch_base_libdir}/firmware/pva_auth_allowlist
     rm -f ${D}/opt/nvidia/vpi2/lib/aarch64-linux-gnu/priv/vpi2_pva_auth_allowlist
 }
 
