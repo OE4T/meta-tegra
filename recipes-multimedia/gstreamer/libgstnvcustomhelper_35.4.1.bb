@@ -27,4 +27,6 @@ do_install() {
 }
 RPROVIDES:${PN} += "libgstnvcustomhelper.so()(64bit)"
 
-
+FILES:${PN} = "${libdir}/libgstnvcustomhelper.so*"
+FILES_SOLIBSDEV = ""
+INSANE_SKIP:${PN} = "dev-so"
