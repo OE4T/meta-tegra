@@ -613,6 +613,16 @@ END
         chmod +x burnfuses.sh
     fi
 
+    if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
+        rm -f donvme.sh
+        cat > donvme.sh <<END
+#!/bin/sh
+./nvflashxmlparse --extract --type rootfs --change-device-type=nvme -o external-nvme-flash.xml.tmp external-flash.xml.in
+MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} fuselevel=\${fuselevel:-fuselevel_production} ./tegra234-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS external-nvme-flash.xml.tmp ${DTBFILE} ${EMMC_BCT} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+END
+        chmod +x donvme.sh
+    fi
+
     rm -f dosdcard.sh
     cat > dosdcard.sh <<END
 #!/bin/sh
