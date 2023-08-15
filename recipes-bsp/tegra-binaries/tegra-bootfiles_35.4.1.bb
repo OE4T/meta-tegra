@@ -187,6 +187,7 @@ do_install:append:tegra234() {
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra234-bpmp-*.dtb ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra234* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/bpmp_t234-*.bin ${D}${datadir}/tegraflash/
+    install -m 0644 ${S}/bootloader/badpage.bin ${D}${datadir}/tegraflash/
 }
 
 PACKAGES = "${PN}-dev"
