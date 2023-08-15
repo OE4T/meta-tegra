@@ -12,6 +12,7 @@ Boards supported:
 * Jetson Orin NX 16GB (p3767-0000) in Xavier NX (p3509) carrier
 * Jetson Orin NX 16GB (p3767-0000) in Orin Nano (p3768) carrier
 * Jetson Orin Nano development kit
+* Jetson AGX Orin Industrial 64GB (P3701-0008) in Orin AGX (P3737) carrier
 
 Community supported:
 * Clara AGX development kit
