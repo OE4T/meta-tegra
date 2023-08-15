@@ -316,6 +316,7 @@ BOOTFILES:tegra234 = "\
     readinfo_t234_min_prod.xml \
     camera-rtcpu-sce.img \
     fsi-fw-ecc.bin \
+    badpage.bin \
 "
 
 copy_dtbs() {
