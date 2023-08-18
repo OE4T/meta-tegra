@@ -2,7 +2,7 @@ DESCRIPTION = "Generate UEFI capsules for bup paylods"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
-inherit l4t_bsp tegra-bup
+inherit l4t_bsp tegra-bup deploy
 
 COMPATIBLE_MACHINE = "(tegra)"
 
@@ -71,3 +71,21 @@ do_install() {
 
 FILES:${PN} += "${CAPSULE_DIR}"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
+do_deploy() {
+    install -d ${DEPLOYDIR}
+    if [ -e ${B}/tegra-bl.cap ]; then
+	BL_NAME=${TNSPEC_MACHINE}-tegra-bl.cap
+	install -m 0644 ${B}/tegra-bl.cap ${DEPLOYDIR}/$BL_NAME
+	ln -s -r ${DEPLOYDIR}/$BL_NAME ${DEPLOYDIR}/tegra-bl.cap
+    fi
+    if [ -e ${B}/tegra-kernel.cap ]; then
+	KERNEL_NAME=${TNSPEC_MACHINE}-tegra-kernel.cap
+	install -m 0644 ${B}/tegra-kernel.cap ${DEPLOYDIR}/$KERNEL_NAME
+	ln -s -r ${DEPLOYDIR}/$KERNEL_NAME ${DEPLOYDIR}/tegra-kernel.cap
+    fi
+}
+
+addtask deploy after do_install
+
+do_compile[depends] += "${@bup_dependency(d)}"
