@@ -33,8 +33,12 @@ def extract_sm(d):
             return parts[1].split('_')[1]
     return ''
 
+# XXX
+#   Removed 0_Simple/UnifiedMemoryStreams
+#   until the compilation failure with glibc 2.38
+#   can be resolved
+# XXX
 CUDA_SAMPLES ?= " \
-    0_Simple/UnifiedMemoryStreams \
     1_Utilities/deviceQuery \
 "
 
