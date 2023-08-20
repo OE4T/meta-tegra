@@ -23,8 +23,8 @@ REQUIRED_DISTRO_FEATURES = "x11 opengl"
 
 CXXFLAGS += "${CUDA_CXXFLAGS}"
 export NVCC = "nvcc"
-export GENCODE_FLAGS = "${CUDA_NVCC_ARG_FLAGS}"
-EXTRA_OEMAKE = 'VERBOSE=1 ${PACKAGECONFIG_CONFARGS} NVCCFLAGS="--shared -ccbin ${CUDAHOSTCXX} ${@cuda_extract_compiler('CXX', d)[1]}"'
+export GENCODE_FLAGS = "${CUDA_NVCC_ARCH_FLAGS}"
+EXTRA_OEMAKE = 'VERBOSE=1 ${PACKAGECONFIG_CONFARGS} NVCCFLAGS="--shared ${CUDA_NVCC_PATH_FLAGS} -ccbin ${CUDAHOSTCXX} ${@cuda_extract_compiler('CXX', d)[1]}"'
 
 do_delete_headers() {
     rm -rf ${S}/include/libjpeg-8b ${S}/include/nvbuf_utils.h
