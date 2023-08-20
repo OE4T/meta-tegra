@@ -1,7 +1,7 @@
 inherit cuda-gcc
 CUDA_ARCHITECTURES ??= ""
 CUDA_NVCC_COMPAT_FLAGS ??= ""
-CUDA_NVCC_PATH_FLAGS ??= "--include-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include --library-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/${baselib}"
+CUDA_NVCC_PATH_FLAGS ??= "--include-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include --library-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/${baselib} -Xcompiler -isystem,=${includedir}/cuda-compat-workarounds"
 CUDA_NVCC_EXTRA_FLAGS ??= ""
 CUDA_NVCC_FLAGS ?= "${CUDA_NVCC_ARCH_FLAGS} ${CUDA_NVCC_COMPAT_FLAGS} ${CUDA_NVCC_PATH_FLAGS} ${CUDA_NVCC_EXTRA_FLAGS}"
 
