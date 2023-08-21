@@ -36,4 +36,4 @@ TEGRA_AUDIO_DEVICE ?= "tegra-hda-p3767-p3509"
 OTABOOTDEV ?= "/dev/mtdblock0"
 OTAGPTDEV ?= "/dev/mtdblock0"
 
-TEGRA_PLUGIN_MANAGER_OVERLAYS ?= "tegra234-p3767-overlay.dtbo"
+TEGRA_PLUGIN_MANAGER_OVERLAYS ?= "tegra234-p3767-overlay.dtbo tegra234-p3678-overlay.dtbo"
