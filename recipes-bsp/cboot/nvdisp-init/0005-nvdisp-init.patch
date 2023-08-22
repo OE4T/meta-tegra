@@ -412,7 +412,7 @@
  #
  # NVIDIA CORPORATION and its licensors retain all intellectual property
  # and proprietary rights in and to this software and related documentation
-@@ -11,22 +11,8 @@
+@@ -11,22 +11,9 @@
  # Add any needed GLOBAL_DEFINES here
  GLOBAL_DEFINES += \
  	CONFIG_OS_IS_L4T=1 \
@@ -431,6 +431,7 @@
 -MODULE_DEPS +=	\
 -	lib/lwip \
 -	lib/console
++	CONFIG_ENABLE_DP=1 \
 +	CONFIG_ENABLE_NVDISP_INIT=1 \
 +	CONFIG_NVDISP_SIZE=0x60000 \
 +	CONFIG_NVDISP_UEFI_SIZE=0x300000
@@ -609,4 +610,240 @@
 -	CONFIG_ENABLE_WAR_CBOOT_STAGED_SCRUBBING=1 \
  	CONFIG_SKIP_GPCDMA_RESET=1 \
  	CONFIG_DEBUG_LOGLEVEL=TEGRABL_LOG_INFO
- 
+
+--- a/bootloader/partner/common/drivers/display/edid/tegrabl_modes.c
++++ b/bootloader/partner/common/drivers/display/edid/tegrabl_modes.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
++ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
+  *
+  * NVIDIA Corporation and its licensors retain all intellectual property
+  * and proprietary rights in and to this software, related documentation
+@@ -56,6 +56,28 @@
+	2, /* VIC */
+ };
+
++struct hdmi_mode s_1024_768_0 = {
++	1024,  /* width */
++	768,  /* height */
++	24,  /* bpp */
++	(60 << 16),  /* refresh */
++	65000000,  /* frequency in hz */
++	NVDISP_MODE_AVI_M_4_3,  /* flags */
++	{
++		1,  /* h_ref_to_sync */
++		1,  /* v_ref_to_sync */
++		136,  /* h_sync_width */
++		6,  /* v_sync_width */
++		160,  /* h_back_porch */
++		29,  /* v_back_porch */
++		1024,  /* h_disp_active */
++		768,  /* v_disp_active */
++		24,  /* h_front_porch */
++		3,  /* v_front_porch */
++	},
++	0, /* VIC */
++};
++
+ struct hdmi_mode s_1280_720_4 = {
+	1280,  /* width */
+	720,  /* height */
+@@ -371,6 +393,7 @@
+ struct hdmi_mode *s_hdmi_modes[] = {
+	&s_640_480_1,
+	&s_720_480_2,
++	&s_1024_768_0,
+	&s_1280_720_4,
+	&s_1920_1080_16,
+	&s_720_576_17,
+
+--- a/bootloader/partner/common/drivers/display/edid/tegrabl_modes.h
++++ b/bootloader/partner/common/drivers/display/edid/tegrabl_modes.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
++ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
+  *
+  * NVIDIA Corporation and its licensors retain all intellectual property
+  * and proprietary rights in and to this software, related documentation
+@@ -17,6 +17,8 @@
+
+ extern struct hdmi_mode s_720_480_2;
+
++extern struct hdmi_mode s_1024_768_0;
++
+ extern struct hdmi_mode s_1280_720_4;
+
+ extern struct hdmi_mode s_1920_1080_16;
+
+--- a/bootloader/partner/common/drivers/display/edid/tegrabl_mode_selection.c
++++ b/bootloader/partner/common/drivers/display/edid/tegrabl_mode_selection.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2016-2017, NVIDIA CORPORATION.  All rights reserved.
++ * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
+  *
+  * NVIDIA Corporation and its licensors retain all intellectual property
+  * and proprietary rights in and to this software, related documentation
+@@ -61,7 +61,7 @@
+		}
+	}
+
+-	q = s_640_480_1;
++	q = s_1024_768_0;    /* Minimum mode that we support that works w/UEFI */
+	for (i = 0; i < monitor_info->n_modes; i++) {
+		m = monitor_info->modes[i];
+		pr_info("width = %d, height = %d, frequency = %d\n", m.width, m.height,
+
+--- a/bootloader/partner/common/drivers/display/dp/tegrabl_dp.c
++++ b/bootloader/partner/common/drivers/display/dp/tegrabl_dp.c
+@@ -1,5 +1,5 @@
+  /*
+-  * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
++  * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
+   *
+   * NVIDIA Corporation and its licensors retain all intellectual property
+   * and proprietary rights in and to this software, related documentation
+@@ -659,9 +659,15 @@
+	if (tp == TRAINING_PATTERN_DISABLE)
+		tegrabl_dp_dpcd_write(dp, DPCD_TRAINING_PATTERN_SET,
+							  (tp | DPCD_TRAINING_PATTERN_SET_SC_DISABLED_F));
+-	else
+-		tegrabl_dp_dpcd_write(dp, DPCD_TRAINING_PATTERN_SET,
+-							  (tp | DPCD_TRAINING_PATTERN_SET_SC_DISABLED_T));
++	else {
++		if (tp == TRAINING_PATTERN_4) {
++			tegrabl_dp_dpcd_write(dp, DPCD_TRAINING_PATTERN_SET,
++					(0x7 | DPCD_TRAINING_PATTERN_SET_SC_DISABLED_F));
++		} else {
++			tegrabl_dp_dpcd_write(dp, DPCD_TRAINING_PATTERN_SET,
++					(tp | DPCD_TRAINING_PATTERN_SET_SC_DISABLED_T));
++		}
++	}
+
+	tegrabl_sor_tpg(dp->sor, tp, n_lanes);
+ }
+
+--- a/bootloader/partner/common/drivers/display/dp/tegrabl_dp_lt.c
++++ b/bootloader/partner/common/drivers/display/dp/tegrabl_dp_lt.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2017-2019, NVIDIA CORPORATION.  All rights reserved.
++ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
+  *
+  * NVIDIA Corporation and its licensors retain all intellectual property
+  * and proprietary rights in and to this software, related documentation
+@@ -603,6 +603,7 @@
+	bool ce_done = true;
+	bool cur_hpd;
+	tegrabl_error_t ret = TEGRABL_NO_ERROR;
++	uint32_t val;
+
+	CHECK_RET(tegrabl_dpaux_hpd_status(lt_data->dp->hdpaux, &cur_hpd));
+
+@@ -615,6 +616,34 @@
+		goto done;
+	}
+
++	/*
++	 * On T194, the HW pattern generator sends the RD_RESET (running
++	 * disparity reset) signal one clock cycle too early. This specifically
++	 * affects TPS4 since TPS4 requires scrambling, so whatever symbol is
++	 * sent during this early cycle will be random. As a result, the RD of
++	 * the first symbol of TPS4 will be random as well.
++	 *
++	 * In order to WAR this issue, we will send a custom BS (blanking start)
++	 * pattern when switching from TPS1 to TPS4 during equalization in order
++	 * to control what the RD of the "early symbol" will be.
++	 */
++#define BS_DISPARITY_RESET_PATTERN_1 0x1BC6F1BC
++#define BS_DISPARITY_RESET_PATTERN_2 0xC6F1BC6F
++#define BS_DISPARITY_RESET_PATTERN_3 0x6F1B
++
++	if (lt_data->dp->link_cfg.tps == TRAINING_PATTERN_4) {
++		sor_writel(lt_data->dp->sor, SOR_NV_PDISP_SOR_DP_LQ_CSTM0_0 + lt_data->dp->sor->portnum, BS_DISPARITY_RESET_PATTERN_1);
++		sor_writel(lt_data->dp->sor, SOR_NV_PDISP_SOR_DP_LQ_CSTM1_0 + lt_data->dp->sor->portnum, BS_DISPARITY_RESET_PATTERN_2);
++		sor_writel(lt_data->dp->sor, SOR_NV_PDISP_SOR_DP_LQ_CSTM2_0 + lt_data->dp->sor->portnum, BS_DISPARITY_RESET_PATTERN_3);
++
++		val = sor_readl(lt_data->dp->sor, SOR_NV_PDISP_SOR_DP_CONFIG0_0 + lt_data->dp->sor->portnum);
++		val = NV_FLD_SET_DRF_DEF(SOR_NV_PDISP, SOR_DP_CONFIG0, RD_RESET_VAL,
++				POSITIVE, val);
++		sor_writel(lt_data->dp->sor, (SOR_NV_PDISP_SOR_DP_CONFIG0_0 + lt_data->dp->sor->portnum), val);
++
++		tegrabl_sor_tpg(lt_data->dp->sor, TRAINING_PATTERN_BS_CSTM, lt_data->n_lanes);
++	}
++
+	CHECK_RET(set_lt_tpg(lt_data, lt_data->dp->link_cfg.tps));
+
+	wait_aux_training(lt_data, false);
+
+--- a/bootloader/partner/common/drivers/display/sor/tegrabl_sor_dp.c
++++ b/bootloader/partner/common/drivers/display/sor/tegrabl_sor_dp.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
++ * Copyright (c) 2017-2022, NVIDIA CORPORATION.  All rights reserved.
+  *
+  * NVIDIA Corporation and its licensors retain all intellectual property
+  * and proprietary rights in and to this software, related documentation
+@@ -25,27 +25,29 @@
+
+ void tegrabl_sor_tpg(struct sor_data *sor, uint32_t tp, uint32_t n_lanes)
+ {
+-	uint32_t const tbl[][2] = {
++	uint32_t const tbl[][3] = {
+		/* ansi8b/10b encoded, scrambled */
+-		{1, 1}, /* no pattern, training not in progress */
+-		{1, 0}, /* training pattern 1 */
+-		{1, 0}, /* training pattern 2 */
+-		{1, 0}, /* training pattern 3 */
+-		{1, 0}, /* D102 */
+-		{1, 1}, /* SBLERRRATE */
+-		{0, 0}, /* PRBS7 */
+-		{0, 0}, /* CSTM */
+-		{1, 1}, /* HBR2_COMPLIANCE */
++		{0, 1, 1}, /* no pattern, training not in progress */
++		{1, 1, 0}, /* training pattern 1 */
++		{2, 1, 0}, /* training pattern 2 */
++		{3, 1, 0}, /* training pattern 3 */
++		{4, 1, 0}, /* D102 */
++		{5, 1, 1}, /* SBLERRRATE */
++		{6, 0, 0}, /* PRBS7 */
++		{7, 0, 0}, /* CSTM */
++		{8, 1, 1}, /* HBR2_COMPLIANCE */
++		{11, 1, 1}, /* Training pattern 4 */
++		{7, 1, 1}, /* BS_CSTM */
+	};
+	uint32_t cnt;
+	uint32_t val = 0;
+
+	for (cnt = 0; cnt < n_lanes; cnt++) {
+		uint32_t tp_shift = NV_SOR_DP_TPG_LANE1_PATTERN_SHIFT * cnt;
+-		val |= tp << tp_shift |
+-			tbl[tp][0] << (tp_shift +
+-			NV_SOR_DP_TPG_LANE0_CHANNELCODING_SHIFT) |
++		val |= tbl[tp][0] << tp_shift |
+			tbl[tp][1] << (tp_shift +
++			NV_SOR_DP_TPG_LANE0_CHANNELCODING_SHIFT) |
++			tbl[tp][2] << (tp_shift +
+			NV_SOR_DP_TPG_LANE0_SCRAMBLEREN_SHIFT);
+	}
+
+--- a/bootloader/partner/common/drivers/display/sor/tegrabl_sor_dp.h
++++ b/bootloader/partner/common/drivers/display/sor/tegrabl_sor_dp.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2017-2018, NVIDIA CORPORATION.  All rights reserved.
++ * Copyright (c) 2017-2022 NVIDIA CORPORATION.  All rights reserved.
+  *
+  * NVIDIA Corporation and its licensors retain all intellectual property
+  * and proprietary rights in and to this software, related documentation
+@@ -45,6 +45,7 @@
+ #define TRAINING_PATTERN_HBR2_COMPLIANCE 8
+ /* newly added for T19x */
+ #define TRAINING_PATTERN_4 9
++#define TRAINING_PATTERN_BS_CSTM 10
+
+ /**
+  *  @brief Program training pattern in Sor register
