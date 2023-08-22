@@ -14,9 +14,9 @@ COMPILER_CMD  = "${@d.getVar('CXX_FOR_CUDA').split()[0]}"
 CMAKE_CUDA_ARCHITECTURES = "${@d.getVar('CUDA_ARCHITECTURES') if d.getVar('CUDA_ARCHITECTURES') else 'OFF'}"
 
 def arch_flags(d):
-    archflags = d.getVar('TARGET_CC_ARCH')
+    archflags = [flag for flag in (d.getVar('TARGET_CC_ARCH') or '').split() if not flag.startswith('-mbranch-protection')]
     if archflags:
-        return "-Xcompiler " + ','.join(archflags.split())
+        return "-Xcompiler " + ','.join(archflags)
     return ""
 
 do_compile() {
