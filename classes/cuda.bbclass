@@ -14,7 +14,7 @@ CUDA_LDFLAGS = "\
 
 LDFLAGS:prepend:cuda = "${TOOLCHAIN_OPTIONS} "
 LDFLAGS:append:cuda = " ${CUDA_LDFLAGS}"
-DEBUG_FLAGS:remove:cuda = "-fcanon-prefix-map"
+DEBUG_PREFIX_MAP:remove:cuda = "-fcanon-prefix-map"
 
 def cuda_extract_compiler(compiler, d, prefix='-Xcompiler '):
     args = d.getVar(compiler).split()
