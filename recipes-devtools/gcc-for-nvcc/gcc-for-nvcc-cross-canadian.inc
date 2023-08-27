@@ -152,7 +152,7 @@ do_install () {
 		do
 			d=${D}${bindir}/../${TARGET_ARCH}$v-$i
 			install -d $d
-			for j in ${TARGET_PREFIX}gcc${EXEEXT} ${TARGET_PREFIX}g++${EXEEXT}
+			for j in ${TARGET_PREFIX}gcc-${BINV}${EXEEXT} ${TARGET_PREFIX}g++-${BINV}${EXEEXT}
 			do
 				p=${TARGET_ARCH}$v-$i-`echo $j | sed -e s,${TARGET_PREFIX},,`
 				case $i in
