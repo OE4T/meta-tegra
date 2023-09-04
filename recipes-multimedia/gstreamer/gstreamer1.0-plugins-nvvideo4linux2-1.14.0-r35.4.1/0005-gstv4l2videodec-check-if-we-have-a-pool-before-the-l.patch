@@ -1,6 +1,6 @@
-From 354f881412547c397186e3af63160a86bee2f9f8 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Sun, 6 Aug 2023 23:18:52 +0100
+From d7ad6c853a9df7fec6472b02ba3129054624c117 Mon Sep 17 00:00:00 2001
+From: Jose Quaresma <quaresma.jose@gmail.com>
+Date: Sun, 8 Nov 2020 12:49:03 +0000
 Subject: [PATCH 5/7] gstv4l2videodec: check if we have a pool before the
  locking in video decoder set format
 
