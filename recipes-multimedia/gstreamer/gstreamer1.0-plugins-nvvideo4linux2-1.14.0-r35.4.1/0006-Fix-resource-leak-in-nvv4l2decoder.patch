@@ -1,6 +1,6 @@
-From 91c2c36b91d37137ddcdeed24af68dde6d10daf2 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Sun, 6 Aug 2023 23:20:03 +0100
+From 6812a3e081d5ec48d4881c626c532333d2c48d92 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 27 Sep 2021 05:22:43 -0700
 Subject: [PATCH 6/7] Fix resource leak in nvv4l2decoder
 
 See: https://forums.developer.nvidia.com/t/175198/11

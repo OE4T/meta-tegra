@@ -1,6 +1,6 @@
-From 53590990764e58b51210d9054c2e1383ea9a10ef Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Sun, 6 Aug 2023 23:09:58 +0100
+From e44664958ad6154c95d559011bc33c38751f9932 Mon Sep 17 00:00:00 2001
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Date: Fri, 26 Jun 2020 11:05:25 -0400
 Subject: [PATCH 3/7] v4l2bufferpool: Avoid set_flushing warning
 
 The gst_buffer_pool_set_flushing() warns when that function is called
