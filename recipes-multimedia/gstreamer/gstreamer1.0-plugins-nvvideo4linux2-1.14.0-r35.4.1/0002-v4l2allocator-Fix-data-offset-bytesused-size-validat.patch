@@ -1,6 +1,6 @@
-From 1021c771cde62732a49315196e721662ff974502 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Sun, 6 Aug 2023 23:08:51 +0100
+From 114ca7843aea535a1621518f4f392a40109568e6 Mon Sep 17 00:00:00 2001
+From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
+Date: Fri, 26 Jun 2020 09:53:13 -0400
 Subject: [PATCH 2/7] v4l2allocator: Fix data offset / bytesused size
  validation
 
