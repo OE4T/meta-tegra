@@ -14,6 +14,7 @@ Options:
   -h|--help             Displays this usage information
   --skip-bootloader     Skip boot partition programming
   --usb-instance        USB instance of Jetson device
+  --format-mmc-part     Format (ext4) mmc partition
   --erase-nvme          Erase NVME drive during flashing
 
 Options passed through to flash helper:
@@ -44,10 +45,11 @@ instance_args=
 keyfile=
 sbk_keyfile=
 skip_bootloader=0
+format_mmc_part=
 early_final_status=0
 erase_nvme=0
 
-ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,erase-nvme" -o "u:v:h" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,format-mmc-part:,erase-nvme" -o "u:v:h" -- "$@")
 if [ $? -ne 0 ]; then
     usage >&2
     exit 1
@@ -64,6 +66,10 @@ while true; do
 	--skip-bootloader)
 	    skip_bootloader=1
 	    shift
+	    ;;
+	--format-mmc-part)
+	    format_mmc_part="$2"
+	    shift 2
 	    ;;
 	--erase-nvme)
 	    erase_nvme=1
@@ -354,6 +360,9 @@ generate_flash_package() {
 	cp bootloader_staging/* "$mnt/flashpkg/bootloader"
     fi
 
+    if [ -n "$format_mmc_part" ]; then
+	echo "format-mmc-part $format_mmc_part" >> "$mnt/flashpkg/conf/command_sequence"
+    fi
     if [ $erase_nvme -eq 1 ]; then
 	echo "erase-nvme" >> "$mnt/flashpkg/conf/command_sequence"
     fi
