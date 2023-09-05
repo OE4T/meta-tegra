@@ -158,6 +158,14 @@ else
 		    echo "/dev/mmcblk0 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
 		fi
 		;;
+	    format-mmc-part)
+		mmcpart=$args
+		if [ -b /dev/$mmcpart ]; then
+		    mkfs.ext4 /dev/$mmcpart 2>&1 > /tmp/flashpkg/flashpkg/logs/format-mmc-part.log
+		else
+		    echo "$mmcpart does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/format-mmc-part.log
+		fi
+		;;
 	    erase-nvme)
 		if [ -b /dev/nvme0n1 ]; then
 		    blkdiscard -f /dev/nvme0n1 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-nvme.log
