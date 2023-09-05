@@ -328,10 +328,10 @@ copy_dtbs() {
             bbnote "Overwriting $destination/$dtbf with KERNEL_DEVICETREE content"
             rm -f $destination/$dtbf $destination/$dtbf.signed
         fi
-        bbnote "Copying KERNEL_DEVICETREE entry $dtb to $destination"
-        cp -L "${DEPLOY_DIR_IMAGE}/$dtb" $destination/$dtbf
+        bbnote "Copying KERNEL_DEVICETREE entry $dtbf to $destination"
+        cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" $destination/$dtbf
 	if ${USE_UEFI_SIGNED_FILES}; then
-            cp -L "${DEPLOY_DIR_IMAGE}/$dtb.signed" $destination/$dtbf.signed
+            cp -L "${DEPLOY_DIR_IMAGE}/$dtbf.signed" $destination/$dtbf.signed
 	fi
     done
     if [ -n "${EXTERNAL_KERNEL_DEVICETREE}" ]; then
