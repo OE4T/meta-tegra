@@ -1,14 +1,26 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
-inherit ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd', '', d)}
+EXTRA_INHERITS = ""
+EXTRA_INHERITS:tegra = "update-rc.d ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'systemd', '', d)}"
+inherit ${EXTRA_INHERITS}
 
-SYSTEMD_PACKAGES = "${PN}"
-SYSTEMD_SERVICE:${PN} = "haveged.service"
+INITSCRIPT_PACKAGES:tegra = "${PN}"
+INITSCRIPT_NAME:tegra = "haveged"
+INITSCRIPT_PARAMS:${PN}:tegra = "defaults 9"
 
-# Based on init.d/service.redhat from 1.9.14
-# https://raw.githubusercontent.com/jirka-h/haveged/v1.9.14/init.d/service.redhat
-SRC_URI += "${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://haveged.service', '', d)}"
+SYSTEMD_PACKAGES:tegra = "${PN}"
+SYSTEMD_SERVICE:${PN}:tegra = "haveged.service"
 
-do_install:append() {
+# Based on files from v1.9.14
+# Obsolete with kernels >= v5.6, but tegra platforms still use 4.9
+SRC_URI:append:tegra = " \
+    file://haveged.service \
+    file://haveged.init \
+"
+
+do_install:append:tegra() {
+    install -d ${D}${INIT_D_DIR}
+    sed -e "s,@SBIN_DIR@,${sbindir},g" ${WORKDIR}/haveged.init >${D}${INIT_D_DIR}/haveged
+    chmod 755 ${D}${INIT_D_DIR}/haveged
     if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
 	install -d ${D}${systemd_system_unitdir}
 	install -m 0644 ${WORKDIR}/haveged.service ${D}${systemd_system_unitdir}/haveged.service
