@@ -22,6 +22,6 @@ do_install() {
 inherit systemd update-rc.d
 
 INITSCRIPT_NAME = "nvpmodel"
-INITSCRIPT_PARAMS = "defaults"
+INITSCRIPT_PARAMS = "defaults 20"
 SYSTEMD_SERVICE:${PN} = "nvpmodel.service"
 RDEPENDS:${PN} = "tegra-nvpmodel-base"
