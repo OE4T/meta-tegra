@@ -9,7 +9,8 @@ test -x $DAEMON || exit 0
 case "$1" in
   start|restart)
       echo -n "Running $DESC: "
-      $DAEMON $ARGS < /dev/null > /dev/null 2>&1 &
+      modprobe nvgpu < /dev/null > /dev/null 2>&1
+      $DAEMON $ARGS < /dev/null > /dev/null 2>&1
       echo "[OK]"
       ;;
   stop)
