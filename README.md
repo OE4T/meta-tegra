@@ -21,7 +21,7 @@ Community supported:
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: master
-LAYERSERIES_COMPAT: mickledore
+LAYERSERIES_COMPAT: nanbield
 
 
 CUDA toolchain compatibility note
