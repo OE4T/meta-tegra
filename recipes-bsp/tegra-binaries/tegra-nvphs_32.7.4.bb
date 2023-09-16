@@ -22,7 +22,7 @@ do_install() {
 inherit systemd update-rc.d
 
 INITSCRIPT_NAME = "nvphs"
-INITSCRIPT_PARAMS = "defaults"
+INITSCRIPT_PARAMS = "defaults 22"
 SYSTEMD_SERVICE_${PN} = "nvphs.service"
 
 RDEPENDS_${PN} = "tegra-nvphs-base"
