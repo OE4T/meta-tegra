@@ -5,7 +5,8 @@ After=nvstartup.service
 Before=graphical.target display-manager.service
 
 [Service]
-Type=simple
+Type=oneshot
+RemainAfterExit=on
 ExecStart=/usr/sbin/nvpmodel -f /etc/nvpmodel.conf
 Restart=on-failure
 
