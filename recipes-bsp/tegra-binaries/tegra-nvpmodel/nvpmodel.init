@@ -6,9 +6,24 @@ DESC="Power model setup"
 
 test -x $DAEMON || exit 0
 
+wait_for_crng() {
+    local crng_thresh=$(cat /proc/sys/kernel/random/write_wakeup_threshold)
+    local avail i
+    [ -n "$crng_thresh" ] || return
+    for i in $(seq 10); do
+	avail=$(cat /proc/sys/kernel/random/entropy_avail)
+	[ -n "$avail" ] || break
+	[ $avail -lt $crng_thresh ] || break
+	echo -n "[waiting for crng ready $i]..."
+	sleep 1.0
+    done
+    return
+}
+
 case "$1" in
   start|restart)
       echo -n "Running $DESC: "
+      wait_for_crng
       $DAEMON $ARGS < /dev/null > /dev/null 2>&1 &
       echo "[OK]"
       ;;
