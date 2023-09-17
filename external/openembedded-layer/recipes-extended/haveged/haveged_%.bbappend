@@ -5,7 +5,7 @@ inherit ${EXTRA_INHERITS}
 
 INITSCRIPT_PACKAGES:tegra = "${PN}"
 INITSCRIPT_NAME:tegra = "haveged"
-INITSCRIPT_PARAMS:${PN}:tegra = "defaults 9"
+INITSCRIPT_PARAMS:${PN}:tegra = "defaults 03"
 
 SYSTEMD_PACKAGES:tegra = "${PN}"
 SYSTEMD_SERVICE:${PN}:tegra = "haveged.service"
