@@ -380,10 +380,11 @@ if [ "$BOARDID" = "3701" ]; then
             exit 1
             ;;
     esac
-    if [ "$chip_sku" = "00" -o "$chip_sku" = "D0" ] &&
-	   echo "$FAB" | egrep -q '^(TS[123]|EB[123]|[012]00)$'; then
-	PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000.dtsi"
-	PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000.dtsi"
+    if [ "$BOARDSKU" != "0005" ]; then
+        if [ "$chip_sku" = "00" -o "$chip_sku" = "D0" ] && echo "$FAB" | egrep -q '^(TS[123]|EB[123]|[012]00)$'; then
+	    PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000.dtsi"
+	    PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000.dtsi"
+	fi
     fi
     if ! [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0001" -o "$BOARDSKU" = "0002" ]; then
 	BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,3701-0000,3701-$BOARDSKU,")
