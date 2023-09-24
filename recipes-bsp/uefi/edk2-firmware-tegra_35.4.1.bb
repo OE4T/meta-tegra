@@ -7,7 +7,9 @@ PROVIDES = "virtual/bootloader"
 DEPENDS += "dtc-native"
 DEPENDS:append:tegra194 = " nvdisp-init"
 
-inherit deploy tegra-uefi-signing
+TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
+
+inherit deploy ${TEGRA_UEFI_SIGNING_CLASS}
 
 EDK2_PLATFORM = "Jetson"
 EDK2_PLATFORM_DSC = "Platform/NVIDIA/Jetson/Jetson.dsc"
@@ -43,12 +45,8 @@ do_compile:append() {
 }
 do_compile[depends] += "${NVDISPLAY_INIT_DEPS}"
 
-# Override this function in a bbappend to
-# implement other signing mechanisms
 sign_efi_app() {
-    if [ -n "${TEGRA_UEFI_DB_KEY}" -a -n "${TEGRA_UEFI_DB_CERT}" ]; then
-        tegra_uefi_sbsign "$1"
-    fi
+    tegra_uefi_sbsign "$1"
 }
 
 do_sign_efi_launcher() {
