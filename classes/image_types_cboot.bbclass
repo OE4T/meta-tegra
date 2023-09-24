@@ -1,19 +1,16 @@
 CBOOTIMG_KERNEL ?= "${DEPLOY_DIR_IMAGE}/${KERNEL_IMAGETYPE}"
+TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 
-inherit tegra-uefi-signing
+inherit ${TEGRA_UEFI_SIGNING_CLASS}
 
 oe_cbootimg() {
     bbfatal "This image type only supported on tegra platforms"
 }
 
-# Override this function in a bbappend to
-# implement other signing mechanisms
 sign_bootimg() {
-    if [ -n "${TEGRA_UEFI_DB_KEY}" -a -n "${TEGRA_UEFI_DB_CERT}" ]; then
-        tegra_uefi_attach_sign "$1"
-	rm "$1"
-	mv "$1.signed" "$1"
-    fi
+    tegra_uefi_attach_sign "$1"
+    rm "$1"
+    mv "$1.signed" "$1"
 }
 oe_cbootimg_common() {
     outfile="$2"

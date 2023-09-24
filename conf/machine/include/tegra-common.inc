@@ -100,3 +100,5 @@ EFI_PROVIDER ?= "l4t-launcher"
 TEGRA_SIGNING_ENV ?= "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV} fuselevel=fuselevel_production"
 
 EMMC_BCTS ?= "${EMMC_BCT}${@',' + d.getVar('EMMC_BCT_OVERRIDE') if d.getVar('EMMC_BCT_OVERRIDE') else ''}"
+
+TEGRA_UEFI_SIGNING_CLASS ?= "tegra-uefi-signing"
