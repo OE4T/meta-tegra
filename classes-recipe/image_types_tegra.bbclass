@@ -1,5 +1,9 @@
 inherit image_types image_types_cboot image_types_tegra_esp python3native perlnative kernel-artifact-names
 
+TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
+inherit ${TEGRA_UEFI_SIGNING_CLASS}
+TEGRA_UEFI_USE_SIGNED_FILES ??= "false"
+
 IMAGE_TYPES += "tegraflash"
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
@@ -25,13 +29,13 @@ def tegra_dtb_extra_deps(d):
     deps = []
     if d.getVar('PREFERRED_PROVIDER_virtual/dtb'):
         deps.append('virtual/dtb:do_populate_sysroot')
-    if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT'):
+    if d.getVar('TEGRA_UEFI_USE_SIGNED_FILES') == "true":
         deps.append('tegra-uefi-keys-dtb:do_populate_sysroot')
     return ' '.join(deps)
 
 def tegra_bootcontrol_overlay_list(d, bup=False, separator=','):
     overlays = d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split()
-    if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT'):
+    if d.getVar('TEGRA_UEFI_USE_SIGNED_FILES') == "true":
         overlays.append('UefiDefaultSecurityKeys.dtbo')
         if bup and os.path.exists('UefiUpdateSecurityKeys.dtbo'):
             overlays.append('UefiUpdateSecurityKeys.dtbo')
@@ -64,7 +68,6 @@ TEGRAFLASH_ROOTFS_EXTERNAL = "${@'1' if d.getVar('TNSPEC_BOOTDEV') != d.getVar('
 ROOTFS_DEVICE_FOR_INITRD_FLASH = "${@tegra_rootfs_device(d)}"
 TEGRAFLASH_NO_INTERNAL_STORAGE ??= "0"
 OVERLAY_DTB_FILE ??= ""
-USE_UEFI_SIGNED_FILES ?= "${@'true' if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT') else 'false'}"
 
 TEGRA_EXT4_OPTIONS ?= "-O ^metadata_csum_seed"
 EXTRA_IMAGECMD:append:ext4 = " ${TEGRA_EXT4_OPTIONS}"
@@ -223,7 +226,7 @@ copy_dtbs() {
         fi
         bbnote "Copying KERNEL_DEVICETREE entry $dtbf to $destination"
         cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" $destination/$dtbf
-	if ${USE_UEFI_SIGNED_FILES}; then
+	if ${TEGRA_UEFI_USE_SIGNED_FILES}; then
             cp -L "${DEPLOY_DIR_IMAGE}/$dtbf.signed" $destination/$dtbf.signed
 	fi
     done
@@ -236,7 +239,7 @@ copy_dtbs() {
             fi
             bbnote "Copying EXTERNAL_KERNEL_DEVICETREE entry $dtb to $destination"
             cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$dtb" $destination/$dtbf
-	    if ${USE_UEFI_SIGNED_FILES}; then
+	    if ${TEGRA_UEFI_USE_SIGNED_FILES}; then
                 cp -L "${DEPLOY_DIR_IMAGE}/$dtb.signed" $destination/$dtbf.signed
 	    fi
         done
@@ -251,7 +254,7 @@ copy_dtb_overlays() {
     if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         extraoverlays="$extraoverlays L4TConfiguration-rcmboot.dtbo"
     fi
-    if ${USE_UEFI_SIGNED_FILES}; then
+    if ${TEGRA_UEFI_USE_SIGNED_FILES}; then
         extraoverlays="$extraoverlays UefiDefaultSecurityKeys.dtbo"
     fi
     for dtb in "$@" ${TEGRA_PLUGIN_MANAGER_OVERLAYS} $extraoverlays; do

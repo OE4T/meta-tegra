@@ -9,7 +9,9 @@ PROVIDES = "virtual/bootloader standalone-mm-optee-tegra"
 
 DEPENDS = "coreutils-native dtc-native"
 
-inherit deploy tegra-uefi-signing
+TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
+
+inherit deploy ${TEGRA_UEFI_SIGNING_CLASS}
 
 do_compile() {
     cp ${S}/bootloader/uefi_jetson.bin ${S}/bootloader/BOOTAA64.efi ${B}
@@ -27,12 +29,8 @@ do_compile:append:tegra234() {
     cp ${S}/bootloader/standalonemm_optee_t234.bin ${B}/standalone_mm_optee.bin
 }
 
-# Override this function in a bbappend to
-# implement other signing mechanisms
 sign_efi_app() {
-    if [ -n "${TEGRA_UEFI_DB_KEY}" -a -n "${TEGRA_UEFI_DB_CERT}" ]; then
-        tegra_uefi_sbsign "$1"
-    fi
+    tegra_uefi_sbsign "$1"
 }
 
 do_sign_efi_launcher() {

@@ -6,7 +6,9 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS = "tegra-flashtools-native dtc-native"
 
-inherit l4t-extlinux-config kernel-artifact-names tegra-uefi-signing
+TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
+
+inherit l4t-extlinux-config kernel-artifact-names ${TEGRA_UEFI_SIGNING_CLASS}
 
 KERNEL_ARGS ??= ""
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
@@ -57,15 +59,11 @@ do_concat_dtb_overlays[depends] += "${@'virtual/dtb:do_populate_sysroot' if d.ge
 
 addtask concat_dtb_overlays after do_configure before do_sign_files
 
-# Override this function in a bbappend to
-# implement other signing mechanisms
 sign_extlinux_files() {
-    if [ -n "${TEGRA_UEFI_DB_KEY}" -a -n "${TEGRA_UEFI_DB_CERT}" ]; then
-        while [ $# -gt 0 ]; do
-	    tegra_uefi_split_sign "$1"
-	    shift
-	done
-    fi
+    while [ $# -gt 0 ]; do
+        tegra_uefi_split_sign "$1"
+        shift
+    done
 }
 
 do_sign_files() {
