@@ -29,11 +29,11 @@ def tegra_dtb_extra_deps(d):
         deps.append('tegra-uefi-keys-dtb:do_populate_sysroot')
     return ' '.join(deps)
 
-def tegra_bootcontrol_overlay_list(d, bup=False):
+def tegra_bootcontrol_overlay_list(d, bup=False, separator=','):
     overlays = d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split()
     if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT'):
         overlays.append('UefiUpdateSecurityKeys.dtbo' if bup else 'UefiDefaultSecurityKeys.dtbo')
-    return ','.join(overlays)
+    return separator.join(overlays)
 
 IMAGE_ROOTFS_SIZE ?= "${@tegra_default_rootfs_size(d)}"
 
@@ -354,13 +354,14 @@ copy_dtb_overlays() {
     local destination=$1
     local dtb dtbf extdtb
     local extraoverlays=$(echo "${OVERLAY_DTB_FILE}" | sed -e"s/,/ /g")
+    shift
     if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         extraoverlays="$extraoverlays L4TConfiguration-rcmboot.dtbo"
     fi
     if ${USE_UEFI_SIGNED_FILES}; then
         extraoverlays="$extraoverlays UefiDefaultSecurityKeys.dtbo"
     fi
-    for dtb in ${TEGRA_BOOTCONTROL_OVERLAYS} ${TEGRA_PLUGIN_MANAGER_OVERLAYS} $extraoverlays; do
+    for dtb in "$@" ${TEGRA_PLUGIN_MANAGER_OVERLAYS} $extraoverlays; do
         dtbf=`basename $dtb`
         if [ -n "${EXTERNAL_KERNEL_DEVICETREE}" ]; then
             local extdtb=$(find "${EXTERNAL_KERNEL_DEVICETREE}" -name $dtbf -printf '%P' 2>/dev/null)
@@ -420,7 +421,7 @@ EOF
         cp $f .
     done
     copy_dtbs "${WORKDIR}/tegraflash"
-    copy_dtb_overlays "${WORKDIR}/tegraflash"
+    copy_dtb_overlays "${WORKDIR}/tegraflash" ${@tegra_bootcontrol_overlay_list(d, separator=' ')}
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* .
 	if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
@@ -551,7 +552,7 @@ EOF
         cp $f .
     done
     copy_dtbs "${WORKDIR}/tegraflash"
-    copy_dtb_overlays "${WORKDIR}/tegraflash"
+    copy_dtb_overlays "${WORKDIR}/tegraflash" ${@tegra_bootcontrol_overlay_list(d, separator=' ')}
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* .
 	if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
@@ -739,7 +740,7 @@ EOF
     fi
     . ./flashvars
     copy_dtbs "${WORKDIR}/bup-payload"
-    copy_dtb_overlays "${WORKDIR}/bup-payload"
+    copy_dtb_overlays "${WORKDIR}/bup-payload" ${@tegra_bootcontrol_overlay_list(d, bup=True, separator=' ')}
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
         cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         boardcfg=board_config_${MACHINE}.xml
