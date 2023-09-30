@@ -67,6 +67,8 @@ USE_UEFI_SIGNED_FILES ?= "${@'true' if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVa
 TEGRA_EXT4_OPTIONS ?= "-O ^metadata_csum_seed"
 EXTRA_IMAGECMD:append:ext4 = " ${TEGRA_EXT4_OPTIONS}"
 
+TEGRA_STAGED_BOOT_FIRMWARE = "${TEGRA_BOOT_FIRMWARE_FILES} eks.img badpage.bin"
+
 def tegra_initrd_image(d):
     if d.getVar('IMAGE_UBOOT'):
         return ''
@@ -265,60 +267,6 @@ tegraflash_create_flash_config:tegra234() {
         > $destdir/flash.xml.in
 }
 
-BOOTFILES = ""
-
-BOOTFILES:tegra194 = "\
-    adsp-fw.bin \
-    bpmp-2_t194.bin \
-    camera-rtcpu-t194-rce.img \
-    eks.img \
-    mb1_t194_prod.bin \
-    nvtboot_applet_t194.bin \
-    nvtboot_t194.bin \
-    preboot_c10_prod_cr.bin \
-    mce_c10_prod_cr.bin \
-    mts_c10_prod_cr.bin \
-    nvtboot_cpu_t194.bin \
-    nvtboot_recovery_t194.bin \
-    nvtboot_recovery_cpu_t194.bin \
-    spe_t194.bin \
-    warmboot_t194_prod.bin \
-    xusb_sil_rel_fw \
-    sce_t194.bin \
-    dram-ecc-t194.bin \
-    badpage.bin \
-"
-
-BOOTFILES:tegra234 = "\
-    adsp-fw.bin \
-    applet_t234.bin \
-    camera-rtcpu-t234-rce.img \
-    eks.img \
-    mb1_t234_prod.bin \
-    mb2_t234.bin \
-    mb2rf_t234.bin \
-    preboot_c10_prod_cr.bin \
-    mce_c10_prod_cr.bin \
-    mts_c10_prod_cr.bin \
-    nvtboot_cpurf_t234.bin \
-    spe_t234.bin \
-    psc_bl1_t234_prod.bin \
-    pscfw_t234_prod.bin \
-    mce_flash_o10_cr_prod.bin \
-    sc7_t234_prod.bin \
-    display-t234-dce.bin \
-    psc_rf_t234_prod.bin \
-    nvdec_t234_prod.fw \
-    xusb_t234_prod.bin \
-    tegrabl_carveout_id.h \
-    pinctrl-tegra.h \
-    tegra234-gpio.h \
-    readinfo_t234_min_prod.xml \
-    camera-rtcpu-sce.img \
-    fsi-fw-ecc.bin \
-    badpage.bin \
-"
-
 copy_dtbs() {
     local destination=$1
     local dtb dtbf
@@ -401,7 +349,7 @@ create_tegraflash_pkg:tegra194() {
     fi
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./uefi_jetson.bin
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
-    for f in ${BOOTFILES}; do
+    for f in ${TEGRA_STAGED_BOOT_FIRMWARE}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     cp mb1_t194_prod.bin mb1_b_t194_prod.bin
@@ -530,7 +478,7 @@ create_tegraflash_pkg:tegra234() {
     fi
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./uefi_jetson.bin
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
-    for f in ${BOOTFILES}; do
+    for f in ${TEGRA_STAGED_BOOT_FIRMWARE}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
 
@@ -710,7 +658,7 @@ oe_make_bup_payload() {
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./$tosimgfilename
     cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./esp.img
-    for f in ${BOOTFILES}; do
+    for f in ${TEGRA_STAGED_BOOT_FIRMWARE}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
