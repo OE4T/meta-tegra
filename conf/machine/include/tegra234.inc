@@ -31,3 +31,31 @@ NVFANCONTROL ?= "nvfancontrol_p3701_0000"
 MACHINE_EXTRA_RRECOMMENDS += "kernel-module-nvidia kernel-module-nvidia-drm kernel-module-nvidia-modeset kernel-module-userspace-alert"
 
 PARTITION_LAYOUT_EXTERNAL ?= "flash_l4t_t234_nvme.xml"
+
+TEGRA_BOOT_FIRMWARE_FILES = "\
+    adsp-fw.bin \
+    applet_t234.bin \
+    camera-rtcpu-t234-rce.img \
+    mb1_t234_prod.bin \
+    mb2_t234.bin \
+    mb2rf_t234.bin \
+    preboot_c10_prod_cr.bin \
+    mce_c10_prod_cr.bin \
+    mts_c10_prod_cr.bin \
+    nvtboot_cpurf_t234.bin \
+    spe_t234.bin \
+    psc_bl1_t234_prod.bin \
+    pscfw_t234_prod.bin \
+    mce_flash_o10_cr_prod.bin \
+    sc7_t234_prod.bin \
+    display-t234-dce.bin \
+    psc_rf_t234_prod.bin \
+    nvdec_t234_prod.fw \
+    xusb_t234_prod.bin \
+    tegrabl_carveout_id.h \
+    pinctrl-tegra.h \
+    tegra234-gpio.h \
+    readinfo_t234_min_prod.xml \
+    camera-rtcpu-sce.img \
+    fsi-fw-ecc.bin \
+"
