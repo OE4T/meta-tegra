@@ -152,11 +152,6 @@ fi
 
 . ./flashvars
 
-if [ -z "$FLASHVARS" ]; then
-    echo "ERR: flash variable set not defined" >&2
-    exit 1
-fi
-
 if [ -z "$CHIPID" ]; then
     echo "ERR: CHIPID variable not set" >&2
     exit 1
@@ -348,7 +343,7 @@ fi
 if [ -n "$FAB" ]; then
     board_version="$FAB"
 else
-    board_version=$(here/chkbdinfo -f ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z])
+    board_version=$($here/chkbdinfo -f ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z])
     FAB="$board_version"
 fi
 if [ -n "$BOARDSKU" ]; then
@@ -402,7 +397,6 @@ fi
 
 if [ "$CHIPID" = "0x19" ]; then
     # Adapted from p2972-0000.conf.common in L4T kit
-    TOREV="a01"
     BPFDTBREV="a01"
     PMICREV="a01"
 
@@ -412,15 +406,13 @@ if [ "$CHIPID" = "0x19" ]; then
                 [01][0-9][0-9])
                 ;;
                 2[0-9][0-9])
-                    TOREV="a02"
                     PMICREV="a02"
                     BPFDTBREV="a02"
                     ;;
                 [34][0-9][0-9])
-                    TOREV="a02"
                     PMICREV="a04"
                     BPFDTBREV="a02"
-                    if [ $board_sku -ge 4 ] || [ $board_version -gt 300 -a `expr "$board_revision" \> "D.0"` -eq 1 ]; then
+                    if [ $board_sku -ge 4 ] || [ $board_version -gt 300 -a $(expr "$board_revision" \> "D.0") -eq 1 ]; then
                         PMICREV="a04-E-0"
                         BPFDTBREV="a04"
                     fi
@@ -454,11 +446,8 @@ if [ "$CHIPID" = "0x19" ]; then
 
     for var in $FLASHVARS; do
         eval pat=$`echo $var`
-        if [ -z "${pat+definedmaybeempty}" ]; then
-            echo "ERR: missing variable: $var" >&2
-            exit 1
-        elif [ -n "$pat" ]; then
-            val=$(echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@BOARDREV@,$TOREV," -e"s,@PMICREV@,$PMICREV," -e"s,@CHIPREV@,$CHIPREV,")
+        if [ -n "$pat" ]; then
+            val=$(echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@PMICREV@,$PMICREV," -e"s,@CHIPREV@,$CHIPREV,")
             eval $var='$val'
         fi
     done
