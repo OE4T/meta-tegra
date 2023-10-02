@@ -188,83 +188,26 @@ tegraflash_finalize_pkg() {
 }
 
 tegraflash_create_flash_config() {
-    :
-}
-
-tegraflash_create_flash_config:tegra194() {
-    local destdir="$1"
+    local destfile="$1"
     local lnxfile="$2"
     local infile="$3"
 
-    [ -n "$infile" ] || infile="${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}"
-
-    sed -e"s,MB1FILE,mb1_b_t194_prod.bin,2" "$infile" | \
-	sed \
-        -e"s,LNXFILE_b,$lnxfile," \
-        -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
-        -e"s,TEGRABOOT,nvtboot_t194.bin," \
-        -e"s,MTSPREBOOT,preboot_c10_prod_cr.bin," \
-        -e"s,MTS_MCE,mce_c10_prod_cr.bin," \
-        -e"s,MTSPROPER,mts_c10_prod_cr.bin," \
-        -e"s,SCEFILE,sce_t194.bin," \
-        -e"s,MB1FILE,mb1_t194_prod.bin," \
-        -e"s,BPFFILE,bpmp-2_t194.bin," \
-        -e"s,TBCFILE,uefi_jetson.bin," \
-        -e"s,CAMERAFW,camera-rtcpu-t194-rce.img," \
-        -e"s,DRAMECCTYPE,dram_ecc," -e"s,DRAMECCFILE,dram-ecc-t194.bin," -e"s,DRAMECCNAME,dram-ecc-fw," \
-        -e"s,BADPAGETYPE,black_list_info," -e"s,BADPAGEFILE,badpage.bin," -e"s,BADPAGENAME,badpage-fw," \
-        -e"s,SPEFILE,spe_t194.bin," \
-        -e"s,WB0BOOT,warmboot_t194_prod.bin," \
-        -e"s,TOSFILE,${TOSIMGFILENAME}," \
-        -e"s,EKSFILE,eks.img," \
-        -e"s,RECNAME,recovery," -e"s,RECSIZE,${TEGRA_RECOVERY_KERNEL_PART_SIZE}," -e"s,RECDTB-NAME,recovery-dtb," -e"s,BOOTCTRLNAME,kernel-bootctrl," \
-        -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
-        -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
-        -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
-        -e"s,APPUUID_b,," -e"s,APPUUID,," \
-	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
-	-e"s,NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
-        > $destdir/flash.xml.in
-}
-
-tegraflash_create_flash_config:tegra234() {
-    local destdir="$1"
-    local lnxfile="$2"
-    local infile="$3"
-
-    [ -n "$infile" ] || infile="${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}"
+    [ -n "$infile" ] || infile="${STAGING_DATADIR}/tegraflash/internal-flash.xml"
 
     sed \
         -e"s,LNXFILE_b,$lnxfile," \
         -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
-        -e"s,MB1FILE,mb1_t234_prod.bin," \
-        -e"s,CAMERAFW,camera-rtcpu-t234-rce.img," \
-        -e"s,SPEFILE,spe_t234.bin," \
         -e"s,TOSFILE,${TOSIMGFILENAME}," \
         -e"s,EKSFILE,eks.img," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,${TEGRA_RECOVERY_KERNEL_PART_SIZE}," -e"s,RECDTB-NAME,recovery-dtb," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
-        -e"s,BADPAGETYPE,black_list_info," -e"s,BADPAGEFILE,badpage.bin," -e"s,BADPAGENAME,bad-page," \
-	-e"s,FSIFW,fsi-fw-ecc.bin," \
-        -e"s,PSCBL1FILE,psc_bl1_t234_prod.bin," \
-        -e"s,TSECFW,," \
-        -e"s,NVHOSTNVDEC,nvdec_t234_prod.fw," \
-        -e"s,MB2BLFILE,mb2_t234.bin," \
-        -e"s,XUSB_FW,xusb_t234_prod.bin," \
-        -e"s,PSCFW,pscfw_t234_prod.bin," \
-        -e"s,MCE_IMAGE,mce_flash_o10_cr_prod.bin," \
-        -e"s,WB0FILE,sc7_t234_prod.bin," \
-        -e"s,PSCRF_IMAGE,psc_rf_t234_prod.bin," \
-        -e"s,MB2RF_IMAGE,mb2rf_t234.bin," \
-        -e"s,TBCDTB-FILE,uefi_jetson_with_dtb.bin," \
-        -e"s,DCE,display-t234-dce.bin," \
         -e"s,APPUUID_b,," -e"s,APPUUID,," \
 	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
 	-e"s,NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
 	"$infile" \
-        > $destdir/flash.xml.in
+        > "$destfile"
 }
 
 copy_dtbs() {
@@ -384,12 +327,9 @@ EOF
     fi
     tegraflash_custom_pre
     cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
-    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
+    tegraflash_create_flash_config flash.xml.in ${LNXFILE}
     if [ "${TEGRAFLASH_ROOTFS_EXTERNAL}" = "1" ]; then
-        rm -rf "${WORKDIR}/tegraflash/external" external-flash.xml.in
-	mkdir "${WORKDIR}/tegraflash/external"
-        tegraflash_create_flash_config "${WORKDIR}/tegraflash/external" ${LNXFILE} ${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
-	mv external/flash.xml.in ./external-flash.xml.in
+        tegraflash_create_flash_config external-flash.xml.in ${LNXFILE} ${STAGING_DATADIR}/tegraflash/external-flash.xml
     fi
     rm -f doflash.sh
     cat > doflash.sh <<END
@@ -516,12 +456,9 @@ EOF
     fi
     tegraflash_custom_pre
     cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
-    tegraflash_create_flash_config "${WORKDIR}/tegraflash" ${LNXFILE}
+    tegraflash_create_flash_config flash.xml.in ${LNXFILE}
     if [ "${TEGRAFLASH_ROOTFS_EXTERNAL}" = "1" ]; then
-        rm -rf "${WORKDIR}/tegraflash/external" external-flash.xml.in
-	mkdir "${WORKDIR}/tegraflash/external"
-        tegraflash_create_flash_config "${WORKDIR}/tegraflash/external" ${LNXFILE} ${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
-	mv external/flash.xml.in ./external-flash.xml.in
+        tegraflash_create_flash_config external-flash.xml.in ${LNXFILE} ${STAGING_DATADIR}/tegraflash/external-flash.xml
     fi
     rm -f doflash.sh
     cat > doflash.sh <<END
@@ -641,15 +578,7 @@ oe_make_bup_payload() {
     # BUP generator really wants to use 'boot.img' for the LNX
     # partition contents
     cp $1 ./boot.img
-    # BUP generator must have a layout that includes kernel/DTB/etc.
-    # When those partitions are stripped from the main layout, we
-    # create a copy of the original with 'bupgen-' prefix, so use
-    # that if present.
-    local layoutsrc
-    if [ -e "${STAGING_DATADIR}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}" ]; then
-        layoutsrc="${STAGING_DATADIR}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}"
-    fi
-    tegraflash_create_flash_config "${WORKDIR}/bup-payload" boot.img "$layoutsrc"
+    tegraflash_create_flash_config flash.xml.in boot.img ${STAGING_DATADIR}/tegraflash/bupgen-internal-flash.xml
     cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
     cp "${STAGING_DATADIR}/tegraflash/${EMMC_BCT}" .
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
