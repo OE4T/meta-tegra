@@ -32,7 +32,9 @@ def tegra_dtb_extra_deps(d):
 def tegra_bootcontrol_overlay_list(d, bup=False, separator=','):
     overlays = d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split()
     if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT'):
-        overlays.append('UefiUpdateSecurityKeys.dtbo' if bup else 'UefiDefaultSecurityKeys.dtbo')
+        overlays.append('UefiDefaultSecurityKeys.dtbo')
+        if bup and os.path.exists('UefiUpdateSecurityKeys.dtbo'):
+            overlays.append('UefiUpdateSecurityKeys.dtbo')
     return separator.join(overlays)
 
 IMAGE_ROOTFS_SIZE ?= "${@tegra_default_rootfs_size(d)}"
