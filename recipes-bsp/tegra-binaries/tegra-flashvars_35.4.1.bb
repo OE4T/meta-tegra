@@ -10,7 +10,8 @@ B = "${WORKDIR}/build"
 def generate_flashvar_settings(d):
     vars = sorted([v for v in d.getVar('TEGRA_FLASHVARS').split() if d.getVar('TEGRA_FLASHVAR_' + v)])
     need_subst = ' '.join([v for v in vars if '@' in d.getVar('TEGRA_FLASHVAR_' + v)])
-    result = 'FLASHVARS="{}"\nOVERLAY_DTB_FILE="@OVERLAY_DTB_FILE@"\n'.format(need_subst)
+    result = 'FLASHVARS="{}"\nOVERLAY_DTB_FILE="{}"\n'.format(need_subst, d.getVar('OVERLAY_DTB_FILE'))
+    result += 'CHIPID={}\nPLUGIN_MANAGER_OVERLAYS="{}"\n'.format(d.getVar('NVIDIA_CHIP'), ','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split()))
     result += '\n'.join(['{}="{}"'.format(v, d.getVar('TEGRA_FLASHVAR_' + v)) for v in d.getVar('TEGRA_FLASHVARS').split() if d.getVar('TEGRA_FLASHVAR_' + v)])
     return result
 
