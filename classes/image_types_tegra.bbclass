@@ -29,10 +29,13 @@ def tegra_dtb_extra_deps(d):
         deps.append('tegra-uefi-keys-dtb:do_populate_sysroot')
     return ' '.join(deps)
 
-def tegra_bootcontrol_overlay_list(d, bup=False, separator=','):
+def tegra_bootcontrol_overlay_list(d, separator=','):
     overlays = d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split()
     if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT'):
-        overlays.append('UefiUpdateSecurityKeys.dtbo' if bup else 'UefiDefaultSecurityKeys.dtbo')
+        if os.path.exists('UefiUpdateSecurityKeys.dtbo'):
+            overlays.append('UefiUpdateSecurityKeys.dtbo')
+        else:
+            overlays.append('UefiDefaultSecurityKeys.dtbo')
     return separator.join(overlays)
 
 IMAGE_ROOTFS_SIZE ?= "${@tegra_default_rootfs_size(d)}"
@@ -716,7 +719,7 @@ oe_make_bup_payload() {
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
     cat >> ./flashvars <<EOF
-BOOTCONTROL_OVERLAYS="${@tegra_bootcontrol_overlay_list(d, bup=True)}"
+BOOTCONTROL_OVERLAYS="${@tegra_bootcontrol_overlay_list(d)}"
 PLUGIN_MANAGER_OVERLAYS="${@','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split())}"
 EOF
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
@@ -740,7 +743,7 @@ EOF
     fi
     . ./flashvars
     copy_dtbs "${WORKDIR}/bup-payload"
-    copy_dtb_overlays "${WORKDIR}/bup-payload" ${@tegra_bootcontrol_overlay_list(d, bup=True, separator=' ')}
+    copy_dtb_overlays "${WORKDIR}/bup-payload" ${@tegra_bootcontrol_overlay_list(d, separator=' ')}
     if [ -n "${NVIDIA_BOARD_CFG}" ]; then
         cp "${STAGING_DATADIR}/tegraflash/board_config_${MACHINE}.xml" .
         boardcfg=board_config_${MACHINE}.xml
