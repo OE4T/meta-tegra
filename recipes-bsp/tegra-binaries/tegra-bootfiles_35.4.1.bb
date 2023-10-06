@@ -3,7 +3,7 @@ require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "tegra-flashvars tegra-storage-layout dtc-native coreutils-native lz4-native"
+DEPENDS = "tegra-flashvars tegra-storage-layout tegra-eks-image dtc-native coreutils-native lz4-native"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
@@ -65,7 +65,6 @@ do_install() {
 }
 
 install_other_boot_firmware_files() {
-    install -m 0644 ${S}/bootloader/eks_${TEGRA_SOCNAME_SHORT}.img ${D}${datadir}/tegraflash/eks.img
     case "${SOC_FAMILY}" in
 	tegra194)
 	    install -m 0644 ${B}/nvdisp-init.bin ${D}${datadir}/tegraflash/
