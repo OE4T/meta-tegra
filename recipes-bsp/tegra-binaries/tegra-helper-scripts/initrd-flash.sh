@@ -243,20 +243,24 @@ sign_binaries() {
     fi
     if [ "$CHIPID" = "0x18" ]; then
 	"$here/tegra-signimage-helper" --chip "$CHIPID" --nosplit --type kernel initrd-flash.img
+	if [ ! -z "${INITRD_FLASHER_DTBFILE}" ]; then
+	    "$here/tegra-signimage-helper" --chip "$CHIPID" --nosplit --type kernel-dtb ${INITRD_FLASHER_DTBFILE}
+	fi
     fi
     . ./boardvars.sh
     return 0
 }
 
 prepare_for_rcm_boot() {
+    local flasherdtb="${INITRD_FLASHER_DTBFILE:-kernel_${DTBFILE}}"
     if [ $have_odmsign_func -eq 1 ]; then
 	if [ -e "rcmbootcmd.txt" ]; then
-	    sed -e"s,boot.img,initrd-flash.img," rcmbootcmd.txt > rcm-boot.sh
+	    sed -e"s,boot.img,initrd-flash.img,;s,kernel_$DTBFILE,$flasherdtb," rcmbootcmd.txt > rcm-boot.sh
 	    chmod +x rcm-boot.sh
 	elif [ "$CHIPID" = "0x18" ]; then
 	    local binsfx=".encrypt"
 	    local ksfx=".encrypt"
-	    local kdtbfilebase=$(basename kernel_$DTBFILE .dtb)
+	    local kdtbfilebase=$(basename $flasherdtb .dtb)
 	    if [ -n "$PRESIGNED" -o -n "$keyfile" ]; then
 		if [ -n "$PRESIGNED" -o -n "$sbk_keyfile" ]; then
 		    binsfx=".encrypt.signed"
@@ -272,13 +276,14 @@ prepare_for_rcm_boot() {
 					    --bins kernel=initrd-flash_sigheader.img${ksfx},kernel_dtb=${kdtbfilebase}_sigheader.dtb${ksfx},sce_fw=camera-rtcpu-sce_sigheader.img${binsfx},adsp_fw=adsp-fw_sigheader.bin${binsfx} \
 					    --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
 	else
-	    "$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
+	    "$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=$flasherdtb --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
 	fi
 	chmod +x rcm-boot.sh
     fi
 }
 
 run_rcm_boot() {
+    local flasherdtb="${INITRD_FLASHER_DTBFILE:-${DTBFILE}}"
     if [ $have_odmsign_func -eq 1 ]; then
 	if [ -z "$BR_CID" ]; then
 	    if ./rcm-boot.sh | tee rcm-boot.output; then
@@ -291,7 +296,7 @@ run_rcm_boot() {
 	./rcm-boot.sh || return 1
     else
 	local cmd="MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV fuselevel=$fuselevel \
-	       $helper --rcm-boot $signargs flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE"
+	        $helper --rcm-boot $signargs flash.xml.in $flasherdtb $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE"
        eval $cmd || return 1
     fi
 }
