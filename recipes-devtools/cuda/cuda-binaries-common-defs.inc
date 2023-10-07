@@ -15,8 +15,8 @@ def cuda_deb_pkg_arch(d):
         return 'amd64'
     elif arch == 'aarch64':
         return 'arm64'
-    bb.error("unrecognized HOST_ARCH: %s" % arch)
-    return 'UNKNOWN'
+    bb.warn("unrecognized HOST_ARCH %s, defaulting to arm64" % arch)
+    return 'arm64'
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
