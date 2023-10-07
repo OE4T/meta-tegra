@@ -280,9 +280,6 @@ tegraflash_populate_package() {
     fi
     cp "$kernelimg" ./$lnxfile
     cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./esp.img
-    if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
-        cp "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ./initrd-flash.img
-    fi
     if [ -n "${DATAFILE}" -a -n "${IMAGE_TEGRAFLASH_DATA}" ]; then
         cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
         DATAARGS="--datafile ${DATAFILE}"
@@ -338,6 +335,9 @@ create_tegraflash_pkg() {
     mkdir -p ${WORKDIR}/tegraflash
     cd ${WORKDIR}/tegraflash
     tegraflash_populate_package ${IMAGE_TEGRAFLASH_KERNEL} ${LNXFILE} ${@tegra_bootcontrol_overlay_list(d)}
+    if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
+        cp "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ./initrd-flash.img
+    fi
     tegraflash_custom_pre
     cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     tegraflash_create_flash_config flash.xml.in ${LNXFILE}
