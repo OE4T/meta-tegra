@@ -12,6 +12,7 @@ KERNEL_IMAGETYPE ?= "Image.gz"
 KERNEL_ROOTSPEC_DEFAULT = "mmcblk${devnum}p${distro_bootpart}"
 KERNEL_ROOTSPEC ?= "root=/dev/${@d.getVar('TNSPEC_BOOTDEV') if d.getVar('TNSPEC_BOOTDEV') != 'mmcblk0p1' else d.getVar('KERNEL_ROOTSPEC_DEFAULT')} rw rootwait"
 KERNEL_ARGS ??= ""
+KERNEL_DEVICETREE:append = " ${INITRD_KERNEL_DEVICETREE}"
 INITRAMFS_FSTYPES:append = " ${TEGRA_INITRAMFS_FSTYPES}"
 
 UBOOT_EXTLINUX ?= "1"
