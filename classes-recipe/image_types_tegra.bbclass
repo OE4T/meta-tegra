@@ -304,7 +304,7 @@ tegraflash_populate_package() {
     fi
 
     copy_dtbs .
-    local bcos=$(echo "$bcoverlays" | sed -e's!,! !')
+    local bcos=$(echo "$bcoverlays" | sed -e's!,! !g')
     copy_dtb_overlays . $bcos
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* .
