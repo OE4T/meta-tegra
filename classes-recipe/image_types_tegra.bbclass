@@ -327,12 +327,8 @@ tegraflash_populate_package() {
 }
 
 create_tegraflash_pkg() {
-    local emmcargs="${EMMC_BCT}"
     local oldwd="$PWD"
 
-    if [ -n "${EMMC_BCT_OVERRIDE}" ]; then
-        emmcargs="$emmcargs,${EMMC_BCT_OVERRIDE}"
-    fi
     rm -rf ${WORKDIR}/tegraflash
     mkdir -p ${WORKDIR}/tegraflash
     cd ${WORKDIR}/tegraflash
@@ -349,7 +345,7 @@ create_tegraflash_pkg() {
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh $DATAARGS flash.xml.in ${DTBFILE} $emmcargs ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
     chmod +x doflash.sh
 
@@ -380,7 +376,7 @@ END
     if [ -e ./odmfuse_pkc.xml ]; then
         cat > burnfuses.sh <<END
 #!/bin/sh
-MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh -c "burnfuses odmfuse_pkc.xml" --no-flash $DATAARGS flash.xml.in ${DTBFILE} $emmcargs ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh -c "burnfuses odmfuse_pkc.xml" --no-flash $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x burnfuses.sh
     fi
@@ -388,7 +384,7 @@ END
         rm -f dosdcard.sh
         cat > dosdcard.sh <<END
 #!/bin/sh
-MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash.xml.in ${DTBFILE} $emmcargs ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x dosdcard.sh
     elif [ "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ]; then
@@ -396,14 +392,14 @@ END
         cat > doflash.sh <<END
 #!/bin/sh
 ./nvflashxmlparse --split=flash-sdcard.xml.in --change-device-type=sdcard --output=flash-mmc.xml.in --sdcard-size=${TEGRAFLASH_SDCARD_SIZE} flash.xml.in
-MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh $DATAARGS flash-mmc.xml.in ${DTBFILE} $emmcargs ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh $DATAARGS flash-mmc.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x doflash.sh
         rm -f dosdcard.sh
         cat > dosdcard.sh <<END
 #!/bin/sh
 ./nvflashxmlparse --split=flash-sdcard.xml.in --change-device-type=sdcard --output=flash-mmc.xml.in --sdcard-size=${TEGRAFLASH_SDCARD_SIZE} flash.xml.in
-MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} BOARDREV=\${BOARDREV:-${TEGRA_BOARDREV}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash-sdcard.xml.in ${DTBFILE} $emmcargs ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} BOARDREV=\${BOARDREV:-${TEGRA_BOARDREV}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash-sdcard.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x dosdcard.sh
     fi
@@ -423,7 +419,7 @@ def tegraflash_bupgen_strip_cmd(d):
 
 tegraflash_generate_bupgen_script() {
     local outfile="${1:-./generate_bup_payload.sh}"
-    local spec__ sdramcfg fab boardsku boardrev bup_type buptype_arg
+    local spec__ fab boardsku boardrev bup_type buptype_arg
     rm -f $outfile
     cat <<EOF > $outfile
 #!/bin/bash
@@ -434,11 +430,6 @@ export localbootfile=${LNXFILE}
 export CHIPREV=${TEGRA_CHIPREV}
 export CHIPID=${NVIDIA_CHIP}
 EOF
-    if [ "${SOC_FAMILY}" = "tegra194" ]; then
-        sdramcfg="${EMMC_BCT},${EMMC_BCT_OVERRIDE}"
-    else
-        sdramcfg="${EMMC_BCT}"
-    fi
     fab="${TEGRA_FAB}"
     boardsku="${TEGRA_BOARDSKU}"
     boardrev="${TEGRA_BOARDREV}"
@@ -451,7 +442,7 @@ EOF
             buptype_arg=""
         fi
         cat <<EOF >> $outfile
-MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" ./tegra-flash-helper.sh --bup $buptype_arg ./flash-stripped.xml.in ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
+MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" ./tegra-flash-helper.sh --bup $buptype_arg ./flash-stripped.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} "\$@"
 EOF
     done
     chmod +x $outfile
