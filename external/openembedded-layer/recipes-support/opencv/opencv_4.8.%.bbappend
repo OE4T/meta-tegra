@@ -10,7 +10,7 @@ def opencv_cuda_flags(d):
 
 PACKAGECONFIG[cuda] = "${@opencv_cuda_flags(d)},-DWITH_CUDA=OFF,${CUDA_DEPENDS} cudnn"
 
-OPENCV_CUDA_SUPPORT ?= "${@'cuda' if opencv_cuda_flags(d) else ''}"
+OPENCV_CUDA_SUPPORT ?= "${@'cuda dnn' if opencv_cuda_flags(d) else ''}"
 PACKAGECONFIG:append:cuda = " ${OPENCV_CUDA_SUPPORT}"
 EXTRA_OECMAKE:append:cuda = ' -DOPENCV_CUDA_DETECTION_NVCC_FLAGS="-ccbin ${CUDAHOSTCXX}" -DCMAKE_SUPPRESS_REGENERATION=ON'
 
