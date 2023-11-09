@@ -7,6 +7,8 @@ inherit tegra-bup deploy
 TEGRA_UEFI_CAPSULE_SIGNING_CLASS ??= "tegra-uefi-capsule-signing"
 inherit ${TEGRA_UEFI_CAPSULE_SIGNING_CLASS}
 
+TEGRA_UEFI_CAPSULE_SIGNING_EXTRA_DEPS ??= ""
+
 COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS += "tegra-bup-payload"
@@ -50,4 +52,4 @@ do_deploy() {
 
 addtask deploy after do_install
 
-do_compile[depends] += "${@bup_dependency(d)}"
+do_compile[depends] += "${@bup_dependency(d)} ${TEGRA_UEFI_CAPSULE_SIGNING_EXTRA_DEPS}"
