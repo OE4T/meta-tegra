@@ -12,7 +12,7 @@ PACKAGECONFIG[cuda] = "${@opencv_cuda_flags(d)},-DWITH_CUDA=OFF,${CUDA_DEPENDS} 
 
 OPENCV_CUDA_SUPPORT ?= "${@'cuda dnn' if opencv_cuda_flags(d) else ''}"
 PACKAGECONFIG:append:cuda = " ${OPENCV_CUDA_SUPPORT}"
-EXTRA_OECMAKE:append:cuda = ' -DOPENCV_CUDA_DETECTION_NVCC_FLAGS="-ccbin ${CUDAHOSTCXX}" -DCMAKE_SUPPRESS_REGENERATION=ON ${@bb.utils.contains("PACKAGECONFIG", "dnn", "-DCMAKE_CXX_STANDARD=17", "", d)}'
+EXTRA_OECMAKE:append:cuda = ' -DOPENCV_CUDA_DETECTION_NVCC_FLAGS="-ccbin ${CUDAHOSTCXX}" -DCMAKE_SUPPRESS_REGENERATION=ON'
 
 SRC_URI:append:cuda = " \
     file://0001-Fix-search-paths-in-FindCUDNN.cmake.patch \
@@ -22,7 +22,6 @@ SRC_URI:append:cuda = " \
     file://0005-fix-recursively-re-export-nested-submodules.patch \
     file://0006-feat-add-matrix-type-stubs-generation.patch \
     file://0007-Merge-pull-request-24022-from-VadimLevin-dev-vlevin-.patch \
-    file://fix-build-with-protobuf-v22.patch \
 "
 
 OPTICALFLOW_MD5 = "a73cd48b18dcc0cc8933b30796074191"
