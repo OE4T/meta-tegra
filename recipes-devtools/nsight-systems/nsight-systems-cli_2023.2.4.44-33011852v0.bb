@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM = "file://opt/nvidia/nsight-systems/${BASE_VERSION}/EULA.txt;md
 inherit l4t_deb_pkgfeed
 
 SRC_COMMON_DEBS = "nsight-systems-${BASE_VERSION}_${PV}_arm64.deb;subdir=${BPN}"
-SRC_URI[sha256sum] = "444d62345248749e33dcac40668b509c96735263cf8a42391015eba6ec87118a"
+SRC_URI[sha256sum] = "be1164b03cf1291e5e7162c42070eef1b07934efd96124864e569bf1804f9212"
 
 S = "${WORKDIR}/${BPN}"
 B = "${S}"
@@ -44,6 +44,6 @@ FILES:${PN}-qdstrmimporter = " \
     /opt/nvidia/nsight-systems/${BASE_VERSION}/host-linux-armv8 \
     /opt/nvidia/nsight-systems/${BASE_VERSION}/bin \
 "
-INSANE_SKIP:${PN} = "ldflags file-rdeps"
+INSANE_SKIP:${PN} = "ldflags file-rdeps dev-so"
 INSANE_SKIP:${PN}-qdstrmimporter = "ldflags file-rdeps dev-so"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
