@@ -116,6 +116,7 @@ wait_for_rcm() {
 }
 
 # shellcheck disable=SC2120  # Don't warn about no arguments are passed
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 copy_signed_binaries() {
     local signdir="${1:-signed}"
     local xmlfile="${2:-flash.xml.tmp}"
@@ -137,6 +138,7 @@ copy_signed_binaries() {
     done < <("$here/nvflashxmlparse" -t boot "$signdir/$xmlfile"; "$here/nvflashxmlparse" -t rootfs "$signdir/$xmlfile")
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 sign_binaries() {
     if [ -n "$PRESIGNED" ]; then
         cp doflash.sh flash_signed.sh
@@ -155,7 +157,9 @@ sign_binaries() {
                   external-flash.xml.tmp "$DTBFILE" "$EMMC_BCTS" "$ODMDATA" "$LNXFILE" "$ROOTFS_IMAGE"; then
             if [ $have_odmsign_func -eq 0 ]; then
                 cp signed/flash.xml.tmp external-secureflash.xml
-                copy_signed_binaries
+                if ! copy_signed_binaries; then
+                    return 1
+                fi
             else
                 mv secureflash.xml external-secureflash.xml
             fi
@@ -170,7 +174,9 @@ sign_binaries() {
         if [ $have_odmsign_func -eq 0 ]; then
             cp signed/flash.xml.tmp secureflash.xml
             cp signed/flash.idx flash.idx
-            copy_signed_binaries
+            if ! copy_signed_binaries; then
+                return 1
+            fi
         else
             cp flashcmd.txt flash_signed.sh
         fi
@@ -184,6 +190,7 @@ sign_binaries() {
     return 0
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 prepare_for_rcm_boot() {
     if [ $have_odmsign_func -eq 1 ]; then
         "$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins "kernel=initrd-flash.img,kernel_dtb=kernel_$DTBFILE" --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
@@ -194,6 +201,7 @@ prepare_for_rcm_boot() {
     fi
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 run_rcm_boot() {
     if [ $have_odmsign_func -eq 1 ]; then
         if [ -z "$BR_CID" ]; then
@@ -212,6 +220,7 @@ run_rcm_boot() {
     fi
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 mount_partition() {
     local dev="$1"
     local mnt=$(cat /proc/mounts | grep "^$dev" | cut -d' ' -f2)
@@ -232,6 +241,7 @@ mount_partition() {
     return 1
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 unmount_and_release() {
     local mnt="$1"
     local dev="$2"
@@ -249,6 +259,7 @@ unmount_and_release() {
     return 1
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 wait_for_usb_storage() {
     local sessid="$1"
     local name="$2"
@@ -288,6 +299,7 @@ wait_for_usb_storage() {
     return 0
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 copy_bootloader_files() {
     local dest="$1"
     local partnumber partloc partname start_location partsize partfile partattrs partsha
@@ -330,6 +342,7 @@ copy_bootloader_files() {
     return 0
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 generate_flash_package() {
     local dev=$(wait_for_usb_storage "$session_id" "flashpkg")
     local exports
@@ -370,6 +383,7 @@ generate_flash_package() {
     unmount_and_release "$mnt" "$dev" || return 1
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 write_to_device() {
     local devname="$1"
     local flashlayout="$2"
@@ -411,6 +425,7 @@ write_to_device() {
     return $rc
 }
 
+# shellcheck disable=SC2317  # Don't warn about unreachable commands in this function
 get_final_status() {
     local dtstamp="$1"
     local dev=$(wait_for_usb_storage "$session_id" "flashpkg")
@@ -442,6 +457,16 @@ get_final_status() {
     return 0
 }
 
+exec_cmd() {
+    "$@" 2>&1 | tee -a "$logfile"
+    return "${PIPESTATUS[0]}"
+}
+
+exec_cmd_hide() {
+    "$@" >> "$logfile" 2>&1
+    return "${PIPESTATUS[0]}"
+}
+
 dtstamp=$(date +"%Y-%m-%d-%H.%M.%S")
 logfile="log.initrd-flash.$dtstamp"
 stepnumber=1
@@ -455,7 +480,7 @@ step_banner() {
 echo "Starting at $(date -Is)" | tee "$logfile"
 echo "Machine:       ${MACHINE}" | tee "$logfile"
 echo "Rootfs device: ${BOOTDEV}" | tee "$logfile"
-if ! wait_for_rcm 2>&1 | tee -a "$logfile"; then
+if ! exec_cmd wait_for_rcm; then
     echo "ERR: Device not found at $(date -Is)" | tee -a "$logfile"
     exit 1
 fi
@@ -468,7 +493,7 @@ fi
 step_banner "Signing binaries"
 rm -rf bootloader_staging
 mkdir bootloader_staging
-if ! sign_binaries 2>&1 >>"$logfile"; then
+if ! exec_cmd_hide sign_binaries; then
     echo "ERR: signing failed at $(date -Is)"  | tee -a "$logfile"
     exit 1
 fi
@@ -476,15 +501,15 @@ if [ -z "$PRESIGNED" ]; then
     [ ! -f ./boardvars.sh ] || . ./boardvars.sh
 fi
 step_banner "Boot Jetson via RCM"
-if ! prepare_for_rcm_boot 2>&1 >>"$logfile"; then
+if ! exec_cmd_hide prepare_for_rcm_boot; then
     echo "ERR: Preparing RCM boot command failed at $(date -Is)" | tee -a "$logfile"
     exit 1
 fi
-if ! wait_for_rcm 2>&1 | tee -a "$logfile"; then
+if ! exec_cmd wait_for_rcm; then
     echo "ERR: Device not found at $(date -Is)" | tee -a "$logfile"
     exit 1
 fi
-if ! run_rcm_boot 2>&1 >>"$logfile"; then
+if ! exec_cmd_hide run_rcm_boot; then
     echo "ERR: RCM boot failed at $(date -Is)" | tee -a "$logfile"
     exit 1
 fi
@@ -500,14 +525,14 @@ session_id=$(echo -n "$session_id" | tail -c8)
 
 # Boot device flashing
 step_banner "Sending flash sequence commands"
-if ! generate_flash_package 2>&1 | tee -a "$logfile"; then
+if ! exec_cmd generate_flash_package; then
     echo "ERR: could not create command package at $(date -Is)" | tee -a "$logfile"
     exit 1
 fi
 if [ "$EXTERNAL_ROOTFS_DRIVE" -eq 1 ]; then
     if [ "$BOOT_PARTITIONS_ON_EMMC" -eq 1 ]; then
         step_banner "Writing boot partitions to internal storage device"
-        if ! write_to_device mmcblk0 flash.xml.in --no-final-part 2>&1 | tee -a "$logfile"; then
+        if ! exec_cmd write_to_device mmcblk0 flash.xml.in --no-final-part; then
             echo "ERR: write failure to internal storage at $(date -Is)" | tee -a "$logfile"
             if [ $early_final_status -eq 0 ]; then
                 exit 1
@@ -516,7 +541,7 @@ if [ "$EXTERNAL_ROOTFS_DRIVE" -eq 1 ]; then
     fi
     if [ $early_final_status -eq 0 ]; then
         step_banner "Writing partitions on external storage device"
-        if ! write_to_device "$ROOTFS_DEVICE" external-flash.xml.in 2>&1 | tee -a "$logfile"; then
+        if ! exec_cmd write_to_device "$ROOTFS_DEVICE" external-flash.xml.in; then
             echo "ERR: write failure to external storage at $(date -Is)" | tee -a "$logfile"
             if [ $early_final_status -eq 0 ]; then
                 exit 1
@@ -525,7 +550,7 @@ if [ "$EXTERNAL_ROOTFS_DRIVE" -eq 1 ]; then
     fi
 else
     step_banner "Writing partitions on internal storage device"
-    if ! write_to_device "$ROOTFS_DEVICE" flash.xml.in 2>&1 | tee -a "$logfile"; then
+    if ! exec_cmd write_to_device "$ROOTFS_DEVICE" flash.xml.in; then
         echo "ERR: write failure to internal storage at $(date -Is)" | tee -a "$logfile"
         if [ $early_final_status -eq 0 ]; then
             exit 1
@@ -533,7 +558,7 @@ else
     fi
 fi
 step_banner "Waiting for final status from device"
-if ! get_final_status "$dtstamp" 2>&1 | tee -a "$logfile"; then
+if ! exec_cmd get_final_status "$dtstamp"; then
     echo "ERR: failed to retrieve device status at $(date -Is)" | tee -a "$logfile"
     echo "Host-side log:              $logfile"
     echo "Device-side logs stored in: device-logs-$dtstamp"
