@@ -37,9 +37,21 @@ EXTRA_OECMAKE = '-DBUILD_SAMPLES=OFF -DSKIP_GPU_ARCHS=ON -DTRT_PLATFORM_ID="${TA
   -DCUDA_INCLUDE_DIRS="${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include" \
   -DENABLED_SMS="-DENABLE_SM${TEGRA_CUDA_ARCHITECTURE}" \
   -DSTABLE_DIFFUSION_GENCODES="-gencode arch=compute_${TEGRA_CUDA_ARCHITECTURE},code=compute_${TEGRA_CUDA_ARCHITECTURE}" \
+  -DProtobuf_LIBRARY="${STAGING_LIBDIR}/libprotobuf.so" \
+  -DProtobuf_PROTOC_EXECUTABLE="${STAGING_BINDIR_NATIVE}/protoc" \
+  -DONNX_CUSTOM_PROTOC_EXECUTABLE="${STAGING_BINDIR_NATIVE}/protoc" \
+  -DONNX_USE_PROTOBUF_SHARED_LIBS=ON \
+  -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=ON \
 '
 
+OECMAKE_CXX_FLAGS:append = " -Wno-array-bounds"
+
 LDFLAGS += "-Wl,--no-undefined"
+
+do_configure:prepend() {
+    sed -i "s/CMAKE_CXX_STANDARD [0-9]\+/CMAKE_CXX_STANDARD 17/g" ${S}/parsers/onnx/third_party/onnx/CMakeLists.txt
+    sed -i "s/CXX_STANDARD [0-9]\+/CXX_STANDARD 17/g" ${S}/parsers/caffe/CMakeLists.txt
+}
 
 do_install:append() {
     install -d ${D}${includedir}
