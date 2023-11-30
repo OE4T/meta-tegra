@@ -1,8 +1,22 @@
-Index: TensorRT/plugin/bertQKVToContextPlugin/fused_multihead_attention/include/fused_multihead_attention.h
-===================================================================
---- TensorRT.orig/plugin/bertQKVToContextPlugin/fused_multihead_attention/include/fused_multihead_attention.h
-+++ TensorRT/plugin/bertQKVToContextPlugin/fused_multihead_attention/include/fused_multihead_attention.h
-@@ -167,12 +167,7 @@ extern uint32_t cubin_fmha_v1_fp16_384_6
+From cbd385568910c77f159630202ef9471035108959 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Mon, 13 Nov 2023 09:07:38 -0800
+Subject: [PATCH] fix build issues
+
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+
+---
+ .../include/fused_multihead_attention.h                    | 7 +------
+ .../include/fused_multihead_attention_v2.h                 | 3 ---
+ 2 files changed, 1 insertion(+), 9 deletions(-)
+
+diff --git a/plugin/bertQKVToContextPlugin/fused_multihead_attention/include/fused_multihead_attention.h b/plugin/bertQKVToContextPlugin/fused_multihead_attention/include/fused_multihead_attention.h
+index 82c5485c..177cc55d 100644
+--- a/plugin/bertQKVToContextPlugin/fused_multihead_attention/include/fused_multihead_attention.h
++++ b/plugin/bertQKVToContextPlugin/fused_multihead_attention/include/fused_multihead_attention.h
+@@ -177,12 +177,7 @@ extern uint32_t cubin_fmha_v1_fp16_384_64_sm90_cu_cubin_len;
  extern uint32_t cubin_fmha_v1_fp16_128_64_sm90_cu_cubin_len;
  extern uint32_t cubin_fmha_v1_fp16_96_64_sm90_cu_cubin_len;
  extern uint32_t cubin_fmha_v1_fp16_64_64_sm90_cu_cubin_len;
@@ -16,11 +30,11 @@ Index: TensorRT/plugin/bertQKVToContextPlugin/fused_multihead_attention/include/
  static const struct FusedMultiHeadAttentionKernelMetaInfoV1
  {
      Data_type mDataType;
-Index: TensorRT/plugin/bertQKVToContextPlugin/fused_multihead_attention_v2/include/fused_multihead_attention_v2.h
-===================================================================
---- TensorRT.orig/plugin/bertQKVToContextPlugin/fused_multihead_attention_v2/include/fused_multihead_attention_v2.h
-+++ TensorRT/plugin/bertQKVToContextPlugin/fused_multihead_attention_v2/include/fused_multihead_attention_v2.h
-@@ -272,9 +272,6 @@ extern uint32_t cubin_fmha_v2_fp16_128_6
+diff --git a/plugin/bertQKVToContextPlugin/fused_multihead_attention_v2/include/fused_multihead_attention_v2.h b/plugin/bertQKVToContextPlugin/fused_multihead_attention_v2/include/fused_multihead_attention_v2.h
+index 44b529a0..af07319c 100644
+--- a/plugin/bertQKVToContextPlugin/fused_multihead_attention_v2/include/fused_multihead_attention_v2.h
++++ b/plugin/bertQKVToContextPlugin/fused_multihead_attention_v2/include/fused_multihead_attention_v2.h
+@@ -284,9 +284,6 @@ extern uint32_t cubin_fmha_v2_fp16_128_64_sm90_cu_cubin_len;
  extern uint32_t cubin_fmha_v2_fp16_96_64_sm90_cu_cubin_len;
  extern uint32_t cubin_fmha_v2_fp16_64_64_sm90_cu_cubin_len;
  

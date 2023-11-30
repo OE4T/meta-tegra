@@ -1,8 +1,25 @@
-Index: TensorRT/CMakeLists.txt
-===================================================================
---- TensorRT.orig/CMakeLists.txt
-+++ TensorRT/CMakeLists.txt
-@@ -58,6 +58,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_T
+From 89635136951a06cbd5b90d52785454bac27249fb Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ilies.chergui@gmail.com>
+Date: Mon, 13 Nov 2023 09:05:03 -0800
+Subject: [PATCH] CMakeLists.txt: fix cross compilation issues
+
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+
+---
+ CMakeLists.txt               | 25 +++++++++++++++++++------
+ parsers/CMakeLists.txt       |  6 ++++--
+ parsers/caffe/CMakeLists.txt |  4 ++++
+ plugin/CMakeLists.txt        | 14 ++++++++++----
+ third_party/protobuf.cmake   |  2 +-
+ 5 files changed, 38 insertions(+), 13 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 358b6f38..5d685bdb 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -58,6 +58,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
  option(BUILD_PLUGINS "Build TensorRT plugin" ON)
  option(BUILD_PARSERS "Build TensorRT parsers" ON)
  option(BUILD_SAMPLES "Build TensorRT samples" ON)
@@ -76,10 +93,10 @@ Index: TensorRT/CMakeLists.txt
      add_subdirectory(parsers)
  else()
      find_library_create_target(nvcaffeparser nvparsers SHARED ${TRT_OUT_DIR} ${TRT_LIB_DIR})
-Index: TensorRT/parsers/CMakeLists.txt
-===================================================================
---- TensorRT.orig/parsers/CMakeLists.txt
-+++ TensorRT/parsers/CMakeLists.txt
+diff --git a/parsers/CMakeLists.txt b/parsers/CMakeLists.txt
+index 955e109d..8f9bbbae 100644
+--- a/parsers/CMakeLists.txt
++++ b/parsers/CMakeLists.txt
 @@ -22,8 +22,10 @@ add_custom_target(parsers DEPENDS
  
  add_subdirectory(caffe)
@@ -93,19 +110,10 @@ Index: TensorRT/parsers/CMakeLists.txt
  set(TENSORRT_ROOT ${PROJECT_SOURCE_DIR})
  set(TENSORRT_BUILD ${TRT_OUT_DIR} ${TRT_LIB_DIR})
  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${TRT_OUT_DIR})
-Index: TensorRT/parsers/caffe/CMakeLists.txt
-===================================================================
---- TensorRT.orig/parsers/caffe/CMakeLists.txt
-+++ TensorRT/parsers/caffe/CMakeLists.txt
-@@ -48,7 +48,7 @@ target_include_directories(${SHARED_TARG
-     PRIVATE caffeWeightFactory
-     PRIVATE ../common
-     PRIVATE ${Protobuf_INCLUDE_DIR}
--    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/proto
-+    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
- )
- 
- set_target_properties(${SHARED_TARGET}
+diff --git a/parsers/caffe/CMakeLists.txt b/parsers/caffe/CMakeLists.txt
+index 74fd358f..d86758dc 100644
+--- a/parsers/caffe/CMakeLists.txt
++++ b/parsers/caffe/CMakeLists.txt
 @@ -66,6 +66,7 @@ target_link_libraries(${SHARED_TARGET}
      nvinfer
  )
@@ -114,7 +122,7 @@ Index: TensorRT/parsers/caffe/CMakeLists.txt
  # modify google namespace to avoid namespace collision.
  set(GOOGLE google_private)
  target_compile_definitions(${SHARED_TARGET}
-@@ -73,6 +74,7 @@ target_compile_definitions(${SHARED_TARG
+@@ -73,6 +74,7 @@ target_compile_definitions(${SHARED_TARGET}
      "-Dgoogle=${GOOGLE}"
      "-DGOOGLE_PROTOBUF_ARCH_64_BIT"
  )
@@ -122,15 +130,6 @@ Index: TensorRT/parsers/caffe/CMakeLists.txt
  
  set_target_properties(${SHARED_TARGET} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL")
  
-@@ -98,7 +100,7 @@ target_include_directories(${STATIC_TARG
-     PRIVATE caffeWeightFactory
-     PRIVATE ../common
-     PRIVATE ${Protobuf_INCLUDE_DIR}
--    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/proto
-+    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
- )
- 
- set_target_properties(${STATIC_TARGET}
 @@ -115,6 +117,7 @@ target_link_libraries(${STATIC_TARGET}
      ${Protobuf_LIBRARY}
  )
@@ -139,7 +138,7 @@ Index: TensorRT/parsers/caffe/CMakeLists.txt
  # modify google namespace to avoid namespace collision.
  set(GOOGLE google_private)
  target_compile_definitions(${STATIC_TARGET}
-@@ -122,6 +125,7 @@ target_compile_definitions(${STATIC_TARG
+@@ -122,6 +125,7 @@ target_compile_definitions(${STATIC_TARGET}
      "-Dgoogle=${GOOGLE}"
      "-DGOOGLE_PROTOBUF_ARCH_64_BIT"
  )
@@ -147,24 +146,11 @@ Index: TensorRT/parsers/caffe/CMakeLists.txt
  
  set_target_properties(${STATIC_TARGET} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL")
  
-Index: TensorRT/parsers/onnx/CMakeLists.txt
-===================================================================
---- TensorRT.orig/parsers/onnx/CMakeLists.txt
-+++ TensorRT/parsers/onnx/CMakeLists.txt
-@@ -63,7 +63,7 @@ set(API_TESTS_SOURCES
- if (NOT TARGET protobuf::libprotobuf)
-   FIND_PACKAGE(Protobuf REQUIRED)
- else()
--  set(PROTOBUF_LIB "protobuf::libprotobuf")
-+  set(PROTOBUF_LIBRARY "protobuf::libprotobuf")
- endif()
- 
- if(NOT TARGET onnx_proto)
-Index: TensorRT/plugin/CMakeLists.txt
-===================================================================
---- TensorRT.orig/plugin/CMakeLists.txt
-+++ TensorRT/plugin/CMakeLists.txt
-@@ -26,7 +26,8 @@ set(PLUGIN_EXPORT_MAP ${TARGET_DIR}/expo
+diff --git a/plugin/CMakeLists.txt b/plugin/CMakeLists.txt
+index 158472e7..ff62393d 100644
+--- a/plugin/CMakeLists.txt
++++ b/plugin/CMakeLists.txt
+@@ -26,7 +26,8 @@ set(PLUGIN_EXPORT_MAP ${TARGET_DIR}/exports.map)
  if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
  endif()
@@ -201,3 +187,16 @@ Index: TensorRT/plugin/CMakeLists.txt
      list(APPEND PLUGIN_SOURCES "${BERT_CU_SOURCES}")
  endif()
  if (STABLE_DIFFUSION_CU_SOURCES)
+diff --git a/third_party/protobuf.cmake b/third_party/protobuf.cmake
+index b1ae10e5..14f19120 100644
+--- a/third_party/protobuf.cmake
++++ b/third_party/protobuf.cmake
+@@ -206,7 +206,7 @@ function(protobuf_generate_cpp SRCS HDRS)
+             COMMAND LIBRARY_PATH=${Protobuf_LIB_DIR} ${Protobuf_PROTOC_EXECUTABLE}
+             ARGS --cpp_out ${CMAKE_CURRENT_BINARY_DIR}/${PROTO_DIR} -I${CMAKE_CURRENT_SOURCE_DIR}/${PROTO_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${proto}
+             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
+-            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${proto}" protobuf::libprotobuf Protobuf protobuf::protoc
++            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${proto}" protobuf::libprotobuf
+             COMMENT "${proto} -> ${PROTO_DIR}/${PROTO_SRC} ${PROTO_DIR}/${PROTO_HEADER}"
+         )
+ 
