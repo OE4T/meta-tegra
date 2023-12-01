@@ -34,4 +34,4 @@ MACHINE_EXTRA_RRECOMMENDS += "kernel-module-tegra-udrm"
 KERNEL_MODULE_PROBECONF += "tegra-udrm"
 module_conf_tegra-udrm = "options tegra-udrm modeset=1"
 
-PARTITION_LAYOUT_EXTERNAL ?= "flash_l4t_nvme.xml"
+PARTITION_LAYOUT_EXTERNAL_DEFAULT ?= "flash_l4t_nvme.xml"
