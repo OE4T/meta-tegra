@@ -27,7 +27,7 @@ MACHINE_EXTRA_RDEPENDS += "linux-firmware-rtl8168"
 
 EMMC_SIZE ?= ""
 BOOTPART_SIZE ?= "8388608"
-ROOTFSPART_SIZE ?= "30064771072"
+ROOTFSPART_SIZE_DEFAULT ?= "30064771072"
 ODMDATA ?= "gbe-uphy-config-8,hsstp-lane-map-3,hsio-uphy-config-0"
 EMMC_BCT ?= "tegra234-p3767-0000-sdram-l4t.dts"
 NVIDIA_BOARD ?= "t186ref"
