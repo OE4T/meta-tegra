@@ -13,6 +13,7 @@ UBOOT_EXTLINUX_KERNEL_ARGS ?= "${KERNEL_ARGS}"
 UBOOT_EXTLINUX_INITRD ?= "${@'/boot/initrd' if d.getVar('INITRAMFS_IMAGE') != '' and d.getVar('INITRAMFS_IMAGE_BUNDLE') != '1' else ''}"
 
 TEGRA_BOOTCONTROL_OVERLAYS ?= "L4TConfiguration.dtbo"
+TEGRA_BOOTCONTROL_OVERLAYS += "${@'L4TConfiguration-RootfsRedundancyLevelABEnable.dtbo' if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else ''}"
 TEGRA_PLUGIN_MANAGER_OVERLAYS ??= ""
 # The following variable is deprecated; add new overlays
 # to one of the above instead.
