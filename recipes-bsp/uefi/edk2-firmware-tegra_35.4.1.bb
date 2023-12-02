@@ -20,6 +20,8 @@ NVDISPLAY_INIT ?= "${NVDISPLAY_INIT_DEFAULT}"
 NVDISPLAY_INIT_DEPS = ""
 NVDISPLAY_INIT_DEPS:tegra194 = "nvdisp-init:do_deploy"
 
+SRC_URI += "${@'file://L4TConfiguration-RootfsRedundancyLevelABEnable.dtsi' if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else ''}"
+
 do_compile:append() {
     rm -rf ${B}/images
     mkdir ${B}/images
@@ -42,6 +44,9 @@ do_compile:append() {
     done
     cp ${B}/images/L4TConfiguration.dtbo ${B}/images/L4TConfiguration-rcmboot.dtbo
     fdtput -t s ${B}/images/L4TConfiguration-rcmboot.dtbo /fragment@0/__overlay__/firmware/uefi/variables/gNVIDIATokenSpaceGuid/DefaultBootPriority data boot.img
+    if [ ${USE_REDUNDANT_FLASH_LAYOUT} -eq 1 ]; then
+       dtc -Idts -Odtb -o ${B}/images/L4TConfiguration-RootfsRedundancyLevelABEnable.dtbo ${WORKDIR}/L4TConfiguration-RootfsRedundancyLevelABEnable.dtsi
+    fi
 }
 do_compile[depends] += "${NVDISPLAY_INIT_DEPS}"
 
