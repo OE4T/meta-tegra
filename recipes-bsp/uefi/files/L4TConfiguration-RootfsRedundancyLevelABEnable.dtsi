@@ -1,0 +1,36 @@
+/dts-v1/;
+
+/ {
+        overlay-name = "L4T Configuration Settings";
+
+        fragment@0 {
+                target-path = "/";
+
+                board_config {
+                        sw-modules = "uefi";
+                };
+
+                __overlay__ {
+
+                        firmware {
+
+                                uefi {
+
+                                        variables {
+
+                                                gNVIDIAPublicVariableGuid {
+
+                                                        RootfsRedundancyLevel {
+                                                                data = [01 00 00 00];
+                                                                runtime;
+                                                                locked;
+                                                        };
+
+                                                };
+
+                                        };
+                                };
+                        };
+                };
+        };
+};
