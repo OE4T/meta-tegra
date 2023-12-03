@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o pipefail
+
 me=$(basename "$0")
 here=$(readlink -f $(dirname "$0"))
 
@@ -154,7 +156,9 @@ sign_binaries() {
 		  external-flash.xml.tmp $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
 	    if [ $have_odmsign_func -eq 0 ]; then
 		cp signed/flash.xml.tmp external-secureflash.xml
-		copy_signed_binaries
+		if ! copy_signed_binaries; then
+		    return 1
+		fi
 	    else
 		mv secureflash.xml external-secureflash.xml
 	    fi
@@ -163,7 +167,7 @@ sign_binaries() {
 	fi
 	. ./boardvars.sh
     fi
-    if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV \
+    if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV serial_number=$serial_number \
 	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
 	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
 	if [ $have_odmsign_func -eq 0 ]; then
@@ -489,13 +493,12 @@ if ! run_rcm_boot 2>&1 >>"$logfile"; then
 fi
 [ ! -f ./boardvars.sh ] || . ./boardvars.sh
 
-if [ -z "$BR_CID" ]; then
-    echo "ERR: did not get unique ID at $(date -Is)" | tee -a "$logfile"
+if [ -z "$serial_number" ]; then
+    echo "ERR: did not get device serial number at $(date -Is)" | tee -a "$logfile"
     exit 1
 fi
 
-session_id=$("$here/brcid-to-uid" $BR_CID)
-session_id=$(echo -n "$session_id" | tail -c8)
+session_id=$(printf "%x" "$serial_number" | tail -c8)
 
 # Boot device flashing
 step_banner "Sending flash sequence commands"
