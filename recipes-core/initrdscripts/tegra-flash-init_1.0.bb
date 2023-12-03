@@ -25,5 +25,22 @@ do_install() {
 }
 
 FILES:${PN} = "/"
-RDEPENDS:${PN} = "util-linux-blkdiscard tegra-flash-reboot mtd-utils e2fsprogs-mke2fs libusbgx-tegra-initrd-flash watchdog-keepalive gptfdisk"
-RRECOMMENDS:${PN} = "kernel-module-spi-tegra114 kernel-module-loop"
+RDEPENDS:${PN} = "util-linux-blkdiscard tegra-flash-reboot mtd-utils e2fsprogs-mke2fs libusbgx-tegra-initrd-flash watchdog-keepalive gptfdisk tegra-firmware"
+RRECOMMENDS:${PN} = "kernel-module-spi-tegra114 \
+                     kernel-module-loop \
+                     kernel-module-phy-tegra194-p2u \
+                     kernel-module-pcie-tegra194 \
+                     kernel-module-nvme \
+                     kernel-module-tegra-bpmp-thermal \
+                     kernel-module-pwm-fan \
+                     kernel-module-libcomposite \
+                     kernel-module-usb-f-mass-storage \
+                     kernel-module-typec \
+                     kernel-module-ucsi-ccg \
+                     kernel-module-tegra-xudc \
+                     kernel-module-spi-tegra210-quad \
+                     kernel-module-tegra-se-nvhost \
+                     kernel-module-tegra-se-nvrng \
+                     kernel-module-watchdog-tegra-t18x \
+                     kernel-module-ivc-ext \
+"
