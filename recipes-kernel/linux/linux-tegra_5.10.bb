@@ -144,7 +144,7 @@ do_deploy:append() {
 		dtb_ext=${dtb##*.}
 		dtb_path=$(get_real_dtb_path_in_kernel "$dtb")
 		dtb_base_name=$(basename $dtb .$dtb_ext)
-		if [ -a $dtb_path.signed ] ; then
+		if [ -e $dtb_path.signed ] ; then
 			install -m 0644 $dtb_path.signed $deployDir/$dtb_base_name-${KERNEL_DTB_NAME}.$dtb_ext.signed
 			if [ "${KERNEL_IMAGETYPE_SYMLINK}" = "1" ] ; then
 				ln -sf $dtb_base_name-${KERNEL_DTB_NAME}.$dtb_ext.signed $deployDir/$dtb_base_name.$dtb_ext.signed
