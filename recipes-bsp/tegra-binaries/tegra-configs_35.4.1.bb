@@ -52,10 +52,6 @@ do_install() {
     install -m 0644 ${WORKDIR}/l4t.csv ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
 }
 
-do_install:append:tegra194() {
-    install -m 0644 ${S}/etc/X11/xorg.conf.t194_ref ${D}${sysconfdir}/X11/xorg.conf
-}
-
 do_install:append:tegra234() {
     install -m 0644 ${S}/etc/X11/xorg.conf ${D}${sysconfdir}/X11/xorg.conf
     install -d ${D}${sysconfdir}/X11/xorg.conf.d
