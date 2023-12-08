@@ -16,7 +16,7 @@ DEPENDS:append = " virtual/${TARGET_PREFIX}gcc"
 S = "${WORKDIR}/arm-trusted-firmware"
 B = "${WORKDIR}/build"
 
-COMPATIBLE_MACHINE = "(tegra194|tegra234)"
+COMPATIBLE_MACHINE = "(tegra234)"
 
 CVE_PRODUCT = "arm:arm-trusted-firmware \
                arm:trusted_firmware-a \
@@ -33,7 +33,6 @@ AS[unexport] = "1"
 LD[unexport] = "1"
 
 TARGET_SOC = "UNKNOWN"
-TARGET_SOC:tegra194 = "t194"
 TARGET_SOC:tegra234 = "t234"
 
 def generate_build_string(d):
