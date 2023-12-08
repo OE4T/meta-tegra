@@ -12,7 +12,7 @@ DEPENDS = "cudnn"
 SRC_COMMON_DEBS = "\
     libcudnn8-samples_${PV}+cuda11.4_arm64.deb;name=samples;subdir=cudnn \
 "
-SRC_URI[samples.sha256sum] = "1c9b31a58576b528d8505229664d60579c06035615a5c193330a2623bee5b4af"
+SRC_URI[samples.sha256sum] = "4634422d33251411e0c0129ea0814d792992f29324cc2ee1d18f76fd061d16fd"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
