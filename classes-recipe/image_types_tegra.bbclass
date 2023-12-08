@@ -16,11 +16,6 @@ def tegra_default_rootfs_size(d):
 def tegra_rootfs_device(d):
     import re
     bootdev = d.getVar('TNSPEC_BOOTDEV')
-    # For Xavier NX booting from SDcard, the RCM booted kernel
-    # bypasses UEFI and doesn't get any overlays applied, such
-    # as the one that renames mmcblk1 -> mmcblk0
-    if d.getVar('NVIDIA_CHIP') == "0x19" and bootdev.startswith("mmc") and d.getVar('TEGRA_SPIFLASH_BOOT') == "1":
-        return "mmcblk1"
     if bootdev.startswith("mmc") or bootdev.startswith("nvme"):
         return re.sub(r"p[0-9]+$", "", bootdev)
     return re.sub("[0-9]+$", "", bootdev)
@@ -104,7 +99,6 @@ TEGRA_SPIFLASH_BOOT ??= ""
 TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD ??=""
 
 TOSIMGFILENAME = "tos-optee.img"
-TOSIMGFILENAME:tegra194 = "tos-optee_t194.img"
 TOSIMGFILENAME:tegra234 = "tos-optee_t234.img"
 
 BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
@@ -295,14 +289,7 @@ tegraflash_populate_package() {
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     sed -e "\$a\BOOTCONTROL_OVERLAYS=\"$bcoverlays\"" ${STAGING_DATADIR}/tegraflash/flashvars > ./flashvars
-    if [ "${SOC_FAMILY}" = "tegra194" ]; then
-        cp mb1_t194_prod.bin mb1_b_t194_prod.bin
-	rm -rf ./rollback
-	mkdir ./rollback
-	cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t19x ./rollback/
-        cp ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg .
-        cp ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb .
-    elif [ "${SOC_FAMILY}" = "tegra234" ]; then
+    if [ "${SOC_FAMILY}" = "tegra234" ]; then
         cp ${STAGING_DATADIR}/tegraflash/bpmp_t234-*.bin .
         cp ${STAGING_DATADIR}/tegraflash/tegra234-*.dts* .
         cp ${STAGING_DATADIR}/tegraflash/tegra234-bpmp-*.dtb .
@@ -456,7 +443,7 @@ TEGRAFLASH_PKG_DEPENDS = "${@'zip-native:do_populate_sysroot' if d.getVar('TEGRA
 do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populate_sysroot coreutils-native:do_populate_sysroot \
                                  tegra-flashtools-native:do_populate_sysroot gptfdisk-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
-                                 tegra-redundant-boot-rollback:do_populate_sysroot virtual/kernel:do_deploy \
+                                 virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${TEGRA_ESP_IMAGE}:do_image_complete' if d.getVar('TEGRA_ESP_IMAGE') != '' else  ''} \
                                  virtual/bootloader:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS} \
@@ -499,7 +486,7 @@ create_bup_payload_image[vardepsexclude] += "DATETIME"
 
 CONVERSIONTYPES += "bup-payload"
 CONVERSION_DEPENDS_bup-payload = "tegra-flashtools-native python3-pyyaml-native coreutils-native tegra-bootfiles \
-                                  tegra-redundant-boot-rollback dtc-native \
+                                  dtc-native \
                                   virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy \
                                   ${TEGRA_ESP_IMAGE}:do_image_complete ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS}"
 CONVERSION_CMD:bup-payload = "create_bup_payload_image ${type}"
