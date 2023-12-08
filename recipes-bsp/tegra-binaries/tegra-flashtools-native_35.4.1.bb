@@ -45,7 +45,6 @@ do_install() {
     install -m 0644 ${S}/bootloader/pyfdt/*.py ${D}${BINDIR}/pyfdt/
     install -m 0755 ${S}/bootloader/tegraflash*.py ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/ed25519.py ${D}${BINDIR}
-    install -m 0644 ${S}/bootloader/t194.py ${D}${BINDIR}
     install -m 0644 ${S}/bootloader/t234.py ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/dtbcheck.py ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/sw_memcfg_overlay.pl ${D}${BINDIR}

@@ -12,17 +12,8 @@ TEGRA_SOCNAME_SHORT = "${@d.getVar('SOC_FAMILY')[0:1] + d.getVar('SOC_FAMILY')[-
 # Work around bitbake parsing quirk with shell-style escapes
 BACKSLASH_X_01 = "${@'\\' + 'x01'}"
 BADPAGE_SIZE = "8192"
-BADPAGE_SIZE:tegra194 = "4096"
 
 do_compile() {
-    if [ "${SOC_FAMILY}" = "tegra194" ]; then
-        for f in ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb; do
-            compressedfile=${B}/$(basename "$f" .dtb)_lz4.dtb
-            lz4c -f $f $compressedfile
-	done
-	cp ${S}/bootloader/nvdisp-init.bin ${B}
-	truncate --size=393216 ${B}/nvdisp-init.bin
-    fi
     prepare_badpage_mapfile
 }
 
@@ -39,10 +30,6 @@ prepare_badpage_mapfile()  {
     printf 'NVDA' | dd of="badpage.bin" bs=1 seek=0 count=4 conv=notrunc &> /dev/null
 
     case "${SOC_FAMILY}" in
-        tegra194)
-	    printf "${BACKSLASH_X_01}" | dd of="badpage.bin" bs=1 seek=2976 count=1 conv=notrunc &> /dev/null
-	    printf 'BINF' | dd of="badpage.bin" bs=1 seek=2992 count=4 conv=notrunc &> /dev/null
-            ;;
         tegra234)
             printf 'BINF' | dd of="badpage.bin" bs=1 seek=5120 count=4 conv=notrunc &> /dev/null
             ;;
@@ -66,16 +53,6 @@ do_install() {
 
 install_other_boot_firmware_files() {
     case "${SOC_FAMILY}" in
-	tegra194)
-	    install -m 0644 ${B}/nvdisp-init.bin ${D}${datadir}/tegraflash/
-	    install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT_OVERRIDE}
-	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
-	    for f in ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb; do
-		install -m 0644 $f ${D}${datadir}/tegraflash/
-		compressedfile=${B}/$(basename "$f" .dtb)_lz4.dtb
-		install -m 0644 $compressedfile ${D}${datadir}/tegraflash/
-	    done
-	    ;;
 	tegra234)
 	    install -m 0644 ${S}/bootloader/tegra234-*.dts* ${D}${datadir}/tegraflash/
 	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra234-bpmp-*.dtb ${D}${datadir}/tegraflash/

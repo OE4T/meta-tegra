@@ -1,1 +1,0 @@
-SUBSYSTEM=="net", ACTION=="add", ENV{ID_BUS}=="pci", ENV{ID_VENDOR_ID}=="0x10ec" ENV{ID_MODEL_ID}=="0xc822", NAME="wlan0"

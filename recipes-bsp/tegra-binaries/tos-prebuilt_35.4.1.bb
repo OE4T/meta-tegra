@@ -5,7 +5,6 @@ COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
 
 TOSIMG_PREBUILT = "tos-trusty.img"
-TOSIMG_PREBUILT:tegra194 = "tos-optee_t194.img"
 TOSIMG_PREBUILT:tegra234 = "tos-optee_t234.img"
 PREFERRED_PROVIDER_virtual/secure-os ??= ""
 PROVIDES = "trusted-os virtual/secure-os"

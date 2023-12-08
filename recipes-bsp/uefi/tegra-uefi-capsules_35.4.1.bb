@@ -13,7 +13,6 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS += "tegra-bup-payload"
 
-GUID:tegra194 ?= "be3f5d68-7654-4ed2-838c-2a2faf901a78"
 GUID:tegra234 ?= "bf0d4599-20d4-414e-b2c5-3595b1cda402"
 
 do_compile() {

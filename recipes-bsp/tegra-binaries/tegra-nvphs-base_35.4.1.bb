@@ -16,7 +16,6 @@ do_install() {
     install -d ${D}${sbindir} ${D}${sysconfdir} ${D}${libdir}
     install -m 0755 ${S}/usr/sbin/nvphs* ${S}/usr/sbin/nvsetprop ${D}${sbindir}/
     install -m 0644 ${S}/etc/nvphsd_common.conf ${D}${sysconfdir}/
-    install -m 0644 ${S}/etc/nvphsd.conf.t194 ${D}${sysconfdir}/
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/tegra/libnvphsd* ${D}${libdir}/
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/tegra/libnvgov* ${D}${libdir}/
 }

@@ -17,14 +17,6 @@ do_compile() {
     cp ${S}/bootloader/uefi_jetson.bin ${S}/bootloader/BOOTAA64.efi ${B}
 }
 
-do_compile:tegra194() {
-    cp ${S}/bootloader/nvdisp-init.bin ${B}
-    truncate --size=393216 ${B}/nvdisp-init.bin
-    cat ${B}/nvdisp-init.bin ${S}/bootloader/uefi_jetson.bin > ${B}/uefi_jetson.bin
-    cp ${S}/bootloader/standalonemm_optee_t194.bin ${B}/standalone_mm_optee.bin
-    cp ${S}/bootloader/BOOTAA64.efi ${B}
-}
-
 do_compile:append:tegra234() {
     cp ${S}/bootloader/standalonemm_optee_t234.bin ${B}/standalone_mm_optee.bin
 }
