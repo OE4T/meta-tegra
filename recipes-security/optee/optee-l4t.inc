@@ -11,7 +11,6 @@ DEPENDS = "python3-pyelftools-native python3-cryptography-native standalone-mm-o
 export OPENSSL_MODULES="${STAGING_LIBDIR_NATIVE}/ossl-modules"
 
 OPTEE_NV_PLATFORM ?= ""
-OPTEE_NV_PLATFORM:tegra194 = "t194"
 OPTEE_NV_PLATFORM:tegra234 = "t234"
 
 TA_DEV_KIT_DIR = "${STAGING_INCDIR}/optee/export-user_ta"
