@@ -668,7 +668,7 @@ if [ $bup_blob -ne 0 ]; then
         echo "ERR: TNSPEC must be shorter than 128 characters: $spec" >&2
         exit 1
     fi
-    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" "$sbk_keyfile" $CHIPID || exit 1
+    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" generic "$keyfile" "$sbk_keyfile" $CHIPID || exit 1
     exit 0
 fi
 

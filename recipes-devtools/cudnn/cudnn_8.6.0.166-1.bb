@@ -13,8 +13,8 @@ SRC_COMMON_DEBS = "\
     libcudnn8_${PV}+cuda11.4_arm64.deb;name=lib;subdir=cudnn \
     libcudnn8-dev_${PV}+cuda11.4_arm64.deb;name=dev;subdir=cudnn \
 "
-SRC_URI[lib.sha256sum] = "4a679b9676d4d1bfd2d7a3572eefc916706219ad006e38a8fd2377067fd635ee"
-SRC_URI[dev.sha256sum] = "f23632cb15ba1db209811086b5c31207d2da49478402422b9d9aaa9fe9dc0512"
+SRC_URI[lib.sha256sum] = "e6cbd1c40552340bc5a1e80707d30af67d368d071c7111f0556b411ad8d73593"
+SRC_URI[dev.sha256sum] = "9c531db5b96a76cc480f8f70ed6ad6a544e5201d65f8d67ca76e74002cec9c88"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 

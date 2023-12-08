@@ -13,10 +13,10 @@ SRC_COMMON_DEBS = "\
     libnvparsers8_${PV}+cuda11.4_arm64.deb;downloadfilename=libnvparsers8_${PV}+cuda11.4_arm64.deb;name=nvp;subdir=tensorrt \
     libnvparsers-dev_${PV}+cuda11.4_arm64.deb;downloadfilename=libnvparsers-dev_${PV}+cuda11.4_arm64.deb;name=nvpdev;subdir=tensorrt \
 "
-LIBSHA256SUM = "55012013528106fca0fb0fd3dbf73a54b8e441567fe7144d1523e5609f036c31"
-DEVSHA256SUM = "14ebffd144def765fdb3560c342984a9266761f3dbe7b3f8034f0fae7908360b"
-NVPSHA256SUM = "5ef03cac6744145037eb6ea00b63eaf4d99a04c41800fc5d76252d55bcc09801"
-NVPDEVSHA256SUM = "8d19d9cab1460564437c1d0e9b8a4f9a5ae93d949935a6cbbed0df6b6dafcd29"
+LIBSHA256SUM = "eea369672f2398a9973fdbed34d8d003b3c8aebca12b764bd10c8ae9242f8544"
+DEVSHA256SUM = "a765d72fe444c2a28fffd139731151b8b794792606d081bbb042aee22cc9876c"
+NVPSHA256SUM = "97f64f4ecaf57ada8ddf7104d6458a179d1906a852722eddc849853fc7e19d21"
+NVPDEVSHA256SUM = "ba07db5637c1b80920a7cc6f6fabd2503014036a3b24b837b393e3c8ac9b5282"
 
 SRC_URI[lib.sha256sum] = "${LIBSHA256SUM}"
 SRC_URI[dev.sha256sum] = "${DEVSHA256SUM}"
