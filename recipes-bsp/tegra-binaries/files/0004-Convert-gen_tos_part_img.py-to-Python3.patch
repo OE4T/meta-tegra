@@ -1,17 +1,20 @@
-From 83e9fa94ea79bc00d0ac9bfc8e003c5335a29aef Mon Sep 17 00:00:00 2001
+From fa93f99c0a0d5d854473987998723db72099e97c Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 22 Jan 2020 06:35:59 -0800
-Subject: [PATCH 4/4] Convert gen_tos_part_img.py to Python3
+Subject: [PATCH] Convert gen_tos_part_img.py to Python3
 
-%% original patch: 0004-Convert-gen_tos_part_img.py-to-Python3.patch
+Upstream-Status: pending
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
- nv_tegra/tos-scripts/gen_tos_part_img.py | 42 +++++++++++++-----------
- 1 file changed, 23 insertions(+), 19 deletions(-)
+ nv_tegra/tos-scripts/gen_tos_part_img.py | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-Index: Linux_for_Tegra/nv_tegra/tos-scripts/gen_tos_part_img.py
-===================================================================
---- Linux_for_Tegra.orig/nv_tegra/tos-scripts/gen_tos_part_img.py
-+++ Linux_for_Tegra/nv_tegra/tos-scripts/gen_tos_part_img.py
+diff --git a/nv_tegra/tos-scripts/gen_tos_part_img.py b/nv_tegra/tos-scripts/gen_tos_part_img.py
+index 2bc5113..350c910 100755
+--- a/nv_tegra/tos-scripts/gen_tos_part_img.py
++++ b/nv_tegra/tos-scripts/gen_tos_part_img.py
 @@ -1,4 +1,4 @@
 -#!/usr/bin/python3
 +#!/usr/bin/env python3

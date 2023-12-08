@@ -11,7 +11,7 @@ SRC_COMMON_DEBS = "\
     libnvinfer-bin_${PV}+cuda11.4_arm64.deb;downloadfilename=libnvinfer-bin_${PV}+cuda11.4_arm64.deb;name=bin;subdir=tensorrt \
 "
 
-BINSHA256SUM = "b73224d8eb9675e7d616ee5c47ffa1c01501734ca326f599d42de61f2ea5d2d2"
+BINSHA256SUM = "b3f13e81d91315cf2904624ebec45870dccb779a6c1678aa64252507b83f6e5e"
 
 SRC_URI[bin.sha256sum] = "${BINSHA256SUM}"
 

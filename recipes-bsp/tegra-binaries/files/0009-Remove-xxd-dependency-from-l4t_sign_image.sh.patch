@@ -1,19 +1,21 @@
-From 2287cb39236f850acd94ac5fd628c8985e3495c1 Mon Sep 17 00:00:00 2001
+From 4c8e367a4d91203450b4b268c8951327caa5b737 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 26 Apr 2021 07:52:31 -0700
 Subject: [PATCH] Remove xxd dependency from l4t_sign_image.sh
 
 since it's not necessarily available in the build environment.
 
+Upstream-Status: pending
+
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  l4t_sign_image.sh | 3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-Index: Linux_for_Tegra/l4t_sign_image.sh
-===================================================================
---- Linux_for_Tegra.orig/l4t_sign_image.sh
-+++ Linux_for_Tegra/l4t_sign_image.sh
+diff --git a/l4t_sign_image.sh b/l4t_sign_image.sh
+index 21d7ef8..e75bac1 100755
+--- a/l4t_sign_image.sh
++++ b/l4t_sign_image.sh
 @@ -110,8 +110,7 @@ function write_size_to_sig
  	echo "${SCRIPT_NAME}: chip ${chip}: add $(printf "0x%x" "${size}") to offset "\
  		"$(printf "0x%x" "${offset}") in sig file" >&5
