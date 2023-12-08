@@ -237,26 +237,6 @@ if [ -z "$CHIPREV" ]; then
                 echo "ERR: unrecognized fused configuration 0x$flval" >&2
                 exit 1
         esac
-    elif [ "${chipid:3:2}" = "80" -a "${chipid:6:2}" = "19" ]; then
-        if [ "$CHIPID" != "0x19" ]; then
-            echo "ERR: CHIPID ($CHIPID) does not match actual chip ID (0x${chipid:6:2})" >&2
-            exit 1
-        fi
-        case "${chipid:2:1}" in
-            8)
-                bootauth="NS"
-                ;;
-            9|a)
-                bootauth="PKC"
-                ;;
-            d|e)
-                bootauth="SBKPKC"
-                ;;
-            *)
-                echo "ERR: non-production chip found" >&2
-                exit 1
-                ;;
-        esac
     else
         echo "ERR: unrecognized chip ID: 0x${chipid:6:2}" >&2
         exit 1
@@ -291,13 +271,7 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
         sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "$EMC_FUSE_DEV_PARAMS"
     fi
     rm -f rcm_state
-    if [ "$CHIPID" = "0x19" ]; then
-        if ! python3 $flashappname ${inst_args} --chip 0x19 --applet mb1_t194_prod.bin $skipuid --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
-             --bins "mb2_applet nvtboot_applet_t194.bin" --cmd "dump eeprom boardinfo ${cvm_bin};reboot recovery" $keyargs; then
-            echo "ERR: could not retrieve EEPROM board information" >&2
-            exit 1
-        fi
-    else
+    if [ "$CHIPID" = "0x23" ]; then
         if ! python3 $flashappname ${inst_args} --chip 0x23 $skipuid $keyargs \
              --applet mb1_t234_prod.bin \
              --dev_params $EMC_FUSE_DEV_PARAMS \
@@ -395,64 +369,7 @@ else
     chip_sku=$CHIP_SKU
 fi
 
-if [ "$CHIPID" = "0x19" ]; then
-    # Adapted from p2972-0000.conf.common in L4T kit
-    BPFDTBREV="a01"
-    PMICREV="a01"
-
-    case "$boardid" in
-        2888)
-            case $board_version in
-                [01][0-9][0-9])
-                ;;
-                2[0-9][0-9])
-                    PMICREV="a02"
-                    BPFDTBREV="a02"
-                    ;;
-                [34][0-9][0-9])
-                    PMICREV="a04"
-                    BPFDTBREV="a02"
-                    if [ $board_sku -ge 4 ] || [ $board_version -gt 300 -a $(expr "$board_revision" \> "D.0") -eq 1 ]; then
-                        PMICREV="a04-E-0"
-                        BPFDTBREV="a04"
-                    fi
-                    ;;
-                [06][0-9][0-9]) # 600 range is the board version of the Jetson AGX Xavier Industrial
-                    ;;
-                *)
-                    echo "ERR: unrecognized board version $board_version" >&2
-                    exit 1
-                    ;;
-            esac
-            if [ "$board_sku" = "0005" ]; then
-                # AGX Xavier 64GB
-                BPFDTBREV="0005-a04-maxn"
-            fi
-            ;;
-        3668)
-            # No revision-specific settings
-            ;;
-        *)
-            echo "ERR: unrecognized board ID $boardid" >&2
-            exit 1
-            ;;
-    esac
-
-    ramcodeargs=
-    if [ "$boardid" = "2888" -a "$board_sku" = "0008" ]; then
-        # AGX Xavier Industrial
-        ramcodeargs="--ramcode 1"
-    fi
-
-    for var in $FLASHVARS; do
-        eval pat=$`echo $var`
-        if [ -n "$pat" ]; then
-            val=$(echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@PMICREV@,$PMICREV," -e"s,@CHIPREV@,$CHIPREV,")
-            eval $var='$val'
-        fi
-    done
-
-elif [ "$CHIPID" = "0x23" ]; then
+if [ "$CHIPID" = "0x23" ]; then
     if [ "$BOARDID" = "3701" ]; then
         case $chip_sku in
             00)
@@ -588,33 +505,7 @@ sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," \
     $appfile_sed flash.xml.tmp > flash.xml
 rm flash.xml.tmp
 
-if [ "$CHIPID" = "0x19" ]; then
-    BINSARGS="mb2_bootloader nvtboot_recovery_t194.bin; \
-mts_preboot preboot_c10_prod_cr.bin; \
-mts_mce mce_c10_prod_cr.bin; \
-mts_proper mts_c10_prod_cr.bin; \
-bpmp_fw bpmp-2_t194.bin; \
-bpmp_fw_dtb $BPFDTB_FILE; \
-spe_fw spe_t194.bin; \
-tos tos-optee_t194.img; \
-eks eks.img; \
-bootloader_dtb $dtb_file"
-    bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
-         --device_config $DEVICE_CONFIG \
-         --misc_config $MISC_CONFIG  \
-         --misc_cold_boot_config $MISC_COLD_BOOT_CONFIG \
-         --pinmux_config $PINMUX_CONFIG \
-         --gpioint_config $GPIOINT_CONFIG \
-         --pmic_config $PMIC_CONFIG \
-         --pmc_config $PMC_CONFIG \
-         --prod_config $PROD_CONFIG \
-         --scr_config $SCR_CONFIG \
-         --scr_cold_boot_config $SCR_COLD_BOOT_CONFIG \
-         --br_cmd_config $BR_CMD_CONFIG \
-         --dev_params $DEV_PARAMS,$DEV_PARAMS_B \
-         $overlay_dtb_arg"
-    flashername=nvtboot_recovery_cpu_t194.bin
-else
+if [ "$CHIPID" = "0x23" ]; then
     BINSARGS="psc_fw pscfw_t234_prod.bin; \
 mts_mce mce_flash_o10_cr_prod.bin; \
 mb2_applet applet_t234.bin; \
@@ -703,12 +594,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     BINSARGS="--bins \"$BINSARGS\""
     BCT="--sdram_config"
     boot_chain_select="A"
-    if [ "$CHIPID" = "0x19" ]; then
-        flashername=nvtboot_recovery_cpu_t194.bin
-        SOSARGS="--applet mb1_t194_prod.bin "
-        NV_ARGS="--soft_fuses tegra194-mb1-soft-fuses-l4t.cfg "
-        BCTARGS="$bctargs --bct_backup --secondary_gpt_backup"
-    elif [ "$CHIPID" = "0x23" ]; then
+    if [ "$CHIPID" = "0x23" ]; then
         flashername="uefi_jetson_with_dtb.bin"
         UEFIBL="uefi_jetson_with_dtb.bin"
         mb1filename="mb1_t234_prod.bin"
@@ -754,20 +640,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     touch odmsign.func
 fi
 
-if [ "$CHIPID" = "0x19" ]; then
-    flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
-              --sdram_config $sdramcfg_files \
-              --odmdata $odmdata \
-              --bldtb $dtb_file \
-              --applet mb1_t194_prod.bin \
-              --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
-              --cmd \"$tfcmd\" $skipuid \
-              --cfg flash.xml \
-              --bct_backup \
-              --secondary_gpt_backup \
-              $bctargs $ramcodeargs $extdevargs \
-              --bins \"$BINSARGS\""
-else
+if [ "$CHIPID" = "0x23" ]; then
     flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
@@ -789,10 +662,6 @@ if [ $bup_blob -ne 0 ]; then
     tbcdtbfilename="$dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
-    if [ "$CHIPID" = "0x19" ]; then
-        TBCFILE="uefi_jetson.bin"
-        TOSFILE="tos-optee_t194.img"
-    fi
     . "$here/l4t_bup_gen.func"
     spec="${BOARDID}-${FAB}-${BOARDSKU}-${BOARDREV}-1-${CHIPREV}-${MACHINE}-"
     if [ $(expr length "$spec") -ge 128 ]; then
