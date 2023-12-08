@@ -69,7 +69,7 @@ compute_size() {
 
 find_finalpart() {
     local blksize partnumber partname partsize partfile partguid partfilltoend
-    local appidx pline i
+    local appidx app_b_idx pline i
     if [ -n "$ignore_finalpart" ]; then
 	FINALPART=999
 	return 0
@@ -83,10 +83,17 @@ find_finalpart() {
 	fi
 	if [ "$partname" = "APP" ]; then
 	    appidx=$i
+	elif [ "$partname" = "APP_b" ]; then
+	    app_b_idx=$i
 	fi
 	i=$(expr $i + 1)
     done
     if [ -n "$appidx" ]; then
+	if [ -n "$app_b_idx" ]; then
+	    ignore_finalpart=yes
+	    FINALPART=999
+	    return 0
+	fi
 	FINALPART=$appidx
 	return 0
     fi
