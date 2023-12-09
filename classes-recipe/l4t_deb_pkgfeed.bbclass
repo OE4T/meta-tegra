@@ -6,7 +6,7 @@ inherit l4t_bsp
 
 L4T_DEB_COMP_DEFAULT = "main"
 L4T_DEB_COMP ?= "${L4T_DEB_COMP_DEFAULT}"
-L4T_X86_DEB_CLASS ??= "x86_64/focal"
+L4T_X86_DEB_CLASS ??= "x86_64/jammy"
 
 def l4t_deb_src_uri(d):
     def generate_uris(d, debclass, deblist):
