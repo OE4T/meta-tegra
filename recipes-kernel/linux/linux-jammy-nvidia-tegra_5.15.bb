@@ -11,20 +11,20 @@ require recipes-kernel/linux/linux-yocto.inc
 
 KERNEL_DISABLE_FW_USER_HELPER ?= "y"
 
-DEPENDS:remove = "kern-tools-native"
-DEPENDS:append = " kern-tools-tegra-native"
+#DEPENDS:remove = "kern-tools-native"
+#DEPENDS:append = " kern-tools-tegra-native"
 
-LINUX_VERSION ?= "5.10.120"
+LINUX_VERSION ?= "5.15.122"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
-LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:2])}.ga"
+LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:2])}-1018.18"
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "76678311c10b59a385a6d74152f3a0b976ae2a67"
+SRCREV = "${AUTOREV}"
 KBRANCH = "${SRCBRANCH}"
-SRC_REPO = "github.com/OE4T/linux-tegra-5.10.git;protocol=https"
+SRC_REPO = "/sources/linux-jammy-nvidia-tegra"
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
            ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
@@ -46,10 +46,6 @@ set_scmversion() {
     fi
 }
 do_kernel_checkout[postfuncs] += "set_scmversion"
-
-python do_kernel_configcheck:prepend() {
-    os.environ['KERNEL_OVERLAYS'] = d.expand("${S}/nvidia ${S}/nvidia/nvgpu")
-}
 
 KERNEL_DEVICETREE_APPLY_OVERLAYS ??= ""
 
