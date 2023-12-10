@@ -4,6 +4,7 @@ L4T_SRCS_NAME ??= "sources"
 L4T_BSP_PREFIX ??= "Jetson"
 
 L4T_VERSION ?= "36.2.0"
+L4T_LIB_VERSION ?= "540.2.0"
 
 # Version (date-time stamp) suffixes for nvidia-l4t-* packages
 # in the package feeds.
@@ -27,3 +28,5 @@ def l4t_release_dir(d):
 
 L4T_URI_BASE ?= "https://developer.download.nvidia.com/embedded/L4T/${@l4t_release_dir(d)}/${L4T_BSP_NAME}"
 L4T_OVERLAY_URI_BASE ?= "https://developer.download.nvidia.com/embedded/L4T/${@l4t_release_dir(d)}"
+
+L4T_BSP_SHARED_SOURCE_DIR = "${TMPDIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-${PR}/Linux_for_Tegra"
