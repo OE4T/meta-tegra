@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://nvgst_sample_apps/nvgstcapture-1.0/nvgstcapture-1.0_R
                     file://nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer-1.0_README.txt;endline=21;md5=694cc29d69c54345f88511643308aae5 \
 "
 
-TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/nvgstapps_src.tbz2"
+TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/nvgstapps_src.tbz2"
 
 require recipes-bsp/tegra-sources/tegra-sources-36.2.0.inc
 

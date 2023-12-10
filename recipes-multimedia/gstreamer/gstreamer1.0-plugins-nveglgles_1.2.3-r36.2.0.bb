@@ -4,7 +4,7 @@ LICENSE = "LGPL-2.0-or-later & MIT"
 LIC_FILES_CHKSUM = "file://gst-libs/gst/egl/LICENSE.libgstnvegl-1.0;md5=de0f9dfa389a77a904a5a2919a9e6b08 \
                     file://LICENSE.libgstnveglglessink;md5=5cf2b0235eb3cb8f4073a66ecb29212a"
 
-TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstegl_src.tbz2"
+TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/gstegl_src.tbz2"
 
 require recipes-bsp/tegra-sources/tegra-sources-36.2.0.inc
 
