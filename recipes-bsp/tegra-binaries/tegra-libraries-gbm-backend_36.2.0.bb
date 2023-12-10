@@ -10,7 +10,8 @@ MAINSUM = "c2fe1e174f3626b3ffdeffb552fc3246a31eb04fe6aa7f60f4af9cc07dfd2065"
 RPROVIDES:${PN} += "tegra-gbm-backend"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libnvidia-allocator.so.1 \
+    nvidia/libnvidia-allocator.so.1 \
+    nvidia/libnvidia-egl-gbm.so.1.1.0 \
 "
 
 do_install() {
@@ -21,6 +22,7 @@ do_install() {
     ln -sf ../libnvidia-allocator.so ${D}${libdir}/gbm/nvidia-drm_gbm.so
     ln -sf ../libnvidia-allocator.so ${D}${libdir}/gbm/tegra_gbm.so
     ln -sf libnvidia-allocator.so.1 ${D}${libdir}/libnvidia-allocator.so
+    ln -sf libnvidia-egl-gbm.so.1.1.0 ${D}${libdir}/libnvidia-egl-gbm.so.1
 }
 
 FILES:${PN} += " \

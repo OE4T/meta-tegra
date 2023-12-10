@@ -7,7 +7,7 @@ require tegra-debian-libraries-common.inc
 MAINSUM = "6679762d5405c2f026810de6076b9d7bf87e05bc184d30358358f45090e3ae14"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libnvwinsys.so \
+    nvidia/libnvwinsys.so \
 "
 
 FILES_SOLIBSDEV = ""
