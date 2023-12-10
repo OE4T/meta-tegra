@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://LICENSE.libgstnvvideosinks;md5=86ed1f32df3aaa376956e4
                     file://README.txt;endline=11;md5=3670d068ae876bb6ea4c18beae2397ff \
 "
 
-TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/libgstnvvideosinks_src.tbz2"
+TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/libgstnvvideosinks_src.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-36.2.0.inc
 
 SRC_URI += "file://build-fixups.patch"
