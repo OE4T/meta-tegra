@@ -5,7 +5,7 @@ LIC_FILES_CHKSUM = "file://nvbufsurface.h;endline=9;md5=25279494f0285af8ac21bc9d
                     file://README.txt;endline=25;md5=364434949752edc42711344c8401d55b \
 "
 
-TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvarguscamera_src.tbz2"
+TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/gst-nvarguscamera_src.tbz2"
 TEGRA_SRC_SUBARCHIVE_OPTS = "--exclude=3rdpartyheaders.tbz2"
 
 require recipes-bsp/tegra-sources/tegra-sources-36.2.0.inc
