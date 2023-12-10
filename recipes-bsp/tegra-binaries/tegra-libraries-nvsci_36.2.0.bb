@@ -9,11 +9,11 @@ LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-tegra/LICENSE.libnvscibuf;md5=0
 MAINSUM = "bcd092a68846c211ba4f3a5a389bb0e37e5f5d059e174f2b0b1e4a93edfa69ac"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libnvscibuf.so.1 \
-    tegra/libnvscicommon.so.1 \
-    tegra/libnvscievent.so \
-    tegra/libnvscistream.so.1 \
-    tegra/libnvscisync.so.1 \
+    nvidia/libnvscibuf.so.1 \
+    nvidia/libnvscicommon.so.1 \
+    nvidia/libnvscievent.so \
+    nvidia/libnvscistream.so.1 \
+    nvidia/libnvscisync.so.1 \
 "
 do_install() {
     install_libraries

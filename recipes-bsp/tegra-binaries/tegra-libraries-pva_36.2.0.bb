@@ -6,7 +6,7 @@ require tegra-debian-libraries-common.inc
 MAINSUM = "0d9d4af4be0436b1c0ac68dc0e7fa1c73eeb0d27338f9345a7dd70e028f15b85"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libnvpvaintf.so \
+    nvidia/libnvpvaintf.so \
 "
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"

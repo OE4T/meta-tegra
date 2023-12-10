@@ -12,8 +12,8 @@ inherit features_check
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libtegrav4l2.so \
-    tegra/libnvcuvidv4l2.so \
+    nvidia/libtegrav4l2.so \
+    nvidia/libnvcuvidv4l2.so \
 "
 
 TEGRA_PLUGINS = "\

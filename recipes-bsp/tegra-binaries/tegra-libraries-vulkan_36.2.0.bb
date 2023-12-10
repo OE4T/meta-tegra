@@ -11,12 +11,7 @@ inherit features_check
 
 REQUIRED_DISTRO_FEATURES = "vulkan opengl"
 
-TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libnvidia-vulkan-producer.so \
-"
-
 do_install() {
-    install_libraries
     install -d ${D}/usr/lib/aarch64-linux-gnu/tegra
     if ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'true', 'false', d)}; then
         install -m644 ${S}/usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json ${D}/usr/lib/aarch64-linux-gnu/tegra/

@@ -19,7 +19,7 @@ SRC_URI += "\
 "
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libjetsonpower.so \
+    nvidia/libjetsonpower.so \
 "
 
 do_install() {

@@ -14,7 +14,7 @@ inherit features_check
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libnvdsbufferpool.so.1.0.0 \
+    nvidia/libnvdsbufferpool.so.1.0.0 \
 "
 
 do_install() {

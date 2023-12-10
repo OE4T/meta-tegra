@@ -10,7 +10,7 @@ require tegra-debian-libraries-common.inc
 MAINSUM = "9938ac169f177013b1cc062bcd6882c24fbcec60bab8028b72af7985b93d735b"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libgstnvdsseimeta.so.1.0.0 \
+    nvidia/libgstnvdsseimeta.so.1.0.0 \
 "
 do_install() {
     install_libraries

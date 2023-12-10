@@ -1,33 +1,31 @@
-From d6dccf257f227db9d7537dfbaf15b3f36c693961 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Tue, 16 Nov 2021 09:11:46 -0800
+From a5634a1e294bf8bd76542af5848c2750805906d5 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Sun, 10 Dec 2023 18:04:47 +0000
 Subject: [PATCH] Patch nv.sh script for OE use
 
 Signed-off-by: Matt Madison <matt@madison.systems>
-
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- etc/systemd/nv.sh | 262 +---------------------------------------------
- 1 file changed, 5 insertions(+), 257 deletions(-)
+ etc/systemd/nv.sh | 219 ----------------------------------------------
+ 1 file changed, 219 deletions(-)
 
-Index: tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
-===================================================================
---- tegra-configs-35.4.1-20230801124926.orig/etc/systemd/nv.sh
-+++ tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
-@@ -103,12 +103,6 @@ if [ -e "/proc/device-tree/compatible" ]
+diff --git a/etc/systemd/nv.sh b/etc/systemd/nv.sh
+index 8044f43..007ddc3 100755
+--- a/etc/systemd/nv.sh
++++ b/etc/systemd/nv.sh
+@@ -92,10 +92,6 @@ if [ -e "/proc/device-tree/compatible" ]; then
  	fi
  fi
  
 -if [ "$SOCFAMILY" = "tegra194" ]; then
 -	sudo bash -c "ln -sf /etc/X11/xorg.conf.t194_ref /etc/X11/xorg.conf"
--elif [ "$machine" = "jetson_tx1" ] || [ "$machine" = "jetson_e" ]; then
--	sudo bash -c "ln -sf /etc/X11/xorg.conf.jetson_e /etc/X11/xorg.conf"
 -fi
 -
  if [ "$SOCFAMILY" = "Tegra13" ] &&
  	[ -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq ]; then
  	bash \
-@@ -131,11 +125,6 @@ if [ "$SOCFAMILY" != "tegra210" ]; then
- 	fi
+@@ -115,11 +111,6 @@ elif [ -w /sys/module/cpu_tegra3/parameters/auto_hotplug ]; then
+ 	echo 1 > /sys/module/cpu_tegra3/parameters/auto_hotplug
  fi
  
 -# Remove the spawning of ondemand service
@@ -38,264 +36,227 @@ Index: tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
  # mmc read ahead size
  if [ -e /sys/block/mmcblk0/queue/read_ahead_kb ]; then
  	echo 2048 > /sys/block/mmcblk0/queue/read_ahead_kb
-@@ -151,260 +140,8 @@ if [ "$SOCFAMILY" = "tegra186" ] || [ "$
+@@ -135,13 +126,6 @@ if [ "${SOCFAMILY}" = "tegra194" ]; then
  	fi
  fi
  
 -# Ensure libglx.so is not overwritten by a distribution update of Xorg
 -# Alternatively, package management tools could be used to prevent updates
 -ARCH=$(/usr/bin/dpkg --print-architecture)
--if [ "x${ARCH}" = "xarm64" ]; then
+-if [ "${ARCH}" = "arm64" ]; then
 -	LIB_DIR="/usr/lib/aarch64-linux-gnu"
 -fi
 -
  # Disable lazy vfree pages
  if [ -e "/proc/sys/vm/lazy_vfree_pages" ]; then
  	echo 0 > "/proc/sys/vm/lazy_vfree_pages"
+@@ -189,206 +173,3 @@ fi
+ if [ -e "/var/lib/lightdm" ]; then
+ 	sudo chown lightdm:lightdm /var/lib/lightdm -R
  fi
- 
--# WAR for https://bugs.launchpad.net/ubuntu/+source/mesa/+bug/1776499
--# and https://bugs.launchpad.net/ubuntu/+source/mesa/+bug/1946621
--# These issues are fixed from MESA version 21.2 and so detect the MESA
--# version and apply the workaround if needed.
--# When DISABLE_MESA_EGL="1" glvnd will not load mesa EGL library.
--# When DISABLE_MESA_EGL="0" glvnd will load mesa EGL library.
--# nvidia EGL library is prioritized over mesa even if DISABLE_MESA_EGL="0".
--MESA_VERSION="$(dpkg -s libegl-mesa0 | sed -nr 's/^Version: ([0-9]+\.[0-9]+)\.[0-9]+-.*+ubuntu.*/\1/p')"
--DISABLE_MESA_EGL="0"
--
--if [ "${MESA_VERSION}" != "" ]; then
--    DISABLE_MESA_EGL="$(echo "${MESA_VERSION} < 21.2" | bc)"
--fi
--
--if [ -f "/usr/share/glvnd/egl_vendor.d/50_mesa.json" ]; then
--	if  [ "${DISABLE_MESA_EGL}" -eq "1" ]; then
--		sed -i "s/\"library_path\" : .*/\"library_path\" : \"\"/g" \
--			"/usr/share/glvnd/egl_vendor.d/50_mesa.json"
--	else
--		sed -i "s/\"library_path\" : .*/\"library_path\" : \"libEGL_mesa.so.0\"/g" \
--			"/usr/share/glvnd/egl_vendor.d/50_mesa.json"
--	fi
--fi
--
--# Add gdm in video group
--getent passwd gdm > /dev/null
--if [ $? -eq 0 ]; then
--	adduser gdm video
--fi
--
--# Add lightdm in video group
--grep "lightdm" "/etc/group" > /dev/null
--if [ $? -eq 0 ]; then
--	groups "lightdm" | grep "video" > /dev/null
--	if [ $? -eq 1 ]; then
--		addgroup "lightdm" "video"
--	fi
--fi
--
--if [ -e "/var/lib/lightdm" ]; then
--	sudo chown lightdm:lightdm /var/lib/lightdm -R
--fi
 -
 -# Set INSTALL_DOWNSTREAM_WESTON="1" to install downstream weston. This will
 -# overwrite weston binaries in standard weston installation path with downstream
--# weston binaries which are present in ${LIB_DIR}/tegra. This is default.
+-# weston binaries which are present in "/usr/lib/aarch64-linux-gnu/nvidia. This is default.
 -#
 -# Set INSTALL_DOWNSTREAM_WESTON="0" to avoid overwriting weston binaries in standard
 -# weston installation path with downstream weston binaries which are present in
--# ${LIB_DIR}/tegra.
+-# /usr/lib/aarch64-linux-gnu/nvidia.
 -INSTALL_DOWNSTREAM_WESTON="1"
 -if  [ "${INSTALL_DOWNSTREAM_WESTON}" -eq "1" ]; then
--	if [ -e "${LIB_DIR}/tegra/weston/desktop-shell.so" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/desktop-shell.so" "${LIB_DIR}/weston/desktop-shell.so"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/desktop-shell.so" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/desktop-shell.so" "${LIB_DIR}/weston/desktop-shell.so"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/drm-backend.so" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/drm-backend.so" "${LIB_DIR}/weston/drm-backend.so"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/drm-backend.so" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/drm-backend.so" "${LIB_DIR}/weston/drm-backend.so"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/fullscreen-shell.so" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/fullscreen-shell.so" "${LIB_DIR}/weston/fullscreen-shell.so"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/fullscreen-shell.so" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/fullscreen-shell.so" "${LIB_DIR}/weston/fullscreen-shell.so"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/gl-renderer.so" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/gl-renderer.so" "${LIB_DIR}/weston/gl-renderer.so"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/gl-renderer.so" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/gl-renderer.so" "${LIB_DIR}/weston/gl-renderer.so"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/hmi-controller.so" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/hmi-controller.so" "${LIB_DIR}/weston/hmi-controller.so"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/hmi-controller.so" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/hmi-controller.so" "${LIB_DIR}/weston/hmi-controller.so"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/ivi-controller.so" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/ivi-controller.so" "${LIB_DIR}/weston/ivi-controller.so"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/ivi-controller.so" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/ivi-controller.so" "${LIB_DIR}/weston/ivi-controller.so"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/ivi-shell.so" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/ivi-shell.so" "${LIB_DIR}/weston/ivi-shell.so"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/ivi-shell.so" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/ivi-shell.so" "${LIB_DIR}/weston/ivi-shell.so"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/libweston-6.so.0" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/libweston-6.so.0" "${LIB_DIR}/libweston-6.so.0"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/libweston-6.so.0" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/libweston-6.so.0" "${LIB_DIR}/libweston-6.so.0"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/libweston-desktop-6.so.0" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/libweston-desktop-6.so.0" "${LIB_DIR}/libweston-desktop-6.so.0"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/libweston-desktop-6.so.0" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/libweston-desktop-6.so.0" "${LIB_DIR}/libweston-desktop-6.so.0"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/wayland-backend.so" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/wayland-backend.so" "${LIB_DIR}/weston/wayland-backend.so"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/wayland-backend.so" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/wayland-backend.so" "${LIB_DIR}/weston/wayland-backend.so"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/libilmClient.so.2.2.0" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/libilmClient.so.2.2.0" "${LIB_DIR}/libilmClient.so.2.2.0"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/libilmClient.so.2.2.0" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/libilmClient.so.2.2.0" "${LIB_DIR}/libilmClient.so.2.2.0"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/libilmCommon.so.2.2.0" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/libilmCommon.so.2.2.0" "${LIB_DIR}/libilmCommon.so.2.2.0"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/libilmCommon.so.2.2.0" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/libilmCommon.so.2.2.0" "${LIB_DIR}/libilmCommon.so.2.2.0"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/libilmControl.so.2.2.0" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/libilmControl.so.2.2.0" "${LIB_DIR}/libilmControl.so.2.2.0"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/libilmControl.so.2.2.0" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/libilmControl.so.2.2.0" "${LIB_DIR}/libilmControl.so.2.2.0"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/libilmInput.so.2.2.0" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/libilmInput.so.2.2.0" "${LIB_DIR}/libilmInput.so.2.2.0"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/libilmInput.so.2.2.0" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/libilmInput.so.2.2.0" "${LIB_DIR}/libilmInput.so.2.2.0"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-desktop-shell" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-desktop-shell" "/usr/lib/weston/weston-desktop-shell"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-desktop-shell" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-desktop-shell" "/usr/lib/weston/weston-desktop-shell"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-keyboard" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-keyboard" "/usr/lib/weston/weston-keyboard"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-keyboard" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-keyboard" "/usr/lib/weston/weston-keyboard"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-screenshooter" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-screenshooter" "/usr/lib/westonweston-screenshooter"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-screenshooter" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-screenshooter" "/usr/lib/westonweston-screenshooter"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/EGLWLInputEventExample" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/EGLWLInputEventExample" "/usr/bin/EGLWLInputEventExample"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/EGLWLInputEventExample" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/EGLWLInputEventExample" "/usr/bin/EGLWLInputEventExample"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/EGLWLMockNavigation" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/EGLWLMockNavigation" "/usr/bin/EGLWLMockNavigation"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/EGLWLMockNavigation" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/EGLWLMockNavigation" "/usr/bin/EGLWLMockNavigation"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/LayerManagerControl" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/LayerManagerControl" "/usr/bin/LayerManagerControl"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/LayerManagerControl" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/LayerManagerControl" "/usr/bin/LayerManagerControl"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/simple-weston-client" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/simple-weston-client" "/usr/bin/simple-weston-client"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/simple-weston-client" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/simple-weston-client" "/usr/bin/simple-weston-client"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/spring-tool" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/spring-tool" "/usr/bin/spring-tool"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/spring-tool" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/spring-tool" "/usr/bin/spring-tool"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston" "/usr/bin/weston"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston" "/usr/bin/weston"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-calibrator" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-calibrator" "/usr/bin/weston-calibrator"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-calibrator" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-calibrator" "/usr/bin/weston-calibrator"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-clickdot" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-clickdot" "/usr/bin/weston-clickdot"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-clickdot" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-clickdot" "/usr/bin/weston-clickdot"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-cliptest" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-cliptest" "/usr/bin/weston-cliptest"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-cliptest" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-cliptest" "/usr/bin/weston-cliptest"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-content-protection" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-content-protection" "/usr/bin/weston-content-protection"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-content-protection" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-content-protection" "/usr/bin/weston-content-protection"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-debug" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-debug" "/usr/bin/weston-debug"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-debug" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-debug" "/usr/bin/weston-debug"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-dnd" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-dnd" "/usr/bin/weston-dnd"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-dnd" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-dnd" "/usr/bin/weston-dnd"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-eventdemo" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-eventdemo" "/usr/bin/weston-eventdemo"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-eventdemo" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-eventdemo" "/usr/bin/weston-eventdemo"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-flower" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-flower" "/usr/bin/weston-flower"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-flower" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-flower" "/usr/bin/weston-flower"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-fullscreen" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-fullscreen" "/usr/bin/weston-fullscreen"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-fullscreen" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-fullscreen" "/usr/bin/weston-fullscreen"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-image" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-image" "/usr/bin/weston-image"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-image" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-image" "/usr/bin/weston-image"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-info" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-info" "/usr/bin/weston-info"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-info" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-info" "/usr/bin/weston-info"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-ivi-shell-user-interface" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-ivi-shell-user-interface" "/usr/bin/weston-ivi-shell-user-interface"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-ivi-shell-user-interface" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-ivi-shell-user-interface" "/usr/bin/weston-ivi-shell-user-interface"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-launch" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-launch" "/usr/bin/weston-launch"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-launch" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-launch" "/usr/bin/weston-launch"
 -		chmod "+s" "/usr/bin/weston-launch"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-multi-resource" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-multi-resource" "/usr/bin/weston-multi-resource"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-multi-resource" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-multi-resource" "/usr/bin/weston-multi-resource"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-output-mode" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-output-mode" "/usr/bin/weston-output-mode"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-output-mode" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-output-mode" "/usr/bin/weston-output-mode"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-resizor" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-resizor" "/usr/bin/weston-resizor"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-resizor" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-resizor" "/usr/bin/weston-resizor"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-scaler" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-scaler" "/usr/bin/weston-scaler"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-scaler" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-scaler" "/usr/bin/weston-scaler"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-simple-egl" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-simple-egl" "/usr/bin/weston-simple-egl"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-simple-egl" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-simple-egl" "/usr/bin/weston-simple-egl"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-simple-shm" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-simple-shm" "/usr/bin/weston-simple-shm"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-simple-shm" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-simple-shm" "/usr/bin/weston-simple-shm"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-simple-touch" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-simple-touch" "/usr/bin/weston-simple-touch"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-simple-touch" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-simple-touch" "/usr/bin/weston-simple-touch"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-smoke" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-smoke" "/usr/bin/weston-smoke"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-smoke" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-smoke" "/usr/bin/weston-smoke"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-stacking" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-stacking" "/usr/bin/weston-stacking"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-stacking" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-stacking" "/usr/bin/weston-stacking"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-subsurfaces" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-subsurfaces" "/usr/bin/weston-subsurfaces"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-subsurfaces" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-subsurfaces" "/usr/bin/weston-subsurfaces"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-terminal" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-terminal" "/usr/bin/weston-terminal"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-terminal" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-terminal" "/usr/bin/weston-terminal"
 -	fi
 -
--	if [ -e "${LIB_DIR}/tegra/weston/weston-transformed" ]; then
--		ln -sf "${LIB_DIR}/tegra/weston/weston-transformed" "/usr/bin/weston-transformed"
+-	if [ -e "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-transformed" ]; then
+-		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-transformed" "/usr/bin/weston-transformed"
 -	fi
 -fi
+-- 
+2.34.1
+

@@ -6,16 +6,17 @@ SRC_URI = "\
     ${L4T_URI_BASE}/${L4T_BSP_PREFIX}_Linux_R${L4T_VERSION}_aarch64.tbz2 \
 "
 
-SRC_URI[sha256sum] = "72b75a0c7fa3bf6ef41ae06634bb67c38a92682155d1206026dbee4a6b9a016f"
+SRC_URI[sha256sum] = "50a2dc879711be310adc1844c5426e4aea6996949ba3e21e72f19ea09041fe96"
 
 inherit l4t_bsp dos2unix
 
-# Override convert_crlf_to_lf task to only convert "*.cfg", "*.dts*" files
+# Override convert_crlf_to_lf task to only convert "*.dts*" files
 do_convert_crlf_to_lf () {
-	find ${S} -type f "-(" -name "*.cfg" -o -name "*.dts*" "-)" -exec dos2unix {} \;
+	find ${S} -type f  -name "*.dts*" -exec dos2unix {} \;
 }
 
-S = "${TMPDIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-${PR}/Linux_for_Tegra"
+
+S = "${L4T_BSP_SHARED_SOURCE_DIR}"
 B = "${WORKDIR}/build"
 
 INHIBIT_PACKAGE_STRIP = "1"

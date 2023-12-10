@@ -1,9 +1,9 @@
-L4T_DEB_COPYRIGHT_MD5 = "38ef63b8f3232378d9f652f640ee0a3f"
+L4T_DEB_COPYRIGHT_MD5 = "d0b41d746d815c19a7eccaeed638d2ed"
 
 require tegra-debian-libraries-common.inc
 
 DESCRIPTION = "Prebuilt OPTEE normal-world binaries"
-MAINSUM = "7f7c120849696957b432f9c280a905d957dc634bffac22444469d583f21e393d"
+MAINSUM = "1bffec6ca5c674b47cf03d040e32cefa77c55f82a4656e59c26c569dbcf2ffd7"
 
 inherit systemd
 
@@ -26,12 +26,16 @@ do_install() {
     install -d ${D}${libdir} ${D}${libdir}/tee-supplicant/plugins
     install -m 0644 ${S}/usr/lib/libckteec.so.0.1.0 ${D}${libdir}
     install -m 0644 ${S}/usr/lib/libteec.so.1.0.0 ${D}${libdir}
+    install -m 0644 ${S}/usr/lib/libteeacl.so.0.1.0 ${D}${libdir}
     ln -s libckteec.so.0.1.0 ${D}${libdir}/libckteec.so.0.1
     ln -s libckteec.so.0.1 ${D}${libdir}/libckteec.so.0
     ln -s libckteec.so.0 ${D}${libdir}/libckteec.so
     ln -s libteec.so.1.0.0 ${D}${libdir}/libteec.so.1.0
-    ln -s libteec.so.1.0 ${D}${libdir}/libteec.so.1
+    ln -s libteec.so.1.0.0 ${D}${libdir}/libteec.so.1
     ln -s libteec.so.1 ${D}${libdir}/libteec.so
+    ln -s libteeacl.so.0.1.0 ${D}${libdir}/libteeacl.so.0.1
+    ln -s libteeacl.so.0.1 ${D}${libdir}/libteeacl.so.0
+    ln -s libteeacl.so.0 ${D}${libdir}/libteeacl.so
     install -m 0755 ${S}/usr/lib/tee-supplicant/plugins/f07bfc66-958c-4a15-99c0-260e4e7375dd.plugin ${D}${libdir}/tee-supplicant/plugins
 
     install -d ${D}${sbindir}
