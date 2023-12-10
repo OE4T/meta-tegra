@@ -27,26 +27,26 @@ PACKAGECONFIG[x11] = ",,gtk+3 libx11 glib-2.0 cairo"
 
 TEGRA_LIBRARIES_EXTRACT += "usr/sbin var/nvidia"
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libnvargus.so \
-    tegra/libnvargus_socketclient.so \
-    tegra/libnvargus_socketserver.so \
-    tegra/libnvcam_imageencoder.so \
-    tegra/libnvcameratools.so \
-    tegra/libnvcamerautils.so \
-    tegra/libnvcamlog.so \
-    tegra/libnvcamv4l2.so \
-    tegra/libnvcapture.so \
-    tegra/libnveglstreamproducer.so \
-    tegra/libnvfusacapinterface.so \
-    tegra/libnvfusacap.so \
-    tegra/libnvisp.so \
-    tegra/libnvisppg.so \
-    tegra/libnvmedia_isp_ext.so \
-    tegra/libnvfnet.so \
-    tegra/libnvfnetstoredefog.so \
-    tegra/libnvfnetstorehdfx.so \
-    tegra/libnvodm_imager.so \
-    tegra/libnvscf.so \
+    nvidia/libnvargus.so \
+    nvidia/libnvargus_socketclient.so \
+    nvidia/libnvargus_socketserver.so \
+    nvidia/libnvcam_imageencoder.so \
+    nvidia/libnvcameratools.so \
+    nvidia/libnvcamerautils.so \
+    nvidia/libnvcamlog.so \
+    nvidia/libnvcamv4l2.so \
+    nvidia/libnvcapture.so \
+    nvidia/libnveglstreamproducer.so \
+    nvidia/libnvfusacapinterface.so \
+    nvidia/libnvfusacap.so \
+    nvidia/libnvisp.so \
+    nvidia/libnvisppg.so \
+    nvidia/libnvmedia_isp_ext.so \
+    nvidia/libnvfnet.so \
+    nvidia/libnvfnetstoredefog.so \
+    nvidia/libnvfnetstorehdfx.so \
+    nvidia/libnvodm_imager.so \
+    nvidia/libnvscf.so \
 "
 
 do_install() {
@@ -55,7 +55,7 @@ do_install() {
     cp -R ${B}/var/nvidia ${D}${localstatedir}/
     if ${@bb.utils.contains('PACKAGECONFIG', 'x11', 'true', 'false', d)}; then
         install -d ${D}${libdir}/libv4l/plugins/
-	install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/tegra/libv4l2_nvargus.so ${D}${libdir}/libv4l/plugins/
+	install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/libv4l2_nvargus.so ${D}${libdir}/libv4l/plugins/
     fi
     install -d ${D}${sbindir}
     install -m755 ${B}/usr/sbin/nvargus-daemon ${D}${sbindir}/
