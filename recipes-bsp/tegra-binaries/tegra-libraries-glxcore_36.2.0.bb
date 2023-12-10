@@ -12,8 +12,8 @@ inherit features_check
 REQUIRED_DISTRO_FEATURES = "x11"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libGLX_nvidia.so.0 \
-    tegra/libnvidia-glcore.so.${L4T_VERSION} \
+    nvidia/libGLX_nvidia.so.0 \
+    nvidia/libnvidia-glcore.so.${L4T_LIB_VERSION} \
 "
 
 RDEPENDS:${PN} = "libxcb-glx"
