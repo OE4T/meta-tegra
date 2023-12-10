@@ -28,6 +28,7 @@ TNSPEC_BOOTDEV_DEFAULT ??= "mmcblk0p1"
 TNSPEC_BOOTDEV ??= "${TNSPEC_BOOTDEV_DEFAULT}"
 
 PREFERRED_PROVIDER_virtual/kernel ?= "linux-jammy-nvidia-tegra"
+PREFERRED_PROVIDER_virtual/dtb ?= "nvidia-kernel-oot"
 PREFERRED_PROVIDER_virtual/bootloader ?= "edk2-firmware-tegra"
 OPTEE_MM_PROVIDER = "${@'tegra-uefi-prebuilt' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader') == 'tegra-uefi-prebuilt' else 'standalone-mm-optee-tegra'}"
 PREFERRED_PROVIDER_standalone-mm-optee-tegra ?= "${OPTEE_MM_PROVIDER}"
