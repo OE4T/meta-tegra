@@ -3,7 +3,7 @@ SECTION = "multimedia"
 LICENSE = "BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://LICENSE.libgstnvdrmvideosink;md5=674ef4559ff709167b72104cb9814e93"
 
-TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/libgstnvdrmvideosink_src.tbz2"
+TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/libgstnvdrmvideosink_src.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-36.2.0.inc
 
 SRC_URI += " \
