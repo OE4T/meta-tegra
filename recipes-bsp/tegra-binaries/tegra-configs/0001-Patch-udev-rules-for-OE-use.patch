@@ -1,15 +1,16 @@
-From 843ca0b598d1346f3eb87aa624821051afaaafba Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Wed, 28 Feb 2024 23:08:26 +0000
-Subject: [PATCH 1/2] Patch udev rules for OE use
+From a6483bf9114ca761a0ffeedeedb387ca0531a74d Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 16 Nov 2021 09:08:15 -0800
+Subject: [PATCH] Patch udev rules for OE use
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  etc/udev/rules.d/99-tegra-devices.rules | 5 -----
  1 file changed, 5 deletions(-)
 
 diff --git a/etc/udev/rules.d/99-tegra-devices.rules b/etc/udev/rules.d/99-tegra-devices.rules
-index a655804..2b16bfd 100644
+index 10b677f..c0832fa 100644
 --- a/etc/udev/rules.d/99-tegra-devices.rules
 +++ b/etc/udev/rules.d/99-tegra-devices.rules
 @@ -9,7 +9,6 @@
@@ -20,7 +21,7 @@ index a655804..2b16bfd 100644
  
  # root only devices
  KERNEL=="knvrm" OWNER="root" GROUP="root" MODE="0660"
-@@ -73,8 +72,4 @@ KERNEL=="camchar*" OWNER="root" GROUP="video" MODE="0660"
+@@ -86,8 +85,4 @@ KERNEL=="camchar*" OWNER="root" GROUP="video" MODE="0660"
  KERNEL=="capture-*" OWNER="root" GROUP="video" MODE="0660"
  KERNEL=="cdi_tsc" OWNER="root" GROUP="video" MODE="0660"
  

@@ -5,15 +5,15 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-multimedia"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "6bcecffe065e4be945d88e0312f31a1802eaf2d1afcf5e9822e934085fe7354a"
+MAINSUM = "2f2e11941ec2242de50898e06d1f16669bcb0259efe5756b71d873f89fd26ca9"
 
 inherit features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libnvomx.so \
-    tegra/libnvomxilclient.so \
+    nvidia/libnvomx.so \
+    nvidia/libnvomxilclient.so \
 "
 
 # XXX---
