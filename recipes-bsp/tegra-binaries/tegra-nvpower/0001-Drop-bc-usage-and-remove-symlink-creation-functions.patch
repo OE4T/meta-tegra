@@ -1,18 +1,19 @@
-From b2cdefaae658c9b55f29ae17ca2d0decd1bd79a9 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Fri, 25 Mar 2022 12:51:57 -0700
+From 69b459da2da5a25352642d06c5a810f708f75e4d Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 3 Nov 2023 23:44:46 +0000
 Subject: [PATCH] Drop bc usage and remove symlink creation functions
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- etc/systemd/nvpower.sh | 81 +-----------------------------------------
- 1 file changed, 1 insertion(+), 80 deletions(-)
+ etc/systemd/nvpower.sh | 147 ++---------------------------------------
+ 1 file changed, 4 insertions(+), 143 deletions(-)
 
-Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
-===================================================================
---- tegra-nvpower-35.4.1-20230801124926.orig/etc/systemd/nvpower.sh
-+++ tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
-@@ -119,128 +119,6 @@ function set_power_state_perm()
+diff --git a/etc/systemd/nvpower.sh b/etc/systemd/nvpower.sh
+index f5a2a72..4a83f84 100755
+--- a/etc/systemd/nvpower.sh
++++ b/etc/systemd/nvpower.sh
+@@ -138,140 +138,6 @@ function set_power_state_perm()
  	fi
  }
  
@@ -57,6 +58,8 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
 -			elif [ "${machine}" = "p3701-0000-as-p3701-0004" ] || \
 -				[ "${machine}" = "p3701-0004" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0004.conf"
+-			elif [ "${machine}" = "p3701-0008-safety" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3701_0008_3740_0002_safety.conf"
 -			elif [ "${machine}" = "p3701-0008" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0008.conf"
 -				if [ "${cvb}" = "p3740-0002-c01" ]; then
@@ -77,6 +80,10 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004.conf"
 -			else
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0000.conf"
+-			fi
+-		elif [ "${SOCFAMILY}" = "tegra239" ]; then
+-			if [ "${machine}" = "e2423" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_e2423.conf"
 -			fi
 -		fi
 -
@@ -128,6 +135,12 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
 -			fi
 -		fi
 -
+-		if [ "${SOCFAMILY}" = "tegra239" ]; then
+-			if [ "${machine}" = "e2423" ]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_e2423.conf"
+-			fi
+-		fi
+-
 -		if [ "${conf_file}" != "" ]; then
 -			if [ -e "${conf_file}" ]; then
 -				ln -sf "${conf_file}" /etc/nvfancontrol.conf
@@ -141,21 +154,40 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
  # CPU hotplug helper function that turns on/off the CPU cores in the specified range
  # * Parameters:
  # * ${1}: desired online status (0 for offline, 1 for online)
-@@ -311,7 +189,7 @@ function set_cpu_governor()
- 			*schedutil*)
- 				# latest kernel is using the upstream driver and need to avoid setting
- 				# schedutil governor on kstable.
--				if [ "$(echo "${KERNEL_VERSION} < 5.11" | bc)" -eq 1 ]; then
-+				if [ "${KERNEL_VERSION}" = "5.10" ]; then
- 					CPU_SCHEDUTIL_GOV=1
- 				fi
- 	        ;;
-@@ -587,8 +465,6 @@ SOCFAMILY=""
+@@ -332,13 +198,8 @@ function set_cpufreq_governor()
+ 	desired_cpufreq_gov="performance"
  
- set_socfamily
- set_power_state_perm
--create_nvpmodel_symlink
--create_nvfancontrol_symlink
- cpu_hotplug
- set_cpu_governor
- set_cpu_floor_freq
+ 	if [ ${IS_SAFETY_PLATFORM} -eq 0 ]; then
+-		# Enable SCHEDUTIL governor for all SoC's except T194 in Kstable.
+-		if [ "${SOCFAMILY}" = "tegra194" ] &&
+-			[ "$(echo "${KERNEL_VERSION} >= 6.0" | bc)" -eq 1 ]; then
+-			:
+-		else
+-			desired_cpufreq_gov="schedutil"
+-		fi
++		# Enable SCHEDUTIL governor for all SoC's
++		desired_cpufreq_gov="schedutil"
+ 	fi
+ 
+ 	if [ -e "${CPUFREQ_AVAIL_GOVS}" ]; then
+@@ -439,7 +300,7 @@ function set_devfreq_governor()
+ 	if [ ${IS_SAFETY_PLATFORM} -ne 0 ]; then
+ 		desired_devfreq_gov="performance"
+ 	else
+-		if [ "$(echo "${KERNEL_VERSION} == 5.15" | bc)" -eq 1 ]; then
++		if [ "${KERNEL_VERSION}" = "5.15" ]; then
+ 			desired_devfreq_gov="tegra_wmark"
+ 		fi
+ 	fi
+@@ -478,7 +339,7 @@ function lock_emc_frequency()
+ 
+ 	# Set EMC_FREQ to max for Kernel version >= 5.15
+ 	# and when the Interconnect support is missing
+-	if [ "$(echo "${KERNEL_VERSION} >= 5.15" | bc)" -eq 1 ]; then
++	if [ "${KERNEL_VERSION}" = "5.15" ]; then
+ 		if [ -e "${EMC_MAX_RATE}" ] && [ -e "${EMC_RATE}" ]; then
+ 			AVG_BW=$(grep "Memory Controller" ${ICC_NODE} | head -1 | awk -F ' ' '{print $3}')
+ 			PEAK_BW=$(grep "Memory Controller" ${ICC_NODE}| head -1 | awk -F ' ' '{print $4}')
+-- 
+2.25.1
+

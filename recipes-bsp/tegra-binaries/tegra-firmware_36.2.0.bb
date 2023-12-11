@@ -15,13 +15,27 @@ do_install() {
     cp -R -f ${S}/lib/firmware ${D}${nonarch_base_libdir}
 }
 
-PACKAGES = "${PN}-rtl8822 ${PN}-brcm ${PN}-tegra194-xusb ${PN}-tegra234 ${PN}-xusb ${PN}-vic ${PN}"
+PACKAGES = "${PN}-rtl8822 ${PN}-brcm ${PN}-tegra234 ${PN}-xusb ${PN}-vic ${PN}"
 FILES:${PN}-brcm = "${nonarch_base_libdir}/firmware/brcm ${nonarch_base_libdir}/firmware/bcm4354.hcd ${nonarch_base_libdir}/firmware/nv-*-Version \
                     ${nonarch_base_libdir}/firmware/cypress ${nonarch_base_libdir}/firmware/bcm4359.hcd"
 FILES:${PN}-rtl8822 = "${nonarch_base_libdir}/firmware/rtl8822*"
-FILES:${PN}-tegra194-xusb = "${nonarch_base_libdir}/firmware/tegra19x_xusb_firmware ${nonarch_base_libdir}/firmware/nvidia/tegra194/xusb.bin"
-FILES:${PN}-tegra234 = "${nonarch_base_libdir}/firmware/tegra23x ${nonarch_base_libdir}/firmware/ga10b ${nonarch_base_libdir}/firmware/nvpva_020.fw ${nonarch_base_libdir}/firmware/dce.bin ${nonarch_base_libdir}/firmware/nvhost_nvdla020.fw \
-		        ${nonarch_base_libdir}/firmware/nvhost_ofa012.fw ${nonarch_base_libdir}/firmware/display-t234-dce.bin"
+FILES:${PN}-tegra234 = " \
+    ${nonarch_base_libdir}/firmware/tegra23x  \
+    ${nonarch_base_libdir}/firmware/nvidia/tegra234 \
+    ${nonarch_base_libdir}/firmware/nvidia/ga10b \
+    ${nonarch_base_libdir}/firmware/nvpva_020.fw \
+    ${nonarch_base_libdir}/firmware/dce.bin \
+    ${nonarch_base_libdir}/firmware/nvpva_010.fw \
+    ${nonarch_base_libdir}/firmware/nvhost_nvdla020.fw \
+    ${nonarch_base_libdir}/firmware/nvhost_nvdla030.fw \
+    ${nonarch_base_libdir}/firmware/nvhost_nvdla010.fw \
+    ${nonarch_base_libdir}/firmware/nvhost_ofa012.fw \
+    ${nonarch_base_libdir}/firmware/display-t234-dce.bin \
+    ${nonarch_base_libdir}/firmware/nvidia/gv11b \
+    ${nonarch_base_libdir}/firmware/nvidia/tegra194 \
+    ${nonarch_base_libdir}/firmware/tegra19x_xusb_firmware \
+    ${libdir}/firmware/tegra19x \
+"
 FILES:${PN}-xusb = ""
 ALLOW_EMPTY:${PN}-xusb = "1"
 FILES:${PN}-vic = "${nonarch_base_libdir}/firmware/nvhost_vic042.fw"
