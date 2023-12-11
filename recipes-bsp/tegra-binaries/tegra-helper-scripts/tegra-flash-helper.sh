@@ -197,6 +197,9 @@ overlay_dtb_arg=
 if [ -n "$overlay_dtb_files" ]; then
     overlay_dtb_arg="--overlay_dtb $overlay_dtb_files"
 fi
+if [ -n "$DCE_OVERLAY" ]; then
+    overlay_dtb_arg="$overlay_dtb_arg --dce_overlay_dtb $DCE_OVERLAY"
+fi
 
 fuselevel="fuselevel_production"
 
@@ -290,7 +293,7 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
              --dev_params $EMC_FUSE_DEV_PARAMS \
              --cfg readinfo_t234_min_prod.xml \
              --device_config $DEVICE_CONFIG --misc_config $MISC_CONFIG --bins "mb2_applet applet_t234.bin" \
-             --cmd "dump eeprom cvm ${cvm_bin}; dump custinfo ${custinfo_out}; reboot recovery"; then
+             --cmd "dump eeprom cvm ${cvm_bin}; dump try_custinfo ${custinfo_out}; reboot recovery"; then
             echo "ERR: could not retrieve EEPROM board information" >&2
             exit 1
         fi
@@ -548,6 +551,7 @@ mts_mce mce_flash_o10_cr_prod.bin; \
 mb2_applet applet_t234.bin; \
 mb2_bootloader mb2_t234.bin; \
 xusb_fw xusb_t234_prod.bin; \
+pva_fw nvpva_020.fw; \
 dce_fw display-t234-dce.bin; \
 nvdec nvdec_t234_prod.fw; \
 bpmp_fw $BPF_FILE; \
