@@ -10,8 +10,8 @@ inherit features_check
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    tegra/libnvbuf_fdmap.so.1.0.0 \
-    tegra/libnvbufsurface.so.1.0.0 \
+    nvidia/libnvbuf_fdmap.so.1.0.0 \
+    nvidia/libnvbufsurface.so.1.0.0 \
 "
 
 do_install() {
