@@ -37,6 +37,7 @@ copy_in_flash_layout() {
                 -e"s,MB2RF_IMAGE,mb2rf_t234.bin," \
                 -e"s,TBCDTB-FILE,uefi_jetson_with_dtb.bin," \
                 -e"s,DCE,display-t234-dce.bin," \
+                -e"s,PVA_FILE,nvpva_020.fw," \
                 "$dstfile"
             ;;
         *)
