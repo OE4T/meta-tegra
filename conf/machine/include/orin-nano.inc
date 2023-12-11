@@ -20,8 +20,8 @@ TEGRA_BUPGEN_SPECS ?= "fab=000;boardsku=0000;boardrev=;bup_type=bl \
                        fab=000;boardsku=0005;boardrev=;bup_type=bl \
                        fab=000;boardsku=0005;boardrev=;bup_type=kernel"
 
-KERNEL_DEVICETREE ?= "tegra234-p3767-0003-p3768-0000-a0.dtb"
-KERNEL_ARGS ?= "mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 net.ifnames=0 nospectre_bhb"
+KERNEL_DEVICETREE ?= "tegra234-p3768-0000+p3767-0003-nv.dtb"
+KERNEL_ARGS ?= "mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 net.ifnames=0 nospectre_bhb video=efifb:off console=tty0"
 MACHINE_EXTRA_RRECOMMENDS += "kernel-module-r8168 kernel-module-r8169 kernel-module-realtek"
 MACHINE_EXTRA_RDEPENDS += "linux-firmware-rtl8168"
 
@@ -36,7 +36,7 @@ TEGRA_AUDIO_DEVICE ?= "tegra-hda-p3767-p3509"
 OTABOOTDEV ?= "/dev/mtdblock0"
 OTAGPTDEV ?= "/dev/mtdblock0"
 
-TEGRA_PLUGIN_MANAGER_OVERLAYS ?= "tegra234-p3767-overlay.dtbo tegra234-p3768-overlay.dtbo"
+TEGRA_PLUGIN_MANAGER_OVERLAYS ?= "tegra234-carveouts.dtbo tegra-optee.dtbo tegra234-p3768-0000+p3767-0000-dynamic.dtbo"
 
 TEGRA_FLASHVAR_BPFDTB_FILE ?= "tegra234-bpmp-3767-0003-3509-a02.dtb"
 TEGRA_FLASHVAR_BPF_FILE ?= "bpmp_t234-TE950M-A1_prod.bin"
