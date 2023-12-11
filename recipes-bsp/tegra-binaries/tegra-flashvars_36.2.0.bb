@@ -13,6 +13,8 @@ def generate_flashvar_settings(d):
     result = 'FLASHVARS="{}"\nOVERLAY_DTB_FILE="{}"\n'.format(need_subst, d.getVar('OVERLAY_DTB_FILE'))
     result += 'CHIPID={}\nPLUGIN_MANAGER_OVERLAYS="{}"\n'.format(d.getVar('NVIDIA_CHIP'), ','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split()))
     result += '\n'.join(['{}="{}"'.format(v, d.getVar('TEGRA_FLASHVAR_' + v)) for v in d.getVar('TEGRA_FLASHVARS').split() if d.getVar('TEGRA_FLASHVAR_' + v)])
+    if d.getVar('TEGRA_DCE_OVERLAY'):
+        result += '\nDCE_OVERLAY="{}"'.format(','.join(d.getVar('TEGRA_DCE_OVERLAY').split()))
     return result
 
 INHIBIT_DEFAULT_DEPS = "1"
