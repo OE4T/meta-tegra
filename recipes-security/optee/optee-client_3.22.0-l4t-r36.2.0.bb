@@ -16,16 +16,16 @@ SRC_URI += "\
     file://tee-supplicant.sh.in \
 "
 
-DEPENDS = "optee-os-tadevkit"
+DEPENDS = "optee-os-tadevkit util-linux-libuuid"
 
 S = "${WORKDIR}/optee_client"
 B = "${WORKDIR}/build"
 
-inherit systemd update-rc.d
+inherit pkgconfig systemd update-rc.d
 
 OPTEE_FS_PARENT_PATH ?= "${localstatedir}/lib/tee"
 
-EXTRA_OEMAKE += "CFG_TEE_FS_PARENT_PATH=${OPTEE_FS_PARENT_PATH}"
+EXTRA_OEMAKE += "CFG_TEE_FS_PARENT_PATH=${OPTEE_FS_PARENT_PATH} PKG_CONFIG=pkg-config"
 
 do_compile() {
     oe_runmake -C ${S} build
