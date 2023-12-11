@@ -42,7 +42,6 @@ TEGRA_BOOT_FIRMWARE_FILES = "\
     preboot_c10_prod_cr.bin \
     mce_c10_prod_cr.bin \
     mts_c10_prod_cr.bin \
-    nvtboot_cpurf_t234.bin \
     spe_t234.bin \
     psc_bl1_t234_prod.bin \
     pscfw_t234_prod.bin \
@@ -56,6 +55,7 @@ TEGRA_BOOT_FIRMWARE_FILES = "\
     pinctrl-tegra.h \
     tegra234-gpio.h \
     readinfo_t234_min_prod.xml \
-    camera-rtcpu-sce.img \
     fsi-fw-ecc.bin \
+    nvpva_020.fw \
+    tsec_t234.bin \
 "
