@@ -16,16 +16,12 @@ DEPENDS:append = " virtual/${TARGET_PREFIX}gcc"
 S = "${WORKDIR}/arm-trusted-firmware"
 B = "${WORKDIR}/build"
 
-COMPATIBLE_MACHINE = "(tegra234)"
+COMPATIBLE_MACHINE = "(tegra)"
 
 CVE_PRODUCT = "arm:arm-trusted-firmware \
                arm:trusted_firmware-a \
                arm:arm_trusted_firmware \
                arm_trusted_firmware_project:arm_trusted_firmware"
-
-PACKAGECONFIG ??= "optee"
-PACKAGECONFIG[trusty] = "SPD=trusty"
-PACKAGECONFIG[optee] = "SPD=opteed"
 
 CFLAGS[unexport] = "1"
 LDFLAGS[unexport] = "1"
@@ -50,8 +46,9 @@ def generate_build_timestamp(d):
 BUILD_STRING ?= "${@generate_build_string(d)}"
 BUILDTIMESTAMP ?= "${@generate_build_timestamp(d)}"
 
-EXTRA_OEMAKE = 'BUILD_BASE=${B} CROSS_COMPILE="${TARGET_PREFIX}" PLAT=tegra \
-	        DEBUG=0 LOG_LEVEL=20 V=1 TARGET_SOC=${TARGET_SOC} ${BUILDTIMESTAMP} ${BUILD_STRING} ${PACKAGECONFIG_CONFARGS}'
+EXTRA_OEMAKE = 'BUILD_BASE=${B} CROSS_COMPILE="${TARGET_PREFIX}" PLAT=tegra SPD=opteed \
+	        DEBUG=0 LOG_LEVEL=20 V=1 TARGET_SOC=${TARGET_SOC} ${BUILDTIMESTAMP} ${BUILD_STRING}'
+EXTRA_OEMAKE:append:tegra234 = " BRANCH_PROTECTION=3 ARM_ARCH_MINOR=3"
 
 do_configure[noexec] = "1"
 
