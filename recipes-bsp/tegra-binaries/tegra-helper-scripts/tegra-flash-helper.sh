@@ -515,7 +515,6 @@ dce_fw display-t234-dce.bin; \
 nvdec nvdec_t234_prod.fw; \
 bpmp_fw $BPF_FILE; \
 bpmp_fw_dtb $BPFDTB_FILE; \
-sce_fw camera-rtcpu-sce.img; \
 rce_fw camera-rtcpu-t234-rce.img; \
 ape_fw adsp-fw.bin; \
 spe_fw spe_t234.bin; $fsifw_binsarg \
