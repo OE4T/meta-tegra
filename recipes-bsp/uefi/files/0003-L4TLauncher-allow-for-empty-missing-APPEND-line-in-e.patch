@@ -1,7 +1,7 @@
-From 9e77fe4f3a34eda6d131e33f9a5f11fbaa34d423 Mon Sep 17 00:00:00 2001
+From 0ab1b20ce12ce13bb916b44dd4240c2ef9e86bb8 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 4 Feb 2023 06:31:24 -0800
-Subject: [PATCH 3/4] L4TLauncher: allow for empty/missing APPEND line in
+Subject: [PATCH] L4TLauncher: allow for empty/missing APPEND line in
  extlinux.conf
 
 Signed-off-by: Matt Madison <matt@madison.systems>
@@ -11,12 +11,12 @@ Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
  1 file changed, 16 insertions(+), 14 deletions(-)
 
 diff --git a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
-index 2e1849b8..ac53522d 100644
+index aa867001..5d72ea22 100644
 --- a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
 +++ b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
-@@ -1265,21 +1265,23 @@ ExtLinuxBoot (
-   EFI_HANDLE                 KernelHandle      = NULL;
-   EFI_LOADED_IMAGE_PROTOCOL  *ImageInfo;
+@@ -1421,21 +1421,23 @@ ExtLinuxBoot (
+   CHAR8                      SWModule[] = "kernel";
+   INTN                       FdtStatus;
  
 -  // Process Args
 -  ArgSize = StrSize (BootOption->BootArgs) + MAX_CBOOTARG_SIZE;

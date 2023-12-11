@@ -16,14 +16,21 @@ EDK2_BIN_NAME = "uefi_jetson.bin"
 
 SRC_URI += "${@'file://L4TConfiguration-RootfsRedundancyLevelABEnable.dtsi' if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else ''}"
 
+SRC_URI += "file://nvbuildconfig.py"
+
+do_configure:append() {
+    ${PYTHON} ${WORKDIR}/nvbuildconfig.py ${S_EDK2_NVIDIA}/Silicon/NVIDIA/Kconfig ${S_EDK2_NVIDIA}/Platform/NVIDIA/Jetson/Jetson.defconfig ${B}/nvidia-config/Jetson/.config
+}
+
+
 do_compile:append() {
     rm -rf ${B}/images
     mkdir ${B}/images
-    python3 ${S_EDK2_NVIDIA}/Silicon/NVIDIA/Tools/FormatUefiBinary.py \
+    ${PYTHON} ${S_EDK2_NVIDIA}/Silicon/NVIDIA/edk2nv/FormatUefiBinary.py \
         ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/FV/UEFI_NS.Fv \
         ${B}/images/${EDK2_BIN_NAME}.tmp
     mv ${B}/images/${EDK2_BIN_NAME}.tmp ${B}/images/${EDK2_BIN_NAME}
-    python3 ${S_EDK2_NVIDIA}/Silicon/NVIDIA/Tools/FormatUefiBinary.py \
+    ${PYTHON} ${S_EDK2_NVIDIA}/Silicon/NVIDIA/edk2nv/FormatUefiBinary.py \
         ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/AARCH64/L4TLauncher.efi \
         ${B}/images/BOOTAA64.efi
     for f in ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/AARCH64/Silicon/NVIDIA/Tegra/DeviceTree/DeviceTree/OUTPUT/*.dtb; do
