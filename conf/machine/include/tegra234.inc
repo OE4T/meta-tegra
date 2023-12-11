@@ -55,7 +55,6 @@ TEGRA_BOOT_FIRMWARE_FILES = "\
     pinctrl-tegra.h \
     tegra234-gpio.h \
     readinfo_t234_min_prod.xml \
-    camera-rtcpu-sce.img \
     fsi-fw-ecc.bin \
     nvpva_020.fw \
     tsec_t234.bin \
