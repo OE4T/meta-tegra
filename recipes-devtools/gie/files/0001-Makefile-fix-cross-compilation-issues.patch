@@ -1,26 +1,26 @@
-From 4642ba03e09dec387243d5f423d70ec0c8ea23b1 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Thu, 24 Feb 2022 01:53:30 +0000
+From 7ed6b3bae14ede51f376c648e4a20ddaf3998334 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Sat, 11 Nov 2023 20:25:34 +0000
 Subject: [PATCH] Makefile: fix cross compilation issues
 
-Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
  Makefile.config | 29 +++++++++++++++++++----------
  1 file changed, 19 insertions(+), 10 deletions(-)
 
-Index: samples/Makefile.config
-===================================================================
---- samples.orig/Makefile.config
-+++ samples/Makefile.config
-@@ -6,6 +6,7 @@ PROTOBUF_TRIPLE ?= x86_64-linux-gnu
- SAFE_PDK ?= 0
- CPP_STANDARD ?= 14
- TARGET ?= $(shell uname -m)
-+BUILD_TYPE ?= release
+diff --git a/Makefile.config b/Makefile.config
+index d8e5d00..ceefcde 100644
+--- a/Makefile.config
++++ b/Makefile.config
+@@ -9,6 +9,7 @@ TARGET ?= $(shell uname -m)
  CUSTOM_LD_FLAGS ?=
+ USE_STUB_EXTERNALS ?= 0
+ TRT_STATIC ?= 0
++BUILD_TYPE ?= release
  
  ifeq ($(CUDA_INSTALL_DIR), )
-@@ -47,11 +48,11 @@ CUDNN_LIBDIR = lib64
+   CUDA_INSTALL_DIR ?= /usr/local/cuda
+@@ -50,11 +51,11 @@ CUDNN_LIBDIR ?= $(CUDNN_INSTALL_DIR)/lib64
  ifeq ($(TARGET), aarch64)
    ifeq ($(shell uname -m), aarch64)
      CUDA_LIBDIR = lib64
@@ -35,7 +35,7 @@ Index: samples/Makefile.config
  else ifeq ($(TARGET), x86_64)
    CUDA_LIBDIR = lib64
    CC = g++
-@@ -75,7 +76,7 @@ else ########
+@@ -78,7 +79,7 @@ else ########
    $(error Auto-detection of platform failed. Please specify one of the following arguments to make: TARGET=[aarch64|x86_64|qnx])
  endif
  
@@ -44,7 +44,7 @@ Index: samples/Makefile.config
  ifeq ($(CC_MAJOR_VER), 4)
    CPP_STANDARD := 11
  endif
-@@ -132,7 +133,7 @@ endef
+@@ -135,7 +136,7 @@ endef
  ifneq ($(USE_QCC), 1)
  # Usage: $(call make-depend,source-file,object-file,depend-file)
  define make-depend
@@ -53,7 +53,7 @@ Index: samples/Makefile.config
  endef
  # Usage: $(call make-cuda-depend,source-file,object-file,depend-file,flags)
  define make-cuda-depend
-@@ -328,7 +329,15 @@ CFLAGSD = $(COMMON_FLAGS) -g
+@@ -341,7 +342,15 @@ CFLAGSD = $(COMMON_FLAGS) -g
  LFLAGS = $(COMMON_LD_FLAGS)
  LFLAGSD = $(COMMON_LD_FLAGS)
  
@@ -70,7 +70,7 @@ Index: samples/Makefile.config
  
  release: $(OUTDIR)/$(OUTNAME_RELEASE)
  debug: $(OUTDIR)/$(OUTNAME_DEBUG)
-@@ -343,25 +352,25 @@ test_release:
+@@ -356,25 +365,25 @@ test_release:
  
  $(OUTDIR)/$(OUTNAME_RELEASE): $(OBJS) $(CUOBJS)
  	$(ECHO) Linking: $@
@@ -100,3 +100,6 @@ Index: samples/Makefile.config
  
  ######################################################################### CU
  $(OBJDIR)/%.o: %.cu
+-- 
+2.25.1
+
