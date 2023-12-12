@@ -10,7 +10,7 @@ L4T_DEB_GROUP = "cudnn-samples"
 DEPENDS = "cudnn"
 
 SRC_COMMON_DEBS = "\
-    libcudnn8-samples_${PV}+cuda11.4_arm64.deb;name=samples;subdir=cudnn \
+    libcudnn8-samples_${PV}+cuda12.2_arm64.deb;name=samples;subdir=cudnn \
 "
 SRC_URI[samples.sha256sum] = "4634422d33251411e0c0129ea0814d792992f29324cc2ee1d18f76fd061d16fd"
 COMPATIBLE_MACHINE = "(tegra)"
