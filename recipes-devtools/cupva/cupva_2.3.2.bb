@@ -25,10 +25,10 @@ do_compile() {
 
 do_install() {
     install -d ${D}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu
-    install -m 0644 ${B}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu/libcupva_host_utils.so.2.3.0 ${D}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu
-    install -m 0644 ${B}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu/libcupva_host.so.2.3.0 ${D}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu
-    ln -s libcupva_host_utils.so.2.3.0 ${D}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu/libcupva_host_utils.so.2.3
-    ln -s libcupva_host.so.2.3.0 ${D}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu/libcupva_host.so.2.3
+    install -m 0644 ${B}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu/libcupva_host_utils.so.2.3.2 ${D}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu
+    install -m 0644 ${B}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu/libcupva_host.so.2.3.2 ${D}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu
+    ln -s libcupva_host_utils.so.2.3.2 ${D}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu/libcupva_host_utils.so.2.3
+    ln -s libcupva_host.so.2.3.2 ${D}/opt/nvidia/cupva-2.3/lib/aarch64-linux-gnu/libcupva_host.so.2.3
 
     install -d ${D}${sysconfdir}/ld.so.conf.d
     install -m 0644 ${B}/etc/ld.so.conf.d/cupva-2.3-l4t.conf ${D}${sysconfdir}/ld.so.conf.d
