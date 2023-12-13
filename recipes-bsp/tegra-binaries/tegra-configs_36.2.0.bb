@@ -41,6 +41,9 @@ do_install() {
     install -d ${D}${sysconfdir}/sysctl.d
     install -m 0644 ${S}/etc/sysctl.d/60-nvsciipc.conf ${D}${sysconfdir}/sysctl.d/
 
+    install -d ${D}${sysconfdir}/modprobe.d
+    install -m 0644 ${S}/etc/modprobe.d/denylist*.conf ${D}${sysconfdir}/modprobe.d/
+
     # We use a statically generated file by using 
     # https://gist.github.com/dwalkes/0e2dea422f2df93bcc9badc0512a6855
     # and oe-pkgdata-util file-path <libname> for oe4t-missing.csv 
@@ -59,7 +62,7 @@ do_install:append:tegra234() {
 }
 
 PACKAGES = "${PN}-udev ${PN}-omx-tegra ${PN}-xorg ${PN}-nvstartup ${PN}-container-csv ${PN}-bootloader"
-FILES:${PN}-udev = "${sysconfdir}/udev/rules.d"
+FILES:${PN}-udev = "${sysconfdir}/udev/rules.d ${sysconfdir}/modprobe.d"
 FILES:${PN}-xorg = "${sysconfdir}/X11"
 FILES:${PN}-omx-tegra = "${sysconfdir}/enctune.conf"
 FILES:${PN}-nvstartup = "${sbindir} ${sysconfdir}/sysctl.d"
