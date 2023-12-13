@@ -8,7 +8,7 @@ require conf/machine/include/arm/arch-armv8-2a.inc
 
 SERIAL_CONSOLES ?= "115200;ttyTCU0"
 
-KERNEL_MODULE_AUTOLOAD ?= "nvmap nvgpu pwm-fan ina3221 nvidia-drm"
+KERNEL_MODULE_AUTOLOAD ?= "nvmap nvgpu pwm-fan ina3221"
 
 NVIDIA_CHIP = "0x23"
 
