@@ -1,16 +1,19 @@
-From 69b459da2da5a25352642d06c5a810f708f75e4d Mon Sep 17 00:00:00 2001
+From dae2c99a22f25ed54e4eed69ca26066bdf88e8c2 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Fri, 3 Nov 2023 23:44:46 +0000
 Subject: [PATCH] Drop bc usage and remove symlink creation functions
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+
+
+Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- etc/systemd/nvpower.sh | 147 ++---------------------------------------
- 1 file changed, 4 insertions(+), 143 deletions(-)
+ etc/systemd/nvpower.sh | 164 ++++-------------------------------------
+ 1 file changed, 13 insertions(+), 151 deletions(-)
 
 diff --git a/etc/systemd/nvpower.sh b/etc/systemd/nvpower.sh
-index f5a2a72..4a83f84 100755
+index f70c650..cb8e294 100755
 --- a/etc/systemd/nvpower.sh
 +++ b/etc/systemd/nvpower.sh
 @@ -138,140 +138,6 @@ function set_power_state_perm()
@@ -179,15 +182,48 @@ index f5a2a72..4a83f84 100755
  			desired_devfreq_gov="tegra_wmark"
  		fi
  	fi
-@@ -478,7 +339,7 @@ function lock_emc_frequency()
+@@ -478,10 +339,10 @@ function lock_emc_frequency()
  
  	# Set EMC_FREQ to max for Kernel version >= 5.15
  	# and when the Interconnect support is missing
 -	if [ "$(echo "${KERNEL_VERSION} >= 5.15" | bc)" -eq 1 ]; then
 +	if [ "${KERNEL_VERSION}" = "5.15" ]; then
  		if [ -e "${EMC_MAX_RATE}" ] && [ -e "${EMC_RATE}" ]; then
- 			AVG_BW=$(grep "Memory Controller" ${ICC_NODE} | head -1 | awk -F ' ' '{print $3}')
- 			PEAK_BW=$(grep "Memory Controller" ${ICC_NODE}| head -1 | awk -F ' ' '{print $4}')
--- 
-2.25.1
-
+-			AVG_BW=$(grep "Memory Controller" ${ICC_NODE} | head -1 | awk -F ' ' '{print $3}')
+-			PEAK_BW=$(grep "Memory Controller" ${ICC_NODE}| head -1 | awk -F ' ' '{print $4}')
++			AVG_BW=$(grep "Memory Controller" ${ICC_NODE} | head -n 1 | awk -F ' ' '{print $3}')
++			PEAK_BW=$(grep "Memory Controller" ${ICC_NODE}| head -n 1 | awk -F ' ' '{print $4}')
+ 
+ 			if [[ -z "${AVG_BW}" && -z "${PEAK_BW}" ]] ||
+ 			   [[ "${AVG_BW}" = "0" && "${PEAK_BW}" = "0" ]]; then
+@@ -692,10 +553,12 @@ function setup_actmon()
+ 	debugfs_actmon="/sys/kernel/debug/tegra-host1x/actmon"
+ 
+ 	# Actmon settings should be the same across engines
+-	tee ${debugfs_actmon}/*/sample_period 1>/dev/null <<< 1500
+-	tee ${debugfs_actmon}/*/module0/consec_upper_num 1>/dev/null <<< 7
+-	tee ${debugfs_actmon}/*/module0/consec_lower_num 1>/dev/null <<< 7
+-	tee ${debugfs_actmon}/*/module0/k 1>/dev/null <<< 2
++	for engine in ${debugfs_actmon}/*; do
++	    echo 1500 > $engine/sample_period
++	    echo 7 > $engine/module0/consec_upper_num
++	    echo 7 > $engine/module0/consec_lower_num
++	    echo 2 > $engine/module0/k
++	done
+ }
+ 
+ SOCFAMILY=""
+@@ -704,8 +567,6 @@ KERNEL_VERSION=$(uname -r | cut -d '.' -f-2)
+ set_socfamily
+ set_safety_flag
+ set_power_state_perm
+-create_nvpmodel_symlink
+-create_nvfancontrol_symlink
+ cpu_hotplug
+ set_cpufreq_governor
+ set_cpu_floor_freq
+@@ -716,3 +577,4 @@ validate_nvpmodel_conf
+ setup_hwmon
+ setup_tmp451
+ setup_actmon
++exit 0
