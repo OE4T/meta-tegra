@@ -1,13 +1,10 @@
 #!/bin/sh
 ESPMOUNT="@ESPMOUNT@"
-NVESPMOUNT="@NVIDIA_ESPMOUNT@"
-ESPVARDIR="@ESPVARDIR@"
 
 fab=
 boardsku=
 boardrev=
 chiprev=
-mmc_only_hack=
 
 set_efi_var() {
     local varname="$1"
@@ -20,71 +17,17 @@ set_efi_var() {
         return 1
     fi
 
-    # NVIDIA tools will try to mount the ESP partition dynamically
-    # if it's not already mounted at @NVIDIA_ESPMOUNT@, so bind-mount
-    # it there if we've mounted that partition at a more typical location.
-    if [ -n "$NVESPMOUNT" -a "$NVESPMOUNT" != "$ESPMOUNT" ]; then
-        if mountpoint -q "$ESPMOUNT" && ! mountpoint -q "$NVESPMOUNT"; then
-            mount --bind "$ESPMOUNT" "$NVESPMOUNT"
-        fi
-    fi
-
     boardspec=$(tegra-boardspec 2>/dev/null)
     if [ -z "${boardspec}" ]; then
         echo "ERR: could not retrieve boardspec for setting efi var" >&2
         return 1
     fi
-    mmc_only_hack=$(echo "$boardspec" | needs_mmc_hack)
-
-    # Only set if it doesn't exist already
-    if [ "$mmc_only_hack" = "yes" ]; then
-        if ! mountpoint -q "$ESPMOUNT"; then
-            echo "ERR: cannot store EFI variable - ESP partition not mounted" >&2
-            return 1
-        fi
-        if [ -e "$ESPVARDIR/${varname}-${guid}" ] && [ "$write_once" = "write-once" ]; then
-            return 0
-        fi
-        local datatmp=$(TMPDIR=$RUNTIME_DIRECTORY mktemp --tmpdir nvcvar.XXXXXX)
-        printf "\x07\x00\x00\x00%b" "$value" > "$datatmp"
-        mkdir -p -m 0700 "$ESPVARDIR" || return 1
-        cp "$datatmp" "$ESPVARDIR/${varname}-${guid}" || return 1
-    else
-        if efivar -n "${guid}-$varname" >/dev/null 2>&1 && [ "$write_once" = "write-once" ]; then
-            return 0
-        fi
-        local datatmp=$(TMPDIR=$RUNTIME_DIRECTORY mktemp --tmpdir nvcvar.XXXXXX)
-        printf "%b" "$value" > "$datatmp"
-        efivar -w -f "$datatmp" -n "${guid}-$varname"
+    if efivar -n "${guid}-$varname" >/dev/null 2>&1 && [ "$write_once" = "write-once" ]; then
+        return 0
     fi
-}
-
-gen_compat_2888() {
-    if [ "$fab" = "400" ]; then
-        if [ "$boardsku" = "0004" ]; then
-            boardrev=
-        else
-            if echo "$boardrev" | grep -q "^[ABCD]\."; then
-                boardrev="D.0"
-            else
-                boardrev="E.0"
-            fi
-            boardsku="0001"
-        fi
-    elif [ "$fab" = "600" -a "$boardsku" = "0008" ]; then
-        boardrev=
-    fi
-    return 0
-}
-
-gen_compat_3668() {
-    if [ "$fab" != "301" ]; then
-        fab="100"
-    fi
-    boardsku=
-    boardrev=
-    chiprev=
-    return 0
+    local datatmp=$(TMPDIR=$RUNTIME_DIRECTORY mktemp --tmpdir nvcvar.XXXXXX)
+    printf "%b" "$value" > "$datatmp"
+    efivar -w -f "$datatmp" -n "${guid}-$varname"
 }
 
 gen_compat_3701() {
@@ -125,15 +68,4 @@ gen_compat_spec() {
         return 0
     fi
     echo ""
-}
-
-# boardspec should be piped into this function
-needs_mmc_hack() {
-    IFS=- read boardid fab boardsku boardrev fuselevel chiprev
-    if [ "$boardid" = "2888" -a "$fab" = "400" ]; then
-        echo "yes"
-    else
-        echo ""
-    fi
-    return 0
 }
