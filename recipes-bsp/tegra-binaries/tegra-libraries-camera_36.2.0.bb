@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM += "\
     file://usr/share/doc/nvidia-tegra/LICENSE.libnvcam_imageencoder;md5=059e39d33711ff9e6a76760cffcf0811 \
 "
 
-SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP};name=gstreamer"
+SRC_COMMON_DEBS += "${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP};name=gstreamer"
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'core')};subdir=${BP};name=core"
 
 MAINSUM = "54f810cd5bf941ee792395208c6814ef871343ca1032a0189cf1b71a8829c43f"
