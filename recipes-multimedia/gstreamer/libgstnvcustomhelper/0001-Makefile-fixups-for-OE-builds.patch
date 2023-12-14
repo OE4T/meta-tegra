@@ -1,20 +1,20 @@
-From 3ca17db9635a7e9f682c7d4870684fab44ff8e5a Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Wed, 9 Aug 2023 08:42:41 -0700
+From e979a1e5646ff1b7cf0cb3cb6c79b71aafa99232 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 17 Nov 2023 12:37:46 +0000
 Subject: [PATCH] Makefile fixups for OE builds
 
 Upstream-Status: Inappropriate [embedded specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile.public | 28 ++++++++--------------------
- 1 file changed, 8 insertions(+), 20 deletions(-)
+ Makefile.public | 26 +++++++-------------------
+ 1 file changed, 7 insertions(+), 19 deletions(-)
 
 diff --git a/Makefile.public b/Makefile.public
-index 6b97891..cd858fb 100644
+index 827b408..bb759d7 100644
 --- a/Makefile.public
 +++ b/Makefile.public
 @@ -21,8 +21,8 @@
- # DEALINGS IN THE SOFTWARE.                                                      
+ # DEALINGS IN THE SOFTWARE.
  ################################################################################ 
  
 -CXX:= gcc
@@ -32,19 +32,18 @@ index 6b97891..cd858fb 100644
 -  LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
 -  CFLAGS:=
 -else
--  NVDS_VERSION ?=6.2
+-  NVDS_VERSION ?=6.4
 -  LIB_INSTALL_DIR ?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/
--  CFLAGS:= -DDS_VERSION=\"6.2.1\"
+-  CFLAGS:= -DDS_VERSION=\"6.4.0\"
 -endif
 -
  CFLAGS+= -fPIC
-- 
-+
+ 
  LIBS := -shared -Wl,-no-undefined
-- 
+ 
 -LIBS+= -L$(LIB_INSTALL_DIR) -ldl\
 -        -Wl,-rpath,$(LIB_INSTALL_DIR)
- 
+-
 -PKGS:= gstreamer-1.0 gstreamer-base-1.0 gstreamer-video-1.0
 +PKGS:= gstreamer-1.0
  CFLAGS+= $(shell pkg-config --cflags $(PKGS))
@@ -70,5 +69,5 @@ index 6b97891..cd858fb 100644
  clean:
  	rm -rf $(OBJS) $(LIB)
 -- 
-2.34.1
+2.25.1
 
