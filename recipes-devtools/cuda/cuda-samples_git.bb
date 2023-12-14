@@ -24,6 +24,7 @@ def extract_sm(d):
     return ''
 
 CUDA_SAMPLES ?= " \
+    Samples/0_Introduction/UnifiedMemoryStreams \
     Samples/1_Utilities/deviceQuery \
 "
 
