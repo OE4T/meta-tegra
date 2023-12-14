@@ -1,10 +1,11 @@
-From a5634a1e294bf8bd76542af5848c2750805906d5 Mon Sep 17 00:00:00 2001
+From bb4cbbad63740dd3942d73d96fa82f6ee306d189 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Sun, 10 Dec 2023 18:04:47 +0000
 Subject: [PATCH] Patch nv.sh script for OE use
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+
 ---
  etc/systemd/nv.sh | 219 ----------------------------------------------
  1 file changed, 219 deletions(-)
@@ -257,6 +258,3 @@ index 8044f43..007ddc3 100755
 -		ln -sf "/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-transformed" "/usr/bin/weston-transformed"
 -	fi
 -fi
--- 
-2.34.1
-

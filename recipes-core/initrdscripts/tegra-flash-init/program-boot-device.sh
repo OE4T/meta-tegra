@@ -52,7 +52,7 @@ program_mmcboot_partition() {
     local part_size="$3"
     local part_file="$4"
     local file_size=0
-    local bootpart="/dev/mmcblk0boot0"
+    local bootpart="/dev/mmcblk3boot0"
 
     if [ -z "$BOOTPART_SIZE" ]; then
 	echo "ERR: boot partition size not set" >&2
@@ -60,7 +60,7 @@ program_mmcboot_partition() {
     fi
     if [ $part_offset -ge $BOOTPART_SIZE ]; then
 	part_offset=$(expr $part_offset - $BOOTPART_SIZE)
-	bootpart="/dev/mmcblk0boot1"
+	bootpart="/dev/mmcblk3boot1"
     fi
     if [ -n "$part_file" ]; then
 	file_size=$(stat -c "%s" "$part_file")
@@ -115,15 +115,15 @@ program_boot_partitions() {
     fi
 
     if [ "$BOOTDEV_TYPE" = "mmcboot" ]; then
-	if [ ! -b /dev/mmcblk0boot0 -o ! -b /dev/mmcblk0boot1 ]; then
-	    echo "ERR: eMMC boot device, but mmcblk0bootX devices do not exist" >&2
+	if [ ! -b /dev/mmcblk3boot0 -o ! -b /dev/mmcblk3boot1 ]; then
+	    echo "ERR: eMMC boot device, but mmcblk3bootX devices do not exist" >&2
 	    return 1
 	fi
-	BOOTPART_SIZE=$(expr $(cat /sys/block/mmcblk0boot0/size) \* 512)
-	echo "0" > /sys/block/mmcblk0boot0/force_ro
-	echo "0" > /sys/block/mmcblk0boot1/force_ro
-	blkdiscard -f /dev/mmcblk0boot0
-	blkdiscard -f /dev/mmcblk0boot1
+	BOOTPART_SIZE=$(expr $(cat /sys/block/mmcblk3boot0/size) \* 512)
+	echo "0" > /sys/block/mmcblk3boot0/force_ro
+	echo "0" > /sys/block/mmcblk3boot1/force_ro
+	blkdiscard -f /dev/mmcblk3boot0
+	blkdiscard -f /dev/mmcblk3boot1
     elif [ "$BOOTDEV_TYPE" = "spi" ]; then
 	if [ ! -e /dev/mtd0 ]; then
 	    echo "ERR: SPI boot device, but mtd0 device does not exist" >&2
@@ -153,8 +153,8 @@ program_boot_partitions() {
 	fi
     done < partitions.conf
     if [ "$BOOTDEV_TYPE" = "mmcboot" ]; then
-	echo "1" > /sys/block/mmcblk0boot0/force_ro
-	echo "1" > /sys/block/mmcblk0boot1/force_ro
+	echo "1" > /sys/block/mmcblk3boot0/force_ro
+	echo "1" > /sys/block/mmcblk3boot1/force_ro
     fi
     cd "$oldwd"
     return $rc

@@ -3,8 +3,8 @@ require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-OTABOOTDEV ??= "/dev/mmcblk0boot0"
-OTAGPTDEV ??= "/dev/mmcblk0boot1"
+OTABOOTDEV ??= "/dev/mmcblk3boot0"
+OTAGPTDEV ??= "/dev/mmcblk3boot1"
 
 do_compile() {
 	cat > ${B}/nv_boot_control.template <<EOF

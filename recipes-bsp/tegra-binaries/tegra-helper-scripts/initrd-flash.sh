@@ -362,7 +362,7 @@ generate_flash_package() {
 	echo "erase-nvme" >> "$mnt/flashpkg/conf/command_sequence"
     fi
     if [ $EXTERNAL_ROOTFS_DRIVE -eq 1 -a $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
-	echo "export-devices mmcblk0 $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
+	echo "export-devices mmcblk3 $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
     else
 	[ $EXTERNAL_ROOTFS_DRIVE -eq 0 -o $NO_INTERNAL_STORAGE -eq 1 ] || echo "erase-mmc" >> "$mnt/flashpkg/conf/command_sequence"
 	echo "export-devices $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
@@ -395,7 +395,7 @@ write_to_device() {
     else
 	datased="-e/DATAFILE/d"
     fi
-    if [ "$devname" = "mmcblk0" -a $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
+    if [ "$devname" = "mmcblk3" -a $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
 	extraarg="--honor-start-locations"
     fi
     # XXX
@@ -510,7 +510,7 @@ if [ $EXTERNAL_ROOTFS_DRIVE -eq 1 ]; then
     keep_going=1
     if [ $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
 	step_banner "Writing boot partitions to internal storage device"
-	if ! write_to_device mmcblk0 flash.xml.in --no-final-part 2>&1 | tee -a "$logfile"; then
+	if ! write_to_device mmcblk3 flash.xml.in --no-final-part 2>&1 | tee -a "$logfile"; then
 	    echo "ERR: write failure to internal storage at $(date -Is)" | tee -a "$logfile"
 	    if [ $early_final_status -eq 0 ]; then
 		exit 1
