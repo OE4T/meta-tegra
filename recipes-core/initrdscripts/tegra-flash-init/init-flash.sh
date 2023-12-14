@@ -7,19 +7,19 @@ mkdir -m 0755 /dev/pts
 mount -t devpts devpts /dev/pts
 mount -t sysfs sysfs -o nosuid,nodev,noexec /sys
 
-m=$(find /lib/modules -name 'libcomposite.ko' -type f)
-if [ -n "$m" ]; then
-    insmod "$m"
-fi
 find /lib/modules -name 'usb_f_*.ko' -type f | while read m; do
-    insmod "$m"
+    modprobe -v "$m"
 done
 
 find /sys -name modalias | while read m; do
     modalias=$(cat "$m")
-    if modprobe "$modalias" > /dev/null 2>&1; then
-	echo "Loaded $modalias"
-    fi
+    modprobe -v "$modalias" 2> /dev/null
+done
+
+MODULES_TO_LOAD="nvme typec ucsi-ccg stusb160x tegra-mce watchdog-tegra-t18x"
+
+for m in $MODULES_TO_LOAD; do
+    modprobe -v "$m"
 done
 
 mount -t configfs configfs -o nosuid,nodev,noexec /sys/kernel/config
@@ -150,8 +150,6 @@ reboot_type=
 final_status="FAILED"
 wait_for_bootloader=
 
-lsmod
-
 if ! get_flash_package; then
     echo "Error retrieving flashing package" >&2
     skip_status_report=yes
@@ -173,10 +171,10 @@ else
 		wait_for_bootloader=yes
 		;;
 	    erase-mmc)
-		if [ -b /dev/mmcblk0 ]; then
-		    blkdiscard -f /dev/mmcblk0 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
+		if [ -b /dev/mmcblk3 ]; then
+		    blkdiscard -f /dev/mmcblk3 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
 		else
-		    echo "/dev/mmcblk0 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
+		    echo "/dev/mmcblk3 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
 		fi
 		;;
 	    erase-nvme)
