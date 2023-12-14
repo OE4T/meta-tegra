@@ -17,7 +17,7 @@ DEPENDS = "libglvnd libdrm libdrm-nvdc"
 inherit pkgconfig features_check
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11 wayland', d)}"
-PACKAGECONFIG[x11] = ",,libx11"
+PACKAGECONFIG[x11] = ",,libx11 virtual/libgbm"
 PACKAGECONFIG[wayland] = ",,libxkbcommon wayland wayland-native weston libffi virtual/libgbm tegra-drm-headers tegra-mmapi tegra-libraries-multimedia-utils"
 
 CONFIGURESTAMPFILE = "${WORKDIR}/configure.sstate"
