@@ -38,5 +38,8 @@ INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INSANE_SKIP = "dev-so ldflags"
+INSANE_SKIP:append:libc-musl = " file-rdeps"
+
+RDEPENDS:${PN}:append:libc-musl = " gcompat"
 
 PACKAGE_ARCH = "${L4T_BSP_PKGARCH}"
