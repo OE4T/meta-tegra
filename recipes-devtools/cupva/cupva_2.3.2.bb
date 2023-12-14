@@ -1,7 +1,7 @@
 DESCRIPTION = "Compute Unified Programmable Vision Accelerator SDK"
 HOMEPAGE = "https://www.nvidia.com"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/share/doc/cupva-2.3/copyright;md5=e4e1634d529920e989bc355be47e03be"
+LIC_FILES_CHKSUM = "file://usr/share/doc/cupva-2.3/copyright;md5=80c94b87ec4eb8b6a9e5235482d332bf"
 
 inherit l4t_deb_pkgfeed
 
