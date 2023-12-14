@@ -9,6 +9,11 @@ TEGRA_SRC_SUBARCHIVE_OPTS = "--strip-components=1 optee/samples"
 SRC_URI += " file://0001-Update-makefiles-for-OE-builds.patch"
 
 DEPENDS += "optee-os-tadevkit optee-client"
+DEPENDS:append:libc-musl = " argp-standalone"
+
+LDADD:append:libc-musl = " -L${STAGING_LIBDIR} -largp"
+
+export LDADD
 
 S = "${WORKDIR}/samples"
 B = "${WORKDIR}/build"
