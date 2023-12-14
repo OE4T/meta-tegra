@@ -16,6 +16,9 @@ do_install() {
             install -m 0644 ${WORKDIR}/asound.conf.${TEGRA_AUDIO_DEVICE} ${D}${sysconfdir}/asound.conf
 	else
             install -m 0644 ${S}/etc/asound.conf.${TEGRA_AUDIO_DEVICE} ${D}${sysconfdir}/asound.conf
+	    if [ "${TEGRA_AUDIO_DEVICE}" = "tegra-hda-jetson-agx" ]; then
+	        sed -i -e's!HDA,8!HDA,3!' ${D}${sysconfdir}/asound.conf
+	    fi
 	fi
     fi
 
