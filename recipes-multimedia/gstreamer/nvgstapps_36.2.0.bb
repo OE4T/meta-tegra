@@ -11,10 +11,7 @@ require recipes-bsp/tegra-sources/tegra-sources-36.2.0.inc
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libx11 libxext"
 
-SRC_URI += "\
-    file://0002-Fix-stringop-truncation-warning.patch \
-    file://0003-Fix-indentation-in-nvgstplayer.c.patch \
-"
+SRC_URI += "file://0002-Fix-stringop-truncation-warning.patch"
 
 S = "${WORKDIR}/nvgstapps_src"
 B = "${WORKDIR}/build"
