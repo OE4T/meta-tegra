@@ -1,6 +1,6 @@
-From fcca8881105274be7eed49bee434201b9e509c21 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Mon, 7 Aug 2023 21:37:45 +0100
+From 342c89452c99eff269e6326d164866de604f1bcf Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Tue, 21 Nov 2023 07:45:45 +0000
 Subject: [PATCH 5/8] samples: Rework makefiles and rules
 
 * Make them more OE-friendly
@@ -66,7 +66,7 @@ index 26b05cf..18e37d3 100644
 +		$(MAKE) -C $$subdir install;\
 +	done
 diff --git a/samples/00_video_decode/Makefile b/samples/00_video_decode/Makefile
-index ca6a4d1..27100f9 100644
+index 06239b1..e65ba7e 100644
 --- a/samples/00_video_decode/Makefile
 +++ b/samples/00_video_decode/Makefile
 @@ -34,23 +34,19 @@ APP := video_decode
@@ -774,7 +774,7 @@ index 1b3ec95..e484a51 100644
  all: $(APP)
  
 diff --git a/samples/Rules.mk b/samples/Rules.mk
-index 2e02397..71af5be 100644
+index be12a6a..2d7c41d 100644
 --- a/samples/Rules.mk
 +++ b/samples/Rules.mk
 @@ -28,10 +28,6 @@
@@ -869,7 +869,7 @@ index 2e02397..71af5be 100644
 -	-lpthread -lnvv4l2 -lEGL -lGLESv2 -lX11 \
 +	-lpthread -lv4l2 -lEGL -lGLESv2 -lX11 \
  	-lnvbufsurface -lnvbufsurftransform -lnvjpeg -lnvosd -ldrm \
--	-lcuda -lcudart -lvulkan \
+-	-lcuda -lcudart \
 -	-L"$(TARGET_ROOTFS)/$(CUDA_PATH)/lib64" \
 -	-L"$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)" \
 -	-L"$(TARGET_ROOTFS)/usr/lib/$(TEGRA_ARMABI)/nvidia" \
