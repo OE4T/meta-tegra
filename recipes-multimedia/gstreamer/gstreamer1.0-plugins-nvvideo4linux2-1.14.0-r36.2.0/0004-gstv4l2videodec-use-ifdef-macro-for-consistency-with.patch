@@ -1,20 +1,20 @@
-From 362866771c3adfeba0d81c3983d389da48d1494e Mon Sep 17 00:00:00 2001
-From: Jose Quaresma <quaresma.jose@gmail.com>
-Date: Sun, 8 Nov 2020 01:53:55 +0000
+From 5089ddc47eb05ce6d2ed09bd71e58def50160f8b Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 17 Nov 2023 12:57:10 +0000
 Subject: [PATCH 4/7] gstv4l2videodec: use ifdef macro for consistency with the
- rest of the code
+  rest of the code
 
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
- gst-v4l2/gstv4l2videodec.c | 4 ++--
+ gstv4l2videodec.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/gstv4l2videodec.c b/gstv4l2videodec.c
-index e0fb5ce..d044897 100644
+index cab3cbd..39afc70 100644
 --- a/gstv4l2videodec.c
 +++ b/gstv4l2videodec.c
-@@ -683,7 +683,7 @@ gst_v4l2_video_dec_start (GstVideoDecoder * decoder)
+@@ -679,7 +679,7 @@ gst_v4l2_video_dec_start (GstVideoDecoder * decoder)
    gst_v4l2_object_unlock (self->v4l2output);
    g_atomic_int_set (&self->active, TRUE);
    self->output_flow = GST_FLOW_OK;
@@ -23,7 +23,7 @@ index e0fb5ce..d044897 100644
    self->decoded_picture_cnt = 0;
  #endif
  
-@@ -1329,7 +1329,7 @@ gst_v4l2_video_dec_loop (GstVideoDecoder * decoder)
+@@ -1279,7 +1279,7 @@ gst_v4l2_video_dec_loop (GstVideoDecoder * decoder)
        gst_caps_unref(reference);
      }
  

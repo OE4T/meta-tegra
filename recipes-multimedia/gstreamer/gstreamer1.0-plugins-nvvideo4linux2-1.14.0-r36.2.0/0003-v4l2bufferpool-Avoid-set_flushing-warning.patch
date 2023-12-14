@@ -1,6 +1,6 @@
-From e44664958ad6154c95d559011bc33c38751f9932 Mon Sep 17 00:00:00 2001
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Date: Fri, 26 Jun 2020 11:05:25 -0400
+From 3502b229347c8afff015d309614aa76bba4e83b9 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 17 Nov 2023 12:56:24 +0000
 Subject: [PATCH 3/7] v4l2bufferpool: Avoid set_flushing warning
 
 The gst_buffer_pool_set_flushing() warns when that function is called
@@ -12,7 +12,7 @@ Part-of: <https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requ
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
- gst-v4l2/gstv4l2bufferpool.c | 4 ++--
+ gstv4l2bufferpool.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/gstv4l2bufferpool.c b/gstv4l2bufferpool.c
