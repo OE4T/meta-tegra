@@ -22,6 +22,7 @@ SRC_URI:append:cuda = " \
     file://0005-fix-recursively-re-export-nested-submodules.patch \
     file://0006-feat-add-matrix-type-stubs-generation.patch \
     file://0007-Merge-pull-request-24022-from-VadimLevin-dev-vlevin-.patch \
+    file://0008-cuda-fix-for-compatibility-with-CUDA-Toolkit-12.2.0.patch \
 "
 
 OPTICALFLOW_MD5 = "a73cd48b18dcc0cc8933b30796074191"
