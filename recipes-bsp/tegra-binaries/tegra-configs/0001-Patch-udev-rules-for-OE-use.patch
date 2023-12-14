@@ -1,4 +1,4 @@
-From a6483bf9114ca761a0ffeedeedb387ca0531a74d Mon Sep 17 00:00:00 2001
+From 99e35d86299e7a4eedbce276453e4d8034bd8693 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Tue, 16 Nov 2021 09:08:15 -0800
 Subject: [PATCH] Patch udev rules for OE use
