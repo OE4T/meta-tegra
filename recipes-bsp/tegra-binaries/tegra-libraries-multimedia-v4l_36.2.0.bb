@@ -25,7 +25,7 @@ do_install() {
     install_libraries
     install -d ${D}${libdir}/libv4l/plugins
     for f in ${TEGRA_PLUGINS}; do
-        install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/tegra/$f ${D}${libdir}/libv4l/plugins/
+        install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/$f ${D}${libdir}/libv4l/plugins/
     done
 }
 
