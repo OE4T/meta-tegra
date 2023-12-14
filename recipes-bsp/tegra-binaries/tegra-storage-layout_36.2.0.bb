@@ -53,7 +53,7 @@ do_compile() {
     # the XML files so the layout for the internal storage retains the
     # those boot partitions, and remove the names of those partitions
     # from the layout for the external storage.
-    if [ "${TNSPEC_BOOTDEV}" != "mmcblk0p1" -a "${BOOT_PARTITIONS_ON_EMMC}" = "1" ]; then
+    if [ "${TNSPEC_BOOTDEV}" != "mmcblk3p1" -a "${BOOT_PARTITIONS_ON_EMMC}" = "1" ]; then
         nvflashxmlparse -v --split=/dev/null --output=internal-flash.xml ${EXTRA_XML_SPLIT_ARGS} internal-flash.xml.orig
         # BUP generation will fail if the main XML file does not
         # contain the kernel/DTB/etc, so save a copy of the
