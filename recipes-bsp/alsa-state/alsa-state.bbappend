@@ -5,5 +5,5 @@ do_install:append:tegra() {
     rmdir ${D}${sysconfdir} 2>/dev/null || true
 }
 
-RDEPENDS:${PN}:append:tegra = " tegra-configs-alsa"
+RDEPENDS:${PN}:append:tegra = " tegra-configs-alsa nvidia-kernel-oot-alsa"
 ALLOW_EMPTY:${PN}:tegra = "1"
