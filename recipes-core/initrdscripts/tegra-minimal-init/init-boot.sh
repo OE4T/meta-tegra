@@ -5,6 +5,13 @@ mount -t devtmpfs none -o nosuid /dev
 mount -t sysfs sysfs -o nosuid,nodev,noexec /sys
 mount -t efivarfs efivarfs -o nosuid,nodev,noexec /sys/firmware/efi/efivars
 
+find /sys -name modalias | while read m; do
+    modalias=$(cat "$m")
+    modprobe -v "$modalias" 2> /dev/null
+done
+
+modprobe -v nvme
+
 rootdev=""
 opt="rw"
 wait=""
