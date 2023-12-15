@@ -16,7 +16,7 @@ find /sys -name modalias | while read m; do
     modprobe -v "$modalias" 2> /dev/null
 done
 
-MODULES_TO_LOAD="nvme typec ucsi-ccg stusb160x tegra-mce watchdog-tegra-t18x"
+MODULES_TO_LOAD="nvme typec ucsi-ccg tegra-mce watchdog-tegra-t18x"
 
 for m in $MODULES_TO_LOAD; do
     modprobe -v "$m"
