@@ -18,5 +18,6 @@ RRECOMMENDS:${PN}:append:tegra = " \
     kernel-module-usb-f-obex \
     kernel-module-usb-f-rndis \
     kernel-module-usb-f-serial \
+    kernel-module-bridge \
 "
 PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"
