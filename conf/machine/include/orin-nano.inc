@@ -7,6 +7,7 @@ NVPMODEL ?= "nvpmodel_p3767_0003"
 NVFANCONTROL ?= "nvfancontrol_p3767_0000"
 
 MACHINEOVERRIDES =. "orin-nano:"
+TNSPEC_BOOTDEV_DEFAULT ?= "mmcblk0p1"
 require conf/machine/include/tegra234.inc
 
 TEGRA_BUPGEN_SPECS ?= "fab=000;boardsku=0000;boardrev=;bup_type=bl \
