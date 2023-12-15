@@ -28,8 +28,6 @@ NVPMODEL ?= "nvpmodel_p3701_0000"
 NVPOWER ?= "jetsonpower_t234"
 NVFANCONTROL ?= "nvfancontrol_p3701_0000"
 
-MACHINE_EXTRA_RRECOMMENDS += "kernel-module-nvidia kernel-module-nvidia-drm kernel-module-nvidia-modeset kernel-module-userspace-alert"
-
 PARTITION_LAYOUT_EXTERNAL_DEFAULT ?= "flash_l4t_t234_nvme.xml"
 
 TEGRA_BOOT_FIRMWARE_FILES = "\
