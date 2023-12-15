@@ -21,5 +21,6 @@ PACKAGECONFIG[examples] = "--enable-examples,--disable-examples"
 PACKAGECONFIG[gadget-schemes] = "--enable-gadget-schemes,--disable-gadget-schemes"
 PACKAGECONFIG[tests] = "--enable-tests,--disable-tests,cmocka"
 
+RRECOMMENDS:${PN} = "kernel-module-tegra-xudc"
 RCONFLICTS:${PN} = "libusbgx libusbgx-examples"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
