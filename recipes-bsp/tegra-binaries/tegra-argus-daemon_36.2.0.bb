@@ -26,19 +26,4 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 INITSCRIPT_NAME = "nvargus-daemon"
 INITSCRIPT_PARAMS = "defaults"
 SYSTEMD_SERVICE:${PN} = "nvargus-daemon.service"
-RDEPENDS:${PN} = "tegra-libraries-argus-daemon-base"
-RRECOMMENDS:${PN} = "\
-    kernel-module-nv-ar0234 \
-    kernel-module-nv-imx185 \
-    kernel-module-nv-imx185-v1 \
-    kernel-module-nv-imx219 \
-    kernel-module-nv-imx268 \
-    kernel-module-nv-imx274 \
-    kernel-module-nv-imx318 \
-    kernel-module-nv-imx477 \
-    kernel-module-nv-lc898212 \
-    kernel-module-nv-ov10823 \
-    kernel-module-nv-ov23850 \
-    kernel-module-nv-ov5693 \
-    kernel-module-nv-ov9281 \
-"
+RDEPENDS:${PN} = "tegra-libraries-argus-daemon-base nvidia-kernel-oot-cameras"
