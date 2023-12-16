@@ -26,10 +26,7 @@ program_spi_partition() {
     # Multiple copies of the BCT get installed at erase-block boundaries
     # within the defined BCT partition
     if [ "$partname" = "BCT" ]; then
-	local slotsize=$(cat /sys/class/mtd/mtd0/erasesize)
-	if [ -z "$slotsize" ]; then
-	    return 1
-	fi
+	local slotsize=16384
 	local rounded_slot_size=$(expr \( \( $slotsize \+ 511 \) / 512 \) \* 512)
 	local curr_offset=$(expr $part_offset \+ $rounded_slot_size)
 	local copycount=$(expr $part_size / $rounded_slot_size)
