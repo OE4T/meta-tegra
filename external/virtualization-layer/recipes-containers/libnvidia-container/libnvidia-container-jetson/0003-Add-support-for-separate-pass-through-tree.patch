@@ -1,7 +1,7 @@
-From 8f7c32038119c4183067310af459a08fcbfc834a Mon Sep 17 00:00:00 2001
+From 74fac9f0aa34cceddba9dc963ebe2b30cd6f9fa4 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 5 Mar 2023 08:47:33 -0800
-Subject: [PATCH] Add support for separate pass-through tree
+Subject: [PATCH 3/3] Add support for separate pass-through tree
 
 So we can export stock L4T pre-built userland binaries to
 containers, instead of the versions we build from sources,
@@ -18,7 +18,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  5 files changed, 88 insertions(+), 16 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index b4becad3..a2c1f10b 100644
+index da836fae..045e4707 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -142,6 +142,9 @@ LIB_LDLIBS_SHARED  += -lelf

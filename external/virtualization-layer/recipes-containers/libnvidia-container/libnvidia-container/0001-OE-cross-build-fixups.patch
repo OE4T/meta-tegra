@@ -1,4 +1,4 @@
-From 08770e194e90479472d8aae156bae40bc7def02f Mon Sep 17 00:00:00 2001
+From 56ef33321c4ac6c8b09d34710a85efd9f5fb4087 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Sun, 8 Aug 2021 21:18:48 +0100
 Subject: [PATCH] OE cross-build fixups
@@ -7,15 +7,16 @@ Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile     | 34 ++++++++++++++++++----------------
- mk/common.mk |  2 +-
- 2 files changed, 19 insertions(+), 17 deletions(-)
+ Makefile              | 38 ++++++++++++++++++++------------------
+ mk/common.mk          |  2 +-
+ mk/nvidia-modprobe.mk |  3 ++-
+ 3 files changed, 23 insertions(+), 20 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 6fb6976..4f2ec77 100644
+index 6fb69765..9c41db66 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -24,14 +24,14 @@ WITH_SECCOMP ?= yes
+@@ -24,17 +24,17 @@ WITH_SECCOMP ?= yes
  
  ##### Global definitions #####
  
@@ -37,7 +38,11 @@ index 6fb6976..4f2ec77 100644
 +export pkgconfdir  ?= $(libdir)/pkgconfig
  
  export PKG_DIR     ?= $(CURDIR)/pkg
- export SRCS_DIR    ?= $(CURDIR)/src
+-export SRCS_DIR    ?= $(CURDIR)/src
++export SRCS_DIR    ?= src
+ export DEPS_DIR    ?= $(CURDIR)/deps
+ export DIST_DIR    ?= $(CURDIR)/dist
+ export MAKE_DIR    ?= $(CURDIR)/mk
 @@ -140,20 +140,22 @@ LIBGO_SYMLINK := $(LIBGO_NAME).so
  
  # Common flags
@@ -60,12 +65,12 @@ index 6fb6976..4f2ec77 100644
 -LIB_LDLIBS_STATIC  = -l:libnvidia-modprobe-utils.a
 -LIB_LDLIBS_SHARED  = -ldl -lcap
 +LIB_LDFLAGS        = -shared -Wl,-soname=$(LIB_SONAME)
-+LIB_LDLIBS_STATIC  = -L$(DEPS_DIR)$(libdir) -l:libnvidia-modprobe-utils.a -L=$(libdir) -l:libtirpc.a
-+LIB_LDLIBS_SHARED  = -ldl -lcap -lpthread
++LIB_LDLIBS_STATIC  = -L$(DEPS_DIR)$(libdir) -l:libnvidia-modprobe-utils.a
++LIB_LDLIBS_SHARED  = -ltirpc -ldl -lcap -lpthread
  ifeq ($(WITH_NVCGO), yes)
  LIB_CPPFLAGS       += -DWITH_NVCGO
  LIB_LDLIBS_SHARED  += -lpthread
-@@ -205,7 +207,11 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
+@@ -205,13 +207,17 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
  $(BUILD_DEFS):
  	@printf '#define BUILD_DATE     "%s"\n' '$(strip $(DATE))' >$(BUILD_DEFS)
  	@printf '#define BUILD_COMPILER "%s " __VERSION__\n' '$(notdir $(COMPILER))' >>$(BUILD_DEFS)
@@ -77,6 +82,13 @@ index 6fb6976..4f2ec77 100644
  	@printf '#define BUILD_REVISION "%s"\n' '$(strip $(REVISION))' >>$(BUILD_DEFS)
  	@printf '#define BUILD_PLATFORM "%s"\n' '$(strip $(PLATFORM))' >>$(BUILD_DEFS)
  
+ $(LIB_RPC_SRCS): $(LIB_RPC_SPEC)
+ 	$(RM) $@
+-	cd $(dir $@) && $(RPCGEN) $(RPCGENFLAGS) -C -M -N -o $(notdir $@) $(LIB_RPC_SPEC)
++	cd $(dir $@) && $(RPCGEN) $(RPCGENFLAGS) -C -M -N -o $(notdir $@) $(notdir $(LIB_RPC_SPEC))
+ 
+ $(LIB_OBJS): %.lo: %.c | deps
+ 	$(CC) $(LIB_CFLAGS) $(LIB_CPPFLAGS) -MMD -MF $*.d -c $(OUTPUT_OPTION) $<
 @@ -227,17 +233,14 @@ $(LIB_SHARED): $(LIB_OBJS)
  	$(OBJCPY) --only-keep-debug $@ $(LIB_SONAME)
  	$(OBJCPY) --add-gnu-debuglink=$(LIB_SONAME) $@
@@ -104,7 +116,7 @@ index 6fb6976..4f2ec77 100644
  
  tools: $(BIN_NAME)
 diff --git a/mk/common.mk b/mk/common.mk
-index f6d5fbf..d46584b 100644
+index f6d5fbf2..d46584b7 100644
 --- a/mk/common.mk
 +++ b/mk/common.mk
 @@ -28,7 +28,7 @@ else
@@ -116,3 +128,24 @@ index f6d5fbf..d46584b 100644
  PLATFORM ?= $(shell uname -m)
  
  ifeq ($(DATE),)
+diff --git a/mk/nvidia-modprobe.mk b/mk/nvidia-modprobe.mk
+index 34062224..71866af8 100644
+--- a/mk/nvidia-modprobe.mk
++++ b/mk/nvidia-modprobe.mk
+@@ -26,6 +26,7 @@ PATCH_FILE     := $(MAKE_DIR)/nvidia-modprobe.patch
+ ARFLAGS  := -rU
+ CPPFLAGS := -D_FORTIFY_SOURCE=2 -DNV_LINUX
+ CFLAGS   := -O2 -g -fdata-sections -ffunction-sections -fstack-protector -fno-strict-aliasing -fPIC
++CFLAGS   += $(NVIDIA_MODPROBE_EXTRA_CFLAGS)
+ 
+ ##### Private rules #####
+ 
+@@ -38,7 +39,7 @@ $(SRCS_DIR)/.download_stamp:
+ 	$(PATCH) -d $(SRCS_DIR) -p1 < $(PATCH_FILE)
+ 	@touch $@
+ 
+-$(LIB_SRCS): $(SRCS_DIR)/.download_stamp
++$(LIB_SRCS): | $(SRCS_DIR)/.download_stamp
+ 
+ ##### Public rules #####
+ 

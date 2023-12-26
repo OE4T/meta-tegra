@@ -1,11 +1,10 @@
-From f0bcc7decbf89f11fb2008ca4f7caab6a4215679 Mon Sep 17 00:00:00 2001
+From 695d38e6fb2b4e0b3e2cbf4e86aaab63d12a8935 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Sun, 8 Aug 2021 21:40:36 +0100
-Subject: [PATCH] Fix mapping of library paths for jetson mounts
+Subject: [PATCH 1/3] Fix mapping of library paths for jetson mounts
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
-
 ---
  src/jetson_mount.c | 70 ++++++++++++++++++++++++++++++++++++++++------
  src/jetson_mount.h |  2 +-
@@ -13,7 +12,7 @@ Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
  3 files changed, 64 insertions(+), 12 deletions(-)
 
 diff --git a/src/jetson_mount.c b/src/jetson_mount.c
-index 1c5d9de..5cf94c8 100644
+index 1c5d9de9..5cf94c81 100644
 --- a/src/jetson_mount.c
 +++ b/src/jetson_mount.c
 @@ -18,6 +18,9 @@
@@ -142,7 +141,7 @@ index 1c5d9de..5cf94c8 100644
                          return (-1);
  
 diff --git a/src/jetson_mount.h b/src/jetson_mount.h
-index c11e6d3..b1af835 100644
+index c11e6d36..b1af8358 100644
 --- a/src/jetson_mount.h
 +++ b/src/jetson_mount.h
 @@ -8,7 +8,7 @@
@@ -155,7 +154,7 @@ index c11e6d3..b1af835 100644
  
  #endif /* HEADER_JETSON_MOUNT_H */
 diff --git a/src/nvc_mount.c b/src/nvc_mount.c
-index fc2d0ec..8971e28 100644
+index fc2d0ec9..8971e286 100644
 --- a/src/nvc_mount.c
 +++ b/src/nvc_mount.c
 @@ -477,7 +477,7 @@ nvc_driver_mount(struct nvc_context *ctx, const struct nvc_container *cnt, const
@@ -176,3 +175,6 @@ index fc2d0ec..8971e28 100644
                          goto fail;
                  ptr = array_append(ptr, tmp, array_size(tmp));
                  free(tmp);
+-- 
+2.34.1
+
