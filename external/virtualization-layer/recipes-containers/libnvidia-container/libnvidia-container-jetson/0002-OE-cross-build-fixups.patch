@@ -1,21 +1,21 @@
-From 528d0c5af6353f8a9add38b2107e3110a0766537 Mon Sep 17 00:00:00 2001
+From 2206062fca84109db3456b8730a09ffaf197ca27 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Sun, 8 Aug 2021 21:18:48 +0100
-Subject: [PATCH] OE cross-build fixups
+Subject: [PATCH 2/3] OE cross-build fixups
 
 Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile     | 36 ++++++++++++++++++++----------------
+ Makefile     | 40 ++++++++++++++++++++++------------------
  mk/common.mk |  4 ++--
- 2 files changed, 22 insertions(+), 18 deletions(-)
+ 2 files changed, 24 insertions(+), 20 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 709102b..b4becad 100644
+index 709102b7..da836fae 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -23,13 +23,13 @@ WITH_SECCOMP ?= yes
+@@ -23,17 +23,17 @@ WITH_SECCOMP ?= yes
  
  ##### Global definitions #####
  
@@ -36,6 +36,11 @@ index 709102b..b4becad 100644
  
  export PKG_DIR     ?= $(CURDIR)/pkg
  export TESTS_DIR   ?= $(CURDIR)/test
+-export SRCS_DIR    ?= $(CURDIR)/src
++export SRCS_DIR    ?= src
+ export DEPS_DIR    ?= $(CURDIR)/deps
+ export DIST_DIR    ?= $(CURDIR)/dist
+ export MAKE_DIR    ?= $(CURDIR)/mk
 @@ -119,21 +119,23 @@ LIB_PKGCFG  := $(LIB_NAME).pc
  ##### Flags definitions #####
  
@@ -65,7 +70,7 @@ index 709102b..b4becad 100644
  ifeq ($(WITH_LIBELF), yes)
  LIB_CPPFLAGS       += -DWITH_LIBELF
  LIB_LDLIBS_SHARED  += -lelf
-@@ -170,7 +172,11 @@ DEPENDENCIES   := $(LIB_OBJS:%.lo=%.d)
+@@ -170,13 +172,17 @@ DEPENDENCIES   := $(LIB_OBJS:%.lo=%.d)
  $(BUILD_DEFS):
  	@printf '#define BUILD_DATE     "%s"\n' '$(strip $(DATE))' >$(BUILD_DEFS)
  	@printf '#define BUILD_COMPILER "%s " __VERSION__\n' '$(notdir $(COMPILER))' >>$(BUILD_DEFS)
@@ -77,6 +82,13 @@ index 709102b..b4becad 100644
  	@printf '#define BUILD_REVISION "%s"\n' '$(strip $(REVISION))' >>$(BUILD_DEFS)
  	@printf '#define BUILD_PLATFORM "%s"\n' '$(strip $(PLATFORM))' >>$(BUILD_DEFS)
  
+ $(LIB_RPC_SRCS): $(LIB_RPC_SPEC)
+ 	$(RM) $@
+-	cd $(dir $@) && $(RPCGEN) $(RPCGENFLAGS) -C -M -N -o $(notdir $@) $(LIB_RPC_SPEC)
++	cd $(dir $@) && $(RPCGEN) $(RPCGENFLAGS) -C -M -N -o $(notdir $@) $(notdir $(LIB_RPC_SPEC))
+ 
+ $(LIB_OBJS): %.lo: %.c | deps
+ 	$(CC) $(LIB_CFLAGS) $(LIB_CPPFLAGS) -MMD -MF $*.d -c $(OUTPUT_OPTION) $<
 @@ -189,24 +195,22 @@ $(LIB_SHARED): $(LIB_OBJS)
  	$(OBJCPY) --only-keep-debug $@ $(LIB_SONAME)
  	$(OBJCPY) --add-gnu-debuglink=$(LIB_SONAME) $@
@@ -105,7 +117,7 @@ index 709102b..b4becad 100644
  
  shared: $(LIB_SHARED)
 diff --git a/mk/common.mk b/mk/common.mk
-index d6ef499..f8170de 100644
+index d6ef499d..f8170de8 100644
 --- a/mk/common.mk
 +++ b/mk/common.mk
 @@ -22,9 +22,9 @@ UID      := $(shell id -u)
@@ -120,3 +132,6 @@ index d6ef499..f8170de 100644
  
  ifeq ($(DATE),)
  $(error Invalid date format)
+-- 
+2.34.1
+
