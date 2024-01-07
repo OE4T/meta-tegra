@@ -22,7 +22,7 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "0f59798903679835e72cd28421518d3d40f45fa0"
+SRCREV = "70b1f13ff48308ab0d1b4b4cbc6109fddd5da7d4"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-jammy-nvidia-tegra.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
