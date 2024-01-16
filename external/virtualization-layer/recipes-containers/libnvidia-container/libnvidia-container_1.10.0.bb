@@ -76,4 +76,4 @@ do_install () {
 
 PACKAGES =+ "${PN}-tools"
 FILES:${PN}-tools = "${bindir}"
-RDEPENDS:${PN}:append:tegra = " libnvidia-container-jetson ldconfig"
+RDEPENDS:${PN}:append:tegra = " libnvidia-container-jetson ldconfig tegra-libraries-cuda"
