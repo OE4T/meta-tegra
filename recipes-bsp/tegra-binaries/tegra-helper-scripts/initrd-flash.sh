@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o pipefail
+
 me=$(basename "$0")
 here=$(readlink -f $(dirname "$0"))
 
