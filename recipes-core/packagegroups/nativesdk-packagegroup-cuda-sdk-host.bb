@@ -1,6 +1,7 @@
 SUMMARY = "Host packages for CUDA SDK toolchain"
 
-inherit packagegroup nativesdk
+inherit packagegroup
+inherit_defer nativesdk
 
 PACKAGEGROUP_DISABLE_COMPLEMENTARY = "1"
 
