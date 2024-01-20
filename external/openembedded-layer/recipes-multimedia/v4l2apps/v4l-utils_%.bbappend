@@ -9,8 +9,9 @@ FCINHERIT = ""
 FCINHERIT:tegra = "tegra_opengl_required"
 inherit ${FCINHERIT}
 
-EXTRA_OECONF:tegra = " --without-jpeg"
+EXTRA_OEMESON:append:tegra = " -Djpeg=disabled"
 DEPENDS:remove:tegra = "jpeg"
+CFLAGS:append:tegra:libc-glibc = " -DHAVE_RTLD_DI_ORIGIN"
 
 do_install:append:tegra() {
     rm -rf ${D}${libdir}/libv4l/plugins
