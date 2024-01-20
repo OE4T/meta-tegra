@@ -1,30 +1,61 @@
-From 09acccbb24c551c4b05b8fd1be0d6c2ba22c68ef Mon Sep 17 00:00:00 2001
+From b1712342d5cd00c2c27211b9b37e6215f705b07d Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 16 Mar 2020 12:21:55 -0700
-Subject: [PATCH] Make plugin directory relative to $ORIGIN
+Subject: [PATCH 1/3] Make plugin directory relative to $ORIGIN
 
+Use RTLD_DI_ORIGIN only when libc supports it.
+
+Upstream-Status: Inappropriate [tegra platform-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- lib/libv4l2/v4l2-plugin.c | 39 ++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 38 insertions(+), 1 deletion(-)
+ lib/libv4l2/v4l2-plugin.c | 66 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 65 insertions(+), 1 deletion(-)
 
 diff --git a/lib/libv4l2/v4l2-plugin.c b/lib/libv4l2/v4l2-plugin.c
-index fbf92d8..6bca645 100644
+index e2356cb6..95bdd112 100644
 --- a/lib/libv4l2/v4l2-plugin.c
 +++ b/lib/libv4l2/v4l2-plugin.c
-@@ -21,6 +21,8 @@
+@@ -20,6 +20,11 @@
  #include <dlfcn.h>
  #include <fcntl.h>
  #include <glob.h>
++#include <libgen.h>
++#include <link.h>
 +#include <limits.h>
 +#include <string.h>
++#include <sys/param.h> /* for MAXPATHLEN */
  #include <sys/stat.h>
  #include <sys/mman.h>
  #include "libv4l2.h"
-@@ -47,6 +49,39 @@
+@@ -46,6 +51,63 @@
  */
  
  #define PLUGINS_PATTERN LIBV4L2_PLUGIN_DIR "/*.so"
 +static char *plugins_pattern;
++
++static int get_lib_dir(void *lib_handle, char dir[MAXPATHLEN])
++{
++	int res;
++#ifndef HAVE_RTLD_DI_ORIGIN
++	struct link_map *lm;
++	char l_name[MAXPATHLEN];
++#endif
++
++#ifdef HAVE_RTLD_DI_ORIGIN
++	res = dlinfo(lib_handle, RTLD_DI_ORIGIN, dir);
++#else
++	/*
++	 * musl libc doesn't support RTLD_DI_ORIGIN
++	 */
++	res = dlinfo(lib_handle, RTLD_DI_LINKMAP, &lm);
++	if (res == 0) {
++		snprintf(l_name, sizeof(l_name), "%s", lm->l_name);
++		snprintf(dir, MAXPATHLEN, "%s", dirname(l_name));
++	}
++#endif
++
++	return res;
++}
 +
 +static void init_plugins_pattern(void)
 +{
@@ -35,7 +66,7 @@ index fbf92d8..6bca645 100644
 +		return;
 +	handle = dlopen("libv4l2.so.0", RTLD_NOLOAD|RTLD_NOW);
 +	if (handle) {
-+		if (dlinfo(handle, RTLD_DI_ORIGIN, buf) < 0)
++    if (get_lib_dir(handle, buf) < 0)
 +			V4L2_LOG_ERR("cannot identify $ORIGIN for plugins: %s\n", dlerror());
 +		else {
 +			char *cp;
@@ -60,7 +91,7 @@ index fbf92d8..6bca645 100644
  
  void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
  		      const struct libv4l_dev_ops **dev_ops_ret)
-@@ -61,7 +96,9 @@ void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
+@@ -60,7 +122,9 @@ void v4l2_plugin_init(int fd, void **plugin_lib_ret, void **plugin_priv_ret,
  	*plugin_lib_ret = NULL;
  	*plugin_priv_ret = NULL;
  
@@ -71,3 +102,6 @@ index fbf92d8..6bca645 100644
  
  	if (glob_ret == GLOB_NOSPACE)
  		return;
+-- 
+2.34.1
+
