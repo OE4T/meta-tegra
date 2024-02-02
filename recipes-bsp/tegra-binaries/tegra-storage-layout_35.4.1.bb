@@ -78,7 +78,7 @@ do_compile() {
         # original for that purpose, stripping out the APP
         # partition so that the offsets of the partitions
         # referenced during early boot match the split layout above.
-        nvflashxmlparse -v --remove --partitions-to-remove=APP --output=bupgen-internal-flash.xml internal-flash.xml.orig
+        nvflashxmlparse -v --remove --partitions-to-remove=APP,APP_b --output=bupgen-internal-flash.xml internal-flash.xml.orig
     else
         if [ "${TEGRAFLASH_NO_INTERNAL_STORAGE}" = "1" ]; then
             # For modules with *only* SPI flash (or other boot device) and no
