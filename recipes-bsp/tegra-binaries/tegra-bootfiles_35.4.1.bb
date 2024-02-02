@@ -152,7 +152,7 @@ do_install() {
 	# original for that purpose, stripping out the APP
 	# partition so that the offsets of the partitions
 	# referenced during early boot match the split layout above.
-	nvflashxmlparse -v --remove --partitions-to-remove=APP --output=${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE} ${PARTITION_FILE}
+	nvflashxmlparse -v --remove --partitions-to-remove=APP,APP_b --output=${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE} ${PARTITION_FILE}
 	chmod 0644 ${D}${datadir}/tegraflash/bupgen-${PARTITION_LAYOUT_TEMPLATE}
 	install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_EXTERNAL}
     else
