@@ -7,7 +7,7 @@ require tegra-debian-libraries-common.inc
 
 DEPENDS = "tegra-libraries-core"
 
-MAINSUM = "0e020c95cfd8e447c7b604b769f751f7c126b28daa182a271482a992dffa6ce5"
+MAINSUM = "aa9ff1565efae4493d107eed1c0dcef1d883f9a39acefdbd6a9623017790b374"
 
 do_install() {
 	install -d ${D}${sbindir}

@@ -7,8 +7,8 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-core"
 require tegra-debian-libraries-common.inc
 
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'weston')};subdir=${BP};name=weston"
-MAINSUM = "846bb4d14c787fb93e0753c70ff059f0c6fde8649b9a33f76342eb49991edb88"
-SRC_URI[weston.sha256sum] = "acd095ddd2f0dd62640dc23d811976785e0a5b8a8bfa978841f69a5f34c646ea"
+MAINSUM = "4630328fe8baa73352bbd5e7d6acc0e8cb7d7026f172cb68d13bd7d54063feb0"
+SRC_URI[weston.sha256sum] = "ebcb5c8723d314a4d066cbb2b02164b355b71e4bfd8a2f0a549a2bb942524671"
 
 do_compile() {
     echo "${libdir}/tegra" > ${B}/tegra.conf

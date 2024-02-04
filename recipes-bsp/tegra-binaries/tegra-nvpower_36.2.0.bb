@@ -8,9 +8,9 @@ require tegra-debian-libraries-common.inc
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'init')};subdir=${BP};name=init"
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'tools')};subdir=${BP};name=tools"
 
-MAINSUM = "846bb4d14c787fb93e0753c70ff059f0c6fde8649b9a33f76342eb49991edb88"
-SRC_URI[init.sha256sum] = "4ab37dbabd5fc954ace597e4200fee83ab190c9fa50b933fc7f25997a67ab2f8"
-SRC_URI[tools.sha256sum] = "0e020c95cfd8e447c7b604b769f751f7c126b28daa182a271482a992dffa6ce5"
+MAINSUM = "4630328fe8baa73352bbd5e7d6acc0e8cb7d7026f172cb68d13bd7d54063feb0"
+SRC_URI[init.sha256sum] = "8a9ae402b74951745f9c4501c51b78998e817cae363240bec22fa9c5068081dd"
+SRC_URI[tools.sha256sum] = "aa9ff1565efae4493d107eed1c0dcef1d883f9a39acefdbd6a9623017790b374"
 
 SRC_URI += "\
     file://0001-Drop-bc-usage-and-remove-symlink-creation-functions.patch \

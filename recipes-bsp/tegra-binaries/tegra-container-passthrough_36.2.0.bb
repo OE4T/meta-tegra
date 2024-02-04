@@ -11,11 +11,11 @@ SRC_SOC_DEBS += "\
 "
 SRC_COMMON_DEBS += "${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP}/full;name=gstreamer"
 
-MAINSUM = "2f2e11941ec2242de50898e06d1f16669bcb0259efe5756b71d873f89fd26ca9"
-SRC_URI[camera.sha256sum] = "54f810cd5bf941ee792395208c6814ef871343ca1032a0189cf1b71a8829c43f"
-SRC_URI[gstreamer.sha256sum] = "9938ac169f177013b1cc062bcd6882c24fbcec60bab8028b72af7985b93d735b"
-SRC_URI[wayland.sha256sum] = "5308e8461175f49f901b2d0837f7bc0e69c7f71bdf037f6b2dd19902c3b9d4ae"
-SRC_URI[weston.sha256sum] = "acd095ddd2f0dd62640dc23d811976785e0a5b8a8bfa978841f69a5f34c646ea"
+MAINSUM = "19061da18caf8d843fa50025dad31a8533fbbda80eb329e349841d792c9663f7"
+SRC_URI[camera.sha256sum] = "7c5d2c9f184f952aa200abca8222f63220aa8172e5802d054247f7257652e8af"
+SRC_URI[gstreamer.sha256sum] = "c1674c6c4c09ffd113325fa11c917472109a08adbfd0e80480d53fef026764fd"
+SRC_URI[wayland.sha256sum] = "a2b03fa4dafb08737bb623c385e6c785d840eb8d81a922eb9014b6dbc5c7adc6"
+SRC_URI[weston.sha256sum] = "ebcb5c8723d314a4d066cbb2b02164b355b71e4bfd8a2f0a549a2bb942524671"
 
 PASSTHRU_ROOT = "${datadir}/nvidia-container-passthrough"
 

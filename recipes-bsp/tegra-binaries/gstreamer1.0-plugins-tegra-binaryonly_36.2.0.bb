@@ -13,7 +13,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-gstreamer"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "9938ac169f177013b1cc062bcd6882c24fbcec60bab8028b72af7985b93d735b"
+MAINSUM = "c1674c6c4c09ffd113325fa11c917472109a08adbfd0e80480d53fef026764fd"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     libgstnvegl-1.0.so.0 \

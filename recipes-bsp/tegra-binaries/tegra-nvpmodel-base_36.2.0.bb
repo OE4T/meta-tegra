@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-nvpmodel"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "f647e39e947c9666b9506116ceba7229f0d08c386d192b9e31092b4d4cce5806"
+MAINSUM = "1c0f0b0605d910f50d05d2a44e9cc137dcfe34c9005641177521700e36352e93"
 
 DEPENDS = "tegra-libraries-core"
 

@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-multimedia"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "2f2e11941ec2242de50898e06d1f16669bcb0259efe5756b71d873f89fd26ca9"
+MAINSUM = "19061da18caf8d843fa50025dad31a8533fbbda80eb329e349841d792c9663f7"
 
 inherit features_check
 

@@ -5,10 +5,10 @@ LIC_FILES_CHKSUM = "file://usr/share/doc/nvidia-l4t-dla-compiler/copyright;md5=0
 
 inherit l4t_deb_pkgfeed
 
-SRC_COMMON_DEBS = "nvidia-l4t-dla-compiler_${PV}_arm64.deb;subdir=${BPN}"
+SRC_SOC_DEBS = "nvidia-l4t-dla-compiler_${PV}_arm64.deb;subdir=${BPN}"
 PV .= "${@l4t_bsp_debian_version_suffix(d, pkgname='nvidia-l4t-dla-compiler')}"
 
-SRC_URI[sha256sum] = "74caf25b3b52b338f83948cd01770f5130c723446413e6ed4e55b0d1cbfe9dc3"
+SRC_URI[sha256sum] = "27e8f7cf0c627728ef72d1611f05466f57dd20b50c2c8c806d667ae31cb97012"
 
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"

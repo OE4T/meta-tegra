@@ -3,7 +3,7 @@ DEPENDS = "tegra-libraries-core virtual/egl"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "c569bf2fdd29c0de8e7100e4f225d044c533cbc56c7b8b542f95468572e36fd5"
+MAINSUM = "13140f9425511eb3535c6b9acd1a6bebb5bdc59382845e3134b15b7b98a8a626"
 
 inherit features_check
 
