@@ -8,9 +8,9 @@ L4T_LIB_VERSION ?= "540.2.0"
 
 # Version (date-time stamp) suffixes for nvidia-l4t-* packages
 # in the package feeds.
-L4T_BSP_DEB_DEFAULT_VERSION = "20231130105725"
+L4T_BSP_DEB_DEFAULT_VERSION = "20231218214829"
 L4T_BSP_DEB_VERSION ?= "${L4T_BSP_DEB_DEFAULT_VERSION}"
-L4T_BSP_DEB_ORIG_VERSION = ""
+L4T_BSP_DEB_ORIG_VERSION = "20231130105725"
 L4T_BSP_DEB_PACKAGES_USING_ORIG_VERSION = ""
 
 def l4t_bsp_debian_version_suffix(d, pkgname=None):
