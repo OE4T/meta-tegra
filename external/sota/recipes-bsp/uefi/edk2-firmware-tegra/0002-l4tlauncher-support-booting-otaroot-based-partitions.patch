@@ -15,10 +15,10 @@ Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
  2 files changed, 7 insertions(+), 3 deletions(-)
 
 diff --git a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
-index 7bb70625..a2f36473 100644
+index 5e4ac939..dda3939d 100644
 --- a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
 +++ b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
-@@ -1024,10 +1024,13 @@ ProcessExtLinuxConfig (
+@@ -1162,10 +1162,13 @@ ProcessExtLinuxConfig (
      return EFI_INVALID_PARAMETER;
    }
  
@@ -36,10 +36,10 @@ index 7bb70625..a2f36473 100644
  
    Status = OpenAndReadFileToBuffer (
 diff --git a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h
-index 4c3dedff..74ace3de 100644
+index 241b827b..2a168d47 100644
 --- a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h
 +++ b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h
-@@ -31,6 +31,7 @@
+@@ -32,6 +32,7 @@
  #define BOOT_OS_VARIABLE_NAME  L"BootChainOsCurrent"
  
  #define ROOTFS_BASE_NAME        L"APP"
@@ -48,5 +48,5 @@ index 4c3dedff..74ace3de 100644
  #define BOOTIMG_DTB_BASE_NAME   L"kernel-dtb"
  #define RECOVERY_BASE_NAME      L"recovery"
 -- 
-2.34.1
+2.43.0
 
