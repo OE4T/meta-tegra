@@ -15,10 +15,10 @@ Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
  2 files changed, 4 insertions(+), 14 deletions(-)
 
 diff --git a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
-index ac53522d..7bb70625 100644
+index 5d72ea22..5e4ac939 100644
 --- a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
 +++ b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
-@@ -1084,11 +1084,6 @@ ProcessExtLinuxConfig (
+@@ -1222,11 +1222,6 @@ ProcessExtLinuxConfig (
        if ((BootConfig->NumberOfBootOptions <= MAX_EXTLINUX_OPTIONS) &&
            (BootConfig->NumberOfBootOptions != 0))
        {
@@ -30,7 +30,7 @@ index ac53522d..7bb70625 100644
          Status = CheckCommandString (CleanLine, EXTLINUX_KEY_LINUX, &BootConfig->BootOptions[BootConfig->NumberOfBootOptions-1].LinuxPath);
          if (!EFI_ERROR (Status)) {
            continue;
-@@ -1200,7 +1195,7 @@ ExtLinuxBootMenu (
+@@ -1347,7 +1342,7 @@ ExtLinuxBootMenu (
    }
  
    for (Index = 0; Index < BootConfig->NumberOfBootOptions; Index++) {
@@ -39,7 +39,7 @@ index ac53522d..7bb70625 100644
    }
  
    Status = gBS->SetTimer (EventArray[0], TimerRelative, EFI_TIMER_PERIOD_SECONDS (BootConfig->Timeout)/10);
-@@ -2101,11 +2096,6 @@ L4TLauncher (
+@@ -2432,11 +2427,6 @@ L4TLauncher (
          FreePool (ExtLinuxConfig.BootOptions[Index].LinuxPath);
          ExtLinuxConfig.BootOptions[Index].LinuxPath = NULL;
        }
@@ -52,11 +52,11 @@ index ac53522d..7bb70625 100644
  
      if (ExtLinuxConfig.MenuTitle != NULL) {
 diff --git a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h
-index f68ed615..4c3dedff 100644
+index fc46a70d..241b827b 100644
 --- a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h
 +++ b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.h
-@@ -16,7 +16,7 @@
- #define GRUB_BOOTCONFIG_CONTENT_FORMAT  "set cbootargs=\"%s\"\r\nset root_partition_number=%d\r\nset bootimg_present=%d\r\nset recovery_present=%d\r\n"
+@@ -17,7 +17,7 @@
+ #define GRUB_BOOTCONFIG_CONTENT_FORMAT  "set cbootargs=\"%s\"\r\nset root_partition_number=%u\r\nset bootimg_present=%u\r\nset recovery_present=%u\r\n"
  #define DETACHED_SIG_FILE_EXTENSION     L".sig"
  
 -#define EXTLINUX_CONF_PATH  L"boot\\extlinux\\extlinux.conf"
@@ -64,7 +64,7 @@ index f68ed615..4c3dedff 100644
  
  #define BOOTMODE_DIRECT_STRING    L"bootmode=direct"
  #define BOOTMODE_GRUB_STRING      L"bootmode=grub"
-@@ -41,9 +41,9 @@
+@@ -42,9 +42,9 @@
  #define EXTLINUX_KEY_MENU_TITLE  L"MENU TITLE"
  #define EXTLINUX_KEY_LABEL       L"LABEL"
  #define EXTLINUX_KEY_MENU_LABEL  L"MENU LABEL"
@@ -74,8 +74,8 @@ index f68ed615..4c3dedff 100644
 -#define EXTLINUX_KEY_FDT         L"FDT"
 +#define EXTLINUX_KEY_FDT         L"DEVICETREE"
  #define EXTLINUX_KEY_APPEND      L"APPEND"
+ #define EXTLINUX_KEY_OVERLAYS    L"OVERLAYS"
  
- #define EXTLINUX_CBOOT_ARG  L"${cbootargs}"
 -- 
-2.34.1
+2.43.0
 
