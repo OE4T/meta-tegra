@@ -8,8 +8,8 @@ SRC_SOC_DEBS += "\
     ${@l4t_deb_pkgname(d, 'camera')};subdir=${BP};name=camera \
     ${@l4t_deb_pkgname(d, 'wayland')};subdir=${BP}/full;name=wayland \
     ${@l4t_deb_pkgname(d, 'weston')};subdir=${BP}/full;name=weston \
+    ${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP}/full;name=gstreamer \
 "
-SRC_COMMON_DEBS += "${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP}/full;name=gstreamer"
 
 MAINSUM = "19061da18caf8d843fa50025dad31a8533fbbda80eb329e349841d792c9663f7"
 SRC_URI[camera.sha256sum] = "7c5d2c9f184f952aa200abca8222f63220aa8172e5802d054247f7257652e8af"
