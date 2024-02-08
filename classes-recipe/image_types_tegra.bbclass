@@ -230,7 +230,7 @@ copy_dtbs() {
             bbnote "Copying EXTERNAL_KERNEL_DEVICETREE entry $dtb to $destination"
             cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$dtb" $destination/$dtbf
 	    if ${TEGRA_UEFI_USE_SIGNED_FILES}; then
-                cp -L "${DEPLOY_DIR_IMAGE}/$dtb.signed" $destination/$dtbf.signed
+                cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$dtb.signed" $destination/$dtbf.signed
 	    fi
         done
     else
