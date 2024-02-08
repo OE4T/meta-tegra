@@ -5,6 +5,7 @@ LIC_FILES_CHKSUM = "file://nvdisplay/COPYING;md5=1d5fa2a493e937d5a4b96e5e03b90f7
 		    file://nvidia-oot/Makefile;endline=1;md5=daad6f7f7a0a286391cd7773ccf79340"
 
 inherit module deploy
+inherit ${TEGRA_UEFI_SIGNING_CLASS}
 
 TEGRA_SRC_SUBARCHIVE = "\
     Linux_for_Tegra/source/kernel_oot_modules_src.tbz2 \
@@ -43,6 +44,16 @@ do_compile() {
     oe_runmake modules
     oe_runmake dtbs
 }
+
+do_sign_dtbs() {
+    for dtbf in ${KERNEL_DEVICETREE}; do
+        tegra_uefi_attach_sign "${B}/nvidia-oot/device-tree/platform/generic-dts/dtbs/${dtbf}"
+    done
+}
+do_sign_dtbs[dirs] = "${B}"
+do_sign_dtbs[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
+
+addtask sign_dtbs after do_compile before do_install
 
 do_install() {
     unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
