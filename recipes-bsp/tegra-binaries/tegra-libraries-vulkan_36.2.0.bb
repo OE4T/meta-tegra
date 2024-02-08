@@ -12,11 +12,11 @@ inherit features_check
 REQUIRED_DISTRO_FEATURES = "vulkan opengl"
 
 do_install() {
-    install -d ${D}/usr/lib/aarch64-linux-gnu/tegra
+    install -d ${D}/usr/lib/aarch64-linux-gnu/nvidia
     if ${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'true', 'false', d)}; then
-        install -m644 ${S}/usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json ${D}/usr/lib/aarch64-linux-gnu/tegra/
+        install -m644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/nvidia_icd.json ${D}/usr/lib/aarch64-linux-gnu/nvidia/
         install -d ${D}${sysconfdir}/vulkan/icd.d
-        ln -sf /usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json ${D}${sysconfdir}/vulkan/icd.d/
+        ln -sf /usr/lib/aarch64-linux-gnu/nvidia/nvidia_icd.json ${D}${sysconfdir}/vulkan/icd.d/
     fi
 }
 
