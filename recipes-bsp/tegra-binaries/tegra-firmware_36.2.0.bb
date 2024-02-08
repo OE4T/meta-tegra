@@ -34,7 +34,7 @@ FILES:${PN}-tegra234 = " \
     ${nonarch_base_libdir}/firmware/nvidia/gv11b \
     ${nonarch_base_libdir}/firmware/nvidia/tegra194 \
     ${nonarch_base_libdir}/firmware/tegra19x_xusb_firmware \
-    ${libdir}/firmware/tegra19x \
+    ${nonarch_base_libdir}/firmware/tegra19x \
 "
 FILES:${PN}-xusb = ""
 ALLOW_EMPTY:${PN}-xusb = "1"
