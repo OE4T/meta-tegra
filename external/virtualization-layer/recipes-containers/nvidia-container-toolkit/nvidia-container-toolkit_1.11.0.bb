@@ -45,11 +45,16 @@ SECURITY_LDFLAGS = ""
 LDFLAGS += "-Wl,-z,lazy"
 GO_LINKSHARED = ""
 
+GO_EXTRA_LDFLAGS:append = "\
+    -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.version=${GITPKGVTAG} \
+    -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.gitCommit=${GITPKGV} \
+"
+
 S = "${WORKDIR}/git"
 
 REQUIRED_DISTRO_FEATURES = "virtualization"
 
-inherit go-mod features_check
+inherit go-mod gitpkgv features_check
 
 do_install(){
     go_do_install
