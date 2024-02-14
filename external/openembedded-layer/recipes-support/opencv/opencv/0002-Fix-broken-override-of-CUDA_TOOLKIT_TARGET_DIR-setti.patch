@@ -1,15 +1,16 @@
-From f6fbf377952a328bebbc4df1edd9aa08999016e9 Mon Sep 17 00:00:00 2001
+From 9dd8eef6123e281112f883c7539475e88ab48c5d Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Fri, 17 Mar 2023 06:47:40 -0700
-Subject: [PATCH 2/7] Fix broken override of CUDA_TOOLKIT_TARGET_DIR setting
+Subject: [PATCH 2/2] Fix broken override of CUDA_TOOLKIT_TARGET_DIR setting
 
+Upstream-Status: Inappropriate [oe specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  cmake/OpenCVDetectCUDA.cmake | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/cmake/OpenCVDetectCUDA.cmake b/cmake/OpenCVDetectCUDA.cmake
-index 4a562bdaf9..f2c6b7c76d 100644
+index e0c539b90a..b49bd2e485 100644
 --- a/cmake/OpenCVDetectCUDA.cmake
 +++ b/cmake/OpenCVDetectCUDA.cmake
 @@ -11,7 +11,9 @@ endif()
@@ -23,7 +24,7 @@ index 4a562bdaf9..f2c6b7c76d 100644
  endif()
  
  if(((NOT CMAKE_VERSION VERSION_LESS "3.9.0")  # requires https://gitlab.kitware.com/cmake/cmake/merge_requests/663
-@@ -559,8 +561,6 @@ if(HAVE_CUDA)
+@@ -245,8 +247,6 @@ if(HAVE_CUDA)
    foreach(p ${CUDA_LIBS_PATH})
      if(MSVC AND CMAKE_GENERATOR MATCHES "Ninja|JOM")
        set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} ${CMAKE_LIBRARY_PATH_FLAG}"${p}")
@@ -31,7 +32,7 @@ index 4a562bdaf9..f2c6b7c76d 100644
 -      set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} ${CMAKE_LIBRARY_PATH_FLAG}${p})
      endif()
    endforeach()
- 
+ endif()
 -- 
 2.34.1
 
