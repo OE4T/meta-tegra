@@ -21,7 +21,7 @@ Community supported:
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: master
-LAYERSERIES_COMPAT: nanbield
+LAYERSERIES_COMPAT: nanbield, scarthgap
 
 
 CUDA toolchain compatibility note
