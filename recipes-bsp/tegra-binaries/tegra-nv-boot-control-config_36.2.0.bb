@@ -10,6 +10,7 @@ do_compile() {
 	cat > ${B}/nv_boot_control.template <<EOF
 TNSPEC @TNSPEC@
 COMPATIBLE_SPEC @COMPATIBLE_SPEC@
+TEGRA_BOOT_STORAGE @BOOT_STORAGE@
 TEGRA_CHIPID ${NVIDIA_CHIP}
 TEGRA_OTA_BOOT_DEVICE ${OTABOOTDEV}
 TEGRA_OTA_GPT_DEVICE ${OTAGPTDEV}
@@ -24,3 +25,5 @@ do_install() {
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
+RDEPENDS:${PN} = "util-linux-findmnt util-linux-lsblk"

@@ -27,7 +27,14 @@ else
     compatsed="-es,@COMPATIBLE_SPEC@,${compatspec}-${TARGET}-,"
     set_efi_var "TegraPlatformCompatSpec" "781e084c-a330-417c-b678-38e696380cb9" "${compatspec}-${TARGET}-" "write-once" || rc=1
 fi
-sed -e"s,@TNSPEC@,${boardspec}-${TARGET}-${BOOTDEV}," $compatsed \
+mount_dev_name="$( findmnt -n -o SOURCE --target / )"
+if [ ! -b "${mount_dev_name}" ]; then
+    boot_storage="-e/^TEGRA_BOOT_STORAGE/d"
+else
+    part_base_name="$( lsblk -sl "${mount_dev_name}" -o NAME,TYPE | grep "disk" | awk '{print $1}' )"
+    boot_storage="-es,@BOOT_STORAGE@,${part_base_name},"
+fi
+sed -e"s,@TNSPEC@,${boardspec}-${TARGET}-${BOOTDEV}," $compatsed $boot_storage \
     "${sysconfdir}/nv_boot_control.template" > "$controlfile" || rc=1
 
 chmod 0644 "$controlfile" || rc=1
