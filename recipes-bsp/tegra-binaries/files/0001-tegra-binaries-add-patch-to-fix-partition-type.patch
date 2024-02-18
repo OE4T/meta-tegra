@@ -1,4 +1,4 @@
-From 381fcb764124e52dc35c3aad9305c81a0ddf1da9 Mon Sep 17 00:00:00 2001
+From ad9b3fb5d999fa1c2d78978c7c22f6e392ec91a8 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 18 Feb 2024 03:56:43 -0800
 Subject: [PATCH] tegra-binaries: add patch to fix partition type
