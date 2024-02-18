@@ -1,0 +1,38 @@
+From ad9b3fb5d999fa1c2d78978c7c22f6e392ec91a8 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 18 Feb 2024 03:56:43 -0800
+Subject: [PATCH] tegra-binaries: add patch to fix partition type
+
+The flash_t234_qspi_sdmmc_rootfs_ab storage layout XML file
+didn't get updated, like all the others, to mark the cpu-bootloader
+partitions as type 'bootloader_stage2'.  The flashing/signing scripts
+need that type set to work some extra magic on the contents.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/generic/cfg/flash_t234_qspi_sdmmc_rootfs_ab.xml | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/bootloader/generic/cfg/flash_t234_qspi_sdmmc_rootfs_ab.xml b/bootloader/generic/cfg/flash_t234_qspi_sdmmc_rootfs_ab.xml
+index 697fb1d..51f4bad 100644
+--- a/bootloader/generic/cfg/flash_t234_qspi_sdmmc_rootfs_ab.xml
++++ b/bootloader/generic/cfg/flash_t234_qspi_sdmmc_rootfs_ab.xml
+@@ -160,7 +160,7 @@
+             <filename> MB2RF_IMAGE </filename>
+             <align_boundary> 65536 </align_boundary>
+         </partition>
+-        <partition name="A_cpu-bootloader" type="bootloader" oem_sign="true">
++        <partition name="A_cpu-bootloader" type="bootloader_stage2" oem_sign="true">
+             <allocation_policy> sequential </allocation_policy>
+             <filesystem_type> basic </filesystem_type>
+             <size> 3670016 </size>
+@@ -406,7 +406,7 @@
+             <filename> MB2RF_IMAGE </filename>
+             <align_boundary> 65536 </align_boundary>
+         </partition>
+-        <partition name="B_cpu-bootloader" type="bootloader" oem_sign="true">
++        <partition name="B_cpu-bootloader" type="bootloader_stage2" oem_sign="true">
+             <allocation_policy> sequential </allocation_policy>
+             <filesystem_type> basic </filesystem_type>
+             <size> 3670016 </size>
