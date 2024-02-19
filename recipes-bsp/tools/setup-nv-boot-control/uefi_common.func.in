@@ -96,7 +96,7 @@ gen_compat_3701() {
             fab="300"
         fi
     fi
-    if [ "$boardksu" = "0005" ]; then
+    if [ "$boardsku" = "0005" ]; then
         fab=""
     fi
     boardrev=
