@@ -1,19 +1,18 @@
-From d6dccf257f227db9d7537dfbaf15b3f36c693961 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Tue, 16 Nov 2021 09:11:46 -0800
-Subject: [PATCH] Patch nv.sh script for OE use
+From b1a650c065b101083dcac9e8d885c26b0d15686f Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Wed, 28 Feb 2024 23:12:36 +0000
+Subject: [PATCH 2/2] Patch nv.sh script for OE use
 
 Signed-off-by: Matt Madison <matt@madison.systems>
-
 ---
- etc/systemd/nv.sh | 262 +---------------------------------------------
- 1 file changed, 5 insertions(+), 257 deletions(-)
+ etc/systemd/nv.sh | 264 ----------------------------------------------
+ 1 file changed, 264 deletions(-)
 
-Index: tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
-===================================================================
---- tegra-configs-35.4.1-20230801124926.orig/etc/systemd/nv.sh
-+++ tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
-@@ -103,12 +103,6 @@ if [ -e "/proc/device-tree/compatible" ]
+diff --git a/etc/systemd/nv.sh b/etc/systemd/nv.sh
+index 6fddc2c..a8da38f 100755
+--- a/etc/systemd/nv.sh
++++ b/etc/systemd/nv.sh
+@@ -105,12 +105,6 @@ if [ -e "/proc/device-tree/compatible" ]; then
  	fi
  fi
  
@@ -26,7 +25,7 @@ Index: tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
  if [ "$SOCFAMILY" = "Tegra13" ] &&
  	[ -e /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq ]; then
  	bash \
-@@ -131,11 +125,6 @@ if [ "$SOCFAMILY" != "tegra210" ]; then
+@@ -133,11 +127,6 @@ if [ "$SOCFAMILY" != "tegra210" ]; then
  	fi
  fi
  
@@ -38,7 +37,7 @@ Index: tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
  # mmc read ahead size
  if [ -e /sys/block/mmcblk0/queue/read_ahead_kb ]; then
  	echo 2048 > /sys/block/mmcblk0/queue/read_ahead_kb
-@@ -151,260 +140,8 @@ if [ "$SOCFAMILY" = "tegra186" ] || [ "$
+@@ -153,260 +142,7 @@ if [ "$SOCFAMILY" = "tegra186" ] || [ "$SOCFAMILY" = "tegra210" ] || [ "$SOCFAMI
  	fi
  fi
  
@@ -53,7 +52,7 @@ Index: tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
  if [ -e "/proc/sys/vm/lazy_vfree_pages" ]; then
  	echo 0 > "/proc/sys/vm/lazy_vfree_pages"
  fi
- 
+-
 -# WAR for https://bugs.launchpad.net/ubuntu/+source/mesa/+bug/1776499
 -# and https://bugs.launchpad.net/ubuntu/+source/mesa/+bug/1946621
 -# These issues are fixed from MESA version 21.2 and so detect the MESA
@@ -299,3 +298,6 @@ Index: tegra-configs-35.4.1-20230801124926/etc/systemd/nv.sh
 -		ln -sf "${LIB_DIR}/tegra/weston/weston-transformed" "/usr/bin/weston-transformed"
 -	fi
 -fi
+-- 
+2.34.1
+
