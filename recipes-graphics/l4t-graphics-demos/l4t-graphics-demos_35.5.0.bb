@@ -2,7 +2,7 @@ DESCRIPTION = "L4T graphics demo programs"
 require l4t-graphics-demos.inc
 
 LICENSE = "MIT & Proprietary"
-LIC_FILES_CHKSUM = "file://README;endline=21;md5=9344f9b3e882bebae9422f515711d756 \
+LIC_FILES_CHKSUM = "file://README;endline=21;md5=17bf753e98379a9888c5bd3f81da8d44 \
                     file://gears-cube/Makefile;endline=8;md5=a2d67caf4241d62192371ef03b193fea"
 
 SRC_URI += "\
