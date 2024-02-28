@@ -6,13 +6,11 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=1d5fa2a493e937d5a4b96e5e03b90f7c"
 inherit module
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/nvidia_kernel_display_driver_source.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-35.4.1.inc
+require recipes-bsp/tegra-sources/tegra-sources-35.5.0.inc
 
 COMPATIBLE_MACHINE = "(tegra234)"
 
-SRC_URI += "file://0001-arm64-set-mno-outline-atomics-and-fno-stack-protecto.patch"
-
-S = "${WORKDIR}/NVIDIA-kernel-module-source-TempVersion"
+S = "${WORKDIR}/nvdisplay"
 B = "${S}"
 
 MODULES_MODULE_SYMVERS_LOCATION = "kernel-open"
