@@ -1,6 +1,6 @@
-From 5bf629c5e4e0a3d6812675891f4717e8fa2c5238 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Sun, 23 Oct 2022 07:14:08 -0700
+From 8ccc1b1b9158f7c25d1f4705c8a2cca785f21e0b Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Thu, 29 Feb 2024 11:19:48 +0000
 Subject: [PATCH] Update makefiles for OE builds
 
 - Remove the OPTEE_CLIENT_EXPORT references
@@ -8,13 +8,17 @@ Subject: [PATCH] Update makefiles for OE builds
 - Add LDFLAGS to nvhwkey-app build
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- Makefile                  |  4 ----
- hwkey-agent/Makefile      |  4 ----
- hwkey-agent/host/Makefile | 13 +++++--------
- luks-srv/Makefile         |  4 ----
- luks-srv/host/Makefile    | 14 +++++---------
- 5 files changed, 10 insertions(+), 29 deletions(-)
+ Makefile                   |  4 ----
+ cpubl-payload-dec/Makefile |  2 --
+ ftpm-helper/Makefile       |  4 ----
+ ftpm-helper/host/Makefile  | 16 ++++++----------
+ hwkey-agent/Makefile       |  4 ----
+ hwkey-agent/host/Makefile  | 15 ++++++---------
+ luks-srv/Makefile          |  4 ----
+ luks-srv/host/Makefile     | 14 +++++---------
+ 8 files changed, 17 insertions(+), 46 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index da3f40b..7671e2d 100644
@@ -45,6 +49,96 @@ index da3f40b..7671e2d 100644
  			O=$(O) \
  			clean || exit 1; \
  	done
+diff --git a/cpubl-payload-dec/Makefile b/cpubl-payload-dec/Makefile
+index 9912522..d84c5bd 100644
+--- a/cpubl-payload-dec/Makefile
++++ b/cpubl-payload-dec/Makefile
+@@ -4,8 +4,6 @@
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+ # TA_DEV_KIT_DIR: The base directory of the TA-devkit.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ TARGET_DIR := $(notdir $(shell pwd))
+diff --git a/ftpm-helper/Makefile b/ftpm-helper/Makefile
+index 857dff0..b4fd52f 100644
+--- a/ftpm-helper/Makefile
++++ b/ftpm-helper/Makefile
+@@ -4,8 +4,6 @@
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+ # TA_DEV_KIT_DIR: The base directory of the TA-devkit.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ TARGET_DIR := $(notdir $(shell pwd))
+@@ -18,7 +16,6 @@ all:
+ 		O=$(O)/early_ta/$(TARGET_DIR)
+ 	$(MAKE) -C host \
+ 		CROSS_COMPILE=$(CROSS_COMPILE) \
+-		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 		O=$(O)/ca/$(TARGET_DIR) \
+ 		--no-builtin-variables
+ 
+@@ -29,7 +26,6 @@ clean:
+ 		O=$(O)/early_ta/$(TARGET_DIR) \
+ 		clean
+ 	$(MAKE) -C host \
+-		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 		O=$(O)/ca/$(TARGET_DIR) \
+ 		clean
+ 	rm -rf $(O)/ca/$(TARGET_DIR)
+diff --git a/ftpm-helper/host/Makefile b/ftpm-helper/host/Makefile
+index 8f26a1f..9a3c845 100644
+--- a/ftpm-helper/host/Makefile
++++ b/ftpm-helper/host/Makefile
+@@ -3,37 +3,33 @@
+ 
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ CC ?= $(CROSS_COMPILE)gcc
+ STRIP ?= $(CROSS_COMPILE)strip
+ 
+ CFLAGS += -Wall -I../ta/include -I./include
+-CFLAGS += -I$(OPTEE_CLIENT_EXPORT)/include
+ CFLAGS += -fstack-protector-strong
+-LDADD += -lteec -L$(OPTEE_CLIENT_EXPORT)/lib
++LDADD += -lteec
+ 
+ SRCS = ftpm_helper_ca.c
+ OBJS = $(patsubst %.c,$(O)/%.o,$(SRCS))
+ BINARY = nvftpm-helper-app
+ 
+ .PHONY: all install
+-all: $(BINARY) install
++all: $(BINARY)
+ 
+ $(BINARY): $(OBJS)
+-	$(CC) -o $(O)/$@ $< $(LDADD)
+-	$(STRIP) $(O)/$@
++	$(CC) $(LDFLAGS) -o $(O)/$@ $< $(LDADD)
+ 
+ $(O)/%.o: %.c
+ 	mkdir -p $(O)
+ 	$(CC) $(CFLAGS) -c $< -o $@
+ 
+ install: $(BINARY)
+-	mkdir -p $(OPTEE_CLIENT_EXPORT)/sbin
+-	cp $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin
++	install -d $(DESTDIR)$(sbindir)
++	install -m 0755 $(O)/$(BINARY) $(DESTDIR)$(sbindir)/
+ 
+ .PHONY: clean
+ clean:
+-	rm -f $(OBJS) $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin/$(BINARY)
++	rm -f $(OBJS) $(O)/$(BINARY)
 diff --git a/hwkey-agent/Makefile b/hwkey-agent/Makefile
 index 7deda53..6557e0a 100644
 --- a/hwkey-agent/Makefile
@@ -75,10 +169,10 @@ index 7deda53..6557e0a 100644
  		clean
  	rm -rf $(O)/ca/$(TARGET_DIR)
 diff --git a/hwkey-agent/host/Makefile b/hwkey-agent/host/Makefile
-index b7c2113..6807bbc 100644
+index b7c2113..0c02865 100644
 --- a/hwkey-agent/host/Makefile
 +++ b/hwkey-agent/host/Makefile
-@@ -3,34 +3,31 @@
+@@ -3,35 +3,32 @@
  
  # Input variables
  # CROSS_COMPILE: The cross compiler.
@@ -118,6 +212,8 @@ index b7c2113..6807bbc 100644
  
  .PHONY: clean
  clean:
+-	rm -f $(OBJS) $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin/$(BINARY)
++	rm -f $(OBJS) $(O)/$(BINARY)
 diff --git a/luks-srv/Makefile b/luks-srv/Makefile
 index dd71d34..875e893 100644
 --- a/luks-srv/Makefile
