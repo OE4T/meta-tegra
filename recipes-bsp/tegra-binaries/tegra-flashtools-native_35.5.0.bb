@@ -8,6 +8,7 @@ STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${PV}-*"
 SRC_URI += "\
            file://0003-Convert-BUP_generator.py-to-Python3.patch \
            file://0004-Convert-gen_tos_part_img.py-to-Python3.patch \
+           file://0006-Update-tegra-python-scripts-for-Python3.patch \
            file://0009-Remove-xxd-dependency-from-l4t_sign_image.sh.patch \
            file://0010-Rework-logging-in-l4t_sign_image.sh.patch \
            file://0013-Fix-location-of-bsp_version-file-in-l4t_bup_gen.func.patch \
