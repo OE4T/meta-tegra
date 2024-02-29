@@ -1,5 +1,5 @@
 DESCRIPTION = "Release version information file from L4T"
-L4T_DEB_COPYRIGHT_MD5 = "4316d40a8ea9e946e76430d2d02b5848"
+L4T_DEB_COPYRIGHT_MD5 = "8dc9729e1dc38aac4adb4bd6f6e3b370"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-core"
 

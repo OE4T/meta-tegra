@@ -1,4 +1,4 @@
-L4T_DEB_COPYRIGHT_MD5 = "8c84e973feeab684f7575379648f700c"
+L4T_DEB_COPYRIGHT_MD5 = "770b0fc2a5cffa1d2b7eda7393e6b012"
 DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-multimedia-utils tegra-libraries-nvsci pango cairo glib-2.0 virtual/egl"
 
 require tegra-debian-libraries-common.inc

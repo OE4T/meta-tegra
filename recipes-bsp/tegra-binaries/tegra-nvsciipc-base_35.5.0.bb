@@ -1,5 +1,5 @@
 DESCRIPTION = "NvSciIpc initialization tool"
-L4T_DEB_COPYRIGHT_MD5 = "6a451131481f1bf9e113fb684e99849c"
+L4T_DEB_COPYRIGHT_MD5 = "1c55a704d80b8d8275c122433b1661bf"
 DEPENDS = "tegra-libraries-core"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-tools"

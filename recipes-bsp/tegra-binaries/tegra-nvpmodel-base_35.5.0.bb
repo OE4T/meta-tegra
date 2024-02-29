@@ -1,5 +1,5 @@
 DESCRIPTION = "nvpmodel tool and configuration files"
-L4T_DEB_COPYRIGHT_MD5 = "d3b815fd718b1544bc231398ead64c3f"
+L4T_DEB_COPYRIGHT_MD5 = "3645db3702a43fb4e9dd820db0ed2d98"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-nvpmodel"
 

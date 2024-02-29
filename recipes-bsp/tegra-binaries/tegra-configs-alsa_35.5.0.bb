@@ -1,5 +1,5 @@
 DESCRIPTION = "Sound configuration files provided by L4T"
-L4T_DEB_COPYRIGHT_MD5 = "124808f082986e189c008346ac84e671"
+L4T_DEB_COPYRIGHT_MD5 = "27caeb86bc9bb9f3419a7c87e9a301f6"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-init"
 

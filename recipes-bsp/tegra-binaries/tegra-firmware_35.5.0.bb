@@ -1,5 +1,5 @@
 DESCRIPTION = "Tegra-specific firmware from the L4T BSP"
-L4T_DEB_COPYRIGHT_MD5 = "b14cc54c1ac58b297ede64cb496fd837"
+L4T_DEB_COPYRIGHT_MD5 = "90328d200c192774c9f168bf103b193e"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-firmware"
 

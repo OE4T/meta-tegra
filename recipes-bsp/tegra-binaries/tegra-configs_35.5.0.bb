@@ -1,5 +1,5 @@
 DESCRIPTION = "Miscellaneous configuration files provided by L4T"
-L4T_DEB_COPYRIGHT_MD5 = "c860581a2d3f2d42432318f3a3a7acff"
+L4T_DEB_COPYRIGHT_MD5 = "28e8d27ee3bf2210fb4feeb9f8aef427"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-configs"
 

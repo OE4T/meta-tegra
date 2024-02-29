@@ -1,5 +1,5 @@
 DESCRIPTION = "NVIDIA SEI metadata support library for GStreamer"
-L4T_DEB_COPYRIGHT_MD5 = "d16b7bdb9e0290d94df6986b72214fb8"
+L4T_DEB_COPYRIGHT_MD5 = "20bbd485b9b57fbc0b55d6efc08e3f4a"
 
 DEPENDS = "glib-2.0 gstreamer1.0"
 
