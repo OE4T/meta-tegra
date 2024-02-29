@@ -295,10 +295,10 @@ tegraflash_populate_package() {
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     sed -e "\$a\BOOTCONTROL_OVERLAYS=\"$bcoverlays\"" ${STAGING_DATADIR}/tegraflash/flashvars > ./flashvars
+    rm -rf ./rollback
+    mkdir ./rollback
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
         cp mb1_t194_prod.bin mb1_b_t194_prod.bin
-	rm -rf ./rollback
-	mkdir ./rollback
 	cp -R ${STAGING_DATADIR}/nv_tegra/rollback/t19x ./rollback/
         cp ${STAGING_DATADIR}/tegraflash/tegra19[4x]-*.cfg .
         cp ${STAGING_DATADIR}/tegraflash/tegra194-*-bpmp-*.dtb .
