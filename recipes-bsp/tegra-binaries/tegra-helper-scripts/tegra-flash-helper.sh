@@ -764,7 +764,6 @@ if [ "$CHIPID" = "0x19" ]; then
               --cmd \"$tfcmd\" $skipuid \
               --cfg flash.xml \
               --bct_backup \
-              --secondary_gpt_backup \
               $bctargs $ramcodeargs $extdevargs \
               --bins \"$BINSARGS\""
 else
@@ -775,7 +774,6 @@ else
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
           --bct_backup \
-          --secondary_gpt_backup \
           $bctargs $extdevargs \
           --bins \"$BINSARGS\""
 fi
