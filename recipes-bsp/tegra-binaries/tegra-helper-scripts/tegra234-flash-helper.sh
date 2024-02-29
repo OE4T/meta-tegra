@@ -37,8 +37,7 @@ process_l4t_conf_dtbo() {
 }
 
 partition_exists_in_PT_table() {
-    # Return failure status here
-    return 1
+    [ "$1" = "BCT-boot-chain_backup" ]
 }
 
 ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:" -o "u:v:s:b:B:yc:" -- "$@")
@@ -598,7 +597,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     boot_chain_select="A"
     SOSARGS="--applet mb1_t234_prod.bin "
     NV_ARGS=" "
-    BCTARGS="$bctargs --bct_backup --secondary_gpt_backup"
+    BCTARGS="$bctargs --bct_backup"
     L4T_CONF_DTBO="L4TConfiguration.dtbo"
     rootfs_ab=0
     . "$here/odmsign.func"
@@ -636,7 +635,6 @@ flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_d
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
           --bct_backup \
-          --secondary_gpt_backup \
           $bctargs $extdevargs \
           --bins \"$BINSARGS\""
 

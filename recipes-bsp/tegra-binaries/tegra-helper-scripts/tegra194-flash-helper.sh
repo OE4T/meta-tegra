@@ -37,7 +37,7 @@ process_l4t_conf_dtbo() {
 }
 
 partition_exists_in_PT_table() {
-    [ "$1" = "secondary_gpt_backup" -o "$1" = "BCT-boot-chain_backup" ]
+    [ "$1" = "BCT-boot-chain_backup" ]
 }
 
 ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:" -o "u:v:s:b:B:yc:" -- "$@")
@@ -495,7 +495,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     boot_chain_select="A"
     SOSARGS="--applet mb1_t194_prod.bin "
     NV_ARGS="--soft_fuses tegra194-mb1-soft-fuses-l4t.cfg "
-    BCTARGS="$bctargs --bct_backup --secondary_gpt_backup"
+    BCTARGS="$bctargs --bct_backup"
     rootfs_ab=0
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
@@ -523,7 +523,6 @@ flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_c
 	      --cmd \"$tfcmd\" $skipuid \
 	      --cfg flash.xml \
 	      --bct_backup \
-	      --secondary_gpt_backup \
 	      $bctargs $ramcodeargs $extdevargs \
 	      --bins \"$BINSARGS\""
 
