@@ -38,7 +38,7 @@ process_l4t_conf_dtbo() {
 }
 
 partition_exists_in_PT_table() {
-    [ "$1" = "secondary_gpt_backup" -o "$1" = "BCT-boot-chain_backup" ]
+    [ "$1" = "BCT-boot-chain_backup" ]
 }
 
 ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:" -o "u:v:s:b:B:yc:" -- "$@")
@@ -707,7 +707,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
         flashername=nvtboot_recovery_cpu_t194.bin
         SOSARGS="--applet mb1_t194_prod.bin "
         NV_ARGS="--soft_fuses tegra194-mb1-soft-fuses-l4t.cfg "
-        BCTARGS="$bctargs --bct_backup --secondary_gpt_backup"
+        BCTARGS="$bctargs --bct_backup"
     elif [ "$CHIPID" = "0x23" ]; then
         flashername="uefi_jetson_with_dtb.bin"
         UEFIBL="uefi_jetson_with_dtb.bin"
@@ -721,7 +721,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     BL_DIR="."
     bctfilename=$(echo $sdramcfg_files | cut -d, -f1)
     bctfile1name=$(echo $sdramcfg_files | cut -d, -f2)
-    BCTARGS="$bctargs --bct_backup --secondary_gpt_backup"
+    BCTARGS="$bctargs --bct_backup"
     L4T_CONF_DTBO="L4TConfiguration.dtbo"
     rootfs_ab=0
     . "$here/odmsign.func"
@@ -764,7 +764,6 @@ if [ "$CHIPID" = "0x19" ]; then
               --cmd \"$tfcmd\" $skipuid \
               --cfg flash.xml \
               --bct_backup \
-              --secondary_gpt_backup \
               $bctargs $ramcodeargs $extdevargs \
               --bins \"$BINSARGS\""
 else
@@ -775,7 +774,6 @@ else
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
           --bct_backup \
-          --secondary_gpt_backup \
           $bctargs $extdevargs \
           --bins \"$BINSARGS\""
 fi

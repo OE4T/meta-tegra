@@ -21,9 +21,9 @@ def main():
                   "deviceprod_config=", "rcm_bct=","mem_bct=", "mem_bct_cold_boot=", "mb1_cold_boot_bct=", "wb0sdram_config=",
                   "minratchet_config=", "blversion=", "output_dir=", "nv_nvratchet=", "nv_oemratchet=", "image_dirs=",
                   "trim_bpmp_dtb", "cpubl=", "concat_cpubl_bldtb", "external_device", "sparseupdate", "ratchet_blob=",
-                  "applet_softfuse=", "secondary_gpt_backup", "boot_chain=", "bct_backup",
+                  "applet_softfuse=", "boot_chain=", "bct_backup",
                   "mb1_bin=", "psc_bl1_bin=", "rcmboot_pt_layout=", "coldboot_pt_layout=", "rcmboot_bct_cfg=", "coldboot_bct_cfg=",
-                  "dce_base_dtb=", "dce_overlay_dtb="]
+                  "dce_base_dtb=", "dce_overlay_dtb=", "disable_random_iv", "compress="]
     parser = argparse.ArgumentParser(
         description="""
 Extracts/manipulates partition information in an NVIDIA flash layout XML file
