@@ -539,6 +539,9 @@ create_tegraflash_pkg:tegra234() {
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
 
+    rm -rf ./rollback
+    mkdir ./rollback
+
     # Copy and update flashvars
     cp ${STAGING_DATADIR}/tegraflash/flashvars .
     sed -i -e "s/@OVERLAY_DTB_FILE@/${OVERLAY_DTB_FILE}/" ./flashvars
