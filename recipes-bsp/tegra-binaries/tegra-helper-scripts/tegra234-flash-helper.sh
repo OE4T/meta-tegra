@@ -379,12 +379,18 @@ if [ "$BOARDID" = "3701" ]; then
             exit 1
             ;;
     esac
+    if [ "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
+        PMICBOARDSKU="0005"
+    else
+        PMICBOARDSKU="0000"
+    fi
     if [ "$BOARDSKU" != "0005" ]; then
         if [ "$chip_sku" = "00" -o "$chip_sku" = "D0" ] && echo "$FAB" | egrep -q '^(TS[123]|EB[123]|[012]00)$'; then
 	    PINMUX_CONFIG="tegra234-mb1-bct-pinmux-p3701-0000.dtsi"
 	    PMC_CONFIG="tegra234-mb1-bct-padvoltage-p3701-0000.dtsi"
 	fi
     fi
+
     if ! [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0001" -o "$BOARDSKU" = "0002" ]; then
 	BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,3701-0000,3701-$BOARDSKU,")
 	if [ "$BOARDSKU" = "0005" -o "$BOARDSKU" = "0008" ]; then
@@ -394,12 +400,35 @@ if [ "$BOARDID" = "3701" ]; then
 	    dtb_file=$(echo "$dtb_file" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
 	fi
     fi
+
+    for var in $FLASHVARS; do
+        eval pat=$`echo $var`
+        if [ -n "$pat" ]; then
+            val=$(echo $pat | sed -e"s,@PMICBOARDSKU@,$PMICBOARDSKU,")
+            eval $var='$val'
+        fi
+    done
+
     if [ "$BOARDSKU" = "0002" -o "$BOARDSKU" = "0008" ]; then
 	fsifw_binsarg="fsi_fw fsi-fw-ecc.bin;"
     else
 	fsifw_binsarg=
     fi
 elif [ "$BOARDID" = "3767" ]; then
+    case $chip_sku in
+        00)
+            ;;
+        D3|D4)
+            BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TE980M-A1,")
+            ;;
+        D5|D6)
+            BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TE950M-A1,")
+            ;;
+        *)
+            echo "ERR: unrecognized chip SKU: $chip_sku" >&2
+            exit 1
+            ;;
+    esac
     PINMUXREV="a03"
     BPFDTBREV="a02"
     PMCREV="a03"
@@ -418,9 +447,6 @@ elif [ "$BOARDID" = "3767" ]; then
     elif [ "$BOARDSKU" = "0004" ]; then
 	EMMC_BCT="tegra234-p3767-0004-sdram-l4t.dts"
 	WB0SDRAM_BCT="tegra234-p3767-0004-wb0sdram-l4t.dts"
-    fi
-    if [ "$BOARDSKU" = "0003" -o "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
-	BPF_FILE="bpmp_t234-TE950M-A1_prod.bin"
     fi
     PINMUX_CONFIG=$(echo "$PINMUX_CONFIG" | sed -e"s,@PINMUXREV@,$PINMUXREV,")
     PMC_CONFIG=$(echo "$PMC_CONFIG" | sed -e"s,@PMCREV@,$PMCREV,")
