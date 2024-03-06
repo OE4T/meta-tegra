@@ -1,0 +1,4 @@
+#!/bin/sh
+RUNTIME_DIRECTORY=${RUNTIME_DIRECTORY:-/run/nvidia-container-runtime}
+nvidia-ctk config generate-default -o $RUNTIME_DIRECTORY/config.toml
+nvidia-ctk config -c $RUNTIME_DIRECTORY/config.toml -i -set nvidia-container-runtime.modes.csv.alt-roots=@DATADIR@/nvidia-container-passthrough
