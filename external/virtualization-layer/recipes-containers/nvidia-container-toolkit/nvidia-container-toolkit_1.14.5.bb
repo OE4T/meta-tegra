@@ -9,11 +9,10 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 LICENSE = "Apache-2.0 & MIT & ISC & MPL-2.0 & (Apache-2.0 | MIT)"
 LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57 \
-                    file://src/${GO_IMPORT}/vendor/github.com/container-orchestrated-devices/container-device-interface/LICENSE;md5=86d3f3a95c324c9479bd8986968f4327 \
+                    file://src/${GO_IMPORT}/vendor/tags.cncf.io/container-device-interface/LICENSE;md5=86d3f3a95c324c9479bd8986968f4327 \
                     file://src/${GO_IMPORT}/vendor/github.com/davecgh/go-spew/LICENSE;md5=c06795ed54b2a35ebeeb543cd3a73e56 \
                     file://src/${GO_IMPORT}/vendor/github.com/fsnotify/fsnotify/LICENSE;md5=68f2948d3c4943313d07e084a362486c \
                     file://src/${GO_IMPORT}/vendor/github.com/NVIDIA/go-nvml/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57 \
-                    file://src/${GO_IMPORT}/vendor/github.com/opencontainers/runc/LICENSE;md5=435b266b3899aa8a959f17d41c56def8 \
                     file://src/${GO_IMPORT}/vendor/github.com/opencontainers/runtime-spec/LICENSE;md5=b355a61a394a504dacde901c958f662c \
                     file://src/${GO_IMPORT}/vendor/github.com/opencontainers/runtime-tools/LICENSE;md5=b355a61a394a504dacde901c958f662c \
                     file://src/${GO_IMPORT}/vendor/github.com/pelletier/go-toml/LICENSE;md5=e49b63d868761700c5df76e7946d0bd7 \
@@ -30,11 +29,12 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
                     file://src/${GO_IMPORT}/vendor/sigs.k8s.io/yaml/LICENSE;md5=0ceb9ff3b27d3a8cf451ca3785d73c71 \
 "
 
-SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=main"
-SRCREV = "807c87e057e13fbd559369b8fd722cc7a6f4e5bb"
+SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=release-1.14"
+SRCREV = "9ea336070134e612145d342e495f2fc616aab063"
 
 SRC_URI += "\
     file://0001-Add-support-for-alternate-roots-for-tegra-CSV-handli.patch;patchdir=src/${GO_IMPORT} \
+    file://0002-cgo-LDFLAGS-update-for-go-1.21-and-later.patch;patchdir=src/${GO_IMPORT} \
     file://generate-config.sh.in \
     file://nvidia-container-setup.service.in \
 "

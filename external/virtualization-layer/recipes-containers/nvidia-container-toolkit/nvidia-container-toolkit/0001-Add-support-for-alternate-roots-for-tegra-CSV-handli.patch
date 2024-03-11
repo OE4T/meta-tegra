@@ -1,7 +1,7 @@
-From bffa045c812506725c7046b50aaab146943f960d Mon Sep 17 00:00:00 2001
+From 4af28f6ae3cc08e28db4a498c9d35b526e5f0374 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 9 Mar 2024 06:17:17 -0800
-Subject: [PATCH] Add support for 'alternate' roots for tegra CSV handling
+Subject: [PATCH 1/2] Add support for 'alternate' roots for tegra CSV handling
 
 So the host OS can provide one or more trees of libraries that
 should be mounted into containers, overriding the copies in
@@ -21,10 +21,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  9 files changed, 74 insertions(+), 18 deletions(-)
 
 diff --git a/cmd/nvidia-ctk/cdi/generate/generate.go b/cmd/nvidia-ctk/cdi/generate/generate.go
-index 6adb093..29992f7 100644
+index fd46962..89ff4cc 100644
 --- a/cmd/nvidia-ctk/cdi/generate/generate.go
 +++ b/cmd/nvidia-ctk/cdi/generate/generate.go
-@@ -51,6 +51,7 @@ type options struct {
+@@ -52,6 +52,7 @@ type options struct {
  	class              string
  
  	librarySearchPaths cli.StringSlice
@@ -32,7 +32,7 @@ index 6adb093..29992f7 100644
  
  	csv struct {
  		files          cli.StringSlice
-@@ -117,6 +118,11 @@ func (m command) build() *cli.Command {
+@@ -118,6 +119,11 @@ func (m command) build() *cli.Command {
  			Usage:       "Specify the path to search for libraries when discovering the entities that should be included in the CDI specification.\n\tNote: This option only applies to CSV mode.",
  			Destination: &opts.librarySearchPaths,
  		},
@@ -44,7 +44,7 @@ index 6adb093..29992f7 100644
  		&cli.StringFlag{
  			Name:        "nvidia-ctk-path",
  			Usage:       "Specify the path to use for the nvidia-ctk in the generated CDI specification. If this is left empty, the path will be searched.",
-@@ -240,6 +246,7 @@ func (m command) generateSpec(opts *options) (spec.Interface, error) {
+@@ -241,6 +247,7 @@ func (m command) generateSpec(opts *options) (spec.Interface, error) {
  		nvcdi.WithDeviceNamer(deviceNamer),
  		nvcdi.WithMode(string(opts.mode)),
  		nvcdi.WithLibrarySearchPaths(opts.librarySearchPaths.Value()),
@@ -205,10 +205,10 @@ index ad5c5b6..12ccfce 100644
  func WithCSVFiles(csvFiles []string) Option {
  	return func(o *tegraOptions) {
 diff --git a/pkg/nvcdi/lib-csv.go b/pkg/nvcdi/lib-csv.go
-index 22b54b6..e2ad404 100644
+index 09f0b14..9cc3666 100644
 --- a/pkg/nvcdi/lib-csv.go
 +++ b/pkg/nvcdi/lib-csv.go
-@@ -42,6 +42,7 @@ func (l *csvlib) GetAllDeviceSpecs() ([]specs.Device, error) {
+@@ -43,6 +43,7 @@ func (l *csvlib) GetAllDeviceSpecs() ([]specs.Device, error) {
  	d, err := tegra.New(
  		tegra.WithLogger(l.logger),
  		tegra.WithDriverRoot(l.driverRoot),
