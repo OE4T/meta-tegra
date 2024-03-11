@@ -20,7 +20,8 @@ SRC_URI += "\
     file://0001-Patch-udev-rules-for-OE-use.patch \
     file://0002-Patch-nv.sh-script-for-OE-use.patch \
     file://nv-l4t-bootloader-config.sh \
-    file://l4t.csv \
+    file://devices.csv \
+    file://drivers.csv \
 "
 
 do_install() {
@@ -52,7 +53,8 @@ do_install() {
     # Please create an issue for a missing file in the passthrough
     # FIXME: create a mechanism to dynamically generate l4t.csv based on the installed libraries
     install -d ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
-    install -m 0644 ${WORKDIR}/l4t.csv ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
+    install -m 0644 ${WORKDIR}/drivers.csv ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
+    install -m 0644 ${WORKDIR}/devices.csv ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
 }
 
 do_install:append:tegra234() {
