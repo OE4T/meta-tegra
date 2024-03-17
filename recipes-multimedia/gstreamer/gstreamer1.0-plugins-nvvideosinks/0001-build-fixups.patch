@@ -1,20 +1,19 @@
-From 5ee6d340e6c8b38a2450bb0a6f95a9eda3636dee Mon Sep 17 00:00:00 2001
+From 32b77145609cbbe62dbb4f9b3736fb6539de56f7 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 24 Mar 2019 09:16:52 -0700
 Subject: [PATCH] Fix makefile to work with OE builds
 
-and to build for Tegra, not desktop.
-
+Upstream-Status: Inappropriate [oe specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile | 44 ++++++++++++++++++++++++++++----------------
- 1 file changed, 28 insertions(+), 16 deletions(-)
+ Makefile | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-Index: gst-plugins-nv-video-sinks/Makefile
-===================================================================
---- gst-plugins-nv-video-sinks.orig/Makefile
-+++ gst-plugins-nv-video-sinks/Makefile
+diff --git a/Makefile b/Makefile
+index 32c9edd..d00ca79 100644
+--- a/Makefile
++++ b/Makefile
 @@ -34,18 +34,20 @@ INCLUDES += -I./common \
  	-I./common/egl \
  	-I./common/renderer \
