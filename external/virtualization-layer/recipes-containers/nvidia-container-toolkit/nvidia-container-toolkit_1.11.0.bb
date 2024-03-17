@@ -38,6 +38,8 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
 SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=main"
 SRCREV = "d9de4a09b8fd51a46207398199ecfeb3998ad49d"
 
+SRC_URI += "file://0001-Fix-cgo-LDFLAGS-for-go-1.21-and-later.patch;patchdir=src/${GO_IMPORT}"
+
 GO_IMPORT = "github.com/NVIDIA/nvidia-container-toolkit"
 GO_INSTALL = "${GO_IMPORT}/cmd/..."
 # The go-nvml symbol lookup functions *require* lazy dynamic symbol resolution
