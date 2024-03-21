@@ -11,7 +11,7 @@ RPROVIDES:${PN}-dev:append:tegra = " libegl-dev libgl-dev libgles1-dev libgles2-
 RCONFLICTS:${PN}:tegra = "libegl libgl ligbles1 libgles2"
 RCONFLICTS:${PN}-dev:append:tegra = " libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 RREPLACES:${PN}:tegra = " libegl libgl libgles1 ligbles2"
-RREPLACES_${PN}-dev:append:tegra = " libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
+RREPLACES:${PN}-dev:append:tegra = " libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 
 RDEPENDS:${PN}:append:tegra = " tegra-libraries-eglcore tegra-libraries-glescore ${@bb.utils.contains('PACKAGECONFIG', 'x11', 'tegra-libraries-glxcore', '', d)}"
 RDEPENDS:${PN}-dev:append:tegra = " l4t-nvidia-glheaders-dev"
