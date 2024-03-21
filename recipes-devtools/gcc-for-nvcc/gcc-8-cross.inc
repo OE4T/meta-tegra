@@ -163,5 +163,5 @@ python do_gcc_stash_builddir_setscene () {
 }
 addtask do_gcc_stash_builddir_setscene
 
-FILES_${PN} += "${exec_prefix}/bin/${TARGET_SYS}-${BINV}"
+FILES:${PN} += "${exec_prefix}/bin/${TARGET_SYS}-${BINV}"
 SYSROOT_DIRS_NATIVE += "${exec_prefix}/bin/${TARGET_SYS}-${BINV}"
