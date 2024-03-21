@@ -32,7 +32,7 @@ RPROVIDES:${PN}-dev += "libglvnd-dev libegl-dev libgl-dev libgles1-dev libgles2-
 RCONFLICTS:${PN} = "libegl libgl ligbles1 libgles2"
 RCONFLICTS:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 RREPLACES:${PN} = "libegl libgl libgles1 ligbles2"
-RREPLACES_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
+RREPLACES:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 RPROVIDES:${PN}-dbg += "libglvnd-dbg"
 
 RDEPENDS:${PN}:append:tegra = " tegra-libraries-eglcore tegra-libraries-glescore"
