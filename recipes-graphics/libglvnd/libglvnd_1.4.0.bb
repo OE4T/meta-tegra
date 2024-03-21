@@ -32,7 +32,7 @@ RPROVIDES:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-
 RCONFLICTS:${PN} = "libegl libgl ligbles1 libgles2"
 RCONFLICTS:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 RREPLACES:${PN} = "libegl libgl libgles1 ligbles2"
-RREPLACESS_${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
+RREPLACES:${PN}-dev += "libegl-dev libgl-dev libgles1-dev libgles2-dev libgles3-dev"
 
 RDEPENDS:${PN}:append:tegra = " tegra-libraries-eglcore tegra-libraries-glescore"
 RDEPENDS:${PN}-dev:append:tegra = " l4t-nvidia-glheaders-dev"
