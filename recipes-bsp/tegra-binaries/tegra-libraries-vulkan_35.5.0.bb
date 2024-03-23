@@ -1,4 +1,4 @@
-L4T_DEB_COPYRIGHT_MD5 = "34723d6d005ff47007fff977eac035d6"
+L4T_DEB_COPYRIGHT_MD5 = "d3617777039321a257aef01439341b02"
 DEPENDS = "tegra-libraries-core tegra-libraries-eglcore virtual/egl egl-wayland"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-3d-core"
