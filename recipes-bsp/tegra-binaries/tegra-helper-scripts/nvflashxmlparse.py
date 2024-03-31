@@ -342,6 +342,20 @@ def size_to_sectors(sizespec):
     # reserving 1% for overhead
     return int(int(size * 99 / 100 + 511) / 512)
 
+def get_filename_for_partition(infile, partname, outf) -> int:
+    intree = ET.parse(infile)
+    root = intree.getroot()
+    for dev in root.findall('device'):
+        for part in dev.findall('partition'):
+            if part.get('name') == partname:
+                filename = part.find('filename')
+                if filename is not None:
+                    print(filename.text.strip(), file=outf)
+                else:
+                    print("", file=outf)
+                return 0
+    logging.error("Partition not found: {}".format(partname))
+    return 1
 
 def main():
     global ignore_partition_ids
@@ -355,6 +369,7 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
 """)
     parser.add_argument('-t', '--type', help='device type to extract information for, must either match a <device> tag or the generic "boot" or "rootfs" names', action='store')
     cmdgroup = parser.add_mutually_exclusive_group()
+    cmdgroup.add_argument('-g', '--get-filename', help='extract the filename element for a partition', action='store')
     cmdgroup.add_argument('-l', '--list-types', help='list the device types described in the file', action='store_true')
     cmdgroup.add_argument('-b', '--boot-device', help='print the device type holding boot partitions', action='store_true')
     cmdgroup.add_argument('-e', '--extract', help='generate a new XML file extracting just the specified device type', action='store_true')
@@ -372,6 +387,13 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
 
     args = parser.parse_args()
     logging.basicConfig(format='%(message)s', level=logging.INFO if args.verbose else logging.WARNING)
+
+    if args.get_filename:
+        if args.output:
+            outf = open(args.output, "w")
+        else:
+            outf = sys.stdout
+        return get_filename_for_partition(args.filename, args.get_filename, outf)
 
     if args.split or args.rewrite_contents_from or args.extract or args.remove or args.update_parttype_sizes_from or args.switch_to_prefixed_kernel_partitions:
         if args.output:
