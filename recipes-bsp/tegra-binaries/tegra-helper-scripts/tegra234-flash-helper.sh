@@ -40,6 +40,19 @@ partition_exists_in_PT_table() {
     [ "$1" = "BCT-boot-chain_backup" ]
 }
 
+get_value_from_PT_table() {
+    local partname="$1"
+    local field="$2"
+    local layoutfile="$3"
+    local varname="$4"
+    if [ "$field" != "filename" ]; then
+	echo "ERR: unsupported flash layout field: $field" >&2
+	return 1
+    fi
+    local value=$("$here/nvflashxmlparse" --get-filename "$partname" "$layoutfile")
+    eval "$varname=\"$value\""
+}
+
 ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
@@ -339,6 +352,7 @@ FAB="$FAB"
 BOARDSKU="$BOARDSKU"
 BOARDREV="$BOARDREV"
 CHIPREV="$CHIPREV"
+CHIP_SKU="$CHIP_SKU"
 fuselevel="$fuselevel"
 EOF
 if [ -n "$serial_number" ]; then
