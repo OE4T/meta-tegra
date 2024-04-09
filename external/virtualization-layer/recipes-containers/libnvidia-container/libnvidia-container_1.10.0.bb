@@ -7,14 +7,16 @@ kernel subsystems and is designed to be agnostic of the container runtime. \
 "
 HOMEPAGE = "https://github.com/NVIDIA/libnvidia-container"
 
-DEPENDS = " \
+DEPENDS = "\
     coreutils-native \
-    pkgconfig-native \
-    libcap \
     elfutils \
+    libcap \
+    libseccomp \
     libtirpc \
     ldconfig-native \
+    pkgconfig-native \
 "
+
 LICENSE = "Apache-2.0 & MIT"
 
 # Both source repositories include GPL COPYING (and for
@@ -51,13 +53,23 @@ SRCREV_FORMAT = "libnvidia_modprobe"
 
 S = "${WORKDIR}/git"
 
-PACKAGECONFIG ??= ""
+inherit pkgconfig
+
+PACKAGECONFIG ??= "\
+    seccomp \
+    tirpc \
+"
+
 PACKAGECONFIG[seccomp] = "WITH_SECCOMP=yes,WITH_SECCOMP=no,libseccomp"
+PACKAGECONFIG[tirpc] = "WITH_TIRPC=yes,WITH_TIRPC=no,libtirpc"
 
 # We need to link with libelf, otherwise we need to
 # include bmake-native which does not exist at the moment.
-EXTRA_OEMAKE = 'EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} WITH_NVCGO=no WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${PACKAGECONFIG_CONFARGS} \
-                NVIDIA_MODPROBE_EXTRA_CFLAGS="${NVIDIA_MODPROBE_EXTRA_CFLAGS}"'
+EXTRA_OEMAKE = 'EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} WITH_NVCGO=no WITH_LIBELF=yes \
+    COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${PACKAGECONFIG_CONFARGS} \
+    NVIDIA_MODPROBE_EXTRA_CFLAGS="${NVIDIA_MODPROBE_EXTRA_CFLAGS}" \
+'
+
 NVIDIA_MODPROBE_EXTRA_CFLAGS ?= "${DEBUG_PREFIX_MAP}"
 
 export OBJCPY="${OBJCOPY}"
@@ -74,6 +86,18 @@ do_install () {
     find ${D}${datadir}/doc -type f -name 'COPYING*' -delete
 }
 
-PACKAGES =+ "${PN}-tools"
-FILES:${PN}-tools = "${bindir}"
-RDEPENDS:${PN}:append:tegra = " libnvidia-container-jetson ldconfig tegra-libraries-cuda"
+PACKAGES:prepend = "\
+    ${PN}-tools \
+"
+
+FILES:${PN}-tools = "\
+    ${bindir} \
+"
+
+RDEPENDS:${PN}:append:tegra = "\
+    ldconfig \
+    libnvidia-container-jetson \
+    libseccomp \
+    libtirpc \
+    tegra-libraries-cuda \
+"
