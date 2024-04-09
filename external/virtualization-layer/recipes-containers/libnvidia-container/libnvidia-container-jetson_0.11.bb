@@ -10,14 +10,16 @@ HOMEPAGE = "https://github.com/NVIDIA/libnvidia-container"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-DEPENDS = " \
+DEPENDS = "\
     coreutils-native \
-    pkgconfig-native \
-    libcap \
     elfutils \
-    libtirpc126 \
+    libcap \
+    libseccomp \
+    libtirpc \
     ldconfig-native \
+    pkgconfig-native \
 "
+
 LICENSE = "BSD-3-Clause & MIT & Proprietary"
 
 # Both source repositories include GPL COPYING (and for
@@ -54,8 +56,15 @@ SRCREV_FORMAT = "libnvidia_modprobe"
 
 S = "${WORKDIR}/git"
 
-PACKAGECONFIG ??= ""
+inherit pkgconfig
+
+PACKAGECONFIG ??= "\
+    seccomp \
+    tirpc \
+"
+
 PACKAGECONFIG[seccomp] = "WITH_SECCOMP=yes,WITH_SECCOMP=no,libseccomp"
+PACKAGECONFIG[tirpc] = "WITH_TIRPC=yes,WITH_TIRPC=no,libtirpc"
 
 def build_date(d):
     import datetime
@@ -69,8 +78,6 @@ def build_date(d):
 PASSTHRU_ROOT = "${datadir}/nvidia-container-passthrough"
 
 EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PASSTHRU_ROOT=${PASSTHRU_ROOT} PLATFORM=${HOST_ARCH} JETSON=TRUE WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${@build_date(d)} ${PACKAGECONFIG_CONFARGS}"
-
-CFLAGS:prepend = " -I=/usr/include/tirpc-1.2.6 "
 
 export OBJCPY="${OBJCOPY}"
 
@@ -98,4 +105,9 @@ DEBIAN_NOAUTONAME:${PN}-dbg = "1"
 DEBIAN_NOAUTONAME:${PN}-dev = "1"
 DEBIAN_NOAUTONAME:${PN}-doc = "1"
 DEBIAN_NOAUTONAME:${PN}-src = "1"
-RDEPENDS:${PN} = "tegra-container-passthrough nv-tegra-release"
+RDEPENDS:${PN} = "\
+    libseccomp \
+    libtirpc \
+    nv-tegra-release \
+    tegra-container-passthrough \
+"

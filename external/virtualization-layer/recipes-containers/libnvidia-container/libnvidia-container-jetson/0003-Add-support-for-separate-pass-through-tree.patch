@@ -1,7 +1,7 @@
-From 74fac9f0aa34cceddba9dc963ebe2b30cd6f9fa4 Mon Sep 17 00:00:00 2001
+From b149f310313e7ea8e9b965728a58320375824304 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 5 Mar 2023 08:47:33 -0800
-Subject: [PATCH 3/3] Add support for separate pass-through tree
+Subject: [PATCH] Add support for separate pass-through tree
 
 So we can export stock L4T pre-built userland binaries to
 containers, instead of the versions we build from sources,
@@ -9,6 +9,7 @@ to avoid glibc and other shared library mismatches inside
 NVIDIA's containers.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  Makefile           |  3 +++
  src/jetson_mount.c | 57 +++++++++++++++++++++++++++++++++++++---------
@@ -18,7 +19,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  5 files changed, 88 insertions(+), 16 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index da836fae..045e4707 100644
+index 57a6d95c..413aad15 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -142,6 +142,9 @@ LIB_LDLIBS_SHARED  += -lelf
@@ -30,7 +31,7 @@ index da836fae..045e4707 100644
 +endif
  ifeq ($(WITH_TIRPC), yes)
  LIB_CPPFLAGS       += -isystem $(DEPS_DIR)$(includedir)/tirpc -DWITH_TIRPC
- LIB_LDLIBS_STATIC  += -l:libtirpc.a
+ LIB_LDLIBS_STATIC  +=
 diff --git a/src/jetson_mount.c b/src/jetson_mount.c
 index 5cf94c81..d5b6844d 100644
 --- a/src/jetson_mount.c
@@ -252,6 +253,3 @@ index 4beb86da..95d0834c 100644
  int  file_exists_at(struct error *, const char *, const char *);
  int  file_mode(struct error *, const char *, mode_t *);
  int  file_read_line(struct error *, const char *, char *, size_t);
--- 
-2.34.1
-

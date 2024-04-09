@@ -1,18 +1,20 @@
-From 2206062fca84109db3456b8730a09ffaf197ca27 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Sun, 8 Aug 2021 21:18:48 +0100
-Subject: [PATCH 2/3] OE cross-build fixups
+From 1fc408781f183671fd192913743689e2c2ad0f79 Mon Sep 17 00:00:00 2001
+From: Daniel Chaves <dchvs11@gmail.com>
+Date: Mon, 8 Apr 2024 23:40:46 +0000
+Subject: [PATCH] OE cross-build fixups
 
 Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Daniel Chaves <dchvs11@gmail.com>
+
 ---
- Makefile     | 40 ++++++++++++++++++++++------------------
+ Makefile     | 56 ++++++++++++++++++++++++++--------------------------
  mk/common.mk |  4 ++--
- 2 files changed, 24 insertions(+), 20 deletions(-)
+ 2 files changed, 30 insertions(+), 30 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 709102b7..da836fae 100644
+index 709102b7..57a6d95c 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -23,17 +23,17 @@ WITH_SECCOMP ?= yes
@@ -54,7 +56,7 @@ index 709102b7..da836fae 100644
              -Wstrict-prototypes -Wunreachable-code -Wconversion -Wsign-conversion \
 -            -Wno-unknown-warning-option -Wno-format-extra-args -Wno-gnu-alignof-expression $(CFLAGS)
 +            -Wno-format-extra-args $(if $(filter clang,$(CCNAME)),-Wno-unknown-warning-option -Wno-gnu-alignof-expression,) \
-+            -I=/usr/include/tirpc $(CFLAGS)
++            $(CFLAGS)
  LDFLAGS  := -Wl,-zrelro -Wl,-znow -Wl,-zdefs -Wl,--gc-sections $(LDFLAGS)
  LDLIBS   := $(LDLIBS)
  
@@ -65,12 +67,31 @@ index 709102b7..da836fae 100644
 -LIB_LDLIBS_STATIC  = -l:libnvidia-modprobe-utils.a
 -LIB_LDLIBS_SHARED  = -ldl -lcap
 +LIB_LDFLAGS        = -shared -Wl,-soname=$(LIB_SONAME)
-+LIB_LDLIBS_STATIC  = -L$(DEPS_DIR)$(libdir) -l:libnvidia-modprobe-utils.a -L=$(libdir) -l:libtirpc.a
++LIB_LDLIBS_STATIC  = -L$(DEPS_DIR)$(libdir) -l:libnvidia-modprobe-utils.a
 +LIB_LDLIBS_SHARED  = -ldl -lcap -lpthread
  ifeq ($(WITH_LIBELF), yes)
  LIB_CPPFLAGS       += -DWITH_LIBELF
  LIB_LDLIBS_SHARED  += -lelf
-@@ -170,13 +172,17 @@ DEPENDENCIES   := $(LIB_OBJS:%.lo=%.d)
+@@ -142,12 +144,14 @@ LIB_LDLIBS_STATIC  += -l:libelf.a
+ endif
+ ifeq ($(WITH_TIRPC), yes)
+ LIB_CPPFLAGS       += -isystem $(DEPS_DIR)$(includedir)/tirpc -DWITH_TIRPC
+-LIB_LDLIBS_STATIC  += -l:libtirpc.a
+-LIB_LDLIBS_SHARED  += -lpthread
++LIB_LDLIBS_STATIC  +=
++LIB_LDLIBS_SHARED  += $(shell pkg-config --libs libtirpc)
++CFLAGS             += $(shell pkg-config --cflags libtirpc)
+ endif
+ ifeq ($(WITH_SECCOMP), yes)
+-LIB_CPPFLAGS       += -DWITH_SECCOMP
+-LIB_LDLIBS_SHARED  += -lseccomp
++LIB_CPPFLAGS       += -DWITH_SECCOMP $(shell pkg-config --libs libseccomp)
++LIB_LDLIBS_SHARED  += $(shell pkg-config --libs libseccomp)
++CFLAGS             += $(shell pkg-config --cflags libseccomp)
+ endif
+ LIB_CPPFLAGS       += $(CPPFLAGS)
+ LIB_CFLAGS         += $(CFLAGS)
+@@ -170,13 +174,17 @@ DEPENDENCIES   := $(LIB_OBJS:%.lo=%.d)
  $(BUILD_DEFS):
  	@printf '#define BUILD_DATE     "%s"\n' '$(strip $(DATE))' >$(BUILD_DEFS)
  	@printf '#define BUILD_COMPILER "%s " __VERSION__\n' '$(notdir $(COMPILER))' >>$(BUILD_DEFS)
@@ -89,7 +110,7 @@ index 709102b7..da836fae 100644
  
  $(LIB_OBJS): %.lo: %.c | deps
  	$(CC) $(LIB_CFLAGS) $(LIB_CPPFLAGS) -MMD -MF $*.d -c $(OUTPUT_OPTION) $<
-@@ -189,24 +195,22 @@ $(LIB_SHARED): $(LIB_OBJS)
+@@ -189,24 +197,22 @@ $(LIB_SHARED): $(LIB_OBJS)
  	$(OBJCPY) --only-keep-debug $@ $(LIB_SONAME)
  	$(OBJCPY) --add-gnu-debuglink=$(LIB_SONAME) $@
  	$(MV) $(LIB_SONAME) $(DEBUG_DIR)
@@ -116,6 +137,26 @@ index 709102b7..da836fae 100644
  debug: shared static
  
  shared: $(LIB_SHARED)
+@@ -219,9 +225,6 @@ deps: $(LIB_RPC_SRCS) $(BUILD_DEFS)
+ ifeq ($(WITH_LIBELF), no)
+ 	$(MAKE) -f $(MAKE_DIR)/elftoolchain.mk DESTDIR=$(DEPS_DIR) install
+ endif
+-ifeq ($(WITH_TIRPC), yes)
+-	$(MAKE) -f $(MAKE_DIR)/libtirpc.mk DESTDIR=$(DEPS_DIR) install
+-endif
+ 
+ install: all
+ 	$(INSTALL) -d -m 755 $(addprefix $(DESTDIR),$(includedir) $(libdir) $(docdir) $(libdbgdir) $(pkgconfdir))
+@@ -263,9 +266,6 @@ depsclean:
+ ifeq ($(WITH_LIBELF), no)
+ 	-$(MAKE) -f $(MAKE_DIR)/elftoolchain.mk clean
+ endif
+-ifeq ($(WITH_TIRPC), yes)
+-	-$(MAKE) -f $(MAKE_DIR)/libtirpc.mk clean
+-endif
+ 
+ mostlyclean:
+ 	$(RM) $(LIB_OBJS) $(LIB_STATIC_OBJ) $(DEPENDENCIES)
 diff --git a/mk/common.mk b/mk/common.mk
 index d6ef499d..f8170de8 100644
 --- a/mk/common.mk
@@ -132,6 +173,3 @@ index d6ef499d..f8170de8 100644
  
  ifeq ($(DATE),)
  $(error Invalid date format)
--- 
-2.34.1
-
