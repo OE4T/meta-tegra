@@ -64,6 +64,8 @@ do_install(){
     install -m 0644 ${S}/src/${GO_IMPORT}/config/config.toml.ubuntu ${D}${sysconfdir}/nvidia-container-runtime/config.toml
     sed -i -e's,ldconfig\.real,ldconfig,' ${D}${sysconfdir}/nvidia-container-runtime/config.toml
     sed -i -e's,mode = "auto",mode = "legacy",' ${D}${sysconfdir}/nvidia-container-runtime/config.toml
+    # Set no-cgroups to true to address issue https://github.com/NVIDIA/nvidia-docker/issues/1660#issuecomment-1437203825
+    sed -i -e's,#no-cgroups = false,no-cgroups = true,' ${D}${sysconfdir}/nvidia-container-runtime/config.toml
     ln -sf nvidia-container-runtime-hook ${D}${bindir}/nvidia-container-toolkit
 }
 
