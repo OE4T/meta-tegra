@@ -35,17 +35,20 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
                     file://src/${GO_IMPORT}/vendor/sigs.k8s.io/yaml/LICENSE;md5=0ceb9ff3b27d3a8cf451ca3785d73c71 \
 "
 
-SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=main"
-SRCREV = "d9de4a09b8fd51a46207398199ecfeb3998ad49d"
+SRC_URI = "\
+    git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=main \
+    file://0001-Fix-cgo-LDFLAGS-for-go-1.21-and-later.patch;patchdir=src/${GO_IMPORT} \
+"
 
-SRC_URI += "file://0001-Fix-cgo-LDFLAGS-for-go-1.21-and-later.patch;patchdir=src/${GO_IMPORT}"
+# v1.11.0
+SRCREV = "d9de4a09b8fd51a46207398199ecfeb3998ad49d"
 
 GO_IMPORT = "github.com/NVIDIA/nvidia-container-toolkit"
 GO_INSTALL = "${GO_IMPORT}/cmd/..."
-# The go-nvml symbol lookup functions *require* lazy dynamic symbol resolution
-SECURITY_LDFLAGS = ""
-LDFLAGS += "-Wl,-z,lazy"
-GO_LINKSHARED = ""
+
+GO_EXTLDFLAGS:append = "\
+    -L${STAGING_LIBDIR} -lcuda \
+"
 
 GO_EXTRA_LDFLAGS:append = "\
     -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.version=${GITPKGVTAG} \
@@ -69,10 +72,22 @@ do_install(){
     ln -sf nvidia-container-runtime-hook ${D}${bindir}/nvidia-container-toolkit
 }
 
-RDEPENDS:${PN} = "\
-    libnvidia-container-tools \
-    docker \
-    tegra-configs-container-csv \
+DEPENDS = "\
+    tegra-libraries-cuda \
 "
-RDEPENDS:${PN}-dev += "bash make"
+
+RDEPENDS:${PN} = "\
+    docker \
+    go-runtime \
+    libnvidia-container-jetson \
+    libnvidia-container-tools \
+    tegra-configs-container-csv \
+    tegra-libraries-cuda \
+"
+
+RDEPENDS:${PN}-dev:append = "\
+    bash \
+    make \
+"
+
 PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"
