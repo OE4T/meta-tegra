@@ -39,14 +39,14 @@ INSANE_SKIP:${PN} += "buildpaths"
 do_deploy() {
     install -d ${DEPLOYDIR}
     if [ -e ${B}/tegra-bl.cap ]; then
-	BL_NAME=${TNSPEC_MACHINE}-tegra-bl.cap
-	install -m 0644 ${B}/tegra-bl.cap ${DEPLOYDIR}/$BL_NAME
-	ln -s -r ${DEPLOYDIR}/$BL_NAME ${DEPLOYDIR}/tegra-bl.cap
+        BL_NAME=${TNSPEC_MACHINE}-tegra-bl.cap
+        install -m 0644 ${B}/tegra-bl.cap ${DEPLOYDIR}/$BL_NAME
+        ln -s -r ${DEPLOYDIR}/$BL_NAME ${DEPLOYDIR}/tegra-bl.cap
     fi
     if [ -e ${B}/tegra-kernel.cap ]; then
-	KERNEL_NAME=${TNSPEC_MACHINE}-tegra-kernel.cap
-	install -m 0644 ${B}/tegra-kernel.cap ${DEPLOYDIR}/$KERNEL_NAME
-	ln -s -r ${DEPLOYDIR}/$KERNEL_NAME ${DEPLOYDIR}/tegra-kernel.cap
+        KERNEL_NAME=${TNSPEC_MACHINE}-tegra-kernel.cap
+        install -m 0644 ${B}/tegra-kernel.cap ${DEPLOYDIR}/$KERNEL_NAME
+        ln -s -r ${DEPLOYDIR}/$KERNEL_NAME ${DEPLOYDIR}/tegra-kernel.cap
     fi
 }
 
