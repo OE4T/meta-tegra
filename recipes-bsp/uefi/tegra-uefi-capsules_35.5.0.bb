@@ -20,19 +20,19 @@ do_compile() {
     sign_uefi_capsules
 }
 
-CAPSULE_DIR = "/opt/nvidia/UpdateCapsule"
+TEGRA_UEFI_CAPSULE_INSTALL_DIR ??= "/opt/nvidia/UpdateCapsule"
 
 do_install() {
-    install -d ${D}${CAPSULE_DIR}
+    install -d ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
     if [ -e ${B}/tegra-bl.cap ]; then
-        install -m 0644 ${B}/tegra-bl.cap ${D}${CAPSULE_DIR}
+        install -m 0644 ${B}/tegra-bl.cap ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
     fi
     if [ -e ${B}/tegra-kernel.cap ]; then
-        install -m 0644 ${B}/tegra-kernel.cap ${D}${CAPSULE_DIR}
+        install -m 0644 ${B}/tegra-kernel.cap ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
     fi
 }
 
-FILES:${PN} += "${CAPSULE_DIR}"
+FILES:${PN} += "${TEGRA_UEFI_CAPSULE_INSTALL_DIR}"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 INSANE_SKIP:${PN} += "buildpaths"
 
