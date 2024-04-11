@@ -484,22 +484,3 @@ oe_make_bup_payload() {
     mv ${WORKDIR}/bup-payload/${BUP_PAYLOAD_DIR}/* .
     cd "$oldwd"
 }
-
-create_bup_payload_image() {
-    local type="$1"
-    oe_make_bup_payload ${IMGDEPLOYDIR}/${IMAGE_NAME}.${type}
-    for f in ${WORKDIR}/bup-payload/*_only_payload; do
-        [ -e $f ] || continue
-        sfx=$(basename $f _payload)
-        install -m 0644 $f ${IMGDEPLOYDIR}/${IMAGE_NAME}.$sfx.bup-payload
-        ln -sf ${IMAGE_NAME}.$sfx.bup-payload ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.$sfx.bup-payload
-    done
-}
-create_bup_payload_image[vardepsexclude] += "DATETIME"
-
-CONVERSIONTYPES += "bup-payload"
-CONVERSION_DEPENDS_bup-payload = "tegra-flashtools-native python3-pyyaml-native coreutils-native tegra-bootfiles \
-                                  tegra-redundant-boot-rollback dtc-native \
-                                  virtual/bootloader:do_deploy virtual/kernel:do_deploy virtual/secure-os:do_deploy \
-                                  ${TEGRA_ESP_IMAGE}:do_image_complete ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS}"
-CONVERSION_CMD:bup-payload = "create_bup_payload_image ${type}"
