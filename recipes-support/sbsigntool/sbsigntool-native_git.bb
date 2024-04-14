@@ -31,7 +31,7 @@ SRCREV_FORMAT       =  "sbsigntools_ccan"
 
 DEPENDS = "binutils-native gnu-efi-native help2man-native openssl-native util-linux-native"
 
-PV = "0.9.4-git${SRCPV}"
+PV = "0.9.4-git"
 
 S = "${WORKDIR}/git"
 

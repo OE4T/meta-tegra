@@ -15,7 +15,7 @@ CUDA_NATIVEDEPS = "cuda-compiler-11-8-native cuda-cudart-11-8-native"
 CUDA_NATIVEDEPS:class-native = ""
 CUDA_DEPENDS = "cuda-libraries-11-8 ${CUDA_NATIVEDEPS}"
 
-PV = "11.8+git${SRCPV}"
+PV = "11.8+git"
 CUDA_NVCC_ARCH_FLAGS ??= ""
 
 def extract_sm(d):

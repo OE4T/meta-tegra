@@ -7,7 +7,7 @@ inherit autotools pkgconfig
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-PV = "0.2.0+git${SRCPV}"
+PV = "0.2.0+git"
 SRCREV = "45c14ef4d5d7ced0fbf984208de44ced6d5ed898"
 SRCBRANCH = "master"
 SRC_REPO = "github.com/libusbgx/libusbgx.git;protocol=https"

@@ -18,7 +18,7 @@ SRC_URI ="git://git.linuxtv.org/v4l-utils.git;protocol=https;branch=stable-1.26 
 "
 SRCREV = "4aee01a027923cab1e40969f56f8ba58d3e6c0d1"
 
-PV .= "+git${SRCPV}"
+PV .= "+git"
 
 S = "${WORKDIR}/git"
 

@@ -15,7 +15,7 @@ DEPENDS:remove = "kern-tools-native"
 DEPENDS:append = " kern-tools-tegra-native"
 
 LINUX_VERSION ?= "5.10.192"
-PV = "${LINUX_VERSION}+git${SRCPV}"
+PV = "${LINUX_VERSION}+git"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
 LINUX_VERSION_EXTENSION ?= "-l4t-${@'.'.join(d.getVar('L4T_VERSION').split('.'))}"
