@@ -21,7 +21,7 @@ copy_in_flash_layout() {
         tegra194)
             # Multiple seds here since the 2nd occurrence of MB1FILE
             # gets a different rewrite than the first
-            sed -e"s,MB1FILE,mb1_b_t194_prod.bin,2" "$srcfile" | \
+            sed -e':a;N;$!ba;s,MB1FILE,mb1_b_t194_prod.bin,2' "$srcfile" | \
                 sed -e"s,TEGRABOOT,nvtboot_t194.bin," \
                     -e"s,MTSPREBOOT,preboot_c10_prod_cr.bin," \
                     -e"s,MTS_MCE,mce_c10_prod_cr.bin," \
