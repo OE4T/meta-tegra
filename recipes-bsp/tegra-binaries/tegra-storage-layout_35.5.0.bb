@@ -17,12 +17,13 @@ PATH =. "${STAGING_BINDIR_NATIVE}/tegra-flash:"
 copy_in_flash_layout() {
     local srcfile="$1"
     local dstfile="$2"
+    cp "$srcfile" "$dstfile"
     case "${SOC_FAMILY}" in
         tegra194)
             # Multiple seds here since the 2nd occurrence of MB1FILE
             # gets a different rewrite than the first
-            sed -e':a;N;$!ba;s,MB1FILE,mb1_b_t194_prod.bin,2' "$srcfile" | \
-                sed -e"s,TEGRABOOT,nvtboot_t194.bin," \
+            sed -i -e':a;N;$!ba;s,MB1FILE,mb1_b_t194_prod.bin,2' "$dstfile"
+            sed -i -e"s,TEGRABOOT,nvtboot_t194.bin," \
                     -e"s,MTSPREBOOT,preboot_c10_prod_cr.bin," \
                     -e"s,MTS_MCE,mce_c10_prod_cr.bin," \
                     -e"s,MTSPROPER,mts_c10_prod_cr.bin," \
@@ -35,10 +36,9 @@ copy_in_flash_layout() {
                     -e"s,BADPAGETYPE,black_list_info," -e"s,BADPAGEFILE,badpage.bin," -e"s,BADPAGENAME,badpage-fw," \
                     -e"s,SPEFILE,spe_t194.bin," \
                     -e"s,WB0BOOT,warmboot_t194_prod.bin," \
-                    > "$dstfile"
+                    "$dstfile"
             ;;
         tegra234)
-            nvflashxmlparse -v --switch-to-prefixed-kernel-partitions --output="$dstfile" "$srcfile"
             sed -i -e"s,MB1FILE,mb1_t234_prod.bin," \
                 -e"s,CAMERAFW,camera-rtcpu-t234-rce.img," \
                 -e"s,SPEFILE,spe_t234.bin," \
