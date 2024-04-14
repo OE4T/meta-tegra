@@ -201,7 +201,7 @@ tegraflash_create_flash_config:tegra194() {
 
     [ -n "$infile" ] || infile="${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_TEMPLATE}"
 
-    sed -e"s,MB1FILE,mb1_b_t194_prod.bin,2" "$infile" | \
+    sed -e':a;N;$!ba;s,MB1FILE,mb1_b_t194_prod.bin,2' "$infile" | \
 	sed \
         -e"s,LNXFILE_b,$lnxfile," \
         -e"s,LNXFILE,$lnxfile," -e"s,LNXSIZE,${LNXSIZE}," \
