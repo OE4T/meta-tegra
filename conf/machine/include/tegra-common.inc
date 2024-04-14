@@ -77,7 +77,7 @@ TEGRAFLASH_INITRD_FLASH_IMAGE ?= "tegra-initrd-flash-initramfs"
 BOOT_PARTITIONS_ON_EMMC ?= "0"
 TEGRAFLASH_NO_INTERNAL_STORAGE ?= "0"
 
-UBOOT_EXTLINUX ?= ""
+UBOOT_EXTLINUX ?= "1"
 TEGRA_ESSENTIAL_EXTRA_RDEPENDS ?= "${@'l4t-launcher-extlinux' if d.getVar('UBOOT_EXTLINUX') == '1' else ''}"
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda ext2"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${TEGRA_ESSENTIAL_EXTRA_RDEPENDS}"
