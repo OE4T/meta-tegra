@@ -11,8 +11,8 @@ require conf/machine/include/tegra234.inc
 
 TEGRA_BUPGEN_SPECS ?= "fab=000;boardsku=0003;boardrev=;bup_type=bl \
                        fab=000;boardsku=0003;boardrev=;bup_type=kernel \
-                       fab=000;boardsku=0004;boardrev=;bup_type=bl \
-                       fab=000;boardsku=0004;boardrev=;bup_type=kernel"
+                       fab=000;boardsku=0005;boardrev=;bup_type=bl \
+                       fab=000;boardsku=0005;boardrev=;bup_type=kernel"
 
 KERNEL_DEVICETREE ?= "tegra234-p3767-0003-p3768-0000-a0.dtb"
 KERNEL_ARGS ?= "mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 net.ifnames=0 nospectre_bhb"
