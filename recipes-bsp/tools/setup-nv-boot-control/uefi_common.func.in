@@ -60,17 +60,16 @@ set_efi_var() {
 }
 
 gen_compat_2888() {
-    if [ "$fab" = "400" ]; then
-        if [ "$boardsku" = "0004" ]; then
-            boardrev=
+    if [ "$boardsku" = "0004" ]; then
+        boardrev=
+        fab="400"
+    elif [ "$fab" = "400" ]; then
+        if echo "$boardrev" | grep -q "^[ABCD]\."; then
+            boardrev="D.0"
         else
-            if echo "$boardrev" | grep -q "^[ABCD]\."; then
-                boardrev="D.0"
-            else
-                boardrev="E.0"
-            fi
-            boardsku="0001"
+            boardrev="E.0"
         fi
+        boardsku="0001"
     elif [ "$fab" = "600" -a "$boardsku" = "0008" ]; then
         boardrev=
     fi
@@ -130,7 +129,8 @@ gen_compat_spec() {
 # boardspec should be piped into this function
 needs_mmc_hack() {
     IFS=- read boardid fab boardsku boardrev fuselevel chiprev
-    if [ "$boardid" = "2888" -a "$fab" = "400" ]; then
+    if [ "$boardid" = "2888" -a "$boardsku" != "0008" ]; then
+        # all AGX except industrial need the workaround
         echo "yes"
     else
         echo ""
