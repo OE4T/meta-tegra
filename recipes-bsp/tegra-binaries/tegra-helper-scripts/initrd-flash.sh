@@ -371,6 +371,7 @@ generate_flash_package() {
 	echo "export-devices $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
     fi
 
+    echo "extra" >> "$mnt/flashpkg/conf/command_sequence"
     echo "reboot" >> "$mnt/flashpkg/conf/command_sequence"
 
     unmount_and_release "$mnt" "$dev" || return 1
