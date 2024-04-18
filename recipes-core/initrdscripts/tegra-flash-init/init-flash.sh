@@ -181,6 +181,13 @@ else
 		    break
 		done
 		;;
+	    extra)
+		if [ -f "/init-extra" ]; then
+		    ./init-extra
+		else
+		    echo "No init-extra was found" >&2
+		fi
+		;;
 	    reboot)
 		reboot_type="$args"
 		final_status="SUCCESS"
