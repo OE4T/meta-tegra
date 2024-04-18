@@ -673,7 +673,7 @@ EOF
             buptype_arg=""
         fi
         cat <<EOF >> $outfile
-MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" ./${SOC_FAMILY}-flash-helper.sh --bup $buptype_arg ./flash-stripped.xml.in ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
+MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" CHIP_SKU="$chipsku" ./${SOC_FAMILY}-flash-helper.sh --bup $buptype_arg ./flash-stripped.xml.in ${DTBFILE} $sdramcfg ${ODMDATA} "\$@"
 EOF
     done
     chmod +x $outfile
