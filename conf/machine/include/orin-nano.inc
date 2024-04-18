@@ -2,16 +2,15 @@ TEGRA_BOARDID ?= "3767"
 TEGRA_FAB ?= "RC1"
 TEGRA_BOARDSKU ?= "0005"
 TEGRA_BOARDREV ?= "B.4"
-TEGRA_CHIPREV ?= "1"
 NVPMODEL ?= "nvpmodel_p3767_0003"
 NVFANCONTROL ?= "nvfancontrol_p3767_0000"
 
 MACHINEOVERRIDES =. "orin-nano:"
 require conf/machine/include/tegra234.inc
 
-TEGRA_BUPGEN_SPECS ?= "fab=000;boardsku=0003;boardrev=;bup_type=bl \
+TEGRA_BUPGEN_SPECS ?= "fab=000;boardsku=0003;boardrev=;chipsku=00:00:00:D5;bup_type=bl \
                        fab=000;boardsku=0003;boardrev=;bup_type=kernel \
-                       fab=000;boardsku=0005;boardrev=;bup_type=bl \
+                       fab=000;boardsku=0005;boardrev=;chipsku=00:00:00:D5;bup_type=bl \
                        fab=000;boardsku=0005;boardrev=;bup_type=kernel"
 
 KERNEL_DEVICETREE ?= "tegra234-p3767-0003-p3768-0000-a0.dtb"
