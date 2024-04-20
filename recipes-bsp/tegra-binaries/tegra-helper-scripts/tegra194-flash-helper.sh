@@ -421,7 +421,8 @@ if [ -n "$keyfile" -o -n "$sbk_keyfile" ] && [ $have_odmsign_func -eq 0 ]; then
 fi
 
 if [ $rcm_boot -ne 0 ]; then
-    BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile"
+    cp $kernel_dtbfile rcmboot_$kernel_dtbfile
+    BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb rcmboot_$kernel_dtbfile"
 fi
 
 overlay_dtb_files="$BOOTCONTROL_OVERLAYS"
