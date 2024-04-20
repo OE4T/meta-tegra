@@ -651,7 +651,12 @@ eks eks.img"
 fi
 
 if [ $rcm_boot -ne 0 ]; then
-    BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile"
+    if [ "$CHIPID" = "0x19" ]; then
+        cp $kernel_dtbfile rcmboot_$kernel_dtbfile
+        BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb rcmboot_$kernel_dtbfile"
+    else
+        BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile"
+    fi
 fi
 
 custinfo_args=
