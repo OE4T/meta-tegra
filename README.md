@@ -20,7 +20,7 @@ Community supported:
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
-branch: master
+branch: scarthgap
 LAYERSERIES_COMPAT: scarthgap
 
 
