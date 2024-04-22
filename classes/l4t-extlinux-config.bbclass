@@ -90,7 +90,7 @@ python do_create_extlinux_config() {
 
         fdt = localdata.getVar('UBOOT_EXTLINUX_FDT')
         if fdt:
-            fdt = '\tFDT ' + fdt + '\n'
+            fdt = '\tFDT ' + '/boot/' + fdt + '\n'
 
         cfg += 'LABEL %s\n\tMENU LABEL %s\n\tLINUX %s\n%s' % (label, menu_description, kernel_image, fdt)
 
