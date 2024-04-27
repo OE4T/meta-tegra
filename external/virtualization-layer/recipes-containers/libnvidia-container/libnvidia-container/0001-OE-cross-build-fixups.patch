@@ -12,10 +12,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  mk/nvidia-modprobe.mk |  3 ++-
  3 files changed, 23 insertions(+), 20 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index 6fb69765..9c41db66 100644
---- a/Makefile
-+++ b/Makefile
+Index: git/Makefile
+===================================================================
+--- git.orig/Makefile
++++ git/Makefile
 @@ -24,17 +24,17 @@ WITH_SECCOMP ?= yes
  
  ##### Global definitions #####
@@ -70,7 +70,7 @@ index 6fb69765..9c41db66 100644
  ifeq ($(WITH_NVCGO), yes)
  LIB_CPPFLAGS       += -DWITH_NVCGO
  LIB_LDLIBS_SHARED  += -lpthread
-@@ -205,13 +207,17 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
+@@ -205,13 +207,17 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(
  $(BUILD_DEFS):
  	@printf '#define BUILD_DATE     "%s"\n' '$(strip $(DATE))' >$(BUILD_DEFS)
  	@printf '#define BUILD_COMPILER "%s " __VERSION__\n' '$(notdir $(COMPILER))' >>$(BUILD_DEFS)
@@ -115,10 +115,19 @@ index 6fb69765..9c41db66 100644
  debug: shared static tools
  
  tools: $(BIN_NAME)
-diff --git a/mk/common.mk b/mk/common.mk
-index f6d5fbf2..d46584b7 100644
---- a/mk/common.mk
-+++ b/mk/common.mk
+@@ -269,7 +271,7 @@ ifeq ($(WITH_TIRPC), yes)
+ 	$(MAKE) -f $(MAKE_DIR)/libtirpc.mk DESTDIR=$(DEPS_DIR) install
+ endif
+ 
+-install: all
++install:
+ 	$(INSTALL) -d -m 755 $(addprefix $(DESTDIR),$(includedir) $(bindir) $(libdir) $(docdir) $(libdbgdir) $(pkgconfdir))
+ 	# Install header files
+ 	$(INSTALL) -m 644 $(LIB_INCS) $(DESTDIR)$(includedir)
+Index: git/mk/common.mk
+===================================================================
+--- git.orig/mk/common.mk
++++ git/mk/common.mk
 @@ -28,7 +28,7 @@ else
      DATE := $(shell date -u --iso-8601=minutes)
  endif
@@ -128,11 +137,11 @@ index f6d5fbf2..d46584b7 100644
  PLATFORM ?= $(shell uname -m)
  
  ifeq ($(DATE),)
-diff --git a/mk/nvidia-modprobe.mk b/mk/nvidia-modprobe.mk
-index 34062224..71866af8 100644
---- a/mk/nvidia-modprobe.mk
-+++ b/mk/nvidia-modprobe.mk
-@@ -26,6 +26,7 @@ PATCH_FILE     := $(MAKE_DIR)/nvidia-modprobe.patch
+Index: git/mk/nvidia-modprobe.mk
+===================================================================
+--- git.orig/mk/nvidia-modprobe.mk
++++ git/mk/nvidia-modprobe.mk
+@@ -26,6 +26,7 @@ PATCH_FILE     := $(MAKE_DIR)/nvidia-mod
  ARFLAGS  := -rU
  CPPFLAGS := -D_FORTIFY_SOURCE=2 -DNV_LINUX
  CFLAGS   := -O2 -g -fdata-sections -ffunction-sections -fstack-protector -fno-strict-aliasing -fPIC
@@ -149,3 +158,16 @@ index 34062224..71866af8 100644
  
  ##### Public rules #####
  
+Index: git/src/nvcgo/Makefile
+===================================================================
+--- git.orig/src/nvcgo/Makefile
++++ git/src/nvcgo/Makefile
+@@ -39,7 +39,7 @@ build: $(OBJ_NAME)
+ $(OBJ_NAME): $(wildcard $(CURDIR)/*.go) $(wildcard */*.go)
+ 	export CGO_CFLAGS="$(CGO_CFLAGS)"; \
+ 	export CGO_LDFLAGS="$(CGO_LDFLAGS)"; \
+-	$(GO) build -o $(@) -ldflags "-s -w" -buildmode=c-shared .
++	$(GO) build -o $(@) -ldflags "-s -w" -trimpath -buildmode=c-shared .
+ 
+ install: $(OBJ_NAME)
+ 	$(INSTALL) -d -m 755 $(addprefix $(DESTDIR),$(libdir) $(includedir)/$(PKG_NAME))
