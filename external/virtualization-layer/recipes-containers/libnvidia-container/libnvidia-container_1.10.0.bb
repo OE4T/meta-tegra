@@ -7,6 +7,8 @@ kernel subsystems and is designed to be agnostic of the container runtime. \
 "
 HOMEPAGE = "https://github.com/NVIDIA/libnvidia-container"
 
+inherit go
+
 DEPENDS = " \
     coreutils-native \
     pkgconfig-native \
@@ -50,22 +52,34 @@ SRCREV_modprobe = "292409904a5d18163fc7d1fbc11f98627324b82a"
 SRCREV_FORMAT = "libnvidia_modprobe"
 
 S = "${WORKDIR}/git"
+B = "${S}"
 
 PACKAGECONFIG ??= ""
 PACKAGECONFIG[seccomp] = "WITH_SECCOMP=yes,WITH_SECCOMP=no,libseccomp"
 
 # We need to link with libelf, otherwise we need to
 # include bmake-native which does not exist at the moment.
-EXTRA_OEMAKE = 'EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} WITH_NVCGO=no WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${PACKAGECONFIG_CONFARGS} \
+EXTRA_OEMAKE = 'EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${PACKAGECONFIG_CONFARGS} \
                 NVIDIA_MODPROBE_EXTRA_CFLAGS="${NVIDIA_MODPROBE_EXTRA_CFLAGS}"'
 NVIDIA_MODPROBE_EXTRA_CFLAGS ?= "${DEBUG_PREFIX_MAP}"
+GO_LINKSHARED = ""
 
 export OBJCPY="${OBJCOPY}"
 
+python do_unpack() {
+    bb.build.exec_func('base_do_unpack', d)
+}
+
 # Fix me: Create an independent recipe for nvidia-modprobe
-do_configure:append() {
+do_configure() {
+    base_do_configure
     # Mark Nvidia modprobe as downloaded
     touch ${S}/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION}/.download_stamp
+}
+
+do_compile() {
+    export TMPDIR="${GOTMPDIR}"
+    base_do_compile
 }
 
 do_install () {
@@ -76,4 +90,13 @@ do_install () {
 
 PACKAGES =+ "${PN}-tools"
 FILES:${PN}-tools = "${bindir}"
-RDEPENDS:${PN}:append:tegra = " libnvidia-container-jetson ldconfig tegra-libraries-cuda"
+# XXX - go.bbclass rewrites these
+FILES:${PN}-dev = "${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \
+                ${libdir}/*.o ${libdir}/pkgconfig ${datadir}/pkgconfig \
+                ${datadir}/aclocal ${base_libdir}/*.o \
+                ${libdir}/${BPN}/*.la ${base_libdir}/*.la \
+                ${libdir}/cmake ${datadir}/cmake"
+FILES:${PN}-staticdev = "${libdir}/*.a ${base_libdir}/*.a ${libdir}/${BPN}/*.a"
+# - XXX
+RDEPENDS:${PN}:append:tegra = " ldconfig tegra-libraries-cuda tegra-container-passthrough nv-tegra-release libnvidia-container-jetson"
+INSANE_SKIP:${PN} = "already-stripped ldflags"
