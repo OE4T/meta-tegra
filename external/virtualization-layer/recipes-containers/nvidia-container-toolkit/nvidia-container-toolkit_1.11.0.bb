@@ -38,7 +38,11 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
 SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=main"
 SRCREV = "d9de4a09b8fd51a46207398199ecfeb3998ad49d"
 
-SRC_URI += "file://0001-Fix-cgo-LDFLAGS-for-go-1.21-and-later.patch;patchdir=src/${GO_IMPORT}"
+SRC_URI += "\
+    file://0001-Fix-cgo-LDFLAGS-for-go-1.21-and-later.patch;patchdir=src/${GO_IMPORT} \
+    file://0002-Add-alt-root-support.patch;patchdir=src/${GO_IMPORT} \
+    file://config.toml.in \
+"
 
 GO_IMPORT = "github.com/NVIDIA/nvidia-container-toolkit"
 GO_INSTALL = "${GO_IMPORT}/cmd/..."
@@ -58,12 +62,17 @@ REQUIRED_DISTRO_FEATURES = "virtualization"
 
 inherit go-mod gitpkgv features_check
 
+do_compile() {
+    go_do_compile
+    sed -e's,!LOCALSTATEDIR!,${localstatedir},g' \
+        -e's,!BASE_SBINDIR!,${base_sbindir},g' \
+        -e's,!SYSCONFDIR!,${sysconfdir},g' \
+        -e's,!DATADIR!,${datadir},g' ${WORKDIR}/config.toml.in > ${B}/config.toml
+}
+
 do_install(){
     go_do_install
-    install -d ${D}${sysconfdir}/nvidia-container-runtime
-    install -m 0644 ${S}/src/${GO_IMPORT}/config/config.toml.ubuntu ${D}${sysconfdir}/nvidia-container-runtime/config.toml
-    sed -i -e's,ldconfig\.real,ldconfig,' ${D}${sysconfdir}/nvidia-container-runtime/config.toml
-    sed -i -e's,mode = "auto",mode = "legacy",' ${D}${sysconfdir}/nvidia-container-runtime/config.toml
+    install -m 0644 -D -t ${D}${sysconfdir}/nvidia-container-runtime ${B}/config.toml
     ln -sf nvidia-container-runtime-hook ${D}${bindir}/nvidia-container-toolkit
 }
 
