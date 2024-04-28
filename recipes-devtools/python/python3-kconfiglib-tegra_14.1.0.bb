@@ -9,6 +9,8 @@ PROVIDES = "python3-kconfiglib"
 
 inherit pypi setuptools3
 
+PYPI_PACKAGE = "kconfiglib"
+
 BBCLASSEXTEND = "native nativesdk"
 
 RDEPENDS:${PN} += " \
