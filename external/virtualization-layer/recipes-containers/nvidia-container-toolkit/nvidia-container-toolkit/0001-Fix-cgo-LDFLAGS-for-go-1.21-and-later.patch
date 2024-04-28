@@ -1,7 +1,7 @@
-From 00529c2b30cf74993bb124ba82a6947703540584 Mon Sep 17 00:00:00 2001
+From 20cbd3337c7fcda12eb5e5d38c92ad23f63a9270 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 17 Mar 2024 09:33:12 -0700
-Subject: [PATCH] Fix cgo LDFLAGS for go 1.21 and later
+Subject: [PATCH 1/2] Fix cgo LDFLAGS for go 1.21 and later
 
 Upstream-Status: Pending
 
