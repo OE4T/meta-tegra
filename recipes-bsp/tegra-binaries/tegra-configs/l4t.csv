@@ -277,4 +277,4 @@ sym, /usr/lib/libnvscibuf.so
 sym, /usr/lib/libnvscicommon.so
 sym, /usr/lib/libnvscistream.so
 sym, /usr/lib/libnvscisync.so
-lib, /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+lib, /usr/share/glvnd/egl_vendor.d/10-nvidia.json
