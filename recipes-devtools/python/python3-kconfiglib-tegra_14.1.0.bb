@@ -7,6 +7,8 @@ SRC_URI[sha256sum] = "bed2cc2216f538eca4255a83a4588d8823563cdd50114f86cf1a2674e6
 
 PROVIDES = "python3-kconfiglib"
 
+PYPI_PACKAGE = "kconfiglib"
+
 inherit pypi setuptools3
 
 BBCLASSEXTEND = "native nativesdk"
