@@ -49,6 +49,8 @@ OECMAKE_CXX_FLAGS:append = " -Wno-array-bounds"
 LDFLAGS += "-Wl,--no-undefined"
 
 do_configure:prepend() {
+    sed -i "s/CMAKE_CXX_STANDARD [0-9]\+/CMAKE_CXX_STANDARD 17/g" ${S}/CMakeLists.txt
+    sed -i "s/CXX_STANDARD [0-9]\+/CXX_STANDARD 17/g" ${S}/parsers/onnx/CMakeLists.txt
     sed -i "s/CMAKE_CXX_STANDARD [0-9]\+/CMAKE_CXX_STANDARD 17/g" ${S}/parsers/onnx/third_party/onnx/CMakeLists.txt
     sed -i "s/CXX_STANDARD [0-9]\+/CXX_STANDARD 17/g" ${S}/parsers/caffe/CMakeLists.txt
 }
