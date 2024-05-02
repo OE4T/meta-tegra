@@ -15,7 +15,7 @@ DEPENDS = " \
     pkgconfig-native \
     libcap \
     elfutils \
-    libtirpc126 \
+    libtirpc \
     ldconfig-native \
 "
 LICENSE = "BSD-3-Clause & MIT & Proprietary"
@@ -70,8 +70,6 @@ PASSTHRU_ROOT = "${datadir}/nvidia-container-passthrough"
 
 EXTRA_OEMAKE = "EXCLUDE_BUILD_FLAGS=1 PASSTHRU_ROOT=${PASSTHRU_ROOT} PLATFORM=${HOST_ARCH} JETSON=TRUE WITH_LIBELF=yes COMPILER=${@d.getVar('CC').split()[0]} REVISION=${SRCREV_libnvidia} ${@build_date(d)} ${PACKAGECONFIG_CONFARGS}"
 
-CFLAGS:prepend = " -I=/usr/include/tirpc-1.2.6 "
-
 export OBJCPY="${OBJCOPY}"
 
 # Fix me: Create an independent recipe for nvidia-modprobe
@@ -98,4 +96,3 @@ DEBIAN_NOAUTONAME:${PN}-dbg = "1"
 DEBIAN_NOAUTONAME:${PN}-dev = "1"
 DEBIAN_NOAUTONAME:${PN}-doc = "1"
 DEBIAN_NOAUTONAME:${PN}-src = "1"
-RDEPENDS:${PN} = "tegra-container-passthrough nv-tegra-release"
