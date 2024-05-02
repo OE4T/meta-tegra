@@ -65,8 +65,8 @@ index 709102b7..da836fae 100644
 -LIB_LDLIBS_STATIC  = -l:libnvidia-modprobe-utils.a
 -LIB_LDLIBS_SHARED  = -ldl -lcap
 +LIB_LDFLAGS        = -shared -Wl,-soname=$(LIB_SONAME)
-+LIB_LDLIBS_STATIC  = -L$(DEPS_DIR)$(libdir) -l:libnvidia-modprobe-utils.a -L=$(libdir) -l:libtirpc.a
-+LIB_LDLIBS_SHARED  = -ldl -lcap -lpthread
++LIB_LDLIBS_STATIC  = -L$(DEPS_DIR)$(libdir) -l:libnvidia-modprobe-utils.a
++LIB_LDLIBS_SHARED  = -ltirpc -ldl -lcap -lpthread
  ifeq ($(WITH_LIBELF), yes)
  LIB_CPPFLAGS       += -DWITH_LIBELF
  LIB_LDLIBS_SHARED  += -lelf
