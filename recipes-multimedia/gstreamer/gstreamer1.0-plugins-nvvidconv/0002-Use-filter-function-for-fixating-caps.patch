@@ -13,7 +13,7 @@ Index: gst-nvvidconv/gstnvvconv.c
 ===================================================================
 --- gst-nvvidconv.orig/gstnvvconv.c
 +++ gst-nvvidconv/gstnvvconv.c
-@@ -1916,6 +1916,23 @@ gst_nvvconv_get_unit_size (GstBaseTransf
+@@ -2058,6 +2058,23 @@ gst_nvvconv_get_unit_size (GstBaseTransf
    return ret;
  }
  
@@ -37,7 +37,7 @@ Index: gst-nvvidconv/gstnvvconv.c
  /**
    * Given the pad in direction and the given caps,
    * fixate the caps on the other pad.
-@@ -1943,29 +1960,13 @@ gst_nvvconv_fixate_caps (GstBaseTransfor
+@@ -2085,29 +2102,13 @@ gst_nvvconv_fixate_caps (GstBaseTransfor
    gboolean have_nvfeature = FALSE;
  
    space = GST_NVVCONV (btrans);
@@ -74,8 +74,8 @@ Index: gst-nvvidconv/gstnvvconv.c
    GST_DEBUG_OBJECT (space, "trying to fixate othercaps %" GST_PTR_FORMAT
        " based on caps %" GST_PTR_FORMAT, othercaps, caps);
  
-@@ -2038,7 +2039,10 @@ gst_nvvconv_fixate_caps (GstBaseTransfor
-     gint numerator, denominator;
+@@ -2180,7 +2181,10 @@ gst_nvvconv_fixate_caps (GstBaseTransfor
+     gint numerator = 0, denominator = 0;
  
      /* from_pix_ar should be fixed */
 -    g_return_val_if_fail (gst_value_is_fixed (from_pix_ar), othercaps);

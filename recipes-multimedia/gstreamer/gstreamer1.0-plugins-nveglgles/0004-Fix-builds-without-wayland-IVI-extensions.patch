@@ -1,0 +1,49 @@
+From 037229f4e618fa74189f8311272ec86ba025a83c Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 6 May 2024 11:48:24 -0700
+Subject: [PATCH] Fix builds without wayland IVI extensions
+
+Upstream-Status: Inappropriate [OE specific]
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ gst-egl/ext/eglgles/video_platform_wrapper.c | 2 ++
+ gst-egl/ext/eglgles/video_platform_wrapper.h | 7 +++++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/gst-egl/ext/eglgles/video_platform_wrapper.c b/gst-egl/ext/eglgles/video_platform_wrapper.c
+index 769e99a..fd88a5e 100644
+--- a/gst-egl/ext/eglgles/video_platform_wrapper.c
++++ b/gst-egl/ext/eglgles/video_platform_wrapper.c
+@@ -175,10 +175,12 @@ void global_registry_handler (void *data, struct wl_registry *registry, uint32_t
+     wp_presentation_add_listener (wayland_display->presentation,
+         &presentation_listener, NULL);
+   }
++#ifdef HAVE_WAYLAND_IVI_APPLICATION
+   else if (strcmp (interface, "ivi_application") == 0) {
+     wayland_display->ivi_application = wl_registry_bind (registry, id,
+         &ivi_application_interface, 1);
+   }
++#endif
+ }
+ 
+ void global_registry_remover (void *data, struct wl_registry *registry, uint32_t id)
+diff --git a/gst-egl/ext/eglgles/video_platform_wrapper.h b/gst-egl/ext/eglgles/video_platform_wrapper.h
+index 23f6904..594b9a2 100644
+--- a/gst-egl/ext/eglgles/video_platform_wrapper.h
++++ b/gst-egl/ext/eglgles/video_platform_wrapper.h
+@@ -52,7 +52,14 @@ gboolean platform_destroy_native_window_x11 (EGLNativeDisplayType display,
+ #include "wayland-client-protocol.h"
+ #include "wayland-egl.h"
+ #include "presentation-time-client-protocol.h"
++#ifdef HAVE_WAYLAND_IVI_APPLICATION
+ #include "ivi-application-client-protocol.h"
++#else
++struct ivi_surface;
++struct ivi_application;
++static inline __attribute__((unused)) void *ivi_application_surface_create(void *a, guint id, void *surface) { return NULL; }
++static inline __attribute__((unused)) void ivi_application_destroy(struct ivi_application *a) { };
++#endif
+ typedef struct
+ {
+   struct wl_egl_window *egl_window;

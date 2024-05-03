@@ -1,11 +1,11 @@
 DESCRIPTION = "NVIDIA video converter GStreamer plugin"
 SECTION = "multimedia"
 LICENSE = "BSD-3-Clause & Proprietary"
-LIC_FILES_CHKSUM = "file://nvbufsurface.h;endline=9;md5=25279494f0285af8ac21bc9d4e679c91 \
+LIC_FILES_CHKSUM = "file://nvbufsurface.h;endline=9;md5=15dccc547ee18664b1b6d1ece602942b \
                     file://README.txt;endline=26;md5=d4da79f8cebc6b73ce481b090afa99ae \
 "
 
-TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvvidconv_src.tbz2"
+TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/gst-nvvidconv_src.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-36.3.0.inc
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base tegra-libraries-multimedia tegra-mmapi cuda-driver cuda-cudart"

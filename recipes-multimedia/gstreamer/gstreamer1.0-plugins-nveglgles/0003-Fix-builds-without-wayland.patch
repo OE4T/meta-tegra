@@ -1,0 +1,29 @@
+From 6c4c9109d9c342bdb5eb58fff62f24357723077a Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 6 May 2024 11:54:08 -0700
+Subject: [PATCH] Fix builds without wayland
+
+Upstream-Status: Inappropriate [OE specific]
+
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ gst-egl/ext/eglgles/gstegladaptation_egl.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/gst-egl/ext/eglgles/gstegladaptation_egl.c b/gst-egl/ext/eglgles/gstegladaptation_egl.c
+index 3d1ceb6..81e244e 100644
+--- a/gst-egl/ext/eglgles/gstegladaptation_egl.c
++++ b/gst-egl/ext/eglgles/gstegladaptation_egl.c
+@@ -268,9 +268,11 @@ gboolean
+ gst_egl_adaptation_context_swap_buffers (GstEglAdaptationContext * ctx, gchar* winsys,
+         gpointer * own_window_data, GstBuffer * buf, gboolean show_latency)
+ {
++#ifdef USE_EGL_WAYLAND
+   if (g_strcmp0(winsys, "wayland") == 0 && show_latency) {
+     register_presentation_feedback(own_window_data, buf);
+   }
++#endif
+ 
+   gboolean ret = eglSwapBuffers (gst_egl_display_get (ctx->display),
+       ctx->eglglesctx->surface);
