@@ -1,4 +1,5 @@
 #!/bin/sh
+modprobe libcomposite bridge
 [ -d /run/usbgx ] || mkdir /run/usbgx
 [ ! -e /run/usbgx/l4t.schema ] || exit 0
 if [ ! -e /usr/share/usbgx/l4t.schema.in ]; then
