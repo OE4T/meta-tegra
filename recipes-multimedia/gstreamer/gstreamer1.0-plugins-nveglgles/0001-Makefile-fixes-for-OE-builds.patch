@@ -1,19 +1,22 @@
-From 7b3481fd8da2a5de0b5a0fa49ce2c1bb66e4b81e Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Thu, 14 Apr 2022 23:56:59 +0100
+From 798d1b634c815f0c64562a373046dd1c112d3103 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 6 May 2024 11:53:29 -0700
 Subject: [PATCH] Makefile fixes for OE builds
+
+Upstream-Status: Inappropriate [OE specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile                   | 45 +++++++++++++------
- pre-gen-source_64/config.h |  6 +--
- 2 files changed, 34 insertions(+), 17 deletions(-)
+ gst-egl/Makefile                   | 58 ++++++++++++++++++++++--------
+ gst-egl/pre-gen-source_64/config.h |  6 ++--
+ 2 files changed, 47 insertions(+), 17 deletions(-)
 
-Index: gst-egl/Makefile
-===================================================================
---- gst-egl.orig/Makefile
-+++ gst-egl/Makefile
+diff --git a/gst-egl/Makefile b/gst-egl/Makefile
+index a266201..244ba49 100644
+--- a/gst-egl/Makefile
++++ b/gst-egl/Makefile
 @@ -16,8 +16,11 @@ ifeq ($(CUDA_VER),)
  endif
  endif
@@ -27,7 +30,7 @@ Index: gst-egl/Makefile
  
  SRCS := ext/eglgles/gstegladaptation.c \
  	ext/eglgles/gstegladaptation_egl.c \
-@@ -29,33 +32,48 @@ SRCS := ext/eglgles/gstegladaptation.c \
+@@ -29,46 +32,73 @@ SRCS := ext/eglgles/gstegladaptation.c \
  INCLUDES += -I./pre-gen-source_64/ \
          -I./gst-libs \
          -I./gst-libs/gst/egl \
@@ -64,11 +67,15 @@ Index: gst-egl/Makefile
 -	-DUSE_EGL_WAYLAND
 +	-DUSE_EGL_TEGRA
 +
++EXTRADEPS :=
 +ifneq ($(USE_X11),)
 +CFLAGS += -DHAVE_X11 -DUSE_EGL_X11
 +endif
 +ifneq ($(USE_WAYLAND),)
 +CFLAGS += -DHAVE_WAYLAND -DUSE_EGL_WAYLAND
++SRCS += ext/eglgles/presentation-time.c
++EXTRADEPS += ext/eglgles/presentation-time-client-protocol.h
++OBJS += ext/eglgles/presentation-time.o
 +endif
  
  CFLAGS += `pkg-config --cflags $(PKGS)`
@@ -84,9 +91,21 @@ Index: gst-egl/Makefile
 +.PHONY: all
  all: $(SO_NAME)
  
- %.o: %.c
-@@ -66,9 +84,9 @@ $(SO_NAME): $(OBJS)
+-%.o: %.c
++%.o: %.c $(EXTRADEPS)
+ 	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
  
+ $(SO_NAME): $(OBJS)
+ 	$(CC) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
+ 
++ifneq ($(USE_WAYLAND),)
++PT_DESC := $(shell pkg-config --variable=pkgdatadir wayland-protocols)/stable/presentation-time/presentation-time.xml
++ext/eglgles/presentation-time-client-protocol.h: $(PT_DESC)
++	wayland-scanner client-header < $< > $@
++ext/eglgles/presentation-time.c: $(PT_DESC)
++	wayland-scanner private-code < $< > $@
++endif
++
  .PHONY: install
  install: $(SO_NAME)
 -	cp -vp $(SO_NAME) $(DEST_DIR)
@@ -95,12 +114,13 @@ Index: gst-egl/Makefile
  
  .PHONY: clean
  clean:
- 	rm -rf $(OBJS) $(SO_NAME)
+-	rm -rf $(OBJS) $(SO_NAME)
 -
-Index: gst-egl/pre-gen-source_64/config.h
-===================================================================
---- gst-egl.orig/pre-gen-source_64/config.h
-+++ gst-egl/pre-gen-source_64/config.h
++	rm -rf $(OBJS) $(SO_NAME) $(EXTRADEPS) ext/eglgles/presentation-time.c
+diff --git a/gst-egl/pre-gen-source_64/config.h b/gst-egl/pre-gen-source_64/config.h
+index d06e1a8..af67714 100644
+--- a/gst-egl/pre-gen-source_64/config.h
++++ b/gst-egl/pre-gen-source_64/config.h
 @@ -524,7 +524,7 @@
  /* #undef HAVE_WASAPI */
  

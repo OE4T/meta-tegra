@@ -1,16 +1,16 @@
-From bf7357bdaaa920a0e9d5f229fcb3f6060f1615d8 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Thu, 26 Jan 2023 00:06:19 +0000
+From b7a7f55f9a864edd8d4f935e403c94ec7253f8ac Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 17 Nov 2023 13:00:06 +0000
 Subject: [PATCH 7/7] Makefile fixes for OE builds
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
- gst-v4l2/Makefile | 43 ++++++++++++++++++++-----------------------
+ Makefile | 43 ++++++++++++++++++++-----------------------
  1 file changed, 20 insertions(+), 23 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 6621c04..2102dd1 100644
+index 522a1f5..2102dd1 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -10,49 +10,45 @@
@@ -29,6 +29,7 @@ index 6621c04..2102dd1 100644
 -ifeq ($(TARGET_DEVICE),aarch64)
 -  GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
 -  LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-  INCLUDES += -I/usr/src/jetson_multimedia_api/include/
 -  CFLAGS:=
 -else
 -  GST_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/gst-plugins/
@@ -41,7 +42,6 @@ index 6621c04..2102dd1 100644
  SRCS := $(wildcard *.c)
  
 -INCLUDES += -I./ -I../
--INCLUDES += -I/usr/src/jetson_multimedia_api/include/
 +INCLUDES += -I./
  
  PKGS := gstreamer-1.0 \
