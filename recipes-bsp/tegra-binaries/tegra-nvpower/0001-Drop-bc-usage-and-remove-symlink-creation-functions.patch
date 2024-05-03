@@ -1,18 +1,22 @@
-From b2cdefaae658c9b55f29ae17ca2d0decd1bd79a9 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Fri, 25 Mar 2022 12:51:57 -0700
+From dae2c99a22f25ed54e4eed69ca26066bdf88e8c2 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 3 Nov 2023 23:44:46 +0000
 Subject: [PATCH] Drop bc usage and remove symlink creation functions
 
 Signed-off-by: Matt Madison <matt@madison.systems>
----
- etc/systemd/nvpower.sh | 81 +-----------------------------------------
- 1 file changed, 1 insertion(+), 80 deletions(-)
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 
-Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ etc/systemd/nvpower.sh | 164 ++++-------------------------------------
+ 1 file changed, 13 insertions(+), 151 deletions(-)
+
+Index: tegra-nvpower-36.3.0-20240424200557/etc/systemd/nvpower.sh
 ===================================================================
---- tegra-nvpower-35.4.1-20230801124926.orig/etc/systemd/nvpower.sh
-+++ tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
-@@ -119,128 +119,6 @@ function set_power_state_perm()
+--- tegra-nvpower-36.3.0-20240424200557.orig/etc/systemd/nvpower.sh
++++ tegra-nvpower-36.3.0-20240424200557/etc/systemd/nvpower.sh
+@@ -142,145 +142,6 @@ function set_power_state_perm()
  	fi
  }
  
@@ -57,6 +61,8 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
 -			elif [ "${machine}" = "p3701-0000-as-p3701-0004" ] || \
 -				[ "${machine}" = "p3701-0004" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0004.conf"
+-			elif [ "${machine}" = "p3701-0008-safety" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3701_0008_3740_0002_safety.conf"
 -			elif [ "${machine}" = "p3701-0008" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0008.conf"
 -				if [ "${cvb}" = "p3740-0002-c01" ]; then
@@ -75,8 +81,16 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
 -			elif [ "${machine}" = "p3767-0004" ] || \
 -				[ "${machine}" = "p3767-0000-as-p3767-0004" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004.conf"
+-			elif [ "${machine}" = "taylor-high" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_taylor_high.conf"
+-			elif [ "${machine}" = "taylor-low" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_taylor_low.conf"
 -			else
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0000.conf"
+-			fi
+-		elif [ "${SOCFAMILY}" = "tegra239" ]; then
+-			if [ "${machine}" = "e2423" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_e2423.conf"
 -			fi
 -		fi
 -
@@ -111,7 +125,8 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
 -				if [ "${machine}" = "p3701-0008" ]; then
 -					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0008.conf"
 -				fi
--			elif [[ "${machine}" =~ "p3767" ]]; then
+-			elif [[ "${machine}" =~ "p3767" ]] ||
+-				[ "${machine}" = "taylor-high" ] || [ "${machine}" = "taylor-low" ]; then
 -				# All p3767 series share the same fan settings
 -				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3767_0000.conf"
 -			else
@@ -128,6 +143,12 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
 -			fi
 -		fi
 -
+-		if [ "${SOCFAMILY}" = "tegra239" ]; then
+-			if [ "${machine}" = "e2423" ]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_e2423.conf"
+-			fi
+-		fi
+-
 -		if [ "${conf_file}" != "" ]; then
 -			if [ -e "${conf_file}" ]; then
 -				ln -sf "${conf_file}" /etc/nvfancontrol.conf
@@ -141,21 +162,73 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
  # CPU hotplug helper function that turns on/off the CPU cores in the specified range
  # * Parameters:
  # * ${1}: desired online status (0 for offline, 1 for online)
-@@ -311,7 +189,7 @@ function set_cpu_governor()
- 			*schedutil*)
- 				# latest kernel is using the upstream driver and need to avoid setting
- 				# schedutil governor on kstable.
--				if [ "$(echo "${KERNEL_VERSION} < 5.11" | bc)" -eq 1 ]; then
-+				if [ "${KERNEL_VERSION}" = "5.10" ]; then
- 					CPU_SCHEDUTIL_GOV=1
- 				fi
- 	        ;;
-@@ -587,8 +465,6 @@ SOCFAMILY=""
+@@ -341,13 +202,8 @@ function set_cpufreq_governor()
+ 	desired_cpufreq_gov="performance"
  
+ 	if [ ${IS_SAFETY_PLATFORM} -eq 0 ]; then
+-		# Enable SCHEDUTIL governor for all SoC's except T194 in Kstable.
+-		if [ "${SOCFAMILY}" = "tegra194" ] &&
+-			[ "$(echo "${KERNEL_VERSION} >= 6.0" | bc)" -eq 1 ]; then
+-			:
+-		else
+-			desired_cpufreq_gov="schedutil"
+-		fi
++		# Enable SCHEDUTIL governor for all SoC's
++		desired_cpufreq_gov="schedutil"
+ 	fi
+ 
+ 	if [ -e "${CPUFREQ_AVAIL_GOVS}" ]; then
+@@ -448,7 +304,7 @@ function set_devfreq_governor()
+ 	if [ ${IS_SAFETY_PLATFORM} -ne 0 ]; then
+ 		desired_devfreq_gov="performance"
+ 	else
+-		if [ "$(echo "${KERNEL_VERSION} == 5.15" | bc)" -eq 1 ]; then
++		if [ "${KERNEL_VERSION}" = "5.15" ]; then
+ 			desired_devfreq_gov="tegra_wmark"
+ 		fi
+ 	fi
+@@ -487,10 +343,10 @@ function lock_emc_frequency()
+ 
+ 	# Set EMC_FREQ to max for Kernel version >= 5.15
+ 	# and when the Interconnect support is missing
+-	if [ "$(echo "${KERNEL_VERSION} >= 5.15" | bc)" -eq 1 ]; then
++	if [ "${KERNEL_VERSION}" = "5.15" ]; then
+ 		if [ -e "${EMC_MAX_RATE}" ] && [ -e "${EMC_RATE}" ]; then
+-			AVG_BW=$(grep "Memory Controller" ${ICC_NODE} | head -1 | awk -F ' ' '{print $3}')
+-			PEAK_BW=$(grep "Memory Controller" ${ICC_NODE}| head -1 | awk -F ' ' '{print $4}')
++			AVG_BW=$(grep "Memory Controller" ${ICC_NODE} | head -n 1 | awk -F ' ' '{print $3}')
++			PEAK_BW=$(grep "Memory Controller" ${ICC_NODE}| head -n 1 | awk -F ' ' '{print $4}')
+ 
+ 			if [[ -z "${AVG_BW}" && -z "${PEAK_BW}" ]] ||
+ 			   [[ "${AVG_BW}" = "0" && "${PEAK_BW}" = "0" ]]; then
+@@ -701,10 +557,12 @@ function setup_actmon()
+ 	debugfs_actmon="/sys/kernel/debug/tegra-host1x/actmon"
+ 
+ 	# Actmon settings should be the same across engines
+-	tee ${debugfs_actmon}/*/sample_period 1>/dev/null <<< 1500
+-	tee ${debugfs_actmon}/*/module0/consec_upper_num 1>/dev/null <<< 7
+-	tee ${debugfs_actmon}/*/module0/consec_lower_num 1>/dev/null <<< 7
+-	tee ${debugfs_actmon}/*/module0/k 1>/dev/null <<< 2
++	for engine in ${debugfs_actmon}/*; do
++	    echo 1500 > $engine/sample_period
++	    echo 7 > $engine/module0/consec_upper_num
++	    echo 7 > $engine/module0/consec_lower_num
++	    echo 2 > $engine/module0/k
++	done
+ }
+ 
+ SOCFAMILY=""
+@@ -713,8 +571,6 @@ KERNEL_VERSION=$(uname -r | cut -d '.' -
  set_socfamily
+ set_safety_flag
  set_power_state_perm
 -create_nvpmodel_symlink
 -create_nvfancontrol_symlink
  cpu_hotplug
- set_cpu_governor
+ set_cpufreq_governor
  set_cpu_floor_freq
+@@ -725,3 +581,4 @@ validate_nvpmodel_conf
+ setup_hwmon
+ setup_tmp451
+ setup_actmon
++exit 0

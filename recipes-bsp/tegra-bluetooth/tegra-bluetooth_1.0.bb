@@ -31,6 +31,5 @@ do_install() {
 ALLOW_EMPTY:${PN} = "1"
 SYSTEMD_SERVICE:${PN} = "${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', 'tegra-bluetooth.service', '', d)}"
 FILES:${PN} += "${nonarch_base_libdir}/udev/rules.d"
-RDEPENDS:${PN} = "${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', '${TEGRA_BT_SUPPORT_PACKAGE}', '', d)}"
-RRECOMMENDS:${PN} = "kernel-module-bluedroid-pm"
+RDEPENDS:${PN} = "${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', '${TEGRA_BT_SUPPORT_PACKAGE}', '', d)} nvidia-kernel-oot-bluetooth"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
