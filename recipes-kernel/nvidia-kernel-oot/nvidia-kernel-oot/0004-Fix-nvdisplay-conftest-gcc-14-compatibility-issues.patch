@@ -1,0 +1,27 @@
+From f2127d20e071799035c7c44b7a80e1965c1c6dd2 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 28 May 2024 13:04:00 -0700
+Subject: [PATCH] Fix nvdisplay conftest gcc 14 compatibility issues
+
+Upstream-Status: Inappropriate [OE specific]
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ nvdisplay/kernel-open/conftest.sh | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/nvdisplay/kernel-open/conftest.sh b/nvdisplay/kernel-open/conftest.sh
+index b4aa977..090f311 100755
+--- a/nvdisplay/kernel-open/conftest.sh
++++ b/nvdisplay/kernel-open/conftest.sh
+@@ -90,8 +90,8 @@ build_cflags() {
+     ISYSTEM=`$CC -print-file-name=include 2> /dev/null`
+     BASE_CFLAGS="-O2 -D__KERNEL__ \
+ -DKBUILD_BASENAME=\"#conftest$$\" -DKBUILD_MODNAME=\"#conftest$$\" \
+--nostdinc -isystem $ISYSTEM \
+--Wno-implicit-function-declaration -Wno-strict-prototypes"
++-nostdinc -isystem $ISYSTEM -fshort-wchar \
++-Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-error=incompatible-pointer-types"
+ 
+     if [ "$OUTPUT" != "$SOURCES" ]; then
+         OUTPUT_CFLAGS="-I$OUTPUT/include2 -I$OUTPUT/include"
