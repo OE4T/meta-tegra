@@ -652,6 +652,15 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     BCTARGS="$bctargs --bct_backup"
     L4T_CONF_DTBO="L4TConfiguration.dtbo"
     rootfs_ab=0
+    FLASHARGS="--chip 0x23 --bl uefi_jetson_with_dtb.bin \
+          --sdram_config $sdramcfg_files \
+          --odmdata $odmdata \
+          --applet mb1_t234_prod.bin \
+          --cmd \"$tfcmd\" $skipuid \
+          --cfg flash.xml \
+          --bct_backup \
+          $bctargs $extdevargs $BINSARGS"
+    FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
     if [ "$CHIPID" = "0x23" ]; then
@@ -680,9 +689,8 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
         exit 0
     fi
     touch odmsign.func
-fi
-
-if [ "$CHIPID" = "0x23" ]; then
+    flashcmd="python3 $flashappname ${inst_args} $FLASHARGS"
+else
     flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
