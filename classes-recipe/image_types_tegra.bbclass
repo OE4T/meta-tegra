@@ -55,7 +55,8 @@ LNXFILE ?= "boot.img"
 LNXSIZE ?= "83886080"
 TEGRA_RECOVERY_KERNEL_PART_SIZE ??= "83886080"
 RECROOTFSSIZE ?= "314572800"
-TEGRA_EXTERNAL_DEVICE_SECTORS ??= "122159104"
+TEGRA_EXTERNAL_DEVICE_SECTORS ??= "119537664"
+TEGRA_INTERNAL_DEVICE_SECTORS ??= "119537664"
 
 IMAGE_TEGRAFLASH_FS_TYPE ??= "ext4"
 IMAGE_TEGRAFLASH_ROOTFS ?= "${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
@@ -200,11 +201,13 @@ tegraflash_create_flash_config() {
         -e"s,EKSFILE,eks.img," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,${TEGRA_RECOVERY_KERNEL_PART_SIZE}," -e"s,RECDTB-NAME,recovery-dtb," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
+        -e"/IST_UCODE/d" -e"/IST_BPMPFW/d" -e"/IST_ICTBIN/d" -e"/IST_TESTIMG/d" -e"/IST_RTINFO/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
         -e"s,APPUUID_b,," -e"s,APPUUID,," \
 	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
-	-e"s,NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
+	-e"s,EXT_NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
+	-e"s,INT_NUM_SECTORS,${TEGRA_INTERNAL_DEVICE_SECTORS}," \
 	"$infile" \
         > "$destfile"
 }
@@ -212,20 +215,13 @@ tegraflash_create_flash_config() {
 copy_dtbs() {
     local destination=$1
     local dtb dtbf
-    for dtb in ${KERNEL_DEVICETREE}; do
-        dtbf=`basename $dtb`
-        if [ -e $destination/$dtbf ]; then
-            bbnote "Overwriting $destination/$dtbf with KERNEL_DEVICETREE content"
-            rm -f $destination/$dtbf $destination/$dtbf.signed
-        fi
-        bbnote "Copying KERNEL_DEVICETREE entry $dtbf to $destination"
-        cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" $destination/$dtbf
-	if ${TEGRA_UEFI_USE_SIGNED_FILES}; then
-            cp -L "${DEPLOY_DIR_IMAGE}/$dtbf.signed" $destination/$dtbf.signed
-	fi
-    done
     if [ -n "${EXTERNAL_KERNEL_DEVICETREE}" ]; then
-        for dtb in $(find "${EXTERNAL_KERNEL_DEVICETREE}" \( -name '*.dtb' \) -printf '%P\n' | sort); do
+        for dtbcand in ${KERNEL_DEVICETREE}; do
+            dtb=$(find "${EXTERNAL_KERNEL_DEVICETREE}" -name "$(basename $dtbcand)" -printf '%P' 2>/dev/null)
+	    if [ -z "$dtb" ]; then
+	        bbwarn "Not found in ${EXTERNAL_KERNEL_DEVICETREE}: $dtbcand"
+		continue
+	    fi
             dtbf=`basename $dtb`
             if [ -e $destination/$dtbf ]; then
                 bbnote "Overwriting $destination/$dtbf with EXTERNAL_KERNEL_DEVICETREE content"
@@ -237,13 +233,26 @@ copy_dtbs() {
                 cp -L "${DEPLOY_DIR_IMAGE}/$dtb.signed" $destination/$dtbf.signed
 	    fi
         done
+    else
+	for dtb in ${KERNEL_DEVICETREE}; do
+            dtbf=`basename $dtb`
+            if [ -e $destination/$dtbf ]; then
+            bbnote "Overwriting $destination/$dtbf with KERNEL_DEVICETREE content"
+            rm -f $destination/$dtbf $destination/$dtbf.signed
+            fi
+            bbnote "Copying KERNEL_DEVICETREE entry $dtbf to $destination"
+            cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" $destination/$dtbf
+	    if ${TEGRA_UEFI_USE_SIGNED_FILES}; then
+            cp -L "${DEPLOY_DIR_IMAGE}/$dtbf.signed" $destination/$dtbf.signed
+	    fi
+	done
     fi
 }
 
 copy_dtb_overlays() {
     local destination=$1
     local dtb dtbf extdtb
-    local extraoverlays="${@d.getVar('OVERLAY_DTB_FILE').replace(',', ' ')}"
+    local extraoverlays="${TEGRA_DCE_OVERLAY} ${@d.getVar('OVERLAY_DTB_FILE').replace(',', ' ')}"
     shift
     if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         extraoverlays="$extraoverlays L4TConfiguration-rcmboot.dtbo"
@@ -294,6 +303,7 @@ tegraflash_populate_package() {
     if [ "${SOC_FAMILY}" = "tegra234" ]; then
         cp ${STAGING_DATADIR}/tegraflash/bpmp_t234-*.bin .
         cp ${STAGING_DATADIR}/tegraflash/tegra234-*.dts* .
+        cp ${STAGING_DATADIR}/tegraflash/fuse_t234.xml .
         cp ${STAGING_DATADIR}/tegraflash/tegra234-bpmp-*.dtb .
     fi
 
@@ -434,7 +444,7 @@ EOF
             buptype_arg=""
         fi
         cat <<EOF >> $outfile
-MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" CHIP_SKU="$chipsku" ./tegra-flash-helper.sh --bup $buptype_arg ./flash-stripped.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} "\$@"
+MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" CHIP_SKU="$chipsku" ./tegra-flash-helper.sh --sign --bup $buptype_arg ./flash-stripped.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} "\$@"
 EOF
     done
     chmod +x $outfile
