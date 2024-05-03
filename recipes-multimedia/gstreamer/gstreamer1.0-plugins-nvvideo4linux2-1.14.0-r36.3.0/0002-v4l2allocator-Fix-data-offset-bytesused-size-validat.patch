@@ -1,6 +1,6 @@
-From 114ca7843aea535a1621518f4f392a40109568e6 Mon Sep 17 00:00:00 2001
-From: Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Date: Fri, 26 Jun 2020 09:53:13 -0400
+From 80d2084fe66e603fdb224eb06551b5ed61f05a3a Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 17 Nov 2023 12:51:45 +0000
 Subject: [PATCH 2/7] v4l2allocator: Fix data offset / bytesused size
  validation
 
@@ -12,7 +12,7 @@ Part-of: <https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requ
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
- gst-v4l2/gstv4l2allocator.c | 2 +-
+ gstv4l2allocator.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/gstv4l2allocator.c b/gstv4l2allocator.c
