@@ -14,7 +14,6 @@ SRC_URI = " \
     file://find-jetson-usb.sh \
     file://rewrite-tegraflash-args.py \
     file://initrd-flash.sh \
-    file://brcid-to-uid.py \
 "
 
 S = "${WORKDIR}"
@@ -28,5 +27,4 @@ do_install() {
     install -m 0755 ${S}/find-jetson-usb.sh ${D}${bindir}/tegra-flash/find-jetson-usb
     install -m 0755 ${S}/rewrite-tegraflash-args.py ${D}${bindir}/tegra-flash/rewrite-tegraflash-args
     install -m 0755 ${S}/initrd-flash.sh ${D}${bindir}/tegra-flash/initrd-flash
-    install -m 0755 ${S}/brcid-to-uid.py ${D}${bindir}/tegra-flash/brcid-to-uid
 }

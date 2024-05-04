@@ -170,13 +170,6 @@ if [ -z "$CHIPID" ]; then
     exit 1
 fi
 
-have_odmsign_func=0
-[ ! -e "$here/odmsign.func" ] || have_odmsign_func=1
-if [ -n "$keyfile" -o -n "$sbk_keyfile" ] && [ $have_odmsign_func -eq 0 ]; then
-    echo "ERR: missing odmsign.func from secureboot package, signing not supported" >&2
-    exit 1
-fi
-
 rcm_bootcontrol_overlay="L4TConfiguration-rcmboot.dtbo"
 if [ $rcm_boot -eq 1 -a $to_sign -eq 0 ]; then
     overlay_dtb_files="$rcm_bootcontrol_overlay"
@@ -196,6 +189,9 @@ fi
 overlay_dtb_arg=
 if [ -n "$overlay_dtb_files" ]; then
     overlay_dtb_arg="--overlay_dtb $overlay_dtb_files"
+fi
+if [ -n "$DCE_OVERLAY" ]; then
+    overlay_dtb_arg="$overlay_dtb_arg --dce_overlay_dtb $DCE_OVERLAY"
 fi
 
 fuselevel="fuselevel_production"
@@ -290,7 +286,7 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
              --dev_params $EMC_FUSE_DEV_PARAMS \
              --cfg readinfo_t234_min_prod.xml \
              --device_config $DEVICE_CONFIG --misc_config $MISC_CONFIG --bins "mb2_applet applet_t234.bin" \
-             --cmd "dump eeprom cvm ${cvm_bin}; dump custinfo ${custinfo_out}; reboot recovery"; then
+             --cmd "readfuses fuse_t234.bin fuse_t234.xml; dump eeprom cvm ${cvm_bin}; dump try_custinfo ${custinfo_out}; reboot recovery"; then
             echo "ERR: could not retrieve EEPROM board information" >&2
             exit 1
         fi
@@ -542,20 +538,26 @@ sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," \
     $appfile_sed flash.xml.tmp > flash.xml
 rm flash.xml.tmp
 
+custinfo_args=
+if [ -f "$custinfo_out" ]; then
+    custinfo_args="--cust_info $custinfo_out"
+fi
+
 if [ "$CHIPID" = "0x23" ]; then
     BINSARGS="psc_fw pscfw_t234_prod.bin; \
 mts_mce mce_flash_o10_cr_prod.bin; \
 mb2_applet applet_t234.bin; \
 mb2_bootloader mb2_t234.bin; \
 xusb_fw xusb_t234_prod.bin; \
+pva_fw nvpva_020.fw; \
 dce_fw display-t234-dce.bin; \
 nvdec nvdec_t234_prod.fw; \
 bpmp_fw $BPF_FILE; \
 bpmp_fw_dtb $BPFDTB_FILE; \
-sce_fw camera-rtcpu-sce.img; \
 rce_fw camera-rtcpu-t234-rce.img; \
 ape_fw adsp-fw.bin; \
 spe_fw spe_t234.bin; $fsifw_binsarg \
+tsec_fw tsec_t234.bin; \
 tos tos-optee_t234.img; \
 eks eks.img"
     bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
@@ -579,17 +581,7 @@ eks eks.img"
 fi
 
 if [ $rcm_boot -ne 0 ]; then
-    if [ "$CHIPID" = "0x19" ]; then
-        cp $kernel_dtbfile rcmboot_$kernel_dtbfile
-        BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb rcmboot_$kernel_dtbfile"
-    else
-        BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile"
-    fi
-fi
-
-custinfo_args=
-if [ -f "$custinfo_out" ]; then
-    custinfo_args="--cust_info $custinfo_out"
+    BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile"
 fi
 
 if [ $bup_blob -ne 0 -o $to_sign -ne 0 -o "$sdcard" = "yes" -o $external_device -eq 1 ]; then
@@ -615,7 +607,7 @@ want_signing=0
 if [ -n "$keyfile" ] || [ $rcm_boot -eq 1 ] || [ $no_flash -eq 1 -a $to_sign -eq 1 ]; then
     want_signing=1
 fi
-if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
+if [ $want_signing -eq 1 ]; then
     if [ "$CHIPID" = "0x23" -a -n "$sbk_keyfile" ]; then
         rm -rf signed_bootimg_dir
         mkdir signed_bootimg_dir
@@ -642,7 +634,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
         mb1filename="mb1_t234_prod.bin"
         pscbl1filename="psc_bl1_t234_prod.bin"
         tbcfilename="uefi_jetson.bin"
-        custinfofilename="custinfo_out.bin"
+        custinfofilename="$custinfo_out"
         SOSARGS="--applet mb1_t234_prod.bin "
         NV_ARGS=" "
     fi
@@ -659,6 +651,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
           --bct_backup \
+          --boot_chain A \
           $bctargs $extdevargs $BINSARGS"
     FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
@@ -698,6 +691,7 @@ else
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
           --bct_backup \
+          --boot_chain A \
           $bctargs $extdevargs \
           --bins \"$BINSARGS\""
 fi
@@ -717,7 +711,7 @@ if [ $bup_blob -ne 0 ]; then
         echo "ERR: TNSPEC must be shorter than 128 characters: $spec" >&2
         exit 1
     fi
-    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" t186ref "$keyfile" "$sbk_keyfile" $CHIPID || exit 1
+    l4t_bup_gen "$flashcmd" "$spec" "$fuselevel" generic "$keyfile" "$sbk_keyfile" $CHIPID || exit 1
     exit 0
 fi
 
