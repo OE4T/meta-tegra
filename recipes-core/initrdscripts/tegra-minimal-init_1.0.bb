@@ -25,5 +25,5 @@ do_install() {
     sed -i -e "s#@@TNSPEC_BOOTDEV@@#${TNSPEC_BOOTDEV}#g" ${D}${sysconfdir}/platform-preboot
 }
 
-RDEPENDS:${PN} = "util-linux-blkid"
+RDEPENDS:${PN} = "util-linux-blkid kmod"
 FILES:${PN} = "/"
