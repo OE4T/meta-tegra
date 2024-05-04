@@ -50,6 +50,7 @@ do_deploy() {
     install -m 0644 ${S}/kernel/dtb/L4TConfiguration.dtbo ${DEPLOYDIR}/L4TConfiguration-rcmboot.dtbo
     fdtput -t s ${DEPLOYDIR}/L4TConfiguration-rcmboot.dtbo /fragment@0/__overlay__/firmware/uefi/variables/gNVIDIATokenSpaceGuid/DefaultBootPriority data boot.img
 }
+do_deploy[depends] += "${@'l4t-launcher-rootfs-ab-config:do_deploy' if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else ''}"
 
 PACKAGES = "l4t-launcher-prebuilt standalone-mm-optee-tegra-prebuilt"
 RPROVIDES:l4t-launcher-prebuilt = "l4t-launcher"
