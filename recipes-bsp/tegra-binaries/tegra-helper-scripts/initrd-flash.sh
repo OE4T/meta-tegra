@@ -95,22 +95,12 @@ while true; do
     esac
 done
 
-# When the secureboot package is not installed, we have
-# to handle signing/RCM booting a bit differently, due to
-# the way the NVIDIA flashing scripts work
-have_odmsign_func=0
-if [ -e "$here/odmsign.func" ]; then
-    have_odmsign_func=1
-fi
 if [ -n "$PRESIGNED" ]; then
     if [ -n "$keyfile" -o -n "$sbk_keyfile" ]; then
 	echo "WARN: binaries already signed; ignoring signing options" >&2
 	keyfile=
 	sbk_keyfile=
     fi
-elif [ -n "$keyfile" -o -n "$sbk_keyfile" ] && [ $have_odmsign_func -eq 0 ]; then
-    echo "ERR: missing odmsign.func from secureboot package, cannot sign binaries" >&2
-    exit 1
 fi
 
 wait_for_rcm() {
@@ -149,73 +139,63 @@ sign_binaries() {
     if [ -z "$BOARDID" -o -z "$FAB" ]; then
 	wait_for_rcm
     fi
-    if [ -e external-flash.xml.in ]; then
-	"$here/nvflashxmlparse" --extract --type rootfs --change-device-type=sdmmc_user -o external-flash.xml.tmp external-flash.xml.in
-        if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
-		  "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
-		  external-flash.xml.tmp $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
-	    if [ $have_odmsign_func -eq 0 ]; then
-		cp signed/flash.xml.tmp external-secureflash.xml
-		copy_signed_binaries
-	    else
-		mv secureflash.xml external-secureflash.xml
-	    fi
-	else
-	    return 1
-	fi
-	. ./boardvars.sh
+    rm -rf rcm_blob
+    if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
+	      BOOTCONTROL_OVERLAYS=L4TConfiguration-rcmboot.dtbo \
+	      "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" $instance_args \
+	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE; then
+	    ln -sf "$here/tegrarcm_v2" rcm_blob/
+	    cat > rcm-boot.sh <<EOF
+oldwd="\$PWD"
+cd rcm_blob
+EOF
+	    cat rcm_blob/rcmcmd.txt >> rcm-boot.sh
+	    cat >> rcm-boot.sh <<EOF
+cd "\$oldwd"
+EOF
+	    chmod +x rcm-boot.sh
+    else
+	return 1
     fi
-    if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
+    . ./boardvars.sh
+    if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
 	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
 	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
-	if [ $have_odmsign_func -eq 0 ]; then
-	    cp signed/flash.xml.tmp secureflash.xml
-	    cp signed/flash.idx flash.idx
-	    copy_signed_binaries
-	else
-	    cp flashcmd.txt flash_signed.sh
-	fi
+	cp flashcmd.txt flash_signed.sh
+	sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
+	mv secureflash.xml internal-secureflash.xml
     else
 	return 1
     fi
     if ! copy_bootloader_files bootloader_staging; then
 	return 1
     fi
-    . ./boardvars.sh
+    if [ -e external-flash.xml.in ]; then
+        if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
+		  "$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args \
+		  external-flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
+	    mv secureflash.xml external-secureflash.xml
+	else
+	    return 1
+	fi
+    fi
     return 0
 }
 
 prepare_for_rcm_boot() {
-    if [ $have_odmsign_func -eq 1 ]; then
-	local dtbfile_for_rcmboot=kernel_$DTBFILE
-	if [ "$CHIPID" = "0x19" ]; then
-	    cp kernel_$DTBFILE rcm_kernel_$DTBFILE
-	    dtbfile_for_rcmboot=rcm_kernel_$DTBFILE
-	fi
-	"$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=$dtbfile_for_rcmboot --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
-	if [ "$CHIPID" = "0x23" ]; then
-	    sed -i -e's,mb2_t234_with_mb2_bct_MB2,mb2_t234_with_mb2_cold_boot_bct_MB2,' -e's, uefi_jetson, rcmboot_uefi_jetson,' rcm-boot.sh || return 1
-	fi
-	chmod +x rcm-boot.sh
-    fi
+    :
 }
 
 run_rcm_boot() {
-    if [ $have_odmsign_func -eq 1 ]; then
-	if [ -z "$BR_CID" ]; then
-	    if ./rcm-boot.sh | tee rcm-boot.output; then
-		BR_CID=$(grep BR_CID: rcm-boot.output | cut -d: -f2)
-		return 0
-	    else
-		return 1
-	    fi
+    if [ -z "$BR_CID" ]; then
+	if ./rcm-boot.sh | tee rcm-boot.output; then
+	    BR_CID=$(grep BR_CID: rcm-boot.output | cut -d: -f2)
+	    return 0
+	else
+	    return 1
 	fi
-	./rcm-boot.sh || return 1
-    else
-	MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
-	       "$here/$FLASH_HELPER" --rcm-boot -u "$keyfile" -v "$sbk_keyfile" \
-	       flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE || return 1
     fi
+    ./rcm-boot.sh || return 1
 }
 
 mount_partition() {
@@ -382,7 +362,7 @@ write_to_device() {
     local flashlayout="$2"
     local dev=$(wait_for_usb_storage "$session_id" "$devname")
     local opts="$3"
-    local rewritefiles="secureflash.xml"
+    local rewritefiles="internal-secureflash.xml"
     local datased simgname rc=1
     local extraarg
 
@@ -497,13 +477,12 @@ if ! run_rcm_boot 2>&1 >>"$logfile"; then
 fi
 [ ! -f ./boardvars.sh ] || . ./boardvars.sh
 
-if [ -z "$BR_CID" ]; then
-    echo "ERR: did not get unique ID at $(date -Is)" | tee -a "$logfile"
+if [ -z "$serial_number" ]; then
+    echo "ERR: did not get device serial number at $(date -Is)" | tee -a "$logfile"
     exit 1
 fi
 
-session_id=$("$here/brcid-to-uid" $BR_CID)
-session_id=$(echo -n "$session_id" | tail -c8)
+session_id=$(printf "%x" "$serial_number" | tail -c8)
 
 # Boot device flashing
 step_banner "Sending flash sequence commands"
