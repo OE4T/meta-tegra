@@ -26,7 +26,7 @@ copy_in_flash_layout() {
                 -e"s,BADPAGETYPE,black_list_info," -e"s,BADPAGEFILE,badpage.bin," -e"s,BADPAGENAME,bad-page," \
                 -e"s,FSIFW,fsi-fw-ecc.bin," \
                 -e"s,PSCBL1FILE,psc_bl1_t234_prod.bin," \
-                -e"s,TSECFW,," \
+                -e"s,TSECFW,tsec_t234.bin," \
                 -e"s,NVHOSTNVDEC,nvdec_t234_prod.fw," \
                 -e"s,MB2BLFILE,mb2_t234.bin," \
                 -e"s,XUSB_FW,xusb_t234_prod.bin," \
@@ -37,6 +37,7 @@ copy_in_flash_layout() {
                 -e"s,MB2RF_IMAGE,mb2rf_t234.bin," \
                 -e"s,TBCDTB-FILE,uefi_jetson_with_dtb.bin," \
                 -e"s,DCE,display-t234-dce.bin," \
+                -e"s,PVA_FILE,nvpva_020.fw," \
                 "$dstfile"
             ;;
         *)
