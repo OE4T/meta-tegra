@@ -2,18 +2,37 @@
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 mount -t proc proc -o nosuid,nodev,noexec /proc
 mount -t devtmpfs none -o nosuid /dev
+mkdir -m 1777 /dev/shm
+mkdir -m 0755 /dev/pts
+mount -t devpts devpts /dev/pts
 mount -t sysfs sysfs -o nosuid,nodev,noexec /sys
+
+find /lib/modules -name 'usb_f_*.ko' -type f | while read m; do
+    modprobe -v "$m"
+done
+
+find /sys -name modalias | while read m; do
+    modalias=$(cat "$m")
+    modprobe -v "$modalias" 2> /dev/null
+done
+
+MODULES_TO_LOAD="nvme typec ucsi-ccg tegra-mce watchdog-tegra-t18x"
+
+for m in $MODULES_TO_LOAD; do
+    modprobe -v "$m"
+done
+
 mount -t configfs configfs -o nosuid,nodev,noexec /sys/kernel/config
 
-[ ! /usr/sbin/wd_keepalive ] || /usr/sbin/wd_keepalive &
+[ ! -e /usr/sbin/wd_keepalive ] || /usr/sbin/wd_keepalive &
 
-sernum=$(cat /sys/devices/platform/efuse-burn/ecid 2>/dev/null)
-[ -n "$sernum" ] || sernum=$(cat /sys/module/tegra_fuse/parameters/tegra_chip_uid 2>/dev/null)
+sernum=$(cat /proc/device-tree/serial-number)
 if [ -n "$sernum" ]; then
     # Restricted to 8 characters for the ID_MODEL tag
     sernum=$(printf "%x" "$sernum" | tail -c8)
 fi
 [ -n "$sernum" ] || sernum="UNKNOWN"
+echo "Serial number: $sernum"
 UDC=$(ls -1 /sys/class/udc | head -n 1)
 
 wait_for_storage() {
