@@ -47,8 +47,8 @@ SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=l
            file://0002-Expose-device-file-attrs.patch \
 "
 
-# tag: v1.10.0
-SRCREV_libnvidia = "395fd41701117121f1fd04ada01e1d7e006a37ae"
+# tag: v1.14.2
+SRCREV_libnvidia = "1eb5a30a6ad0415550a9df632ac8832bf7e2bbba"
 # Nvidia modprobe version 495.44
 SRCREV_modprobe = "292409904a5d18163fc7d1fbc11f98627324b82a"
 SRCREV_FORMAT = "libnvidia_modprobe"
@@ -100,5 +100,5 @@ FILES:${PN}-dev = "${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \
                 ${libdir}/cmake ${datadir}/cmake"
 FILES:${PN}-staticdev = "${libdir}/*.a ${base_libdir}/*.a ${libdir}/${BPN}/*.a"
 # - XXX
-RDEPENDS:${PN}:append:tegra = " ldconfig tegra-libraries-cuda tegra-container-passthrough nv-tegra-release libnvidia-container-jetson"
 INSANE_SKIP:${PN} = "already-stripped ldflags"
+RDEPENDS:${PN}:append:tegra = " ldconfig tegra-libraries-cuda"
