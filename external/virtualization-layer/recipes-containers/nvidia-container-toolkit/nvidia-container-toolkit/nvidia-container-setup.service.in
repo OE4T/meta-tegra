@@ -1,0 +1,13 @@
+[Unit]
+Description=Generate NVIDIA container runtime configuration
+Before=docker.service containerd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+RuntimeDirectory=nvidia-container-runtime
+RuntimeDirectoryPreserve=yes
+ExecStart=@LIBEXECDIR@/nvidia-container-runtime/generate-config
+
+[Install]
+WantedBy=multi-user.target
