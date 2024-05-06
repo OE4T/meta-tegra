@@ -9,19 +9,13 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 LICENSE = "Apache-2.0 & MIT & ISC & MPL-2.0 & (Apache-2.0 | MIT)"
 LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57 \
-                    file://src/${GO_IMPORT}/vendor/github.com/blang/semver/LICENSE;md5=5a3ade42a900439691ebc22013660cae \
-                    file://src/${GO_IMPORT}/vendor/github.com/container-orchestrated-devices/container-device-interface/LICENSE;md5=86d3f3a95c324c9479bd8986968f4327 \
+                    file://src/${GO_IMPORT}/vendor/tags.cncf.io/container-device-interface/LICENSE;md5=86d3f3a95c324c9479bd8986968f4327 \
                     file://src/${GO_IMPORT}/vendor/github.com/davecgh/go-spew/LICENSE;md5=c06795ed54b2a35ebeeb543cd3a73e56 \
                     file://src/${GO_IMPORT}/vendor/github.com/fsnotify/fsnotify/LICENSE;md5=68f2948d3c4943313d07e084a362486c \
-                    file://src/${GO_IMPORT}/vendor/github.com/hashicorp/errwrap/LICENSE;md5=b278a92d2c1509760384428817710378 \
-                    file://src/${GO_IMPORT}/vendor/github.com/hashicorp/go-multierror/LICENSE;md5=d44fdeb607e2d2614db9464dbedd4094 \
                     file://src/${GO_IMPORT}/vendor/github.com/NVIDIA/go-nvml/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57 \
-                    file://src/${GO_IMPORT}/vendor/github.com/opencontainers/runc/LICENSE;md5=435b266b3899aa8a959f17d41c56def8 \
                     file://src/${GO_IMPORT}/vendor/github.com/opencontainers/runtime-spec/LICENSE;md5=b355a61a394a504dacde901c958f662c \
                     file://src/${GO_IMPORT}/vendor/github.com/opencontainers/runtime-tools/LICENSE;md5=b355a61a394a504dacde901c958f662c \
-                    file://src/${GO_IMPORT}/vendor/github.com/opencontainers/selinux/LICENSE;md5=e3fc50a88d0a364313df4b21ef20c29e \
                     file://src/${GO_IMPORT}/vendor/github.com/pelletier/go-toml/LICENSE;md5=e49b63d868761700c5df76e7946d0bd7 \
-                    file://src/${GO_IMPORT}/vendor/github.com/pkg/errors/LICENSE;md5=6fe682a02df52c6653f33bd0f7126b5a \
                     file://src/${GO_IMPORT}/vendor/github.com/pmezard/go-difflib/LICENSE;md5=e9a2ebb8de779a07500ddecca806145e \
                     file://src/${GO_IMPORT}/vendor/github.com/sirupsen/logrus/LICENSE;md5=8dadfef729c08ec4e631c4f6fc5d43a0 \
                     file://src/${GO_IMPORT}/vendor/github.com/stretchr/testify/LICENSE;md5=188f01994659f3c0d310612333d2a26f \
@@ -35,10 +29,15 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
                     file://src/${GO_IMPORT}/vendor/sigs.k8s.io/yaml/LICENSE;md5=0ceb9ff3b27d3a8cf451ca3785d73c71 \
 "
 
-SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=main"
-SRCREV = "d9de4a09b8fd51a46207398199ecfeb3998ad49d"
+SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=release-1.14"
+SRCREV = "9ea336070134e612145d342e495f2fc616aab063"
 
-SRC_URI += "file://0001-Fix-cgo-LDFLAGS-for-go-1.21-and-later.patch;patchdir=src/${GO_IMPORT}"
+SRC_URI += "\
+    file://0001-Add-support-for-alternate-roots-for-tegra-CSV-handli.patch;patchdir=src/${GO_IMPORT} \
+    file://0002-Fix-cgo-LDFLAGS-for-go-1.21-and-later.patch;patchdir=src/${GO_IMPORT} \
+    file://generate-config.sh.in \
+    file://nvidia-container-setup.service.in \
+"
 
 GO_IMPORT = "github.com/NVIDIA/nvidia-container-toolkit"
 GO_INSTALL = "${GO_IMPORT}/cmd/..."
@@ -56,21 +55,31 @@ S = "${WORKDIR}/git"
 
 REQUIRED_DISTRO_FEATURES = "virtualization"
 
-inherit go-mod gitpkgv features_check
+inherit go-mod gitpkgv features_check systemd
+
+do_compile() {
+    go_do_compile
+    sed -e's,@DATADIR@,${datadir},g' ${WORKDIR}/generate-config.sh.in > ${B}/generate-config.sh
+    sed -e's,@LIBEXECDIR@,${libexecdir},g' ${WORKDIR}/nvidia-container-setup.service.in > ${B}/nvidia-container-setup.service
+}
 
 do_install(){
     go_do_install
-    install -d ${D}${sysconfdir}/nvidia-container-runtime
-    install -m 0644 ${S}/src/${GO_IMPORT}/config/config.toml.ubuntu ${D}${sysconfdir}/nvidia-container-runtime/config.toml
-    sed -i -e's,ldconfig\.real,ldconfig,' ${D}${sysconfdir}/nvidia-container-runtime/config.toml
-    sed -i -e's,mode = "auto",mode = "legacy",' ${D}${sysconfdir}/nvidia-container-runtime/config.toml
     ln -sf nvidia-container-runtime-hook ${D}${bindir}/nvidia-container-toolkit
+    install -d ${D}${sysconfdir}/nvidia-container-runtime
+    ln -sf /run/nvidia-container-runtime/config.toml ${D}${sysconfdir}/nvidia-container-runtime/config.toml
+    install -D -m0755 ${B}/generate-config.sh ${D}${libexecdir}/nvidia-container-runtime/generate-config
+    install -D -m0644 ${B}/nvidia-container-setup.service ${D}${systemd_system_unitdir}/nvidia-container-setup.service
 }
 
+SYSTEMD_SERVICE:${PN} = "nvidia-container-setup.service"
 RDEPENDS:${PN} = "\
     libnvidia-container-tools \
     docker \
+    nv-tegra-release \
     tegra-configs-container-csv \
+    tegra-libraries-nvml \
+    tegra-container-passthrough \
 "
 RDEPENDS:${PN}-dev += "bash make"
 PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"
