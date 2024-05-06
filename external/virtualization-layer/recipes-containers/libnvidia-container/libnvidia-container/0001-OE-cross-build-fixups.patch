@@ -1,11 +1,11 @@
-From 56ef33321c4ac6c8b09d34710a85efd9f5fb4087 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Sun, 8 Aug 2021 21:18:48 +0100
+From b7345be7dfdcf3c4d0c46daf86264d362bff6681 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Tue, 5 Mar 2024 11:52:33 +0000
 Subject: [PATCH] OE cross-build fixups
 
 Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
-Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
  Makefile              | 38 ++++++++++++++++++++------------------
  mk/common.mk          |  2 +-
@@ -13,7 +13,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  3 files changed, 23 insertions(+), 20 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 6fb69765..9c41db66 100644
+index a374cc09..1d1b566d 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -24,17 +24,17 @@ WITH_SECCOMP ?= yes
@@ -43,7 +43,7 @@ index 6fb69765..9c41db66 100644
  export DEPS_DIR    ?= $(CURDIR)/deps
  export DIST_DIR    ?= $(CURDIR)/dist
  export MAKE_DIR    ?= $(CURDIR)/mk
-@@ -140,20 +140,22 @@ LIBGO_SYMLINK := $(LIBGO_NAME).so
+@@ -137,20 +137,22 @@ LIBGO_SYMLINK := $(LIBGO_NAME).so
  
  # Common flags
  CPPFLAGS := -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 $(CPPFLAGS)
@@ -54,7 +54,7 @@ index 6fb69765..9c41db66 100644
              -Wstrict-prototypes -Wunreachable-code -Wconversion -Wsign-conversion \
 -            -Wno-unknown-warning-option -Wno-format-extra-args -Wno-gnu-alignof-expression $(CFLAGS)
 +            -Wno-format-extra-args $(if $(filter clang,$(CCNAME)),-Wno-unknown-warning-option -Wno-gnu-alignof-expression,) \
-+            -I=/usr/include/tirpc $(CFLAGS)
++			-I=/usr/include/tirpc $(CFLAGS)
  LDFLAGS  := -Wl,-zrelro -Wl,-znow -Wl,-zdefs -Wl,--gc-sections $(LDFLAGS)
  LDLIBS   := $(LDLIBS)
  
@@ -70,7 +70,7 @@ index 6fb69765..9c41db66 100644
  ifeq ($(WITH_NVCGO), yes)
  LIB_CPPFLAGS       += -DWITH_NVCGO
  LIB_LDLIBS_SHARED  += -lpthread
-@@ -205,13 +207,17 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
+@@ -202,13 +204,17 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
  $(BUILD_DEFS):
  	@printf '#define BUILD_DATE     "%s"\n' '$(strip $(DATE))' >$(BUILD_DEFS)
  	@printf '#define BUILD_COMPILER "%s " __VERSION__\n' '$(notdir $(COMPILER))' >>$(BUILD_DEFS)
@@ -87,9 +87,9 @@ index 6fb69765..9c41db66 100644
 -	cd $(dir $@) && $(RPCGEN) $(RPCGENFLAGS) -C -M -N -o $(notdir $@) $(LIB_RPC_SPEC)
 +	cd $(dir $@) && $(RPCGEN) $(RPCGENFLAGS) -C -M -N -o $(notdir $@) $(notdir $(LIB_RPC_SPEC))
  
- $(LIB_OBJS): %.lo: %.c | deps
+ $(LIB_OBJS): %.lo: %.c | deps $(SRCS_DIR)/nvc.h
  	$(CC) $(LIB_CFLAGS) $(LIB_CPPFLAGS) -MMD -MF $*.d -c $(OUTPUT_OPTION) $<
-@@ -227,17 +233,14 @@ $(LIB_SHARED): $(LIB_OBJS)
+@@ -224,17 +230,14 @@ $(LIB_SHARED): $(LIB_OBJS)
  	$(OBJCPY) --only-keep-debug $@ $(LIB_SONAME)
  	$(OBJCPY) --add-gnu-debuglink=$(LIB_SONAME) $@
  	$(MV) $(LIB_SONAME) $(DEBUG_DIR)
@@ -107,7 +107,7 @@ index 6fb69765..9c41db66 100644
  
  ##### Public rules #####
  
-@@ -247,7 +250,6 @@ all: shared static tools
+@@ -244,7 +247,6 @@ all: shared static tools
  # Run with ASAN_OPTIONS="protect_shadow_gap=0" to avoid CUDA OOM errors
  debug: CFLAGS += -pedantic -fsanitize=undefined -fno-omit-frame-pointer -fno-common -fsanitize=address
  debug: LDLIBS += -lubsan
@@ -149,3 +149,6 @@ index 34062224..71866af8 100644
  
  ##### Public rules #####
  
+-- 
+2.34.1
+
