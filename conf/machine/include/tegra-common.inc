@@ -44,7 +44,7 @@ PREFERRED_PROVIDER_tensorrt-plugins ?= "tensorrt-plugins-prebuilt"
 PREFERRED_PROVIDER_tensorrt-trtexec ?= "tensorrt-trtexec-prebuilt"
 PREFERRED_RPROVIDER_tegra-gbm-backend ?= "tegra-libraries-gbm-backend"
 
-USE_PREBUILT_OPTEE ?= "0"
+USE_PREBUILT_OPTEE ?= "1"
 
 PREFERRED_PROVIDER_virtual/secure-os ?= "${@'tos-prebuilt' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'tos-optee'}"
 PREFERRED_PROVIDER_optee-nvsamples ?= "${@'nvidia-l4t-optee' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'optee-nvsamples'}"
