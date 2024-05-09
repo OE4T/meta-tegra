@@ -17,7 +17,7 @@ TEGRA_AUDIO_DEVICE ?= "tegra-hda-jetson-agx"
 OTABOOTDEV ?= "/dev/mtdblock0"
 OTAGPTDEV ?= "/dev/mtdblock0"
 
-TEGRA_PLUGIN_MANAGER_OVERLAYS ?= "tegra234-p3737-audio-codec-rt5658-40pin.dtbo tegra234-p3737-overlay.dtbo tegra234-p3701-overlay.dtbo tegra234-p3737-camera-dual-imx274-overlay.dtbo tegra234-p3737-camera-e3331-overlay.dtbo tegra234-p3737-camera-e3333-overlay.dtbo tegra234-p3737-camera-imx185-overlay.dtbo tegra234-p3737-camera-imx390-overlay.dtbo"
+TEGRA_PLUGIN_MANAGER_OVERLAYS ?= "tegra234-p3737-0000+p3701-0000-dynamic.dtbo tegra234-carveouts.dtbo tegra-optee.dtbo tegra234-p3737-camera-dual-imx274-overlay.dtbo tegra234-p3737-camera-e3331-overlay.dtbo tegra234-p3737-camera-e3333-overlay.dtbo tegra234-p3737-camera-imx185-overlay.dtbo"
 
 TEGRA_FLASHVAR_BPFDTB_FILE ?= "tegra234-bpmp-3701-0000-3737-0000.dtb"
 TEGRA_FLASHVAR_BPF_FILE ?= "bpmp_t234-TE990M-A1_prod.bin"
