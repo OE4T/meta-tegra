@@ -1,0 +1,21 @@
+From a2eda12328f3e325325bee49a706ff76b9c4112b Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 11 May 2024 04:49:13 -0700
+Subject: [PATCH] nvidia-drm: add dependency on tegra-drm module
+
+Upstream-Status: Pending
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ nvdisplay/kernel-open/nvidia-drm/nvidia-drm-linux.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/nvdisplay/kernel-open/nvidia-drm/nvidia-drm-linux.c b/nvdisplay/kernel-open/nvidia-drm/nvidia-drm-linux.c
+index a8b5bf6..a1e4655 100644
+--- a/nvdisplay/kernel-open/nvidia-drm/nvidia-drm-linux.c
++++ b/nvdisplay/kernel-open/nvidia-drm/nvidia-drm-linux.c
+@@ -305,3 +305,4 @@ module_exit(nv_linux_drm_exit);
+ 
+ MODULE_INFO(supported, "external");
+ MODULE_VERSION(NV_VERSION_STRING);
++MODULE_SOFTDEP("pre: tegra_drm");
