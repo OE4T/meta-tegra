@@ -24,7 +24,9 @@ unpack_makefile_from_bsp() {
 do_unpack[postfuncs] += "unpack_makefile_from_bsp"
 
 SRC_URI += "file://0001-Makefile-update-for-OE-builds.patch \
-            file://0002-Fix-nvdisplay-modules-builds.patch"
+            file://0002-Fix-nvdisplay-modules-builds.patch \
+            file://0003-nvidia-drm-add-dependency-on-tegra-drm-module.patch \
+"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
