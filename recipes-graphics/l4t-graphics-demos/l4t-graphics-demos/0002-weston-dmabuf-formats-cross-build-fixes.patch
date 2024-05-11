@@ -1,17 +1,19 @@
-From 3bbe9c7d585e2fb31369f503c3bd62e12a28ae99 Mon Sep 17 00:00:00 2001
+From f064b0f4b1a934fd9c21a7c1ccff4017f942322f Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Wed, 9 Aug 2023 23:26:36 +0100
-Subject: [PATCH 2/2] weston-dmabuf-formats cross-build fixes
+Subject: [PATCH] weston-dmabuf-formats cross-build fixes
+
+Upstream-Status: Inappropriate [OE specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- weston-dmabuf-formats/Makefile | 42 ++++++++++++++++++++++++++++------
- 1 file changed, 35 insertions(+), 7 deletions(-)
+ .../weston-dmabuf-formats/Makefile            | 41 +++++++++++++++----
+ 1 file changed, 34 insertions(+), 7 deletions(-)
 
-diff --git a/weston-dmabuf-formats/Makefile b/weston-dmabuf-formats/Makefile
-index 5c4d9ea..f5aec60 100644
---- a/weston-dmabuf-formats/Makefile
-+++ b/weston-dmabuf-formats/Makefile
+diff --git a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
+index 5c4d9ea..95e5c6c 100644
+--- a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
++++ b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
 @@ -28,8 +28,16 @@ WESTON-DMABUF-FORMATS_OBJS :=
  WESTON-DMABUF-FORMATS_OBJS += $(NV_WINSYS)/weston-dmabuf-formats.o
  INTERMEDIATES += $(WESTON-DMABUF-FORMATS_OBJS)
@@ -31,7 +33,7 @@ index 5c4d9ea..f5aec60 100644
  
  WESTON-DMABUF-FORMATS_LDLIBS :=
  WESTON-DMABUF-FORMATS_LDLIBS += -lm
-@@ -37,12 +45,10 @@ WESTON-DMABUF-FORMATS_LDLIBS += -lrt
+@@ -37,12 +45,9 @@ WESTON-DMABUF-FORMATS_LDLIBS += -lrt
  WESTON-DMABUF-FORMATS_LDLIBS += -lpthread
  WESTON-DMABUF-FORMATS_LDLIBS += -l:libEGL.so.1
  WESTON-DMABUF-FORMATS_LDLIBS += -l:libGLESv2.so.2
@@ -39,15 +41,14 @@ index 5c4d9ea..f5aec60 100644
 -WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-6.so.0
 -WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-desktop-6.so.0
 -WESTON-DMABUF-FORMATS_LDLIBS += -l:fullscreen-shell.so
-+WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-10.so.0
-+WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-desktop-10.so.0
++WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-13.so.0
  WESTON-DMABUF-FORMATS_LDLIBS += -l:libdrm.so.2
 -WESTON-DMABUF-FORMATS_LDLIBS += -l:libnvgbm.so
 +WESTON-DMABUF-FORMATS_LDLIBS += -l:libgbm.so
  WESTON-DMABUF-FORMATS_LDLIBS += ${NV_PLATFORM_WINSYS_LIBS}
  
  ifeq ($(findstring $(NV_WINSYS),egldevice screen wayland x11),)
-@@ -61,8 +67,30 @@ FORCE:
+@@ -61,8 +66,30 @@ FORCE:
  $(NV_WINSYS)/weston-dmabuf-formats: $(WESTON-DMABUF-FORMATS_OBJS) $(WESTON-DMABUF-FORMATS_DEMOLIBS)
  	$(LD) $(LDFLAGS) -o $@ $^ $(WESTON-DMABUF-FORMATS_LDLIBS)
  
@@ -78,6 +79,3 @@ index 5c4d9ea..f5aec60 100644
  endef
  $(foreach demolib,$(WESTON-DMABUF-FORMATS_DEMOLIBS),$(eval $(call demolib-rule,$(demolib))))
 +$(foreach protocol,$(PROTOCOLS),$(eval $(call protocol-rule,$(basename $(protocol)))))
--- 
-2.25.1
-

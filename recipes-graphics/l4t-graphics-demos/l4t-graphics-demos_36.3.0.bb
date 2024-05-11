@@ -6,8 +6,8 @@ LIC_FILES_CHKSUM = "file://README;endline=21;md5=17bf753e98379a9888c5bd3f81da8d4
                     file://gears-cube/Makefile;endline=8;md5=a2d67caf4241d62192371ef03b193fea"
 
 SRC_URI += "\
-    file://0001-Fix-stdbool.h-inclusion-check.patch \
-    file://0002-weston-dmabuf-formats-cross-build-fixes.patch \
+    file://0001-Fix-stdbool.h-inclusion-check.patch;patchdir=../../../.. \
+    file://0002-weston-dmabuf-formats-cross-build-fixes.patch;patchdir=../../../.. \
 "
 
 REQUIRED_DISTRO_FEATURES = "opengl"
