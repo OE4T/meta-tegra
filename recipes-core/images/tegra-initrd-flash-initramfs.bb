@@ -29,6 +29,8 @@ IMAGE_NAME_SUFFIX = ""
 
 FORCE_RO_REMOVE ?= "1"
 
+KERNEL_ARGS:remove = "console=tty0"
+
 inherit core-image
 
 IMAGE_FSTYPES = "${TEGRA_INITRD_FLASH_INITRAMFS_FSTYPES}"
