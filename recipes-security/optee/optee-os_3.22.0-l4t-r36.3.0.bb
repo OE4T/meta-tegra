@@ -9,7 +9,8 @@ CVE_PRODUCT = "linaro:op-tee op-tee:op-tee_os"
 DEPENDS += "optee-nvsamples"
 
 EXTRA_OEMAKE += "\
-    EARLY_TA_PATHS='${STAGING_INCDIR}/optee/early_ta/luks-srv/b83d14a8-7128-49df-9624-35f14f65ca6c.stripped.elf' \
+    EARLY_TA_PATHS='${STAGING_INCDIR}/optee/early_ta/cpubl-payload-dec/0e35e2c9-b329-4ad9-a2f5-8ca9bbbd7713.stripped.elf \
+                    ${STAGING_INCDIR}/optee/early_ta/luks-srv/b83d14a8-7128-49df-9624-35f14f65ca6c.stripped.elf' \
 "
 
 do_install() {

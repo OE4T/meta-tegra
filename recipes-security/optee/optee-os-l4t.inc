@@ -7,10 +7,6 @@ LIC_FILES_CHKSUM = " \
     file://LICENSE.NVIDIA;md5=ba16bc74328d76e24af960ba01c937dc \
 "
 
-SRC_URI += "\
-    file://0002-core-arm.mk-add-fcommon-to-cflags.patch \
-"
-
 OPTEEMACHINE ?= "invalid"
 OPTEEMACHINE:tegra ?= "tegra"
 
