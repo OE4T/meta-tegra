@@ -30,8 +30,8 @@ do_install() {
     install -m 0644 ${B}/ta/hwkey-agent/82154947-c1bc-4bdf-b89d-04f93c0ea97c.ta ${D}${nonarch_base_libdir}/optee_armtz
     oe_runmake -C ${S}/hwkey-agent/host install DESTDIR="${D}"
 
-    install -d ${D}${includedir}/optee/early_ta/luks-srv
-    install -m 0755 ${B}/early_ta/luks-srv/b83d14a8-7128-49df-9624-35f14f65ca6c.stripped.elf ${D}${includedir}/optee/early_ta/luks-srv
+    install -D -m 0755 ${B}/early_ta/luks-srv/b83d14a8-7128-49df-9624-35f14f65ca6c.stripped.elf -t ${D}${includedir}/optee/early_ta/luks-srv
+    install -D -m 0755 ${B}/early_ta/cpubl-payload-dec/0e35e2c9-b329-4ad9-a2f5-8ca9bbbd7713.stripped.elf -t ${D}${includedir}/optee/early_ta/cpubl-payload-dec
     oe_runmake -C ${S}/luks-srv/host install DESTDIR="${D}"
 }
 
