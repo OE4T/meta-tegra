@@ -69,7 +69,7 @@ sign_extlinux_files() {
 do_sign_files() {
     local files_to_sign="extlinux.conf"
     if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
-        files_to_sign="${DTBFILE}"
+        files_to_sign="$files_to_sign ${DTBFILE}"
     fi
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
         files_to_sign="$files_to_sign initrd"
