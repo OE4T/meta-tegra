@@ -35,6 +35,9 @@ LD[unexport] = "1"
 TARGET_SOC = "UNKNOWN"
 TARGET_SOC:tegra234 = "t234"
 
+TARGET_SOC_OEMAKE = ""
+TARGET_SOC_OEMAKE:tegra234 = "BRANCH_PROTECTION=3 ARM_ARCH_MINOR=3"
+
 def generate_build_string(d):
     pv = d.getVar('PV').split('-')
     if len(pv) > 1:
@@ -50,7 +53,7 @@ def generate_build_timestamp(d):
 BUILD_STRING ?= "${@generate_build_string(d)}"
 BUILDTIMESTAMP ?= "${@generate_build_timestamp(d)}"
 
-EXTRA_OEMAKE = 'BUILD_BASE=${B} CROSS_COMPILE="${TARGET_PREFIX}" PLAT=tegra \
+EXTRA_OEMAKE = 'BUILD_BASE=${B} CROSS_COMPILE="${TARGET_PREFIX}" PLAT=tegra ${TARGET_SOC_OEMAKE} \
 	        DEBUG=0 LOG_LEVEL=20 V=1 TARGET_SOC=${TARGET_SOC} ${BUILDTIMESTAMP} ${BUILD_STRING} ${PACKAGECONFIG_CONFARGS}'
 
 do_configure[noexec] = "1"
