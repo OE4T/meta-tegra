@@ -119,7 +119,7 @@ FILES:gcov-for-nvcc-symlinks = "${bindir}/gcov-${BINV} \
 "
 
 FILES:g++-for-nvcc = "\
-    ${bindir}/${TARGET_PREFIX}g++ \
+    ${bindir}/${TARGET_PREFIX}g++* \
     ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/cc1plus \
 "
 FILES:g++-for-nvcc-symlinks = "\
@@ -199,8 +199,6 @@ do_install () {
 	ln -sf ${TARGET_PREFIX}cpp-${BINV} cpp-${BINV}
 	ln -sf ${TARGET_PREFIX}gcov-${BINV} gcov-${BINV}
 	ln -sf ${TARGET_PREFIX}gcov-tool-${BINV} gcov-tool-${BINV}
-	install -d ${D}${base_libdir}
-	ln -sf ${bindir}/${TARGET_PREFIX}cpp ${D}${base_libdir}/cpp
 	ln -sf g++-${BINV} c++-${BINV}
 	ln -sf gcc-${BINV} cc-${BINV}
 	chown -R root:root ${D}
