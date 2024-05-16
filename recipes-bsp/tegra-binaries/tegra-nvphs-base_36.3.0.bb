@@ -8,8 +8,8 @@ require tegra-debian-libraries-common.inc
 
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'init')};subdir=${BP};name=init"
 
-MAINSUM = "b7c76d1082f467b0a2ecd57bf3da343c1ef2331e1072223c33419be084cc8b72"
-INITSUM = "3688e38dec23024098f969f5a46108a1f3daa86f48e904a14edcbe71b734324d"
+MAINSUM = "3ceb07740975a191fa0b69e02d23f29e1c7cd990cbb3e21da12e8f0cec09b52f"
+INITSUM = "268a9d974765ccf83dec9a0a94e2870c5c789334701bae3a3321c83795c6b431"
 SRC_URI[init.sha256sum] = "${INITSUM}"
 
 do_install() {

@@ -8,7 +8,7 @@ inherit l4t_deb_pkgfeed
 SRC_COMMON_DEBS = "nvidia-l4t-dla-compiler_${PV}_arm64.deb;subdir=${BPN}"
 PV .= "${@l4t_bsp_debian_version_suffix(d, pkgname='nvidia-l4t-dla-compiler')}"
 
-SRC_URI[sha256sum] = "2af029d8ba70f1cbda62f1f8053c4590363a77754e26c5c043bf7d744f678530"
+SRC_URI[sha256sum] = "852ed23e2f6d3b6ea2c7044c18f00a08d3a31ad053a5bd5836b9b08a31351a51"
 
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"

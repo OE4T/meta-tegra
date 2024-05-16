@@ -6,8 +6,8 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-firmware"
 require tegra-debian-libraries-common.inc
 
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'xusb-firmware')};subdir=${BP};name=xusb"
-MAINSUM = "8b414561d137d84a1b446728ae854e418f25df8bc18232ac8cd2819e3199432a"
-XUSBSUM = "c5d245ef010b721372330d01b444ad43feaf58c1968b798ec9e413ba1f4f8581"
+MAINSUM = "6b52d07535227c8ca1ac48e7ff85b9d674f384ebcf3fe6f1140f2e5702596d42"
+XUSBSUM = "9a580a0b3a1ba178338741b4b93940f859b54525dab44532166a4a0754d539ba"
 SRC_URI[xusb.sha256sum] = "${XUSBSUM}"
 
 do_install() {

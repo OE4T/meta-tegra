@@ -6,7 +6,7 @@ require tegra-debian-libraries-common.inc
 LICENSE += "& MIT"
 LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-tegra/LICENSE.libnvscibuf;md5=0cd5a346aecd6451e0224bf024e84756"
 
-MAINSUM = "9bfabd624076d55c6f649cb1d5d82cbecac9f5cefbe3e16c03005d179dc2bebe"
+MAINSUM = "fd9c87b6c45421211e6cc38e29bb199b8be5be430a74509d37cf269e8c38bf14"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvscibuf.so.1 \
