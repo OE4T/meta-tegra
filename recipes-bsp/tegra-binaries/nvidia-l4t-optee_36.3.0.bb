@@ -3,7 +3,7 @@ L4T_DEB_COPYRIGHT_MD5 = "76b3130e18f6d6dc3236584f2c985e43"
 require tegra-debian-libraries-common.inc
 
 DESCRIPTION = "Prebuilt OPTEE normal-world binaries"
-MAINSUM = "2025068c7334bb4eb5809db711c889db2ca80b8d1e2c1ddb76010303fb1ce3a0"
+MAINSUM = "2032f621e042d75a6dbd2408ee65bc620510c8edb8a8a40d96d2aa5d5779caec"
 
 inherit systemd
 
