@@ -14,8 +14,9 @@ do_install:append() {
 
 FILES:${PN} = "${prefix}/local/cuda-${CUDA_VERSION}"
 FILES:${PN}-dev = ""
-INSANE_SKIP:${PN} += "dev-so"
+INSANE_SKIP:${PN} += "dev-so dev-deps"
 RDEPENDS:${PN} = "${BPN}-headers"
+RDEPENDS:${PN}:append:class-target = " cuda-nvvm-dev cuda-crt-dev"
 RDEPENDS:${PN}:append:class-nativesdk = " nativesdk-cuda-environment"
 
 BBCLASSEXTEND = "native nativesdk"
