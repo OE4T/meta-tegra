@@ -12,6 +12,7 @@ do_compile:append() {
 }
 
 FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/share/gdb"
+RDEPENDS:${PN} += "gmp"
 RDEPENDS:${PN}-dev += "python3"
 INSANE_SKIP:${PN}-dev += "staticdev"
 BBCLASSEXTEND = "native nativesdk"
