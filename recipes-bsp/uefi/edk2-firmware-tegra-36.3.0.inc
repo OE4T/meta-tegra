@@ -31,14 +31,37 @@ SRC_URI += "\
 
 SRCREV_FORMAT = "edk2_edk2-platforms_edk2-non-osi_edk2-nvidia_edk2-nvidia-non-osi"
 
-# edk2-nvidia
-SRC_URI += "file://0003-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=../edk2-nvidia"
+SRC_URI += "\
+    file://0001-Update-tools_def.template-for-toolchain-differences.patch \
+    file://0002-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=../edk2-nvidia \
+    file://0003-Remove-BUILD_EPOCH-definitions-from-RTC-inf-files.patch;patchdir=../edk2-nvidia \
+"
 
 S = "${WORKDIR}/edk2-tegra/edk2"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 S_EDK2_NVIDIA = "${@os.path.normpath(os.path.join(d.getVar('S'), '../edk2-nvidia'))}"
+
+# A bit of a hack here... S is the 'edk2' subtree, and all of the other
+# subtrees are prefixed 'edk2', and this happens to work out nicely for
+# the debug prefix mapping if we just put 'edk2' as last component of
+# TARGET_DBGSRC_DIR.
+TARGET_DBGSRC_DIR = "/usr/src/debug/${PN}/${PV}/edk2"
+
+export DEBUG_PREFIX_MAP
+# We've patched the tools_def template to pick ths flag up from the
+# environment, so we don't end up with `date` commands inserted into
+# makefiles for setting the RTC epoch.
+export SOURCE_DATE_EPOCH_FLAG = "-DBUILD_EPOCH=${SOURCE_DATE_EPOCH}"
+
+# NVIDIA has some additional tools_def definitions, which get added
+# like this as part of the stuart build setup.
+apply_tools_def_updates() {
+    if [ -e ${S_EDK2_NVIDIA}/Silicon/NVIDIA/tools_def.inc ]; then
+        echo "!include Silicon/NVIDIA/tools_def.inc" >> ${S}/Conf/tools_def.txt
+    fi
+}
 
 # derived from edk2-nvidia/Silicon/NVIDIA/edk2nv/stuart/settings.py
 def nvidia_edk2_packages_path(d):
@@ -55,9 +78,8 @@ PACKAGES_PATH = "${@nvidia_edk2_packages_path(d)}"
 
 # BUILD_* taken from Silicon/NVIDIA/edk2nv/stuart/settings.py and
 #                    builder.py, plus Platform/NVIDIA/Jetson/PlatformBuild.py
-# LZMA_FLAGS taken from Silicon/NVIDIA/tools_def.inc
-EDK2_EXTRA_BUILD = '-D "BUILDID_STRING=v${PV}" -D "BUILD_DATE_TIME=${@format_build_date(d)}" -D "BUILD_PROJECT_TYPE=EDK2" -D "GENFW_FLAGS=--zero" \
-                    -D BUILD_GUID=b175f7b7-0cb0-446e-b338-0e0d0f688de8 -D "LZMA_FLAGS=d 27" -DBUILD_NAME=Jetson'
+EDK2_EXTRA_BUILD = '-D "BUILDID_STRING=v${PV}" -D "BUILD_DATE_TIME=${@format_build_date(d)}" -D "BUILD_PROJECT_TYPE=EDK2" \
+                    -D BUILD_GUID=49a79a15-8f69-4be7-a30c-a172f44abce7 -DBUILD_NAME=Jetson'
 
 def format_build_date(d):
     import datetime
