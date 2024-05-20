@@ -398,7 +398,7 @@ if [ "$CHIPID" = "0x23" ]; then
                 exit 1
                 ;;
         esac
-        if [ "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
+        if [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
             PMICBOARDSKU="0005"
         else
             PMICBOARDSKU="0000"
