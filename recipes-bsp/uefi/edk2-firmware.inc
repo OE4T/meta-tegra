@@ -92,6 +92,10 @@ do_configure:prepend() {
     sed -i -e "s#-target ${HOST_ARCH}-linux-gnu.*#-target ${HOST_SYS}#" ${S}/BaseTools/Conf/tools_def.template
 }
 
+apply_tools_def_updates() {
+    :
+}
+
 do_compile() {
     sed -i -e 's:-I \.\.:-I \.\. ${BUILD_CFLAGS} :' ${EDK_TOOLS_PATH}/Source/C/Makefiles/header.makefile
     sed -i -e 's: -luuid: -luuid ${BUILD_LDFLAGS}:g' ${EDK_TOOLS_PATH}/Source/C/*/GNUmakefile
@@ -100,6 +104,7 @@ do_compile() {
     cp ${EDK_TOOLS_PATH}/Conf/build_rule.template ${S}/Conf/build_rule.txt
     cp ${EDK_TOOLS_PATH}/Conf/tools_def.template ${S}/Conf/tools_def.txt
     cp ${EDK_TOOLS_PATH}/Conf/target.template ${S}/Conf/target.txt
+    apply_tools_def_updates
 
     # Build basetools
     oe_runmake -C ${S}/BaseTools
