@@ -97,7 +97,7 @@ bootimg_from_bundled_initramfs() {
                                     --ramdisk ${WORKDIR}/initrd \
                                     --cmdline "${KERNEL_ARGS}" \
                                     --output $deployDir/${baseName}.cboot
-	    sign_bootimg $deployDir/${initramfs_base_name}.cboot
+	    sign_bootimg $deployDir/${baseName}.cboot
             chmod 0644 $deployDir/${baseName}.cboot
             ln -sf ${baseName}.cboot $deployDir/$imageType-${KERNEL_IMAGE_LINK_NAME}.cboot
             ln -sf ${baseName}.cboot $deployDir/$imageType.cboot
