@@ -30,7 +30,7 @@ SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
            ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
            ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
            ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
-	   file://disable-module-signing.cfg \
+           file://disable-module-signing.cfg \
 "
 
 KBUILD_DEFCONFIG = "defconfig"
@@ -80,7 +80,7 @@ bootimg_from_bundled_initramfs() {
                                     --ramdisk ${WORKDIR}/initrd \
                                     --cmdline "${KERNEL_ARGS}" \
                                     --output $deployDir/${initramfs_base_name}.cboot
-	    sign_bootimg $deployDir/${initramfs_base_name}.cboot
+            sign_bootimg $deployDir/${initramfs_base_name}.cboot
             chmod 0644 $deployDir/${initramfs_base_name}.cboot
             ln -sf ${initramfs_base_name}.cboot $deployDir/${initramfs_symlink_name}.cboot
         done
@@ -91,13 +91,13 @@ bootimg_from_bundled_initramfs() {
             if [ "$imageType" = "fitImage" ] ; then
                 continue
             fi
-	    baseName=$imageType-${KERNEL_IMAGE_NAME}
+            baseName=$imageType-${KERNEL_IMAGE_NAME}
             ${STAGING_BINDIR_NATIVE}/tegra-flash/mkbootimg \
                                     --kernel $deployDir/${baseName}.bin \
                                     --ramdisk ${WORKDIR}/initrd \
                                     --cmdline "${KERNEL_ARGS}" \
                                     --output $deployDir/${baseName}.cboot
-	    sign_bootimg $deployDir/${baseName}.cboot
+            sign_bootimg $deployDir/${baseName}.cboot
             chmod 0644 $deployDir/${baseName}.cboot
             ln -sf ${baseName}.cboot $deployDir/$imageType-${KERNEL_IMAGE_LINK_NAME}.cboot
             ln -sf ${baseName}.cboot $deployDir/$imageType.cboot
