@@ -8,6 +8,7 @@ LIC_FILES_CHKSUM = "file://README;endline=21;md5=17bf753e98379a9888c5bd3f81da8d4
 SRC_URI += "\
     file://0001-Fix-stdbool.h-inclusion-check.patch;patchdir=../../../.. \
     file://0002-weston-dmabuf-formats-cross-build-fixes.patch;patchdir=../../../.. \
+    file://0003-Convert-nvgldemo-wayland-to-use-xdg-shell.patch;patchdir=../../../.. \
 "
 
 REQUIRED_DISTRO_FEATURES = "opengl"
@@ -18,7 +19,7 @@ inherit pkgconfig features_check
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11 wayland', d)}"
 PACKAGECONFIG[x11] = ",,libx11 virtual/libgbm"
-PACKAGECONFIG[wayland] = ",,libxkbcommon wayland wayland-native weston libffi virtual/libgbm tegra-mmapi tegra-libraries-multimedia-utils"
+PACKAGECONFIG[wayland] = ",,libxkbcommon wayland wayland-native weston wayland-protocols libffi virtual/libgbm tegra-mmapi tegra-libraries-multimedia-utils"
 
 CONFIGURESTAMPFILE = "${WORKDIR}/configure.sstate"
 
