@@ -1,0 +1,180 @@
+From 47ce38d2e1dba2ca50e6bb9dceedac5993810934 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 25 May 2024 07:12:46 -0700
+Subject: [PATCH] Convert from wl-shell to xdg-shell for wayland
+
+Upstream-Status: Pending
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ gst-egl/Makefile                             | 13 ++++--
+ gst-egl/ext/eglgles/video_platform_wrapper.c | 46 +++++++++++++++-----
+ gst-egl/ext/eglgles/video_platform_wrapper.h |  6 ++-
+ 3 files changed, 47 insertions(+), 18 deletions(-)
+
+diff --git a/gst-egl/Makefile b/gst-egl/Makefile
+index 244ba49..da0053a 100644
+--- a/gst-egl/Makefile
++++ b/gst-egl/Makefile
+@@ -64,9 +64,9 @@ CFLAGS += -DHAVE_X11 -DUSE_EGL_X11
+ endif
+ ifneq ($(USE_WAYLAND),)
+ CFLAGS += -DHAVE_WAYLAND -DUSE_EGL_WAYLAND
+-SRCS += ext/eglgles/presentation-time.c
+-EXTRADEPS += ext/eglgles/presentation-time-client-protocol.h
+-OBJS += ext/eglgles/presentation-time.o
++SRCS += ext/eglgles/presentation-time.c ext/eglgles/xdg-shell.c
++EXTRADEPS += ext/eglgles/presentation-time-client-protocol.h ext/eglgles/xdg-shell-client-protocol.h
++OBJS += ext/eglgles/presentation-time.o ext/eglgles/xdg-shell.o
+ endif
+ 
+ CFLAGS += `pkg-config --cflags $(PKGS)`
+@@ -92,6 +92,11 @@ ext/eglgles/presentation-time-client-protocol.h: $(PT_DESC)
+ 	wayland-scanner client-header < $< > $@
+ ext/eglgles/presentation-time.c: $(PT_DESC)
+ 	wayland-scanner private-code < $< > $@
++XS_DESC := $(shell pkg-config --variable=pkgdatadir wayland-protocols)/stable/xdg-shell/xdg-shell.xml
++ext/eglgles/xdg-shell-client-protocol.h: $(XS_DESC)
++	wayland-scanner client-header < $< > $@
++ext/eglgles/xdg-shell.c: $(XS_DESC)
++	wayland-scanner private-code < $< > $@
+ endif
+ 
+ .PHONY: install
+@@ -101,4 +106,4 @@ install: $(SO_NAME)
+ 
+ .PHONY: clean
+ clean:
+-	rm -rf $(OBJS) $(SO_NAME) $(EXTRADEPS) ext/eglgles/presentation-time.c
++	rm -rf $(OBJS) $(SO_NAME) $(EXTRADEPS) ext/eglgles/presentation-time.c ext/eglgles/xdg-shell.c
+diff --git a/gst-egl/ext/eglgles/video_platform_wrapper.c b/gst-egl/ext/eglgles/video_platform_wrapper.c
+index fd88a5e..bac0214 100644
+--- a/gst-egl/ext/eglgles/video_platform_wrapper.c
++++ b/gst-egl/ext/eglgles/video_platform_wrapper.c
+@@ -143,6 +143,24 @@ WaylandDisplay *wayland_display;
+ volatile gint instance_count = 0;
+ volatile gint render_count = 0;
+ 
++static void wm_base_handle_ping (void *data, struct xdg_wm_base *wm_base, uint32_t serial)
++{
++  xdg_wm_base_pong(wm_base, serial);
++}
++
++static const struct xdg_wm_base_listener xdg_wm_base_listener =
++{
++  wm_base_handle_ping
++};
++
++static void xdg_surface_handle_configure (void *data, struct xdg_surface *xdg_surface, uint32_t serial)
++{
++  xdg_surface_ack_configure(xdg_surface, serial);
++}
++static const struct xdg_surface_listener xdg_surface_listener = {
++  xdg_surface_handle_configure
++};
++
+ static void presentation_handle_clock_id (void *data, struct wp_presentation *presentation, uint32_t clk_id)
+ {
+   wayland_display->clock_id = clk_id;
+@@ -159,15 +177,15 @@ void global_registry_remover (void *data, struct wl_registry *registry, uint32_t
+ void global_registry_handler (void *data, struct wl_registry *registry, uint32_t id,
+                                 const char *interface, uint32_t version)
+ {
+-  if (strcmp (interface, "wl_compositor") == 0) {
++  if (strcmp (interface, wl_compositor_interface.name) == 0) {
+     wayland_display->compositor = wl_registry_bind (registry,
+                                     id,
+                                     &wl_compositor_interface,
+                                     1);
+   }
+-  else if (strcmp (interface, "wl_shell") == 0) {
+-    wayland_display->shell = wl_registry_bind (registry, id,
+-                              &wl_shell_interface, 1);
++  else if (strcmp (interface, xdg_wm_base_interface.name) == 0) {
++    wayland_display->wm_base = wl_registry_bind (registry, id,
++                              &xdg_wm_base_interface, 1);
+   }
+   else if (strcmp (interface, wp_presentation_interface.name) == 0) {
+     wayland_display->presentation = wl_registry_bind (registry, id,
+@@ -209,7 +227,7 @@ EGLNativeDisplayType platform_initialize_display_wayland (void)
+   wl_display_roundtrip (wayland_display->display);
+ 
+   if (wayland_display->compositor == NULL ||
+-          (wayland_display->shell == NULL && wayland_display->ivi_application == NULL)) {
++          (wayland_display->wm_base == NULL && wayland_display->ivi_application == NULL)) {
+     GST_ERROR ("Can't find compositor or shell");
+     return NULL;
+   }
+@@ -234,12 +252,15 @@ platform_create_native_window_wayland (gint x, gint y, gint width, gint height,
+         ivisurf_id, data->surface);
+   }
+   else {
+-    data->shell_surface = wl_shell_get_shell_surface (wayland_display->shell, data->surface);
+-    wl_shell_surface_set_toplevel (data->shell_surface);
++    data->xdg_surface = xdg_wm_base_get_xdg_surface (wayland_display->wm_base, data->surface);
++    xdg_surface_add_listener(data->xdg_surface, &xdg_surface_listener, data);
++    data->xdg_toplevel = xdg_surface_get_toplevel(data->xdg_surface);
++    wl_surface_commit(data->surface);
+   }
+ 
+-  data->egl_window = wl_egl_window_create (data->surface, width, height);
++  wl_display_dispatch (wayland_display->display);
+ 
++  data->egl_window = wl_egl_window_create (data->surface, width, height);
+   g_atomic_int_add(&instance_count, 1);
+ 
+   return (EGLNativeWindowType) data->egl_window;
+@@ -252,8 +273,9 @@ gboolean platform_destroy_display_wayland (void)
+       wl_compositor_destroy (wayland_display->compositor);
+       wayland_display->compositor = NULL;
+     }
+-    if (wayland_display->shell) {
+-      wayland_display->shell = NULL;
++    if (wayland_display->wm_base) {
++      xdg_wm_base_destroy(wayland_display->wm_base);
++      wayland_display->wm_base = NULL;
+     }
+     if (wayland_display->presentation) {
+       wayland_display->presentation = NULL;
+@@ -373,8 +395,8 @@ gboolean platform_destroy_native_window_wayland (EGLNativeDisplayType display,
+     data->egl_window = NULL;
+   }
+ 
+-  if (data->shell_surface) {
+-    data->shell_surface = NULL;
++  if (data->xdg_surface) {
++    data->xdg_surface = NULL;
+   }
+ 
+   if (data->surface) {
+diff --git a/gst-egl/ext/eglgles/video_platform_wrapper.h b/gst-egl/ext/eglgles/video_platform_wrapper.h
+index 594b9a2..87de5f5 100644
+--- a/gst-egl/ext/eglgles/video_platform_wrapper.h
++++ b/gst-egl/ext/eglgles/video_platform_wrapper.h
+@@ -52,6 +52,7 @@ gboolean platform_destroy_native_window_x11 (EGLNativeDisplayType display,
+ #include "wayland-client-protocol.h"
+ #include "wayland-egl.h"
+ #include "presentation-time-client-protocol.h"
++#include "xdg-shell-client-protocol.h"
+ #ifdef HAVE_WAYLAND_IVI_APPLICATION
+ #include "ivi-application-client-protocol.h"
+ #else
+@@ -63,7 +64,8 @@ static inline __attribute__((unused)) void ivi_application_destroy(struct ivi_ap
+ typedef struct
+ {
+   struct wl_egl_window *egl_window;
+-  struct wl_shell_surface *shell_surface;
++  struct xdg_toplevel *xdg_toplevel;
++  struct xdg_surface *xdg_surface;
+   struct ivi_surface *ivi_surface;
+   struct wl_surface *surface;
+ } WaylandWindowData;
+@@ -72,7 +74,7 @@ typedef struct
+ {
+   struct wl_display *display;
+   struct wl_compositor *compositor;
+-  struct wl_shell *shell;
++  struct xdg_wm_base *wm_base;
+   struct wp_presentation *presentation;
+   struct wp_presentation_feedback *presentation_feedback;
+   struct wl_registry *registry;
