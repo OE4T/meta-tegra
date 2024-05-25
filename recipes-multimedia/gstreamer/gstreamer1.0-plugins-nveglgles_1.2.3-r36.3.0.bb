@@ -8,11 +8,13 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/gstegl_src.tbz2"
 
 require recipes-bsp/tegra-sources/tegra-sources-36.3.0.inc
 
-SRC_URI += "file://0001-Makefile-fixes-for-OE-builds.patch;patchdir=.. \
-           file://0002-Fix-builds-without-x11.patch;patchdir=.. \
-           file://0003-Fix-builds-without-wayland.patch;patchdir=.. \
-           file://0004-Fix-builds-without-wayland-IVI-extensions.patch;patchdir=.. \
-           "
+SRC_URI += "\
+    file://0001-Makefile-fixes-for-OE-builds.patch;patchdir=.. \
+    file://0002-Fix-builds-without-x11.patch;patchdir=.. \
+    file://0003-Fix-builds-without-wayland.patch;patchdir=.. \
+    file://0004-Fix-builds-without-wayland-IVI-extensions.patch;patchdir=.. \
+    file://0005-Convert-from-wl-shell-to-xdg-shell-for-wayland.patch;patchdir=.. \
+"
 
 DEPENDS = "tegra-mmapi gstreamer1.0 glib-2.0-native gstreamer1.0-plugins-base virtual/egl virtual/libgles2 cuda-cudart cuda-driver"
 
