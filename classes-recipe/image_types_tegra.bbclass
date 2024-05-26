@@ -96,9 +96,6 @@ IMAGE_TEGRAFLASH_DATA ??= ""
 
 IMAGE_TEGRAFLASH_INITRD_FLASHER ?= "${@'${DEPLOY_DIR_IMAGE}/${TEGRAFLASH_INITRD_FLASH_IMAGE}-${MACHINE}.cboot' if d.getVar('TEGRAFLASH_INITRD_FLASH_IMAGE') != '' else ''}"
 
-TEGRA_SPIFLASH_BOOT ??= ""
-TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD ??=""
-
 TOSIMGFILENAME = "tos-optee.img"
 TOSIMGFILENAME:tegra234 = "tos-optee_t234.img"
 
@@ -128,7 +125,7 @@ tegraflash_post_sign_pkg() {
     mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
     cp secureflash.xml initrd-secureflash.xml
     sed -i -e"s,APPFILE_b,${IMAGE_BASENAME}.img," -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
-    if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" -a "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" != "1" ]; then
+    if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" ]; then
         mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_DATA}" ${DATAFILE}.img
         sed -i -e"s,DATAFILE,${DATAFILE}.img," secureflash.xml
     fi
@@ -330,6 +327,7 @@ tegraflash_populate_package() {
 
 create_tegraflash_pkg() {
     local oldwd="$PWD"
+    local has_sdcard="no"
 
     rm -rf ${WORKDIR}/tegraflash
     mkdir -p ${WORKDIR}/tegraflash
@@ -341,6 +339,9 @@ create_tegraflash_pkg() {
     tegraflash_custom_pre
     cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     tegraflash_create_flash_config flash.xml.in ${LNXFILE}
+    if grep -Eq '^[[:space:]]+<device type="sdcard"' flash.xml.in; then
+        has_sdcard="yes"
+    fi
     if [ "${TEGRAFLASH_ROOTFS_EXTERNAL}" = "1" ]; then
         tegraflash_create_flash_config external-flash.xml.in ${LNXFILE} ${STAGING_DATADIR}/tegraflash/external-flash.xml
     fi
@@ -382,28 +383,21 @@ MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh -c "burnfuses odmfuse_pkc.xml"
 END
         chmod +x burnfuses.sh
     fi
-    if [ "${SOC_FAMILY}" = "tegra234" -o "${TEGRA_SPIFLASH_BOOT}" = "1" ]; then
+    if [ "$has_sdcard" = "yes" ]; then
         rm -f dosdcard.sh
         cat > dosdcard.sh <<END
 #!/bin/sh
 MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x dosdcard.sh
-    elif [ "${TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD}" = "1" ]; then
-        rm -f doflash.sh
-        cat > doflash.sh <<END
+    fi
+    if [ "${TEGRAFLASH_ROOTFS_EXTERNAL}" = "1" ]; then
+        rm -f doexternal.sh
+        cat > doexternal.sh <<END
 #!/bin/sh
-./nvflashxmlparse --split=flash-sdcard.xml.in --change-device-type=sdcard --output=flash-mmc.xml.in --sdcard-size=${TEGRAFLASH_SDCARD_SIZE} flash.xml.in
-MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh $DATAARGS flash-mmc.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -b ${IMAGE_BASENAME} $DATAARGS external-flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
-        chmod +x doflash.sh
-        rm -f dosdcard.sh
-        cat > dosdcard.sh <<END
-#!/bin/sh
-./nvflashxmlparse --split=flash-sdcard.xml.in --change-device-type=sdcard --output=flash-mmc.xml.in --sdcard-size=${TEGRAFLASH_SDCARD_SIZE} flash.xml.in
-MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} BOARDREV=\${BOARDREV:-${TEGRA_BOARDREV}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash-sdcard.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
-END
-        chmod +x dosdcard.sh
+        chmod +x doexternal.sh
     fi
     tegraflash_custom_post
     tegraflash_custom_sign_pkg
