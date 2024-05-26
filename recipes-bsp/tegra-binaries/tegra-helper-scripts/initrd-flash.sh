@@ -344,12 +344,8 @@ generate_flash_package() {
     if [ $erase_nvme -eq 1 ]; then
 	echo "erase-nvme" >> "$mnt/flashpkg/conf/command_sequence"
     fi
-    if [ $EXTERNAL_ROOTFS_DRIVE -eq 1 -a $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
-	echo "export-devices mmcblk0 $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
-    else
-	[ $EXTERNAL_ROOTFS_DRIVE -eq 0 -o $NO_INTERNAL_STORAGE -eq 1 ] || echo "erase-mmc" >> "$mnt/flashpkg/conf/command_sequence"
-	echo "export-devices $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
-    fi
+    [ $EXTERNAL_ROOTFS_DRIVE -eq 0 -o $NO_INTERNAL_STORAGE -eq 1 ] || echo "erase-mmc" >> "$mnt/flashpkg/conf/command_sequence"
+    echo "export-devices $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
 
     echo "extra" >> "$mnt/flashpkg/conf/command_sequence"
     echo "reboot" >> "$mnt/flashpkg/conf/command_sequence"
@@ -378,9 +374,6 @@ write_to_device() {
 	datased="-es,DATAFILE,$DATAFILE,"
     else
 	datased="-e/DATAFILE/d"
-    fi
-    if [ "$devname" = "mmcblk0" -a $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
-	extraarg="--honor-start-locations"
     fi
     # XXX
     # For the pre-signed case, the flash layout will contain the
@@ -492,22 +485,11 @@ if ! generate_flash_package 2>&1 | tee -a "$logfile"; then
 fi
 if [ $EXTERNAL_ROOTFS_DRIVE -eq 1 ]; then
     keep_going=1
-    if [ $BOOT_PARTITIONS_ON_EMMC -eq 1 ]; then
-	step_banner "Writing boot partitions to internal storage device"
-	if ! write_to_device mmcblk0 flash.xml.in --no-final-part 2>&1 | tee -a "$logfile"; then
-	    echo "ERR: write failure to internal storage at $(date -Is)" | tee -a "$logfile"
-	    if [ $early_final_status -eq 0 ]; then
-		exit 1
-	    fi
-	fi
-    fi
-    if [ $early_final_status -eq 0 ]; then
-	step_banner "Writing partitions on external storage device"
-	if ! write_to_device $ROOTFS_DEVICE external-flash.xml.in 2>&1 | tee -a "$logfile"; then
-	    echo "ERR: write failure to external storage at $(date -Is)" | tee -a "$logfile"
-	    if [ $early_final_status -eq 0 ]; then
-		exit 1
-	    fi
+    step_banner "Writing partitions on external storage device"
+    if ! write_to_device $ROOTFS_DEVICE external-flash.xml.in 2>&1 | tee -a "$logfile"; then
+	echo "ERR: write failure to external storage at $(date -Is)" | tee -a "$logfile"
+	if [ $early_final_status -eq 0 ]; then
+	    exit 1
 	fi
     fi
 else

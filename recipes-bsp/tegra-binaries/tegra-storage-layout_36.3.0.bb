@@ -48,30 +48,15 @@ copy_in_flash_layout() {
 
 do_compile() {
     copy_in_flash_layout ${PARTITION_FILE} internal-flash.xml.orig
-    # For flashing to an external (USB/NVMe) device on targets where
-    # some of the boot partitions spill into the eMMC, preprocess the
-    # the XML files so the layout for the internal storage retains the
-    # those boot partitions, and remove the names of those partitions
-    # from the layout for the external storage.
-    if [ "${TNSPEC_BOOTDEV}" != "mmcblk0p1" -a "${BOOT_PARTITIONS_ON_EMMC}" = "1" ]; then
-        nvflashxmlparse -v --split=/dev/null --output=internal-flash.xml ${EXTRA_XML_SPLIT_ARGS} internal-flash.xml.orig
-        # BUP generation will fail if the main XML file does not
-        # contain the kernel/DTB/etc, so save a copy of the
-        # original for that purpose, stripping out the APP
-        # partition so that the offsets of the partitions
-        # referenced during early boot match the split layout above.
-        nvflashxmlparse -v --remove --partitions-to-remove=APP,APP_b --output=bupgen-internal-flash.xml internal-flash.xml.orig
+    if [ "${TEGRAFLASH_NO_INTERNAL_STORAGE}" = "1" ]; then
+        # For modules with *only* SPI flash (or other boot device) and no
+        # internal storage for rootfs, use a full copy for BUP (see note above)
+        # and make sure the internal layout used for flashing only
+        # covers the boot device.
+        cp internal-flash.xml.orig bupgen-internal-flash.xml
+        nvflashxmlparse --extract -t boot --output=internal-flash.xml internal-flash.xml.orig
     else
-        if [ "${TEGRAFLASH_NO_INTERNAL_STORAGE}" = "1" ]; then
-            # For modules with *only* SPI flash (or other boot device) and no
-            # internal storage for rootfs, use a full copy for BUP (see note above)
-            # and make sure the internal layout used for flashing only
-            # covers the boot device.
-            cp internal-flash.xml.orig bupgen-internal-flash.xml
-            nvflashxmlparse --extract -t boot --output=internal-flash.xml internal-flash.xml.orig
-        else
-            cp internal-flash.xml.orig internal-flash.xml
-        fi
+        cp internal-flash.xml.orig internal-flash.xml
     fi
 
     if [ -n "${PARTITION_LAYOUT_EXTERNAL}" ]; then
