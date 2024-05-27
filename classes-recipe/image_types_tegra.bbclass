@@ -462,25 +462,3 @@ do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populat
                                  virtual/bootloader:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS} \
                                  ${@'${TEGRAFLASH_INITRD_FLASH_IMAGE}:do_image_complete' if d.getVar('TEGRAFLASH_INITRD_FLASH_IMAGE') != '' else ''}"
 IMAGE_TYPEDEP:tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
-
-oe_make_bup_payload() {
-    PATH="${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}:${PATH}"
-    export tosimgfilename=${TOSIMGFILENAME}
-    rm -rf ${WORKDIR}/bup-payload
-    mkdir ${WORKDIR}/bup-payload
-    oldwd="$PWD"
-    cd ${WORKDIR}/bup-payload
-    # BUP generator really wants to use 'boot.img' for the LNX
-    # partition contents
-    tegraflash_populate_package "$1" boot.img ${@tegra_bootcontrol_overlay_list(d, bup=True)}
-    mv generate_bup_payload.sh doflash.sh
-    tegraflash_create_flash_config flash.xml.in boot.img ${STAGING_DATADIR}/tegraflash/bupgen-internal-flash.xml
-    . ./flashvars
-    tegraflash_custom_sign_bup
-    for bup in ${WORKDIR}/bup-payload/${BUP_PAYLOAD_DIR}/*; do
-	[ -e $bup ] || continue
-	BUP_generator.py --contents --check $bup
-    done
-    mv ${WORKDIR}/bup-payload/${BUP_PAYLOAD_DIR}/* .
-    cd "$oldwd"
-}
