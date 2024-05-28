@@ -1,7 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 SRC_URI:append:tegra = " \
     file://0001-Make-plugin-directory-relative-to-ORIGIN.patch \
-    file://0002-Replace-stat-fstat-calls-with-__xstat-__fxstat.patch \
     file://0003-Update-conversion-defaults-to-match-NVIDIA-sources.patch \
 "
 
