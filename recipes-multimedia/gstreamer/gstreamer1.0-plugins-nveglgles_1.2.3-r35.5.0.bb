@@ -20,6 +20,8 @@ PACKAGECONFIG[wayland] = "USE_WAYLAND=yes,,wayland"
 
 EXTRA_OEMAKE = "CUDA_VER=${CUDA_VERSION} ${PACKAGECONFIG_CONFARGS}"
 
+CFLAGS += "-Wno-error=int-conversion"
+
 S = "${WORKDIR}/gstegl_src/gst-egl"
 
 inherit pkgconfig features_check
