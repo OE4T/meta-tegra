@@ -39,8 +39,10 @@ NVIDIA_MODPROBE_VERSION = "495.44"
 ELF_TOOLCHAIN_VERSION = "0.7.1"
 LIBTIRPC_VERSION = "1.3.2"
 
+NVIDIA_MODPROBE_SRCURI_DESTSUFFIX = "${@os.path.join(os.path.basename(d.getVar('S')), 'deps', 'src', 'nvidia-modprobe-' + d.getVar('NVIDIA_MODPROBE_VERSION')) + '/'}"
+
 SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=libnvidia;branch=main \
-           git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=git/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} \
+           git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX} \
            file://0001-OE-cross-build-fixups.patch \
            file://0002-Expose-device-file-attrs.patch \
 "

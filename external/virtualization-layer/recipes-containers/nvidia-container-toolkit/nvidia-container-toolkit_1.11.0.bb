@@ -35,7 +35,7 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
                     file://src/${GO_IMPORT}/vendor/sigs.k8s.io/yaml/LICENSE;md5=0ceb9ff3b27d3a8cf451ca3785d73c71 \
 "
 
-SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=main"
+SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=main;destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRCREV = "d9de4a09b8fd51a46207398199ecfeb3998ad49d"
 
 SRC_URI += "\
@@ -67,7 +67,7 @@ do_compile() {
     sed -e's,!LOCALSTATEDIR!,${localstatedir},g' \
         -e's,!BASE_SBINDIR!,${base_sbindir},g' \
         -e's,!SYSCONFDIR!,${sysconfdir},g' \
-        -e's,!DATADIR!,${datadir},g' ${WORKDIR}/config.toml.in > ${B}/config.toml
+        -e's,!DATADIR!,${datadir},g' ${UNPACKDIR}/config.toml.in > ${B}/config.toml
 }
 
 do_install(){

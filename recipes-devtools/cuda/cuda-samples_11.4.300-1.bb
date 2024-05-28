@@ -11,7 +11,7 @@ L4T_DEB_GROUP = "cuda-samples"
 SRC_URI[sha256sum] = "58b2d1f5fbb5c1adc12d168042cebb2fdf4e279bc820cf3fc7f4431695d2f0b6"
 
 do_unpack_samples() {
-    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-${CUDA_VERSION_DASHED}_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${UNPACKDIR}/cuda-samples-${CUDA_VERSION_DASHED}_${PV}_arm64.deb | \
         tar --strip-components=5 --exclude="*/doc/*" --exclude="*/bin/*" -x -f- -C ${S}
 }
 
@@ -91,7 +91,7 @@ do_install() {
         [ -e "$f" ] || continue
         install -m 0755 "$f" ${D}${bindir}/cuda-samples/
     done
-    dpkg-deb --fsys-tarfile ${WORKDIR}/cuda-samples-11-4_${PV}_arm64.deb | \
+    dpkg-deb --fsys-tarfile ${UNPACKDIR}/cuda-samples-11-4_${PV}_arm64.deb | \
         tar --exclude="*usr/share*" -x -f- -C ${D}
 }
 

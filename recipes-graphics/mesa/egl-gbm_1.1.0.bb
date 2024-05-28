@@ -22,7 +22,7 @@ inherit meson pkgconfig features_check
 
 do_install:append() {
     install -d ${D}${datadir}/egl/egl_external_platform.d
-    install -m 0644 ${WORKDIR}/nvidia_gbm.json ${D}${datadir}/egl/egl_external_platform.d/15_nvidia_gbm.json
+    install -m 0644 ${UNPACKDIR}/nvidia_gbm.json ${D}${datadir}/egl/egl_external_platform.d/15_nvidia_gbm.json
 }
 
 FILES:${PN} += "${datadir}/egl"

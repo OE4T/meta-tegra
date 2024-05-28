@@ -18,9 +18,9 @@ do_install() {
     install -m 0755 ${B}/usr/sbin/nvfancontrol ${D}${sbindir}/
     install -d ${D}${sysconfdir}/init.d
     install -m 0644 ${B}/etc/nvpower/nvfancontrol/${NVFANCONTROL}.conf ${D}${sysconfdir}/nvfancontrol.conf
-    install -m 0755 ${WORKDIR}/nvfancontrol.init ${D}${sysconfdir}/init.d/nvfancontrol
+    install -m 0755 ${UNPACKDIR}/nvfancontrol.init ${D}${sysconfdir}/init.d/nvfancontrol
     install -d ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/nvfancontrol.service ${D}${systemd_system_unitdir}/
+    install -m 0644 ${UNPACKDIR}/nvfancontrol.service ${D}${systemd_system_unitdir}/
 }
 
 inherit systemd update-rc.d

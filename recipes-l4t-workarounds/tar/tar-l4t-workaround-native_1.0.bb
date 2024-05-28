@@ -17,5 +17,5 @@ do_compile() {
 }
 
 do_install() {
-    install -m 0755 -D ${WORKDIR}/tar-wrapper.sh ${D}${bindir}/tar
+    install -m 0755 -D ${UNPACKDIR}/tar-wrapper.sh ${D}${bindir}/tar
 }

@@ -45,7 +45,7 @@ do_compile:append() {
     cp ${B}/images/L4TConfiguration.dtbo ${B}/images/L4TConfiguration-rcmboot.dtbo
     fdtput -t s ${B}/images/L4TConfiguration-rcmboot.dtbo /fragment@0/__overlay__/firmware/uefi/variables/gNVIDIATokenSpaceGuid/DefaultBootPriority data boot.img
     if [ ${USE_REDUNDANT_FLASH_LAYOUT} -eq 1 ]; then
-       dtc -Idts -Odtb -o ${B}/images/L4TConfiguration-RootfsRedundancyLevelABEnable.dtbo ${WORKDIR}/L4TConfiguration-RootfsRedundancyLevelABEnable.dtsi
+       dtc -Idts -Odtb -o ${B}/images/L4TConfiguration-RootfsRedundancyLevelABEnable.dtbo ${UNPACKDIR}/L4TConfiguration-RootfsRedundancyLevelABEnable.dtsi
     fi
 }
 do_compile[depends] += "${NVDISPLAY_INIT_DEPS}"

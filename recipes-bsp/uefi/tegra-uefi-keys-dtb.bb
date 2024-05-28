@@ -21,15 +21,15 @@ DEPENDS = "dtc-native"
 B = "${WORKDIR}/build"
 
 do_configure() {
-    if [ ! -s "${WORKDIR}/UefiDefaultSecurityKeys.dts" ]; then
+    if [ ! -s "${UNPACKDIR}/UefiDefaultSecurityKeys.dts" ]; then
         bbfatal "Please provide a non-empty UefiDefaultSecurityKeys.dts"
     fi
 }
 
 do_compile() {
-    dtc -Idts -Odtb -o ${B}/UefiDefaultSecurityKeys.dtbo ${WORKDIR}/UefiDefaultSecurityKeys.dts
-    if [ -a "${WORKDIR}/UefiUpdateSecurityKeys.dts" ]; then
-        dtc -Idts -Odtb -o ${B}/UefiUpdateSecurityKeys.dtbo ${WORKDIR}/UefiUpdateSecurityKeys.dts
+    dtc -Idts -Odtb -o ${B}/UefiDefaultSecurityKeys.dtbo ${UNPACKDIR}/UefiDefaultSecurityKeys.dts
+    if [ -s "${UNPACKDIR}/UefiUpdateSecurityKeys.dts" ]; then
+        dtc -Idts -Odtb -o ${B}/UefiUpdateSecurityKeys.dtbo ${UNPACKDIR}/UefiUpdateSecurityKeys.dts
     fi
 }
 
@@ -38,7 +38,7 @@ do_install[noexec] = "1"
 do_deploy() {
     install -d ${DEPLOYDIR}
     install -m 0644 ${B}/UefiDefaultSecurityKeys.dtbo ${DEPLOYDIR}/
-    if [ -a "${B}/UefiUpdateSecurityKeys.dtbo" ]; then
+    if [ -e "${B}/UefiUpdateSecurityKeys.dtbo" ]; then
         install -m 0644 ${B}/UefiUpdateSecurityKeys.dtbo ${DEPLOYDIR}/
     fi
 }

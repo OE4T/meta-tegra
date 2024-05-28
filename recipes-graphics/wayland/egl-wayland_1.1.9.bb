@@ -23,7 +23,7 @@ inherit meson pkgconfig features_check
 
 do_install:append() {
     install -d ${D}${datadir}/egl/egl_external_platform.d
-    install -m 0644 ${WORKDIR}/nvidia_wayland.json ${D}${datadir}/egl/egl_external_platform.d/20_nvidia_wayland.json
+    install -m 0644 ${UNPACKDIR}/nvidia_wayland.json ${D}${datadir}/egl/egl_external_platform.d/20_nvidia_wayland.json
 }
 
 FILES:${PN} += "${datadir}/egl"

@@ -6,7 +6,8 @@ SRC_URI = "file://cuda-compiler-check.sh"
 
 inherit native
 
-S = "${WORKDIR}"
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 
 do_compile() {
     :

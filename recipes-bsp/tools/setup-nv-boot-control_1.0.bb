@@ -19,7 +19,8 @@ NVIDIA_ESPMOUNT ?= "/opt/nvidia/esp"
 ESPMOUNTUNIT ?= "${@'-'.join(d.getVar('ESPMOUNT').split('/')[1:])}.mount"
 ESPVARDIR ?= "${ESPMOUNT}/EFI/NVDA/Variables"
 
-S = "${WORKDIR}"
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 B = "${WORKDIR}/build"
 
 inherit systemd update-rc.d

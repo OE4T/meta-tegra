@@ -17,7 +17,8 @@ SRC_URI = " \
     file://brcid-to-uid.py \
 "
 
-S = "${WORKDIR}"
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 
 do_install() {
     install -d ${D}${bindir}/tegra-flash

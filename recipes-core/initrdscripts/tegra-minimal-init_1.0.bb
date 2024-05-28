@@ -11,16 +11,14 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
-S = "${WORKDIR}"
-
 do_install() {
-    install -m 0755 ${WORKDIR}/init-boot.sh ${D}/init
+    install -m 0755 ${UNPACKDIR}/init-boot.sh ${D}/init
     install -m 0555 -d ${D}/proc ${D}/sys
     install -m 0755 -d ${D}/dev ${D}/mnt ${D}/run ${D}/usr
     install -m 1777 -d ${D}/tmp
     mknod -m 622 ${D}/dev/console c 5 1
     install -d ${D}${sysconfdir}
-    install -m 0644 ${WORKDIR}/platform-preboot.sh ${D}${sysconfdir}/platform-preboot
+    install -m 0644 ${UNPACKDIR}/platform-preboot.sh ${D}${sysconfdir}/platform-preboot
     sed -i -e "s#@@TNSPEC_BOOTDEV@@#${TNSPEC_BOOTDEV}#g" ${D}${sysconfdir}/platform-preboot
 }
 

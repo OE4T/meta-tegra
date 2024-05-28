@@ -32,7 +32,7 @@ do_install() {
     install -m 0644 ${S}/etc/udev/rules.d/99-nv-l4t-usb-host-config.rules ${D}${sysconfdir}/udev/rules.d
 
     install -d ${D}/opt/nvidia/l4t-bootloader-config
-    install -m 0755 ${WORKDIR}/nv-l4t-bootloader-config.sh ${D}/opt/nvidia/l4t-bootloader-config/nv-l4t-bootloader-config.sh
+    install -m 0755 ${UNPACKDIR}/nv-l4t-bootloader-config.sh ${D}/opt/nvidia/l4t-bootloader-config/nv-l4t-bootloader-config.sh
 
     install -d ${D}${sysconfdir}/X11
 
@@ -49,7 +49,7 @@ do_install() {
     # Please create an issue for a missing file in the passthrough
     # FIXME: create a mechanism to dynamically generate l4t.csv based on the installed libraries
     install -d ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
-    install -m 0644 ${WORKDIR}/l4t.csv ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
+    install -m 0644 ${UNPACKDIR}/l4t.csv ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
 }
 
 do_install:append:tegra194() {

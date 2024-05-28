@@ -20,7 +20,7 @@ do_install() {
 }
 
 do_install:aarch64() {
-    install -D -m 0644 -t ${D}${includedir}/cuda-compat-workarounds/bits ${WORKDIR}/math-vector.h
+    install -D -m 0644 -t ${D}${includedir}/cuda-compat-workarounds/bits ${UNPACKDIR}/math-vector.h
 }
 
 ALLOW_EMPTY:${PN} = "1"

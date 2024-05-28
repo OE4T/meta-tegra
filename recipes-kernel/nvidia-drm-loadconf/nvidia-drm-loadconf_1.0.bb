@@ -10,5 +10,5 @@ COMPATIBLE_MACHINE = "(tegra234)"
 
 do_install() {
     install -d ${D}${sysconfdir}/modprobe.d
-    install -m 0644 ${WORKDIR}/nvidia-drm-modprobe.conf ${D}${sysconfdir}/modprobe.d/nvidia-drm.conf
+    install -m 0644 ${UNPACKDIR}/nvidia-drm-modprobe.conf ${D}${sysconfdir}/modprobe.d/nvidia-drm.conf
 }

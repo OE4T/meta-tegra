@@ -13,7 +13,8 @@ COMPATIBLE_MACHINE = "tegra"
 
 TEGRA_BT_SUPPORT_PACKAGE ??= "tegra-brcm-patchram"
 
-S = "${WORKDIR}"
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 
 inherit systemd
 

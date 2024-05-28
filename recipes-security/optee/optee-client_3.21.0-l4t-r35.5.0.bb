@@ -31,11 +31,11 @@ do_compile() {
     oe_runmake -C ${S} build
     sed -e's,@sbindir@,${sbindir},g' \
         -e's,@sysconfdir@,${sysconfdir},g' \
-        ${WORKDIR}/tee-supplicant.service.in >${B}/tee-supplicant.service
+        ${UNPACKDIR}/tee-supplicant.service.in >${B}/tee-supplicant.service
     sed -e's,@sbindir@,${sbindir},g' \
         -e's,@sysconfdir@,${sysconfdir},g' \
         -e's,@stripped_path@,${base_sbindir}:${base_bindir}:${sbindir}:${bindir},g' \
-        ${WORKDIR}/tee-supplicant.sh.in >${B}/tee-supplicant.sh
+        ${UNPACKDIR}/tee-supplicant.sh.in >${B}/tee-supplicant.sh
 }
 
 do_install() {

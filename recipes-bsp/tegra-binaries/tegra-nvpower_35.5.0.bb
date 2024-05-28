@@ -29,9 +29,9 @@ do_install() {
     install -m 0755 ${B}/etc/systemd/nvpower.sh ${D}${libexecdir}/
     install -m 0644 ${B}/etc/nvpower/libjetsonpower/${NVPOWER}.conf ${D}${sysconfdir}/nvpower/libjetsonpower/
     install -d ${D}${sysconfdir}/init.d
-    install -m 0755 ${WORKDIR}/nvpower.init ${D}${sysconfdir}/init.d/nvpower
+    install -m 0755 ${UNPACKDIR}/nvpower.init ${D}${sysconfdir}/init.d/nvpower
     install -d ${D}${systemd_system_unitdir}
-    install -m 0644 ${WORKDIR}/nvpower.service ${D}${systemd_system_unitdir}
+    install -m 0644 ${UNPACKDIR}/nvpower.service ${D}${systemd_system_unitdir}
 }
 
 inherit systemd update-rc.d
