@@ -1,4 +1,4 @@
-EXTRA_OEMESON:append:tegra = " -Dglx=false -Dxwayland_eglstream=true"
+EXTRA_OEMESON:append:tegra = " -Dglx=false"
 DEPENDS:append:tegra = " egl-wayland libxshmfence mesa"
 PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"
 
