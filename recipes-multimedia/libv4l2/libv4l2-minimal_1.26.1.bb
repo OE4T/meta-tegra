@@ -13,7 +13,6 @@ GLIBC_64BIT_TIME_FLAGS = ""
 
 SRC_URI ="git://git.linuxtv.org/v4l-utils.git;protocol=https;branch=stable-1.26 \
           file://0001-Make-plugin-directory-relative-to-ORIGIN.patch \
-          file://0002-Replace-stat-fstat-calls-with-__xstat-__fxstat.patch \
           file://0003-Update-conversion-defaults-to-match-NVIDIA-sources.patch \
 "
 SRCREV = "4aee01a027923cab1e40969f56f8ba58d3e6c0d1"
