@@ -31,7 +31,7 @@ EXTRA_OEMAKE += " \
 
 do_compile() {
     unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
-    oe_runmake CC="${KERNEL_CC}" LD="${KERNEL_LD}" AR="${KERNEL_AR}" modules
+    oe_runmake CC="${KERNEL_CC} -Wno-error=implicit-function-declaration" LD="${KERNEL_LD}" AR="${KERNEL_AR}" modules
 }
 
 KERNEL_MODULE_PROBECONF = "nvidia"
