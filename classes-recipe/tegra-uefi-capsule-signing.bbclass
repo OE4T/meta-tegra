@@ -18,7 +18,7 @@ UEFI_CAPSULE_TRUSTED_PUBLIC_CERT ?= "${PYTHON_BASETOOLS}/Pkcs7Sign/TestRoot.pub.
 # perform the capsule signing.
 sign_uefi_capsules() {
     export PYTHONPATH="${PYTHONPATH}:${PYTHON_BASETOOLS}"
-    if [ -e ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.bl_only.bup-payload ]; then
+    if [ -e ${B}/${BUPFILENAME}.bl_only.bup-payload ]; then
         python3 ${PYTHON_BASETOOLS}/Capsule/GenerateCapsule.py \
             -v --encode --monotonic-count 1 \
             --fw-version "${BSP_VERSION32}" \
@@ -28,9 +28,9 @@ sign_uefi_capsules() {
             --other-public-cert "${UEFI_CAPSULE_OTHER_PUBLIC_CERT}" \
             --trusted-public-cert "${UEFI_CAPSULE_TRUSTED_PUBLIC_CERT}" \
             -o ./tegra-bl.cap \
-            ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.bl_only.bup-payload
+            ${B}/${BUPFILENAME}.bl_only.bup-payload
     fi
-    if [ -e ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.kernel_only.bup-payload ]; then
+    if [ -e ${B}/${BUPFILENAME}.kernel_only.bup-payload ]; then
         python3 ${PYTHON_BASETOOLS}/Capsule/GenerateCapsule.py \
             -v --encode --monotonic-count 1 \
             --fw-version "${BSP_VERSION32}" \
@@ -40,6 +40,6 @@ sign_uefi_capsules() {
             --other-public-cert "${UEFI_CAPSULE_OTHER_PUBLIC_CERT}" \
             --trusted-public-cert "${UEFI_CAPSULE_TRUSTED_PUBLIC_CERT}" \
             -o ./tegra-kernel.cap \
-            ${DEPLOY_DIR_IMAGE}/${BUPFILENAME}.kernel_only.bup-payload
+            ${B}/${BUPFILENAME}.kernel_only.bup-payload
     fi
 }
