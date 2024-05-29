@@ -6,6 +6,9 @@ SRC_URI = "\
     file://nvidia-drm-modprobe.conf \
 "
 
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
+
 COMPATIBLE_MACHINE = "(tegra234)"
 
 do_install() {

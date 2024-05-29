@@ -18,6 +18,8 @@ inherit deploy nopackages
 
 DEPENDS = "dtc-native"
 
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 B = "${WORKDIR}/build"
 
 do_configure() {

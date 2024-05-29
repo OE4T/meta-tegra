@@ -9,6 +9,9 @@ SRC_URI = "\
     file://initrd-flash.scheme.in \
 "
 
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
+
 COMPATIBLE_MACHINE = "(tegra)"
 
 do_install() {
