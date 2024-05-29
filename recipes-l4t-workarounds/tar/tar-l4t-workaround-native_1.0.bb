@@ -6,7 +6,7 @@ SRC_URI = "file://tar-wrapper.sh"
 
 NATIVE_PACKAGE_PATH_SUFFIX = "/${PN}"
 
-inherit native
+inherit_defer native
 
 do_configure() {
     :

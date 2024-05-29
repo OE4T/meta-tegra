@@ -8,7 +8,7 @@ LICENSE = "BSD-2-Clause-Patent"
 
 require edk2-firmware-core-tegra-36.3.0.inc
 
-inherit native
+inherit_defer native
 
 RDEPENDS:${PN} += "python3-core"
 
