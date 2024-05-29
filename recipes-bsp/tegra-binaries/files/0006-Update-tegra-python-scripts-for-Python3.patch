@@ -1,4 +1,4 @@
-From 5f10694000eac2e8110a50a162c7f26639ac0b3f Mon Sep 17 00:00:00 2001
+From aad94a92d413527b3e426b8cdefb3349711e4e8c Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Thu, 29 Feb 2024 13:03:50 +0000
 Subject: [PATCH] Update tegra python scripts for Python3
@@ -9,10 +9,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
  ...ate-tegra-python-scripts-for-Python3.patch | 126 ++++++++++++++++++
+ bootloader/dtbcheck.py                        |   4 +-
  bootloader/tegraflash_impl_t234.py            |   7 +-
  bootloader/tegraflash_internal.py             |  13 +-
  bootloader/tegrasign_v3_internal.py           |   7 +-
- 4 files changed, 140 insertions(+), 13 deletions(-)
+ 5 files changed, 142 insertions(+), 15 deletions(-)
  create mode 100644 0001-Update-tegra-python-scripts-for-Python3.patch
 
 diff --git a/0001-Update-tegra-python-scripts-for-Python3.patch b/0001-Update-tegra-python-scripts-for-Python3.patch
@@ -147,6 +148,23 @@ index 0000000..609099d
 +-- 
 +2.34.1
 +
+diff --git a/bootloader/dtbcheck.py b/bootloader/dtbcheck.py
+index fc11369..391e94e 100755
+--- a/bootloader/dtbcheck.py
++++ b/bootloader/dtbcheck.py
+@@ -190,10 +190,10 @@ def __parse_dt_struct(header, data, offset):
+     token_fmt = '>L'
+     prop_fmt = '>2L'
+ 
+-    node_chars = '[0-9A-Za-z\+,\-\._]'
++    node_chars = r'[0-9A-Za-z\+,\-\._]'
+     node_pattern = re.compile('^{0:}+(@{0:}+)?$'.format(node_chars))
+ 
+-    prop_chars = '[0-9A-Za-z#\+,\-\.\?_]'
++    prop_chars = r'[0-9A-Za-z#\+,\-\.\?_]'
+     prop_pattern = re.compile('^{}+$'.format(prop_chars))
+ 
+     root = None
 diff --git a/bootloader/tegraflash_impl_t234.py b/bootloader/tegraflash_impl_t234.py
 index 7668f51..edee191 100644
 --- a/bootloader/tegraflash_impl_t234.py
