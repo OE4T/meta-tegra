@@ -10,16 +10,17 @@ SRC_COMMON_DEBS = "${BPN}-${CUDA_VERSION_DASHED}_${PV}_arm64.deb;unpack=false"
 L4T_DEB_GROUP = "cuda-samples"
 SRC_URI[sha256sum] = "58b2d1f5fbb5c1adc12d168042cebb2fdf4e279bc820cf3fc7f4431695d2f0b6"
 
-do_unpack_samples() {
+unpack_samples() {
+    mkdir -p ${S}
     dpkg-deb --fsys-tarfile ${UNPACKDIR}/cuda-samples-${CUDA_VERSION_DASHED}_${PV}_arm64.deb | \
         tar --strip-components=5 --exclude="*/doc/*" --exclude="*/bin/*" -x -f- -C ${S}
 }
 
-do_unpack_samples[dirs] = "${S}"
-do_unpack_samples[cleandirs] = "${S}"
-do_unpack_samples[depends] += "dpkg-native:do_populate_sysroot"
+python do_unpack:append() {
+    bb.build.exec_func("unpack_samples", d)
+}
 
-addtask unpack_samples after do_unpack before do_patch
+do_unpack[depends] += "dpkg-native:do_populate_sysroot"
 
 inherit l4t_deb_pkgfeed cuda
 

@@ -4,6 +4,9 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 SRC_URI = "file://math-vector.h"
 
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
+
 COMPATIBLE_MACHINE:class-target = "(cuda)"
 COMPATIBLE_HOST = "(x86_64|aarch64)"
 
