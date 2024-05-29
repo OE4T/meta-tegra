@@ -8,7 +8,7 @@ SRC_URI = "file://cuda_environment_setup.sh.in \
 S = "${WORKDIR}/sources"
 UNPACKDIR = "${S}"
 
-inherit nativesdk
+inherit_defer nativesdk
 
 do_install() {
     install -d ${D}${datadir}/cmake/OEToolchainConfig.cmake.d

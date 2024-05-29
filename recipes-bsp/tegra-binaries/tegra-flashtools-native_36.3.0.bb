@@ -18,7 +18,7 @@ B = "${WORKDIR}/build"
 
 COMPATIBLE_MACHINE = ""
 
-inherit native
+inherit_defer native
 
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS = "tegra-helper-scripts-native"
