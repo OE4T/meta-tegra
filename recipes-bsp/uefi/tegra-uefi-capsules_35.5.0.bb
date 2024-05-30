@@ -95,4 +95,4 @@ do_compile[depends] += "virtual/kernel:do_deploy tegra-flashtools-native:do_popu
 do_compile[depends] += "python3-pyyaml-native:do_populate_sysroot"
 do_compile[depends] += "tegra-redundant-boot-rollback:do_populate_sysroot tegra-bootfiles:do_populate_sysroot"
 do_compile[depends] += "coreutils-native:do_populate_sysroot ${TEGRA_ESP_IMAGE}:do_image_complete virtual/secure-os:do_deploy"
-do_compile[depends] += "${TEGRA_SIGNING_EXTRA_DEPS}"
+do_compile[depends] += "${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS}"
