@@ -69,6 +69,7 @@ do_install(){
     install -d ${D}${sysconfdir}/nvidia-container-runtime
     install -D -m0755 ${B}/generate-config.sh ${D}${libexecdir}/nvidia-container-runtime/generate-config
     install -D -m0644 ${B}/nvidia-container-setup.service ${D}${systemd_system_unitdir}/nvidia-container-setup.service
+    ln -sf /run/nvidia-container-runtime/config.toml ${D}${sysconfdir}/nvidia-container-runtime/config.toml
 }
 
 SYSTEMD_SERVICE:${PN} = "nvidia-container-setup.service"
