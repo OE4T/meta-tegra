@@ -74,7 +74,7 @@ sym, /usr/lib/aarch64-linux-gnu/nvidia/libgstnvcustomhelper.so
 lib, /usr/lib/aarch64-linux-gnu/nvidia/libgstnvdsseimeta.so.1.0.0
 sym, /usr/lib/aarch64-linux-gnu/nvidia/libgstnvdsseimeta.so
 lib, /usr/lib/aarch64-linux-gnu/nvidia/libnveglstreamproducer.so
-lib, /usr/lib/aarch64-linux-gnu/nvidia/libnvdla_compiler.so
+lib, /usr/lib/libnvdla_compiler.so
 lib, /etc/vulkansc/icd.d/nvidia_icd_vksc.json
 lib, /usr/lib/aarch64-linux-gnu/nvidia/ld.so.conf
 lib, /usr/lib/aarch64-linux-gnu/nvidia/libGLX_nvidia.so.0
