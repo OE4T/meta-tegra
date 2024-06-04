@@ -284,7 +284,6 @@ tegraflash_populate_package() {
         cp "${STAGING_DATADIR}/tegraflash/${EMMC_BCT_OVERRIDE}" .
     fi
     cp "$kernelimg" ./$lnxfile
-    cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./esp.img
     if [ -n "${DATAFILE}" -a -n "${IMAGE_TEGRAFLASH_DATA}" ]; then
         cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
         DATAARGS="--datafile ${DATAFILE}"
@@ -333,6 +332,7 @@ create_tegraflash_pkg() {
     mkdir -p ${WORKDIR}/tegraflash
     cd ${WORKDIR}/tegraflash
     tegraflash_populate_package ${IMAGE_TEGRAFLASH_KERNEL} ${LNXFILE} ${@tegra_bootcontrol_overlay_list(d)}
+    cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./esp.img
     if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         cp "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ./initrd-flash.img
     fi
