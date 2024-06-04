@@ -521,6 +521,11 @@ else
     cp "$dtb_file" "$kernel_dtbfile"
 fi
 
+tbc_dtb_file="$TBCDTB_FILE"
+if [ -z "$tbc_dtb_file" ]; then
+	tbc_dtb_file="$dtb_file"
+fi
+
 if [ "$spi_only" = "yes" -o $external_device -eq 1 ]; then
     if [ ! -e "$here/nvflashxmlparse" ]; then
         echo "ERR: missing nvflashxmlparse script" >&2
@@ -533,7 +538,7 @@ else
     cp "$flash_in" flash.xml.tmp
 fi
 sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," \
-    -e"s, DTB_FILE,$kernel_dtbfile," -e"s,BPFFILE,$BPF_FILE," \
+    -e"s,TBCDTB-FILE,$tbc_dtb_file," -e"s, DTB_FILE,$kernel_dtbfile," -e"s,BPFFILE,$BPF_FILE," \
     $appfile_sed flash.xml.tmp > flash.xml
 rm flash.xml.tmp
 
@@ -551,7 +556,8 @@ rce_fw camera-rtcpu-t234-rce.img; \
 ape_fw adsp-fw.bin; \
 spe_fw spe_t234.bin; $fsifw_binsarg \
 tos tos-optee_t234.img; \
-eks eks.img"
+eks eks.img; \
+bootloader_dtb $tbc_dtb_file"
 
 if [ $rcm_boot -ne 0 ]; then
     BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile"
@@ -576,7 +582,7 @@ bctargs="$UPHY_CONFIG $MINRATCHET_CONFIG \
          --deviceprod_config $DEVICEPROD_CONFIG \
          --wb0sdram_config $WB0SDRAM_BCT \
          --mb2bct_cfg $MB2BCT_CFG \
-         --bldtb $dtb_file \
+         --bldtb $tbc_dtb_file \
          --concat_cpubl_bldtb \
          --cpubl uefi_jetson.bin \
          $overlay_dtb_arg $custinfo_args"
@@ -620,7 +626,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     tegraid="$CHIPID"
     localcfgfile="flash.xml"
     dtbfilename="$kernel_dtbfile"
-    tbcdtbfilename="$dtb_file"
+    tbcdtbfilename="$tbc_dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
     BINSARGS="--bins \"$BINSARGS\""
@@ -650,7 +656,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     if [ -n "$OVERLAY_DTB_FILE" ]; then
 	rcm_overlay_dtbs="$rcm_overlay_dtbs,$OVERLAY_DTB_FILE"
     fi
-    rcmbootsigncmd="python3 $flashappname $keyargs --chip 0x23 --odmdata $odmdata --bldtb $dtb_file --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtbs \
+    rcmbootsigncmd="python3 $flashappname $keyargs --chip 0x23 --odmdata $odmdata --bldtb $tbcdtbfilename --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtbs \
                     --cmd \"sign rcmboot_uefi_jetson.bin bootloader_stage2 A_cpu-bootloader\""
     eval $rcmbootsigncmd || exit 1
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
@@ -684,7 +690,7 @@ if [ $bup_blob -ne 0 ]; then
     support_multi_spec=1
     clean_up=0
     dtbfilename="$kernel_dtbfile"
-    tbcdtbfilename="$dtb_file"
+    tbcdtbfilename="$tbc_dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
