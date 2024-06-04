@@ -386,6 +386,11 @@ else
     cp "$dtb_file" "$kernel_dtbfile"
 fi
 
+tbc_dtb_file="$TBCDTB_FILE"
+if [ -z "$tbc_dtb_file" ]; then
+	tbc_dtb_file="$dtb_file"
+fi
+
 if [ "$spi_only" = "yes" -o $external_device -eq 1 ]; then
     if [ ! -e "$here/nvflashxmlparse" ]; then
 	echo "ERR: missing nvflashxmlparse script" >&2
@@ -398,7 +403,7 @@ else
     cp "$flash_in" flash.xml.tmp
 fi
 sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," \
-    -e"s,TBCDTB-FILE,$dtb_file," -e"s, DTB_FILE,$kernel_dtbfile," \
+    -e"s,TBCDTB-FILE,$tbc_dtb_file," -e"s, DTB_FILE,$kernel_dtbfile," \
     $appfile_sed flash.xml.tmp > flash.xml
 rm flash.xml.tmp
 
@@ -411,7 +416,7 @@ bpmp_fw_dtb $BPFDTB_FILE; \
 spe_fw spe_t194.bin; \
 tos tos-optee_t194.img; \
 eks eks.img; \
-bootloader_dtb $dtb_file"
+bootloader_dtb $tbc_dtb_file"
 
 have_odmsign_func=0
 [ ! -e "$here/odmsign.func" ] || have_odmsign_func=1
@@ -485,7 +490,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     tegraid="$CHIPID"
     localcfgfile="flash.xml"
     dtbfilename="$kernel_dtbfile"
-    tbcdtbfilename="$dtb_file"
+    tbcdtbfilename="$tbc_dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
     BINSARGS="--bins \"$BINSARGS\""
@@ -518,7 +523,7 @@ fi
 flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
 	      --sdram_config $sdramcfg_files \
 	      --odmdata $odmdata \
-	      --bldtb $dtb_file \
+	      --bldtb $tbc_dtb_file \
 	      --applet mb1_t194_prod.bin \
 	      --soft_fuses tegra194-mb1-soft-fuses-l4t.cfg \
 	      --cmd \"$tfcmd\" $skipuid \
@@ -533,7 +538,7 @@ if [ $bup_blob -ne 0 ]; then
     support_multi_spec=1
     clean_up=0
     dtbfilename="$kernel_dtbfile"
-    tbcdtbfilename="$dtb_file"
+    tbcdtbfilename="$tbc_dtb_file"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
     TBCFILE="uefi_jetson.bin"
