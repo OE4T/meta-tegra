@@ -61,12 +61,16 @@ do_compile() {
 TEGRA_UEFI_CAPSULE_INSTALL_DIR ??= "/opt/nvidia/UpdateCapsule"
 
 do_install() {
-    install -d ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
-    if [ -e ${B}/tegra-bl.cap ]; then
-        install -m 0644 ${B}/tegra-bl.cap ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
-    fi
-    if [ -e ${B}/tegra-kernel.cap ]; then
-        install -m 0644 ${B}/tegra-kernel.cap ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
+    if [ -n "${TEGRA_UEFI_CAPSULE_INSTALL_DIR}" ]; then
+        install -d ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
+        if [ -e ${B}/tegra-bl.cap ]; then
+            install -m 0644 ${B}/tegra-bl.cap ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
+        fi
+        if [ -e ${B}/tegra-kernel.cap ]; then
+            install -m 0644 ${B}/tegra-kernel.cap ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
+        fi
+    else
+        bbnote "TEGRA_UEFI_CAPSULE_INSTALL_DIR is empty, capsules won't be installed"
     fi
 }
 
