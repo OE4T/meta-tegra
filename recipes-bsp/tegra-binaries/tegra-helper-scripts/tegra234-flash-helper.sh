@@ -556,8 +556,7 @@ rce_fw camera-rtcpu-t234-rce.img; \
 ape_fw adsp-fw.bin; \
 spe_fw spe_t234.bin; $fsifw_binsarg \
 tos tos-optee_t234.img; \
-eks eks.img; \
-bootloader_dtb $tbc_dtb_file"
+eks eks.img"
 
 if [ $rcm_boot -ne 0 ]; then
     BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile"
