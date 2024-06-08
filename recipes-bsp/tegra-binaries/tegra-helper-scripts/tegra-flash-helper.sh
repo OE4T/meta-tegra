@@ -423,13 +423,7 @@ if [ "$CHIPID" = "0x23" ]; then
         else
             fsifw_binsarg=
         fi
-        for var in $FLASHVARS; do
-            eval pat=$`echo $var`
-            if [ -n "$pat" ]; then
-                val=$(echo $pat | sed -e"s,@PMICBOARDSKU@,$PMICBOARDSKU,")
-                eval $var='$val'
-            fi
-        done
+        PMIC_CONFIG=$(echo "$PMIC_CONFIG" | sed -e"s,@PMICBOARDSKU@,$PMICBOARDSKU,")
     elif [ "$BOARDID" = "3767" ]; then
         case $chip_sku in
             00)
@@ -513,6 +507,10 @@ else
     touch APPFILE APPFILE_b
 fi
 
+if [ "$TBCDTB_FILE" = "@DTBFILE@" ]; then
+    TBCDTB_FILE="$dtb_file"
+fi
+
 dtb_file_basename=$(basename "$dtb_file")
 kernel_dtbfile="kernel_$dtb_file_basename"
 rm -f "$kernel_dtbfile"
@@ -534,7 +532,7 @@ else
     cp "$flash_in" flash.xml.tmp
 fi
 sed -e"s,VERFILE,${MACHINE}_bootblob_ver.txt," -e"s,BPFDTB_FILE,$BPFDTB_FILE," \
-    -e"s,TBCDTB-FILE,$dtb_file," -e"s, DTB_FILE,$kernel_dtbfile," -e"s,BPFFILE,$BPF_FILE," \
+    -e"s, DTB_FILE,$kernel_dtbfile," -e"s,BPFFILE,$BPF_FILE," \
     $appfile_sed flash.xml.tmp > flash.xml
 rm flash.xml.tmp
 
@@ -574,7 +572,7 @@ eks eks.img"
          --deviceprod_config $DEVICEPROD_CONFIG \
          --wb0sdram_config $WB0SDRAM_BCT \
          --mb2bct_cfg $MB2BCT_CFG \
-         --bldtb $dtb_file \
+         --bldtb $TBCDTB_FILE \
          --concat_cpubl_bldtb \
          --cpubl uefi_jetson.bin \
          $overlay_dtb_arg $custinfo_args"
@@ -622,7 +620,7 @@ if [ $want_signing -eq 1 ]; then
     tegraid="$CHIPID"
     localcfgfile="flash.xml"
     dtbfilename="$kernel_dtbfile"
-    tbcdtbfilename="$dtb_file"
+    tbcdtbfilename="$TBCDTB_FILE"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
     BINSARGS="--bins \"$BINSARGS\""
@@ -665,7 +663,7 @@ if [ $want_signing -eq 1 ]; then
         if [ -n "$OVERLAY_DTB_FILE" ]; then
             rcm_overlay_dtbs="$rcm_overlay_dtbs,$OVERLAY_DTB_FILE"
         fi
-        rcmbootsigncmd="python3 $flashappname $keyargs --chip 0x23 --odmdata $odmdata --bldtb $dtb_file --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtbs \
+        rcmbootsigncmd="python3 $flashappname $keyargs --chip 0x23 --odmdata $odmdata --bldtb $TBCDTB_FILE --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtbs \
                     --cmd \"sign rcmboot_uefi_jetson.bin bootloader_stage2 A_cpu-bootloader\""
         eval $rcmbootsigncmd || exit 1
     fi
@@ -702,7 +700,7 @@ if [ $bup_blob -ne 0 ]; then
     support_multi_spec=1
     clean_up=0
     dtbfilename="$kernel_dtbfile"
-    tbcdtbfilename="$dtb_file"
+    tbcdtbfilename="$TBCDTB_FILE"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="boot.img"
     . "$here/l4t_bup_gen.func"
