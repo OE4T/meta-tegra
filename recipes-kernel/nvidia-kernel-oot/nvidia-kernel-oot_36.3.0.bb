@@ -347,7 +347,10 @@ python oot_update_rprovides() {
         # Unprefixed name without version suffix
         newprovides_virt = virt_module_prefix + basename
         bb.note("Adding %s and %s to RPROVIDES:%s" % (newprovides, newprovides_virt, oot_pkg))
-        d.appendVar('RPROVIDES:' + oot_pkg, ' ' + newprovides + ' ' + newprovides_virt)
+        newprovides_str = ' ' + newprovides + ' ' + newprovides_virt
+        d.appendVar('RPROVIDES:' + oot_pkg, newprovides_str)
+        d.appendVar('RREPLACES:' + oot_pkg, newprovides_str)
+        d.appendVar('RCONFLICTS:' + oot_pkg, newprovides_str)
         rdepstr = d.getVar('RDEPENDS:' + oot_pkg)
         if not rdepstr:
             continue
