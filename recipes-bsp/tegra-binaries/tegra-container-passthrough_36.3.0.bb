@@ -6,9 +6,11 @@ require tegra-debian-libraries-common.inc
 
 SRC_SOC_DEBS += "\
     ${@l4t_deb_pkgname(d, 'camera')};subdir=${BP};name=camera \
-    ${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP}/full;name=gstreamer \
     ${@l4t_deb_pkgname(d, 'wayland')};subdir=${BP}/full;name=wayland \
     ${@l4t_deb_pkgname(d, 'weston')};subdir=${BP}/full;name=weston \
+"
+SRC_COMMON_DEBS += "\
+    ${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP}/full;name=gstreamer \
 "
 MAINSUM = "27762c5981777dd30abb3da84b1c1c289d3ae7aefc27e11b5ee974bf2f6c834a"
 SRC_URI[camera.sha256sum] = "e205f1bc66260ed770f64b072a0a26d3ead3ac82c73b81b796a1a6f542acd369"
