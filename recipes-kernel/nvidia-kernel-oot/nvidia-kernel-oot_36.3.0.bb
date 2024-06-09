@@ -36,6 +36,29 @@ B = "${S}"
 PROVIDES = "virtual/dtb"
 KERNEL_MODULE_PACKAGE_PREFIX = "nv-"
 
+# Out-of-tree drivers that are named identically to, and
+# should used instead of, in-tree drivers built with the kernel.
+#
+# N.B.: If this list changes, update the PREFERRED_RPROVIDER
+# settings in conf/machine/include/tegra-common.inc accordingly
+TEGRA_OOT_REPLACEMENT_DRIVERS = "\
+    host1x \
+    snd-soc-tegra186-asrc \
+    snd-soc-tegra186-dspk \
+    snd-soc-tegra210-admaif \
+    snd-soc-tegra210-adx \
+    snd-soc-tegra210-ahub \
+    snd-soc-tegra210-amx \
+    snd-soc-tegra210-dmic \
+    snd-soc-tegra210-i2s \
+    snd-soc-tegra210-mixer \
+    snd-soc-tegra210-mvc \
+    snd-soc-tegra210-ope \
+    snd-soc-tegra210-sfc \
+    tegra-bpmp-thermal \
+    tegra-drm \
+"
+
 EXTRA_OEMAKE += '\
     IGNORE_PREEMPT_RT_PRESENCE=1 \
     CC="${KERNEL_CC}" CXX="${KERNEL_CC} -x c++" LD="${KERNEL_LD}" AR="${KERNEL_AR}" \
@@ -226,7 +249,7 @@ TEGRA_OOT_TEST_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-bootloader-debug \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-camera-diagnostics \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-mods \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-pci-epf-dma-test \ 
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-pci-epf-dma-test \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-pcie-dma-test \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-rtcpu-debug \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-sensor-kernel-tests \
@@ -321,6 +344,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 python oot_update_rprovides() {
     import re
+    override_drivers = set(d.getVar('TEGRA_OOT_REPLACEMENT_DRIVERS').split())
     pkg_prefix = d.getVar('KERNEL_MODULE_PACKAGE_PREFIX')
     if not pkg_prefix:
         return
@@ -339,12 +363,13 @@ python oot_update_rprovides() {
         bb.debug(1, "Processing: %s (driver %s)" % (oot_pkg, basename))
         if module_prefix + basename not in enumerated_drivers:
             bb.warn("out-of-tree kernel module %s not listed in TEGRA_OOT_ALL_DRIVER_PACKAGES" % (module_prefix + basename))
-        # Unprefixed name with version suffix
-        newprovides = oot_pkg[len(pkg_prefix):]
-        # Unprefixed name without version suffix
-        newprovides_virt = virt_module_prefix + basename
-        bb.note("Adding %s and %s to RPROVIDES:%s" % (newprovides, newprovides_virt, oot_pkg))
-        d.appendVar('RPROVIDES:' + oot_pkg, ' ' + newprovides + ' ' + newprovides_virt)
+        # Unprefixed name with version suffix, and without version suffix
+        newprovides = oot_pkg[len(pkg_prefix):] + " " + virt_module_prefix + basename
+        bb.note("Adding %s to RPROVIDES:%s" % (newprovides, oot_pkg))
+        d.appendVar('RPROVIDES:' + oot_pkg, ' ' + newprovides)
+        if basename in override_drivers:
+            d.setVar('RREPLACES:' + oot_pkg, newprovides)
+            d.setVar('RCONFLICTS:' + oot_pkg, newprovides)
         rdepstr = d.getVar('RDEPENDS:' + oot_pkg)
         if not rdepstr:
             continue
