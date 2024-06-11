@@ -14,6 +14,13 @@ UNPACKDIR = "${S}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
+MTD_DEV ?= "${@d.getVar('OTABOOTDEV').replace('mtdblock','mtd')}"
+
+do_configure() {
+    sed -e's,@MTD_DEV@,${MTD_DEV},g' \
+        ${UNPACKDIR}/program-boot-device.sh > ${UNPACKDIR}/program-boot-device
+}
+
 do_install() {
     install -m 0755 ${UNPACKDIR}/init-flash.sh ${D}/init
     install -m 0755 ${UNPACKDIR}/init-extra.sh ${D}/init-extra
@@ -23,7 +30,7 @@ do_install() {
     install -m 1777 -d ${D}/tmp
     mknod -m 622 ${D}/dev/console c 5 1
     install -d ${D}${bindir}
-    install -m 0755 ${UNPACKDIR}/program-boot-device.sh ${D}${bindir}/program-boot-device
+    install -m 0755 ${UNPACKDIR}/program-boot-device ${D}${bindir}/program-boot-device
     install -d ${D}${sysconfdir}/initrd-flash
     install -m 0644 ${UNPACKDIR}/initrd-flash.scheme.in ${D}${sysconfdir}/initrd-flash/
 }
