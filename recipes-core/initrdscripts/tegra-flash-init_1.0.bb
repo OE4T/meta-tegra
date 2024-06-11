@@ -12,6 +12,14 @@ SRC_URI = "\
 COMPATIBLE_MACHINE = "(tegra)"
 
 S = "${WORKDIR}"
+B = "${WORKDIR}/build"
+
+MTD_DEV ?= "${@d.getVar('OTABOOTDEV').replace('mtdblock','mtd')}"
+
+do_compile() {
+    sed -e's,@MTD_DEV@,${MTD_DEV},g' \
+        ${S}/program-boot-device.sh > ${B}/program-boot-device
+}
 
 do_install() {
     install -m 0755 ${WORKDIR}/init-flash.sh ${D}/init
@@ -22,7 +30,7 @@ do_install() {
     install -m 1777 -d ${D}/tmp
     mknod -m 622 ${D}/dev/console c 5 1
     install -d ${D}${bindir}
-    install -m 0755 ${WORKDIR}/program-boot-device.sh ${D}${bindir}/program-boot-device
+    install -m 0755 ${B}/program-boot-device ${D}${bindir}/program-boot-device
     install -d ${D}${sysconfdir}/initrd-flash
     install -m 0644 ${WORKDIR}/initrd-flash.scheme.in ${D}${sysconfdir}/initrd-flash/
 }
@@ -33,3 +41,4 @@ RRECOMMENDS:${PN} = "kernel-module-loop \
                      kernel-module-libcomposite \
                      kernel-module-usb-f-mass-storage \
 "
+PACKAGE_ARCH = "${MACHINE_ARCH}"
