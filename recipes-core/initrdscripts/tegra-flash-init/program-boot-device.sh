@@ -19,7 +19,7 @@ program_spi_partition() {
     fi
     if [ $file_size -ne 0 ]; then
 	echo "Writing $part_file (size=$file_size) to $partname (offset=$part_offset)"
-	if ! mtd_debug write /dev/mtd0 $part_offset $file_size "$part_file"; then
+	if ! mtd_debug write @MTD_DEV@ $part_offset $file_size "$part_file"; then
 	    return 1
 	fi
     fi
@@ -33,7 +33,7 @@ program_spi_partition() {
 	local i=1
 	while [ $i -lt $copycount ]; do
 	    echo "Writing $part_file to BCT+$i (offset=$curr_offset)"
-	    if ! mtd_debug write /dev/mtd0 $curr_offset $file_size "$part_file"; then
+	    if ! mtd_debug write @MTD_DEV@ $curr_offset $file_size "$part_file"; then
 		return 1
 	    fi
 	    i=$(expr $i \+ 1)
@@ -122,12 +122,12 @@ program_boot_partitions() {
 	blkdiscard -f /dev/mmcblk0boot0
 	blkdiscard -f /dev/mmcblk0boot1
     elif [ "$BOOTDEV_TYPE" = "spi" ]; then
-	if [ ! -e /dev/mtd0 ]; then
-	    echo "ERR: SPI boot device, but mtd0 device does not exist" >&2
+	if [ ! -e @MTD_DEV@ ]; then
+	    echo "ERR: SPI boot device, but @MTD_DEV@ device does not exist" >&2
 	    return 1
 	fi
-	echo "Erasing /dev/mtd0"
-	flash_erase /dev/mtd0 0 0
+	echo "Erasing @MTD_DEV@"
+	flash_erase @MTD_DEV@ 0 0
     else
 	echo "ERR: unknown boot device type: $BOOTDEV_TYPE" >&2
 	return 1
