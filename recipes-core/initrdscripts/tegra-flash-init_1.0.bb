@@ -41,3 +41,4 @@ RRECOMMENDS:${PN} = "kernel-module-loop \
                      kernel-module-libcomposite \
                      kernel-module-usb-f-mass-storage \
 "
+PACKAGE_ARCH = "${MACHINE_ARCH}"
