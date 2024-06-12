@@ -3,6 +3,8 @@ From: Matt Madison <matt@madison.systems>
 Date: Sat, 2 Feb 2019 06:59:41 -0800
 Subject: [PATCH] Fix wayland-eglstream-protocols pc file
 
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  wayland-eglstream-protocols.pc.in | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

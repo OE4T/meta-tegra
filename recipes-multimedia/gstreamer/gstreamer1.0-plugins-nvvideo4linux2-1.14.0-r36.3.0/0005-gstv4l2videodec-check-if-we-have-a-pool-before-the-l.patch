@@ -1,8 +1,7 @@
 From cdc5b344ff32cd0c0beef5ca99852c7f82a48d9e Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Fri, 17 Nov 2023 12:57:58 +0000
-Subject: [PATCH 5/7] gstv4l2videodec: check if we have a pool before the
- locking in video decoder set format
+Subject: [PATCH 5/7] gstv4l2videodec: check if we have a pool before the locking in video decoder set format
 
 There's a dead lock on nvv4l2decoder.
 The dead lock is because the gstv4l2bufferpool only set capture_plane_stopped if the object
@@ -17,6 +16,7 @@ that will trigger a restart of the nvv4l2decoder in the gst_v4l2_video_dec_set_f
 So disable the the check for capture_plane_stopped on nvv4l2decoder if we don't have a pool
 otherwise nvv4l2decoder will hang forever waiting for capture_plane_stopped.
 
+Upstream-Status: Pending
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---

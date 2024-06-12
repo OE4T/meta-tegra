@@ -1,9 +1,9 @@
 From 5089ddc47eb05ce6d2ed09bd71e58def50160f8b Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Fri, 17 Nov 2023 12:57:10 +0000
-Subject: [PATCH 4/7] gstv4l2videodec: use ifdef macro for consistency with the
-  rest of the code
+Subject: [PATCH 4/7] gstv4l2videodec: use ifdef macro for consistency with the rest of the code
 
+Upstream-Status: Pending
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---

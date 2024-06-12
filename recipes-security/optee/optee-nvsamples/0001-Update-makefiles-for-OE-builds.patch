@@ -7,6 +7,7 @@ Subject: [PATCH] Update makefiles for OE builds
 - Use install instead of cp to install host programs
 - Add LDFLAGS to nvhwkey-app build
 
+Upstream-Status: Inappropriate [OE-Specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---

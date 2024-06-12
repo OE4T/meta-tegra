@@ -5,6 +5,7 @@ Subject: [PATCH] workaround to fix ld.bfd warning (binutils version 2.39)
 
 l31.elf has a LOAD segment with RWX permissions
 
+Upstream-Status: Pending
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
  Makefile | 4 ++--
