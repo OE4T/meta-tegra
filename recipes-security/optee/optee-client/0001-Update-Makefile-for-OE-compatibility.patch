@@ -5,6 +5,7 @@ Subject: [PATCH] Update Makefile for OE compatibility
 
 * Use install instead of cp for installing files
 
+Upstream-Status: Inappropriate [OE-Specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  optee/optee_client/Makefile | 36 ++++++++++++++++++------------------

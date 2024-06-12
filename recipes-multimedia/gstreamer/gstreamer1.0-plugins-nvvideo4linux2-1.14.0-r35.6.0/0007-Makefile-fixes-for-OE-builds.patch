@@ -3,6 +3,7 @@ From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Thu, 26 Jan 2023 00:06:19 +0000
 Subject: [PATCH 7/7] Makefile fixes for OE builds
 
+Upstream-Status: Inappropriate [OE-Specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---

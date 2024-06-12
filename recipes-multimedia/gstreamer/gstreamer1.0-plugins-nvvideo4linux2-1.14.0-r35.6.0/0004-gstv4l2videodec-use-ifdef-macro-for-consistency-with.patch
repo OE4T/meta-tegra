@@ -4,6 +4,7 @@ Date: Sun, 8 Nov 2020 01:53:55 +0000
 Subject: [PATCH 4/7] gstv4l2videodec: use ifdef macro for consistency with the
  rest of the code
 
+Upstream-Status: Pending
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---

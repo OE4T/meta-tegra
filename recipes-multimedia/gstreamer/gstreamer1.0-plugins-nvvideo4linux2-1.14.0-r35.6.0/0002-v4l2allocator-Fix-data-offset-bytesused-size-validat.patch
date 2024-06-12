@@ -9,6 +9,7 @@ sized buffer do not cause a warning.
 
 Part-of: <https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requests/649>
 
+Upstream-Status: Backport [https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requests/649]
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
