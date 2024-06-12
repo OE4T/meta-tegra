@@ -1,9 +1,9 @@
 From 9e77fe4f3a34eda6d131e33f9a5f11fbaa34d423 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 4 Feb 2023 06:31:24 -0800
-Subject: [PATCH 3/4] L4TLauncher: allow for empty/missing APPEND line in
- extlinux.conf
+Subject: [PATCH 2/3] L4TLauncher: allow for empty/missing APPEND line in extlinux.conf
 
+Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
 ---

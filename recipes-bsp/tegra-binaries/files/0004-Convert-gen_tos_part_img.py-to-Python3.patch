@@ -1,7 +1,11 @@
 From 83e9fa94ea79bc00d0ac9bfc8e003c5335a29aef Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Wed, 22 Jan 2020 06:35:59 -0800
-Subject: [PATCH 4/4] Convert gen_tos_part_img.py to Python3
+Subject: [PATCH] Convert gen_tos_part_img.py to Python3
+
+Upstream-Status: Inappropriate [OE specific]
+
+Signed-off-by: Matt Madison <matt@madison.systems>
 
 %% original patch: 0004-Convert-gen_tos_part_img.py-to-Python3.patch
 ---

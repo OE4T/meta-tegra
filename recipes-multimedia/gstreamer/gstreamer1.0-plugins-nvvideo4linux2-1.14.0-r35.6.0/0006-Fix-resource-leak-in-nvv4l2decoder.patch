@@ -5,6 +5,7 @@ Subject: [PATCH 6/7] Fix resource leak in nvv4l2decoder
 
 See: https://forums.developer.nvidia.com/t/175198/11
 
+Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---

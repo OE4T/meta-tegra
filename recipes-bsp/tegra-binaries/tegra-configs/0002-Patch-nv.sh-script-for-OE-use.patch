@@ -3,6 +3,7 @@ From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Wed, 28 Feb 2024 23:12:36 +0000
 Subject: [PATCH 2/2] Patch nv.sh script for OE use
 
+Upstream-Status: Inappropriate [OE-Specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  etc/systemd/nv.sh | 264 ----------------------------------------------
