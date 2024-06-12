@@ -3,6 +3,7 @@ From: Matt Madison <matt@madison.systems>
 Date: Tue, 16 Nov 2021 09:08:15 -0800
 Subject: [PATCH] Patch udev rules for OE use
 
+Upstream-Status: Inappropriate [OE-Specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 
 ---

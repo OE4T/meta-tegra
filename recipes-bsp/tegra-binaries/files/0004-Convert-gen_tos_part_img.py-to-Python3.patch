@@ -3,7 +3,7 @@ From: Matt Madison <matt@madison.systems>
 Date: Wed, 22 Jan 2020 06:35:59 -0800
 Subject: [PATCH] Convert gen_tos_part_img.py to Python3
 
-Upstream-Status: Inapproprate [OE specific]
+Upstream-Status: Inappropriate [OE specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 

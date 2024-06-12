@@ -3,6 +3,7 @@ From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Fri, 15 Apr 2022 12:36:09 +0100
 Subject: [PATCH] Fix stringop-truncation warning
 
+Upstream-Status: Pending
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 ---
  nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c | 1 +

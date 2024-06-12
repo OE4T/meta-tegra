@@ -6,7 +6,7 @@ Subject: [PATCH] Drop bc usage and remove symlink creation functions
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 
-
+Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  etc/systemd/nvpower.sh | 164 ++++-------------------------------------
