@@ -4,6 +4,7 @@ Date: Sat, 12 Oct 2024 06:43:52 -0700
 Subject: [PATCH] L4TLauncher: allow for empty/missing APPEND line in
  extlinux.conf
 
+Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  .../Application/L4TLauncher/L4TLauncher.c     | 30 ++++++++++---------

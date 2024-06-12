@@ -6,6 +6,7 @@ Subject: [PATCH 1/9] Remove DO NOT USE declarations from v4l2_nv_extensions.h
 as they are now present in v4l2-controls.h and conflict
 with the definitions there.
 
+Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
