@@ -9,7 +9,7 @@ only if the `ASN1_ITEM_rptr()` macro is used.
 This change passes `make check` with both openssl 1.1 and 3.0.
 
 Signed-off-by: Jeremi Piotrowski <jpiotrowski@microsoft.com>
-Upstream-status: Submited [https://groups.io/g/sbsigntools/topic/patch_fix_openssl_3_0_issue/85903418]
+Upstream-Status: Submitted [https://groups.io/g/sbsigntools/topic/patch_fix_openssl_3_0_issue/85903418]
 ---
  src/idc.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
