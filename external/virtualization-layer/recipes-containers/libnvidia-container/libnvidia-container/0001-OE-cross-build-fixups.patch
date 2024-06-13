@@ -3,6 +3,8 @@ From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Sun, 8 Aug 2021 21:18:48 +0100
 Subject: [PATCH] OE cross-build fixups
 
+Upstream-Status: Inappropriate [OE-specific]
+
 Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
