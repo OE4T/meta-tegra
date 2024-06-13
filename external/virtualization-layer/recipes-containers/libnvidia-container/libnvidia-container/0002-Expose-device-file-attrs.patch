@@ -3,7 +3,9 @@ From: Matt Madison <matt@madison.systems>
 Date: Sun, 17 Apr 2022 05:20:32 -0700
 Subject: [PATCH] Expose device file attrs
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  deps/src/nvidia-modprobe-495.44/modprobe-utils/nvidia-modprobe-utils.c | 8 ++++----
  deps/src/nvidia-modprobe-495.44/modprobe-utils/nvidia-modprobe-utils.h | 1 +

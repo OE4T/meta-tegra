@@ -10,6 +10,7 @@ clear up the variables).
 This is to avoid forcing the device to boot in recovery after 3 boots
 without confirmation from nvbootctrl.
 
+Upstream-Status: Pending
 Signed-off-by: Ricardo Salveti <ricardo@foundries.io>
 Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
 ---
