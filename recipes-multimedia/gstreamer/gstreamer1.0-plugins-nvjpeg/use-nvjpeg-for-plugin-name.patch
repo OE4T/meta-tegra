@@ -1,3 +1,5 @@
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
 Index: gstjpeg_src/gst-jpeg/gst-jpeg-1.0/ext/jpeg/Makefile.am
 ===================================================================
 --- gstjpeg_src/gst-jpeg/gst-jpeg-1.0.orig/ext/jpeg/Makefile.am

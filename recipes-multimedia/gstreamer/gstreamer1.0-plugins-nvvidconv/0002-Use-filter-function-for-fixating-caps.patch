@@ -5,6 +5,9 @@ Subject: [PATCH] Use filter function for fixating caps
 
 To fix SIGSEGVs during caps negotiation.
 
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  gstnvvconv.c | 51 ++++++++++++++++++++++++++++-----------------------
  1 file changed, 28 insertions(+), 23 deletions(-)
