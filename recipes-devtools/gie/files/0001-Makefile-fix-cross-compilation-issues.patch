@@ -3,6 +3,7 @@ From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Sat, 11 Nov 2023 20:25:34 +0000
 Subject: [PATCH] Makefile: fix cross compilation issues
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
  Makefile.config | 29 +++++++++++++++++++----------
