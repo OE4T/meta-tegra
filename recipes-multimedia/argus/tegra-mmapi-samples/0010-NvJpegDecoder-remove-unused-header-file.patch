@@ -3,6 +3,7 @@ From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Tue, 21 Nov 2023 09:09:10 +0000
 Subject: [PATCH 10/10] NvJpegDecoder: remove unused header file
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
  samples/common/classes/NvJpegDecoder.cpp | 3 ++-

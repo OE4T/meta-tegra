@@ -5,6 +5,7 @@ Subject: [PATCH 8/8] camera_v4l2_cuda: add option for setting max frame count
 
 to a allow for an automated timed run, instead of interactive.
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp | 12 +++++++++++-
