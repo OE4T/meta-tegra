@@ -3,7 +3,9 @@ From: Matt Madison <matt@madison.systems>
 Date: Sun, 31 Jan 2021 06:05:24 -0800
 Subject: [PATCH] Update makefile for OE builds
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  Makefile | 24 ++++++++++++------------
  1 file changed, 12 insertions(+), 12 deletions(-)
