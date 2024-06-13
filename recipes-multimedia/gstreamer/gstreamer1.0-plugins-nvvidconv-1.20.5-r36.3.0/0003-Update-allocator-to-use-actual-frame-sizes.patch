@@ -5,7 +5,9 @@ Subject: [PATCH] Update allocator to use actual frame sizes
 
 rather than the size of the buffer-tracking structure.
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  gstnvvconv.c | 11 ++++++++---
  1 file changed, 8 insertions(+), 3 deletions(-)

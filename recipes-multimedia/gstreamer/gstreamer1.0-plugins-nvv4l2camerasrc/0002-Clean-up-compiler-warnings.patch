@@ -4,6 +4,10 @@ Date: Thu, 16 Jul 2020 10:43:09 -0700
 Subject: [PATCH] Clean up compiler warnings
 
 from a compilation pass with -Wall -Wpedantic.
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  gstnvv4l2camerasrc.cpp | 18 +++++++-----------
  1 file changed, 7 insertions(+), 11 deletions(-)

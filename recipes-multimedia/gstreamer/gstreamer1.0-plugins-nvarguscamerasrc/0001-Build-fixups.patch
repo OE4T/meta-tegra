@@ -3,6 +3,9 @@ From: Matt Madison <matt@madison.systems>
 Date: Thu, 16 Jul 2020 07:54:26 -0700
 Subject: [PATCH] Build fixups
 
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  Makefile | 28 ++++++++++++----------------
  1 file changed, 12 insertions(+), 16 deletions(-)
