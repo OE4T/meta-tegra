@@ -5,7 +5,9 @@ Subject: [PATCH 2/8] include: fix jpeglib header inclusion
 
 To ensure that it's using the NVIDIA-specific header.
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  include/NvJpegDecoder.h | 2 +-
  include/NvJpegEncoder.h | 2 +-
