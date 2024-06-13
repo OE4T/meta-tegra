@@ -6,6 +6,7 @@ Subject: [PATCH 7/8] frontend: add option to set timeout
 instead of requiring a human to type 'q' to quit,
 to allow the sample to be used as an automated test.
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  samples/17_frontend/main.cpp | 15 ++++++++++++---

@@ -8,6 +8,7 @@ instead of the old, deprecated style of using raw pointers
 and calling the destroy methods of the various interfaces,
 which is causing segfaults.
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  .../common/algorithm/trt/trt_inference.cpp    | 34 ++++++-------------
