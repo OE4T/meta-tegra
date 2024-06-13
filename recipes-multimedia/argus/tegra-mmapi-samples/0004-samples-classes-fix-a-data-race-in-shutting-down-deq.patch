@@ -7,6 +7,7 @@ Subject: [PATCH 4/8] samples: classes: fix a data race in shutting down
 as well as a couple of other uses of pthread_join with
 a possibly null (and thus invalid) thread id.
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  .../common/classes/NvApplicationProfiler.cpp  |  5 +++-

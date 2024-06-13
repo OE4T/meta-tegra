@@ -7,6 +7,7 @@ The xxd command is part of vim, which isn't really a build
 tool.  Use a shell script to perform the header file creation
 instead.
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  argus/apps/camera/ui/camera/CMakeLists.txt | 3 ++-

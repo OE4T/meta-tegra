@@ -9,6 +9,7 @@ release.
 
 1: https://github.com/OE4T/meta-tegra/commit/0050144b2973e544237e53ecee65dee85e5cc8f9#diff-9d779250de06e384fc1e77959ef1a11165c69a34de15346d3c592d78f44f2ac9
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Dan Walkes <danwalkes@trellis-logic.com>
 ---
  tools/GetPixel.py | 2 +-
