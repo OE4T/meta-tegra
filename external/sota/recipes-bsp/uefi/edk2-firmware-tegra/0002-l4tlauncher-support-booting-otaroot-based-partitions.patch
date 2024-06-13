@@ -7,6 +7,7 @@ Besides looking for the APP part-name (standard in emmc), also look for
 otaroot-based partitions when searching for extlinux configuration. This
 allows the device to boot from OTA-enabled rootfs.
 
+Upstream-Status: Pending
 Signed-off-by: Ricardo Salveti <ricardo@foundries.io>
 Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
 ---

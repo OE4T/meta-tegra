@@ -10,6 +10,9 @@ the output mode but not issue a page flip.
 This change adds a default framebuffer to the egldevice driver for
 use with the initial calls to set the CRTC mode and plane.
 
+Upstream-Status: Pending
+Signed-off-by: Kurt Kiefer <kurt.kiefer@arthrex.com>
+
 ---
  .../qeglfskmsegldevicescreen.cpp              | 66 +++++++++++++++++--
  .../qeglfskmsegldevicescreen.h                |  3 +

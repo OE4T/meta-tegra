@@ -3,6 +3,9 @@ From: Matt Madison <matt@madison.systems>
 Date: Fri, 11 Mar 2022 11:20:55 -0800
 Subject: [PATCH] Fixups for cross building in OE
 
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  python/CMakeLists.txt                | 9 ++-------
  python/include/ForwardDeclarations.h | 2 +-
