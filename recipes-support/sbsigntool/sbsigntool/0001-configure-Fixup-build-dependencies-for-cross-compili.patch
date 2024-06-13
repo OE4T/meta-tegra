@@ -19,6 +19,7 @@ https://github.com/intel/luv-yocto/tree/master/meta-luv/recipes-devtools/sbsignt
 
 Corrected typo error and ported to version 0.9.2
 
+Upstream-Status: Inappropriate [Backport]
 Signed-off-by: Naveen Saini <naveen.kumar.saini@intel.com>
 ---
  configure.ac | 7 +++++--
