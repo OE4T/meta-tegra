@@ -5,6 +5,7 @@ Subject: [PATCH] Fixups for cross building in OE
 
 Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
+
 ---
  python/CMakeLists.txt | 5 -----
  1 file changed, 5 deletions(-)
