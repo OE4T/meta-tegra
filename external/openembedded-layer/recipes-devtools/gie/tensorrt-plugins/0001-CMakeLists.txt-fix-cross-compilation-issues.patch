@@ -3,6 +3,7 @@ From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Mon, 14 Oct 2024 04:13:16 -0700
 Subject: [PATCH] CMakeLists.txt: fix cross compilation issues
 
+Upstream-Status: Pending
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>

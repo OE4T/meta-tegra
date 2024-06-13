@@ -3,6 +3,8 @@ From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Tue, 5 Mar 2024 11:52:33 +0000
 Subject: [PATCH] OE cross-build fixups
 
+Upstream-Status: Inappropriate [OE-specific]
+
 Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
