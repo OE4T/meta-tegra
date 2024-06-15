@@ -12,7 +12,6 @@ PV = "1.1.13"
 
 SRC_URI += " \
     file://0001-Fix-wayland-eglstream-protocols-pc-file.patch \
-    file://0001-wayland-eglsurface-Change-type-of-timout-from-EGLint.patch \
     file://nvidia_wayland.json \
 "
 
