@@ -1,4 +1,4 @@
-From 4af28f6ae3cc08e28db4a498c9d35b526e5f0374 Mon Sep 17 00:00:00 2001
+From 606ec8e73ff2efbe08105a8c91108eb42c83d835 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 9 Mar 2024 06:17:17 -0800
 Subject: [PATCH 1/2] Add support for 'alternate' roots for tegra CSV handling
@@ -7,20 +7,20 @@ So the host OS can provide one or more trees of libraries that
 should be mounted into containers, overriding the copies in
 the main rootfs of the host OS.
 
-Upstream-Status: Inappropriate [oe-specific]
-
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- cmd/nvidia-ctk/cdi/generate/generate.go  |  7 +++
- internal/config/runtime.go               |  3 +-
- internal/config/toml_test.go             |  1 +
- internal/modifier/csv.go                 |  1 +
- internal/platform-support/tegra/csv.go   | 62 +++++++++++++++++-------
- internal/platform-support/tegra/tegra.go |  8 +++
- pkg/nvcdi/lib-csv.go                     |  1 +
- pkg/nvcdi/lib.go                         |  1 +
- pkg/nvcdi/options.go                     |  8 +++
- 9 files changed, 74 insertions(+), 18 deletions(-)
+ cmd/nvidia-ctk/cdi/generate/generate.go     |  7 +++
+ internal/config/runtime.go                  |  3 +-
+ internal/config/toml_test.go                |  1 +
+ internal/modifier/csv.go                    |  1 +
+ internal/platform-support/tegra/csv.go      | 66 ++++++++++++++++-----
+ internal/platform-support/tegra/symlinks.go | 26 +++++---
+ internal/platform-support/tegra/tegra.go    | 24 +++++++-
+ pkg/nvcdi/lib-csv.go                        |  1 +
+ pkg/nvcdi/lib.go                            |  1 +
+ pkg/nvcdi/options.go                        |  8 +++
+ 10 files changed, 111 insertions(+), 27 deletions(-)
 
 diff --git a/cmd/nvidia-ctk/cdi/generate/generate.go b/cmd/nvidia-ctk/cdi/generate/generate.go
 index fd46962..89ff4cc 100644
@@ -93,10 +93,10 @@ index 56adcdc..c55b6f7 100644
  	if err != nil {
  		return nil, fmt.Errorf("failed to construct CDI library: %v", err)
 diff --git a/internal/platform-support/tegra/csv.go b/internal/platform-support/tegra/csv.go
-index ff2f493..45a5dca 100644
+index ff2f493..be3bf3a 100644
 --- a/internal/platform-support/tegra/csv.go
 +++ b/internal/platform-support/tegra/csv.go
-@@ -43,38 +43,66 @@ func (o tegraOptions) newDiscovererFromCSVFiles() (discover.Discover, error) {
+@@ -43,39 +43,73 @@ func (o tegraOptions) newDiscovererFromCSVFiles() (discover.Discover, error) {
  		targetsByType[csv.MountSpecDev],
  	)
  
@@ -104,6 +104,7 @@ index ff2f493..45a5dca 100644
 +	var directories []discover.Discover
 +	var libraries []discover.Discover
 +	var symlinks []discover.Discover
++	var symlinkHooks []discover.Discover
 +
 +	symlinkTargets := o.ignorePatterns.Apply(targetsByType[csv.MountSpecSym]...)
 +	o.logger.Debugf("Filtered symlink targets: %v", symlinkTargets)
@@ -117,19 +118,22 @@ index ff2f493..45a5dca 100644
 +		))
 +
 +		// Libraries and symlinks use the same locator.
-+		libraries = append(libraries, discover.NewMounts(
++		l := discover.NewMounts(
 +			o.logger,
 +			lookup.NewSymlinkLocator(lookup.WithLogger(o.logger), lookup.WithRoot(altRoot)),
 +			altRoot,
 +			targetsByType[csv.MountSpecLib],
-+		))
++		)
++		libraries = append(libraries, l)
 +
-+		symlinks = append(symlinks, discover.NewMounts(
++		s := discover.NewMounts(
 +			o.logger,
 +			lookup.NewSymlinkLocator(lookup.WithLogger(o.logger), lookup.WithRoot(altRoot)),
 +			altRoot,
 +			symlinkTargets,
-+		))
++		)
++		symlinks = append(symlinks, s)
++		symlinkHooks = append(symlinkHooks, o.createCSVSymlinkHooks(symlinkTargets, l, altRoot))
 +	}
 +	directories = append(directories, discover.NewMounts(
  		o.logger,
@@ -152,12 +156,12 @@ index ff2f493..45a5dca 100644
 -	o.logger.Debugf("Filtered symlink targets: %v", symlinkTargets)
 -	symlinks := discover.NewMounts(
 +	libraries = append(libraries, librariesInDriverRoot)
-+	symlinks = append(symlinks, discover.NewMounts(
++	symlinksInDriverRoot := discover.NewMounts(
  		o.logger,
  		o.symlinkLocator,
  		o.driverRoot,
  		symlinkTargets,
--	)
+ 	)
 -	createSymlinks := o.createCSVSymlinkHooks(symlinkTargets, libraries)
 -
 -	d := discover.Merge(
@@ -167,24 +171,92 @@ index ff2f493..45a5dca 100644
 -		symlinks,
 -		createSymlinks,
 -	)
-+	))
-+	createSymlinks := o.createCSVSymlinkHooks(symlinkTargets, librariesInDriverRoot)
-+
++	symlinks = append(symlinks, symlinksInDriverRoot)
++	symlinkHooks = append(symlinkHooks, o.createCSVSymlinkHooks(symlinkTargets,
++		librariesInDriverRoot,
++		o.driverRoot))
+ 
 +	var allDiscoverers []discover.Discover
 +	allDiscoverers = append(allDiscoverers, devices)
 +	allDiscoverers = append(allDiscoverers, directories...)
 +	allDiscoverers = append(allDiscoverers, libraries...)
 +	allDiscoverers = append(allDiscoverers, symlinks...)
-+	allDiscoverers = append(allDiscoverers, createSymlinks)
++	allDiscoverers = append(allDiscoverers, symlinkHooks...)
 +	d := discover.Merge(allDiscoverers...)
- 
  	return d, nil
  }
+ 
+diff --git a/internal/platform-support/tegra/symlinks.go b/internal/platform-support/tegra/symlinks.go
+index c64138d..f4d92a1 100644
+--- a/internal/platform-support/tegra/symlinks.go
++++ b/internal/platform-support/tegra/symlinks.go
+@@ -39,13 +39,17 @@ type symlinkHook struct {
+ }
+ 
+ // createCSVSymlinkHooks creates a discoverer for a hook that creates required symlinks in the container
+-func (o tegraOptions) createCSVSymlinkHooks(targets []string, mounts discover.Discover) discover.Discover {
++func (o tegraOptions) createCSVSymlinkHooks(targets []string, mounts discover.Discover, root string) discover.Discover {
++	l := o.symlinkChainLocators[root]
++	if l == nil {
++		l = o.symlinkChainLocator
++	}
+ 	return symlinkHook{
+ 		logger:              o.logger,
+ 		nvidiaCTKPath:       o.nvidiaCTKPath,
+ 		targets:             targets,
+ 		mountsFrom:          mounts,
+-		symlinkChainLocator: o.symlinkChainLocator,
++		symlinkChainLocator: l,
+ 		resolveSymlink:      o.resolveSymlink,
+ 	}
+ }
+@@ -116,7 +120,13 @@ func (d symlinkHook) getSymlinkCandidates() []string {
+ 			d.logger.Warningf("Failed to locate symlink %v", target)
+ 			continue
+ 		}
+-		candidates = append(candidates, reslovedSymlinkChain...)
++		d.logger.Debugf("getSymlinkCandidates: resolved target %v -> %v", target, reslovedSymlinkChain)
++		// When the
++		if target != reslovedSymlinkChain[0] {
++			candidates = append(candidates, reslovedSymlinkChain[0]+"::"+target)
++		} else {
++			candidates = append(candidates, reslovedSymlinkChain...)
++		}
+ 	}
+ 	return candidates
+ }
+@@ -126,20 +136,22 @@ func (d symlinkHook) getCSVFileSymlinks() []string {
+ 	created := make(map[string]bool)
+ 	// candidates is a list of absolute paths to symlinks in a chain, or the final target of the chain.
+ 	for _, candidate := range d.getSymlinkCandidates() {
+-		target, err := d.resolveSymlink(candidate)
++		paths := strings.Split(candidate, "::")
++		target, err := d.resolveSymlink(paths[0])
+ 		if err != nil {
+ 			d.logger.Debugf("Skipping invalid link: %v", err)
+ 			continue
+-		} else if target == candidate {
+-			d.logger.Debugf("%v is not a symlink", candidate)
++		} else if target == paths[0] {
++			d.logger.Debugf("%v is not a symlink", paths[0])
+ 			continue
+ 		}
+ 
+-		link := fmt.Sprintf("%v::%v", target, candidate)
++		link := fmt.Sprintf("%v::%v", target, paths[len(paths)-1])
+ 		if created[link] {
+ 			d.logger.Debugf("skipping duplicate link: %v", link)
+ 			continue
+ 		}
++		d.logger.Debugf("getCSVFileSymlinks: for candidate %v, make link %v", candidate, link)
+ 		created[link] = true
+ 
+ 		links = append(links, link)
 diff --git a/internal/platform-support/tegra/tegra.go b/internal/platform-support/tegra/tegra.go
-index ad5c5b6..12ccfce 100644
+index ad5c5b6..ae09245 100644
 --- a/internal/platform-support/tegra/tegra.go
 +++ b/internal/platform-support/tegra/tegra.go
-@@ -29,6 +29,7 @@ type tegraOptions struct {
+@@ -29,13 +29,15 @@ type tegraOptions struct {
  	logger             logger.Interface
  	csvFiles           []string
  	driverRoot         string
@@ -192,7 +264,39 @@ index ad5c5b6..12ccfce 100644
  	nvidiaCTKPath      string
  	librarySearchPaths []string
  	ignorePatterns     ignoreMountSpecPatterns
-@@ -113,6 +114,13 @@ func WithDriverRoot(driverRoot string) Option {
+ 
+ 	// The following can be overridden for testing
+-	symlinkLocator      lookup.Locator
+-	symlinkChainLocator lookup.Locator
++	symlinkLocator       lookup.Locator
++	symlinkChainLocator  lookup.Locator
++	symlinkChainLocators map[string]lookup.Locator
+ 	// TODO: This should be replaced by a regular mock
+ 	resolveSymlink func(string) (string, error)
+ }
+@@ -59,11 +61,20 @@ func New(opts ...Option) (discover.Discover, error) {
+ 		)
+ 	}
+ 
++	o.symlinkChainLocators = make(map[string]lookup.Locator)
+ 	if o.symlinkChainLocator == nil {
+-		o.symlinkChainLocator = lookup.NewSymlinkChainLocator(
++		for _, altRoot := range o.altRoots {
++			o.symlinkChainLocators[altRoot] = lookup.NewSymlinkChainLocator(
++				lookup.WithLogger(o.logger),
++				lookup.WithRoot(altRoot),
++			)
++		}
++		o.symlinkChainLocators[o.driverRoot] = lookup.NewSymlinkChainLocator(
+ 			lookup.WithLogger(o.logger),
+ 			lookup.WithRoot(o.driverRoot),
+ 		)
++	} else {
++		o.symlinkChainLocators[o.driverRoot] = o.symlinkChainLocator
+ 	}
+ 
+ 	if o.resolveSymlink == nil {
+@@ -113,6 +124,13 @@ func WithDriverRoot(driverRoot string) Option {
  	}
  }
  
