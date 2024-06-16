@@ -725,11 +725,7 @@ if [ $no_flash -ne 0 ]; then
 else
     eval $flashcmd < /dev/null || exit 1
     if [ -n "$sdcard" -o $external_device -eq 1 ]; then
-        if [ $external_device -eq 1 ]; then
-            if [ -z "$serial_number" ]; then
-                echo "ERR: missing serial number for initrd-flashing external device" >&2
-                exit 1
-            fi
+        if [ $external_device -eq 1 -a -n "$serial_number" ]; then
             make_sdcard_args="$make_sdcard_args --serial-number $serial_number"
         fi
         if [ -n "$pre_sdcard_sed" ]; then
