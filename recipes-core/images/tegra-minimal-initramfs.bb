@@ -15,6 +15,7 @@ PACKAGE_INSTALL = "\
     kernel-module-pcie-tegra194 \
     kernel-module-phy-tegra194-p2u \
     kernel-module-tegra-xudc \
+    kernel-module-ucsi-ccg \
 "
 
 IMAGE_FEATURES = ""
