@@ -1,4 +1,4 @@
-From 606ec8e73ff2efbe08105a8c91108eb42c83d835 Mon Sep 17 00:00:00 2001
+From 6a9a2d1ce71d80435aacb8cbebc4042974cf3c77 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 9 Mar 2024 06:17:17 -0800
 Subject: [PATCH 1/2] Add support for 'alternate' roots for tegra CSV handling
@@ -15,12 +15,12 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  internal/config/toml_test.go                |  1 +
  internal/modifier/csv.go                    |  1 +
  internal/platform-support/tegra/csv.go      | 66 ++++++++++++++++-----
- internal/platform-support/tegra/symlinks.go | 26 +++++---
+ internal/platform-support/tegra/symlinks.go | 39 +++++++-----
  internal/platform-support/tegra/tegra.go    | 24 +++++++-
  pkg/nvcdi/lib-csv.go                        |  1 +
  pkg/nvcdi/lib.go                            |  1 +
  pkg/nvcdi/options.go                        |  8 +++
- 10 files changed, 111 insertions(+), 27 deletions(-)
+ 10 files changed, 116 insertions(+), 35 deletions(-)
 
 diff --git a/cmd/nvidia-ctk/cdi/generate/generate.go b/cmd/nvidia-ctk/cdi/generate/generate.go
 index fd46962..89ff4cc 100644
@@ -187,10 +187,18 @@ index ff2f493..be3bf3a 100644
  }
  
 diff --git a/internal/platform-support/tegra/symlinks.go b/internal/platform-support/tegra/symlinks.go
-index c64138d..f4d92a1 100644
+index c64138d..261e607 100644
 --- a/internal/platform-support/tegra/symlinks.go
 +++ b/internal/platform-support/tegra/symlinks.go
-@@ -39,13 +39,17 @@ type symlinkHook struct {
+@@ -32,6 +32,7 @@ type symlinkHook struct {
+ 	nvidiaCTKPath string
+ 	targets       []string
+ 	mountsFrom    discover.Discover
++	root          string
+ 
+ 	// The following can be overridden for testing
+ 	symlinkChainLocator lookup.Locator
+@@ -39,13 +40,22 @@ type symlinkHook struct {
  }
  
  // createCSVSymlinkHooks creates a discoverer for a hook that creates required symlinks in the container
@@ -200,55 +208,61 @@ index c64138d..f4d92a1 100644
 +	if l == nil {
 +		l = o.symlinkChainLocator
 +	}
++	r := root
++	if len(r) > 0 && r[len(r)-1] == '/' {
++		r = r[:len(r)-1]
++	}
  	return symlinkHook{
  		logger:              o.logger,
  		nvidiaCTKPath:       o.nvidiaCTKPath,
  		targets:             targets,
  		mountsFrom:          mounts,
 -		symlinkChainLocator: o.symlinkChainLocator,
++		root:                r,
 +		symlinkChainLocator: l,
  		resolveSymlink:      o.resolveSymlink,
  	}
  }
-@@ -116,7 +120,13 @@ func (d symlinkHook) getSymlinkCandidates() []string {
+@@ -116,7 +126,15 @@ func (d symlinkHook) getSymlinkCandidates() []string {
  			d.logger.Warningf("Failed to locate symlink %v", target)
  			continue
  		}
 -		candidates = append(candidates, reslovedSymlinkChain...)
 +		d.logger.Debugf("getSymlinkCandidates: resolved target %v -> %v", target, reslovedSymlinkChain)
-+		// When the
-+		if target != reslovedSymlinkChain[0] {
-+			candidates = append(candidates, reslovedSymlinkChain[0]+"::"+target)
-+		} else {
-+			candidates = append(candidates, reslovedSymlinkChain...)
++		for _, r := range reslovedSymlinkChain {
++			if len(d.root) > 0 {
++				r = r[len(d.root):]
++			}
++			if target != r {
++				candidates = append(candidates, r+"::"+target)
++			}
 +		}
  	}
  	return candidates
  }
-@@ -126,20 +136,22 @@ func (d symlinkHook) getCSVFileSymlinks() []string {
+@@ -124,22 +142,13 @@ func (d symlinkHook) getSymlinkCandidates() []string {
+ func (d symlinkHook) getCSVFileSymlinks() []string {
+ 	var links []string
  	created := make(map[string]bool)
- 	// candidates is a list of absolute paths to symlinks in a chain, or the final target of the chain.
- 	for _, candidate := range d.getSymlinkCandidates() {
+-	// candidates is a list of absolute paths to symlinks in a chain, or the final target of the chain.
+-	for _, candidate := range d.getSymlinkCandidates() {
 -		target, err := d.resolveSymlink(candidate)
-+		paths := strings.Split(candidate, "::")
-+		target, err := d.resolveSymlink(paths[0])
- 		if err != nil {
- 			d.logger.Debugf("Skipping invalid link: %v", err)
- 			continue
+-		if err != nil {
+-			d.logger.Debugf("Skipping invalid link: %v", err)
+-			continue
 -		} else if target == candidate {
 -			d.logger.Debugf("%v is not a symlink", candidate)
-+		} else if target == paths[0] {
-+			d.logger.Debugf("%v is not a symlink", paths[0])
- 			continue
- 		}
- 
+-			continue
+-		}
+-
 -		link := fmt.Sprintf("%v::%v", target, candidate)
-+		link := fmt.Sprintf("%v::%v", target, paths[len(paths)-1])
++	// candidates is a list of symlinks to create
++	for _, link := range d.getSymlinkCandidates() {
  		if created[link] {
  			d.logger.Debugf("skipping duplicate link: %v", link)
  			continue
  		}
-+		d.logger.Debugf("getCSVFileSymlinks: for candidate %v, make link %v", candidate, link)
++		d.logger.Debugf("getCSVFileSymlinks: make link %v", link)
  		created[link] = true
  
  		links = append(links, link)
