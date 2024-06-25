@@ -31,7 +31,8 @@ TEGRA_BUPGEN_SPECS ?= "fab=400;boardsku=0001;boardrev=H.0 \
                        fab=400;boardsku=0001;boardrev=J.0 \
                        fab=400;boardsku=0001;boardrev=L.0 \
                        fab=400;boardsku=0004;boardrev= \
-                       fab=401;boardsku=0004;boardrev="
+                       fab=401;boardsku=0001;boardrev= \
+                       fab=401;boardsku=0004;boardrev= "
 
 TEGRA_SIGNING_ENV = "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TEGRA_FAB} BOARDSKU=${TEGRA_BOARDSKU} BOARDREV=${TEGRA_BOARDREV}"
 
