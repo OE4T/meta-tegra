@@ -113,7 +113,6 @@ do_install() {
     for f in ${BOOTBINS_MACHINE_SPECIFIC}; do
         install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/$f ${D}${datadir}/tegraflash
     done
-    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
     if [ -n "${PARTITION_FILE_EXTERNAL}" -a -n "${PARTITION_LAYOUT_EXTERNAL}" ]; then
         # For flashing to an external (USB/NVMe) device on targets where
         # some of the boot partitions spill into the eMMC, preprocess the
@@ -158,6 +157,7 @@ do_install() {
 }
 
 do_install:append:tegra186() {
+    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT}
     install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra186* ${D}${datadir}/tegraflash/
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra186*bpmp*dtb ${D}${datadir}/tegraflash/
@@ -173,7 +173,8 @@ do_install:append:jetson-xavier-nx-devkit-tx2-nx() {
 
 do_install:append:tegra194() {
     install -m 0644 ${B}/slot_metadata.bin ${D}${datadir}/tegraflash/
-    install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}-override.cfg
+    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT}
+    install -m 0644 ${BCT_OVERRIDE_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT_OVERRIDE}
     install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra19* ${D}${datadir}/tegraflash/
     for f in ${S}/bootloader/${NVIDIA_BOARD}/tegra194-*-bpmp-*.dtb; do
         compressedfile=${B}/$(basename "$f" .dtb)_lz4.dtb
@@ -186,6 +187,7 @@ do_install:append:tegra194() {
 }
 
 do_install:append:tegra210() {
+    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${MACHINE}.cfg
     [ -z "${NVIDIA_BOARD_CFG}" ] || install -m 0644 ${BOARD_CFG} ${D}${datadir}/tegraflash/board_config_${MACHINE}.xml
 }
 
