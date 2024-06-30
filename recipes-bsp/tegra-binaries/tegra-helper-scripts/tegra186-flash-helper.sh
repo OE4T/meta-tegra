@@ -233,15 +233,6 @@ else
     exit 1
 fi
 
-for var in $FLASHVARS; do
-    eval pat=$`echo $var`
-    if [ -z "$pat" ]; then
-	echo "ERR: missing variable: $var" >&2
-	exit 1
-    fi
-    eval $var=`echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@BOARDREV@,$TOREV," -e"s,@PMICREV@,$PMICREV,"`
-done
-
 [ -n "$BOARDID" ] || BOARDID=3310
 case "$BOARDID" in
     3310)
@@ -255,6 +246,11 @@ case "$BOARDID" in
     3636)
 	[ -n "$BOARDSKU" ] || BOARDSKU=0001
 	bup_boardsku="$BOARDSKU"
+	BPFDTBSKU="0001"
+	if [ "$BOARDSKU" = "0003" ]; then
+	    BPFDTBSKU="0003"
+	    sdramcfg_file=$(echo "$sdramcfg_file" | sed -e"s,p3636-0001,p3636-0003,g")
+	fi
 	;;
     *)
 	echo "ERR: no default board SKU for board ID $BOARDID" >&2
@@ -262,6 +258,15 @@ case "$BOARDID" in
 	;;
 esac
 [ -n "$BOOTDEV" ] || BOOTDEV="mmcblk0p1"
+
+for var in $FLASHVARS; do
+    eval pat=$`echo $var`
+    if [ -z "$pat" ]; then
+	echo "ERR: missing variable: $var" >&2
+	exit 1
+    fi
+    eval $var=`echo $pat | sed -e"s,@BPFDTBREV@,$BPFDTBREV," -e"s,@BOARDREV@,$TOREV," -e"s,@PMICREV@,$PMICREV," -e"s,@BPFDTBSKU@,$BPFDTBSKU,"`
+done
 
 rm -f ${MACHINE}_bootblob_ver.txt
 echo "NV3" >${MACHINE}_bootblob_ver.txt
