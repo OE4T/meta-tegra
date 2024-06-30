@@ -22,7 +22,7 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${L4T_VERSION}"
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "a1cf17bc0aa0dbafcd8c43514f57d90dc69442a0"
+SRCREV = "a8ca89dd604a88c3bbbf435666a43db34737565f"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-tegra-4.9;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
