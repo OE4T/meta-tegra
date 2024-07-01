@@ -893,7 +893,7 @@ oe_make_bup_payload() {
                 echo "ERR: missing variable: $var" >&2
                 exit 1
             fi
-            fnglob=`echo $pat | sed -e"s,@BPFDTBREV@,\*," -e"s,@BOARDREV@,\*," -e"s,@PMICREV@,\*," -e"s,@CHIPREV@,\*,"`
+            fnglob=`echo $pat | sed -e"s,@BPFDTBREV@,\*," -e"s,@BPFDTBSKU@,\*," -e"s,@BOARDREV@,\*," -e"s,@PMICREV@,\*," -e"s,@CHIPREV@,\*,"`
             for fname in ${STAGING_DATADIR}/tegraflash/$fnglob; do
                 if [ ! -e $fname ]; then
                     bbfatal "$var file(s) not found"
