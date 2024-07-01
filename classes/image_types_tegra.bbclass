@@ -801,7 +801,7 @@ EOF
     if [ "${SOC_FAMILY}" = "tegra194" ]; then
         sdramcfg="${EMMC_BCT},${EMMC_BCT_OVERRIDE}"
     elif [ "${SOC_FAMILY}" = "tegra186" ]; then
-        sdramcfg="${EMMC_BCT}.cfg"
+        sdramcfg="${EMMC_BCT}"
     else
         sdramcfg="${MACHINE}.cfg"
     fi
