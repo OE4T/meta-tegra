@@ -75,7 +75,10 @@ do_compile() {
 
 do_sign_dtbs() {
     for dtbf in ${KERNEL_DEVICETREE}; do
-        tegra_uefi_attach_sign "${B}/nvidia-oot/device-tree/platform/generic-dts/dtbs/${dtbf}"
+        local dtb="${B}/nvidia-oot/device-tree/platform/generic-dts/dtbs/${dtbf}"
+        if [ -e "$dtb" ]; then
+            tegra_uefi_attach_sign "$dtb"
+        fi
     done
 }
 do_sign_dtbs[dirs] = "${B}"
