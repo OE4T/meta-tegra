@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://nvdisplay/COPYING;md5=1d5fa2a493e937d5a4b96e5e03b90f7
 
 TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 
-inherit module deploy
+inherit module
 inherit ${TEGRA_UEFI_SIGNING_CLASS}
 
 TEGRA_SRC_SUBARCHIVE = "\
@@ -33,7 +33,6 @@ COMPATIBLE_MACHINE = "(tegra)"
 S = "${WORKDIR}/${BPN}"
 B = "${S}"
 
-PROVIDES = "virtual/dtb"
 KERNEL_MODULE_PACKAGE_PREFIX = "nv-"
 
 # Out-of-tree drivers that are named identically to, and
@@ -89,13 +88,6 @@ do_install() {
     install -d ${D}${includedir}/${BPN}
     find ${B} -name Module.symvers -type f | xargs sed -e's:${B}/::g' >${D}${includedir}/${BPN}/Module.symvers
 }
-
-do_deploy() {
-    install -d ${DEPLOYDIR}/devicetree
-    install -m 0644 ${B}/nvidia-oot/device-tree/platform/generic-dts/dtbs/* ${DEPLOYDIR}/devicetree/
-}
-
-addtask deploy before do_build after do_install
 
 SYSROOT_DIRS += "/boot/devicetree"
 
