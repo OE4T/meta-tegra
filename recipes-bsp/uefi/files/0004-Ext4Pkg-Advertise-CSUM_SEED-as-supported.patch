@@ -1,0 +1,47 @@
+From 3f1389220e09ba389172117cb43f711c80dcdd5e Mon Sep 17 00:00:00 2001
+From: Pedro Falcato <pedro.falcato@gmail.com>
+Date: Tue, 9 May 2023 01:38:08 +0100
+Subject: [PATCH] Ext4Pkg: Advertise CSUM_SEED as supported
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+We had added support for CSUM_SEED but accidentally forgot to advertise
+it in gSupportedIncompatFeat. This made it (erroneously) impossible to
+mount CSUM_SEED filesystems.
+
+Detected by attempting to mount a relatively new mkfs.ext4'd filesystem.
+
+Cc: Marvin Häuser <mhaeuser@posteo.de>
+Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
+Reviewed-by: Marvin Häuser <mhaeuser@posteo.de>
+Upstream-Status: Backport[https://github.com/tianocore/edk2-platforms/commit/92479808e7227017cdfb19815605bb1fa877d19f]
+---
+ Features/Ext4Pkg/Ext4Dxe/Superblock.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Features/Ext4Pkg/Ext4Dxe/Superblock.c b/Features/Ext4Pkg/Ext4Dxe/Superblock.c
+index edee051c41..780126bac6 100644
+--- a/Features/Ext4Pkg/Ext4Dxe/Superblock.c
++++ b/Features/Ext4Pkg/Ext4Dxe/Superblock.c
+@@ -1,7 +1,7 @@
+ /** @file
+   Superblock managing routines
+ 
+-  Copyright (c) 2021 - 2022 Pedro Falcato All rights reserved.
++  Copyright (c) 2021 - 2023 Pedro Falcato All rights reserved.
+   SPDX-License-Identifier: BSD-2-Clause-Patent
+ **/
+ 
+@@ -18,7 +18,7 @@ STATIC CONST UINT32  gSupportedIncompatFeat =
+   EXT4_FEATURE_INCOMPAT_64BIT | EXT4_FEATURE_INCOMPAT_DIRDATA |
+   EXT4_FEATURE_INCOMPAT_FLEX_BG | EXT4_FEATURE_INCOMPAT_FILETYPE |
+   EXT4_FEATURE_INCOMPAT_EXTENTS | EXT4_FEATURE_INCOMPAT_LARGEDIR |
+-  EXT4_FEATURE_INCOMPAT_MMP | EXT4_FEATURE_INCOMPAT_RECOVER;
++  EXT4_FEATURE_INCOMPAT_MMP | EXT4_FEATURE_INCOMPAT_RECOVER | EXT4_FEATURE_INCOMPAT_CSUM_SEED;
+ 
+ // Future features that may be nice additions in the future:
+ // 1) Btree support: Required for write support and would speed up lookups in large directories.
+-- 
+2.34.1
+
