@@ -36,6 +36,9 @@ SRC_URI += "file://0003-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.pat
 # edk2
 SRC_URI += "file://0001-Use-bfd-linker.patch;patchdir=../edk2"
 
+# edk2-platforms
+SRC_URI += "file://0004-Ext4Pkg-Advertise-CSUM_SEED-as-supported.patch;patchdir=../edk2-platforms"
+
 S = "${WORKDIR}/edk2-tegra/edk2"
 
 COMPATIBLE_MACHINE = "(tegra)"
