@@ -29,6 +29,7 @@ do_unpack_extra:append:cuda() {
     ln -sf ${UNPACKDIR}/${OPTICALFLOW_MD5}-${OPTICALFLOW_HASH}.zip ${OPENCV_DLDIR}/nvidia_optical_flow/
 }
 
+RDEPENDS:${PN}-apps += "cudnn"
 
 SRC_URI[opticalflow.md5sum] = "${OPTICALFLOW_MD5}"
 SRC_URI[opticalflow.sha256sum] = "e300c02e4900741700b2b857965d2589f803390849e1e2022732e02f4ae9be44"
