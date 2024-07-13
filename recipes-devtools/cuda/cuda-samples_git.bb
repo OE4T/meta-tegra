@@ -87,5 +87,6 @@ do_install() {
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 FILES:${PN} = "${bindir}/cuda-samples"
 FILES:${PN}-dev = "${CUDA_PATH}"
+RDEPENDS:${PN} += "libcublas"
 INSANE_SKIP:${PN}-dev = "staticdev"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
