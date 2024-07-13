@@ -4,7 +4,7 @@ DESCRIPTION = "NVIDIA Nsight Systems is a multi-core CPU sampling profiler that 
 HOMEPAGE = "https://developer.nvidia.com/nsight-systems"
 LICENSE = "Proprietary"
 BASE_VERSION = "${@'.'.join(d.getVar('PV').split('.')[0:3])}"
-LIC_FILES_CHKSUM = "file://opt/nvidia/nsight-systems/${BASE_VERSION}/EULA.txt;md5=5c45accabbea4eeeb539ce4cd133d5c2"
+LIC_FILES_CHKSUM = "file://opt/nvidia/nsight-systems/${BASE_VERSION}/EULA.txt;md5=59a793e0da68faeaa65ccfa38d9408b4"
 
 inherit l4t_deb_pkgfeed
 
