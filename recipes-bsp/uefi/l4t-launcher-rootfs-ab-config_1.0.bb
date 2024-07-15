@@ -6,6 +6,8 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS = "dtc-native"
 SRC_URI = "file://L4TConfiguration-RootfsRedundancyLevelABEnable.dtsi"
+S = "${WORKDIR}/sources"
+UNPACKDIR = "${S}"
 
 inherit deploy
 
