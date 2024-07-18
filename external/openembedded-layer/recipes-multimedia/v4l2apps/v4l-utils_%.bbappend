@@ -23,6 +23,7 @@ TEGRA_PLUGINS:tegra = "tegra-libraries-multimedia-v4l"
 RRECOMMENDS:libv4l += "${TEGRA_PLUGINS}"
 
 CONTAINER_CSV_BASENAME = "libv4l"
+CONTAINER_CSV_LIB_PATH = "/usr/lib/aarch64-linux-gnu/"
 CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/libv4l/ov* ${libdir}/libv4l/*.so"
 # These files aren't in nvidia host-files-for-container.d/l4t.csv and conflict with attempts
 # to install v4l-utils inside the container (Invalid cross-device link)

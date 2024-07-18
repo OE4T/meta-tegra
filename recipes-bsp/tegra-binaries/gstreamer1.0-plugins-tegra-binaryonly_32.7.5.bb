@@ -48,6 +48,8 @@ do_install() {
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvidconv*
 }
 
+CONTAINER_CSV_LIB_PATH = "/usr/lib/aarch64-linux-gnu/"
+
 CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/gstreamer-1.0/*.so*"
 
 FILES_SOLIBSDEV = ""

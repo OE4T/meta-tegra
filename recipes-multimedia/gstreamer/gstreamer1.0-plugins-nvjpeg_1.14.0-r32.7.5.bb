@@ -19,6 +19,8 @@ inherit autotools gtk-doc gettext pkgconfig container-runtime-csv features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
+CONTAINER_CSV_LIB_PATH = "/usr/lib/aarch64-linux-gnu/"
+
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 PACKAGES_DYNAMIC = "^${PN}-.*"

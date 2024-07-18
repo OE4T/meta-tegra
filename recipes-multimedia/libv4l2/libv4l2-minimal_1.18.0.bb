@@ -29,6 +29,7 @@ do_install:append:tegra() {
 }
 
 CONTAINER_CSV_BASENAME = "libv4l"
+CONTAINER_CSV_LIB_PATH = "/usr/lib/aarch64-linux-gnu/"
 CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/libv4l/ov* ${libdir}/libv4l/*.so"
 
 PACKAGES =+ "libv4l libv4l-dev"
