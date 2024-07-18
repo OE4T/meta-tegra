@@ -24,7 +24,7 @@ do_install() {
 pkg_postinst:${PN}() {
     # argus and scf libraries hard-coded to use this path
     install -d $D/usr/lib/aarch64-linux-gnu/tegra-egl
-    ln $D${libdir}/libEGL_nvidia.so.0 $D/usr/lib/aarch64-linux-gnu/tegra-egl/
+    ln -f $D${libdir}/libEGL_nvidia.so.0 $D/usr/lib/aarch64-linux-gnu/tegra-egl/
 }
 
 FILES:${PN} += "${datadir}/glvnd/egl_vendor.d"
