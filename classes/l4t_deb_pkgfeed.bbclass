@@ -39,6 +39,12 @@ def l4t_deb_src_uri(d):
         soc = d.getVar('L4T_DEB_SOCNAME')
         return ' '.join(generate_uris(d, 'common', common_debs) + generate_uris(d, soc, soc_debs))
 
+    
+def l4t_deb_pkgname(d, name):
+    if not name.startswith('nvidia-l4t-'):
+        name = 'nvidia-l4t-' + name
+    return "%s_${L4T_VERSION}${@l4t_bsp_debian_version_suffix(d, pkgname='%s')}_arm64.deb" % (name, name)
+
 l4t_deb_src_uri[vardepsexclude] += "L4T_DEB_SOCNAME"
 
 SRC_URI = "${@l4t_deb_src_uri(d)}"
