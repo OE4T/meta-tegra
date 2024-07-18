@@ -11,8 +11,18 @@ L4T_BSP_DEB_DEFAULT_VERSION:tegra210 = "20240611161210"
 
 L4T_BSP_DEB_VERSION ?= "${L4T_BSP_DEB_DEFAULT_VERSION}"
 
-def l4t_bsp_debian_version_suffix(d):
-    suffix = d.getVar('L4T_BSP_DEB_VERSION')
+# Version (date-time stamp) suffixes for nvidia-l4t-* packages
+# in the package feeds.
+L4T_BSP_DEB_ORIG_VERSION = ""
+L4T_BSP_DEB_PACKAGES_USING_ORIG_VERSION = ""
+
+def l4t_bsp_debian_version_suffix(d, pkgname=None):
+    if pkgname is None:
+        pkgname = d.getVar('L4T_DEB_TRANSLATED_BPN')
+    if pkgname in [ 'nvidia-l4t-' + p for p in d.getVar('L4T_BSP_DEB_PACKAGES_USING_ORIG_VERSION').split()]:
+        suffix = d.getVar('L4T_BSP_DEB_ORIG_VERSION')
+    else:
+        suffix = d.getVar('L4T_BSP_DEB_VERSION')
     return '-' + suffix if suffix else ''
 
 def l4t_release_dir(d):
