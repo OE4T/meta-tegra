@@ -19,6 +19,8 @@ inherit cmake pkgconfig container-runtime-csv features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
+CONTAINER_CSV_LIB_PATH = "/usr/lib/aarch64-linux-gnu/"
+
 CONTAINER_CSV_FILES = "${libdir}/libv4l/plugins/*.so*"
 
 FILES:${PN} = "${libdir}/libv4l/plugins/*${SOLIBSDEV}"

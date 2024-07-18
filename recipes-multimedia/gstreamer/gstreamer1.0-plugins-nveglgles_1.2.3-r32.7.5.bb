@@ -33,6 +33,8 @@ inherit autotools gtk-doc gettext gobject-introspection pkgconfig container-runt
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
+CONTAINER_CSV_LIB_PATH = "/usr/lib/aarch64-linux-gnu/"
+
 CONTAINER_CSV_FILES = "${libdir}/*.so* ${libdir}/gstreamer-1.0/*.so*"
 
 delete_pkg_m4_file() {

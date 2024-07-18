@@ -14,6 +14,8 @@ S = "${WORKDIR}/gst-nvtee"
 
 inherit pkgconfig container-runtime-csv
 
+CONTAINER_CSV_LIB_PATH = "/usr/lib/aarch64-linux-gnu/"
+
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 do_install() {

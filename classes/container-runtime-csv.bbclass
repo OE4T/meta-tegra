@@ -48,7 +48,15 @@ python populate_container_csv() {
         else:
             bb.warn("Unrecognized file type for container CSV: {}".format(entry))
             continue
-        csvlines.append("{}, /{}".format(csvtype, entry))
+        entry = "/" + entry
+        # CONTAINER_CSV_LIB_PATH can be set to /usr/lib/aarch64-linux-gnu/ to avoid glibc version mismatch
+        # See the l4t.csv file at https://github.com/OE4T/meta-tegra/pull/1194
+        # It's done differently because in this version of the code the csv file is generated and not statically defined
+        custom_lib_path = d.getVar('CONTAINER_CSV_LIB_PATH')
+        if custom_lib_path:
+            if entry.startswith('/usr/lib/') and not entry.startswith(custom_lib_path):
+                entry = entry.replace('/usr/lib/', custom_lib_path)
+        csvlines.append("{}, {}".format(csvtype, entry))
 
     os.chdir(oldcwd)
     csvfiledir = os.path.join(root, d.getVar('sysconfdir')[1:], 'nvidia-container-runtime',

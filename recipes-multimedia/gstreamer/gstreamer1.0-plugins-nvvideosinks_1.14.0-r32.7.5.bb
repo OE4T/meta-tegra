@@ -20,6 +20,8 @@ S = "${WORKDIR}/gst-plugins-nv-video-sinks"
 
 inherit gettext pkgconfig container-runtime-csv cuda features_check
 
+CONTAINER_CSV_LIB_PATH = "/usr/lib/aarch64-linux-gnu/"
+
 CONTAINER_CSV_FILES = "${libdir}/gstreamer-1.0/*.so*"
 
 EXTRA_OEMAKE = "CUDA_VER=${CUDA_VERSION}"
