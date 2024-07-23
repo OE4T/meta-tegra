@@ -63,14 +63,16 @@ do_install() {
     fi
     install -d ${D}${sbindir}
     install -m755 ${B}/usr/sbin/nvargus-daemon ${D}${sbindir}/
+    install -m755 ${B}/usr/sbin/nvargus_nvraw ${D}${sbindir}/
     install -m755 ${B}/usr/sbin/nvtunerd ${D}${sbindir}/
 }
 
-PACKAGES =+ "tegra-libraries-argus-daemon-base ${PN}-nvtunerd"
+PACKAGES =+ "tegra-libraries-argus-daemon-base ${PN}-nvtunerd ${PN}-nvargus-nvraw"
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
 FILES:${PN} += "${libdir}/libv4l/plugins"
 FILES:tegra-libraries-argus-daemon-base = "${sbindir}/nvargus-daemon"
+FILES:${PN}-nvargus-nvraw = "${sbindir}/nvargus_nvraw"
 FILES:${PN}-nvtunerd = "${sbindir}/nvtunerd"
 RDEPENDS:${PN} = "tegra-argus-daemon"
 
