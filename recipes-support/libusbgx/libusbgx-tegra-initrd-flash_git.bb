@@ -16,10 +16,18 @@ SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 S = "${WORKDIR}/git"
 
 PACKAGECONFIG = "examples gadget-schemes libconfig"
-PACKAGECONFIG[libconfig] = "--with-libconfig=yes,--without-libconfig,libconfig-tegra"
+PACKAGECONFIG[libconfig] = "--with-libconfig=yes,--without-libconfig,libconfig"
 PACKAGECONFIG[examples] = "--enable-examples,--disable-examples"
 PACKAGECONFIG[gadget-schemes] = "--enable-gadget-schemes,--disable-gadget-schemes"
 PACKAGECONFIG[tests] = "--enable-tests,--disable-tests,cmocka"
 
+do_install:append() {
+    rm -rf ${D}${includedir}
+    rm -rf ${D}${libdir}/pkgconfig
+    rm -f ${D}${libdir}/*${SOLIBSDEV}
+}
+
+ALLOW_EMPTY:${PN}-dev = "1"
+RRECOMMENDS:${PN} = "kernel-module-tegra-xudc"
 RCONFLICTS:${PN} = "libusbgx libusbgx-examples"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
