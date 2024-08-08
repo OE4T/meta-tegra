@@ -48,6 +48,9 @@ do_install() {
     install -d ${D}${base_libdir}/optee_armtz
     install -m 0644 ${S}/lib/optee_armtz/*.ta ${D}${base_libdir}/optee_armtz/
 
+    install -d ${D}${sysconfdir}/systemd
+    install -m 0755 ${S}/etc/systemd/nv-tee-supplicant.sh ${D}${sysconfdir}/systemd/
+
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${S}/etc/systemd/system/nv-tee-supplicant.service ${D}${systemd_system_unitdir}/
 }
