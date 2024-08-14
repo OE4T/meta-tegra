@@ -99,4 +99,4 @@ FILES:${PN}-test = "\
 "
 RDEPENDS:${PN}-test = "${PN}"
 RDEPENDS:${PN}-nvsamples = "${PN}"
-RDEPENDS:${PN} = "${PN}-base-tas"
+RDEPENDS:${PN} = "${PN}-base-tas bash"
