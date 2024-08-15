@@ -151,6 +151,13 @@ else
 		process_bootloader_package 2>&1 > /tmp/flashpkg/flashpkg/logs/bootloader.log &
 		wait_for_bootloader=yes
 		;;
+	    extra-pre-wipe)
+		if [ -f "/init-extra-pre-wipe" ]; then
+		    ./init-extra-pre-wipe
+		else
+		    echo "No init-extra-pre-wipe was found" >&2
+		fi
+		;;
 	    erase-mmc)
 		if [ -b /dev/mmcblk0 ]; then
 		    blkdiscard -f /dev/mmcblk0 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
