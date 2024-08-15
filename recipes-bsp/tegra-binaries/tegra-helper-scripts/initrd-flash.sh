@@ -341,6 +341,8 @@ generate_flash_package() {
 	cp bootloader_staging/* "$mnt/flashpkg/bootloader"
     fi
 
+    echo "extra-pre-wipe" >> "$mnt/flashpkg/conf/command_sequence"
+
     if [ $erase_nvme -eq 1 ]; then
 	echo "erase-nvme" >> "$mnt/flashpkg/conf/command_sequence"
     fi
