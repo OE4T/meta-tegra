@@ -4,6 +4,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 SRC_URI = "\
     file://init-flash.sh \
+    file://init-extra-pre-wipe.sh \
     file://init-extra.sh \
     file://program-boot-device.sh \
     file://initrd-flash.scheme.in \
@@ -15,7 +16,9 @@ S = "${WORKDIR}"
 
 do_install() {
     install -m 0755 ${WORKDIR}/init-flash.sh ${D}/init
+    install -m 0755 ${WORKDIR}/init-extra-pre-wipe.sh ${D}/init-extra-pre-wipe
     install -m 0755 ${WORKDIR}/init-extra.sh ${D}/init-extra
+    install -m 0755 -d ${D}/init-extra-pre-wipe.d
     install -m 0755 -d ${D}/init-extra.d
     install -m 0555 -d ${D}/proc ${D}/sys
     install -m 0755 -d ${D}/dev ${D}/mnt ${D}/run ${D}/usr
