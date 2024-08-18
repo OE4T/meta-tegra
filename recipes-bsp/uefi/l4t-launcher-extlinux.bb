@@ -8,7 +8,7 @@ DEPENDS = "tegra-flashtools-native dtc-native"
 
 TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 
-inherit l4t-extlinux-config kernel-artifact-names ${TEGRA_UEFI_SIGNING_CLASS}
+inherit l4t-extlinux-config kernel-artifact-names python3native ${TEGRA_UEFI_SIGNING_CLASS}
 
 KERNEL_ARGS ??= ""
 DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
