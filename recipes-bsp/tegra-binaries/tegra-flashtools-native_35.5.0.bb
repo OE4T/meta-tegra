@@ -23,7 +23,7 @@ COMPATIBLE_MACHINE = ""
 inherit native
 
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "tegra-helper-scripts-native"
+DEPENDS = "tegra-helper-scripts-native python3-pyyaml-native"
 
 do_compile[noexec] = "1"
 
