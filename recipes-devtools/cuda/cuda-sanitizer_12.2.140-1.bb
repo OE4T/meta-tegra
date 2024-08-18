@@ -6,6 +6,10 @@ require cuda-shared-binaries.inc
 MAINSUM = "66ac9310fdb7ff6eecfb9b1fc85bf23272e8cf6cd15edf26b9073fd6b3dedb17"
 MAINSUM:x86-64 = "f15fb71f890201598c2e9875984538890adc1d9af2c1437eb04e62bde5dbcf7d"
 
+do_compile:append() {
+    rm -rf ${S}/usr/local/cuda-${CUDA_VERSION}/compute-sanitizer/x86
+}
+
 FILES:${PN} += " \
     ${prefix}/local/cuda-${CUDA_VERSION}/compute-sanitizer/TreeLauncherSubreaper \
     ${prefix}/local/cuda-${CUDA_VERSION}/compute-sanitizer/compute-sanitizer \
