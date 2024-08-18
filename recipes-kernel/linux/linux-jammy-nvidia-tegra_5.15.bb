@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=6bc538ed5bd9a7fc9398086aedcd7e46"
 
 TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 
-inherit l4t_bsp ${TEGRA_UEFI_SIGNING_CLASS}
+inherit l4t_bsp python3native ${TEGRA_UEFI_SIGNING_CLASS}
 require recipes-kernel/linux/linux-yocto.inc
 
 KERNEL_DISABLE_FW_USER_HELPER ?= "y"
