@@ -19,5 +19,5 @@ do_install() {
 
 ALLOW_EMPTY:${PN} = "1"
 FILES:${PN} += "${nonarch_base_libdir}/udev/rules.d"
-RDEPENDS:${PN} += "nvidia-kernel-oot-wifi"
+RRECOMMENDS:${PN} += "nvidia-kernel-oot-wifi"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
