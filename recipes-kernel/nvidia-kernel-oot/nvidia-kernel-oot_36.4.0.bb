@@ -99,7 +99,7 @@ SYSROOT_DIRS += "/boot/devicetree"
 KERNEL_MODULE_PROBECONF = "nvgpu"
 module_conf_nvgpu = 'options nvgpu devfreq_timer="delayed"'
 
-PACKAGES =+ "${PN}-devicetrees ${PN}-display ${PN}-cameras ${PN}-bluetooth ${PN}-wifi ${PN}-canbus ${PN}-virtualization ${PN}-alsa ${PN}-test ${PN}-base"
+PACKAGES =+ "${PN}-devicetrees ${PN}-display ${PN}-cameras ${PN}-bluetooth ${PN}-wifi ${PN}-canbus ${PN}-virtualization ${PN}-alsa ${PN}-test ${PN}-base ${PN}-extra"
 FILES:${PN}-devicetrees = "/boot/devicetree"
 FILES:${PN}-dev = "\
     ${includedir}/${BPN} \
@@ -113,6 +113,7 @@ ALLOW_EMPTY:${PN}-virtualization = "1"
 ALLOW_EMPTY:${PN}-alsa = "1"
 ALLOW_EMPTY:${PN}-test = "1"
 ALLOW_EMPTY:${PN}-base = "1"
+ALLOW_EMPTY:${PN}-extra = "1"
 
 RDEPENDS:${PN}-display = "${TEGRA_OOT_DISPLAY_DRIVERS}"
 RDEPENDS:${PN}-cameras = "${TEGRA_OOT_CAMERA_DRIVERS}"
@@ -123,6 +124,7 @@ RDEPENDS:${PN}-virtualization = "${TEGRA_OOT_VIRTUALIZATION_DRIVERS}"
 RDEPENDS:${PN}-alsa = "${TEGRA_OOT_ALSA_DRIVERS}"
 RDEPENDS:${PN}-test = "${TEGRA_OOT_TEST_DRIVERS}"
 RDEPENDS:${PN}-base = "${TEGRA_OOT_BASE_DRIVERS}"
+RRECOMMENDS:${PN}-extra = "${TEGRA_OOT_EXTRA_DRIVERS}"
 
 TEGRA_OOT_ALL_DRIVER_PACKAGES = ""
 TEGRA_OOT_EXTRA_DISPLAY_DRIVERS ??= ""
@@ -182,7 +184,6 @@ TEGRA_OOT_CAMERA_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-camera-rtcpu \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-virtual-i2c-mux \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-max929x \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-r8126 \
     ${TEGRA_OOT_EXTRA_CAMERA_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_CAMERA_DRIVERS}"
@@ -286,7 +287,6 @@ TEGRA_OOT_BASE_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-pinctrl-tegra194-pexclk-padctrl \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-pinctrl-tegra234-dpaux \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-pwm-tegra-tachometer \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-r8168 \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-spi-tegra210-quad \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra234-aon \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra234-oc-event \
@@ -302,7 +302,6 @@ TEGRA_OOT_BASE_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-thermal-trip-event \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tsecriscv \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-ufs-tegra \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-ufs-tegra-provision \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-watchdog-tegra-t18x \
     ${TEGRA_OOT_EXTRA_BASE_DRIVERS} \
 "
@@ -340,6 +339,15 @@ TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${TEGRA_OOT_EXTRA_OTHER_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_OTHER_DRIVERS}"
+TEGRA_OOT_EXTRA_EXTRA_DRIVERS ??= ""
+TEGRA_OOT_EXTRA_DRIVERS ?= "\
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-r8126 \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-r8168 \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-ufs-tegra-provision \
+    ${TEGRA_OOT_EXTRA_EXTRA_DRIVERS} \
+"
+TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_EXTRA_DRIVERS}"
+
 
 PACKAGES += "${TEGRA_OOT_ALL_DRIVER_PACKAGES}"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
