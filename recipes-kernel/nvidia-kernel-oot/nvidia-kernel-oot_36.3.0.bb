@@ -35,7 +35,6 @@ SRC_URI += "file://0001-Makefile-update-for-OE-builds.patch \
             file://0005-scsi-ufs-fix-definitions-for-v6.5.patch \
             file://0003-pci-endpoint-fixes-for-6.x-kernel.patch \
             file://0002-bluetooth-realtek-compile-with-no-attribute-warning.patch \
-            file://0006-rtl8822ce-build-regardless-or-base-kernel-version.patch \
 "
 
 COMPATIBLE_MACHINE = "(tegra)"
