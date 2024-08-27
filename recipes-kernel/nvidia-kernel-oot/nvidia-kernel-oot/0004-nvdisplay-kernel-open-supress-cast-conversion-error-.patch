@@ -1,0 +1,26 @@
+From 7f72cd70e34dfb57738c162fa70c6d30c427106d Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Mon, 26 Aug 2024 11:35:15 -0700
+Subject: [PATCH] nvdisplay: kernel-open: supress cast conversion error in
+ nv_get_kern_phys_address
+
+Upstream-Status: Pending
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ nvdisplay/kernel-open/nvidia/nv-vtophys.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/nvdisplay/kernel-open/nvidia/nv-vtophys.c b/nvdisplay/kernel-open/nvidia/nv-vtophys.c
+index df2a01e..adbdf10 100644
+--- a/nvdisplay/kernel-open/nvidia/nv-vtophys.c
++++ b/nvdisplay/kernel-open/nvidia/nv-vtophys.c
+@@ -29,7 +29,7 @@
+ NvU64 NV_API_CALL nv_get_kern_phys_address(NvU64 address)
+ {
+     /* direct-mapped kernel address */
+-    if (virt_addr_valid(address))
++    if (virt_addr_valid((void*)address))
+         return __pa(address);
+ 
+     nv_printf(NV_DBG_ERRORS,
