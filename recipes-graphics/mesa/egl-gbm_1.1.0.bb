@@ -6,13 +6,12 @@ DEPENDS = "eglexternalplatform libdrm virtual/libgbm"
 
 SRC_REPO = "github.com/NVIDIA/egl-gbm.git;protocol=https"
 SRCBRANCH = "main"
-SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
+SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH} \
+           file://nvidia_gbm.json \
+           file://0001-gbm-display-handle-kms-display-only-devices-in-FindG.patch \
+           "
 # 1.1.0 tag
 SRCREV = "39932b2cc4f44cdadd553cc931f3bebd4e348d10"
-
-SRC_URI += "\
-    file://nvidia_gbm.json \
-"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
