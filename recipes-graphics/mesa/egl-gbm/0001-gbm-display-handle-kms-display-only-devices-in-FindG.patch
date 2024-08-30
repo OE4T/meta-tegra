@@ -14,7 +14,7 @@ returned by eglQueryDevices in the case where the display device
 in question can't render on its own or isn't being returned by
 the egl implementation for any other reason.
 
-Upstream-Status: pending
+Upstream-Status: Pending
 
 Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
 ---
