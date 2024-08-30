@@ -10,7 +10,7 @@ PARTITION_FILE_EXTERNAL ?= "${S}/tools/kernel_flash/${PARTITION_LAYOUT_EXTERNAL}
 do_install() {
     install -d ${D}${datadir}/l4t-storage-layout
     install -m 0644 ${PARTITION_FILE} ${D}${datadir}/l4t-storage-layout/${PARTITION_LAYOUT_TEMPLATE}
-    [ -z "${PARTITION_LAYOUT_EXTERNAL}" ] || install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/l4t-storage-layout/${PARTITION_LAYOUT_EXERNAL}
+    [ -z "${PARTITION_LAYOUT_EXTERNAL}" ] || install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/l4t-storage-layout/${PARTITION_LAYOUT_EXTERNAL}
 }
 
 PACKAGES = "${PN}-dev"
