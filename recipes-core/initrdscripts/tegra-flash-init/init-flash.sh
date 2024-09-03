@@ -83,8 +83,8 @@ wait_for_connect() {
     local count=0
     echo -n "Waiting for host to connect..."
     while true; do
-	suspended=$(expr $(cat /sys/class/udc/$UDC/device/gadget/suspended) \+ 0)
-	if [ $suspended -eq 0 ]; then
+	configured=$(cat /sys/class/udc/$UDC/state)
+	if [ $configured = "configured" ]; then
 	    echo "[connected]"
 	    break
 	fi
@@ -103,8 +103,8 @@ wait_for_disconnect() {
     local count=0
     echo -n "Waiting for host to disconnect..."
     while true; do
-	suspended=$(expr $(cat /sys/class/udc/$UDC/device/gadget/suspended) \+ 0)
-	if [ $suspended -eq 1 ]; then
+	configured=$(cat /sys/class/udc/$UDC/state)
+	if [ $configured != "configured" ]; then
 	    echo "[disconnected]"
 	    break
 	fi
