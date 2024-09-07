@@ -8,11 +8,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  etc/systemd/nvpower.sh | 81 +-----------------------------------------
  1 file changed, 1 insertion(+), 80 deletions(-)
 
-Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
+Index: tegra-nvpower-35.6.0-20240828020325/etc/systemd/nvpower.sh
 ===================================================================
---- tegra-nvpower-35.4.1-20230801124926.orig/etc/systemd/nvpower.sh
-+++ tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
-@@ -119,128 +119,6 @@ function set_power_state_perm()
+--- tegra-nvpower-35.6.0-20240828020325.orig/etc/systemd/nvpower.sh
++++ tegra-nvpower-35.6.0-20240828020325/etc/systemd/nvpower.sh
+@@ -123,130 +123,6 @@ function set_power_state_perm()
  	fi
  }
  
@@ -65,6 +65,8 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
 -			elif [ "${machine}" = "p3767-0000" ] || \
 -				[ "${machine}" = "p3767-0002" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000.conf"
+-			elif [ "${machine}" = "p3767-0000-px1" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_px1.conf"
 -			elif [ "${machine}" = "p3767-0000-as-p3767-0001" ] || \
 -				[ "${machine}" = "p3767-0001" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001.conf"
@@ -141,7 +143,7 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
  # CPU hotplug helper function that turns on/off the CPU cores in the specified range
  # * Parameters:
  # * ${1}: desired online status (0 for offline, 1 for online)
-@@ -311,7 +189,7 @@ function set_cpu_governor()
+@@ -317,7 +193,7 @@ function set_cpu_governor()
  			*schedutil*)
  				# latest kernel is using the upstream driver and need to avoid setting
  				# schedutil governor on kstable.
@@ -150,7 +152,7 @@ Index: tegra-nvpower-35.4.1-20230801124926/etc/systemd/nvpower.sh
  					CPU_SCHEDUTIL_GOV=1
  				fi
  	        ;;
-@@ -587,8 +465,6 @@ SOCFAMILY=""
+@@ -598,8 +474,6 @@ SOCFAMILY=""
  
  set_socfamily
  set_power_state_perm
