@@ -326,10 +326,17 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
             exit 1
         fi
         CHIP_SKU=$($here/chkbdinfo -C chip_info.bin_bak | tr -d '[:space:]')
+        board_ramcode=$($here/chkbdinfo -R chip_info.bin_bak)
+        if [ -z "$board_ramcode" ]; then
+            echo "ERR: ramcode could not be extracted from chip info" >&2
+            exit 1
+        fi
+        board_ramcode="$(echo "$board_ramcode" | cut -d: -f4)"
+        board_ramcode=$((16#$board_ramcode % 16))
+        RAMCODE="$board_ramcode"
         # XXX- these don't appear to be used
         # chip_minor_revision=$($here/chkbdinfo -M chip_info.bin_bak)
         # bootrom_revision=$($here/chkbdinfo -O chip_info.bin_bak)
-        # ramcode_id=$($here/chkbdinfo -R chip_info.bin_bak)
         # -XXX
     fi
     skipuid=""
@@ -409,6 +416,8 @@ else
     chip_sku=$CHIP_SKU
 fi
 
+ramcodeargs=
+
 if [ "$CHIPID" = "0x19" ]; then
     # Adapted from p2972-0000.conf.common in L4T kit
     BPFDTBREV="a01"
@@ -452,7 +461,6 @@ if [ "$CHIPID" = "0x19" ]; then
             ;;
     esac
 
-    ramcodeargs=
     if [ "$boardid" = "2888" -a "$board_sku" = "0008" ]; then
         # AGX Xavier Industrial
         ramcodeargs="--ramcode 1"
@@ -560,6 +568,10 @@ elif [ "$CHIPID" = "0x23" ]; then
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS}";
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS_B}";
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${EMC_FUSE_DEV_PARAMS}";
+
+    if [ -n "$RAMCODE" ]; then
+        ramcodeargs="--ramcode $RAMCODE"
+    fi
 fi
 
 echo "Board ID($BOARDID) version($FAB) sku($BOARDSKU) revision($BOARDREV)"
@@ -820,7 +832,7 @@ else
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
           --bct_backup \
-          $bctargs $extdevargs \
+          $bctargs $ramcodeargs $extdevargs \
           --bins \"$BINSARGS\""
 fi
 
