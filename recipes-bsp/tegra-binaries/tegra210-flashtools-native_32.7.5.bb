@@ -19,6 +19,8 @@ SRC_URI += "\
            file://0008-Skip-qspi-sd-specific-entries-for-other-t210-BUP-pay.patch \
            file://0012-BMP_generator_L4T.py-to-Python3.patch \
            file://0013-Fix-location-of-bsp_version-file-in-l4t_bup_gen.func.patch \
+           file://0014-odmsign.func-Fix-cp-error-on-missing-recovery-kernel.patch \
+           file://0015-Use-raw-strings-for-regex-patterns.patch \
            "
 
 S = "${WORKDIR}/Linux_for_Tegra"

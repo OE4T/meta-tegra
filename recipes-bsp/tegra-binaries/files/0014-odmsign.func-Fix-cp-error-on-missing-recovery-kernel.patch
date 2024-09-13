@@ -1,0 +1,35 @@
+From 12297bfedf83a9696e64c7cc3dafaadb3525c2b0 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 13 Sep 2024 04:19:06 -0700
+Subject: [PATCH] odmsign.func: Fix cp error on missing recovery kernel/dtb
+
+Upstream-Status: Inappropriate [OE-specific]
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/odmsign.func | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/bootloader/odmsign.func b/bootloader/odmsign.func
+index de7de41..48a394d 100644
+--- a/bootloader/odmsign.func
++++ b/bootloader/odmsign.func
+@@ -645,10 +645,14 @@ odmsign_ext_sign ()
+ 		fi
+ 		extsig dtb_name ${dtbfilename} "_sigheader" "encrypt.signed";
+ 		cp -f "${temp_user_dir}/${dtb_name}" "$(odmsign_get_folder)/";
+-		extsig recovery_name ${localrecfile} "_sigheader" "encrypt.signed";
+-		cp -f "${temp_user_dir}/${recovery_name}" "$(odmsign_get_folder)/";
+-		extsig recovery_dtb_name ${recdtbfilename} "_sigheader" "encrypt.signed";
+-		cp -f "${temp_user_dir}/${recovery_dtb_name}" "$(odmsign_get_folder)/";
++		if [ -n "${localrecfile}" ]; then
++		    extsig recovery_name ${localrecfile} "_sigheader" "encrypt.signed";
++		    cp -f "${temp_user_dir}/${recovery_name}" "$(odmsign_get_folder)/";
++		fi
++		if [ -n "${recdtbfilename}" ]; then
++		    extsig recovery_dtb_name ${recdtbfilename} "_sigheader" "encrypt.signed";
++		    cp -f "${temp_user_dir}/${recovery_dtb_name}" "$(odmsign_get_folder)/";
++		fi
+ 	fi;
+ 
+ 	# Sign/Encrypt bootloader binary files that to be encrypted by ${user_keyfile}

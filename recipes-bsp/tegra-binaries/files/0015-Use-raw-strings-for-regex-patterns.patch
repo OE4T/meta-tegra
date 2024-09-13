@@ -1,0 +1,68 @@
+From 75694418dda3edef410fcb552d2ed1576d66d3dc Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 13 Sep 2024 04:24:33 -0700
+Subject: [PATCH] Use raw strings for regex patterns
+
+for compatibility with newer Python versions.
+
+Upstream-Status: Inappropriate [OE-specific]
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/tegraflash_internal.py   | 8 ++++----
+ bootloader/tegrasign_v3_internal.py | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/bootloader/tegraflash_internal.py b/bootloader/tegraflash_internal.py
+index 659f96b..3842bbb 100755
+--- a/bootloader/tegraflash_internal.py
++++ b/bootloader/tegraflash_internal.py
+@@ -982,7 +982,7 @@ def tegraflash_encrypt_and_sign(exports):
+         command.extend(['--generategpt', '--pt', tegraparser_values['--pt']])
+         run_command(command)
+         import re
+-        patt = re.compile(".*(mbr|gpt).*\.bin")
++        patt = re.compile(r".*(mbr|gpt).*\.bin")
+         contents = os.listdir('.')
+         for f in contents:
+             if patt.match(f):
+@@ -1090,7 +1090,7 @@ def tegraflash_sign(exports):
+             command.extend(['--generategpt', '--pt', tegraparser_values['--pt']])
+             run_command(command)
+             import re
+-            patt = re.compile(".*(mbr|gpt).*\.bin")
++            patt = re.compile(r".*(mbr|gpt).*\.bin")
+             contents = os.listdir('.')
+             for f in contents:
+                 if patt.match(f):
+@@ -3593,7 +3593,7 @@ def tegraflash_bpmp_update_valid_entries(ramcode, lines, dtb_start_pos,
+     for i in range(0, len(dtb_start_pos)):
+         for line_num in range(dtb_start_pos[i], dtb_end_pos[i]):
+             if "phandle" in lines[line_num] and not "linux" in lines[line_num]:
+-                cur_strap_id = re.search('<(.+?)>', lines[line_num]).group(1)
++                cur_strap_id = re.search(r'<(.+?)>', lines[line_num]).group(1)
+                 if cur_strap_id == strap_ids_ph_str[ramcode]:
+                     valid_entry.append(True)
+                 else:
+@@ -3662,7 +3662,7 @@ def tegraflash_bpmp_get_strap_handles(ramcode, test_dts):
+             #   emc-strap {
+             #       select = <0xa 0x0 0x0 0x0>;
+             #   };
+-            strap_ids_ph_str = re.search('<(.+?)>', line).group(1)
++            strap_ids_ph_str = re.search(r'<(.+?)>', line).group(1)
+             strap_ids_ph_str = strap_ids_ph_str.split(' ')
+             break
+ 
+diff --git a/bootloader/tegrasign_v3_internal.py b/bootloader/tegrasign_v3_internal.py
+index e6dc1d0..0d7d53f 100755
+--- a/bootloader/tegrasign_v3_internal.py
++++ b/bootloader/tegrasign_v3_internal.py
+@@ -993,7 +993,7 @@ def is_PKC_key(keyfilename, p_key, pkh, mont):
+         return False
+ 
+     # scan the return string for decimal value
+-    m = re.search('Key size is (\d+)', ret_str)
++    m = re.search(r'Key size is (\d+)', ret_str)
+     if m:
+         p_key.keysize = int(m.group(1))
+         if (p_key.keysize > 0) and (p_key.keysize < NV_RSA_MAX_KEY_SIZE):
