@@ -84,7 +84,7 @@ wait_for_connect() {
     echo -n "Waiting for host to connect..."
     while true; do
 	configured=$(cat /sys/class/udc/$UDC/state)
-	if [ $configured = "configured" ]; then
+	if [ "$configured" = "configured" ]; then
 	    echo "[connected]"
 	    break
 	fi
@@ -104,7 +104,7 @@ wait_for_disconnect() {
     echo -n "Waiting for host to disconnect..."
     while true; do
 	configured=$(cat /sys/class/udc/$UDC/state)
-	if [ $configured != "configured" ]; then
+	if [ "$configured" != "configured" ]; then
 	    echo "[disconnected]"
 	    break
 	fi
