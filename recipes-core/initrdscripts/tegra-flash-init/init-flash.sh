@@ -79,7 +79,7 @@ setup_usb_export() {
 }
 
 wait_for_connect() {
-    local suspended
+    local configured
     local count=0
     echo -n "Waiting for host to connect..."
     while true; do
@@ -99,7 +99,7 @@ wait_for_connect() {
 }
 
 wait_for_disconnect() {
-    local suspended
+    local configured
     local count=0
     echo -n "Waiting for host to disconnect..."
     while true; do
