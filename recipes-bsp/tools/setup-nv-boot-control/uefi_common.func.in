@@ -88,14 +88,13 @@ gen_compat_3668() {
 
 gen_compat_3701() {
     boardrev=
-    if [ "$boardsku" = "0000" -o "$boardsku" = "0004" ]; then
+    if [ "$boardsku" = "0000" ]; then
         if echo "$fab" | egrep -q "^([012][0-9][0-9]|TS|EB)"; then
             fab="000"
         else
             fab="300"
         fi
-    fi
-    if [ "$boardsku" = "0005" ]; then
+    elif [ "$boardsku" = "0004" -o "$boardsku" = "0005" -o "$boardsku" = "0008" ]; then
         fab=""
     fi
     boardrev=
