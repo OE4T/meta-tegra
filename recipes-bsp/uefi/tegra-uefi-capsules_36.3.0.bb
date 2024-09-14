@@ -26,7 +26,6 @@ do_compile() {
     # BUP generator really wants to use 'boot.img' for the LNX
     # partition contents
     tegraflash_populate_package ${IMAGE_TEGRAFLASH_KERNEL} boot.img ${@tegra_bootcontrol_overlay_list(d, bup=True)}
-    cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./esp.img
     mv generate_bup_payload.sh doflash.sh
     tegraflash_create_flash_config flash.xml.in boot.img ${STAGING_DATADIR}/tegraflash/bupgen-internal-flash.xml
     . ./flashvars
@@ -99,6 +98,5 @@ do_compile[depends] += "virtual/kernel:do_deploy tegra-flashtools-native:do_popu
 do_compile[depends] += "python3-pyyaml-native:do_populate_sysroot"
 do_compile[depends] += "tegra-bootfiles:do_populate_sysroot"
 do_compile[depends] += "coreutils-native:do_populate_sysroot virtual/secure-os:do_deploy"
-do_compile[depends] += "${@'${TEGRA_ESP_IMAGE}:do_image_complete' if d.getVar('TEGRA_ESP_IMAGE') != '' else  ''}"
 do_compile[depends] += "virtual/bootloader:do_deploy"
 do_compile[depends] += "${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS}"
