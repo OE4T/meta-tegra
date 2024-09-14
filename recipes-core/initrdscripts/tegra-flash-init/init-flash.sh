@@ -5,7 +5,7 @@ mount -t devtmpfs none -o nosuid /dev
 mount -t sysfs sysfs -o nosuid,nodev,noexec /sys
 mount -t configfs configfs -o nosuid,nodev,noexec /sys/kernel/config
 
-[ ! /usr/sbin/wd_keepalive ] || /usr/sbin/wd_keepalive &
+[ ! -x /usr/sbin/wd_keepalive ] || /usr/sbin/wd_keepalive &
 
 sernum=$(cat /sys/devices/platform/efuse-burn/ecid 2>/dev/null)
 [ -n "$sernum" ] || sernum=$(cat /sys/module/tegra_fuse/parameters/tegra_chip_uid 2>/dev/null)
@@ -60,12 +60,12 @@ setup_usb_export() {
 }
 
 wait_for_connect() {
-    local suspended
+    local configured
     local count=0
     echo -n "Waiting for host to connect..."
     while true; do
-	suspended=$(expr $(cat /sys/class/udc/$UDC/device/gadget/suspended) \+ 0)
-	if [ $suspended -eq 0 ]; then
+	configured=$(cat /sys/class/udc/$UDC/state)
+	if [ "$configured" = "configured" ]; then
 	    echo "[connected]"
 	    break
 	fi
@@ -80,12 +80,12 @@ wait_for_connect() {
 }
 
 wait_for_disconnect() {
-    local suspended
+    local configured
     local count=0
     echo -n "Waiting for host to disconnect..."
     while true; do
-	suspended=$(expr $(cat /sys/class/udc/$UDC/device/gadget/suspended) \+ 0)
-	if [ $suspended -eq 1 ]; then
+	configured=$(cat /sys/class/udc/$UDC/state)
+	if [ "$configured" != "configured" ]; then
 	    echo "[disconnected]"
 	    break
 	fi
