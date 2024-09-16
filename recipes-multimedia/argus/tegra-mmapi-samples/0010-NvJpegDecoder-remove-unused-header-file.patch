@@ -4,6 +4,8 @@ Date: Tue, 21 Nov 2023 09:09:10 +0000
 Subject: [PATCH 10/10] NvJpegDecoder: remove unused header file
 
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+
+Upstream-Status: Pending
 ---
  samples/common/classes/NvJpegDecoder.cpp | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)

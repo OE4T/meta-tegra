@@ -8,6 +8,8 @@ that headers and symbols from the out-of-tree drivers can
 be found when building the display driver modules.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  Makefile                          |  1 +
  nvdisplay/kernel-open/Kbuild      | 15 ++++++++-------
