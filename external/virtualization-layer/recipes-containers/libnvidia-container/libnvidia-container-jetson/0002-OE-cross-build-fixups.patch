@@ -6,6 +6,8 @@ Subject: [PATCH 2/3] OE cross-build fixups
 Signed-off-by: Pablo Rodriguez Quesada <pablo.rodriguez-quesada@windriver.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  Makefile     | 40 ++++++++++++++++++++++------------------
  mk/common.mk |  4 ++--

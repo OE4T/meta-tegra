@@ -31,6 +31,8 @@ requests.
 Signed-off-by: Ashutosh Agarwal <asagarwal@nvidia.com>
 Signed-off-by: Miguel A Vico Moya <mvicomoya@nvidia.com>
 
+
+Upstream-Status: Pending
 ---
  compositor/meson.build              |   1 +
  include/libweston/libweston.h       |  13 +++

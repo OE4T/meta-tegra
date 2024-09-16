@@ -3,6 +3,8 @@ From: Matt Madison <matt@madison.systems>
 Date: Mon, 13 Dec 2021 05:47:45 -0800
 Subject: [PATCH] Fix indentation in nvgstplayer.c
 
+
+Upstream-Status: Pending
 ---
  nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)

@@ -8,6 +8,8 @@ introduces some global variables that require this
 flag, which is on by default in older versions.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  core/arch/arm/arm.mk | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

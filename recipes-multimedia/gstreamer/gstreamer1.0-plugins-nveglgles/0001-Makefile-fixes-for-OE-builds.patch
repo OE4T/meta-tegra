@@ -5,6 +5,8 @@ Subject: [PATCH] Makefile fixes for OE builds
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+
+Upstream-Status: Pending
 ---
  Makefile                   | 45 +++++++++++++------
  pre-gen-source_64/config.h |  6 +--

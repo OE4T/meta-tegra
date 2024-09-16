@@ -4,6 +4,8 @@ Date: Wed, 9 Aug 2023 23:26:36 +0100
 Subject: [PATCH 2/2] weston-dmabuf-formats cross-build fixes
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  weston-dmabuf-formats/Makefile | 42 ++++++++++++++++++++++++++++------
  1 file changed, 35 insertions(+), 7 deletions(-)

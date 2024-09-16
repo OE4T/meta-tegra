@@ -5,6 +5,8 @@ Subject: [PATCH] Update tegra python scripts for Python3
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+
+Upstream-Status: Pending
 ---
  ...ate-tegra-python-scripts-for-Python3.patch | 126 ++++++++++++++++++
  bootloader/tegraflash_impl_t234.py            |   7 +-

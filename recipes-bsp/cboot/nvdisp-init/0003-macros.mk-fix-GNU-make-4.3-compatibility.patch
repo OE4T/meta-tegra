@@ -7,6 +7,8 @@ Backport of lk upstream commit
 77f5dac5252a9c1a28baab6224431a06b475dba1.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  bootloader/partner/t18x/cboot/make/macros.mk | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)

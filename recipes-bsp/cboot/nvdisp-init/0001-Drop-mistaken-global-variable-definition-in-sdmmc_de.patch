@@ -8,6 +8,8 @@ code actually uses the struct tag in all declarations,
 so dropping the type name is OK.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  bootloader/partner/common/drivers/sdmmc/tegrabl_sdmmc_defs.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

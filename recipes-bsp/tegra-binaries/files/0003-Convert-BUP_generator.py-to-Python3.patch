@@ -7,6 +7,8 @@ Ran it through 2to3 for the conversion, then
 made some additional fixes not caught by the tool.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  bootloader/BUP_generator.py | 26 +++++++++++++-------------
  1 file changed, 13 insertions(+), 13 deletions(-)

@@ -9,6 +9,8 @@ to avoid glibc and other shared library mismatches inside
 NVIDIA's containers.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  Makefile           |  3 +++
  src/jetson_mount.c | 57 +++++++++++++++++++++++++++++++++++++---------

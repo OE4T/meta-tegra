@@ -27,6 +27,8 @@ Signed-off-by: Erik Kurzinger <ekurzinger@nvidia.com>
 Reviewed-by: Adam Cheney <acheney@nvidia.com>
 Reviewed-by: James Jones <jajones@nvidia.com>
 
+
+Upstream-Status: Pending
 ---
  libweston/renderer-gl/egl-glue.c             |  20 +++
  libweston/renderer-gl/gl-renderer-internal.h |  15 ++

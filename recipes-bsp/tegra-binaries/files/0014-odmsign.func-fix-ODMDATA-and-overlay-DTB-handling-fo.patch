@@ -8,6 +8,8 @@ bootloader DTB so it can incorporate the ODMDATA and any DTB
 overlays into the signed bootloader DTB.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  bootloader/odmsign.func | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
