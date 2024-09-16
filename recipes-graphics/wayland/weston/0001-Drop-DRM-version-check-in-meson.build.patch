@@ -10,6 +10,8 @@ not ours, so just drop the check entirely for tegra
 builds.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  meson.build | 6 ------
  1 file changed, 6 deletions(-)

@@ -4,6 +4,8 @@ Date: Tue, 23 Aug 2022 10:17:08 -0700
 Subject: [PATCH] Fix builds without x11
 
 Signed-off-by: Kurt Kiefer <kurt.kiefer@arthrex.com>
+
+Upstream-Status: Pending
 ---
  gst-egl/ext/eglgles/gsteglglessink.c | 2 ++
  1 file changed, 2 additions(+)

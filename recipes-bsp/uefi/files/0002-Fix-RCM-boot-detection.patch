@@ -26,6 +26,8 @@ easier to debug with a regular DEBUG mode build.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Jose Quaresma <jose.quaresma@foundries.io>
+
+Upstream-Status: Pending
 ---
  .../PlatformBootOrderLib.c                    | 37 ++++++++-----------
  .../PlatformBootOrderLib.inf                  |  1 +

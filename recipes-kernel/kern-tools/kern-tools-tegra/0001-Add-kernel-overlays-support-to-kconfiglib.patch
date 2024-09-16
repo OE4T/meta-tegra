@@ -3,6 +3,8 @@ From: Matt Madison <matt@madison.systems>
 Date: Sat, 8 Aug 2020 08:48:13 -0700
 Subject: [PATCH] Add kernel overlays support to kconfiglib
 
+
+Upstream-Status: Pending
 ---
  Kconfiglib/kconfiglib.py | 51 ++++++++++++++++++++++++++++++++++++++--
  1 file changed, 49 insertions(+), 2 deletions(-)

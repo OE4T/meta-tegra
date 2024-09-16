@@ -3,6 +3,8 @@ From: Matt Madison <matt@madison.systems>
 Date: Fri, 17 Jul 2020 05:12:44 -0700
 Subject: [PATCH] Fix compiler warnings
 
+
+Upstream-Status: Pending
 ---
  nvgst_sample_apps/nvgstplayer-1.0/nvgst_asound_common.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)

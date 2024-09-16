@@ -3,6 +3,8 @@ From: Matt Madison <matt@madison.systems>
 Date: Mon, 7 Jun 2021 04:22:40 -0700
 Subject: [PATCH] Fix location of bsp_version file in l4t_bup_gen.func
 
+
+Upstream-Status: Pending
 ---
  bootloader/l4t_bup_gen.func | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)

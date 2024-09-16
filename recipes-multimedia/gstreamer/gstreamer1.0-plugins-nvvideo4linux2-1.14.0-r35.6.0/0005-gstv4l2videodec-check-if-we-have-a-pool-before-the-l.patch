@@ -19,6 +19,8 @@ otherwise nvv4l2decoder will hang forever waiting for capture_plane_stopped.
 
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+
+Upstream-Status: Pending
 ---
  gst-v4l2/gstv4l2videodec.c | 15 +++++++++------
  1 file changed, 9 insertions(+), 6 deletions(-)

@@ -13,6 +13,8 @@ that omits it, so it's easier to tell what version of cboot
 is being used.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  bootloader/partner/t18x/cboot/make/build.mk | 4 ----
  1 file changed, 4 deletions(-)

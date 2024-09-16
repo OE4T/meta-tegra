@@ -14,6 +14,8 @@ don't contain video data at all, but instead the nvbuffer pointers,
 which are obtained differently.
 
 Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+
+Upstream-Status: Pending
 ---
  gstnvcompositor.c | 5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)

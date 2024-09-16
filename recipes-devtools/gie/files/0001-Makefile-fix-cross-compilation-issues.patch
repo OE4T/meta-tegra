@@ -4,6 +4,8 @@ Date: Thu, 24 Feb 2022 01:53:30 +0000
 Subject: [PATCH] Makefile: fix cross compilation issues
 
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+
+Upstream-Status: Pending
 ---
  Makefile.config | 29 +++++++++++++++++++----------
  1 file changed, 19 insertions(+), 10 deletions(-)

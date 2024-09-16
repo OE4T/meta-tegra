@@ -8,6 +8,8 @@ builds, which wasn't happy about the output redirection
 cloning that the script was using.
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+
+Upstream-Status: Pending
 ---
  l4t_sign_image.sh | 20 +++++++-------------
  1 file changed, 7 insertions(+), 13 deletions(-)
