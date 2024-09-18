@@ -53,8 +53,11 @@ def generate_build_timestamp(d):
 BUILD_STRING ?= "${@generate_build_string(d)}"
 BUILDTIMESTAMP ?= "${@generate_build_timestamp(d)}"
 
+ATF_DEBUG ?= "0"
+ATF_LOG_LEVEL ?= "20"
 EXTRA_OEMAKE = 'BUILD_BASE=${B} CROSS_COMPILE="${TARGET_PREFIX}" PLAT=tegra ${TARGET_SOC_OEMAKE} \
-	        DEBUG=0 LOG_LEVEL=20 V=1 TARGET_SOC=${TARGET_SOC} ${BUILDTIMESTAMP} ${BUILD_STRING} ${PACKAGECONFIG_CONFARGS}'
+	        DEBUG=${ATF_DEBUG} LOG_LEVEL=${ATF_LOG_LEVEL} V=1 TARGET_SOC=${TARGET_SOC} \
+	        ${BUILDTIMESTAMP} ${BUILD_STRING} ${PACKAGECONFIG_CONFARGS}'
 
 do_configure[noexec] = "1"
 
