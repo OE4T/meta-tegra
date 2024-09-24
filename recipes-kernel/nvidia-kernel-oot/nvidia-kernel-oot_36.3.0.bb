@@ -19,7 +19,7 @@ require recipes-bsp/tegra-sources/tegra-sources-36.3.0.inc
 do_unpack[depends] += "tegra-binaries:do_preconfigure"
 
 unpack_makefile_from_bsp() {
-    cp ${L4T_BSP_SHARED_SOURCE_DIR}/source/Makefile ${S}/
+    [ -e ${S}/Makefile ] || cp ${L4T_BSP_SHARED_SOURCE_DIR}/source/Makefile ${S}/
 }
 do_unpack[postfuncs] += "unpack_makefile_from_bsp"
 
