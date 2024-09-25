@@ -32,7 +32,8 @@ def tegra_bootcontrol_overlay_list(d, bup=False, separator=','):
     overlays = d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split()
     if d.getVar('TEGRA_UEFI_USE_SIGNED_FILES') == "true":
         overlays.append('UefiDefaultSecurityKeys.dtbo')
-        if bup and os.path.exists('UefiUpdateSecurityKeys.dtbo'):
+        sysroot = d.getVar('RECIPE_SYSROOT')
+        if bup and os.path.exists(os.path.join(sysroot, 'UefiUpdateSecurityKeys.dtbo')):
             overlays.append('UefiUpdateSecurityKeys.dtbo')
     return separator.join(overlays)
 

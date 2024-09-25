@@ -33,6 +33,14 @@ do_compile() {
     fi
 }
 
+do_populate_sysroot() {
+    install -d ${SYSROOT_DESTDIR}
+    install -m 0644 ${B}/UefiDefaultSecurityKeys.dtbo ${SYSROOT_DESTDIR}
+    if [ -a "${B}/UefiUpdateSecurityKeys.dtbo" ]; then
+        install -m 0644 ${B}/UefiUpdateSecurityKeys.dtbo ${SYSROOT_DESTDIR}
+    fi
+}
+
 do_install[noexec] = "1"
 
 do_deploy() {
