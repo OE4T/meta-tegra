@@ -1,20 +1,23 @@
-From 571d509cb221cf5cba32150c620b66c1bd536352 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Thu, 26 Jan 2023 04:22:34 -0800
+From eaeea4fb36932bd98960baef39cddb2464914d8e Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Sun, 6 Oct 2024 16:44:01 +0100
 Subject: [PATCH] Update Makefile for OE compatibility
 
 * Use install instead of cp for installing files
 
+Upstream-Status: Inappropriate [OE-Specific]
+
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- optee/optee_client/Makefile | 39 ++++++++++++++++++++++---------------
- 1 file changed, 23 insertions(+), 16 deletions(-)
+ optee/optee_client/Makefile | 42 +++++++++++++++++++++++--------------
+ 1 file changed, 26 insertions(+), 16 deletions(-)
 
 diff --git a/optee/optee_client/Makefile b/optee/optee_client/Makefile
-index 45762ba..1255447 100644
+index 10844c9..51f7f5d 100644
 --- a/optee/optee_client/Makefile
 +++ b/optee/optee_client/Makefile
-@@ -155,21 +155,28 @@ checkpatch-all-files: checkpatch-pre-req
+@@ -155,21 +155,31 @@ checkpatch-all-files: checkpatch-pre-req
  distclean: clean
  
  copy_export: build
@@ -23,22 +26,24 @@ index 45762ba..1255447 100644
 -	cp -d ${O}/libteec/libteec.so* $(DESTDIR)$(libdir)
 -	cp -d ${O}/libteec/libteec.a $(DESTDIR)$(libdir)
 -	cp ${O}/tee-supplicant/tee-supplicant $(DESTDIR)$(sbindir)
--	cp public/*.h $(DESTDIR)$(includedir)
+-	cp libteec/include/*.h $(DESTDIR)$(includedir)
 -	cp libckteec/include/*.h $(DESTDIR)$(includedir)
 -	cp -d ${O}/libckteec/libckteec.so* $(DESTDIR)$(libdir)
 -	cp -d ${O}/libckteec/libckteec.a $(DESTDIR)$(libdir)
 +	install -d $(DESTDIR)$(sbindir) $(DESTDIR)$(libdir) $(DESTDIR)$(includedir)
 +	install -m 0644 config.mk $(DESTDIR)/$(includedir)/optee_client_config.mk
-+	install -m 0644 ${O}/libteec/libteec.so.1.0.0 $(DESTDIR)$(libdir)
-+	ln -sf libteec.so.1.0.0 $(DESTDIR)$(libdir)/libteec.so.1.0
-+	ln -sf libteec.so.1.0.0 $(DESTDIR)$(libdir)/libteec.so.1
++	install -m 0644 ${O}/libteec/libteec.so.2.0.0 $(DESTDIR)$(libdir)
++	ln -sf libteec.so.2.0.0 $(DESTDIR)$(libdir)/libteec.so.2.0
++	ln -sf libteec.so.2.0.0 $(DESTDIR)$(libdir)/libteec.so.2
++	ln -sf libteec.so.2 $(DESTDIR)$(libdir)/libteec.so
 +	install -m 0644 ${O}/libteec/libteec.a $(DESTDIR)$(libdir)
 +	install -m 0755 ${O}/tee-supplicant/tee-supplicant $(DESTDIR)$(sbindir)
-+	install -m 0644 public/*.h $(DESTDIR)$(includedir)
++	install -m 0644 libteec/include/*.h $(DESTDIR)$(includedir)
 +	install -m 0644 libckteec/include/*.h $(DESTDIR)$(includedir)
 +	install -m 0644 ${O}/libckteec/libckteec.so.0.1.0 $(DESTDIR)$(libdir)
 +	ln -sf libckteec.so.0.1.0 $(DESTDIR)$(libdir)/libckteec.so.0.1
-+	ln -sf libckteec.so.0.1.0 $(DESTDIR)$(libdir)/libckteec.so.0
++	ln -sf libckteec.so.0.1 $(DESTDIR)$(libdir)/libckteec.so.0
++	ln -sf libckteec.so.0 $(DESTDIR)$(libdir)/libckteec.so
 +	install -m 0644 ${O}/libckteec/libckteec.a $(DESTDIR)$(libdir)
  ifeq ($(WITH_TEEACL),1)
 -	cp libteeacl/include/*.h $(DESTDIR)$(includedir)
@@ -46,8 +51,9 @@ index 45762ba..1255447 100644
 -	cp -d ${O}/libteeacl/libteeacl.a $(DESTDIR)$(libdir)
 +	install -m 0644 libteeacl/include/*.h $(DESTDIR)$(includedir)
 +	install -m 0644 ${O}/libteeacl/libteeacl.so.0.1.0 $(DESTDIR)$(libdir)
-+	ln -s libteeacl.so.0.1.0 $(DESTDIR)$(libdir)/libteeacl.so.0
-+	ln -s libteeacl.so.0.1.0 $(DESTDIR)$(libdir)/libteeacl.so
++	ln -s libteeacl.so.0.1.0 $(DESTDIR)$(libdir)/libteeacl.so.0.1
++	ln -s libteeacl.so.0.1 $(DESTDIR)$(libdir)/libteeacl.so.0
++	ln -s libteeacl.so.0 $(DESTDIR)$(libdir)/libteeacl.so
  endif
 -	cp libseteec/include/*.h $(DESTDIR)$(includedir)
 -	cp -d ${O}/libseteec/libseteec.so* $(DESTDIR)$(libdir)
@@ -56,9 +62,9 @@ index 45762ba..1255447 100644
 +	install -m 0644 libseteec/include/*.h $(DESTDIR)$(includedir)
 +	install -m 0644 ${O}/libseteec/libseteec.so.0.1.0 $(DESTDIR)$(libdir)
 +	ln -sf libseteec.so.0.1.0 $(DESTDIR)$(libdir)/libseteec.so.0.1
-+	ln -sf libseteec.so.0.1.0 $(DESTDIR)$(libdir)/libseteec.so.0
++	ln -sf libseteec.so.0.1 $(DESTDIR)$(libdir)/libseteec.so.0
++	ln -sf libseteec.so.0 $(DESTDIR)$(libdir)/libseteec.so
 +	install -m 0644 ${O}/libseteec/libseteec.a $(DESTDIR)$(libdir)
-+
 -- 
 2.34.1
 
