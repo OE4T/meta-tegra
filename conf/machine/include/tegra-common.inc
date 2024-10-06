@@ -55,7 +55,7 @@ PREFERRED_RPROVIDER_optee-nvsamples ?= "${@'nvidia-l4t-optee-nvsamples' if oe.ty
 PREFERRED_RPROVIDER_optee-nvsamples-hwkey-agent ?= "${@'nvidia-l4t-optee-nvsamples-hwkey-agent' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'optee-nvsamples-hwkey-agent'}"
 PREFERRED_RPROVIDER_optee-nvsamples-luks-srv ?= "${@'nvidia-l4t-optee-nvsamples-luks-srv' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'optee-nvsamples-luks-srv'}"
 
-TEGRA_OPTEE_VERSION ?= "${@'' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else '3.22.0-l4t%'}"
+TEGRA_OPTEE_VERSION ?= "${@'' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else '4.2-l4t%'}"
 PREFERRED_VERSION_optee-os = "${TEGRA_OPTEE_VERSION}"
 PREFERRED_VERSION_optee-os-tadevkit = "${TEGRA_OPTEE_VERSION}"
 PREFERRED_VERSION_optee-client = "${TEGRA_OPTEE_VERSION}"
