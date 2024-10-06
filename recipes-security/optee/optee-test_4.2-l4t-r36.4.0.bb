@@ -9,7 +9,7 @@ require optee-l4t.inc
 
 TEGRA_SRC_SUBARCHIVE_OPTS = "--strip-components=1 optee/optee_test"
 
-DEPENDS += "optee-os-tadevkit optee-client"
+DEPENDS += "optee-os-tadevkit optee-client openssl"
 
 S = "${WORKDIR}/optee_test"
 B = "${WORKDIR}/build"
