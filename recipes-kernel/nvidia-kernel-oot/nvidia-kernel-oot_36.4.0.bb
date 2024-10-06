@@ -72,7 +72,7 @@ do_compile() {
 
 do_sign_dtbs() {
     for dtbf in ${KERNEL_DEVICETREE}; do
-        local dtb="${B}/nvidia-oot/device-tree/platform/generic-dts/dtbs/${dtbf}"
+        local dtb="${B}/kernel-devicetree/generic-dts/dtbs/${dtbf}"
         if [ -e "$dtb" ]; then
             tegra_uefi_attach_sign "$dtb"
         fi
@@ -87,7 +87,7 @@ do_install() {
     unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
     oe_runmake MODLIB="${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}" modules_install
     install -d ${D}/boot/devicetree
-    install -m 0644 ${B}/nvidia-oot/device-tree/platform/generic-dts/dtbs/* ${D}/boot/devicetree/
+    install -m 0644 ${B}/kernel-devicetree/generic-dts/dtbs/* ${D}/boot/devicetree/
     install -d ${D}${includedir}/${BPN}
     find ${B} -name Module.symvers -type f | xargs sed -e's:${B}/::g' >${D}${includedir}/${BPN}/Module.symvers
 
@@ -181,6 +181,8 @@ TEGRA_OOT_CAMERA_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-camera-platform \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-camera-rtcpu \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-virtual-i2c-mux \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-max929x \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-r8126 \
     ${TEGRA_OOT_EXTRA_CAMERA_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_CAMERA_DRIVERS}"
