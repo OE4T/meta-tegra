@@ -419,7 +419,7 @@ if [ "$CHIPID" = "0x23" ]; then
             fi
         fi
         if [ "$BOARDSKU" = "0002" -o "$BOARDSKU" = "0008" ]; then
-            fsifw_binsarg="fsi_fw fsi-fw-ecc.bin;"
+            fsifw_binsarg="fsi_fw fsi-lk.bin;"
         else
             fsifw_binsarg=
         fi
@@ -554,7 +554,7 @@ bpmp_fw $BPF_FILE; \
 bpmp_fw_dtb $BPFDTB_FILE; \
 rce_fw camera-rtcpu-t234-rce.img; \
 ape_fw adsp-fw.bin; \
-spe_fw spe_t234.bin; $fsifw_binsarg \
+spe_fw spe_t234.bin; \
 tsec_fw tsec_t234.bin; \
 tos tos-optee_t234.img; \
 eks eks.img"
