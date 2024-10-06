@@ -17,8 +17,7 @@ SRC_URI[init.sha256sum] = "${INITSUM}"
 SRC_URI[x11.sha256sum] = "${X11SUM}"
 
 SRC_URI += "\
-    file://0001-Patch-udev-rules-for-OE-use.patch \
-    file://0002-Patch-nv.sh-script-for-OE-use.patch \
+    file://0001-Patch-nv.sh-script-for-OE-use.patch \
     file://nv-l4t-bootloader-config.sh \
     file://devices.csv \
     file://drivers.csv \
