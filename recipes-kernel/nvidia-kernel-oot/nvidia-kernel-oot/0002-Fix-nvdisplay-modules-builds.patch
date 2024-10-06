@@ -1,6 +1,6 @@
-From 8d5b280e0e76e453e93bf6fefc1a3eb990dfb0ac Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Thu, 14 Dec 2023 11:07:15 -0800
+From e65b339f7e1737982946f3a6827d4d990d396472 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Sun, 6 Oct 2024 18:28:21 +0100
 Subject: [PATCH] Fix nvdisplay modules builds
 
 Update the makefiles, Kbuild, and conftest.sh script so
@@ -15,11 +15,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  nvdisplay/kernel-open/conftest.sh | 32 +++++++++++++++++--------------
  4 files changed, 28 insertions(+), 21 deletions(-)
 
-Index: nvidia-kernel-oot/Makefile
-===================================================================
---- nvidia-kernel-oot.orig/Makefile
-+++ nvidia-kernel-oot/Makefile
-@@ -116,6 +116,7 @@ define display-cmd
+diff --git a/Makefile b/Makefile
+index 64bec51..d7fe662 100644
+--- a/Makefile
++++ b/Makefile
+@@ -119,6 +119,7 @@ define display-cmd
  		KERNELRELEASE="" \
  		SYSSRC=$(KERNEL_SRC) \
  		SYSOUT=$(KBUILD_OUTPUT) \
@@ -38,7 +38,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/Kbuild
 +EXTRA_CFLAGS += -I$(NV_OOT_SOURCES)/include
  EXTRA_CFLAGS += -Wall $(DEFINES) $(INCLUDES) -Wno-cast-qual -Wno-error -Wno-format-extra-args
  EXTRA_CFLAGS += -D__KERNEL__ -DMODULE -DNVRM
- EXTRA_CFLAGS += -DNV_VERSION_STRING=\"540.3.0\"
+ EXTRA_CFLAGS += -DNV_VERSION_STRING=\"540.4.0\"
 @@ -143,7 +144,7 @@ NV_CONFTEST_SCRIPT := $(src)/conftest.sh
  NV_CONFTEST_HEADER := $(obj)/conftest/headers.h
  
@@ -59,7 +59,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/Kbuild
  
  
  # Each of these headers is checked for presence with a test #include; a
-@@ -315,8 +316,8 @@ NV_HEADER_PRESENCE_PART = $(addprefix $(
+@@ -314,8 +315,8 @@ NV_HEADER_PRESENCE_PART = $(addprefix $(obj)/conftest/header_presence/,$(addsuff
  # Define a rule to check the header $(1).
  define NV_HEADER_PRESENCE_CHECK
   $$(call NV_HEADER_PRESENCE_PART,$(1)): $$(NV_CONFTEST_SCRIPT) $(obj)/conftest/uts_release
@@ -70,7 +70,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/Kbuild
  endef
  
  # Evaluate the rule above for each header in the list.
-@@ -324,7 +325,7 @@ $(foreach header,$(NV_HEADER_PRESENCE_TE
+@@ -323,7 +324,7 @@ $(foreach header,$(NV_HEADER_PRESENCE_TESTS),$(eval $(call NV_HEADER_PRESENCE_CH
  
  # Concatenate all of the parts into headers.h.
  $(obj)/conftest/headers.h: $(call NV_HEADER_PRESENCE_PART,$(NV_HEADER_PRESENCE_TESTS))
@@ -79,7 +79,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/Kbuild
  
  clean-dirs := $(obj)/conftest
  
-@@ -346,7 +347,7 @@ BUILD_SANITY_CHECKS = \
+@@ -345,7 +346,7 @@ BUILD_SANITY_CHECKS = \
  .PHONY: $(BUILD_SANITY_CHECKS)
  
  $(BUILD_SANITY_CHECKS):
@@ -100,10 +100,10 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/Makefile
    KBUILD_PARAMS += NV_KERNEL_MODULES="$(NV_KERNEL_MODULES)"
    KBUILD_PARAMS += INSTALL_MOD_DIR=kernel/drivers/video
    KBUILD_PARAMS += NV_SPECTRE_V2=$(SPECTRE_V2_RETPOLINE)
-Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
-===================================================================
---- nvidia-kernel-oot.orig/nvdisplay/kernel-open/conftest.sh
-+++ nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
+diff --git a/nvdisplay/kernel-open/conftest.sh b/nvdisplay/kernel-open/conftest.sh
+index 391374f..2ee8d8d 100644
+--- a/nvdisplay/kernel-open/conftest.sh
++++ b/nvdisplay/kernel-open/conftest.sh
 @@ -11,6 +11,8 @@ ARCH=$2
  SOURCES=$3
  HEADERS=$SOURCES/include
@@ -140,7 +140,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
          echo "#define NV_IS_EXPORT_SYMBOL_GPL_$SYMBOL 1" |
              append_conftest "symbols"
      else
-@@ -6499,13 +6503,13 @@ compile_test() {
+@@ -6590,13 +6594,13 @@ compile_test() {
      esac
  }
  
@@ -156,7 +156,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
  
          echo "int cc_sanity_check(void) {
              return 0;
-@@ -6572,7 +6576,7 @@ case "$5" in
+@@ -6663,7 +6667,7 @@ case "$5" in
          #  In order to extract GCC version correctly for version strings
          #  like the last one above, we first check for x.y.z and if that
          #  fails, we fallback to x.y format.
@@ -165,7 +165,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
  
          kernel_compile_h=$OUTPUT/include/generated/compile.h
  
-@@ -6651,7 +6655,7 @@ case "$5" in
+@@ -6742,7 +6746,7 @@ case "$5" in
          # Check if the target kernel is a Xen kernel. If so, exit, since
          # the RM doesn't currently support Xen.
          #
@@ -174,7 +174,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
  
          if [ -n "$IGNORE_XEN_PRESENCE" -o -n "$VGX_BUILD" ]; then
              exit 0
-@@ -6683,7 +6687,7 @@ case "$5" in
+@@ -6774,7 +6778,7 @@ case "$5" in
          # Check if the target kernel has the PREEMPT_RT patch set applied. If
          # so, exit, since the RM doesn't support this configuration.
          #
@@ -183,7 +183,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
  
          if [ -n "$IGNORE_PREEMPT_RT_PRESENCE" ]; then
              exit 0
-@@ -6746,7 +6750,7 @@ case "$5" in
+@@ -6837,7 +6841,7 @@ case "$5" in
          # Run a series of compile tests to determine the set of interfaces
          # and features available in the target kernel.
          #
@@ -192,7 +192,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
  
          CFLAGS=$1
          shift
-@@ -6760,7 +6764,7 @@ case "$5" in
+@@ -6851,7 +6855,7 @@ case "$5" in
          #
          # Determine whether running in DOM0.
          #
@@ -201,7 +201,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
  
          if [ -n "$VGX_BUILD" ]; then
              if [ -f /proc/xen/capabilities ]; then
-@@ -6782,7 +6786,7 @@ case "$5" in
+@@ -6873,7 +6877,7 @@ case "$5" in
          #
          # Determine whether we are running a vGPU on KVM host.
          #
@@ -210,7 +210,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
          iommu=CONFIG_VFIO_IOMMU_TYPE1
          mdev=CONFIG_VFIO_MDEV
          kvm=CONFIG_KVM_VFIO
-@@ -6859,7 +6863,7 @@ case "$5" in
+@@ -6950,7 +6954,7 @@ case "$5" in
          #
          # Check to see if the given config option is set.
          #
@@ -219,7 +219,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
  
          test_configuration_option $OPTION
          exit $?
-@@ -6869,7 +6873,7 @@ case "$5" in
+@@ -6960,7 +6964,7 @@ case "$5" in
          #
          # Get the value of the given config option.
          #
@@ -228,7 +228,7 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
  
          get_configuration_option $OPTION
          exit $?
-@@ -6904,9 +6908,9 @@ case "$5" in
+@@ -6995,9 +6999,9 @@ case "$5" in
          # Check for the availability of the given kernel header
          #
  
@@ -240,3 +240,6 @@ Index: nvidia-kernel-oot/nvdisplay/kernel-open/conftest.sh
  
          exit $?
      ;;
+-- 
+2.34.1
+
