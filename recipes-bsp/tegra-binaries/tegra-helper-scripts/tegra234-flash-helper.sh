@@ -290,6 +290,14 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
         exit 1
     fi
     CHIP_SKU=$($here/chkbdinfo -C chip_info.bin_bak | tr -d '[:space:]')
+    board_ramcode=$($here/chkbdinfo -R chip_info.bin_bak)
+    if [ -z "$board_ramcode" ]; then
+        echo "ERR: ramcode could not be extracted from chip info" >&2
+        exit 1
+    fi
+    board_ramcode="$(echo "$board_ramcode" | cut -d: -f4)"
+    board_ramcode=$((16#$board_ramcode % 16))
+    RAMCODE="$board_ramcode"
     # XXX- these don't appear to be used
     # chip_minor_revision=$($here/chkbdinfo -M chip_info.bin_bak)
     # bootrom_revision=$($here/chkbdinfo -O chip_info.bin_bak)
@@ -375,6 +383,7 @@ else
     chip_sku=$CHIP_SKU
 fi
 
+ramcodeargs=
 if [ "$BOARDID" = "3701" ]; then
     case $chip_sku in
 	00)
@@ -472,6 +481,10 @@ if [ "${fuselevel}" = "fuselevel_production" ]; then
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS}";
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS_B}";
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${EMC_FUSE_DEV_PARAMS}";
+
+    if [ -n "$RAMCODE" ]; then
+        ramcodeargs="--ramcode $RAMCODE"
+    fi
 fi
 
 echo "Board ID($BOARDID) version($FAB) sku($BOARDSKU) revision($BOARDREV)"
@@ -680,7 +693,7 @@ flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_d
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
           --bct_backup \
-          $bctargs $extdevargs \
+          $bctargs $ramcodeargs $extdevargs \
           --bins \"$BINSARGS\""
 
 if [ $bup_blob -ne 0 ]; then

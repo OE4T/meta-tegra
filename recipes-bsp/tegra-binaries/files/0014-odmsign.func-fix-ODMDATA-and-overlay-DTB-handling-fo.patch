@@ -12,11 +12,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  bootloader/odmsign.func | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/bootloader/odmsign.func b/bootloader/odmsign.func
-index 9d2082a..f81c616 100644
---- a/bootloader/odmsign.func
-+++ b/bootloader/odmsign.func
-@@ -577,7 +577,7 @@ odmsign_ext_sign ()
+Index: Linux_for_Tegra/bootloader/odmsign.func
+===================================================================
+--- Linux_for_Tegra.orig/bootloader/odmsign.func
++++ Linux_for_Tegra/bootloader/odmsign.func
+@@ -251,7 +251,7 @@ odmsign_ext_sign ()
  			SIGNARGS+=" --cust_info ${custinfofilename} "
  		fi
  	else
