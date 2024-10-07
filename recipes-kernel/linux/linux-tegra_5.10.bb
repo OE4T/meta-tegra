@@ -14,15 +14,15 @@ KERNEL_DISABLE_FW_USER_HELPER ?= "y"
 DEPENDS:remove = "kern-tools-native"
 DEPENDS:append = " kern-tools-tegra-native"
 
-LINUX_VERSION ?= "5.10.192"
-PV = "${LINUX_VERSION}+git${SRCPV}"
+LINUX_VERSION ?= "5.10.216"
+PV = "${LINUX_VERSION}+git"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
 LINUX_VERSION_EXTENSION ?= "-l4t-${@'.'.join(d.getVar('L4T_VERSION').split('.'))}"
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "db857ecdbe10de229a3cf125831afd6226417eac"
+SRCREV = "4bce4d148ef3ff159ab55c127d8761aeaac5cc28"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-tegra-5.10.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
