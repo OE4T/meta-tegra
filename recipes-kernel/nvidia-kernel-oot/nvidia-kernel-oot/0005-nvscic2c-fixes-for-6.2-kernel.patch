@@ -1,0 +1,72 @@
+From 89beb1cf1a2fbf4dbd1dd274d6f097430b1663d6 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Mon, 26 Aug 2024 10:09:52 -0700
+Subject: [PATCH] nvscic2c: fixes for 6.2+ kernel
+
+Upstream-Status: Pending
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ nvidia-oot/drivers/misc/nvscic2c-pcie/epf/module.c |  2 ++
+ nvidia-oot/drivers/misc/nvscic2c-pcie/pci-client.c | 12 +++++++++++-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/nvidia-oot/drivers/misc/nvscic2c-pcie/epf/module.c b/nvidia-oot/drivers/misc/nvscic2c-pcie/epf/module.c
+index 5e4c712..e00b1b8 100644
+--- a/nvidia-oot/drivers/misc/nvscic2c-pcie/epf/module.c
++++ b/nvidia-oot/drivers/misc/nvscic2c-pcie/epf/module.c
+@@ -3,6 +3,8 @@
+ 
+ #define pr_fmt(fmt)	"nvscic2c-pcie: epf: " fmt
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+diff --git a/nvidia-oot/drivers/misc/nvscic2c-pcie/pci-client.c b/nvidia-oot/drivers/misc/nvscic2c-pcie/pci-client.c
+index 307ae89..2d8778f 100644
+--- a/nvidia-oot/drivers/misc/nvscic2c-pcie/pci-client.c
++++ b/nvidia-oot/drivers/misc/nvscic2c-pcie/pci-client.c
+@@ -3,6 +3,8 @@
+ 
+ #define pr_fmt(fmt)	"nvscic2c-pcie: pci-client: " fmt
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/dma-buf.h>
+ #include <linux/dma-map-ops.h>
+ #include <linux/errno.h>
+@@ -246,7 +248,11 @@ allocate_edma_rx_desc_iova(struct pci_client_t *ctx)
+ 		goto err;
+ 	}
+ 	prot = (IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
++#if defined(NV_IOMMU_MAP_HAS_GFP_ARG)
++	ret = iommu_map(ctx->domain, ctx->edma_ch_desc_iova, phys_addr, EDMA_CH_DESC_SZ, prot, GFP_KERNEL);
++#else
+ 	ret = iommu_map(ctx->domain, ctx->edma_ch_desc_iova, phys_addr, EDMA_CH_DESC_SZ, prot);
++#endif
+ 	if (ret) {
+ 		pr_err("pci client failed to map iova to 60K physical backing\n");
+ 		goto err;
+@@ -408,7 +414,11 @@ pci_client_map_addr(void *pci_client_h, u64 to_iova, phys_addr_t paddr,
+ 	if (WARN_ON(!ctx || !to_iova || !paddr || !size))
+ 		return -EINVAL;
+ 
++#if defined(NV_IOMMU_MAP_HAS_GFP_ARG)
++	return iommu_map(ctx->domain, to_iova, paddr, size, prot, GFP_KERNEL);
++#else
+ 	return iommu_map(ctx->domain, to_iova, paddr, size, prot);
++#endif
+ }
+ 
+ size_t
+@@ -751,7 +761,7 @@ pci_client_get_drv_mode(void *pci_client_h)
+ 		return DRV_MODE_INVALID;
+ 	drv_ctx = pci_client_ctx->drv_ctx;
+ 	if (WARN_ON(!drv_ctx))
+-		return NVCPU_MAXIMUM;
++		return DRV_MODE_MAXIMUM;
+ 	return drv_ctx->drv_mode;
+ }
+ 

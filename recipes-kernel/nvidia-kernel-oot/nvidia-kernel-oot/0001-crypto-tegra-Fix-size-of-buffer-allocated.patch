@@ -1,0 +1,179 @@
+From c91ce4ab36aee6e8ef206a146018f343d0460275 Mon Sep 17 00:00:00 2001
+From: Akhil R <akhilrajeev@nvidia.com>
+Date: Fri, 13 Sep 2024 16:12:02 -0700
+Subject: [PATCH] crypto: tegra: Fix size of buffer allocated
+
+Allocate the buffer based on the request instead of a fixed buffer
+length. In operations which may require larger buffer size, a fixed
+buffer may fail.
+
+Bug 4798264
+
+Signed-off-by: Akhil R <akhilrajeev@nvidia.com>
+Change-Id: I0eac3e04aed89b07f5674cf69828d3ac0801a6c7
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3194058
+(cherry picked from commit 01bdbd8a6679a5e31d0a06e5f21cd20cf0600ba6)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3199308
+Reviewed-by: svcacv <svcacv@nvidia.com>
+Reviewed-by: Paritosh Dixit <paritoshd@nvidia.com>
+Tested-by: Brad Griffis <bgriffis@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+
+Upstream-Status: Pending
+---
+ .../drivers/crypto/tegra/tegra-se-aes.c       | 54 ++++++++-----------
+ nvidia-oot/drivers/crypto/tegra/tegra-se.h    |  1 -
+ 2 files changed, 22 insertions(+), 33 deletions(-)
+
+diff --git a/nvidia-oot/drivers/crypto/tegra/tegra-se-aes.c b/nvidia-oot/drivers/crypto/tegra/tegra-se-aes.c
+index 532b99c4..57571f80 100644
+--- a/nvidia-oot/drivers/crypto/tegra/tegra-se-aes.c
++++ b/nvidia-oot/drivers/crypto/tegra/tegra-se-aes.c
+@@ -266,16 +266,15 @@ static int tegra_aes_prep_req(struct crypto_engine *engine, void *areq)
+ 	ctx = crypto_skcipher_ctx(crypto_skcipher_reqtfm(req));
+ 	rctx = skcipher_request_ctx(req);
+ 
+-	rctx->datbuf.buf = dma_alloc_coherent(ctx->se->dev, SE_AES_BUFLEN,
++	/* Set buffer size as a multiple of AES_BLOCK_SIZE*/
++	rctx->datbuf.size = ((req->cryptlen / AES_BLOCK_SIZE) + 1) * AES_BLOCK_SIZE;
++	rctx->datbuf.buf = dma_alloc_coherent(ctx->se->dev, rctx->datbuf.size,
+ 					     &rctx->datbuf.addr, GFP_KERNEL);
+ 	if (!rctx->datbuf.buf) {
+ 		ret = -ENOMEM;
+ 		goto buf_err;
+ 	}
+ 
+-	rctx->datbuf.size = SE_AES_BUFLEN;
+-	memset(rctx->datbuf.buf, 0, SE_AES_BUFLEN);
+-
+ 	return 0;
+ 
+ buf_err:
+@@ -294,7 +293,7 @@ static int tegra_aes_unprep_req(struct crypto_engine *engine, void *areq)
+ 	ctx = crypto_skcipher_ctx(crypto_skcipher_reqtfm(req));
+ 	rctx = skcipher_request_ctx(req);
+ 
+-	dma_free_coherent(ctx->se->dev, SE_AES_BUFLEN,
++	dma_free_coherent(ctx->se->dev, rctx->datbuf.size,
+ 			  rctx->datbuf.buf, rctx->datbuf.addr);
+ 
+ 	return 0;
+@@ -1222,15 +1221,9 @@ static int tegra_ccm_do_ctr(struct tegra_aead_ctx *ctx, struct tegra_aead_reqctx
+ static int tegra_ccm_crypt_init(struct aead_request *req, struct tegra_se *se,
+ 				struct tegra_aead_reqctx *rctx)
+ {
+-	struct crypto_aead *tfm = crypto_aead_reqtfm(req);
+ 	u8 *iv = (u8 *)rctx->iv;
+ 	int ret, i;
+ 
+-	rctx->src_sg = req->src;
+-	rctx->dst_sg = req->dst;
+-	rctx->assoclen = req->assoclen;
+-	rctx->authsize = crypto_aead_authsize(tfm);
+-
+ 	memcpy(iv, req->iv, 16);
+ 
+ 	ret = tegra_ccm_check_iv(iv);
+@@ -1275,7 +1268,6 @@ static int tegra_ccm_do_one_req(struct crypto_engine *engine, void *areq)
+ 		goto out;
+ 
+ 	if (rctx->encrypt) {
+-		rctx->cryptlen = req->cryptlen;
+ 
+ 		/* CBC MAC Operation */
+ 		ret = tegra_ccm_compute_auth(ctx, rctx);
+@@ -1287,7 +1279,6 @@ static int tegra_ccm_do_one_req(struct crypto_engine *engine, void *areq)
+ 		if (ret)
+ 			goto out;
+ 	} else {
+-		rctx->cryptlen = req->cryptlen - ctx->authsize;
+ 
+ 		/* CTR operation */
+ 		ret = tegra_ccm_do_ctr(ctx, rctx);
+@@ -1327,16 +1318,6 @@ static int tegra_gcm_do_one_req(struct crypto_engine *engine, void *areq)
+ 
+ 	req = container_of(areq, struct aead_request, base);
+ 
+-	rctx->src_sg = req->src;
+-	rctx->dst_sg = req->dst;
+-	rctx->assoclen = req->assoclen;
+-	rctx->authsize = crypto_aead_authsize(tfm);
+-
+-	if (rctx->encrypt)
+-		rctx->cryptlen = req->cryptlen;
+-	else
+-		rctx->cryptlen = req->cryptlen - ctx->authsize;
+-
+ 	memcpy(rctx->iv, req->iv, GCM_AES_IV_SIZE);
+ 	rctx->iv[3] = (1 << 24);
+ 
+@@ -1375,27 +1356,36 @@ out:
+ static int tegra_aead_prep_req(struct crypto_engine *engine, void *areq)
+ {
+ 	struct aead_request *req = container_of(areq, struct aead_request, base);
++	struct crypto_aead *tfm = crypto_aead_reqtfm(req);
+ 	struct tegra_aead_ctx *ctx = crypto_aead_ctx(crypto_aead_reqtfm(req));
+ 	struct tegra_aead_reqctx *rctx = aead_request_ctx(req);
+ 
+-	rctx->inbuf.buf = dma_alloc_coherent(ctx->se->dev, SE_AES_BUFLEN,
++	rctx->src_sg = req->src;
++	rctx->dst_sg = req->dst;
++	rctx->assoclen = req->assoclen;
++	rctx->authsize = crypto_aead_authsize(tfm);
++
++	if (rctx->encrypt)
++		rctx->cryptlen = req->cryptlen;
++	else
++		rctx->cryptlen = req->cryptlen - ctx->authsize;
++
++	rctx->inbuf.size = rctx->assoclen + rctx->authsize + rctx->cryptlen + 100;
++	rctx->inbuf.buf = dma_alloc_coherent(ctx->se->dev, rctx->inbuf.size,
+ 					     &rctx->inbuf.addr, GFP_KERNEL);
+ 	if (!rctx->inbuf.buf)
+ 		goto inbuf_err;
+ 
+-	rctx->inbuf.size = SE_AES_BUFLEN;
+-
+-	rctx->outbuf.buf = dma_alloc_coherent(ctx->se->dev, SE_AES_BUFLEN,
++	rctx->outbuf.size = rctx->assoclen + rctx->authsize + rctx->cryptlen + 100;
++	rctx->outbuf.buf = dma_alloc_coherent(ctx->se->dev, rctx->outbuf.size,
+ 					     &rctx->outbuf.addr, GFP_KERNEL);
+ 	if (!rctx->outbuf.buf)
+ 		goto outbuf_err;
+ 
+-	rctx->outbuf.size = SE_AES_BUFLEN;
+-
+ 	return 0;
+ 
+ outbuf_err:
+-	dma_free_coherent(ctx->se->dev, SE_AES_BUFLEN,
++	dma_free_coherent(ctx->se->dev, rctx->inbuf.size,
+ 			  rctx->inbuf.buf, rctx->inbuf.addr);
+ inbuf_err:
+ 	return -ENOMEM;
+@@ -1408,10 +1398,10 @@ static int tegra_aead_unprep_req(struct crypto_engine *engine, void *areq)
+ 	struct tegra_aead_ctx *ctx = crypto_aead_ctx(crypto_aead_reqtfm(req));
+ 	struct tegra_aead_reqctx *rctx = aead_request_ctx(req);
+ 
+-	dma_free_coherent(ctx->se->dev, SE_AES_BUFLEN,
++	dma_free_coherent(ctx->se->dev, rctx->outbuf.size,
+ 			  rctx->outbuf.buf, rctx->outbuf.addr);
+ 
+-	dma_free_coherent(ctx->se->dev, SE_AES_BUFLEN,
++	dma_free_coherent(ctx->se->dev, rctx->inbuf.size,
+ 			  rctx->inbuf.buf, rctx->inbuf.addr);
+ 
+ 	return 0;
+diff --git a/nvidia-oot/drivers/crypto/tegra/tegra-se.h b/nvidia-oot/drivers/crypto/tegra/tegra-se.h
+index 15a34d19..14efc0f4 100644
+--- a/nvidia-oot/drivers/crypto/tegra/tegra-se.h
++++ b/nvidia-oot/drivers/crypto/tegra/tegra-se.h
+@@ -355,7 +355,6 @@
+ #define SE_CRYPTO_CTR_REG_COUNT			4
+ #define SE_MAX_KEYSLOT				15
+ #define SE_MAX_MEM_ALLOC			SZ_4M
+-#define SE_AES_BUFLEN				0x8000
+ #define SE_SHA_BUFLEN				SZ_4M
+ 
+ #define SHA_FIRST	BIT(0)
