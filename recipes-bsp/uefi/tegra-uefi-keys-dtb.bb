@@ -28,17 +28,25 @@ do_configure() {
 
 do_compile() {
     dtc -Idts -Odtb -o ${B}/UefiDefaultSecurityKeys.dtbo ${WORKDIR}/UefiDefaultSecurityKeys.dts
-    if [ -a "${WORKDIR}/UefiUpdateSecurityKeys.dts" ]; then
+    if [ -e "${WORKDIR}/UefiUpdateSecurityKeys.dts" ]; then
         dtc -Idts -Odtb -o ${B}/UefiUpdateSecurityKeys.dtbo ${WORKDIR}/UefiUpdateSecurityKeys.dts
     fi
 }
 
-do_install[noexec] = "1"
+do_install() {
+    install -d ${D}${datadir}
+    install -d ${D}${datadir}/tegra-uefi-keys/
+    
+    install -m 0644 ${B}/UefiDefaultSecurityKeys.dtbo ${D}${datadir}/tegra-uefi-keys/
+    if [ -e "${B}/UefiUpdateSecurityKeys.dtbo" ]; then
+        install -m 0644 ${B}/UefiUpdateSecurityKeys.dtbo ${D}${datadir}/tegra-uefi-keys/
+    fi
+}
 
 do_deploy() {
     install -d ${DEPLOYDIR}
     install -m 0644 ${B}/UefiDefaultSecurityKeys.dtbo ${DEPLOYDIR}/
-    if [ -a "${B}/UefiUpdateSecurityKeys.dtbo" ]; then
+    if [ -e "${B}/UefiUpdateSecurityKeys.dtbo" ]; then
         install -m 0644 ${B}/UefiUpdateSecurityKeys.dtbo ${DEPLOYDIR}/
     fi
 }
