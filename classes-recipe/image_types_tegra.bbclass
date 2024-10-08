@@ -407,6 +407,7 @@ create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
 def tegraflash_bupgen_strip_cmd(d):
     images = d.getVar('TEGRA_BUPGEN_STRIP_IMG_NAMES').split()
+    images.append("esp.img")
     if len(images) == 0:
         return 'cp flash.xml.in flash-stripped.xml.in'
     return 'sed {} flash.xml.in > flash-stripped.xml.in'.format(' '.join(['-e"/<filename>.*{}/d"'.format(img) for img in images]))

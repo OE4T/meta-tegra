@@ -1,0 +1,41 @@
+From f28f8e7e7013ed151ab69ae6b0f4b52ef617dc89 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Thu, 29 Aug 2024 15:15:33 -0700
+Subject: [PATCH] gbm-display: handle kms display-only devices in FindGbmDevice
+
+A display device can be different than its renderer, such as the
+case of a kms display-only device. Yet, eglGbmGetPlatformDisplay
+needs to initialize its internal GbmDisplay structure and if they
+aren't strongly associated (as determined by eglQueryDevices) then
+display initialization will fail.
+
+Handle this by providing a fallback to use the first renderer
+returned by eglQueryDevices in the case where the display device
+in question can't render on its own or isn't being returned by
+the egl implementation for any other reason.
+
+Upstream-Status: Pending
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ src/gbm-display.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/src/gbm-display.c b/src/gbm-display.c
+index 93bceb4..3144017 100644
+--- a/src/gbm-display.c
++++ b/src/gbm-display.c
+@@ -119,6 +119,13 @@ FindGbmDevice(GbmPlatformData* data, struct gbm_device* gbm)
+         }
+     }
+ 
++    // If we didn't find a device, don't panic. This can happen if the gbm
++    // display device isn't a renderer: a kms display-only device, or a split
++    // host1x + drm/kms display such as t234 machines in r36. Use the first
++    // found renderer for these.
++    if (numDevs > 0)
++        dev = devs[0];
++
+ done:
+     free(devs);
+ 
