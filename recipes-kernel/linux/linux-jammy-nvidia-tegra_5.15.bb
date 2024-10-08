@@ -18,6 +18,7 @@ LINUX_VERSION ?= "5.15.136"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
+L4T_VERSION = "36.3.0"
 LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:2])}-1009.9"
 SCMVERSION ??= "y"
 
