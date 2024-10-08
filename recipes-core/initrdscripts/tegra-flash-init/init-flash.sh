@@ -34,6 +34,10 @@ fi
 [ -n "$sernum" ] || sernum="UNKNOWN"
 echo "Serial number: $sernum"
 UDC=$(ls -1 /sys/class/udc | head -n 1)
+if [ -z "$UDC" ]; then
+    echo "Error: No UDC found in /sys/class/udc" >&2
+    exit 1
+fi
 
 wait_for_storage() {
     local file_or_dev="$1"
