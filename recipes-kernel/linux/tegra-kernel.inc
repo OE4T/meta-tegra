@@ -24,6 +24,8 @@ addtask sign_kernel after do_compile before do_install
 
 sign_bootimg() {
     tegra_uefi_attach_sign "$1"
+    rm "$1"
+    mv "$1.signed" "$1"
 }
 
 bootimg_from_bundled_initramfs() {
