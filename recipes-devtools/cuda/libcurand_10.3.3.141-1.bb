@@ -1,8 +1,0 @@
-require cuda-shared-binaries.inc
-
-MAINSUM = "422e79cb46220a0ac517bb85c98df53a0f4a7813f3e13ced9487f15e0d5ff5b4"
-MAINSUM:x86-64 = "a21099c0ebb2488c3f4914e007750009648f4f3ae3d33bc9e83d3f03b7cabd41"
-DEVSUM = "f89c6b9d332d5d9cfdd260610b93b0f3202bacc330120f4d5b4ca32ba09fd140"
-DEVSUM:x86-64 = "1802c49b31ce79e46891e65aeaecf22244b44bed5cf807dc5a40fcba2e1e137f"
-
-BBCLASSEXTEND = "native nativesdk"

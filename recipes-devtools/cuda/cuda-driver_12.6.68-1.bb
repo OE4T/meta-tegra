@@ -5,8 +5,8 @@ require cuda-shared-binaries.inc
 DEPENDS:tegra = "tegra-libraries-cuda"
 
 L4T_DEB_GROUP = "cuda-cudart"
-DEVSUM = "9ffbbfe9200cd08fe19cf21f390083a932ea0432b5d3c0abf9191d363e6126f2"
-DEVSUM:x86-64 = "0523e4da56f4312d1098dfb71aab94f223aac0af8c73f89311f49b3c5c2bc87f"
+DEVSUM = "0c453507da39a28ca214723c8980c5a4832d8ea3e8f28dfd8ac83a1b2055dda1"
+DEVSUM:x86-64 = "296c391b1d7fba881180595693a7e2742c3529c30f4909cd0b00a0cae8d2294e"
 
 ALLOW_EMPTY:${PN} = "1"
 EXCLUDE_PACKAGES_FROM_SHLIBS = ""
