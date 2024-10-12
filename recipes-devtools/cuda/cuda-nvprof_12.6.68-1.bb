@@ -4,7 +4,7 @@ require cuda-shared-binaries.inc
 
 COMPATIBLE_HOST:tegra = "(-)"
 
-MAINSUM = "ee987df9aa0fef7d9b2b162d29acf0e81d3df888528222e473f230cd7ecdd61a"
+MAINSUM = "6b0171bb815ff6d62cb84f51868afa12975d71f2ba60d43be0dd6a29a7a989d4"
 
 DEPENDS = "cuda-cupti"
 ALLOW_EMPTY:${PN} = "1"
