@@ -14,15 +14,15 @@ KERNEL_DISABLE_FW_USER_HELPER ?= "y"
 # All of our device trees are out-of-tree
 KERNEL_DEVICETREE:forcevariable = ""
 
-LINUX_VERSION ?= "5.15.136"
+LINUX_VERSION ?= "5.15.148"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
-LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:2])}-1009.9"
+LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:2])}-1012.12"
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "46cdb595bebc15e918ade351a93b820f4d987220"
+SRCREV = "8dc079d5c8c47d3954b4261473a152a8034ff7f0"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-jammy-nvidia-tegra.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
