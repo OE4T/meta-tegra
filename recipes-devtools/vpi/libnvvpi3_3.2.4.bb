@@ -21,7 +21,7 @@ SRC_COMMON_DEBS = "\
     vpi3-dev_${PV}_arm64.deb;name=dev;subdir=vpi3 \
 "
 L4T_DEB_GROUP[dev] = "vpi3-dev"
-SRC_URI[lib.sha256sum] = "57c63be740600976a76a66a0accbea41e837bc845c6e341714e84436987d8705"
+SRC_URI[lib.sha256sum] = "5589eac155bba4a2f881963bb4e3c4cd06c7fc0fa12cb6d73196dca496daab1b"
 SRC_URI[dev.sha256sum] = "d073a25920a35d92b69bb08e41a1b93f76050a7fb567a89aa327b9349cefd843"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
