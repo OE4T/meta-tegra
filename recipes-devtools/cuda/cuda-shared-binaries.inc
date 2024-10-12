@@ -4,7 +4,7 @@ require cuda-binaries-common-defs.inc
 
 L4T_DEB_GROUP ?= "${BPN}"
 L4T_DEB_FEED_BASE ??= "file://"
-CUDA_LICENSE_PKG ?= "cuda-documentation-${CUDA_VERSION_DASHED}_12.2.140-1_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
+CUDA_LICENSE_PKG ?= "cuda-documentation-${CUDA_VERSION_DASHED}_12.6.68-1_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
 SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb;name=%s;subdir=${BP}' \
                                 % (pkg, 'dev' if pkg.endswith('-dev') else 'main') for pkg in d.getVar('CUDA_PKG').split()])} \
 	           ${CUDA_LICENSE_PKG}"
@@ -12,8 +12,8 @@ SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGA
 
 SRC_URI[main.sha256sum] = "${MAINSUM}"
 SRC_URI[dev.sha256sum] = "${DEVSUM}"
-LICSUM ?= "1e99e55e94c24695461fe1e4a5830bff601a57946fb1623c111ec36d8d49a9d3"
-LICSUM:x86-64 ?= "26eaf6b0d1125c67a811ed4e3f73dc27e6668e49a6f0ca9a15d0a20f87fb156c"
+LICSUM ?= "fa976b3f74f2fbfe0653ad1796d70fc0910950cca6c4b1eae758ddc26c33551e"
+LICSUM:x86-64 ?= "5a7e9103c6cfd60a7ff3290db5f07cf6a3dcbf29799ff0b59c3404a00751928b"
 SRC_URI[lic.sha256sum] = "${LICSUM}"
 L4T_DEB_GROUP[lic] = "cuda-documentation"
 
@@ -23,7 +23,7 @@ inherit ${CUDA_DL_CLASS}
 
 DESCRIPTION = "CUDA package ${PN}"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM ?= "file://usr/local/cuda-12.2/EULA.txt;md5=d43b70e08c9cd63c838dc661b6f1a763"
+LIC_FILES_CHKSUM ?= "file://usr/local/cuda-${CUDA_VERSION}/EULA.txt;md5=929c95a6164f11b95d0001c9bc136926"
 
 DEPENDS ?= "cuda-cudart"
 CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"

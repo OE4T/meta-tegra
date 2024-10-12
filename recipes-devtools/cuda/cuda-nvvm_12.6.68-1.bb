@@ -3,8 +3,8 @@ L4T_DEB_GROUP = "cuda-nvcc"
 
 require cuda-shared-binaries.inc
 
-MAINSUM = "1ce8fac08a532f9202f1395a4b2c7be78cf9976663373cf563d79e7164b3b158"
-MAINSUM:x86-64 = "7cd46649dbad60b59860f0965d92eea87f783abfe2cbd2c9b49a0c8544161e3a"
+MAINSUM = "32ba801d719a593cb35abd4aeb93c672c0a02d47539455b5780c6004f03462cd"
+MAINSUM:x86-64 = "dd229d8e29d5c6ab5d55c7de31efbcf9d89f490cff600555c0d33eb6c106e57b"
 
 FILES:${PN} = "${prefix}/local/cuda-${CUDA_VERSION}"
 FILES:${PN}-dev = ""

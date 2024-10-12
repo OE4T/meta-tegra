@@ -107,7 +107,7 @@ PREFERRED_RPROVIDER_kernel-module-snd-soc-tegra210-sfc ?= "nv-kernel-module-snd-
 PREFERRED_RPROVIDER_kernel-module-tegra-bpmp-thermal ?= "nv-kernel-module-tegra-bpmp-thermal"
 PREFERRED_RPROVIDER_kernel-module-tegra-drm ?= "nv-kernel-module-tegra-drm"
 
-CUDA_VERSION ?= "12.2"
+CUDA_VERSION ?= "12.6"
 CUDA_ARCHITECTURES ?= "${TEGRA_CUDA_ARCHITECTURE}"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_${TEGRA_CUDA_ARCHITECTURE} --gpu-code=sm_${TEGRA_CUDA_ARCHITECTURE}"
 
