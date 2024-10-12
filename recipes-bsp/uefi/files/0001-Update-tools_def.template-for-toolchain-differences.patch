@@ -1,6 +1,6 @@
-From 3c436fd0ec658b315edac10a170093f32b73754b Mon Sep 17 00:00:00 2001
+From d96ca1c5f34f352d367e07c92f8e73c091a385f3 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Mon, 20 May 2024 10:59:27 -0700
+Date: Sat, 12 Oct 2024 06:43:03 -0700
 Subject: [PATCH] Update tools_def.template for toolchain differences
 
 * Add support for passing SOURCE_DATE_EPOCH and DEBUG_PREFIX_MAP from environment
@@ -45,5 +45,5 @@ index 1395ce9ad0..a41189ba1b 100755
  DEFINE GCC48_ARM_CC_XIPFLAGS         = DEF(GCC_ARM_CC_XIPFLAGS)
  DEFINE GCC48_AARCH64_CC_FLAGS        = $(PLATFORM_FLAGS) -mcmodel=large DEF(GCC_AARCH64_CC_FLAGS)
 -- 
-2.34.1
+2.43.0
 
