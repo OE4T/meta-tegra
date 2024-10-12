@@ -5,8 +5,8 @@ require cuda-shared-binaries.inc
 DEPENDS:tegra = "tegra-libraries-nvml"
 
 L4T_DEB_GROUP = "${BPN}-dev"
-DEVSUM = "656284c7c71c43b9d5cab213e01132369c79d32a11d8d9ffc841c0460a833604"
-DEVSUM:x86-64 = "6bf315a0a15faa718da18e78910918339e096ff1e68e3d89970f4b3a760b5864"
+DEVSUM = "2a1050aff1a8297dc1bab6cdce2c35daf47eb6e77412d544b35e809e75f2746b"
+DEVSUM:x86-64 = "812a1261a29df7e231a14764c94a87400c141eecc0a92dd062001e0d8c6e2504"
 
 ALLOW_EMPTY:${PN} = "1"
 FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/nvml/example"
