@@ -6,20 +6,20 @@ LICENSE .= " & Proprietary"
 
 LIC_FILES_CHKSUM += "file://../edk2-platforms/License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia/LICENSE;md5=52d8683e3d65a77ef84cc863e3f24f25"
-LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-chips-platform.efi;md5=549bbaa72578510a18ba3c324465027c"
+LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-chips-platform.efi;md5=782048cadee3851a0da2b4a3fdae0d93"
 
 inherit python3native
 
 DEPENDS += "dtc-native python3-kconfiglib-native"
 
-SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r36.3.0-updates"
-SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r36.3.0-updates"
-SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r36.3.0-updates"
-SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r36.3.0-updates"
+SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r36.4.0-updates"
+SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r36.4.0-updates"
+SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r36.4.0-updates"
+SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r36.4.0-updates"
 
 SRCREV_edk2-non-osi = "8c09bd0955338db38813e0d8ae1faa634f545f73"
-SRCREV_edk2-nvidia = "81336553c0720aa3f431f24f10f3b4fb95464af1"
-SRCREV_edk2-nvidia-non-osi = "e0852f9942a5591ba5960501a53ad684c172354c"
+SRCREV_edk2-nvidia = "5de7ef09811a06475248bf07661f7ae53e1c106d"
+SRCREV_edk2-nvidia-non-osi = "7d8b0a5f9e3e9d6cc58ee7f3f4036cfc8f21970c"
 SRCREV_edk2-platforms = "0b05eaed3d0c624a2084034fcc2bd0721809d041"
 
 SRC_URI += "\
@@ -34,7 +34,7 @@ SRCREV_FORMAT = "edk2_edk2-platforms_edk2-non-osi_edk2-nvidia_edk2-nvidia-non-os
 SRC_URI += "\
     file://0001-Update-tools_def.template-for-toolchain-differences.patch \
     file://0002-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=../edk2-nvidia \
-    file://0003-Remove-BUILD_EPOCH-definitions-from-RTC-inf-files.patch;patchdir=../edk2-nvidia \
+    file://0003-XusbControllerDxe-use-BaseMemoryLib-functions.patch;patchdir=../edk2-nvidia \
 "
 
 S = "${WORKDIR}/edk2-tegra/edk2"
