@@ -12,5 +12,6 @@ ALLOW_EMPTY:${PN} = "1"
 FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/nvml/example"
 EXCLUDE_PACKAGES_FROM_SHLIBS = ""
 PRIVATE_LIBS = "libnvidia-ml.so.1"
+INSANE_SKIP:${PN}-stubs += "staticdev"
 
 BBCLASSEXTEND = "native nativesdk"
