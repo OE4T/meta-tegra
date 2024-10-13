@@ -296,10 +296,17 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
             exit 1
         fi
         CHIP_SKU=$($here/chkbdinfo -C chip_info.bin_bak | tr -d '[:space:]')
+        board_ramcode=$($here/chkbdinfo -R chip_info.bin_bak)
+        if [ -z "$board_ramcode" ]; then
+            echo "ERR: ramcode could not be extracted from chip info" >&2
+            exit 1
+        fi
+        board_ramcode="$(echo "$board_ramcode" | cut -d: -f4)"
+        board_ramcode=$((16#$board_ramcode % 16))
+        RAMCODE="$board_ramcode"
         # XXX- these don't appear to be used
         # chip_minor_revision=$($here/chkbdinfo -M chip_info.bin_bak)
         # bootrom_revision=$($here/chkbdinfo -O chip_info.bin_bak)
-        # ramcode_id=$($here/chkbdinfo -R chip_info.bin_bak)
         # -XXX
     fi
     skipuid=""
@@ -379,6 +386,7 @@ else
     chip_sku=$CHIP_SKU
 fi
 
+ramcodeargs=
 if [ "$CHIPID" = "0x23" ]; then
     if [ "$BOARDID" = "3701" ]; then
         case $chip_sku in
@@ -398,7 +406,9 @@ if [ "$CHIPID" = "0x23" ]; then
                 exit 1
                 ;;
         esac
-        if [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
+        if [ "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
+            PMICBOARDSKU="0005"
+        elif [ "$BOARDSKU" = "0000" -a "$FAB" != "QS1" ]; then
             PMICBOARDSKU="0005"
         else
             PMICBOARDSKU="0000"
@@ -462,6 +472,10 @@ if [ "$CHIPID" = "0x23" ]; then
         PMC_CONFIG=$(echo "$PMC_CONFIG" | sed -e"s,@PMCREV@,$PMCREV,")
         PMIC_CONFIG=$(echo "$PMIC_CONFIG" | sed -e"s,@PMICREV@,$PMICREV,")
         BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,@BPFDTBREV@,$BPFDTBREV,")
+    fi
+
+    if [ -n "$RAMCODE" ]; then
+        ramcodeargs="--ramcode $RAMCODE"
     fi
 
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS}";
@@ -650,7 +664,7 @@ if [ $want_signing -eq 1 ]; then
           --cfg flash.xml \
           --bct_backup \
           --boot_chain A \
-          $bctargs $extdevargs $BINSARGS"
+          $bctargs $ramcodeargs $extdevargs $BINSARGS"
     FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
