@@ -22,7 +22,7 @@ SRC_COMMON_DEBS = "\
 "
 L4T_DEB_GROUP[dev] = "vpi3-dev"
 SRC_URI[lib.sha256sum] = "5589eac155bba4a2f881963bb4e3c4cd06c7fc0fa12cb6d73196dca496daab1b"
-SRC_URI[dev.sha256sum] = "d073a25920a35d92b69bb08e41a1b93f76050a7fb567a89aa327b9349cefd843"
+SRC_URI[dev.sha256sum] = "6425dbf2c0fc00b2ab5b323c3834bda52edad7101d80176b0385c2a1d0e63ce8"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
