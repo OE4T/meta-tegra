@@ -1,5 +1,5 @@
 DESCRIPTION = "NVIDIA TensorRT Prebuilt Plugins for deep learning"
-LICENSE = "Proprietary"
+LICENSE = "Apache-2.0"
 
 inherit l4t_deb_pkgfeed features_check
 
@@ -8,28 +8,28 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvonnxparsers8_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvonnxparsers8_${PV}+cuda12.5_arm64.deb;name=onnx;subdir=tensorrt \
+    libnvonnxparsers10_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvonnxparsers10_${PV}+cuda12.5_arm64.deb;name=onnx;subdir=tensorrt \
     libnvonnxparsers-dev_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvonnxparsers-dev_${PV}+cuda12.5_arm64.deb;name=onnxdev;subdir=tensorrt \
-    libnvinfer-plugin8_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-plugin8_${PV}+cuda12.5_arm64.deb;name=plugin;subdir=tensorrt \
+    libnvinfer-plugin10_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-plugin10_${PV}+cuda12.5_arm64.deb;name=plugin;subdir=tensorrt \
     libnvinfer-plugin-dev_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-plugin-dev_${PV}+cuda12.5_arm64.deb;name=plugindev;subdir=tensorrt \
     libnvinfer-headers-plugin-dev_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-headers-plugin-dev_${PV}+cuda12.5_arm64.deb;name=hplugindev;subdir=tensorrt \
-    libnvinfer-vc-plugin8_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-vc-plugin8_${PV}+cuda12.5_arm64.deb;name=vc;subdir=tensorrt \
+    libnvinfer-vc-plugin10_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-vc-plugin10_${PV}+cuda12.5_arm64.deb;name=vc;subdir=tensorrt \
     libnvinfer-vc-plugin-dev_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-vc-plugin-dev_${PV}+cuda12.5_arm64.deb;name=vcdev;subdir=tensorrt \
 "
 
-SRC_URI[onnx.sha256sum] = "993a8c0290044ff82849b8799119da81af1c5b43b63d5aa090def3b0baf2ee1a"
-SRC_URI[onnxdev.sha256sum] = "58fa4ad302c46948457d545c1ac93d8d6c509c3466bd903a88934d6af9a11672"
-SRC_URI[plugin.sha256sum] = "b36da0b64794ae1d8a64aaff0d61a588aba1461bcb0b3e87b0d9672076255e5d"
-SRC_URI[plugindev.sha256sum] = "32033dd29d0b04e2c3fe5e65dfbda2f3b61bb3869410e61f80e358603137f824"
+SRC_URI[onnx.sha256sum] = "042e21f28a271934d3c497504b41533e25f044893474e7567e3042e803384950"
+SRC_URI[onnxdev.sha256sum] = "8a6675f3d444dead0e0430fb4e7e6b546af9d9a72414ee8964b18edf1fb28756"
+SRC_URI[plugin.sha256sum] = "709a8b3111e4d5966abaa806de3282c59586e175f3db9898f3f2a3bf93a5886b"
+SRC_URI[plugindev.sha256sum] = "d61e98f8f477143a5a211bc01b3f240875700af591cc117b77af44f18433a941"
 SRC_URI[hplugindev.sha256sum] = "ce43de06fdcaa65bb11378df10973bf726aa1c83f0ee53709d53b5b8c5a2d09f"
-SRC_URI[vc.sha256sum] = "f82f768196ed7d13de2241b1c370048fac9506a93fee9affbaaeab7c9f0d76e4"
-SRC_URI[vcdev.sha256sum] = "316b7645afcaf638f3c6a03375b9fb4b71fbb5154c02d2c57843c1af67670aaf"
+SRC_URI[vc.sha256sum] = "318238a61b8a434ed54d148c05b31bebca0ad072657721a596190177fc1306d5"
+SRC_URI[vcdev.sha256sum] = "86bc05dc389a94146c698e175505c7ca6b45d54d87f08865caf39fa92d0771c9"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInferPlugin.h;endline=11;md5=117f6d17a39656035fa9d36b73ca4916"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInferPlugin.h;endline=16;md5=cac95541e748626c31067a3f6573562f"
 
 def extract_basever(d):
     ver = d.getVar('PV').split('-')[0]
