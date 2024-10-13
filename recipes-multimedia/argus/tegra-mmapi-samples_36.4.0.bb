@@ -7,7 +7,6 @@ SRC_URI += "\
     file://0003-tools-update-GetPixel.py-to-Python-3.patch \
     file://0004-samples-classes-fix-a-data-race-in-shutting-down-deq.patch \
     file://0005-samples-Rework-makefiles-and-rules.patch \
-    file://0006-trt_inference-use-smart-pointers-during-model-conver.patch \
     file://0007-frontend-add-option-to-set-timeout.patch \
     file://0008-camera_v4l2_cuda-add-option-for-setting-max-frame-co.patch \
     file://0010-NvJpegDecoder-remove-unused-header-file.patch \
