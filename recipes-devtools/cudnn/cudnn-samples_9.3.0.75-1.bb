@@ -1,7 +1,7 @@
 SUMMARY = "NVIDIA CUDA Deep Neural Network samples"
 HOMEPAGE = "https://developer.nvidia.com/cudnn"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/src/cudnn_samples_v8/RNN_v8.0/RNN_example.h;endline=10;md5=b4c8c209af2f8f4b0605c51b30f587c2"
+LIC_FILES_CHKSUM = "file://usr/src/cudnn_samples_v9/RNN_v8.0/RNN_example.h;endline=10;md5=279f10cad80a69894c566bd5319e2a03"
 
 inherit l4t_deb_pkgfeed
 
@@ -10,9 +10,9 @@ L4T_DEB_GROUP = "cudnn-samples"
 DEPENDS = "cudnn"
 
 SRC_COMMON_DEBS = "\
-    libcudnn8-samples_${PV}+cuda12.2_arm64.deb;name=samples;subdir=cudnn \
+    libcudnn9-samples_${PV}_all.deb;name=samples;subdir=cudnn \
 "
-SRC_URI[samples.sha256sum] = "4634422d33251411e0c0129ea0814d792992f29324cc2ee1d18f76fd061d16fd"
+SRC_URI[samples.sha256sum] = "d823a34d283bc12416e1a3606be83f50ee75d6ad59ae206a4ed037f60c79e215"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
