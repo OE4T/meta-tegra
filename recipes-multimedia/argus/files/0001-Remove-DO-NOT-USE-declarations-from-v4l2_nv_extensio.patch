@@ -12,13 +12,13 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  include/v4l2_nv_extensions.h | 206 -----------------------------------
  1 file changed, 206 deletions(-)
 
-diff --git a/include/v4l2_nv_extensions.h b/include/v4l2_nv_extensions.h
-index 604974e..fc092d5 100644
---- a/include/v4l2_nv_extensions.h
-+++ b/include/v4l2_nv_extensions.h
-@@ -129,22 +129,6 @@
+Index: jetson_multimedia_api/include/v4l2_nv_extensions.h
+===================================================================
+--- jetson_multimedia_api.orig/include/v4l2_nv_extensions.h
++++ jetson_multimedia_api/include/v4l2_nv_extensions.h
+@@ -135,22 +135,6 @@
   */
- #define V4L2_EVENT_RESOLUTION_CHANGE        5
+ #define V4L2_EVENT_SVC_DATA                 7
  
 -/** @cond UNUSED */
 -/* >> The declarations from here to the next endcond statement are not
@@ -39,7 +39,7 @@ index 604974e..fc092d5 100644
  /**
   * Defines the control ID to set the H.265 encoder profile.
   *
-@@ -172,196 +156,6 @@ enum v4l2_mpeg_video_h265_profile {
+@@ -164,196 +148,6 @@
   */
  #define V4L2_CID_MPEG_VIDEO_IDR_INTERVAL        (V4L2_CID_MPEG_BASE+514)
  
@@ -236,6 +236,3 @@ index 604974e..fc092d5 100644
  /*---------------Add below NVIDIA specific extensions ----------------------*/
  
  /**
--- 
-2.25.1
-
