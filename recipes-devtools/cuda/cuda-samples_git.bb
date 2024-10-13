@@ -5,15 +5,15 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=bb28b97ff25ae39de442985ec577dbd8"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-SRC_URI = "git://github.com/NVIDIA/cuda-samples.git;protocol=https;nobranch=1"
-# v12.2 tag, which does not reside on any branch
-SRCREV = "1fa9c59db4ee8b34c4efa5b6e8fbd2a8c72a93ce"
+SRC_URI = "git://github.com/NVIDIA/cuda-samples.git;protocol=https;branch=master"
+# v12.5 tag
+SRCREV = "9c688d7ff78455ed42e345124d1495aad6bf66de"
 
 inherit cuda
 
 DEPENDS:append = "cuda-crt"
 
-PV = "12.2"
+PV = "12.5"
 CUDA_NVCC_ARCH_FLAGS ??= ""
 
 def extract_sm(d):
