@@ -10,11 +10,13 @@ L4T_DEB_GROUP = "cudnn"
 DEPENDS = "libcublas zlib"
 
 SRC_COMMON_DEBS = "\
-    libcudnn8_${PV}+cuda12.2_arm64.deb;name=lib;subdir=cudnn \
-    libcudnn8-dev_${PV}+cuda12.2_arm64.deb;name=dev;subdir=cudnn \
+    libcudnn9-cuda-12_${PV}_arm64.deb;name=lib;subdir=cudnn \
+    libcudnn9-static-cuda-12_${PV}_arm64.deb;name=staticlib;subdir=cudnn \
+    libcudnn9-dev-cuda-12_${PV}_arm64.deb;name=dev;subdir=cudnn \
 "
-SRC_URI[lib.sha256sum] = "e6cbd1c40552340bc5a1e80707d30af67d368d071c7111f0556b411ad8d73593"
-SRC_URI[dev.sha256sum] = "9c531db5b96a76cc480f8f70ed6ad6a544e5201d65f8d67ca76e74002cec9c88"
+SRC_URI[lib.sha256sum] = "0f3a869f4b9f5c20912acfb043c911f210304a554de27c71346638ac73c96377"
+SRC_URI[staticlib.sha256sum] = "8f951856fedc3b890b56109917e2877413c5c49a2d2cb81a4dd4d30269d2d565"
+SRC_URI[dev.sha256sum] = "749c910beca1b32216a0dbb2705aac261c3180437eb69922cb70932c2315ceff"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
