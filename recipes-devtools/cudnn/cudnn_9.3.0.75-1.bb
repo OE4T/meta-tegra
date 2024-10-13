@@ -1,7 +1,7 @@
 SUMMARY = "NVIDIA CUDA Deep Neural Network library"
 HOMEPAGE = "https://developer.nvidia.com/cudnn"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v8.h;endline=48;md5=11e690c2afb545fc389ff0637693b996"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/cudnn_v9.h;endline=48;md5=11e690c2afb545fc389ff0637693b996"
 
 inherit l4t_deb_pkgfeed
 
