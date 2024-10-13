@@ -9,7 +9,6 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/libgstnvvideosinks_src.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-36.4.0.inc
 
 SRC_URI += "file://0001-build-fixups.patch"
-SRC_URI += "file://0002-nv3dsink-memory-leak-fix.patch"
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl \
            tegra-libraries-multimedia tegra-libraries-multimedia-utils \
