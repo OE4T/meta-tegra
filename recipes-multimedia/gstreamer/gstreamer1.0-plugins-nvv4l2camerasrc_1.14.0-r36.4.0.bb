@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA v4l2camerasrc GStreamer plugin"
 SECTION = "multimedia"
 LICENSE = "BSD-3-Clause & Proprietary"
-LIC_FILES_CHKSUM = "file://nvbufsurface.h;endline=9;md5=15dccc547ee18664b1b6d1ece602942b \
+LIC_FILES_CHKSUM = "file://nvbufsurface.h;endline=9;md5=ba9f51385aebf755c973fc0a6b2277ad \
                     file://README.txt;endline=25;md5=afc286435ccd143c9a10b5d7a8c1dee1 \
 "
 
