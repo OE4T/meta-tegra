@@ -354,6 +354,10 @@ fi
 
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
 
+if [ -z "$RAMCODE" -a "$BOARDID" = "3701" -a "$FAB" = "301" ]; then
+    RAMCODE=0
+fi
+
 rm -f boardvars.sh
 cat >boardvars.sh <<EOF
 BOARDID="$BOARDID"
@@ -363,6 +367,9 @@ BOARDREV="$BOARDREV"
 CHIPREV="$CHIPREV"
 CHIP_SKU="$CHIP_SKU"
 EOF
+if [ -n "$RAMCODE" ]; then
+    echo "RAMCODE=$RAMCODE" >>boardvars.sh
+fi
 if [ -n "$serial_number" ]; then
     echo "serial_number=$serial_number" >>boardvars.sh
 fi
@@ -374,10 +381,6 @@ if [ -n "$BR_CID" ]; then
 fi
 if [ -n "$CHIP_SKU" ]; then
     echo "CHIP_SKU=\"$CHIP_SKU\"" >>boardvars.sh
-fi
-
-if [ "$BOARDID" = "3701" -a "$FAB" = "301" ]; then
-    RAMCODE=0
 fi
 
 if echo "$CHIP_SKU" | grep -q ":" 2>/dev/null; then
