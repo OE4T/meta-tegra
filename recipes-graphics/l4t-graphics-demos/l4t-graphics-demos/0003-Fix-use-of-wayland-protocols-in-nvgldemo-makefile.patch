@@ -1,0 +1,65 @@
+From 828e67c0da236e82ab31cd92a599269579e34194 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 13 Oct 2024 10:26:36 -0700
+Subject: [PATCH] Fix use of wayland protocols in nvgldemo makefile
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../nvidia/graphics_demos/nvgldemo/Makefile   | 34 ++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
+
+diff --git a/usr/src/nvidia/graphics_demos/nvgldemo/Makefile b/usr/src/nvidia/graphics_demos/nvgldemo/Makefile
+index 2637b5a..0609f4b 100644
+--- a/usr/src/nvidia/graphics_demos/nvgldemo/Makefile
++++ b/usr/src/nvidia/graphics_demos/nvgldemo/Makefile
+@@ -28,6 +28,15 @@ ifeq ($(NV_WINSYS),screen)
+ endif
+ ifeq ($(NV_WINSYS),wayland)
+  NVGLDEMO_OBJS += wayland/nvgldemo_win_wayland.o
++ PROTOCOLS :=
++ PROTOCOLS += $(NV_WINSYS)/xdg-shell-client-protocol.h
++ PROTOCOLS += $(NV_WINSYS)/linux-explicit-synchronization-unstable-v1-client-protocol.h
++ INTERMEDIATES += $(PROTOCOLS)
++ CFLAGS += -I$(NV_WINSYS)/
++
++ PROTOCOLSDIR := $(shell pkg-config --variable=pkgdatadir wayland-protocols)
++
++ NVGLDEMO_OBJS += $(patsubst %.h,%.o,$(PROTOCOLS))
+ endif
+ ifeq ($(NV_WINSYS),x11)
+  NVGLDEMO_OBJS += x11/nvgldemo_win_x11.o
+@@ -53,9 +62,32 @@ FORCE:
+ 
+ $(NV_WINSYS)/libnvgldemo.a: $(NV_WINSYS)/libnvgldemo.a($(NVGLDEMO_OBJS))
+ 
++ifeq ($(NV_WINSYS),wayland)
++wayland/nvgldemo_win_wayland.o: $(PROTOCOLS)
++endif
++
++define protocol-rule
++$(1).h: FORCE
++	@mkdir -p $(dir $(1))
++ifeq ($(findstring unstable,$(1)),)
++	wayland-scanner client-header $$(PROTOCOLSDIR)/stable/$$(shell echo $$(notdir $(1)) | sed -e's,-client-protocol.*,,')/$(patsubst %-client-protocol,%.xml,$(notdir $(1))) $$@
++else
++	wayland-scanner client-header $$(PROTOCOLSDIR)/unstable/$$(shell echo $$(notdir $(1)) | sed -e's,-unstable.*,,')/$(patsubst %-client-protocol,%.xml,$(notdir $(1))) $$@
++endif
++$(1).c: $(1).h
++ifeq ($(findstring unstable,$(1)),)
++	wayland-scanner private-code $$(PROTOCOLSDIR)/stable/$$(shell echo $$(notdir $(1)) | sed -e's,-client-protocol.*,,')/$(patsubst %-client-protocol,%.xml,$(notdir $(1))) $$@
++else
++	wayland-scanner private-code $$(PROTOCOLSDIR)/unstable/$$(shell echo $$(notdir $(1)) | sed -e's,-unstable.*,,')/$(patsubst %-client-protocol,%.xml,$(notdir $(1))) $$@
++endif
++$(1).o: $(1).c
++	@mkdir -p $(dir $(1))
++	$$(COMPILE.c) $$(OUTPUT_OPTION) $$<
++endef
++
+ define demolib-rule
+ $(1): FORCE
+ 	$(MAKE) -C $$(subst $$(NV_WINSYS)/,,$$(dir $$@))
+ endef
+ $(foreach demolib,$(NVGLDEMO_DEMOLIBS),$(eval $(call demolib-rule,$(demolib))))
+-
++$(foreach protocol,$(PROTOCOLS),$(eval $(call protocol-rule,$(basename $(protocol)))))
