@@ -1,60 +1,27 @@
-From 800ade095be320586162e08fe8dc94db56f8493f Mon Sep 17 00:00:00 2001
+From a007d9400002107b044774c688ac327f0df22fa2 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Fri, 11 Mar 2022 11:20:55 -0800
+Date: Mon, 14 Oct 2024 02:19:11 -0700
 Subject: [PATCH] Fixups for cross building in OE
 
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- python/CMakeLists.txt                | 9 ++-------
- python/include/ForwardDeclarations.h | 2 +-
- 2 files changed, 3 insertions(+), 8 deletions(-)
+ python/CMakeLists.txt | 5 -----
+ 1 file changed, 5 deletions(-)
 
 diff --git a/python/CMakeLists.txt b/python/CMakeLists.txt
-index 5672db9..5f46c90 100644
+index 49f5d8a1..9f891ffe 100644
 --- a/python/CMakeLists.txt
 +++ b/python/CMakeLists.txt
-@@ -36,11 +36,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/tensorrt/)
- set(CPP_STANDARD 11 CACHE STRING "CPP Standard Version")
+@@ -38,11 +38,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TENSORRT_MODULE}/)
+ set(CPP_STANDARD 14 CACHE STRING "CPP Standard Version")
  set(CMAKE_CXX_STANDARD ${CPP_STANDARD})
  
 -if (NOT MSVC)
 -    # This allows us to use TRT libs shipped with standalone wheels.
--    set(CMAKE_SHARED_LINKER_FLAGS -Wl,-rpath=$ORIGIN)
+-    set(CMAKE_SHARED_LINKER_FLAGS -Wl,-rpath=$ORIGIN:$ORIGIN/../${TENSORRT_MODULE}_libs)
 -endif()
 -
- set(PY_MODULE_NAME tensorrt)
- 
  # -------- PATHS --------
-@@ -58,7 +53,7 @@ set_ifndef(WIN_EXTERNALS ${EXT_PATH})
- message(STATUS "WIN_EXTERNALS: ${WIN_EXTERNALS}")
- 
- # Convert to an absolute path.
--set_ifndef(ONNX_INC_DIR ${TENSORRT_ROOT}/parsers/)
-+set_ifndef(ONNX_INC_DIR ${TENSORRT_ROOT}/parsers/onnx/)
- find_path(PYBIND11_DIR pybind11/pybind11.h HINTS ${EXT_PATH} ${WIN_EXTERNALS} PATH_SUFFIXES pybind11/include)
- 
- message(STATUS "ONNX_INC_DIR: ${ONNX_INC_DIR}")
-@@ -114,7 +109,7 @@ if (MSVC)
-         set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
-     endif()
- else()
--    set(CMAKE_CXX_FLAGS "-fvisibility=hidden -std=c++${CPP_STANDARD} -Wno-deprecated-declarations")
-+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fvisibility=hidden -std=c++${CPP_STANDARD} -Wno-deprecated-declarations")
- endif()
- 
- # Update linker
-diff --git a/python/include/ForwardDeclarations.h b/python/include/ForwardDeclarations.h
-index d9d891a..9a6c7a7 100644
---- a/python/include/ForwardDeclarations.h
-+++ b/python/include/ForwardDeclarations.h
-@@ -32,7 +32,7 @@ using ssize_t = int64_t;
- #include "NvInfer.h"
- #include "NvInferPlugin.h"
- #include "NvUffParser.h"
--#include "onnx/NvOnnxParser.h"
-+#include "NvOnnxParser.h"
- 
- // We need to avoid making copies of PluginField because it does not own any of it's members.
- // When there are multiple PluginFields pointing to the same data in Python, bad things happen.
--- 
-2.32.0
-
+ message(STATUS "EXT_PATH: ${EXT_PATH}")
+ message(STATUS "TENSORRT_BUILD: ${TENSORRT_BUILD}")
