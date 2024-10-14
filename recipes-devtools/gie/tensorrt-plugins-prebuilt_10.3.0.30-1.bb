@@ -45,7 +45,7 @@ MAJVER = "${@extract_majver(d)}"
 
 S = "${WORKDIR}/tensorrt"
 
-DEPENDS = "cuda-cudart cudnn tensorrt-core libcublas"
+DEPENDS = "cuda-cudart tensorrt-core"
 
 do_configure() {
     :
@@ -75,6 +75,7 @@ do_install() {
     ln -s libnvonnxparser.so.${MAJVER} ${D}${libdir}/libnvonnxparser.so
 }
 
+RDEPENDS:${PN} += "cudnn libcublas"
 PROVIDES = "tensorrt-plugins"
 RPROVIDES:${PN} = "tensorrt-plugins"
 RCONFLICTS:${PN} = "tensorrt-plugins"
