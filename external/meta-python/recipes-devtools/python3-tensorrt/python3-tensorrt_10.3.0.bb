@@ -1,7 +1,7 @@
 SUMMARY = "Python bindings for TensorRT"
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://python/packaging/LICENSE.txt;md5=c291e0a531e08d4914e269730ba2f70d"
+LIC_FILES_CHKSUM = "file://python/packaging/bindings_wheel/LICENSE.txt;md5=0f58ca2991dd21e8f5c268a18ac2535b"
 
 DEPENDS = "python3-pybind11 tensorrt-core tensorrt-plugins"
 
@@ -10,19 +10,20 @@ COMPATIBLE_MACHINE = "(tegra)"
 inherit setuptools3 cmake cuda
 
 SRC_REPO = "github.com/NVIDIA/TensorRT.git;protocol=https"
-SRCBRANCH = "release/8.5"
-SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH} \
+SRCBRANCH = "release/10.3"
+SRC_URI = "gitsm://${SRC_REPO};branch=${SRCBRANCH} \
            file://0001-Fixups-for-cross-building-in-OE.patch \
            "
-# 8.5.2 tag
-SRCREV = "ad932f72126f875392a4336d9ee45b2756d934a0"
+# v10.3.0 tag
+SRCREV = "c5b9de37f7ef9034e2efc621c664145c7c12436e"
 
 S = "${WORKDIR}/git"
 
 OECMAKE_SOURCEPATH = "${S}/python"
 SETUPTOOLS_SETUP_PATH = "${B}"
 
-EXTRA_OECMAKE = "-DONNX_INC_DIR=${STAGING_INCDIR} -DPYBIND11_DIR=${STAGING_DIR_TARGET} \
+EXTRA_OECMAKE = "-DTENSORRT_ROOT=${S} -DTENSORRT_LIBPATH=${STAGING_LIBDIR} -DTENSORRT_MODULE=tensorrt \
+                 -DCUDA_INCLUDE_DIRS=${CUDA_PATH}/include \
                  -DTARGET=${HOST_ARCH} -DCMAKE_BUILD_TYPE=Release \
                  -DPY_INCLUDE=${STAGING_INCDIR}/${PYTHON_DIR} -DEXT_PATH=${STAGING_INCDIR}"
 
@@ -38,15 +39,17 @@ do_configure() {
     TRT_MAJMINPATCH=${TRT_MAJOR}.${TRT_MINOR}.${TRT_PATCH}
     varsubst() {
         sed -e "s|\#\#TENSORRT_VERSION\#\#|${TRT_VERSION}|g" \
-	    -e "s|\#\#TENSORRT_MAJMINPATCH\#\#|${TRT_MAJMINPATCH}|g" $1 >$2
+	    -e "s|\#\#TENSORRT_MAJMINPATCH\#\#|${TRT_MAJMINPATCH}|g" \
+	    -e "s|\#\#TENSORRT_PYTHON_VERSION\#\#|${TRT_MAJMINPATCH}|g" \
+	    -e "s|\#\#TENSORRT_MODULE\#\#|tensorrt|g" $1 >$2
     }
 
     rm -rf ${B}/tensorrt
     mkdir ${B}/tensorrt
-    varsubst ${S}/python/packaging/setup.cfg ${B}/setup.cfg
-    varsubst ${S}/python/packaging/setup.py ${B}/setup.py
-    varsubst ${S}/python/packaging/tensorrt/__init__.py ${B}/tensorrt/__init__.py
-    cp ${S}/python/packaging/LICENSE.txt ${B}/
+    varsubst ${S}/python/packaging/bindings_wheel/setup.cfg ${B}/setup.cfg
+    varsubst ${S}/python/packaging/bindings_wheel/setup.py ${B}/setup.py
+    varsubst ${S}/python/packaging/bindings_wheel/tensorrt/__init__.py ${B}/tensorrt/__init__.py
+    cp ${S}/python/packaging/bindings_wheel/LICENSE.txt ${B}/
 }
 
 do_compile() {
