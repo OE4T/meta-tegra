@@ -139,17 +139,17 @@ sign_binaries() {
     if [ -z "$BOARDID" -o -z "$FAB" ]; then
 	wait_for_rcm
     fi
-    rm -rf rcm_blob
+    rm -rf rcmboot_blob
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
 	      BOOTCONTROL_OVERLAYS=L4TConfiguration-rcmboot.dtbo \
 	      "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" $instance_args \
 	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE; then
-	    ln -sf "$here/tegrarcm_v2" rcm_blob/
+	    ln -sf "$here/tegrarcm_v2" rcmboot_blob/
 	    cat > rcm-boot.sh <<EOF
 oldwd="\$PWD"
-cd rcm_blob
+cd rcmboot_blob
 EOF
-	    cat rcm_blob/rcmcmd.txt >> rcm-boot.sh
+	    cat rcmboot_blob/rcmbootcmd.txt >> rcm-boot.sh
 	    cat >> rcm-boot.sh <<EOF
 cd "\$oldwd"
 EOF
