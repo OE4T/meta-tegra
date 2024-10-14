@@ -1,6 +1,6 @@
-From e979a1e5646ff1b7cf0cb3cb6c79b71aafa99232 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Fri, 17 Nov 2023 12:37:46 +0000
+From ae048223ed692de173c6a80b2f82cd7459856948 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 13 Oct 2024 09:52:32 -0700
 Subject: [PATCH] Makefile fixups for OE builds
 
 Upstream-Status: Inappropriate [embedded specific]
@@ -9,10 +9,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  Makefile.public | 26 +++++++-------------------
  1 file changed, 7 insertions(+), 19 deletions(-)
 
-Index: gst-nvcustomhelper/Makefile.public
-===================================================================
---- gst-nvcustomhelper.orig/Makefile.public
-+++ gst-nvcustomhelper/Makefile.public
+diff --git a/Makefile.public b/Makefile.public
+index c44d95e..b8c02ec 100644
+--- a/Makefile.public
++++ b/Makefile.public
 @@ -21,8 +21,8 @@
  # DEALINGS IN THE SOFTWARE.
  ################################################################################ 
@@ -32,9 +32,9 @@ Index: gst-nvcustomhelper/Makefile.public
 -  LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
 -  CFLAGS:=
 -else
--  NVDS_VERSION ?=7.0
+-  NVDS_VERSION ?=7.1
 -  LIB_INSTALL_DIR ?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/
--  CFLAGS:= -DDS_VERSION=\"7.0.0\"
+-  CFLAGS:= -DDS_VERSION=\"7.1.0\"
 -endif
 -
  CFLAGS+= -fPIC
