@@ -1,0 +1,39 @@
+From 8153ac559f58412791495907f7c0e9f6bb76c255 Mon Sep 17 00:00:00 2001
+From: Sarah Newman <sarah.newman@bluerivertech.com>
+Date: Tue, 10 Sep 2024 10:22:21 -0700
+Subject: [PATCH 1/2] FvbWrite: Return EFI_NOT_READY when VarInt is null
+
+This should fix this crash:
+
+Ftw: Init.. find first record not SpareCompleted, abort()
+E/TC:?? 00
+E/TC:?? 00 User mode data-abort at address 0x40 (translation fault)
+E/TC:?? 00  esr 0x92000005  ttbr0 0x200103c1b3000   ttbr1 0x00000000   cidr 0x0
+....
+Failed to Open Session to OPTEE STMM 4294914084
+Failed to open Session to StMM/OPTEE Unsupported.
+
+Signed-off-by: Sarah Newman <sarah.newman@bluerivertech.com>
+---
+ .../NVIDIA/Drivers/FvbNorFlashDxe/FvbNorFlashStandaloneMm.c  | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/Silicon/NVIDIA/Drivers/FvbNorFlashDxe/FvbNorFlashStandaloneMm.c b/Silicon/NVIDIA/Drivers/FvbNorFlashDxe/FvbNorFlashStandaloneMm.c
+index cf2b16ec..41e6186b 100644
+--- a/Silicon/NVIDIA/Drivers/FvbNorFlashDxe/FvbNorFlashStandaloneMm.c
++++ b/Silicon/NVIDIA/Drivers/FvbNorFlashDxe/FvbNorFlashStandaloneMm.c
+@@ -404,6 +404,11 @@ FvbWrite (
+   BlockSize = Private->FlashAttributes.BlockSize;
+   LastBlock = (Private->PartitionSize / Private->FlashAttributes.BlockSize) - 1;
+   if (CheckVarStoreIntegrity == TRUE) {
++    if (VarInt == NULL) {
++      DEBUG ((DEBUG_ERROR, "%a: VarInt not ready yet, deferring.\n", __FUNCTION__));
++      return EFI_NOT_READY;
++    }
++
+     if (VarInt->CurMeasurement[0] == FVB_ERASED_BYTE) {
+       DEBUG ((
+         DEBUG_ERROR,
+-- 
+2.47.0
+
