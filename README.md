@@ -1,8 +1,10 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Jetson Modules
 ======================================================
 
-Jetson Linux release: R36.3.0
-JetPack release:      6.0
+***NOTE:*** This is a work in progress. Do not use for production.
+
+Jetson Linux release: R36.4.0
+JetPack release:      6.1
 
 Boards supported:
 * Jetson AGX Orin development kit
@@ -14,13 +16,13 @@ Boards supported:
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: master
-LAYERSERIES_COMPAT: scarthgap
+LAYERSERIES_COMPAT: styhead, walnascar
 
 
 CUDA toolchain compatibility note
 ---------------------------------
 
-CUDA 12.2 supports up through gcc 12 only, so recipes are included
+CUDA 12.6 supports up through gcc 13.2 only, so recipes are included
 for adding the gcc 10 toolchain to the build for CUDA use, and `cuda.bbclass`
 has been updated to pass the g++ 10 compiler to nvcc for CUDA code compilation.
 

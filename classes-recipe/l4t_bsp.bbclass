@@ -4,11 +4,11 @@ L4T_SRCS_NAME ??= "sources"
 L4T_BSP_PREFIX ??= "Jetson"
 
 inherit l4t_version
-L4T_LIB_VERSION ?= "540.3.0"
+L4T_LIB_VERSION ?= "540.4.0"
 
 # Version (date-time stamp) suffixes for nvidia-l4t-* packages
 # in the package feeds.
-L4T_BSP_DEB_DEFAULT_VERSION = "20240506102626"
+L4T_BSP_DEB_DEFAULT_VERSION = "20240912212859"
 L4T_BSP_DEB_VERSION ?= "${L4T_BSP_DEB_DEFAULT_VERSION}"
 L4T_BSP_DEB_ORIG_VERSION = ""
 L4T_BSP_DEB_PACKAGES_USING_ORIG_VERSION = ""

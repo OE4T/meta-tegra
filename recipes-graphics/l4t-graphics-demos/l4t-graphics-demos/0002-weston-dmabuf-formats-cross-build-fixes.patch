@@ -1,20 +1,21 @@
-From f064b0f4b1a934fd9c21a7c1ccff4017f942322f Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Wed, 9 Aug 2023 23:26:36 +0100
+From 1045a020db6b4341348332a1f062317b0f73aac9 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 13 Oct 2024 10:29:02 -0700
 Subject: [PATCH] weston-dmabuf-formats cross-build fixes
 
 Upstream-Status: Inappropriate [OE specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- .../weston-dmabuf-formats/Makefile            | 41 +++++++++++++++----
- 1 file changed, 34 insertions(+), 7 deletions(-)
+ .../weston-dmabuf-formats/Makefile            | 42 +++++++++++++++----
+ .../weston-dmabuf-formats.c                   | 34 +--------------
+ 2 files changed, 36 insertions(+), 40 deletions(-)
 
 diff --git a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
-index 5c4d9ea..95e5c6c 100644
+index 5c4d9ea..1c5ef8c 100644
 --- a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
 +++ b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
-@@ -28,8 +28,16 @@ WESTON-DMABUF-FORMATS_OBJS :=
+@@ -28,8 +28,17 @@ WESTON-DMABUF-FORMATS_OBJS :=
  WESTON-DMABUF-FORMATS_OBJS += $(NV_WINSYS)/weston-dmabuf-formats.o
  INTERMEDIATES += $(WESTON-DMABUF-FORMATS_OBJS)
  
@@ -24,6 +25,7 @@ index 5c4d9ea..95e5c6c 100644
 +PROTOCOLS += $(NV_WINSYS)/fullscreen-shell-unstable-v1-client-protocol.h
 +PROTOCOLS += $(NV_WINSYS)/xdg-shell-client-protocol.h
 +PROTOCOLS += $(NV_WINSYS)/linux-dmabuf-unstable-v1-client-protocol.h
++PROTOCOLS += $(NV_WINSYS)/linux-explicit-synchronization-unstable-v1-client-protocol.h
 +INTERMEDIATES += $(PROTOCOLS)
 +CFLAGS += -I$(NV_WINSYS)/ -I=$(includedir)/libdrm/nvidia
 +
@@ -33,7 +35,7 @@ index 5c4d9ea..95e5c6c 100644
  
  WESTON-DMABUF-FORMATS_LDLIBS :=
  WESTON-DMABUF-FORMATS_LDLIBS += -lm
-@@ -37,12 +45,9 @@ WESTON-DMABUF-FORMATS_LDLIBS += -lrt
+@@ -37,12 +46,9 @@ WESTON-DMABUF-FORMATS_LDLIBS += -lrt
  WESTON-DMABUF-FORMATS_LDLIBS += -lpthread
  WESTON-DMABUF-FORMATS_LDLIBS += -l:libEGL.so.1
  WESTON-DMABUF-FORMATS_LDLIBS += -l:libGLESv2.so.2
@@ -48,7 +50,7 @@ index 5c4d9ea..95e5c6c 100644
  WESTON-DMABUF-FORMATS_LDLIBS += ${NV_PLATFORM_WINSYS_LIBS}
  
  ifeq ($(findstring $(NV_WINSYS),egldevice screen wayland x11),)
-@@ -61,8 +66,30 @@ FORCE:
+@@ -61,8 +67,30 @@ FORCE:
  $(NV_WINSYS)/weston-dmabuf-formats: $(WESTON-DMABUF-FORMATS_OBJS) $(WESTON-DMABUF-FORMATS_DEMOLIBS)
  	$(LD) $(LDFLAGS) -o $@ $^ $(WESTON-DMABUF-FORMATS_LDLIBS)
  
@@ -79,3 +81,70 @@ index 5c4d9ea..95e5c6c 100644
  endef
  $(foreach demolib,$(WESTON-DMABUF-FORMATS_DEMOLIBS),$(eval $(call demolib-rule,$(demolib))))
 +$(foreach protocol,$(PROTOCOLS),$(eval $(call protocol-rule,$(basename $(protocol)))))
+diff --git a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/weston-dmabuf-formats.c b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/weston-dmabuf-formats.c
+index 87bf837..0881569 100644
+--- a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/weston-dmabuf-formats.c
++++ b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/weston-dmabuf-formats.c
+@@ -67,8 +67,6 @@
+ #include <GLES2/gl2.h>
+ #include <GLES2/gl2ext.h>
+ 
+-#include "balls_nv12_hex.h"
+-
+ #ifndef DRM_FORMAT_MOD_LINEAR
+ #define DRM_FORMAT_MOD_LINEAR 0
+ #endif
+@@ -143,18 +141,6 @@ typedef enum _rendering_type {
+ 	GL_RENDERING
+ } rendering_type;
+ 
+-static struct {
+-	uint8_t *data;
+-	uint32_t width;
+-	uint32_t height;
+-	uint32_t max_surface_planes;
+-} nv12_format_info = {
+-	balls_nv12_hex,
+-	BALLS_NV12_IMAGE_WIDTH,
+-	BALLS_NV12_IMAGE_HEIGHT,
+-	2
+-};
+-
+ struct display {
+ 	struct wl_display *display;
+ 	struct wl_registry *registry;
+@@ -414,19 +400,8 @@ static void
+ fill_content_bl(struct buffer *buf)
+ {
+ 	switch (buf->format) {
+-		case DRM_FORMAT_NV12:
+-		{
+-			uint32_t imageUVOffset = buf->width * buf->height;
+-
+-			Raw2NvBufSurface(nv12_format_info.data, 0, 0, buf->width,
+-					 buf->height, buf->surface);
+-			Raw2NvBufSurface(&nv12_format_info.data[imageUVOffset], 0, 1, buf->width / 2,
+-					 buf->height / 2, buf->surface);
+-			break;
+-		}
+-
+ 		default:
+-			fprintf(stderr, "Block linear formats other than NV12 are not supported.\n");
++			fprintf(stderr, "Block linear formats are not supported due to missing sources.\n");
+ 			break;
+ 	}
+ }
+@@ -2343,13 +2318,6 @@ main(int argc, char **argv)
+ 	if (!display)
+ 		return 1;
+ 
+-	if (opts & OPT_ALLOC_BLOCKLINEAR) {
+-		if (import_format == DRM_FORMAT_NV12) {
+-			width = nv12_format_info.width;
+-			height = nv12_format_info.height;
+-		}
+-	}
+-
+ 	window = create_window(display, width, height, import_format, opts);
+ 	if (!window) {
+ 		destroy_display(display);
