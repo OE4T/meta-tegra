@@ -1,4 +1,4 @@
 require gcc-for-nvcc-${PV}.inc
-require gcc-for-nvcc-source.inc
+require gcc-source-for-nvcc.inc
 
 EXCLUDE_FROM_WORLD = "1"
