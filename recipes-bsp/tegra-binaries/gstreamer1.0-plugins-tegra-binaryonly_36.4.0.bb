@@ -30,12 +30,14 @@ do_install() {
     # Remove the plugins we build from source
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvarguscamerasrc.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnveglglessink.so*
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstnvipcpipeline*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvjpeg.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvv4l2camerasrc.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvideo4linux2.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvideosinks.so*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvtee*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvdrmvideo*
+    rm -f ${D}${libdir}/gstreamer-1.0/libgstnvunixfd*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvvidconv*
     rm -f ${D}${libdir}/gstreamer-1.0/libgstnvcompositor*
 }
