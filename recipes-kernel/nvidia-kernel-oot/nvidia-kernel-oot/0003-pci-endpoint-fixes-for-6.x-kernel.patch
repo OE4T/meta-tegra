@@ -1,0 +1,102 @@
+From fa51a023a959949def15f51e4200f5c6e3661694 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Mon, 26 Aug 2024 11:20:30 -0700
+Subject: [PATCH] pci: endpoint: fixes for 6.x kernel
+
+Upstream-Status: Pending
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ .../pci/endpoint/functions/pci-epf-dma-test.c |  2 ++
+ .../endpoint/functions/pci-epf-tegra-vnet.c   | 24 +++++++++++++++++++
+ 2 files changed, 26 insertions(+)
+
+diff --git a/nvidia-oot/drivers/pci/endpoint/functions/pci-epf-dma-test.c b/nvidia-oot/drivers/pci/endpoint/functions/pci-epf-dma-test.c
+index 0c8a8b8..44a45dc 100644
+--- a/nvidia-oot/drivers/pci/endpoint/functions/pci-epf-dma-test.c
++++ b/nvidia-oot/drivers/pci/endpoint/functions/pci-epf-dma-test.c
+@@ -5,6 +5,8 @@
+  * Copyright (C) 2021-2023 NVIDIA Corporation. All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/crc32.h>
+ #include <linux/debugfs.h>
+ #include <linux/delay.h>
+diff --git a/nvidia-oot/drivers/pci/endpoint/functions/pci-epf-tegra-vnet.c b/nvidia-oot/drivers/pci/endpoint/functions/pci-epf-tegra-vnet.c
+index 5d4d50b..90f2abb 100644
+--- a/nvidia-oot/drivers/pci/endpoint/functions/pci-epf-tegra-vnet.c
++++ b/nvidia-oot/drivers/pci/endpoint/functions/pci-epf-tegra-vnet.c
+@@ -321,7 +321,11 @@ static void tvnet_ep_alloc_empty_buffers(struct pci_epf_tvnet *tvnet)
+ 		}
+ 
+ 		ret = iommu_map(domain, iova, page_to_phys(page), PAGE_SIZE,
++#if defined(NV_IOMMU_MAP_HAS_GFP_ARG)
++				IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE, GFP_KERNEL);
++#else
+ 				IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
++#endif
+ 		if (ret < 0) {
+ 			dev_err(tvnet->fdev, "%s: iommu_map(RAM) failed: %d\n",
+ 				__func__, ret);
+@@ -1237,7 +1241,11 @@ static int tvnet_ep_pci_epf_setup_irqsp(struct pci_epf_tvnet *tvnet)
+ 	syncpt_addr = nvhost_interrupt_syncpt_get_syncpt_addr(ctrl_irqsp->is);
+ #endif
+ 	ret = iommu_map(domain, amap->iova, syncpt_addr, PAGE_SIZE,
++#if defined(NV_IOMMU_MAP_HAS_GFP_ARG)
++			IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE, GFP_KERNEL);
++#else
+ 			IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
++#endif
+ 	if (ret < 0) {
+ 		dev_err(fdev, "%s: iommu_map of ctrlsp mem failed: %d\n",
+ 			__func__, ret);
+@@ -1256,7 +1264,11 @@ static int tvnet_ep_pci_epf_setup_irqsp(struct pci_epf_tvnet *tvnet)
+ 	syncpt_addr = nvhost_interrupt_syncpt_get_syncpt_addr(data_irqsp->is);
+ #endif
+ 	ret = iommu_map(domain, amap->iova + PAGE_SIZE, syncpt_addr, PAGE_SIZE,
++#if defined(NV_IOMMU_MAP_HAS_GFP_ARG)
++			IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE, GFP_KERNEL);
++#else
+ 			IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
++#endif
+ 	if (ret < 0) {
+ 		dev_err(fdev, "%s: iommu_map of datasp mem failed: %d\n",
+ 			__func__, ret);
+@@ -1323,7 +1335,11 @@ static int tvnet_ep_alloc_single_page_bar0_mem(struct pci_epf *epf,
+ 	}
+ 
+ 	ret = iommu_map(domain, amap->iova, page_to_phys(amap->page), PAGE_SIZE,
++#if defined(NV_IOMMU_MAP_HAS_GFP_ARG)
++			IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE, GFP_KERNEL);
++#else
+ 			IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
++#endif
+ 	if (ret < 0) {
+ 		dev_err(tvnet->fdev, "%s: type: %d iommu_map(RAM) failed: %d\n",
+ 			__func__, type, ret);
+@@ -1404,7 +1420,11 @@ static int tvnet_ep_alloc_multi_page_bar0_mem(struct pci_epf *epf,
+ 	}
+ 
+ 	ret = iommu_map(domain, amap->iova, page_to_phys(amap->page),
++#if defined(NV_IOMMU_MAP_HAS_GFP_ARG)
++			amap->size, IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE, GFP_KERNEL);
++#else
+ 			amap->size, IOMMU_CACHE | IOMMU_READ | IOMMU_WRITE);
++#endif
+ 	if (ret < 0) {
+ 		dev_err(tvnet->fdev, "%s: iommu_map(RAM) failed: %d\n",
+ 			__func__, ret);
+@@ -2070,7 +2090,11 @@ static const struct pci_epf_device_id tvnet_ep_epf_tvnet_ids[] = {
+ };
+ #endif
+ 
++#if defined(NV_PCI_EPF_DRIVER_STRUCT_PROBE_HAS_ID_ARG) /* Linux 6.4 */
++static int tvnet_ep_epf_tvnet_probe(struct pci_epf *epf, const struct pci_epf_device_id *id)
++#else
+ static int tvnet_ep_epf_tvnet_probe(struct pci_epf *epf)
++#endif
+ {
+ 	struct device *fdev = &epf->dev;
+ 	struct pci_epf_tvnet *tvnet;

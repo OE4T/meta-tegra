@@ -1,0 +1,55 @@
+From d87856f4e4a16ea66714bb21096109fad96fbe72 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Fri, 23 Aug 2024 08:55:41 -0700
+Subject: [PATCH] rtcpu: fix ivc calls for 6.x kernel
+
+Upstream-Status: Pending
+---
+ .../drivers/platform/tegra/rtcpu/ivc-bus.c    | 20 +++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/nvidia-oot/drivers/platform/tegra/rtcpu/ivc-bus.c b/nvidia-oot/drivers/platform/tegra/rtcpu/ivc-bus.c
+index 2ed87cb..06e5a51 100644
+--- a/nvidia-oot/drivers/platform/tegra/rtcpu/ivc-bus.c
++++ b/nvidia-oot/drivers/platform/tegra/rtcpu/ivc-bus.c
+@@ -86,6 +86,9 @@ static struct tegra_ivc_channel *tegra_ivc_channel_create(
+ 	u32 version, channel_group, nframes, frame_size, queue_size;
+ 	const char *service;
+ 	int ret;
++#if defined(NV_TEGRA_IVC_STRUCT_HAS_IOSYS_MAP) /* Linux v6.2 */
++	struct iosys_map rx, tx;
++#endif
+ 
+ 	struct tegra_ivc_channel *chan = kzalloc(sizeof(*chan), GFP_KERNEL);
+ 	if (unlikely(chan == NULL))
+@@ -161,6 +164,21 @@ static struct tegra_ivc_channel *tegra_ivc_channel_create(
+ 	region->ivc_size += queue_size;
+ 	end.tx = region->ivc_size;
+ 
++#if defined(NV_TEGRA_IVC_STRUCT_HAS_IOSYS_MAP) /* Linux v6.2 */
++	iosys_map_set_vaddr(&rx, (void*)(region->base + start.rx));
++	iosys_map_set_vaddr(&tx, (void*)(region->base + start.tx));
++
++	/* Init IVC */
++	ret = tegra_ivc_init(&chan->ivc,
++			NULL,
++			&rx,
++			region->iova + start.rx,
++			&tx,
++			region->iova + start.tx,
++			nframes, frame_size,
++			tegra_ivc_channel_ring,
++			(void *)camhsp);
++#else
+ 	/* Init IVC */
+ 	ret = tegra_ivc_init(&chan->ivc,
+ 			NULL,
+@@ -171,6 +189,8 @@ static struct tegra_ivc_channel *tegra_ivc_channel_create(
+ 			nframes, frame_size,
+ 			tegra_ivc_channel_ring,
+ 			(void *)camhsp);
++#endif
++
+ 	if (ret) {
+ 		dev_err(&chan->dev, "IVC initialization error: %d\n", ret);
+ 		goto error;

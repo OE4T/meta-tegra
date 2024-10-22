@@ -29,6 +29,13 @@ SRC_URI += "file://0001-Makefile-update-for-OE-builds.patch \
             file://0002-Fix-nvdisplay-modules-builds.patch \
             file://0003-Fix-nvdisplay-conftest-gcc-14-compatibility-issues.patch \
             file://0001-tegra-virt-alt-Remove-leading-from-include-path-from.patch \
+            file://0005-nvscic2c-fixes-for-6.2-kernel.patch \
+            file://0004-nvdisplay-kernel-open-supress-cast-conversion-error-.patch \
+            file://0007-rtcpu-fix-ivc-calls-for-6.x-kernel.patch \
+            file://0005-scsi-ufs-fix-definitions-for-v6.5.patch \
+            file://0003-pci-endpoint-fixes-for-6.x-kernel.patch \
+            file://0002-bluetooth-realtek-compile-with-no-attribute-warning.patch \
+            file://0001-crypto-tegra-Fix-size-of-buffer-allocated.patch \
 "
 
 COMPATIBLE_MACHINE = "(tegra)"

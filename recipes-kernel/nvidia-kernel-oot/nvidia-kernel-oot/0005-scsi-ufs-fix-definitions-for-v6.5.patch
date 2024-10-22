@@ -1,0 +1,60 @@
+From 2f7aa403e587507657c30148a1fbdd0748bfb799 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Mon, 26 Aug 2024 12:45:38 -0700
+Subject: [PATCH] scsi: ufs: fix definitions for v6.5+
+
+Upstream-Status: Pending
+---
+ nvidia-oot/include/drivers-private/scsi/ufs/k515/ufshcd.h     | 4 ++++
+ nvidia-oot/include/drivers-private/scsi/ufs/k516/ufshcd.h     | 4 ++++
+ nvidia-oot/include/drivers-private/scsi/ufs/k61/ufshcd-priv.h | 4 ++++
+ 3 files changed, 12 insertions(+)
+
+diff --git a/nvidia-oot/include/drivers-private/scsi/ufs/k515/ufshcd.h b/nvidia-oot/include/drivers-private/scsi/ufs/k515/ufshcd.h
+index 07ada66..38602c2 100644
+--- a/nvidia-oot/include/drivers-private/scsi/ufs/k515/ufshcd.h
++++ b/nvidia-oot/include/drivers-private/scsi/ufs/k515/ufshcd.h
+@@ -1157,7 +1157,11 @@ void ufshcd_fixup_dev_quirks(struct ufs_hba *hba, struct ufs_dev_fix *fixups);
+ int ufshcd_read_string_desc(struct ufs_hba *hba, u8 desc_index,
+ 			    u8 **buf, bool ascii);
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 5, 0)
+ int ufshcd_hold(struct ufs_hba *hba, bool async);
++#else
++void ufshcd_hold(struct ufs_hba *hba);
++#endif
+ void ufshcd_release(struct ufs_hba *hba);
+ 
+ void ufshcd_map_desc_id_to_length(struct ufs_hba *hba, enum desc_idn desc_id,
+diff --git a/nvidia-oot/include/drivers-private/scsi/ufs/k516/ufshcd.h b/nvidia-oot/include/drivers-private/scsi/ufs/k516/ufshcd.h
+index 88c20f3..8414026 100644
+--- a/nvidia-oot/include/drivers-private/scsi/ufs/k516/ufshcd.h
++++ b/nvidia-oot/include/drivers-private/scsi/ufs/k516/ufshcd.h
+@@ -1193,7 +1193,11 @@ void ufshcd_fixup_dev_quirks(struct ufs_hba *hba, struct ufs_dev_fix *fixups);
+ int ufshcd_read_string_desc(struct ufs_hba *hba, u8 desc_index,
+ 			    u8 **buf, bool ascii);
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 5, 0)
+ int ufshcd_hold(struct ufs_hba *hba, bool async);
++#else
++void ufshcd_hold(struct ufs_hba *hba);
++#endif
+ void ufshcd_release(struct ufs_hba *hba);
+ 
+ void ufshcd_map_desc_id_to_length(struct ufs_hba *hba, enum desc_idn desc_id,
+diff --git a/nvidia-oot/include/drivers-private/scsi/ufs/k61/ufshcd-priv.h b/nvidia-oot/include/drivers-private/scsi/ufs/k61/ufshcd-priv.h
+index f68ca33..b0103a0 100644
+--- a/nvidia-oot/include/drivers-private/scsi/ufs/k61/ufshcd-priv.h
++++ b/nvidia-oot/include/drivers-private/scsi/ufs/k61/ufshcd-priv.h
+@@ -67,7 +67,11 @@ void ufshcd_auto_hibern8_update(struct ufs_hba *hba, u32 ahit);
+ int ufshcd_read_string_desc(struct ufs_hba *hba, u8 desc_index,
+ 			    u8 **buf, bool ascii);
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 5, 0)
+ int ufshcd_hold(struct ufs_hba *hba, bool async);
++#else
++void ufshcd_hold(struct ufs_hba *hba);
++#endif
+ void ufshcd_release(struct ufs_hba *hba);
+ 
+ void ufshcd_map_desc_id_to_length(struct ufs_hba *hba, enum desc_idn desc_id,

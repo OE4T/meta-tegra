@@ -1,0 +1,25 @@
+From 8a85dd96c74b9faa4fabab76d94b44b73831e4b9 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Mon, 26 Aug 2024 11:16:25 -0700
+Subject: [PATCH] bluetooth: realtek: compile with no attribute warning
+
+Upstream-Status: Inappropriate [OE-specific]
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ nvidia-oot/drivers/bluetooth/realtek/Makefile | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/nvidia-oot/drivers/bluetooth/realtek/Makefile b/nvidia-oot/drivers/bluetooth/realtek/Makefile
+index 8ab63f9..79af3ef 100644
+--- a/nvidia-oot/drivers/bluetooth/realtek/Makefile
++++ b/nvidia-oot/drivers/bluetooth/realtek/Makefile
+@@ -16,6 +16,8 @@ ifeq ($(CONFIG_BTCOEX), y)
+ 	EXTRA_CFLAGS += -DCONFIG_BTCOEX
+ endif
+ 
++EXTRA_CFLAGS += -Wno-attribute-warning
++
+ obj-m := rtk_btusb.o
+ rtk_btusb-objs := rtk_coex.o \
+ 		rtk_misc.o \
