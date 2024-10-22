@@ -1,0 +1,51 @@
+From 55e1503e104a9e9bd275d683146db0833b7301f4 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 22 Oct 2024 13:02:51 -0700
+Subject: [PATCH] Update makefile for OE builds
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index efc1953..0589827 100644
+--- a/Makefile
++++ b/Makefile
+@@ -11,13 +11,12 @@
+ #
+ ###############################################################################
+ 
+-SO_NAME := libgstnvunixfd.so
++prefix ?= /usr
++exec_prefix ?= $(prefix)
++libdir ?= $(exec_prefix)/lib
+ 
+-CC := gcc
++SO_NAME := libgstnvunixfd.so
+ 
+-GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
+-LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-CFLAGS:=
+ LIBS:= -lnvbufsurface -lnvbufsurftransform -lpthread
+ 
+ SRCS := $(wildcard *.c)
+@@ -41,7 +40,7 @@ CFLAGS += -fPIC \
+ 
+ CFLAGS += `pkg-config --cflags $(PKGS)`
+ 
+-LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
++LDFLAGS += -Wl,--no-undefined
+ 
+ LIBS += `pkg-config --libs $(PKGS)`
+ 
+@@ -56,7 +55,7 @@ $(SO_NAME): $(OBJS)
+ 
+ .PHONY: install
+ install: $(SO_NAME)
+-	cp -vp $(SO_NAME) $(GST_INSTALL_DIR)
++	install -D -m 0644 $(SO_NAME) -t $(DESTDIR)$(libdir)/gstreamer-1.0
+ 
+ .PHONY: clean
+ clean:
