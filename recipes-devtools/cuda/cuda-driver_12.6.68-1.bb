@@ -2,7 +2,7 @@ CUDA_PKG = "${BPN}-dev"
 
 require cuda-shared-binaries.inc
 
-DEPENDS:tegra = "tegra-libraries-cuda"
+DEPENDS:tegra = "tegra-libraries-cuda tegra-cuda-utils"
 
 L4T_DEB_GROUP = "cuda-cudart"
 DEVSUM = "0c453507da39a28ca214723c8980c5a4832d8ea3e8f28dfd8ac83a1b2055dda1"
