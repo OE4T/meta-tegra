@@ -1,0 +1,57 @@
+From 9d1abed9c82f2254d53d7578a1347251705d12c0 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 22 Oct 2024 12:55:15 -0700
+Subject: [PATCH] Update makefile for OE builds
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile | 15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index d61cc22..e5416b4 100644
+--- a/Makefile
++++ b/Makefile
+@@ -10,19 +10,16 @@
+ #
+ ###############################################################################
+ 
+-SO_NAME := libgstnvipcpipeline.so
++prefix ?= /usr
++exec_prefix ?= $(prefix)
++libdir ?= $(exec_prefix)/lib
+ 
+-CC := gcc
++SO_NAME := libgstnvipcpipeline.so
+ 
+-GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
+-LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-CFLAGS:=
+ LIBS:= -lnvbufsurface -lnvbufsurftransform -lpthread
+ 
+ SRCS := $(wildcard *.c)
+ 
+-INCLUDES += -I./ -I../
+-
+ PKGS := gstreamer-1.0 \
+ 	gstreamer-base-1.0 \
+ 	gstreamer-video-1.0 \
+@@ -39,7 +36,7 @@ CFLAGS += -fPIC \
+ 
+ CFLAGS += `pkg-config --cflags $(PKGS)`
+ 
+-LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
++LDFLAGS += -Wl,--no-undefined
+ 
+ LIBS += `pkg-config --libs $(PKGS)`
+ 
+@@ -54,7 +51,7 @@ $(SO_NAME): $(OBJS)
+ 
+ .PHONY: install
+ install: $(SO_NAME)
+-	cp -vp $(SO_NAME) $(GST_INSTALL_DIR)
++	install -D -m 0644 $(SO_NAME) -t $(DESTDIR)$(libdir)/gstreamer-1.0
+ 
+ .PHONY: clean
+ clean:
