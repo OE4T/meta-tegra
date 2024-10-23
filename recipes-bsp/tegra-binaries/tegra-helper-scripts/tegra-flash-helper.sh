@@ -296,10 +296,17 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
             exit 1
         fi
         CHIP_SKU=$($here/chkbdinfo -C chip_info.bin_bak | tr -d '[:space:]')
+        board_ramcode=$($here/chkbdinfo -R chip_info.bin_bak)
+        if [ -z "$board_ramcode" ]; then
+            echo "ERR: ramcode could not be extracted from chip info" >&2
+            exit 1
+        fi
+        board_ramcode="$(echo "$board_ramcode" | cut -d: -f4)"
+        board_ramcode=$((16#$board_ramcode % 16))
+        RAMCODE="$board_ramcode"
         # XXX- these don't appear to be used
         # chip_minor_revision=$($here/chkbdinfo -M chip_info.bin_bak)
         # bootrom_revision=$($here/chkbdinfo -O chip_info.bin_bak)
-        # ramcode_id=$($here/chkbdinfo -R chip_info.bin_bak)
         # -XXX
     fi
     skipuid=""
@@ -347,6 +354,10 @@ fi
 
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
 
+if [ -z "$RAMCODE" -a "$BOARDID" = "3701" -a "$FAB" = "301" ]; then
+    RAMCODE=0
+fi
+
 rm -f boardvars.sh
 cat >boardvars.sh <<EOF
 BOARDID="$BOARDID"
@@ -356,6 +367,9 @@ BOARDREV="$BOARDREV"
 CHIPREV="$CHIPREV"
 CHIP_SKU="$CHIP_SKU"
 EOF
+if [ -n "$RAMCODE" ]; then
+    echo "RAMCODE=$RAMCODE" >>boardvars.sh
+fi
 if [ -n "$serial_number" ]; then
     echo "serial_number=$serial_number" >>boardvars.sh
 fi
@@ -369,16 +383,13 @@ if [ -n "$CHIP_SKU" ]; then
     echo "CHIP_SKU=\"$CHIP_SKU\"" >>boardvars.sh
 fi
 
-if [ "$BOARDID" = "3701" -a "$FAB" = "301" ]; then
-    RAMCODE=0
-fi
-
 if echo "$CHIP_SKU" | grep -q ":" 2>/dev/null; then
     chip_sku=$(echo "$CHIP_SKU" | cut -d: -f4)
 else
     chip_sku=$CHIP_SKU
 fi
 
+ramcodeargs=
 if [ "$CHIPID" = "0x23" ]; then
     if [ "$BOARDID" = "3701" ]; then
         case $chip_sku in
@@ -398,7 +409,9 @@ if [ "$CHIPID" = "0x23" ]; then
                 exit 1
                 ;;
         esac
-        if [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
+        if [ "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
+            PMICBOARDSKU="0005"
+        elif [ "$BOARDSKU" = "0000" -a "$FAB" != "QS1" ]; then
             PMICBOARDSKU="0005"
         else
             PMICBOARDSKU="0000"
@@ -419,7 +432,7 @@ if [ "$CHIPID" = "0x23" ]; then
             fi
         fi
         if [ "$BOARDSKU" = "0002" -o "$BOARDSKU" = "0008" ]; then
-            fsifw_binsarg="fsi_fw fsi-fw-ecc.bin;"
+            fsifw_binsarg="fsi_fw fsi-lk.bin;"
         else
             fsifw_binsarg=
         fi
@@ -462,6 +475,10 @@ if [ "$CHIPID" = "0x23" ]; then
         PMC_CONFIG=$(echo "$PMC_CONFIG" | sed -e"s,@PMCREV@,$PMCREV,")
         PMIC_CONFIG=$(echo "$PMIC_CONFIG" | sed -e"s,@PMICREV@,$PMICREV,")
         BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,@BPFDTBREV@,$BPFDTBREV,")
+    fi
+
+    if [ -n "$RAMCODE" ]; then
+        ramcodeargs="--ramcode $RAMCODE"
     fi
 
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS}";
@@ -554,7 +571,7 @@ bpmp_fw $BPF_FILE; \
 bpmp_fw_dtb $BPFDTB_FILE; \
 rce_fw camera-rtcpu-t234-rce.img; \
 ape_fw adsp-fw.bin; \
-spe_fw spe_t234.bin; $fsifw_binsarg \
+spe_fw spe_t234.bin; \
 tsec_fw tsec_t234.bin; \
 tos tos-optee_t234.img; \
 eks eks.img"
@@ -642,6 +659,7 @@ if [ $want_signing -eq 1 ]; then
     BCTARGS="$bctargs --bct_backup"
     L4T_CONF_DTBO="L4TConfiguration.dtbo"
     rootfs_ab=0
+    gen_rcmdump=0
     FLASHARGS="--chip 0x23 --bl uefi_jetson_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
@@ -650,7 +668,7 @@ if [ $want_signing -eq 1 ]; then
           --cfg flash.xml \
           --bct_backup \
           --boot_chain A \
-          $bctargs $extdevargs $BINSARGS"
+          $bctargs $ramcodeargs $extdevargs $BINSARGS"
     FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
