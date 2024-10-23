@@ -6,8 +6,10 @@ PLUGINS = "\
     gstreamer1.0-plugins-nvcompositor \
     gstreamer1.0-plugins-nvdrmvideosink \
     gstreamer1.0-plugins-nveglgles \
+    gstreamer1.0-plugins-nvipcpipeline \
     gstreamer1.0-plugins-nvjpeg \
     gstreamer1.0-plugins-nvtee \
+    gstreamer1.0-plugins-nvunixfd \
     gstreamer1.0-plugins-nvv4l2camerasrc \
     gstreamer1.0-plugins-nvvidconv \
     gstreamer1.0-plugins-nvvideo4linux2 \
