@@ -13,8 +13,7 @@ Boards supported:
 
 This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
-branch: master
-LAYERSERIES_COMPAT: styhead, walnascar
+branch: styhead
 
 
 CUDA toolchain compatibility note
