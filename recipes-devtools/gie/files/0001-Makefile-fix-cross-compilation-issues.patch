@@ -1,26 +1,45 @@
-From 7ed6b3bae14ede51f376c648e4a20ddaf3998334 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Sat, 11 Nov 2023 20:25:34 +0000
+From 14a0443a2b99337edcb1a1e97ce6c430b97d89ec Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 13 Oct 2024 09:14:21 -0700
 Subject: [PATCH] Makefile: fix cross compilation issues
 
-Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
----
- Makefile.config | 29 +++++++++++++++++++----------
- 1 file changed, 19 insertions(+), 10 deletions(-)
+Upstream-Status: Inappropriate [OE-specific]
 
-diff --git a/Makefile.config b/Makefile.config
-index d8e5d00..ceefcde 100644
---- a/Makefile.config
-+++ b/Makefile.config
-@@ -9,6 +9,7 @@ TARGET ?= $(shell uname -m)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ usr/src/tensorrt/samples/Makefile.config      | 55 +++++++++++--------
+ .../samples/sampleNonZeroPlugin/Makefile      | 11 ++--
+ 2 files changed, 40 insertions(+), 26 deletions(-)
+
+diff --git a/usr/src/tensorrt/samples/Makefile.config b/usr/src/tensorrt/samples/Makefile.config
+index 5c11358..463167e 100644
+--- a/usr/src/tensorrt/samples/Makefile.config
++++ b/usr/src/tensorrt/samples/Makefile.config
+@@ -15,9 +15,12 @@ PROTOBUF_TRIPLE ?= x86_64-linux-gnu
+ SAFE_PDK ?= 0
+ CPP_STANDARD ?= 14
+ TARGET ?= $(shell uname -m)
++CUSTOM_CXX_FLAGS ?=
++CUSTOM_CU_FLAGS ?=
  CUSTOM_LD_FLAGS ?=
  USE_STUB_EXTERNALS ?= 0
  TRT_STATIC ?= 0
 +BUILD_TYPE ?= release
+ GENCODES ?=
  
  ifeq ($(CUDA_INSTALL_DIR), )
-   CUDA_INSTALL_DIR ?= /usr/local/cuda
-@@ -50,11 +51,11 @@ CUDNN_LIBDIR ?= $(CUDNN_INSTALL_DIR)/lib64
+@@ -25,6 +28,10 @@ ifeq ($(CUDA_INSTALL_DIR), )
+   $(warning CUDA_INSTALL_DIR variable is not specified, using $(CUDA_INSTALL_DIR) by default, use CUDA_INSTALL_DIR=<cuda_directory> to change.)
+ endif
+ 
++ifeq ($(CUDA_NVCC_BINDIR), )
++  CUDA_NVCC_BINDIR ?= $(CUDA_INSTALL_DIR)/bin
++endif
++
+ ifeq ($(ENABLE_DLA), 1)
+   ifneq ($(PDK_DIR), )
+     PDK_LIB_DIR ?= $(PDK_DIR)/lib-target
+@@ -54,19 +61,20 @@ CUDA_LIBDIR = lib
  ifeq ($(TARGET), aarch64)
    ifeq ($(shell uname -m), aarch64)
      CUDA_LIBDIR = lib64
@@ -31,11 +50,29 @@ index d8e5d00..ceefcde 100644
 +    CXX ?= aarch64-linux-gnu-g++
    endif
 -  CUCC = $(CUDA_INSTALL_DIR)/bin/nvcc -m64 -ccbin $(CC)
-+  CUCC = $(CUDA_INSTALL_DIR)/bin/nvcc -m64 -ccbin $(CXX)
++  CUDAHOSTCXX ?= $(CXX)
++  CUCC = $(CUDA_NVCC_BINDIR)/nvcc -m64 -ccbin $(CUDAHOSTCXX)
  else ifeq ($(TARGET), x86_64)
    CUDA_LIBDIR = lib64
    CC = g++
-@@ -78,7 +79,7 @@ else ########
+-  CUCC = $(CUDA_INSTALL_DIR)/bin/nvcc -m64
++  CUCC = $(CUDA_NVCC_BINDIR)/nvcc -m64
+ else ifeq ($(TARGET), ppc64le)
+   CUDA_LIBDIR = lib64
+   CC = g++
+-  CUCC = $(CUDA_INSTALL_DIR)/bin/nvcc -m64
++  CUCC = $(CUDA_NVCC_BINDIR)/nvcc -m64
+ else ifeq ($(TARGET), qnx)
+   ifndef QNX_VERSION
+     $(error QNX_VERSION is not set)
+@@ -77,12 +85,13 @@ else ifeq ($(TARGET), qnx)
+     COMMON_FLAGS += -D_QNX_SOURCE -D__aarch64__ -V8.3.0,gcc_ntoaarch64le
+     COMMON_LD_FLAGS += -D_QNX_SOURCE -D__aarch64__ -V8.3.0,gcc_ntoaarch64le
+   endif
+-  CUCC = $(CUDA_INSTALL_DIR)/bin/nvcc -m64 -ccbin $(CC)
++  CUDAHOSTCXX ?= $(CXX)
++  CUCC = $(CUDA_NVCC_BINDIR)/nvcc -m64 -ccbin $(CUDAHOSTCXX)
+ else ########
    $(error Auto-detection of platform failed. Please specify one of the following arguments to make: TARGET=[aarch64|x86_64|qnx])
  endif
  
@@ -44,7 +81,7 @@ index d8e5d00..ceefcde 100644
  ifeq ($(CC_MAJOR_VER), 4)
    CPP_STANDARD := 11
  endif
-@@ -135,7 +136,7 @@ endef
+@@ -139,11 +148,11 @@ endef
  ifneq ($(USE_QCC), 1)
  # Usage: $(call make-depend,source-file,object-file,depend-file)
  define make-depend
@@ -53,9 +90,37 @@ index d8e5d00..ceefcde 100644
  endef
  # Usage: $(call make-cuda-depend,source-file,object-file,depend-file,flags)
  define make-cuda-depend
-@@ -341,7 +342,15 @@ CFLAGSD = $(COMMON_FLAGS) -g
+-  $(AT)$(CUCC) -M -MT $2 $(CUFLAGS) $4 $1 > $3
++  $(AT)$(CUCC) -M -MT $2 $(CUFLAGS) $(CUSTOM_CU_FLAGS) $4 $1 > $3
+ endef
+ endif
+ 
+@@ -212,12 +221,6 @@ ifeq ($(TRT_STATIC), 1)
+   endif
+ endif
+ 
+-# add cross compile directories
+-ifneq ($(shell uname -m), $(TARGET))
+-  INCPATHS += -I"/usr/include/$(DLSW_TRIPLE)" -I"$(CUDA_INSTALL_DIR)/targets/$(CUDA_TRIPLE)/include"
+-  LIBPATHS += -L"../lib/stubs" -L"../../lib/stubs" -L"/usr/lib/$(DLSW_TRIPLE)/stubs" -L"/usr/lib/$(DLSW_TRIPLE)"
+-  LIBPATHS += -L"$(CUDA_INSTALL_DIR)/targets/$(CUDA_TRIPLE)/$(CUDA_LIBDIR)/stubs" -L"$(CUDA_INSTALL_DIR)/targets/$(CUDA_TRIPLE)/$(CUDA_LIBDIR)"
+-endif
+ INCPATHS += -I"../common" -I"../utils" -I".." -I"$(CUDA_INSTALL_DIR)/include" -I"../include" -I"../../include" -I"../../parsers/onnxOpenSource"
+ LIBPATHS += -L"$(CUDA_INSTALL_DIR)/$(CUDA_LIBDIR)" -Wl,-rpath-link="$(CUDA_INSTALL_DIR)/$(CUDA_LIBDIR)"
+ LIBPATHS += -L"../lib" -L"../../lib" -L"$(TRT_LIB_DIR)" -Wl,-rpath-link="$(TRT_LIB_DIR)" $(STUBS_DIR)
+@@ -330,15 +333,23 @@ DOBJS = $(patsubst %.cpp, $(DOBJDIR)/%.o, $(wildcard *.cpp $(addsuffix /*.cpp, $
+ CUOBJS = $(patsubst %.cu, $(OBJDIR)/%.o, $(wildcard *.cu $(addsuffix /*.cu, $(EXTRA_DIRECTORIES))))
+ CUDOBJS = $(patsubst %.cu, $(DOBJDIR)/%.o, $(wildcard *.cu $(addsuffix /*.cu, $(EXTRA_DIRECTORIES))))
+ 
+-CFLAGS = $(COMMON_FLAGS)
++CFLAGS = $(COMMON_FLAGS) $(CUSTOM_CXX_FLAGS)
+ CFLAGSD = $(COMMON_FLAGS) -g
  LFLAGS = $(COMMON_LD_FLAGS)
  LFLAGSD = $(COMMON_LD_FLAGS)
+ 
+-CUFLAGS += $(GENCODES) $(INCPATHS)
++CUFLAGS += $(GENCODES) $(INCPATHS) $(CUSTOM_CU_FLAGS)
+ CUFLAGSD = $(CUFLAGS) -g
  
 -all: debug release
 +ifeq ($(BUILD_TYPE), release)
@@ -70,17 +135,17 @@ index d8e5d00..ceefcde 100644
  
  release: $(OUTDIR)/$(OUTNAME_RELEASE)
  debug: $(OUTDIR)/$(OUTNAME_DEBUG)
-@@ -356,25 +365,25 @@ test_release:
+@@ -353,25 +364,25 @@ test_release:
  
  $(OUTDIR)/$(OUTNAME_RELEASE): $(OBJS) $(CUOBJS)
  	$(ECHO) Linking: $@
--	$(AT)$(CC) -o $@ $(LFLAGS) -Wl,--start-group $(LIBS) $^ -Wl,--end-group
-+	$(AT)$(CXX) -o $@ $(LFLAGS) -Wl,--start-group $(LIBS) $^ -Wl,--end-group
+-	$(AT)$(CC) -o $@ $(LFLAGS) -Wl,--start-group $(LIBS) $^ -Wl,--end-group -Wl,--no-relax
++	$(AT)$(CXX) -o $@ $(LFLAGS) -Wl,--start-group $(LIBS) $^ -Wl,--end-group -Wl,--no-relax
  
  $(OUTDIR)/$(OUTNAME_DEBUG): $(DOBJS) $(CUDOBJS)
  	$(ECHO) Linking: $@
--	$(AT)$(CC) -o $@ $(LFLAGSD) -Wl,--start-group $(DLIBS) $^ -Wl,--end-group
-+	$(AT)$(CXX) -o $@ $(LFLAGSD) -Wl,--start-group $(DLIBS) $^ -Wl,--end-group
+-	$(AT)$(CC) -o $@ $(LFLAGSD) -Wl,--start-group $(DLIBS) $^ -Wl,--end-group -Wl,--no-relax
++	$(AT)$(CXX) -o $@ $(LFLAGSD) -Wl,--start-group $(DLIBS) $^ -Wl,--end-group -Wl,--no-relax
  
  $(OBJDIR)/%.o: %.cpp
  	$(AT)if [ ! -d $(OBJDIR) ]; then mkdir -p $(OBJDIR); fi
@@ -100,6 +165,26 @@ index d8e5d00..ceefcde 100644
  
  ######################################################################### CU
  $(OBJDIR)/%.o: %.cu
--- 
-2.25.1
-
+diff --git a/usr/src/tensorrt/samples/sampleNonZeroPlugin/Makefile b/usr/src/tensorrt/samples/sampleNonZeroPlugin/Makefile
+index f9462aa..734e46d 100644
+--- a/usr/src/tensorrt/samples/sampleNonZeroPlugin/Makefile
++++ b/usr/src/tensorrt/samples/sampleNonZeroPlugin/Makefile
+@@ -14,11 +14,14 @@ EXTRA_DIRECTORIES = ../common ../utils
+ SAMPLE_DIR_NAME = $(shell basename $(dir $(abspath $(firstword $(MAKEFILE_LIST)))))
+ MAKEFILE ?= ../Makefile.config
+ 
+-ifneq ($(CUDA_INSTALL_DIR), )
+-	CUDA_INST_DIR ?= $(CUDA_INSTALL_DIR)
++ifeq ($(CUDA_NVCC_BINDIR), )
++  ifneq ($(CUDA_INSTALL_DIR), )
++	CUDA_NVCC_BINDIR ?= $(CUDA_INSTALL_DIR)/bin
++  else
++	CUDA_NVCC_BINDIR ?= /usr/local/cuda/bin
++  endif
+ endif
+-CUDA_INST_DIR ?= /usr/local/cuda
+-CUDA_VER := $(shell $(CUDA_INST_DIR)/bin/nvcc --version | grep "release" | sed 's/.*release //' | sed 's/,.*//')
++CUDA_VER := $(shell $(CUDA_NVCC_BINDIR)/nvcc --version | grep "release" | sed 's/.*release //' | sed 's/,.*//')
+ 
+ define cuda-ge
+     CUDA_VER_GE_$(1)_$(2) := 0
