@@ -571,7 +571,7 @@ bpmp_fw $BPF_FILE; \
 bpmp_fw_dtb $BPFDTB_FILE; \
 rce_fw camera-rtcpu-t234-rce.img; \
 ape_fw adsp-fw.bin; \
-spe_fw spe_t234.bin; \
+spe_fw spe_t234.bin; $fsifw_binsarg \
 tsec_fw tsec_t234.bin; \
 tos tos-optee_t234.img; \
 eks eks.img"
