@@ -14,7 +14,7 @@ PACKAGE_ARCH = "${MACHINE_ARCH}"
 do_deploy() {
     for dtb in ${KERNEL_DEVICETREE}; do
         dtbf="${STAGING_DIR_HOST}/boot/devicetree/$dtb"
-        if [ -z "$dtbf" ]; then
+        if [ ! -f "$dtbf" ]; then
             bbfatal "Not found: $dtbf"
         fi
     done
