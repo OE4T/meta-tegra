@@ -15,7 +15,7 @@ Detected by attempting to mount a relatively new mkfs.ext4'd filesystem.
 Cc: Marvin Häuser <mhaeuser@posteo.de>
 Signed-off-by: Pedro Falcato <pedro.falcato@gmail.com>
 Reviewed-by: Marvin Häuser <mhaeuser@posteo.de>
-Upstream-Status: Backport[https://github.com/tianocore/edk2-platforms/commit/92479808e7227017cdfb19815605bb1fa877d19f]
+Upstream-Status: Backport [https://github.com/tianocore/edk2-platforms/commit/92479808e7227017cdfb19815605bb1fa877d19f]
 ---
  Features/Ext4Pkg/Ext4Dxe/Superblock.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
