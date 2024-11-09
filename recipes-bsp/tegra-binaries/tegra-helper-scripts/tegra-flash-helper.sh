@@ -321,13 +321,8 @@ else
 fi
 
 if [ "$CHIPID" = "0x23" -a -z "$CHIP_SKU" ]; then
-    # see DEFAULT_CHIP_SKU in p3701.conf.common
-    # or DFLT_CHIP_SKU in p3767.conf.common
-    if [ "$BOARDID" = "3767" ]; then
-        CHIP_SKU="00:00:00:D3"
-    else
-        CHIP_SKU="00:00:00:D0"
-    fi
+    echo "ERR: no default chip SKU set" >&2
+    exit 1
 fi
 
 if [ -n "$FAB" ]; then
