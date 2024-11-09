@@ -318,6 +318,10 @@ if [ -n "$BOARDID" ]; then
 else
     boardid=$($here/chkbdinfo -i ${cvm_bin} | tr -d '[:space:]')
     BOARDID="$boardid"
+    if [ -n "$CHECK_BOARDID" -a "$BOARDID" -ne "$CHECK_BOARDID" ]; then
+        echo "ERR: actual board ID $BOARDID does not match expected board ID $CHECK_BOARDID" >&2
+        exit 1;
+    fi
 fi
 
 if [ "$CHIPID" = "0x23" -a -z "$CHIP_SKU" ]; then
@@ -336,6 +340,10 @@ if [ -n "$BOARDSKU" ]; then
 elif [ -n "$have_boardinfo" ]; then
     board_sku=$($here/chkbdinfo -k ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z])
     BOARDSKU="$board_sku"
+    if [ -n "$CHECK_BOARDSKU" -a "$BOARDSKU" -ne "$CHECK_BOARDSKU" ]; then
+        echo "ERR: actual board SKU $BOARDSKU does not match expected board SKU $CHECK_BOARDSKU" >&2
+        exit 1;
+    fi
 fi
 if [ -n "$BOARDREV" ]; then
     board_revision="$BOARDREV"
