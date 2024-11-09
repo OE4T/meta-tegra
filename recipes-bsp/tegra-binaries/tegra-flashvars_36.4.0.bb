@@ -13,7 +13,10 @@ def generate_flashvar_settings(d):
     need_subst = ' '.join([v for v in vars if '@' in d.getVar('TEGRA_FLASHVAR_' + v)])
     result = 'FLASHVARS="{}"\nOVERLAY_DTB_FILE="{}"\n'.format(need_subst, d.getVar('OVERLAY_DTB_FILE'))
     result += 'CHIPID={}\nPLUGIN_MANAGER_OVERLAYS="{}"\n'.format(d.getVar('NVIDIA_CHIP'), ','.join(d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS').split()))
-    result += '\n'.join(['{}="{}"'.format(v, d.getVar('TEGRA_FLASHVAR_' + v)) for v in d.getVar('TEGRA_FLASHVARS').split() if d.getVar('TEGRA_FLASHVAR_' + v)])
+    flashvar_values = '\n'.join(['{}="{}"'.format(v, d.getVar('TEGRA_FLASHVAR_' + v)) for v in d.getVar('TEGRA_FLASHVARS').split() if d.getVar('TEGRA_FLASHVAR_' + v)])
+    if flashvar_values:
+        result += flashvar_values + '\n'
+    result += '\n'.join(['CHECK_{}="{}"'.format(v, d.getVar('TEGRA_FLASH_CHECK_' + v)) for v in d.getVar('TEGRA_FLASH_CHECK_VARS').split() if d.getVar('TEGRA_FLASH_CHECK_' + v)])
     return result
 
 INHIBIT_DEFAULT_DEPS = "1"
@@ -27,6 +30,7 @@ ${@generate_flashvar_settings(d)}
 EOF
 }
 do_compile[vardeps] += "TEGRA_FLASHVARS ${@' '.join(['TEGRA_FLASHVAR_' + v for v in d.getVar('TEGRA_FLASHVARS').split()])}"
+do_compile[vardeps] += "TEGRA_FLASH_CHECK_VARS ${@' '.join(['TEGRA_FLASH_CHECK_' + v for v in d.getVar('TEGRA_FLASH_CHECK_VARS').split()])}"
 
 do_install() {
     install -d ${D}${datadir}/tegraflash
