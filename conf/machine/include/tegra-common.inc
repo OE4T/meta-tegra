@@ -14,7 +14,9 @@ UBOOT_EXTLINUX_INITRD ?= "${@'/boot/initrd' if d.getVar('INITRAMFS_IMAGE') != ''
 
 NVIDIA_BOARD ?= "generic"
 
-TEGRA_BOOTCONTROL_OVERLAYS ?= "L4TConfiguration.dtbo"
+TEGRA_UEFI_MINIMAL ?= "0"
+TEGRA_BOOTCONTROL_MINIMAL_UEFI ?= "${@'BootOrderEmmc.dtbo' if bb.utils.to_boolean(d.getVar('TEGRA_UEFI_MINIMAL')) else ''}"
+TEGRA_BOOTCONTROL_OVERLAYS ?= "L4TConfiguration.dtbo ${TEGRA_BOOTCONTROL_MINIMAL_UEFI}"
 TEGRA_BOOTCONTROL_OVERLAYS += "${@'L4TConfiguration-RootfsRedundancyLevelABEnable.dtbo' if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else ''}"
 TEGRA_PLUGIN_MANAGER_OVERLAYS ??= ""
 TEGRA_DCE_OVERLAYS ??= ""
