@@ -91,6 +91,7 @@ def tegra_kernel_image(d):
 IMAGE_TEGRAFLASH_KERNEL ?= "${@tegra_kernel_image(d)}"
 TEGRA_ESP_IMAGE ?= "tegra-espimage"
 IMAGE_TEGRAFLASH_ESPIMG ?= "${DEPLOY_DIR_IMAGE}/${TEGRA_ESP_IMAGE}-${MACHINE}.esp"
+ESP_FILE ?= "${@'esp.img' if d.getVar('TEGRA_ESP_IMAGE') else ''}"
 DATAFILE ??= ""
 IMAGE_TEGRAFLASH_DATA ??= ""
 
@@ -202,7 +203,7 @@ tegraflash_create_flash_config() {
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
         -e"s,APPUUID_b,," -e"s,APPUUID,," \
-	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
+	-e"s,ESP_FILE,${ESP_FILE}," -e"/VARSTORE_FILE/d" \
 	-e"s,EXT_NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
 	-e"s,INT_NUM_SECTORS,${TEGRA_INTERNAL_DEVICE_SECTORS}," \
 	"$infile" \
@@ -332,7 +333,9 @@ create_tegraflash_pkg() {
     mkdir -p ${WORKDIR}/tegraflash
     cd ${WORKDIR}/tegraflash
     tegraflash_populate_package ${IMAGE_TEGRAFLASH_KERNEL} ${LNXFILE} ${@tegra_bootcontrol_overlay_list(d)}
-    cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./esp.img
+    if [ -n "${ESP_FILE}" ]; then
+        cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./${ESP_FILE}
+    fi
     if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         cp "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ./initrd-flash.img
     fi
@@ -407,7 +410,9 @@ create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
 def tegraflash_bupgen_strip_cmd(d):
     images = d.getVar('TEGRA_BUPGEN_STRIP_IMG_NAMES').split()
-    images.append("esp.img")
+    esp_file = d.getVar('ESP_FILE')
+    if esp_file:
+        images.append(esp_file)
     if len(images) == 0:
         return 'cp flash.xml.in flash-stripped.xml.in'
     return 'sed {} flash.xml.in > flash-stripped.xml.in'.format(' '.join(['-e"/<filename>.*{}/d"'.format(img) for img in images]))
