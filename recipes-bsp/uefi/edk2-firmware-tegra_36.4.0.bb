@@ -10,14 +10,14 @@ TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 
 inherit l4t_bsp deploy ${TEGRA_UEFI_SIGNING_CLASS}
 
-EDK2_PLATFORM = "Jetson"
+EDK2_PLATFORM = "${@'JetsonMinimal' if bb.utils.to_boolean(d.getVar('TEGRA_UEFI_MINIMAL')) else 'Jetson'}"
 EDK2_PLATFORM_DSC = "Platform/NVIDIA/NVIDIA.common.dsc"
 EDK2_BIN_NAME = "uefi_jetson.bin"
 
 SRC_URI += "file://nvbuildconfig.py"
 
 do_configure:append() {
-    ${PYTHON} ${UNPACKDIR}/nvbuildconfig.py ${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig ${S_EDK2_NVIDIA}/Platform/NVIDIA/Jetson/Jetson.defconfig ${B}/nvidia-config/Jetson/.config ${B}/nvidia-config/Jetson/config.dsc.inc
+    ${PYTHON} ${UNPACKDIR}/nvbuildconfig.py ${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig ${S_EDK2_NVIDIA}/Platform/NVIDIA/${EDK2_PLATFORM}/Jetson.defconfig ${B}/nvidia-config/Jetson/.config ${B}/nvidia-config/Jetson/config.dsc.inc
 }
 
 def fmp_lowest_version(d):
@@ -36,13 +36,15 @@ do_compile:append() {
         ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/FV/UEFI_NS.Fv \
         ${B}/images/${EDK2_BIN_NAME}.tmp
     mv ${B}/images/${EDK2_BIN_NAME}.tmp ${B}/images/${EDK2_BIN_NAME}
-    ${PYTHON} ${S_EDK2_NVIDIA}/Silicon/NVIDIA/edk2nv/FormatUefiBinary.py \
-        ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/AARCH64/L4TLauncher.efi \
-        ${B}/images/BOOTAA64.efi
+    if ${@'false' if bb.utils.to_boolean(d.getVar('TEGRA_UEFI_MINIMAL')) else 'true'}; then
+        ${PYTHON} ${S_EDK2_NVIDIA}/Silicon/NVIDIA/edk2nv/FormatUefiBinary.py \
+                  ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/AARCH64/L4TLauncher.efi \
+                  ${B}/images/BOOTAA64.efi
+    fi
     for f in ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/AARCH64/Silicon/NVIDIA/Tegra/DeviceTree/DeviceTree/OUTPUT/*.dtb; do
-	[ -e "$f" ] || continue
-	fbase=$(basename "$f" ".dtb")
-	cp $f ${B}/images/$fbase.dtbo
+        [ -e "$f" ] || continue
+        fbase=$(basename "$f" ".dtb")
+        cp $f ${B}/images/$fbase.dtbo
     done
     fdtput -t i ${B}/images/L4TConfiguration.dtbo "/fragment@0/__overlay__/firmware/uefi" fmp-lowest-supported-version ${@fmp_lowest_version(d)}
     cp ${B}/images/L4TConfiguration.dtbo ${B}/images/L4TConfiguration-rcmboot.dtbo
@@ -63,7 +65,9 @@ addtask sign_efi_launcher after do_compile before do_install
 
 do_install() {
     install -d ${D}${EFIDIR}
-    install -m 0644 ${B}/images/BOOTAA64.efi ${D}${EFIDIR}/${EFI_BOOT_IMAGE}
+    if ${@'false' if bb.utils.to_boolean(d.getVar('TEGRA_UEFI_MINIMAL')) else 'true'}; then
+        install -m 0644 ${B}/images/BOOTAA64.efi ${D}${EFIDIR}/${EFI_BOOT_IMAGE}
+    fi
 }
 
 PACKAGES = "l4t-launcher"

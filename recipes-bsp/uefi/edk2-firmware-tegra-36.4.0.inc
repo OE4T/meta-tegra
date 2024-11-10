@@ -76,10 +76,16 @@ do_compile[dirs] =+ "${B}/nvidia-config/Jetson"
 
 PACKAGES_PATH = "${@nvidia_edk2_packages_path(d)}"
 
+TEGRA_UEFI_MINIMAL ??= "0"
+def nvidia_edk2_build_ids(d):
+    if bb.utils.to_boolean(d.getVar('TEGRA_UEFI_MINIMAL')):
+        return "-D BUILD_GUID=f98bcf32-fd20-4ba9-ada4-e0406947ca3c -DBUILD_NAME=JetsonMinimal"
+    else:
+        return "-D BUILD_GUID=49a79a15-8f69-4be7-a30c-a172f44abce7 -DBUILD_NAME=Jetson"
+
 # BUILD_* taken from Silicon/NVIDIA/edk2nv/stuart/settings.py and
 #                    builder.py, plus Platform/NVIDIA/Jetson/PlatformBuild.py
-EDK2_EXTRA_BUILD = '-D "BUILDID_STRING=v${PV}" -D "BUILD_DATE_TIME=${@format_build_date(d)}" -D "BUILD_PROJECT_TYPE=EDK2" \
-                    -D BUILD_GUID=49a79a15-8f69-4be7-a30c-a172f44abce7 -DBUILD_NAME=Jetson'
+EDK2_EXTRA_BUILD = '-D "BUILDID_STRING=v${PV}" -D "BUILD_DATE_TIME=${@format_build_date(d)}" -D "BUILD_PROJECT_TYPE=EDK2" ${@nvidia_edk2_build_ids(d)}'
 
 def format_build_date(d):
     import datetime
