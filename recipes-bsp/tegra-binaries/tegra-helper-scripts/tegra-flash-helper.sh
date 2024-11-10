@@ -15,6 +15,8 @@ imgfile=
 dataimg=
 inst_args=""
 extdevargs=
+sparseargs=
+erase_spi=
 blocksize=4096
 
 # These functions are used in odmsign.func but do not
@@ -54,7 +56,7 @@ get_value_from_PT_table() {
     eval "$varname=\"$value\""
 }
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:,erase-spi" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -91,6 +93,10 @@ while true; do
         ;;
     --rcm-boot)
         rcm_boot=1
+        shift
+        ;;
+    --erase-spi)
+        erase_spi=yes
         shift
         ;;
     --external-device)
@@ -621,6 +627,10 @@ else
     tfcmd=${flash_cmd:-"flash;reboot"}
 fi
 
+if [ $no_flash -eq 0 -a "$erase_spi" != "yes" ] && echo "$tfcmd" | grep -q "flash"; then
+    sparseargs="--sparseupdate"
+fi
+
 want_signing=0
 if [ -n "$keyfile" ] || [ $rcm_boot -eq 1 ] || [ $no_flash -eq 1 -a $to_sign -eq 1 ]; then
     want_signing=1
@@ -671,7 +681,7 @@ if [ $want_signing -eq 1 ]; then
           --cfg flash.xml \
           --bct_backup \
           --boot_chain A \
-          $bctargs $ramcodeargs $extdevargs $BINSARGS"
+          $bctargs $ramcodeargs $extdevargs $sparseargs $BINSARGS"
     FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
@@ -711,7 +721,7 @@ else
           --cfg flash.xml \
           --bct_backup \
           --boot_chain A \
-          $bctargs $extdevargs \
+          $bctargs $extdevargs $sparseargs \
           --bins \"$BINSARGS\""
 fi
 
