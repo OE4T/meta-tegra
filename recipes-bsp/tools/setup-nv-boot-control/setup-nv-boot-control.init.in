@@ -6,9 +6,6 @@ case "$1" in
   start|restart)
       echo -n "Running $DESC: "
       mkdir -p -m0755 /run/nv_boot_control
-      if ! mountpoint -q @ESPMOUNT@; then
-	  mount -t vfat /dev/disk/by-partlabel/esp @ESPMOUNT@
-      fi
       @bindir@/setup-nv-boot-control
       echo "[OK]"
       ;;
