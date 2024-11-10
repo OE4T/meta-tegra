@@ -28,13 +28,10 @@ do_compile() {
         -e's,@BOOTDEV@,${TNSPEC_BOOTDEV},g' \
         -e's,@sysconfdir@,${sysconfdir},g' \
         ${S}/setup-nv-boot-control.sh.in >${B}/setup-nv-boot-control.sh
-    sed -e's,@ESPMOUNT@,${ESPMOUNT},g' \
-        ${S}/uefi_common.func.in >${B}/uefi_common.func
+    cp ${S}/uefi_common.func.in ${B}/uefi_common.func
     sed -e's,@bindir@,${bindir},g' \
-        -e's,@ESPMOUNT@,${ESPMOUNT},g' \
         ${S}/setup-nv-boot-control.service.in >${B}/setup-nv-boot-control.service
     sed -e's,@bindir@,${bindir},g' \
-        -e's,@ESPMOUNT@,${ESPMOUNT},g' \
         ${S}/setup-nv-boot-control.init.in >${B}/setup-nv-boot-control.init
     sed -e's,@ESPMOUNT@,${ESPMOUNT},g' \
         ${S}/esp.mount.in >${B}/${ESPMOUNTUNIT}
