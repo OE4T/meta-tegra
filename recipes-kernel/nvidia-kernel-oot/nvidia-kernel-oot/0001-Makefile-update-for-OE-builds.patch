@@ -89,7 +89,7 @@ index ad7dc07..64bec51 100644
 -	$(MAKE) -j $(NPROC) ARCH=arm64 \
 -		-C $(KERNEL_OUTPUT) \
 +	$(MAKE) ARCH=arm64 \
-+		-C $(KERNEL_SRC) \
++		-C $(KERNEL_PATH) \
  		M=$(MAKEFILE_DIR)/hwpm/drivers/tegra/hwpm \
 +		MODLIB=$(MODLIB) \
  		CONFIG_TEGRA_OOT_MODULE=m \
@@ -102,7 +102,7 @@ index ad7dc07..64bec51 100644
 -	$(MAKE) -j $(NPROC) ARCH=arm64 \
 -		-C $(KERNEL_OUTPUT) \
 +	$(MAKE) ARCH=arm64 \
-+		-C $(KERNEL_SRC) \
++		-C $(KERNEL_PATH) \
  		M=$(MAKEFILE_DIR)/nvidia-oot \
 +		MODLIB=$(MODLIB) \
  		CONFIG_TEGRA_OOT_MODULE=m \
@@ -117,7 +117,7 @@ index ad7dc07..64bec51 100644
 -	$(MAKE) -j $(NPROC) ARCH=arm64 \
 -		-C $(KERNEL_OUTPUT) \
 +	$(MAKE) ARCH=arm64 \
-+		-C $(KERNEL_SRC) \
++		-C $(KERNEL_PATH) \
  		M=$(MAKEFILE_DIR)/nvgpu/drivers/gpu/nvgpu \
 +		MODLIB=$(MODLIB) \
  		CONFIG_TEGRA_OOT_MODULE=m \
@@ -177,7 +177,7 @@ index ad7dc07..64bec51 100644
  	@echo   "make $(MAKECMDGOALS) - nvidia-display ..."
  	@echo   "================================================================================"
 -	$(MAKE) -C $(NVIDIA_HEADERS) \
-+	$(MAKE) -C $(KERNEL_SRC) \
++	$(MAKE) -C $(KERNEL_PATH) \
 +		KERNEL_MODLIB=$(MODLIB) \
  		M=$(MAKEFILE_DIR)/nvdisplay/kernel-open modules_install
  
