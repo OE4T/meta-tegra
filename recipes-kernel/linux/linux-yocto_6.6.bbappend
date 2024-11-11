@@ -21,6 +21,7 @@ SRC_URI:append:tegra = " \
     file://tegra-v4l2.cfg \
     file://tegra-virtualization.cfg \
     file://rtw8822ce-wifi.cfg \
+    file://r8169.cfg \
 "
 
 COMPATIBLE_MACHINE:tegra = "(tegra)"
