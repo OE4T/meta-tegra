@@ -1,7 +1,7 @@
-From 2d04018385a5e50d7bc7a92b82ce40c1162188e0 Mon Sep 17 00:00:00 2001
+From 09eb618804588f77026924096d848800630c8d6f Mon Sep 17 00:00:00 2001
 From: Alexander Smorkalov <alexander.smorkalov@xperience.ai>
 Date: Tue, 3 Sep 2024 13:47:48 +0300
-Subject: [PATCH 6/6] Workaround for CUDA 12.6 tuple_size issue #3773.
+Subject: [PATCH] Workaround for CUDA 12.6 tuple_size issue #3773.
 
 Upstream-Status: Backport [https://github.com/opencv/opencv_contrib/pull/3785]
 Signed-off-by: Matt Madison <matt@madison.systems>
@@ -11,10 +11,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 5 insertions(+), 15 deletions(-)
 
 diff --git a/modules/cudaarithm/src/cuda/polar_cart.cu b/modules/cudaarithm/src/cuda/polar_cart.cu
-index 16d2da15..5c0752c8 100644
+index 725f5741..c65b894b 100644
 --- a/modules/cudaarithm/src/cuda/polar_cart.cu
 +++ b/modules/cudaarithm/src/cuda/polar_cart.cu
-@@ -173,25 +173,15 @@ void cv::cuda::cartToPolar(InputArray _xy, OutputArray _mag, OutputArray _angle,
+@@ -159,25 +159,15 @@ void cv::cuda::cartToPolar(InputArray _xy, OutputArray _mag, OutputArray _angle,
      GpuMat_<float> magc(mag);
      GpuMat_<float> anglec(angle);
  
@@ -44,7 +44,7 @@ index 16d2da15..5c0752c8 100644
      }
  
      syncOutput(mag, _mag, stream);
-@@ -205,7 +195,7 @@ void cv::cuda::cartToPolar(InputArray _xy, OutputArray _magAngle, bool angleInDe
+@@ -191,7 +181,7 @@ void cv::cuda::cartToPolar(InputArray _xy, OutputArray _magAngle, bool angleInDe
      CV_Assert( xy.type() == CV_32FC2 );
  
      GpuMat magAngle = getOutputMat(_magAngle, xy.size(), CV_32FC2, stream);
