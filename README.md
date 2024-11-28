@@ -1,8 +1,8 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Jetson TX1/TX2/AGX Xavier/Nano
 ======================================================================
 
-Jetson Linux release: R32.7.5
-JetPack release:      4.6.5
+Jetson Linux release: R32.7.6
+JetPack release:      4.6.6
 
 Boards supported:
 * Jetson-TX1 development kit
@@ -24,6 +24,12 @@ This layer depends on:
 URI: git://git.openembedded.org/openembedded-core
 branch: kirkstone
 LAYERSERIES_COMPAT: kirkstone
+
+Final JetPack 4 Release
+-----------------------
+
+This is the last release for JetPack 4 and the Jetson Linux R32 series, which is now at end of life.
+See [this NVIDIA developer forum post](https://forums.developer.nvidia.com/t/announcing-end-of-life-for-nvidia-jetpack-4-with-the-release-of-jetpack-4-6-6/314409) for details.
 
 
 CUDA toolchain compatibility note
