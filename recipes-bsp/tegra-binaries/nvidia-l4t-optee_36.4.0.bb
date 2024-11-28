@@ -27,14 +27,14 @@ PROVIDES += "optee-client optee-test optee-nvsamples"
 do_install() {
     install -d ${D}${libdir} ${D}${libdir}/tee-supplicant/plugins
     install -m 0644 ${S}/usr/lib/libckteec.so.0.1.0 ${D}${libdir}
-    install -m 0644 ${S}/usr/lib/libteec.so.1.0.0 ${D}${libdir}
+    install -m 0644 ${S}/usr/lib/libteec.so.2.0.0 ${D}${libdir}
     install -m 0644 ${S}/usr/lib/libteeacl.so.0.1.0 ${D}${libdir}
     ln -s libckteec.so.0.1.0 ${D}${libdir}/libckteec.so.0.1
     ln -s libckteec.so.0.1 ${D}${libdir}/libckteec.so.0
     ln -s libckteec.so.0 ${D}${libdir}/libckteec.so
-    ln -s libteec.so.1.0.0 ${D}${libdir}/libteec.so.1.0
-    ln -s libteec.so.1.0.0 ${D}${libdir}/libteec.so.1
-    ln -s libteec.so.1 ${D}${libdir}/libteec.so
+    ln -s libteec.so.2.0.0 ${D}${libdir}/libteec.so.2.0
+    ln -s libteec.so.2.0.0 ${D}${libdir}/libteec.so.2
+    ln -s libteec.so.2 ${D}${libdir}/libteec.so
     ln -s libteeacl.so.0.1.0 ${D}${libdir}/libteeacl.so.0.1
     ln -s libteeacl.so.0.1 ${D}${libdir}/libteeacl.so.0
     ln -s libteeacl.so.0 ${D}${libdir}/libteeacl.so
