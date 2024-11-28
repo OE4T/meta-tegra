@@ -1,0 +1,14 @@
+L4T_DEB_COPYRIGHT_MD5 = "03753bf7be89a121c8d3fd11c4267db9"
+DEPENDS = "tegra-libraries-core tegra-libraries-eglcore"
+
+L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-3d-core"
+
+require tegra-debian-libraries-common.inc
+
+MAINSUM = "1fa3a9d3af25bdb0c9c000419b19eb74996c768b15d11c8fff9a6165c8632b24"
+MAINSUM:tegra210 = "44df4b465417916ac1bdb1c801892c7af948114cadf5a3a1eafb780984600a94"
+
+TEGRA_LIBRARIES_TO_INSTALL = "\
+    tegra-egl/libGLESv1_CM_nvidia.so.1 \
+    tegra-egl/libGLESv2_nvidia.so.2 \
+"
