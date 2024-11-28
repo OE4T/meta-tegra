@@ -17,14 +17,7 @@ EXTRA_OECMAKE:append:cuda = ' -DOPENCV_CUDA_DETECTION_NVCC_FLAGS="-ccbin ${CUDAH
 SRC_URI:append:cuda = " \
     file://0001-Fix-search-paths-in-FindCUDNN.cmake.patch \
     file://0002-Fix-broken-override-of-CUDA_TOOLKIT_TARGET_DIR-setti.patch \
-    file://0003-cudaarithm-fix-the-compile-faiure-of-CUDA-12.4.x.patch;patchdir=contrib \
-    file://0004-Get-code-to-compile-with-CUDA-12.4.patch;patchdir=contrib \
-    file://0005-Merge-pull-request-3607-from-chacha21-cuda_phase_int.patch;patchdir=contrib \
     file://0006-Workaround-for-CUDA-12.6-tuple_size-issue-3773.patch;patchdir=contrib \
-    file://0007-Merge-pull-request-3744-from-asmorkalov-as-variadic_.patch;patchdir=contrib \
-    file://0008-Merge-pull-request-3751-from-peters-4.x.patch;patchdir=contrib \
-    file://0009-Merge-pull-request-25412-from-ZelboK-update-cudnn-to.patch \
-    file://0010-Added-branch-with-variadic-version-of-Trust-tuple.patch \
 "
 
 OPTICALFLOW_MD5 = "a73cd48b18dcc0cc8933b30796074191"
