@@ -318,8 +318,15 @@ unmount_and_release() {
     if [ -n "$mnt" ]; then
 	udisksctl unmount --force -b "$dev" 2>/dev/null
     fi
-    udisksctl power-off -b "$dev" || return 1
-    return 0
+    for i in 1 2 3 4 5; do
+	if udisksctl power-off -b "$dev"; then
+	    return 0
+	fi
+	[ -b "$dev" ] || return 0
+	sleep 3
+    done
+    [ -b "$dev" ] || return 0
+    return 1
 }
 
 wait_for_usb_storage() {
