@@ -1,4 +1,4 @@
-From 1045a020db6b4341348332a1f062317b0f73aac9 Mon Sep 17 00:00:00 2001
+From f07d239d03a5f69b91058bb774625ff8e42af09b Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 13 Oct 2024 10:29:02 -0700
 Subject: [PATCH] weston-dmabuf-formats cross-build fixes
@@ -12,7 +12,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  2 files changed, 36 insertions(+), 40 deletions(-)
 
 diff --git a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
-index 5c4d9ea..1c5ef8c 100644
+index 5c4d9ea..fede422 100644
 --- a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
 +++ b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
 @@ -28,8 +28,17 @@ WESTON-DMABUF-FORMATS_OBJS :=
@@ -43,7 +43,7 @@ index 5c4d9ea..1c5ef8c 100644
 -WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-6.so.0
 -WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-desktop-6.so.0
 -WESTON-DMABUF-FORMATS_LDLIBS += -l:fullscreen-shell.so
-+WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-13.so.0
++WESTON-DMABUF-FORMATS_LDLIBS += -l:libweston-14.so.0
  WESTON-DMABUF-FORMATS_LDLIBS += -l:libdrm.so.2
 -WESTON-DMABUF-FORMATS_LDLIBS += -l:libnvgbm.so
 +WESTON-DMABUF-FORMATS_LDLIBS += -l:libgbm.so
