@@ -1,0 +1,31 @@
+From 534f4b42e9821434448c1609f31253b1749062a0 Mon Sep 17 00:00:00 2001
+From: Jan Kircher <jan.kircher@leica-microsystems.com>
+Date: Thu, 5 Dec 2024 15:22:58 +0100
+Subject: [PATCH 1/1] MdePkg/Base.h: handle builtins when using -undef flag
+
+
+Upstream-Status: Pending
+
+---
+ MdePkg/Include/Base.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/MdePkg/Include/Base.h b/MdePkg/Include/Base.h
+index e02970a052..7caebbeb1f 100644
+
+Upstream-Status: Pending
+
+--- a/MdePkg/Include/Base.h
++++ b/MdePkg/Include/Base.h
+@@ -59,7 +59,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
+ /// up to the compiler to remove any code past that point.
+ ///
+ #define UNREACHABLE()  __builtin_unreachable ()
+-  #elif defined (__has_feature)
++  #elif defined (__has_builtin) && defined (__has_feature)
+     #if __has_builtin (__builtin_unreachable)
+ ///
+ /// Signal compilers and analyzers that this call is not reachable.  It is
+-- 
+2.47.0
+

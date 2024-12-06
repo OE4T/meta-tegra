@@ -35,6 +35,7 @@ SRC_URI += "\
     file://0001-Update-tools_def.template-for-toolchain-differences.patch \
     file://0002-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=../edk2-nvidia \
     file://0003-XusbControllerDxe-use-BaseMemoryLib-functions.patch;patchdir=../edk2-nvidia \
+    file://0004-MdePkg-Base.h-handle-builtins-when-using-undef-flag.patch;patchdir=../edk2 \
 "
 
 S = "${WORKDIR}/edk2-tegra/edk2"
