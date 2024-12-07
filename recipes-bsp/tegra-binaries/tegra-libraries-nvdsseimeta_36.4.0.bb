@@ -4,6 +4,7 @@ L4T_DEB_COPYRIGHT_MD5 = "20bbd485b9b57fbc0b55d6efc08e3f4a"
 DEPENDS = "glib-2.0 gstreamer1.0"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-gstreamer"
+L4T_DEB_IS_COMMON = "1"
 
 require tegra-debian-libraries-common.inc
 
