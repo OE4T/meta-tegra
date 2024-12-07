@@ -10,6 +10,7 @@ DEPENDS = "\
 "
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-gstreamer"
+L4T_DEB_IS_COMMON = "1"
 
 require tegra-debian-libraries-common.inc
 
