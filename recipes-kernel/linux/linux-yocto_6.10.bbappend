@@ -1,8 +1,9 @@
-FILESEXTRAPATHS:prepend:tegra := "${THISDIR}/${PN}:"
+FILESEXTRAPATHS:prepend:tegra := "${THISDIR}/${PN}-6.10:${THISDIR}/${PN}:"
 
 require ${@'tegra-kernel.inc' if 'tegra' in d.getVar('MACHINEOVERRIDES').split(':') else ''}
 
 SRC_URI:append:tegra = " \
+    file://0001-NVIDIA-SAUCE-soc-tegra-pmc-Add-sysfs-nodes-to-select.patch \
     file://tegra.cfg \
     file://tegra-drm.cfg \
     file://tegra-governors.cfg \

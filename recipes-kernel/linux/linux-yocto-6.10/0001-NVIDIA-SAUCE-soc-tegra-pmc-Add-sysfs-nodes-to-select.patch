@@ -1,0 +1,285 @@
+From 36a9d28b3ee946e46d166985ebce16684905f3a5 Mon Sep 17 00:00:00 2001
+From: Petlozu Pravareshwar <petlozup@nvidia.com>
+Date: Fri, 8 Mar 2024 03:18:17 +0000
+Subject: [PATCH] NVIDIA: SAUCE: soc/tegra: pmc: Add sysfs nodes to select boot
+ chain
+
+Add sysfs nodes to select A/B boot chain so that BootROM can select
+the right boot path on warm boot.
+
+Bug 4510385
+
+Upstream-Status: Backport [5.15.148-1012.12]
+
+Signed-off-by: Petlozu Pravareshwar <petlozup@nvidia.com>
+Change-Id: Ife973c5310d7b640388bcc70e9c62c7351f80ce0
+Reviewed-on: https://git-master.nvidia.com/r/c/3rdparty/canonical/linux-jammy/+/3136031
+(cherry picked from commit 0cacf9c231c31a4e622fa64ea8e51cd1c5d5f7a8)
+Reviewed-on: https://git-master.nvidia.com/r/c/3rdparty/canonical/linux-jammy/+/3139547
+Reviewed-by: Bitan Biswas <bbiswas@nvidia.com>
+Reviewed-by: Russell Xiao <russellx@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: svcacv <svcacv@nvidia.com>
+---
+ drivers/soc/tegra/pmc.c | 218 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 218 insertions(+)
+
+diff --git a/drivers/soc/tegra/pmc.c b/drivers/soc/tegra/pmc.c
+index bf8082b91260..9584919a34df 100644
+--- a/drivers/soc/tegra/pmc.c
++++ b/drivers/soc/tegra/pmc.c
+@@ -190,6 +190,37 @@
+ #define WAKE_AOWAKE_CTRL 0x4f4
+ #define  WAKE_AOWAKE_CTRL_INTR_POLARITY BIT(0)
+ 
++#define SCRATCH_SECURE_RSV104_1		0x3a8
++#define  ROOTFS_SR_MAGIC_SHIFT		(0)
++#define  ROOTFS_SR_MAGIC_MASK		(0xffff)
++#define  ROOTFS_SR_MAGIC_V(r)		((r >> ROOTFS_SR_MAGIC_SHIFT) & \
++						ROOTFS_SR_MAGIC_MASK)
++#define  ROOTFS_SR_MAGIC_MIN		(0)
++#define  ROOTFS_SR_MAGIC_MAX		(0xffff)
++#define  ROOTFS_CURRENT_SHIFT		(16)
++#define  ROOTFS_CURRENT_MASK		(0x3)
++#define  ROOTFS_CURRENT_V(r)		((r >> ROOTFS_CURRENT_SHIFT) & \
++						ROOTFS_CURRENT_MASK)
++#define  ROOTFS_CURRENT_MIN		(0)
++#define  ROOTFS_CURRENT_MAX		(1)
++#define  ROOTFS_RETRY_COUNT_B_SHIFT	(18)
++#define  ROOTFS_RETRY_COUNT_B_MASK	(0x3)
++#define  ROOTFS_RETRY_COUNT_B_V(r)	((r >> ROOTFS_RETRY_COUNT_B_SHIFT) & \
++						ROOTFS_RETRY_COUNT_B_MASK)
++#define  ROOTFS_RETRY_COUNT_B_MIN	(0)
++#define  ROOTFS_RETRY_COUNT_B_MAX	(3)
++#define  ROOTFS_RETRY_COUNT_A_SHIFT	(20)
++#define  ROOTFS_RETRY_COUNT_A_MASK	(0x3)
++#define  ROOTFS_RETRY_COUNT_A_V(r)	((r >> ROOTFS_RETRY_COUNT_A_SHIFT) & \
++						ROOTFS_RETRY_COUNT_A_MASK)
++#define  ROOTFS_RETRY_COUNT_A_MIN	(0)
++#define  ROOTFS_RETRY_COUNT_A_MAX	(3)
++
++#define SCRATCH_SECURE_RSV109_0		0x3cc
++#define  BOOT_CHAIN_STATUS_A_V(r)	((r) & 0x1)
++#define  BOOT_CHAIN_STATUS_B_V(r)	((r >> 1) & 0x1)
++#define  BOOT_CHAIN_CURRENT_V(r)	((r >> 4) & 0x3)
++
+ /* for secure PMC */
+ #define TEGRA_SMC_PMC		0xc2fffe00
+ #define  TEGRA_SMC_PMC_READ	0xaa
+@@ -371,6 +402,7 @@ struct tegra_pmc_soc {
+ 	bool has_blink_output;
+ 	bool has_usb_sleepwalk;
+ 	bool has_single_mmio_aperture;
++	bool allow_boot_chain_sel;
+ };
+ 
+ /**
+@@ -2203,6 +2235,153 @@ static ssize_t reset_level_show(struct device *dev,
+ 
+ static DEVICE_ATTR_RO(reset_level);
+ 
++static ssize_t tegra_pmc_scratch_rsv104_store(struct tegra_pmc *pmc,
++					const char *buf, u32 mask, u32 shift,
++					u32 min, u32 max, size_t count)
++{
++	int ret;
++	u32 reg, val;
++
++	ret = sscanf(buf, "0x%x", &val);
++	if (ret != 1)
++		return -EINVAL;
++
++	if (val < min || val > max)
++		return -EINVAL;
++
++	reg = tegra_pmc_scratch_readl(pmc, SCRATCH_SECURE_RSV104_1);
++	reg &= ~(mask << shift);
++	reg |= (val << shift);
++	tegra_pmc_scratch_writel(pmc, reg, SCRATCH_SECURE_RSV104_1);
++
++	return count;
++}
++
++/* Store magic id */
++static ssize_t rootfs_sr_magic_store(struct device *dev,
++				struct device_attribute *attr, const char *buf,
++				size_t count)
++{
++	return tegra_pmc_scratch_rsv104_store(pmc, buf, ROOTFS_SR_MAGIC_MASK,
++					ROOTFS_SR_MAGIC_SHIFT,
++					ROOTFS_SR_MAGIC_MIN,
++					ROOTFS_SR_MAGIC_MAX, count);
++}
++
++static ssize_t rootfs_sr_magic_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	u32 reg;
++
++	reg = tegra_pmc_scratch_readl(pmc, SCRATCH_SECURE_RSV104_1);
++
++	return sprintf(buf, "0x%x\n", ROOTFS_SR_MAGIC_V(reg));
++}
++static DEVICE_ATTR_RW(rootfs_sr_magic);
++
++/* Store current rootfs chain */
++static ssize_t rootfs_current_store(struct device *dev,
++				struct device_attribute *attr, const char *buf,
++				size_t count)
++{
++	return tegra_pmc_scratch_rsv104_store(pmc, buf, ROOTFS_CURRENT_MASK,
++					ROOTFS_CURRENT_SHIFT,
++					ROOTFS_CURRENT_MIN,
++					ROOTFS_CURRENT_MAX, count);
++}
++
++static ssize_t rootfs_current_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	u32 reg;
++
++	reg = tegra_pmc_scratch_readl(pmc, SCRATCH_SECURE_RSV104_1);
++
++	return sprintf(buf, "0x%x\n", ROOTFS_CURRENT_V(reg));
++}
++static DEVICE_ATTR_RW(rootfs_current);
++
++/* Store retry counter of rootfs chain B */
++static ssize_t rootfs_retry_count_b_store(struct device *dev,
++				struct device_attribute *attr, const char *buf,
++				size_t count)
++{
++	return tegra_pmc_scratch_rsv104_store(pmc, buf,
++					ROOTFS_RETRY_COUNT_B_MASK,
++					ROOTFS_RETRY_COUNT_B_SHIFT,
++					ROOTFS_RETRY_COUNT_B_MIN,
++					ROOTFS_RETRY_COUNT_B_MAX, count);
++}
++static ssize_t rootfs_retry_count_b_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	u32 reg;
++
++	reg = tegra_pmc_scratch_readl(pmc, SCRATCH_SECURE_RSV104_1);
++
++	return sprintf(buf, "0x%x\n", ROOTFS_RETRY_COUNT_B_V(reg));
++}
++static DEVICE_ATTR_RW(rootfs_retry_count_b);
++
++/* Store retry counter of rootfs chain A */
++static ssize_t rootfs_retry_count_a_store(struct device *dev,
++				struct device_attribute *attr, const char *buf,
++				size_t count)
++{
++	return tegra_pmc_scratch_rsv104_store(pmc, buf,
++					ROOTFS_RETRY_COUNT_A_MASK,
++					ROOTFS_RETRY_COUNT_A_SHIFT,
++					ROOTFS_RETRY_COUNT_A_MIN,
++					ROOTFS_RETRY_COUNT_A_MAX, count);
++}
++
++static ssize_t rootfs_retry_count_a_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	u32 reg;
++
++	reg = tegra_pmc_scratch_readl(pmc, SCRATCH_SECURE_RSV104_1);
++
++	return sprintf(buf, "0x%x\n", ROOTFS_RETRY_COUNT_A_V(reg));
++}
++static DEVICE_ATTR_RW(rootfs_retry_count_a);
++
++/* Status of bootloader chain A */
++static ssize_t boot_chain_status_a_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	u32 reg;
++
++	reg = tegra_pmc_scratch_readl(pmc, SCRATCH_SECURE_RSV109_0);
++
++	return sprintf(buf, "0x%x\n", BOOT_CHAIN_STATUS_A_V(reg));
++}
++static DEVICE_ATTR_RO(boot_chain_status_a);
++
++/* Status of bootloader chain B */
++static ssize_t boot_chain_status_b_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	u32 reg;
++
++	reg = tegra_pmc_scratch_readl(pmc, SCRATCH_SECURE_RSV109_0);
++
++	return sprintf(buf, "0x%x\n", BOOT_CHAIN_STATUS_B_V(reg));
++}
++static DEVICE_ATTR_RO(boot_chain_status_b);
++
++/* Current bootloader chain */
++static ssize_t boot_chain_current_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	u32 reg;
++
++	reg = tegra_pmc_scratch_readl(pmc, SCRATCH_SECURE_RSV109_0);
++
++	return sprintf(buf, "0x%x\n", BOOT_CHAIN_CURRENT_V(reg));
++}
++static DEVICE_ATTR_RO(boot_chain_current);
++
+ static void tegra_pmc_reset_sysfs_init(struct tegra_pmc *pmc)
+ {
+ 	struct device *dev = pmc->dev;
+@@ -2223,6 +2402,44 @@ static void tegra_pmc_reset_sysfs_init(struct tegra_pmc *pmc)
+ 				 "failed to create attr \"reset_level\": %d\n",
+ 				 err);
+ 	}
++
++	if (pmc->soc->allow_boot_chain_sel) {
++		err = device_create_file(dev, &dev_attr_rootfs_sr_magic);
++		if (err < 0)
++			dev_warn(dev,
++				"failed to create attr rootfs_sr_magic: %d\n",
++				err);
++		err = device_create_file(dev, &dev_attr_rootfs_current);
++		if (err < 0)
++			dev_warn(dev,
++				"failed to create attr rootfs_current: %d\n",
++				err);
++		err = device_create_file(dev, &dev_attr_rootfs_retry_count_b);
++		if (err < 0)
++			dev_warn(dev,
++				"failed to create attr rootfs_retry_count_b %d\n",
++				err);
++		err = device_create_file(dev, &dev_attr_rootfs_retry_count_a);
++		if (err < 0)
++			dev_warn(dev,
++				"failed to create attr rootfs_retry_count_a %d\n",
++				err);
++		err = device_create_file(dev, &dev_attr_boot_chain_status_a);
++		if (err < 0)
++			dev_warn(dev,
++				"failed to create attr boot_chain_status_a %d\n",
++				err);
++		err = device_create_file(dev, &dev_attr_boot_chain_status_b);
++		if (err < 0)
++			dev_warn(dev,
++				"failed to create attr boot_chain_status_b %d\n",
++				err);
++		err = device_create_file(dev, &dev_attr_boot_chain_current);
++		if (err < 0)
++			dev_warn(dev,
++				"failed to create attr boot_chain_current %d\n",
++				err);
++	}
+ }
+ 
+ static int tegra_pmc_irq_translate(struct irq_domain *domain,
+@@ -4249,6 +4466,7 @@ static const struct tegra_pmc_soc tegra234_pmc_soc = {
+ 	.num_pmc_clks = 0,
+ 	.has_blink_output = false,
+ 	.has_single_mmio_aperture = false,
++	.allow_boot_chain_sel = true,
+ };
+ 
+ static const struct of_device_id tegra_pmc_match[] = {
+-- 
+2.46.2
