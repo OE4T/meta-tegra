@@ -259,7 +259,13 @@ if [ -z "$CHIPREV" ]; then
     CHIPREV="${chipid:5:1}"
     skipuid="--skipuid"
     case $bootauth in
-        PKC|SBKPKC)
+        PKC)
+            if [ -z "$keyfile" ]; then
+                echo "ERR: Target is configured for secure boot ($bootauth); use -u option to specify key file" >&2
+                exit 1
+            fi
+            ;;
+        SBKPKC)
             if [ -z "$keyfile" -o -z "$sbk_keyfile" ]; then
                 echo "ERR: Target is configured for secure boot ($bootauth); use -u and -v options to specify key files" >&2
                 exit 1
