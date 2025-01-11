@@ -128,42 +128,47 @@ copy_signed_binaries() {
     done < <("$here/nvflashxmlparse" -t boot "$signdir/$xmlfile"; "$here/nvflashxmlparse" -t rootfs "$signdir/$xmlfile")
 }
 
+create_rcm_boot_script() {
+    ln -sf "$here/tegrarcm_v2" rcmboot_blob/
+    cat > rcm-boot.sh <<EOF
+oldwd="\$PWD"
+cd rcmboot_blob
+EOF
+    cat rcmboot_blob/rcmbootcmd.txt >> rcm-boot.sh
+    cat >> rcm-boot.sh <<EOF
+cd "\$oldwd"
+EOF
+    chmod +x rcm-boot.sh
+}
+
 sign_binaries() {
     if [ -n "$PRESIGNED" ]; then
 	cp doflash.sh flash_signed.sh
 	if ! copy_bootloader_files bootloader_staging; then
 	    return 1
 	fi
+	if [ -e rcm-boot.sh ]; then
+	    return 0
+	fi
+	if [ ! -e rcmboot_blob/rcmbootcmd.txt ]; then
+	    echo "ERR: missing RCM boot blob in pre-signed binaries" >&2
+	    return 1
+	fi
+	create_rcm_boot_script
 	return 0
     fi
+
     if [ -z "$BOARDID" -o -z "$FAB" ]; then
 	wait_for_rcm
     fi
     rm -rf rcmboot_blob
-    if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
-	      BOOTCONTROL_OVERLAYS=L4TConfiguration-rcmboot.dtbo \
-	      "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" $instance_args \
-	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE; then
-	    ln -sf "$here/tegrarcm_v2" rcmboot_blob/
-	    cat > rcm-boot.sh <<EOF
-oldwd="\$PWD"
-cd rcmboot_blob
-EOF
-	    cat rcmboot_blob/rcmbootcmd.txt >> rcm-boot.sh
-	    cat >> rcm-boot.sh <<EOF
-cd "\$oldwd"
-EOF
-	    chmod +x rcm-boot.sh
-    else
-	return 1
-    fi
-    . ./boardvars.sh
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
 	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
 	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
 	cp flashcmd.txt flash_signed.sh
 	sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
 	mv secureflash.xml internal-secureflash.xml
+	create_rcm_boot_script
     else
 	return 1
     fi
@@ -171,6 +176,7 @@ EOF
 	return 1
     fi
     if [ -e external-flash.xml.in ]; then
+	. ./boardvars.sh
         if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
 		  "$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args \
 		  external-flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
