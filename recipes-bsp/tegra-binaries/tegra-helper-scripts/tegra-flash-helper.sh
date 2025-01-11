@@ -52,7 +52,7 @@ get_value_from_PT_table() {
 	echo "ERR: unsupported flash layout field: $field" >&2
 	return 1
     fi
-    local value=$("$here/nvflashxmlparse" --get-filename "$partname" "$layoutfile")
+    local value=$("$here/nvflashxmlparse" --get-filename "$partname" "$layoutfile" 2>/dev/null)
     eval "$varname=\"$value\""
 }
 
@@ -176,28 +176,40 @@ if [ -z "$CHIPID" ]; then
     exit 1
 fi
 
-rcm_bootcontrol_overlay="L4TConfiguration-rcmboot.dtbo"
-if [ $rcm_boot -eq 1 -a $to_sign -eq 0 ]; then
-    overlay_dtb_files="$rcm_bootcontrol_overlay"
+[ -n "$RCMBOOT_KERNEL" ] || RCMBOOT_KERNEL="initrd-flash.img"
+
+if [ $external_device -eq 0 ]; then
+    also_sign_rcmboot=1
 else
-    overlay_dtb_files="$BOOTCONTROL_OVERLAYS"
+    also_sign_rcmboot=0
 fi
-if [ -z "$overlay_dtb_files" ]; then
-    overlay_dtb_files="$PLUGIN_MANAGER_OVERLAYS"
-elif [ -n "$PLUGIN_MANAGER_OVERLAYS" ]; then
-    overlay_dtb_files="$overlay_dtb_files,$PLUGIN_MANAGER_OVERLAYS"
-fi
-if [ -z "$overlay_dtb_files" ]; then
-    overlay_dtb_files="$OVERLAY_DTB_FILE"
+
+rcm_bootcontrol_overlay="L4TConfiguration-rcmboot.dtbo"
+
+non_bootcontrol_overlays="$PLUGIN_MANAGER_OVERLAYS"
+if [ -z "$non_bootcontrol_overlays" ]; then
+    non_bootcontrol_overlays="$OVERLAY_DTB_FILE"
 elif [ -n "$OVERLAY_DTB_FILE" ]; then
-    overlay_dtb_files="$overlay_dtb_files,$OVERLAY_DTB_FILE"
+    non_bootcontrol_overlays="$non_bootcontrol_overlays,$OVERLAY_DTB_FILE"
 fi
+[ -z "$non_bootcontrol_overlays" ] || non_bootcontrol_overlays=",$non_bootcontrol_overlays"
+
+if [ $rcm_boot -ne 0 -a $to_sign -eq 0 ]; then
+    overlay_dtb_files="$rcm_bootcontrol_overlay$non_bootcontrol_overlays"
+    also_sign_rcmboot=0
+else
+    overlay_dtb_files="$BOOTCONTROL_OVERLAYS$non_bootcontrol_overlays"
+fi
+
 overlay_dtb_arg=
+rcm_overlay_dtb_arg=
 if [ -n "$overlay_dtb_files" ]; then
     overlay_dtb_arg="--overlay_dtb $overlay_dtb_files"
+    rcm_overlay_dtb_arg="--overlay_dtb $rcmbootcontrol_overlay$non_bootcontrol_overlays"
 fi
 if [ -n "$DCE_OVERLAY" ]; then
     overlay_dtb_arg="$overlay_dtb_arg --dce_overlay_dtb $DCE_OVERLAY"
+    rcm_ovleray_dtb_arg="$rcm_overlay_dtb_arg --dce_overlay_dtb $DCE_OVERLAY"
 fi
 
 fuselevel="fuselevel_production"
@@ -573,8 +585,9 @@ if [ -f "$custinfo_out" ]; then
     custinfo_args="--cust_info $custinfo_out"
 fi
 
+binsargs_params=
 if [ "$CHIPID" = "0x23" ]; then
-    BINSARGS="psc_fw pscfw_t234_prod.bin; \
+    binsargs_params="psc_fw pscfw_t234_prod.bin; \
 mts_mce mce_flash_o10_cr_prod.bin; \
 mb2_applet applet_t234.bin; \
 mb2_bootloader mb2_t234.bin; \
@@ -606,12 +619,11 @@ eks eks.img"
          --mb2bct_cfg $MB2BCT_CFG \
          --bldtb $TBCDTB_FILE \
          --concat_cpubl_bldtb \
-         --cpubl uefi_jetson.bin \
-         $overlay_dtb_arg $custinfo_args"
+         --cpubl uefi_jetson.bin"
 fi
 
-if [ $rcm_boot -ne 0 ]; then
-    BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile"
+if [ $rcm_boot -ne 0 -a $to_sign -eq 0 ]; then
+    binsargs_params="$binsargs_params; kernel $kernfile; kernel_dtb $kernel_dtbfile"
 fi
 
 if [ $bup_blob -ne 0 -o $to_sign -ne 0 -o "$sdcard" = "yes" -o $external_device -eq 1 ]; then
@@ -659,7 +671,7 @@ if [ $want_signing -eq 1 ]; then
     tbcdtbfilename="$TBCDTB_FILE"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
-    BINSARGS="--bins \"$BINSARGS\""
+    BINSARGS="--bins \"$binsargs_params\""
     BCT="--sdram_config"
     boot_chain_select="A"
     if [ "$CHIPID" = "0x23" ]; then
@@ -675,7 +687,7 @@ if [ $want_signing -eq 1 ]; then
     BL_DIR="."
     bctfilename=$(echo $sdramcfg_files | cut -d, -f1)
     bctfile1name=$(echo $sdramcfg_files | cut -d, -f2)
-    BCTARGS="$bctargs --bct_backup"
+    BCTARGS="$bctargs $overlay_dtb_arg $custinfo_args --bct_backup"
     L4T_CONF_DTBO="L4TConfiguration.dtbo"
     rootfs_ab=0
     gen_rcmdump=0
@@ -687,22 +699,24 @@ if [ $want_signing -eq 1 ]; then
           --cfg flash.xml \
           --bct_backup \
           --boot_chain A \
-          $bctargs $ramcodeargs $extdevargs $sparseargs $BINSARGS"
+          $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
     FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
-    if [ "$CHIPID" = "0x23" ]; then
-        cp uefi_jetson.bin rcmboot_uefi_jetson.bin
-        rcm_overlay_dtbs="$rcm_bootcontrol_overlay"
-        if [ -n "$PLUGIN_MANAGER_OVERLAYS" ]; then
-            rcm_overlay_dtbs="$rcm_overlay_dtbs,$PLUGIN_MANAGER_OVERLAYS"
-        fi
-        if [ -n "$OVERLAY_DTB_FILE" ]; then
-            rcm_overlay_dtbs="$rcm_overlay_dtbs,$OVERLAY_DTB_FILE"
-        fi
-        rcmbootsigncmd="python3 $flashappname $keyargs --chip 0x23 --odmdata $odmdata --bldtb $TBCDTB_FILE --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtbs \
-                    --cmd \"sign rcmboot_uefi_jetson.bin bootloader_stage2 A_cpu-bootloader\""
-        eval $rcmbootsigncmd || exit 1
+    if [ $also_sign_rcmboot -ne 0 ]; then
+	BCTARGS="$bctargs $rcm_overlay_dtb_arg $custinfo_args --bct_backup"
+	L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
+	BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
+	FLASHARGS="--chip 0x23 --bl uefi_jetson_with_dtb.bin \
+          --sdram_config $sdramcfg_files \
+          --odmdata $odmdata \
+          --applet mb1_t234_prod.bin \
+          --cmd \"$tfcmd\" $skipuid \
+          --cfg flash.xml \
+          --bct_backup \
+          --boot_chain A \
+          $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
+	(rcm_boot=1 odmsign_ext_sign_and_flash) || exit 1
     fi
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
         if [ -f flashcmd.txt ]; then
@@ -727,8 +741,8 @@ else
           --cfg flash.xml \
           --bct_backup \
           --boot_chain A \
-          $bctargs $extdevargs $sparseargs \
-          --bins \"$BINSARGS\""
+          $bctargs $overlay_dtb_arg $custinfo_args $extdevargs $sparseargs \
+          --bins \"$binsargs_params\""
 fi
 
 if [ $bup_blob -ne 0 ]; then
