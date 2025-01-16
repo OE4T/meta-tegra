@@ -123,6 +123,7 @@ lib, /usr/lib/aarch64-linux-gnu/tegra/nvidia_icd.json
 lib, /usr/lib/libcuda.so.1.1
 lib, /usr/lib/libdrm.so.2
 lib, /usr/lib/libEGL_nvidia.so.0
+lib, /usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0
 lib, /usr/lib/libGLESv1_CM_nvidia.so.1
 lib, /usr/lib/libGLESv2_nvidia.so.2
 lib, /usr/lib/libGLX_nvidia.so.0
