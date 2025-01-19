@@ -703,7 +703,16 @@ if [ $want_signing -eq 1 ]; then
     FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
+    if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
+        mv flashcmd.txt secureflash.sh || exit 1
+        chmod +x secureflash.sh
+    fi
     if [ $also_sign_rcmboot -ne 0 ]; then
+	outfolder="$(odmsign_get_folder)"
+	rm -rf ${outfolder}_save
+	mv ${outfolder} ${outfolder}_save
+	rm -f secureflash.xml.save
+	mv secureflash.xml secureflash.xml.save
 	BCTARGS="$bctargs $rcm_overlay_dtb_arg $custinfo_args --bct_backup"
 	L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
 	BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
@@ -717,20 +726,20 @@ if [ $want_signing -eq 1 ]; then
           --boot_chain A \
           $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
 	(rcm_boot=1 odmsign_ext_sign_and_flash) || exit 1
+	rm -f flashcmd.txt
+	rm -rf ${outfolder}
+	mv ${outfolder}_save ${outfolder}
+	cp -f ${outfolder}/* .
+	rm -f secureflash.xml
+	mv secureflash.xml.save secureflash.xml
     fi
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
-        if [ -f flashcmd.txt ]; then
-            chmod +x flashcmd.txt
-            ln -sf flashcmd.txt ./secureflash.sh
-        else
-            echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
-        fi
+        cp secureflash.sh flashcmd.txt
         rm -f APPFILE APPFILE_b DATAFILE
     fi
     if [ $bup_blob -eq 0 ]; then
         exit 0
     fi
-    touch odmsign.func
     flashcmd="python3 $flashappname ${inst_args} $FLASHARGS"
 else
     flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_dtb.bin \
