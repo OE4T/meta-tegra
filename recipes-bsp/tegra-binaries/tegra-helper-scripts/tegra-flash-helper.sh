@@ -205,7 +205,7 @@ overlay_dtb_arg=
 rcm_overlay_dtb_arg=
 if [ -n "$overlay_dtb_files" ]; then
     overlay_dtb_arg="--overlay_dtb $overlay_dtb_files"
-    rcm_overlay_dtb_arg="--overlay_dtb $rcmbootcontrol_overlay$non_bootcontrol_overlays"
+    rcm_overlay_dtb_arg="--overlay_dtb $rcm_bootcontrol_overlay$non_bootcontrol_overlays"
 fi
 if [ -n "$DCE_OVERLAY" ]; then
     overlay_dtb_arg="$overlay_dtb_arg --dce_overlay_dtb $DCE_OVERLAY"
