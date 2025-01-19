@@ -252,15 +252,30 @@ unmount_and_release() {
 wait_for_usb_storage() {
     local sessid="$1"
     local name="$2"
+    local usbi="$3"
     local count=0
-    local output candidate cand_model cand_vendor
+    local output candidate cand_model cand_vendor cand_devpath ok
+    local fromname="${sessid:-${usbi}}"
 
-    echo -n "Waiting for USB storage device $name from ${sessid:-target}..." >&2
+    echo -n "Waiting for USB storage device $name from ${fromname:-target}..." >&2
     while [ -z "$output" ]; do
 	for candidate in /dev/sd[a-z]; do
 	    [ -b "$candidate" ] || continue
-	    cand_model=$(udevadm info --query=property $candidate | grep '^ID_MODEL=' | cut -d= -f2)
-	    if [ -z "$sessid" -o "$cand_model" = "$sessid" ]; then
+	    ok=
+	    if [ -n "$sessid" ]; then
+		cand_model=$(udevadm info --query=property $candidate | grep '^ID_MODEL=' | cut -d= -f2)
+		if [ "$cand_model" = "$sessid" ]; then
+		    ok=yes
+		fi
+	    elif [ -n "$usbi" ]; then
+		cand_devpath=$(udevadm info --query=property $candidate | grep '^DEVPATH=' | cut -d= -f2)
+		if echo "$cand_devpath" | grep -q "/$usbi/" 2>/dev/null; then
+		    ok=yes
+		fi
+	    else
+		ok=yes
+	    fi
+	    if [ "$ok" = "yes" ]; then
 		cand_vendor=$(udevadm info --query=property $candidate | grep '^ID_VENDOR=' | cut -d= -f2)
 		if [ "$cand_vendor" = "$name" ]; then
 		    echo "[$candidate]" >&2
@@ -331,7 +346,7 @@ copy_bootloader_files() {
 }
 
 generate_flash_package() {
-    local dev=$(wait_for_usb_storage "$session_id" "flashpkg")
+    local dev=$(wait_for_usb_storage "$session_id" "flashpkg" "$usb_instance")
     local exports
 
     if [ -z "$dev" ]; then
@@ -372,7 +387,7 @@ generate_flash_package() {
 write_to_device() {
     local devname="$1"
     local flashlayout="$2"
-    local dev=$(wait_for_usb_storage "$session_id" "$devname")
+    local dev=$(wait_for_usb_storage "$session_id" "$devname" "$usb_instance")
     local opts="$3"
     local rewritefiles="internal-secureflash.xml"
     local datased simgname rc=1
@@ -409,7 +424,7 @@ write_to_device() {
 
 get_final_status() {
     local dtstamp="$1"
-    local dev=$(wait_for_usb_storage "$session_id" "flashpkg")
+    local dev=$(wait_for_usb_storage "$session_id" "flashpkg" "$usb_instance")
     local mnt final_status logdir logfile
     if [ -z "$dev" ]; then
 	echo "ERR: could not get final status from device" >&2
