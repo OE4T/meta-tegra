@@ -21,50 +21,36 @@ LIC_FILES_CHKSUM = "file://LICENSE.GPLv3;md5=9eef91148a9b14ec7f9df333daebc746 \
 # not been maintained and many patches have been backported in this repo.
 SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/jejb/sbsigntools.git;protocol=https;name=sbsigntools;branch=master \
            git://github.com/rustyrussell/ccan.git;protocol=https;destsuffix=git/lib/ccan.git;name=ccan;branch=master \
-           file://0001-configure-Fixup-build-dependencies-for-cross-compili.patch \
-           file://0002-fix-openssl-3-0.patch \
-          "
+           file://0001-Updates-for-OE-cross-builds.patch \
+           file://0002-ccan-simplify-SCOREDIR.patch;patchdir=lib/ccan.git \
+           "
 
-SRCREV_sbsigntools  ?= "f12484869c9590682ac3253d583bf59b890bb826"
+SRCREV_sbsigntools  ?= "9cfca9fe7aa7a8e29b92fe33ce8433e212c9a8ba"
 SRCREV_ccan         ?= "b1f28e17227f2320d07fe052a8a48942fe17caa5"
 SRCREV_FORMAT       =  "sbsigntools_ccan"
 
-DEPENDS = "binutils-native gnu-efi-native help2man-native openssl-native util-linux-native"
+DEPENDS = "binutils-native gnu-efi help2man-native openssl util-linux"
 
-PV = "0.9.4-git"
+PV = "0.9.5-git"
 
 S = "${WORKDIR}/git"
 
 inherit autotools pkgconfig
-inherit_defer native
 
-do_configure:prepend() {
-	cd ${S}
+SBSIGN_SEARCH_BASE = "${RECIPE_SYSROOT}"
+SBSIGN_SEARCH_BASE:class-native = "${RECIPE_SYSROOT_NATIVE}"
 
-	sed -i s#RECIPE_SYSROOT#${RECIPE_SYSROOT_NATIVE}#g configure.ac
+EXTRA_OECONF = "EFI_ARCH=${@efi_arch(d)}"
 
-	if [ ! -e lib/ccan ]; then
-
-		# Use empty SCOREDIR because 'make scores' is not run.
-		# The default setting depends on (non-whitelisted) host tools.
-		sed -i -e 's#^\(SCOREDIR=\).*#\1#' lib/ccan.git/Makefile
-
-		lib/ccan.git/tools/create-ccan-tree \
-		--build-type=automake lib/ccan \
+do_configure() {
+    rm -rf ${S}/lib/ccan
+    oldwd="$PWD"
+    cd ${S}
+    ./lib/ccan.git/tools/create-ccan-tree \
+    		--build-type=automake ${S}/lib/ccan \
 		talloc read_write_all build_assert array_size endian
-	fi
-
-	# Create generatable docs from git
-	(
-	 echo "Authors of sbsigntool:"
-	 echo
-	 git log --format='%an' | sort -u | sed 's,^,\t,'
-	) > AUTHORS
-
-	# Generate simple ChangeLog
-	git log --date=short --format='%ad %t %an <%ae>%n%n  * %s%n' > ChangeLog
-
-	cd ${B}
+    cd "$oldwd"
+    autotools_do_configure
 }
 
 def efi_arch(d):
@@ -74,11 +60,4 @@ def efi_arch(d):
         return "ia32"
     return harch
 
-EXTRA_OEMAKE = "\
-    INCLUDES+='-I${S}/lib/ccan.git/ \
-              -I${STAGING_INCDIR_NATIVE}/efi \
-              -I${STAGING_INCDIR_NATIVE} \
-              -I${STAGING_INCDIR_NATIVE}/efi/${@efi_arch(d)}' \
-    "
-
-CFLAGS:append = " -Wno-error"
+BBCLASSEXTEND = "native"

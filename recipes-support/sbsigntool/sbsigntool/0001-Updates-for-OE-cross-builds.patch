@@ -1,0 +1,65 @@
+From 69abde06d5dd8025e375890e3e2bd2e552967ef2 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 20 Jan 2025 06:39:57 -0800
+Subject: [PATCH] Updates for OE cross-builds
+
+Upstream-Status: Inappropriate [oe-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ configure.ac | 34 ++++++++++++----------------------
+ 1 file changed, 13 insertions(+), 23 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 8a5340a..02592e9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -1,6 +1,6 @@
+ AC_INIT([sbsigntool], [0.9.5], [James.Bottomley@HansenPartnership.com])
+ 
+-AM_INIT_AUTOMAKE()
++AM_INIT_AUTOMAKE([foreign subdir-objects])
+ 
+ AC_PREREQ(2.60)
+ 
+@@ -67,30 +67,20 @@ PKG_CHECK_MODULES(uuid, uuid,
+     AC_MSG_ERROR([libuuid (from the uuid package) is required]))
+ 
+ dnl gnu-efi headers require extra include dirs
+-EFI_ARCH=$(uname -m | sed 's/i.86/ia32/;s/arm.*/arm/')
++if test "x$EFI_ARCH" = "x"; then
++    EFI_ARCH=$(uname -m | sed 's/i.86/ia32/;s/arm.*/arm/')
++fi
+ AM_CONDITIONAL(TEST_BINARY_FORMAT, [ test "$EFI_ARCH" = "arm" -o "$EFI_ARCH" = "aarch64" -o "$EFI_ARCH" = riscv64 ])
+ 
+-##
+-# no consistent view of where gnu-efi should dump the efi stuff, so find it
+-##
+-for path in /lib /lib64 /usr/lib /usr/lib64 /usr/lib32 /lib/efi /lib64/efi /usr/lib/efi /usr/lib64/efi /usr/lib/gnuefi /usr/lib64/gnuefi ; do
+-    if test -e $path/crt0-efi-$EFI_ARCH.o; then
+-       CRTPATH=$path
+-    fi
+-done
+-if test -z "$CRTPATH"; then
+-   AC_MSG_ERROR([cannot find the gnu-efi crt path])
+-fi
++PKG_CHECK_MODULES([GNUEFI], [gnu-efi],,
++			   AC_MSG_ERROR([gnu-efi not found]))
++PKG_CHECK_VAR([GNUEFI_LIBDIR], [gnu-efi], [libdir],
++			       [CRTPATH="$GNUEFI_LIBDIR/crt0-efi-$EFI_ARCH.o"],
++			       AC_MSG_ERROR([no libdir set for gnu-efi]))
+ 
+-EFI_CPPFLAGS="-I/usr/include/efi -I/usr/include/efi/$EFI_ARCH \
+- -DEFI_FUNCTION_WRAPPER"
+-CPPFLAGS_save="$CPPFLAGS"
+-CPPFLAGS="$CPPFLAGS $EFI_CPPFLAGS"
+-AC_CHECK_HEADERS([efi.h], [], [], $EFI_INCLUDES)
+-CPPFLAGS="$CPPFLAGS_save"
+-AC_SUBST(EFI_CPPFLAGS, $EFI_CPPFLAGS)
+-AC_SUBST(EFI_ARCH, $EFI_ARCH)
+-AC_SUBST(CRTPATH, $CRTPATH)
++AC_SUBST([EFI_CPPFLAGS], [$GNUEFI_CFLAGS -DEFI_FUNCTION_WRAPPER])
++AC_SUBST([EFI_ARCH])
++AC_SUBST([CRTPATH])
+ 
+ AC_CONFIG_FILES([Makefile src/Makefile lib/ccan/Makefile]
+ 		[docs/Makefile tests/Makefile])

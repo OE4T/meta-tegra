@@ -1,0 +1,28 @@
+From 9d95c153a0a2dde657a44b9a6cbf4c50543aacc0 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 20 Jan 2025 06:19:07 -0800
+Subject: [PATCH] ccan: simplify SCOREDIR
+
+For OE builds we don't use 'make scores' anyway, and the
+shell callouts in setting that variable cause messages
+about commands that aren't available in the build tree.
+
+Upstream-Status: Inappropriate [oe-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Makefile | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Makefile b/Makefile
+index 13aa195d..b44125f6 100644
+--- a/Makefile
++++ b/Makefile
+@@ -15,7 +15,7 @@
+ EXCLUDE=wwviaudio ogg_to_pcm jmap jset nfs
+ 
+ # Where make scores puts the results
+-SCOREDIR=scores/$(shell whoami)/$(shell uname -s)-$(shell uname -m)-$(CC)-$(shell git describe --always --dirty)
++SCOREDIR=scores
+ 
+ ALL=$(filter-out $(EXCLUDE), $(REALLY_ALL))
+ 
