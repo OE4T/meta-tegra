@@ -48,6 +48,7 @@ sbk_keyfile=
 skip_bootloader=0
 early_final_status=0
 erase_nvme=0
+check_usb_instance="${TEGRAFLASH_CHECK_USB_INSTANCE:-no}"
 
 ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,erase-nvme" -o "u:v:h" -- "$@")
 if [ $? -ne 0 ]; then
@@ -267,7 +268,7 @@ wait_for_usb_storage() {
 		if [ "$cand_model" = "$sessid" ]; then
 		    ok=yes
 		fi
-	    elif [ -n "$usbi" ]; then
+	    elif [ -n "$usbi" -a "$check_usb_instance" = "yes" ]; then
 		cand_devpath=$(udevadm info --query=property $candidate | grep '^DEVPATH=' | cut -d= -f2)
 		if echo "$cand_devpath" | grep -q "/$usbi/" 2>/dev/null; then
 		    ok=yes
