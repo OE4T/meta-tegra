@@ -67,7 +67,7 @@ IMAGE_ROOTFS_ALIGNMENT ?= "4"
 TEGRA_BLBLOCKSIZE ?= "${@int(d.getVar('IMAGE_ROOTFS_ALIGNMENT')) * 1024}"
 EXTRA_IMAGECMD:ext4 ?= "-i 4096 -b 4096"
 IMAGE_CLASSES += "image_types_tegra"
-IMAGE_FSTYPES += "tegraflash"
+IMAGE_FSTYPES += "tegraflash.tar.zst"
 
 INITRAMFS_IMAGE ?= "tegra-minimal-initramfs"
 INITRAMFS_IMAGE_BUNDLE ?= "0"

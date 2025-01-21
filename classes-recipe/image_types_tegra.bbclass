@@ -4,7 +4,7 @@ TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 inherit ${TEGRA_UEFI_SIGNING_CLASS}
 TEGRA_UEFI_USE_SIGNED_FILES ??= "false"
 
-IMAGE_TYPES += "tegraflash"
+IMAGE_TYPES += "tegraflash.tar"
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
 
@@ -103,16 +103,7 @@ TOSIMGFILENAME:tegra234 = "tos-optee_t234.img"
 BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
 FLASHTOOLS_DIR = "tegra-flash"
 
-TEGRAFLASH_PACKAGE_FORMAT ??= "tar"
-TEGRAFLASH_PACKAGE_FORMATS = "tar zip"
 TEGRAFLASH_SDCARD_SIZE ??= "16G"
-
-python() {
-    pt = d.getVar('TEGRAFLASH_PACKAGE_FORMAT')
-    valid_types = d.getVar('TEGRAFLASH_PACKAGE_FORMATS').split()
-    if pt not in valid_types:
-        bb.fatal("TEGRAFLASH_PACKAGE_FORMAT %s not recognized, supported types are: %s" % (pt, ', '.join(valid_types)))
-}
 
 # Override this function if you need to add
 # customization after the default files are
@@ -174,15 +165,8 @@ tegraflash_custom_post() {
 }
 
 tegraflash_finalize_pkg() {
-    if [ "${TEGRAFLASH_PACKAGE_FORMAT}" = "zip" ]; then
-        rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip
-        zip -r ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.zip .
-        ln -sf ${IMAGE_NAME}.tegraflash.zip ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.tegraflash.zip
-    else
-        rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.tar.gz
-        ${IMAGE_CMD_TAR} --sparse --numeric-owner --transform="s,^\./,," -cf- . | gzip -f -9 -n -c --rsyncable > ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.tar.gz
-        ln -sf ${IMAGE_NAME}.tegraflash.tar.gz ${IMGDEPLOYDIR}/${IMAGE_LINK_NAME}.tegraflash.tar.gz
-    fi
+    rm -f ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.tar
+    ${IMAGE_CMD_TAR} --sparse --numeric-owner --transform="s,^\./,," -cf ${IMGDEPLOYDIR}/${IMAGE_NAME}.tegraflash.tar .
 }
 
 tegraflash_create_flash_config() {
@@ -449,9 +433,8 @@ EOF
     chmod +x $outfile
 }
 
-IMAGE_CMD:tegraflash = "create_tegraflash_pkg"
-TEGRAFLASH_PKG_DEPENDS = "${@'zip-native:do_populate_sysroot' if d.getVar('TEGRAFLASH_PACKAGE_FORMAT') == 'zip' else '${CONVERSION_DEPENDS_gz}:do_populate_sysroot'}"
-do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populate_sysroot coreutils-native:do_populate_sysroot \
+IMAGE_CMD:tegraflash.tar = "create_tegraflash_pkg"
+do_image_tegraflash[depends] += "dtc-native:do_populate_sysroot coreutils-native:do_populate_sysroot \
                                  tegra-flashtools-native:do_populate_sysroot gptfdisk-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
                                  virtual/kernel:do_deploy \
@@ -459,4 +442,4 @@ do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populat
                                  ${@'${TEGRA_ESP_IMAGE}:do_image_complete' if d.getVar('TEGRA_ESP_IMAGE') != '' else  ''} \
                                  virtual/bootloader:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS} \
                                  ${@'${TEGRAFLASH_INITRD_FLASH_IMAGE}:do_image_complete' if d.getVar('TEGRAFLASH_INITRD_FLASH_IMAGE') != '' else ''}"
-IMAGE_TYPEDEP:tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
+IMAGE_TYPEDEP:tegraflash.tar += "${IMAGE_TEGRAFLASH_FS_TYPE}"
