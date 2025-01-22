@@ -11,7 +11,7 @@ require recipes-bsp/tegra-sources/tegra-sources-36.4.0.inc
 SRC_URI += "file://0001-workaround-to-fix-ld.bfd-warning-binutils-version-2..patch"
 
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS:append = " virtual/${TARGET_PREFIX}gcc"
+DEPENDS:append = " virtual/cross-cc"
 
 S = "${WORKDIR}/arm-trusted-firmware"
 B = "${WORKDIR}/build"

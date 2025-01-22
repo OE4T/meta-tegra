@@ -1,7 +1,7 @@
 GCCMULTILIB = "--enable-multilib"
 require gcc-for-nvcc-configure-common.inc
 
-DEPENDS += "virtual/${TARGET_PREFIX}cuda-gcc"
+DEPENDS += "virtual/cross-cuda-gcc"
 
 EXTRA_OECONF_PATHS = "\
     --with-build-sysroot=${STAGING_DIR_TARGET} \
