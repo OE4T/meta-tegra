@@ -1,6 +1,6 @@
 require libgcc-for-nvcc-common.inc
 
-DEPENDS = "virtual/${TARGET_PREFIX}cuda-gcc virtual/${TARGET_PREFIX}cuda-g++ virtual/${MLPREFIX}libc"
+DEPENDS = "virtual/cross-cuda-gcc virtual/cross-cuda-g++ virtual/${MLPREFIX}libc"
 STAGING_BINDIR_TOOLCHAIN:append = "-${BINV}"
 
 do_install:append:class-target () {

@@ -147,7 +147,8 @@ do_install:append:class-target () {
 }
 
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "virtual/${TARGET_PREFIX}cuda-gcc virtual/${TARGET_PREFIX}cuda-g++ libgcc-for-nvcc libgcc virtual/${MLPREFIX}libc"
+DEPENDS = "virtual/cross-cuda-gcc virtual/cross-cuda-g++ libgcc-for-nvcc libgcc virtual/${MLPREFIX}libc"
+DEPENDS:class-nativesdk = "virtual/nativesdk-cross-cuda-gcc virtual/nativesdk-cross-cuda-g++ ${MLPREFIX}libgcc-for-nvcc ${MLPREFIX}libgcc virtual/${MLPREFIX}/libc"
 STAGING_BINDIR_TOOLCHAIN:append = "-${BINV}"
 
 BBCLASSEXTEND = "nativesdk"
