@@ -1,7 +1,7 @@
-From 6a9a2d1ce71d80435aacb8cbebc4042974cf3c77 Mon Sep 17 00:00:00 2001
+From 0ebc1dee317131b4d635f620561435bdf7ff54c4 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 9 Mar 2024 06:17:17 -0800
-Subject: [PATCH 1/2] Add support for 'alternate' roots for tegra CSV handling
+Subject: [PATCH] Add support for 'alternate' roots for tegra CSV handling
 
 So the host OS can provide one or more trees of libraries that
 should be mounted into containers, overriding the copies in
@@ -23,18 +23,18 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  10 files changed, 116 insertions(+), 35 deletions(-)
 
 diff --git a/cmd/nvidia-ctk/cdi/generate/generate.go b/cmd/nvidia-ctk/cdi/generate/generate.go
-index fd46962..89ff4cc 100644
+index 9f9e994b..f46d4904 100644
 --- a/cmd/nvidia-ctk/cdi/generate/generate.go
 +++ b/cmd/nvidia-ctk/cdi/generate/generate.go
-@@ -52,6 +52,7 @@ type options struct {
- 	class              string
+@@ -55,6 +55,7 @@ type options struct {
  
+ 	configSearchPaths  cli.StringSlice
  	librarySearchPaths cli.StringSlice
 +	altRoots           cli.StringSlice
  
  	csv struct {
  		files          cli.StringSlice
-@@ -118,6 +119,11 @@ func (m command) build() *cli.Command {
+@@ -131,6 +132,11 @@ func (m command) build() *cli.Command {
  			Usage:       "Specify the path to search for libraries when discovering the entities that should be included in the CDI specification.\n\tNote: This option only applies to CSV mode.",
  			Destination: &opts.librarySearchPaths,
  		},
@@ -44,18 +44,18 @@ index fd46962..89ff4cc 100644
 +			Destination: &opts.altRoots,
 +		},
  		&cli.StringFlag{
- 			Name:        "nvidia-ctk-path",
- 			Usage:       "Specify the path to use for the nvidia-ctk in the generated CDI specification. If this is left empty, the path will be searched.",
-@@ -241,6 +247,7 @@ func (m command) generateSpec(opts *options) (spec.Interface, error) {
- 		nvcdi.WithDeviceNamer(deviceNamer),
- 		nvcdi.WithMode(string(opts.mode)),
+ 			Name:    "nvidia-cdi-hook-path",
+ 			Aliases: []string{"nvidia-ctk-path"},
+@@ -271,6 +277,7 @@ func (m command) generateSpec(opts *options) (spec.Interface, error) {
+ 		nvcdi.WithMode(opts.mode),
+ 		nvcdi.WithConfigSearchPaths(opts.configSearchPaths.Value()),
  		nvcdi.WithLibrarySearchPaths(opts.librarySearchPaths.Value()),
 +		nvcdi.WithAltRoots(opts.altRoots.Value()),
  		nvcdi.WithCSVFiles(opts.csv.files.Value()),
  		nvcdi.WithCSVIgnorePatterns(opts.csv.ignorePatterns.Value()),
  	)
 diff --git a/internal/config/runtime.go b/internal/config/runtime.go
-index ed9ea64..356a9e7 100644
+index ed9ea646..356a9e72 100644
 --- a/internal/config/runtime.go
 +++ b/internal/config/runtime.go
 @@ -43,7 +43,8 @@ type cdiModeConfig struct {
@@ -69,7 +69,7 @@ index ed9ea64..356a9e7 100644
  
  // GetDefaultRuntimeConfig defines the default values for the config
 diff --git a/internal/config/toml_test.go b/internal/config/toml_test.go
-index e017db1..d0c47a0 100644
+index e017db15..d0c47a00 100644
 --- a/internal/config/toml_test.go
 +++ b/internal/config/toml_test.go
 @@ -72,6 +72,7 @@ default-kind = "nvidia.com/gpu"
@@ -81,11 +81,11 @@ index e017db1..d0c47a0 100644
  
  [nvidia-container-runtime-hook]
 diff --git a/internal/modifier/csv.go b/internal/modifier/csv.go
-index 56adcdc..c55b6f7 100644
+index 0905d5da..61eef0aa 100644
 --- a/internal/modifier/csv.go
 +++ b/internal/modifier/csv.go
-@@ -72,6 +72,7 @@ func NewCSVModifier(logger logger.Interface, cfg *config.Config, image image.CUD
- 		nvcdi.WithNVIDIACTKPath(cfg.NVIDIACTKConfig.Path),
+@@ -65,6 +65,7 @@ func NewCSVModifier(logger logger.Interface, cfg *config.Config, image image.CUD
+ 		nvcdi.WithNVIDIACDIHookPath(cfg.NVIDIACTKConfig.Path),
  		nvcdi.WithMode(nvcdi.ModeCSV),
  		nvcdi.WithCSVFiles(csvFiles),
 +		nvcdi.WithAltRoots(cfg.NVIDIAContainerRuntimeConfig.Modes.CSV.AltRoots),
@@ -93,10 +93,10 @@ index 56adcdc..c55b6f7 100644
  	if err != nil {
  		return nil, fmt.Errorf("failed to construct CDI library: %v", err)
 diff --git a/internal/platform-support/tegra/csv.go b/internal/platform-support/tegra/csv.go
-index ff2f493..be3bf3a 100644
+index e47ae9de..5ae1031f 100644
 --- a/internal/platform-support/tegra/csv.go
 +++ b/internal/platform-support/tegra/csv.go
-@@ -43,39 +43,73 @@ func (o tegraOptions) newDiscovererFromCSVFiles() (discover.Discover, error) {
+@@ -42,39 +42,73 @@ func (o tegraOptions) newDiscovererFromCSVFiles() (discover.Discover, error) {
  		targetsByType[csv.MountSpecDev],
  	)
  
@@ -187,13 +187,13 @@ index ff2f493..be3bf3a 100644
  }
  
 diff --git a/internal/platform-support/tegra/symlinks.go b/internal/platform-support/tegra/symlinks.go
-index c64138d..261e607 100644
+index 37b07e6d..7d59f406 100644
 --- a/internal/platform-support/tegra/symlinks.go
 +++ b/internal/platform-support/tegra/symlinks.go
 @@ -32,6 +32,7 @@ type symlinkHook struct {
- 	nvidiaCTKPath string
- 	targets       []string
- 	mountsFrom    discover.Discover
+ 	nvidiaCDIHookPath string
+ 	targets           []string
+ 	mountsFrom        discover.Discover
 +	root          string
  
  	// The following can be overridden for testing
@@ -214,7 +214,7 @@ index c64138d..261e607 100644
 +	}
  	return symlinkHook{
  		logger:              o.logger,
- 		nvidiaCTKPath:       o.nvidiaCTKPath,
+ 		nvidiaCDIHookPath:   o.nvidiaCDIHookPath,
  		targets:             targets,
  		mountsFrom:          mounts,
 -		symlinkChainLocator: o.symlinkChainLocator,
@@ -223,7 +223,7 @@ index c64138d..261e607 100644
  		resolveSymlink:      o.resolveSymlink,
  	}
  }
-@@ -116,7 +126,15 @@ func (d symlinkHook) getSymlinkCandidates() []string {
+@@ -117,7 +127,15 @@ func (d symlinkHook) getSymlinkCandidates() []string {
  			d.logger.Warningf("Failed to locate symlink %v", target)
  			continue
  		}
@@ -240,7 +240,7 @@ index c64138d..261e607 100644
  	}
  	return candidates
  }
-@@ -124,22 +142,13 @@ func (d symlinkHook) getSymlinkCandidates() []string {
+@@ -125,22 +143,13 @@ func (d symlinkHook) getSymlinkCandidates() []string {
  func (d symlinkHook) getCSVFileSymlinks() []string {
  	var links []string
  	created := make(map[string]bool)
@@ -267,15 +267,14 @@ index c64138d..261e607 100644
  
  		links = append(links, link)
 diff --git a/internal/platform-support/tegra/tegra.go b/internal/platform-support/tegra/tegra.go
-index ad5c5b6..ae09245 100644
+index 1031fc72..85832876 100644
 --- a/internal/platform-support/tegra/tegra.go
 +++ b/internal/platform-support/tegra/tegra.go
-@@ -29,13 +29,15 @@ type tegraOptions struct {
- 	logger             logger.Interface
- 	csvFiles           []string
- 	driverRoot         string
+@@ -32,12 +32,14 @@ type tegraOptions struct {
+ 	devRoot            string
+ 	nvidiaCDIHookPath  string
+ 	ldconfigPath       string
 +	altRoots           []string
- 	nvidiaCTKPath      string
  	librarySearchPaths []string
  	ignorePatterns     ignoreMountSpecPatterns
  
@@ -288,7 +287,7 @@ index ad5c5b6..ae09245 100644
  	// TODO: This should be replaced by a regular mock
  	resolveSymlink func(string) (string, error)
  }
-@@ -59,11 +61,20 @@ func New(opts ...Option) (discover.Discover, error) {
+@@ -64,11 +66,20 @@ func New(opts ...Option) (discover.Discover, error) {
  		)
  	}
  
@@ -310,7 +309,7 @@ index ad5c5b6..ae09245 100644
  	}
  
  	if o.resolveSymlink == nil {
-@@ -113,6 +124,13 @@ func WithDriverRoot(driverRoot string) Option {
+@@ -126,6 +137,13 @@ func WithDevRoot(devRoot string) Option {
  	}
  }
  
@@ -325,34 +324,34 @@ index ad5c5b6..ae09245 100644
  func WithCSVFiles(csvFiles []string) Option {
  	return func(o *tegraOptions) {
 diff --git a/pkg/nvcdi/lib-csv.go b/pkg/nvcdi/lib-csv.go
-index 09f0b14..9cc3666 100644
+index 649b801a..944c89a2 100644
 --- a/pkg/nvcdi/lib-csv.go
 +++ b/pkg/nvcdi/lib-csv.go
-@@ -43,6 +43,7 @@ func (l *csvlib) GetAllDeviceSpecs() ([]specs.Device, error) {
- 	d, err := tegra.New(
- 		tegra.WithLogger(l.logger),
- 		tegra.WithDriverRoot(l.driverRoot),
+@@ -46,6 +46,7 @@ func (l *csvlib) GetAllDeviceSpecs() ([]specs.Device, error) {
+ 		tegra.WithDevRoot(l.devRoot),
+ 		tegra.WithNVIDIACDIHookPath(l.nvidiaCDIHookPath),
+ 		tegra.WithLdconfigPath(l.ldconfigPath),
 +		tegra.WithAltRoots(l.altRoots),
- 		tegra.WithNVIDIACTKPath(l.nvidiaCTKPath),
  		tegra.WithCSVFiles(l.csvFiles),
  		tegra.WithLibrarySearchPaths(l.librarySearchPaths...),
+ 		tegra.WithIngorePatterns(l.csvIgnorePatterns...),
 diff --git a/pkg/nvcdi/lib.go b/pkg/nvcdi/lib.go
-index f8a52c1..44e7544 100644
+index d2db3b6c..2dea4a99 100644
 --- a/pkg/nvcdi/lib.go
 +++ b/pkg/nvcdi/lib.go
-@@ -44,6 +44,7 @@ type nvcdilib struct {
- 	devicelib          device.Interface
- 	deviceNamer        DeviceNamer
- 	driverRoot         string
+@@ -51,6 +51,7 @@ type nvcdilib struct {
+ 	nvidiaCDIHookPath  string
+ 	ldconfigPath       string
+ 	configSearchPaths  []string
 +	altRoots           []string
- 	nvidiaCTKPath      string
  	librarySearchPaths []string
  
+ 	csvFiles          []string
 diff --git a/pkg/nvcdi/options.go b/pkg/nvcdi/options.go
-index 61c4c95..0157a3b 100644
+index 417687b9..0beb7050 100644
 --- a/pkg/nvcdi/options.go
 +++ b/pkg/nvcdi/options.go
-@@ -118,3 +118,11 @@ func WithLibrarySearchPaths(paths []string) Option {
+@@ -155,3 +155,11 @@ func WithLibrarySearchPaths(paths []string) Option {
  		o.librarySearchPaths = paths
  	}
  }
@@ -365,5 +364,5 @@ index 61c4c95..0157a3b 100644
 +	}
 +}
 -- 
-2.34.1
+2.43.0
 
