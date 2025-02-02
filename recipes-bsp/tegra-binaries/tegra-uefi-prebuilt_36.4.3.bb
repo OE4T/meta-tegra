@@ -5,7 +5,7 @@ require conf/image-uefi.conf
 COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
 
-PROVIDES = "virtual/bootloader standalone-mm-optee-tegra"
+PROVIDES = "virtual/bootloader edk2-firmware-tegra-minimal standalone-mm-optee-tegra"
 
 DEPENDS = "coreutils-native dtc-native"
 
@@ -15,6 +15,7 @@ inherit deploy ${TEGRA_UEFI_SIGNING_CLASS}
 
 do_compile() {
     cp ${S}/bootloader/uefi_jetson.bin ${S}/bootloader/BOOTAA64.efi ${B}
+    cp ${S}/bootloader/uefi_jetson_minimal.bin ${B}
 }
 
 do_compile:append:tegra234() {
@@ -42,7 +43,7 @@ do_install() {
 
 do_deploy() {
     install -d ${DEPLOYDIR}
-    install -m 0644 ${B}/uefi_jetson.bin ${DEPLOYDIR}/
+    install -m 0644 ${B}/uefi_jetson.bin ${B}/uefi_jetson_minimal.bin ${DEPLOYDIR}/
     for dtbo in ${TEGRA_BOOTCONTROL_OVERLAYS}; do
 	[ -e ${S}/kernel/dtb/$dtbo ] || continue
 	install -m 0644 ${S}/kernel/dtb/$dtbo ${DEPLOYDIR}/
