@@ -480,13 +480,12 @@ if [ "$CHIPID" = "0x23" ]; then
                 ;;
         esac
         PINMUXREV="a03"
-        BPFDTBREV="a02"
         PMCREV="a03"
         PMICREV="a02"
         if [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0002" ]; then
             if [ "$FAB" = "TS1" -o "$FAB" = "EB1" ]; then
                 PINMUXREV="a01"
-                BPFDTBREV="a00"
+                BPFDTB_FILE="tegra234-bpmp-3767-0000-a00-3509-a02.dtb"
                 PMCREV="a01"
                 PMICREV="a00"
             fi
@@ -501,7 +500,6 @@ if [ "$CHIPID" = "0x23" ]; then
         PINMUX_CONFIG=$(echo "$PINMUX_CONFIG" | sed -e"s,@PINMUXREV@,$PINMUXREV,")
         PMC_CONFIG=$(echo "$PMC_CONFIG" | sed -e"s,@PMCREV@,$PMCREV,")
         PMIC_CONFIG=$(echo "$PMIC_CONFIG" | sed -e"s,@PMICREV@,$PMICREV,")
-        BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,@BPFDTBREV@,$BPFDTBREV,")
     fi
 
     if [ -n "$RAMCODE" ]; then
