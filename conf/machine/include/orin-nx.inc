@@ -35,7 +35,7 @@ OTAGPTDEV ?= "/dev/mtdblock0"
 
 TEGRA_PLUGIN_MANAGER_OVERLAYS ?= "tegra234-carveouts.dtbo tegra-optee.dtbo tegra234-p3768-0000+p3767-0000-dynamic.dtbo"
 
-TEGRA_FLASHVAR_BPFDTB_FILE ?= "tegra234-bpmp-3767-0000-@BPFDTBREV@-3509-a02.dtb"
+TEGRA_FLASHVAR_BPFDTB_FILE ?= "tegra234-bpmp-3767-0000-3768-super.dtb"
 TEGRA_FLASHVAR_BPF_FILE ?= "bpmp_t234-TE980M-A1_prod.bin"
 TEGRA_FLASHVAR_BR_CMD_CONFIG ?= "tegra234-mb1-bct-reset-p3767-0000.dts"
 TEGRA_FLASHVAR_CHIP_SKU ?= "00:00:00:D3"
