@@ -17,7 +17,6 @@ EXTRA_OECMAKE:append:cuda = ' -DOPENCV_CUDA_DETECTION_NVCC_FLAGS="-ccbin ${CUDAH
 SRC_URI:append:cuda = " \
     file://0001-Fix-search-paths-in-FindCUDNN.cmake.patch \
     file://0002-Fix-broken-override-of-CUDA_TOOLKIT_TARGET_DIR-setti.patch \
-    file://0001-Workaround-for-CUDA-12.6-tuple_size-issue-3773.patch;patchdir=contrib \
 "
 
 OPTICALFLOW_MD5 = "a73cd48b18dcc0cc8933b30796074191"
