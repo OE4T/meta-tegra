@@ -11,6 +11,7 @@ SRC_URI:append:tegra = " \
     file://0006-fbdev-simplefb-Support-memory-region-property.patch \
     file://0007-fbdev-simplefb-Add-support-for-generic-power-domains.patch \
     file://0008-UBUNTU-SAUCE-PCI-endpoint-Add-core_deinit-callback-s.patch \
+    file://0009-NVIDIA-SAUCE-soc-tegra-pmc-Add-sysfs-nodes-to-select.patch \
     file://tegra.cfg \
     file://tegra-drm.cfg \
     file://tegra-governors.cfg \
