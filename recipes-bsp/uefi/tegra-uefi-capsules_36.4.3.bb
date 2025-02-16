@@ -99,4 +99,5 @@ do_compile[depends] += "python3-pyyaml-native:do_populate_sysroot lz4-native:do_
 do_compile[depends] += "tegra-bootfiles:do_populate_sysroot"
 do_compile[depends] += "coreutils-native:do_populate_sysroot virtual/secure-os:do_deploy"
 do_compile[depends] += "virtual/bootloader:do_deploy"
+do_compile[depends] += "edk2-firmware-tegra-minimal:do_deploy"
 do_compile[depends] += "${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS}"
