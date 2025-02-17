@@ -17,6 +17,6 @@ FILES:${PN}-dev = ""
 INSANE_SKIP:${PN} += "dev-so dev-deps"
 RDEPENDS:${PN} = "${BPN}-headers"
 RDEPENDS:${PN}:append:class-target = " cuda-nvvm-dev cuda-crt-dev"
-RDEPENDS:${PN}:append:class-nativesdk = " nativesdk-cuda-environment"
+RDEPENDS:${PN}:append:class-nativesdk = " nativesdk-cuda-environment nativesdk-cuda-nvvm"
 
 BBCLASSEXTEND = "native nativesdk"
