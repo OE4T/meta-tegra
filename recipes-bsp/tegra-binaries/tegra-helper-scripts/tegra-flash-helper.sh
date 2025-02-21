@@ -480,13 +480,12 @@ if [ "$CHIPID" = "0x23" ]; then
                 ;;
         esac
         PINMUXREV="a03"
-        BPFDTBREV="a02"
         PMCREV="a03"
         PMICREV="a02"
         if [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0002" ]; then
             if [ "$FAB" = "TS1" -o "$FAB" = "EB1" ]; then
                 PINMUXREV="a01"
-                BPFDTBREV="a00"
+                BPFDTB_FILE="tegra234-bpmp-3767-0000-a00-3509-a02.dtb"
                 PMCREV="a01"
                 PMICREV="a00"
             fi
@@ -501,7 +500,6 @@ if [ "$CHIPID" = "0x23" ]; then
         PINMUX_CONFIG=$(echo "$PINMUX_CONFIG" | sed -e"s,@PINMUXREV@,$PINMUXREV,")
         PMC_CONFIG=$(echo "$PMC_CONFIG" | sed -e"s,@PMCREV@,$PMCREV,")
         PMIC_CONFIG=$(echo "$PMIC_CONFIG" | sed -e"s,@PMICREV@,$PMICREV,")
-        BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,@BPFDTBREV@,$BPFDTBREV,")
     fi
 
     if [ -n "$RAMCODE" ]; then
@@ -619,7 +617,8 @@ eks eks.img"
          --mb2bct_cfg $MB2BCT_CFG \
          --bldtb $TBCDTB_FILE \
          --concat_cpubl_bldtb \
-         --cpubl uefi_jetson.bin"
+         --cpubl uefi_jetson.bin \
+         --cpubl_rcm uefi_jetson_minimal.bin"
 fi
 
 if [ $rcm_boot -ne 0 -a $to_sign -eq 0 ]; then
@@ -675,11 +674,13 @@ if [ $want_signing -eq 1 ]; then
     BCT="--sdram_config"
     boot_chain_select="A"
     if [ "$CHIPID" = "0x23" ]; then
-        flashername="uefi_jetson_with_dtb.bin"
+        flashername="uefi_jetson_minimal_with_dtb.bin"
+        RCM_UEFIBL="uefi_jetson_minimal_with_dtb.bin"
         UEFIBL="uefi_jetson_with_dtb.bin"
         mb1filename="mb1_t234_prod.bin"
         pscbl1filename="psc_bl1_t234_prod.bin"
         tbcfilename="uefi_jetson.bin"
+        rcm_tbcfile="uefi_jetson_minimal.bin"
         custinfofilename="$custinfo_out"
         SOSARGS="--applet mb1_t234_prod.bin "
         NV_ARGS=" "
@@ -691,7 +692,7 @@ if [ $want_signing -eq 1 ]; then
     L4T_CONF_DTBO="L4TConfiguration.dtbo"
     rootfs_ab=0
     gen_rcmdump=0
-    FLASHARGS="--chip 0x23 --bl uefi_jetson_with_dtb.bin \
+    FLASHARGS="--chip 0x23 --bl uefi_jetson_minimal_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
@@ -716,7 +717,7 @@ if [ $want_signing -eq 1 ]; then
 	BCTARGS="$bctargs $rcm_overlay_dtb_arg $custinfo_args --bct_backup"
 	L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
 	BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
-	FLASHARGS="--chip 0x23 --bl uefi_jetson_with_dtb.bin \
+	FLASHARGS="--chip 0x23 --bl uefi_jetson_minimal_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
@@ -742,7 +743,7 @@ if [ $want_signing -eq 1 ]; then
     fi
     flashcmd="python3 $flashappname ${inst_args} $FLASHARGS"
 else
-    flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_dtb.bin \
+    flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_minimal_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \

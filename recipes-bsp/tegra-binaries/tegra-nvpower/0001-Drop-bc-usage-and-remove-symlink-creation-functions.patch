@@ -1,6 +1,6 @@
-From 9461d12ae14ec813cd9ee7d8fbbb01a8114d5ec4 Mon Sep 17 00:00:00 2001
+From 20a945128145290a457c507e24ee0a15422fea36 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Sun, 6 Oct 2024 18:59:23 +0100
+Date: Mon, 20 Jan 2025 10:36:25 +0000
 Subject: [PATCH] Drop bc usage and remove symlink creation functions
 
 Upstream-Status: Pending
@@ -8,22 +8,41 @@ Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- etc/systemd/nvpower.sh | 149 ++---------------------------------------
- 1 file changed, 7 insertions(+), 142 deletions(-)
+ etc/systemd/nvpower.sh | 178 ++---------------------------------------
+ 1 file changed, 7 insertions(+), 171 deletions(-)
 
 diff --git a/etc/systemd/nvpower.sh b/etc/systemd/nvpower.sh
-index 97c9de1..3afc042 100755
+index df9afc7..8afcfaf 100755
 --- a/etc/systemd/nvpower.sh
 +++ b/etc/systemd/nvpower.sh
-@@ -140,142 +140,6 @@ function set_power_state_perm()
- 	fi
+@@ -182,171 +182,6 @@ function is_nvpm_relinking_needed()
+ 	return 1
  }
  
 -function create_nvpmodel_symlink()
 -{
 -	conf_file=""
+-
+-	if [ -e "${NVPM_SYMLINK}" ]; then
+-		if is_nvpm_relinking_needed; then
+-			nvpm_back="/etc/nvpmodel_nvbackup.conf"
+-			echo "${SCRIPT_NAME} - NOTICE: Backing up the" \
+-				"existing ${NVPM_SYMLINK} to ${nvpm_back}!"
+-			cp -b -S .bak "${NVPM_SYMLINK}" "${nvpm_back}"
+-
+-			unlink "${NVPM_SYMLINK}"
+-			ret="$?"
+-			if [ "${ret}" -ne "0" ]; then
+-				echo "${SCRIPT_NAME} - Error: Failed" \
+-					"to unlink ${NVPM_SYMLINK}!"
+-			else
+-				rm /var/lib/nvpmodel/status
+-			fi
+-		fi
+-	fi
+-
 -	# create /etc/nvpmodel.conf symlink
--	if [ ! -e "/etc/nvpmodel.conf" ]; then
+-	if [ ! -e "${NVPM_SYMLINK}" ]; then
 -		if [ "${SOCFAMILY}" = "tegra194" ]; then
 -			if [ "${machine}" = "e3900" ]; then
 -				if [ -d "/sys/devices/gpu.0" ] &&
@@ -61,27 +80,37 @@ index 97c9de1..3afc042 100755
 -				[ "${machine}" = "p3701-0004" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0004.conf"
 -			elif [ "${machine}" = "p3701-0008-safety" ]; then
--				conf_file="/etc/nvpmodel/nvpmodel_p3701_0008_3740_0002_safety.conf"
+-				conf_file="/etc/nvpmodel/nvpmodel_igx_orin_safety.conf"
 -			elif [ "${machine}" = "p3701-0008" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0008.conf"
--				if [ "${cvb}" = "p3740-0002-c01" ]; then
--					conf_file="/etc/nvpmodel/nvpmodel_p3701_0008_3740_0002.conf"
+-				if [ "${cvb}" = "p3740-0002-c01" ] || \
+-					[ "${cvb}" = "p3971" ]; then
+-					conf_file="/etc/nvpmodel/nvpmodel_igx_orin.conf"
 -				fi
 -			elif [ "${machine}" = "p3767-0000" ] || \
 -				[ "${machine}" = "p3767-0002" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000.conf"
+-			elif [ "${machine}" = "p3767-0000-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_super.conf"
 -			elif [ "${machine}" = "p3767-0000-px1" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_px1.conf"
 -			elif [ "${machine}" = "p3767-0000-as-p3767-0001" ] || \
 -				[ "${machine}" = "p3767-0001" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001.conf"
+-			elif [ "${machine}" = "p3767-0001-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001_super.conf"
 -			elif [ "${machine}" = "p3767-0003" ] || \
 -				[ "${machine}" = "p3767-0005" ] || \
 -				[ "${machine}" = "p3767-0000-as-p3767-0003" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0003.conf"
+-			elif [ "${machine}" = "p3767-0003-super" ] || \
+-				[ "${machine}" = "p3767-0005-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0003_super.conf"
 -			elif [ "${machine}" = "p3767-0004" ] || \
 -				[ "${machine}" = "p3767-0000-as-p3767-0004" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004.conf"
+-			elif [ "${machine}" = "p3767-0004-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004_super.conf"
 -			else
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0000.conf"
 -			fi
@@ -93,7 +122,7 @@ index 97c9de1..3afc042 100755
 -
 -		if [ "${conf_file}" != "" ]; then
 -			if [ -e "${conf_file}" ]; then
--				ln -sf "${conf_file}" /etc/nvpmodel.conf
+-				ln -sf "${conf_file}" "${NVPM_SYMLINK}"
 -			else
 -				echo "${SCRIPT_NAME} - WARNING: file ${conf_file} not found!"
 -			fi
@@ -119,7 +148,7 @@ index 97c9de1..3afc042 100755
 -			if [[ "${machine}" =~ "p3701" ]]; then
 -				# Use p3701_0000 as default fan settings for p3701 series
 -				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0000.conf"
--				if [ "${machine}" = "p3701-0008" ]; then
+-				if [[ "${machine}" =~ "p3701-0008" ]]; then
 -					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0008.conf"
 -				fi
 -			elif [[ "${machine}" =~ "p3767" ]]; then
@@ -158,7 +187,7 @@ index 97c9de1..3afc042 100755
  # CPU hotplug helper function that turns on/off the CPU cores in the specified range
  # * Parameters:
  # * ${1}: desired online status (0 for offline, 1 for online)
-@@ -600,10 +464,12 @@ function setup_actmon()
+@@ -686,10 +521,12 @@ function setup_actmon()
  	debugfs_actmon="/sys/kernel/debug/tegra-host1x/actmon"
  
  	# Actmon settings should be the same across engines
@@ -175,7 +204,7 @@ index 97c9de1..3afc042 100755
  }
  
  SOCFAMILY=""
-@@ -611,8 +477,6 @@ SOCFAMILY=""
+@@ -697,8 +534,6 @@ SOCFAMILY=""
  set_socfamily
  set_safety_flag
  set_power_state_perm
@@ -184,7 +213,7 @@ index 97c9de1..3afc042 100755
  cpu_hotplug
  set_cpufreq_governor
  set_cpu_floor_freq
-@@ -621,3 +485,4 @@ lock_se_frequency
+@@ -707,3 +542,4 @@ lock_se_frequency
  validate_nvpmodel_conf
  setup_hwmon
  setup_actmon
