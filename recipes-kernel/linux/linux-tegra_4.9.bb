@@ -87,7 +87,7 @@ do_compile_devicetree_overlays() {
 do_compile_devicetree_overlays[dirs] = "${B}"
 do_compile_devicetree_overlays[depends] += "dtc-native:do_populate_sysroot"
 
-addtask compile_devicetree_overlays after do_compile before do_install
+addtask compile_devicetree_overlays after do_compile_kernelmodules before do_install
 
 do_apply_devicetree_overlays() {
 
