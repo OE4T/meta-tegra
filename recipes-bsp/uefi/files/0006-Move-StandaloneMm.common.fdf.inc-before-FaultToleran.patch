@@ -1,0 +1,43 @@
+From 2d43d428e397bd978433acd3b5019813cb5026e2 Mon Sep 17 00:00:00 2001
+From: Sarah Newman <sarah.newman@bluerivertech.com>
+Date: Tue, 10 Sep 2024 14:01:18 -0700
+Subject: [PATCH 2/2] Move StandaloneMm.common.fdf.inc before
+ FaultTolerantWriteStandaloneMm.inf
+
+This prevents the following message from being emitted:
+
+FvbWrite: VarInt not ready yet, deferring.
+
+Which results in:
+
+FtwAbort(): success
+
+Signed-off-by: Sarah Newman <sarah.newman@bluerivertech.com>
+---
+ Platform/NVIDIA/StandaloneMmOptee/StandaloneMmOptee.fdf.inc | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Platform/NVIDIA/StandaloneMmOptee/StandaloneMmOptee.fdf.inc b/Platform/NVIDIA/StandaloneMmOptee/StandaloneMmOptee.fdf.inc
+index bff37cc2..096a98a0 100644
+--- a/Platform/NVIDIA/StandaloneMmOptee/StandaloneMmOptee.fdf.inc
++++ b/Platform/NVIDIA/StandaloneMmOptee/StandaloneMmOptee.fdf.inc
+@@ -20,6 +20,8 @@
+   #
+   INF Silicon/NVIDIA/Drivers/OpteeNvRpmb/OpTeeRpmbFvbNv.inf
+ 
++  !include Platform/NVIDIA/StandaloneMm.common.fdf.inc
++
+   #
+   # FTW Driver
+   #
+@@ -35,7 +37,6 @@
+   #
+   INF Silicon/NVIDIA/Drivers/NorFlashDxe/NorFlashStandaloneMmDice.inf
+ 
+-  !include Platform/NVIDIA/StandaloneMm.common.fdf.inc
+ 
+ ################################################################################
+ #
+-- 
+2.47.0
+
