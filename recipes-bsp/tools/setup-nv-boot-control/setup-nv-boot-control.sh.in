@@ -1,5 +1,6 @@
 #!/bin/sh
 TARGET="@TARGET@"
+COMPAT_TARGET="@COMPAT_TARGET@"
 BOOTDEV="@BOOTDEV@"
 sysconfdir="@sysconfdir@"
 controlfile="${sysconfdir}/nv_boot_control.conf"
@@ -24,8 +25,8 @@ compatspec=$(echo "$boardspec" | gen_compat_spec)
 if [ -z "$compatspec" ]; then
     compatsed="-e/^COMPATIBLE_SPEC/d"
 else
-    compatsed="-es,@COMPATIBLE_SPEC@,${compatspec}-${TARGET}-,"
-    set_efi_var "TegraPlatformCompatSpec" "781e084c-a330-417c-b678-38e696380cb9" "${compatspec}-${TARGET}-" "write-once" || rc=1
+    compatsed="-es,@COMPATIBLE_SPEC@,${compatspec}-${COMPAT_TARGET}-,"
+    set_efi_var "TegraPlatformCompatSpec" "781e084c-a330-417c-b678-38e696380cb9" "${compatspec}-${COMPAT_TARGET}-" "write-once" || rc=1
 fi
 sed -e"s,@TNSPEC@,${boardspec}-${TARGET}-${BOOTDEV}," $compatsed \
     "${sysconfdir}/nv_boot_control.template" > "$controlfile" || rc=1
