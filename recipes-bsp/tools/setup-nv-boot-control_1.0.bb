@@ -18,6 +18,7 @@ ESPMOUNT ?= "/boot/efi"
 NVIDIA_ESPMOUNT ?= "/opt/nvidia/esp"
 ESPMOUNTUNIT ?= "${@'-'.join(d.getVar('ESPMOUNT').split('/')[1:])}.mount"
 ESPVARDIR ?= "${ESPMOUNT}/EFI/NVDA/Variables"
+TNSPEC_COMPAT_MACHINE ??= "${TNSPEC_MACHINE}"
 
 S = "${WORKDIR}"
 B = "${WORKDIR}/build"
@@ -26,6 +27,7 @@ inherit systemd update-rc.d
 
 do_compile() {
     sed -e's,@TARGET@,${TNSPEC_MACHINE},g' \
+        -e's,@COMPAT_TARGET@,${TNSPEC_COMPAT_MACHINE},g' \
         -e's,@BOOTDEV@,${TNSPEC_BOOTDEV},g' \
         -e's,@sysconfdir@,${sysconfdir},g' \
         ${S}/setup-nv-boot-control.sh.in >${B}/setup-nv-boot-control.sh
