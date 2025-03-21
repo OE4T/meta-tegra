@@ -5,6 +5,7 @@ inherit ${TEGRA_UEFI_SIGNING_CLASS}
 TEGRA_UEFI_USE_SIGNED_FILES ??= "false"
 
 IMAGE_TYPES += "tegraflash.tar"
+TEGRA_ADDITIONAL_FS ??= " "
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
 
@@ -325,6 +326,9 @@ create_tegraflash_pkg() {
     fi
     tegraflash_custom_pre
     cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    for image in ${TEGRA_ADDITIONAL_FS}; do
+      cp "${image}" ./
+    done
     tegraflash_create_flash_config flash.xml.in ${LNXFILE}
     if grep -Eq '^[[:space:]]+<device type="sdcard"' flash.xml.in; then
         has_sdcard="yes"
