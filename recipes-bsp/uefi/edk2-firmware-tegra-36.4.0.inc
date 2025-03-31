@@ -36,6 +36,8 @@ SRC_URI += "\
     file://0002-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=../edk2-nvidia \
     file://0003-XusbControllerDxe-use-BaseMemoryLib-functions.patch;patchdir=../edk2-nvidia \
     file://0004-MdePkg-Check-if-compiler-has-__has_builtin-before-tr.patch \
+    file://0005-BaseFdtLib-Define-bool-only-for-C17-or-lower.patch \
+    file://0006-XsubcontrollerDxe-Fix-build-with-gcc-15.patch;patchdir=../edk2-nvidia \
 "
 
 S = "${WORKDIR}/edk2-tegra/edk2"

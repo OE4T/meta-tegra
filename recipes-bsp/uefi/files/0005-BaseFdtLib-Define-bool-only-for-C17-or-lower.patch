@@ -1,0 +1,50 @@
+From c0796335d3c6362b563844410499ff241d42ac63 Mon Sep 17 00:00:00 2001
+From: Gerd Hoffmann <kraxel@redhat.com>
+Date: Mon, 20 Jan 2025 09:24:16 +0100
+Subject: [PATCH] MdePkg/BaseFdtLib: fix build with gcc 15
+
+gcc 15 switched to use the new ISO C23 standard by default.
+'bool', 'true' and 'false' are keywords in C23, so do not
+try to define them.
+
+Upstream-Status: Backport [https://github.com/tianocore/edk2/pull/10647]
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+---
+ MdePkg/Library/BaseFdtLib/LibFdtSupport.h | 22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
+
+diff --git a/MdePkg/Library/BaseFdtLib/LibFdtSupport.h b/MdePkg/Library/BaseFdtLib/LibFdtSupport.h
+index 8a26fbfc3251..05f758a93dc9 100644
+--- a/MdePkg/Library/BaseFdtLib/LibFdtSupport.h
++++ b/MdePkg/Library/BaseFdtLib/LibFdtSupport.h
+@@ -14,17 +14,21 @@
+ #include <Library/BaseLib.h>
+ #include <Library/BaseMemoryLib.h>
+ 
+-typedef UINT8    uint8_t;
+-typedef UINT16   uint16_t;
+-typedef INT32    int32_t;
+-typedef UINT32   uint32_t;
+-typedef UINT64   uint64_t;
+-typedef UINTN    uintptr_t;
+-typedef UINTN    size_t;
+-typedef BOOLEAN  bool;
+-
++typedef UINT8   uint8_t;
++typedef UINT16  uint16_t;
++typedef INT32   int32_t;
++typedef UINT32  uint32_t;
++typedef UINT64  uint64_t;
++typedef UINTN   uintptr_t;
++typedef UINTN   size_t;
++
++#if defined __STDC_VERSION__ && __STDC_VERSION__ > 201710L
++/* bool, true and false are keywords.  */
++#else
++typedef BOOLEAN bool;
+ #define true   (1 == 1)
+ #define false  (1 == 0)
++#endif
+ 
+ //
+ // Definitions for global constants used by libfdt library routines
