@@ -385,3 +385,5 @@ python oot_update_rprovides() {
             d.setVar('RDEPENDS:' + oot_pkg, newdepstr)
 }
 PACKAGESPLITFUNCS += "oot_update_rprovides"
+
+EXTERNALSRC_BUILD ?= "${B}"
