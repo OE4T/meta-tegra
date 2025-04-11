@@ -96,9 +96,14 @@ do_install() {
     find ${B} -name Module.symvers -type f | xargs sed -e's:${B}/::g' >${D}${includedir}/${BPN}/Module.symvers
 
     cp -R ${S}/nvidia-oot/include/* ${D}/${includedir}/${BPN}
+
+    # include device-tree source for building external dtb
+    install -d ${D}/usr/src/device-tree
+    cp -R ${S}/hardware/nvidia/ ${D}/usr/src/device-tree
 }
 
 SYSROOT_DIRS += "/boot/devicetree"
+SYSROOT_DIRS += "/usr/src/device-tree"
 
 KERNEL_MODULE_PROBECONF = "nvgpu"
 module_conf_nvgpu = 'options nvgpu devfreq_timer="delayed"'
@@ -107,6 +112,7 @@ PACKAGES =+ "${PN}-devicetrees ${PN}-display ${PN}-cameras ${PN}-bluetooth ${PN}
 FILES:${PN}-devicetrees = "/boot/devicetree"
 FILES:${PN}-dev = "\
     ${includedir}/${BPN} \
+    /usr/src/device-tree \
 "
 ALLOW_EMPTY:${PN}-display = "1"
 ALLOW_EMPTY:${PN}-cameras = "1"
