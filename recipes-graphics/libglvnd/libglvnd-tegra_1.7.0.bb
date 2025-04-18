@@ -7,8 +7,8 @@ SRC_REPO = "gitlab.freedesktop.org/glvnd/libglvnd.git;protocol=https"
 SRCBRANCH = "master"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 
-# v1.5.0 tag
-SRCREV = "c7cdf0cc4395b57563294d1f340b6bb1b95366a0"
+# v1.7.0 tag
+SRCREV = "faa23f21fc677af5792825dc30cb1ccef4bf33a6"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
