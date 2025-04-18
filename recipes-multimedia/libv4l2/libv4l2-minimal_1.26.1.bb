@@ -11,7 +11,7 @@ LDFLAGS:append = " -pthread"
 # Needs further investigation
 GLIBC_64BIT_TIME_FLAGS = ""
 
-SRC_URI ="git://git.linuxtv.org/v4l-utils.git;protocol=https;branch=stable-1.26 \
+SRC_URI = "git://git.linuxtv.org/v4l-utils.git;protocol=https;branch=stable-1.26 \
           file://0001-Make-plugin-directory-relative-to-ORIGIN.patch \
           file://0003-Update-conversion-defaults-to-match-NVIDIA-sources.patch \
 "
