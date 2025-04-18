@@ -10,7 +10,7 @@ CVE_PRODUCT = "linaro:op-tee op-tee:op-tee_os"
 DEPENDS = "python3-pyelftools-native python3-cryptography-native standalone-mm-optee-tegra"
 # python3-cryptography needs the legacy provider, so set OPENSSL_MODULES to the
 # right path until this is relocated automatically.
-export OPENSSL_MODULES="${STAGING_LIBDIR_NATIVE}/ossl-modules"
+export OPENSSL_MODULES = "${STAGING_LIBDIR_NATIVE}/ossl-modules"
 
 OPTEE_NV_PLATFORM ?= ""
 OPTEE_NV_PLATFORM:tegra234 = "t234"
