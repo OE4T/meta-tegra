@@ -11,8 +11,8 @@ inherit ${TEGRA_UEFI_SIGNING_CLASS}
 
 SRC_REPO = "github.com/OE4T/nvidia-kernel-oot;protocol=https"
 SRC_URI = "gitsm://${SRC_REPO};branch=${SRCBRANCH}"
-SRCBRANCH = "main"
-SRCREV = "d0513c89f8850006a631ee36289d19ab2528dc80"
+SRCBRANCH = "patches-r36.4.0"
+SRCREV = "7e30cf03e281aba3206dec3351dbc624c45a4ba8"
 PV = "36.4.0+git"
 
 COMPATIBLE_MACHINE = "(tegra)"
