@@ -67,7 +67,7 @@ EXTRA_OEMAKE = 'EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} WITH_LIBELF=yes COMP
 NVIDIA_MODPROBE_EXTRA_CFLAGS ?= "${DEBUG_PREFIX_MAP}"
 GO_LINKSHARED = ""
 
-export OBJCPY="${OBJCOPY}"
+export OBJCPY = "${OBJCOPY}"
 
 python do_unpack() {
     bb.build.exec_func('base_do_unpack', d)
