@@ -37,8 +37,10 @@ LIC_FILES_CHKSUM = "\
 
 NVIDIA_MODPROBE_VERSION = "550.54.14"
 
+NVIDIA_MODPROBE_SRCURI_DESTSUFFIX = "${@os.path.join(os.path.basename(d.getVar('S')), 'deps', 'src', 'nvidia-modprobe-' + d.getVar('NVIDIA_MODPROBE_VERSION')) + '/'}"
+
 SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=libnvidia;branch=main \
-           git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=git/deps/src/nvidia-modprobe-${NVIDIA_MODPROBE_VERSION} \
+           git://github.com/NVIDIA/nvidia-modprobe.git;protocol=https;branch=main;name=modprobe;destsuffix=${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX} \
            file://0001-OE-cross-build-fixups.patch \
            file://0003-nvcgo-fix-build-with-go-1.24.patch \
 "
@@ -61,7 +63,7 @@ EXTRA_OEMAKE = 'EXCLUDE_BUILD_FLAGS=1 PLATFORM=${HOST_ARCH} WITH_LIBELF=yes COMP
                 NVIDIA_MODPROBE_EXTRA_CFLAGS="${NVIDIA_MODPROBE_EXTRA_CFLAGS}"'
 NVIDIA_MODPROBE_EXTRA_CFLAGS ?= "${DEBUG_PREFIX_MAP}"
 
-export OBJCPY="${OBJCOPY}"
+export OBJCPY = "${OBJCOPY}"
 
 patch_nv_modprobe() {
     patch -d ${WORKDIR}/${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX} -p1 < ${S}/mk/nvidia-modprobe.patch
@@ -69,6 +71,18 @@ patch_nv_modprobe() {
 }
 
 do_patch[postfuncs] += "patch_nv_modprobe"
+
+python do_unpack() {
+    src_uri = (d.getVar('SRC_URI') or "").split()
+    if not src_uri:
+        return
+
+    try:
+        fetcher = bb.fetch2.Fetch(src_uri, d)
+        fetcher.unpack(d.getVar('WORKDIR'))
+    except bb.fetch2.BBFetchException as e:
+        bb.fatal("Bitbake Fetcher Error: " + repr(e))
+}
 
 do_configure() {
     base_do_configure

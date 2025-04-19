@@ -29,7 +29,7 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
                     file://src/${GO_IMPORT}/vendor/sigs.k8s.io/yaml/LICENSE;md5=0ceb9ff3b27d3a8cf451ca3785d73c71 \
 "
 
-SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=release-1.16;destsuffix=${GO_SRCURI_DESTSUFFIX}"
+SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=release-1.16"
 SRCREV = "a5a5833c14a15fd9c86bcece85d5ec6621b65652"
 
 SRC_URI += "\
