@@ -2,6 +2,16 @@ require gcc-for-nvcc-multilib-config.inc
 require gcc-for-nvcc-shared-source.inc
 
 DEBUG_PREFIX_MAP:remove:class-target = "-fcanon-prefix-map"
+DEBUG_PREFIX_MAP:append:class-target = "\
+ -fmacro-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+ -fdebug-prefix-map=${S}=${TARGET_DBGSRC_DIR} \
+ -fmacro-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
+ -fdebug-prefix-map=${B}=${TARGET_DBGSRC_DIR} \
+ -fdebug-prefix-map=${STAGING_DIR_HOST}= \
+ -fmacro-prefix-map=${STAGING_DIR_HOST}= \
+ -fdebug-prefix-map=${STAGING_DIR_NATIVE}= \
+ -fmacro-prefix-map=${STAGING_DIR_NATIVE}= \
+"
 
 #
 # Build the list of lanaguages to build.
