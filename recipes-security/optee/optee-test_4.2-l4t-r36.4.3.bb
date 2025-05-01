@@ -14,6 +14,8 @@ DEPENDS += "optee-os-tadevkit optee-client openssl"
 S = "${WORKDIR}/optee_test"
 B = "${WORKDIR}/build"
 
+CFLAGS += "-std=gnu17 -Wno-error=unterminated-string-initialization"
+
 EXTRA_OEMAKE += " \
     CROSS_COMPILE_HOST=${HOST_PREFIX} \
     CROSS_COMPILE_TA=${HOST_PREFIX} \
