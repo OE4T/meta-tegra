@@ -38,7 +38,7 @@ do_configure() {
 
 do_compile() {
     for winsys in egldevice ${PACKAGECONFIG}; do
-        cflags="-isystem${S}/include -I${S}/nvgldemo -I${S}/nvtexfont -I${S}/gears-lib -I=${includedir}/libdrm/nvidia"
+        cflags="-std=gnu17 -isystem${S}/include -I${S}/nvgldemo -I${S}/nvtexfont -I${S}/gears-lib -I=${includedir}/libdrm/nvidia"
 	ldflags="-ldl"
 	extra=
         case $winsys in
