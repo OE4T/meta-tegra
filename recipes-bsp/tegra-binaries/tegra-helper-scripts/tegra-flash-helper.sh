@@ -209,7 +209,7 @@ if [ -n "$overlay_dtb_files" ]; then
 fi
 if [ -n "$DCE_OVERLAY" ]; then
     overlay_dtb_arg="$overlay_dtb_arg --dce_overlay_dtb $DCE_OVERLAY"
-    rcm_ovleray_dtb_arg="$rcm_overlay_dtb_arg --dce_overlay_dtb $DCE_OVERLAY"
+    rcm_overlay_dtb_arg="$rcm_overlay_dtb_arg --dce_overlay_dtb $DCE_OVERLAY"
 fi
 
 fuselevel="fuselevel_production"
