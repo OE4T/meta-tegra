@@ -1,4 +1,4 @@
-require edk2-firmware-tegra-35.6.0.inc
+require edk2-firmware-tegra-35.6.1.inc
 
 DESCRIPTION = "Standalone Memory Manager for OP-TEE on Jetson platforms"
 

@@ -10,7 +10,7 @@ TEGRA_SRC_SUBARCHIVE_OPTS = "--exclude=3rdpartyheaders.tbz2"
 TEGRA_SRC_EXTRA_SUBARCHIVE = "Linux_for_Tegra/source/public/gst-nvarguscamera_src.tbz2"
 TEGRA_SRC_EXTRA_SUBARCHIVE_OPTS = "-C ${S} --strip-components=1 gst-nvarguscamera/nvbufsurface.h"
 
-require recipes-bsp/tegra-sources/tegra-sources-35.6.0.inc
+require recipes-bsp/tegra-sources/tegra-sources-35.6.1.inc
 
 SRC_URI += "\
     file://0001-Build-fixups.patch \
