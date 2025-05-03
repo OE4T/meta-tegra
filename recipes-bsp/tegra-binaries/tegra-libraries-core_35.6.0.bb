@@ -14,7 +14,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvddk_vic.so \
     tegra/libnvdla_compiler.so \
     tegra/libnvdla_runtime.so \
-    tegra/libnvidia-tls.so.35.5.0 \
+    tegra/libnvidia-tls.so.35.6.1 \
     tegra/libnvimp.so \
     tegra/libnvll.so \
     tegra/libnvos.so \
