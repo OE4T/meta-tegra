@@ -13,7 +13,7 @@ REQUIRED_DISTRO_FEATURES = "x11"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libGLX_nvidia.so.0 \
-    tegra/libnvidia-glcore.so.35.5.0 \
+    tegra/libnvidia-glcore.so.35.6.1 \
 "
 
 RDEPENDS:${PN} = "libxcb-glx"
