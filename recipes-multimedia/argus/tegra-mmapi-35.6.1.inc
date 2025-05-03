@@ -4,7 +4,7 @@ LICENSE = "Proprietary & BSD-3-Clause"
 SRC_COMMON_DEBS = "${@l4t_deb_pkgname(d, 'jetson-multimedia-api')};subdir=tegra-mmapi"
 PV .= "${@l4t_bsp_debian_version_suffix(d, pkgname='nvidia-l4t-jetson-multimedia-api')}"
 
-SRC_URI[sha256sum] = "ba7e54baed650a721fe15f34c916562ec5844f0b589d42d22f40f024e89015cc"
+SRC_URI[sha256sum] = "084adc5a5ab8def01cb61a06fbac78e11f8724a9d48d9c25eaaac3dec95a55a9"
 
 inherit l4t_deb_pkgfeed features_check
 
