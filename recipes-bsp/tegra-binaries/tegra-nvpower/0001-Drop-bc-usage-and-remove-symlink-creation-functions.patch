@@ -11,10 +11,10 @@ Upstream-Status: Pending
  etc/systemd/nvpower.sh | 81 +-----------------------------------------
  1 file changed, 1 insertion(+), 80 deletions(-)
 
-Index: tegra-nvpower-35.6.0-20240828020325/etc/systemd/nvpower.sh
+Index: tegra-nvpower-35.6.1-20240828020325/etc/systemd/nvpower.sh
 ===================================================================
---- tegra-nvpower-35.6.0-20240828020325.orig/etc/systemd/nvpower.sh
-+++ tegra-nvpower-35.6.0-20240828020325/etc/systemd/nvpower.sh
+--- tegra-nvpower-35.6.1-20240828020325.orig/etc/systemd/nvpower.sh
++++ tegra-nvpower-35.6.1-20240828020325/etc/systemd/nvpower.sh
 @@ -123,130 +123,6 @@ function set_power_state_perm()
  	fi
  }

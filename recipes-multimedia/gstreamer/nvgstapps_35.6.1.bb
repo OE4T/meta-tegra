@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://nvgst_sample_apps/nvgstcapture-1.0/nvgstcapture-1.0_R
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/nvgstapps_src.tbz2"
 
-require recipes-bsp/tegra-sources/tegra-sources-35.6.0.inc
+require recipes-bsp/tegra-sources/tegra-sources-35.6.1.inc
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libx11 libxext"
 

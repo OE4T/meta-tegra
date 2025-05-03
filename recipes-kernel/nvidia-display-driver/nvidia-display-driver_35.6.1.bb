@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://COPYING;md5=1d5fa2a493e937d5a4b96e5e03b90f7c"
 inherit module
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/nvidia_kernel_display_driver_source.tbz2"
-require recipes-bsp/tegra-sources/tegra-sources-35.6.0.inc
+require recipes-bsp/tegra-sources/tegra-sources-35.6.1.inc
 
 COMPATIBLE_MACHINE = "(tegra234)"
 
