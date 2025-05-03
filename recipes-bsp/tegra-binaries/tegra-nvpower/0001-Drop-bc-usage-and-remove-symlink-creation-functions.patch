@@ -1,29 +1,50 @@
-From b2cdefaae658c9b55f29ae17ca2d0decd1bd79a9 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Fri, 25 Mar 2022 12:51:57 -0700
+From 5a54920d28ff1b9c26ae4131b2fd0dda5ada9625 Mon Sep 17 00:00:00 2001
+From: Daniel Chaves <dchvs11@gmail.com>
+Date: Fri, 2 May 2025 23:34:26 +0000
 Subject: [PATCH] Drop bc usage and remove symlink creation functions
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+Signed-off-by: Daniel Chaves <dchvs11@gmail.com>
 
 Upstream-Status: Pending
----
- etc/systemd/nvpower.sh | 81 +-----------------------------------------
- 1 file changed, 1 insertion(+), 80 deletions(-)
 
-Index: tegra-nvpower-35.6.1-20240828020325/etc/systemd/nvpower.sh
-===================================================================
---- tegra-nvpower-35.6.1-20240828020325.orig/etc/systemd/nvpower.sh
-+++ tegra-nvpower-35.6.1-20240828020325/etc/systemd/nvpower.sh
-@@ -123,130 +123,6 @@ function set_power_state_perm()
- 	fi
+---
+ etc/systemd/nvpower.sh | 154 -----------------------------------------
+ 1 file changed, 154 deletions(-)
+
+diff --git a/etc/systemd/nvpower.sh b/etc/systemd/nvpower.sh
+index 07ff45c..c74208b 100755
+--- a/etc/systemd/nvpower.sh
++++ b/etc/systemd/nvpower.sh
+@@ -164,158 +164,6 @@ function is_nvpm_relinking_needed()
+ 	return 1
  }
  
 -function create_nvpmodel_symlink()
 -{
 -	conf_file=""
+-
+-	if [ -e "${NVPM_SYMLINK}" ]; then
+-		if is_nvpm_relinking_needed; then
+-			nvpm_back="/etc/nvpmodel_nvbackup.conf"
+-			echo "${SCRIPT_NAME} - NOTICE: Backing up the" \
+-				"existing ${NVPM_SYMLINK} to ${nvpm_back}!"
+-			cp -b -S .bak "${NVPM_SYMLINK}" "${nvpm_back}"
+-
+-			unlink "${NVPM_SYMLINK}"
+-			ret="$?"
+-			if [ "${ret}" -ne "0" ]; then
+-				echo "${SCRIPT_NAME} - Error: Failed" \
+-					"to unlink ${NVPM_SYMLINK}!"
+-			else
+-				rm /var/lib/nvpmodel/status
+-			fi
+-		fi
+-	fi
+-
 -	# create /etc/nvpmodel.conf symlink
--	if [ ! -e "/etc/nvpmodel.conf" ]; then
+-	if [ ! -e "${NVPM_SYMLINK}" ]; then
 -		if [ "${SOCFAMILY}" = "tegra194" ]; then
 -			if [ "${machine}" = "e3900" ]; then
 -				if [ -d "/sys/devices/gpu.0" ] &&
@@ -68,18 +89,27 @@ Index: tegra-nvpower-35.6.1-20240828020325/etc/systemd/nvpower.sh
 -			elif [ "${machine}" = "p3767-0000" ] || \
 -				[ "${machine}" = "p3767-0002" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000.conf"
+-			elif [ "${machine}" = "p3767-0000-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_super.conf"
 -			elif [ "${machine}" = "p3767-0000-px1" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_px1.conf"
 -			elif [ "${machine}" = "p3767-0000-as-p3767-0001" ] || \
 -				[ "${machine}" = "p3767-0001" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001.conf"
+-			elif [ "${machine}" = "p3767-0001-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001_super.conf"
 -			elif [ "${machine}" = "p3767-0003" ] || \
 -				[ "${machine}" = "p3767-0005" ] || \
 -				[ "${machine}" = "p3767-0000-as-p3767-0003" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0003.conf"
+-			elif [ "${machine}" = "p3767-0003-super" ] || \
+-				[ "${machine}" = "p3767-0005-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0003_super.conf"
 -			elif [ "${machine}" = "p3767-0004" ] || \
 -				[ "${machine}" = "p3767-0000-as-p3767-0004" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004.conf"
+-			elif [ "${machine}" = "p3767-0004-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004_super.conf"
 -			else
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0000.conf"
 -			fi
@@ -87,7 +117,7 @@ Index: tegra-nvpower-35.6.1-20240828020325/etc/systemd/nvpower.sh
 -
 -		if [ "${conf_file}" != "" ]; then
 -			if [ -e "${conf_file}" ]; then
--				ln -sf "${conf_file}" /etc/nvpmodel.conf
+-				ln -sf "${conf_file}" "${NVPM_SYMLINK}"
 -			else
 -				echo "${SCRIPT_NAME} - WARNING: file ${conf_file} not found!"
 -			fi
@@ -146,16 +176,7 @@ Index: tegra-nvpower-35.6.1-20240828020325/etc/systemd/nvpower.sh
  # CPU hotplug helper function that turns on/off the CPU cores in the specified range
  # * Parameters:
  # * ${1}: desired online status (0 for offline, 1 for online)
-@@ -317,7 +193,7 @@ function set_cpu_governor()
- 			*schedutil*)
- 				# latest kernel is using the upstream driver and need to avoid setting
- 				# schedutil governor on kstable.
--				if [ "$(echo "${KERNEL_VERSION} < 5.11" | bc)" -eq 1 ]; then
-+				if [ "${KERNEL_VERSION}" = "5.10" ]; then
- 					CPU_SCHEDUTIL_GOV=1
- 				fi
- 	        ;;
-@@ -598,8 +474,6 @@ SOCFAMILY=""
+@@ -680,8 +528,6 @@ SOCFAMILY=""
  
  set_socfamily
  set_power_state_perm
@@ -164,3 +185,6 @@ Index: tegra-nvpower-35.6.1-20240828020325/etc/systemd/nvpower.sh
  cpu_hotplug
  set_cpu_governor
  set_cpu_floor_freq
+-- 
+2.47.1
+
