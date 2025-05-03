@@ -5,7 +5,7 @@ require tegra-debian-libraries-common.inc
 LICENSE += "& Apache-2.0"
 LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-tegra/LICENSE.tegra_sensors;md5=e7fe81c64aaee40b3d9e5b11c3e0ea58"
 
-MAINSUM = "7ea038eeb71cad7cdd63a21382e9d9e756792d7800e412d0a1ab0d544a9b7856"
+MAINSUM = "1a2175e7983f8c246ce78102736493e6b8bd4899688055b8ef923c8cc307332c"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvcolorutil.so \
@@ -14,7 +14,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libnvddk_vic.so \
     tegra/libnvdla_compiler.so \
     tegra/libnvdla_runtime.so \
-    tegra/libnvidia-tls.so.35.6.1 \
+    tegra/libnvidia-tls.so.${L4T_VERSION} \
     tegra/libnvimp.so \
     tegra/libnvll.so \
     tegra/libnvos.so \

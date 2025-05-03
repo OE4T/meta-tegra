@@ -5,15 +5,15 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-3d-core"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "e4448e39255b6bac877217f404330e83a6797771c817b5e11a6d48921024b152"
+MAINSUM = "c16897be3d1efb112a4da510128bd474e3d98b51e8dd81d3a10f0977247e0229"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra-egl/libEGL_nvidia.so.0 \
-    tegra/libnvidia-eglcore.so.35.6.1 \
-    tegra/libnvidia-glsi.so.35.6.1 \
-    tegra/libnvidia-glvkspirv.so.35.6.1 \
-    tegra/libnvidia-rmapi-tegra.so.35.6.1 \
-    tegra/libnvidia-rtcore.so.35.6.1 \
+    tegra/libnvidia-eglcore.so.${L4T_VERSION} \
+    tegra/libnvidia-glsi.so.${L4T_VERSION} \
+    tegra/libnvidia-glvkspirv.so.${L4T_VERSION} \
+    tegra/libnvidia-rmapi-tegra.so.${L4T_VERSION} \
+    tegra/libnvidia-rtcore.so.${L4T_VERSION} \
 "
 
 do_install() {

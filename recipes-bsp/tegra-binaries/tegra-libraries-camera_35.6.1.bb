@@ -12,9 +12,9 @@ LIC_FILES_CHKSUM += "\
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP};name=gstreamer"
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'core')};subdir=${BP};name=core"
 
-MAINSUM = "45c95f7ef42a48499617cb3b2be8d3fecb0ddb393e55c6c9eebdddf8e3b12d88"
-GSTSUM = "930c1ec408a160f17de8fe7932883197efaeed714d1575fda2a3b789337f0e06"
-CORESUM = "7ea038eeb71cad7cdd63a21382e9d9e756792d7800e412d0a1ab0d544a9b7856"
+MAINSUM = "2a54032022756214348d34b20e4d294cd731f9ed7f9baf9eea530ceeab5e7225"
+GSTSUM = "f9578171ddd1b92297076eab39c803e2868923cb06e4411cfcc8bcacb1095219"
+CORESUM = "1a2175e7983f8c246ce78102736493e6b8bd4899688055b8ef923c8cc307332c"
 SRC_URI[gstreamer.sha256sum] = "${GSTSUM}"
 SRC_URI[core.sha256sum] = "${CORESUM}"
 
