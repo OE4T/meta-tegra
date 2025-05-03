@@ -10,17 +10,17 @@ SRC_URI[core3d.sha256sum] = "${CORE3DSUM}"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra/libcuda.so.1.1 \
-    tegra/libnvidia-ptxjitcompiler.so.35.5.0 \
-    tegra/libnvidia-nvvm.so.35.5.0 \
+    tegra/libnvidia-ptxjitcompiler.so.35.6.1 \
+    tegra/libnvidia-nvvm.so.35.6.1 \
 "
 
 do_install() {
     install_libraries
     ln -sf libcuda.so.1.1 ${D}${libdir}/libcuda.so
     ln -sf libcuda.so.1.1 ${D}${libdir}/libcuda.so.1
-    ln -sf libnvidia-ptxjitcompiler.so.35.5.0 ${D}${libdir}/libnvidia-ptxjitcompiler.so.1
-    ln -sf libnvidia-nvvm.so.35.5.0 ${D}${libdir}/libnvidia-nvvm.so.4
-    ln -sf libnvidia-nvvm.so.35.5.0 ${D}${libdir}/libnvidia-nvvm.so
+    ln -sf libnvidia-ptxjitcompiler.so.35.6.1 ${D}${libdir}/libnvidia-ptxjitcompiler.so.1
+    ln -sf libnvidia-nvvm.so.35.6.1 ${D}${libdir}/libnvidia-nvvm.so.4
+    ln -sf libnvidia-nvvm.so.35.6.1 ${D}${libdir}/libnvidia-nvvm.so
 
     # This is done to fix docker passthroughs
     # libnvcucompat.so is part of base passthrough and will get mounted to /usr/lib/aarch64-linux-gnu
@@ -28,8 +28,8 @@ do_install() {
     # Hence, NVIDIA wants us to mount this file to `/usr/lib/aarch64-linux-gnu/tegra/`
     # This fix is used for mounting the file at `/usr/lib/aarch64-linux-gnu` with different name
     # and then overriding the symlink for the new file name
-    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/tegra/libnvcucompat.so ${D}${libdir}/libnvcucompat.so.35.5.0
-    ln -sf libnvcucompat.so.35.5.0 ${D}${libdir}/libnvcucompat.so
+    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/tegra/libnvcucompat.so ${D}${libdir}/libnvcucompat.so.35.6.1
+    ln -sf libnvcucompat.so.35.6.1 ${D}${libdir}/libnvcucompat.so
 }
 
 FILES_SOLIBSDEV = ""

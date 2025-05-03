@@ -9,11 +9,11 @@ MAINSUM = "e4448e39255b6bac877217f404330e83a6797771c817b5e11a6d48921024b152"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra-egl/libEGL_nvidia.so.0 \
-    tegra/libnvidia-eglcore.so.35.5.0 \
-    tegra/libnvidia-glsi.so.35.5.0 \
-    tegra/libnvidia-glvkspirv.so.35.5.0 \
-    tegra/libnvidia-rmapi-tegra.so.35.5.0 \
-    tegra/libnvidia-rtcore.so.35.5.0 \
+    tegra/libnvidia-eglcore.so.35.6.1 \
+    tegra/libnvidia-glsi.so.35.6.1 \
+    tegra/libnvidia-glvkspirv.so.35.6.1 \
+    tegra/libnvidia-rmapi-tegra.so.35.6.1 \
+    tegra/libnvidia-rtcore.so.35.6.1 \
 "
 
 do_install() {
