@@ -11,12 +11,12 @@ SRC_SOC_DEBS += "\
     ${@l4t_deb_pkgname(d, 'weston')};subdir=${BP}/full;name=weston \
     ${@l4t_deb_pkgname(d, 'libvulkan')};subdir=${BP}/full;name=libvulkan \
 "
-MAINSUM = "2ae5ffaef3bebb51e2f95140a54b553e5535ed31b8fb6b2a7516a5918c80d674"
-SRC_URI[camera.sha256sum] = "45c95f7ef42a48499617cb3b2be8d3fecb0ddb393e55c6c9eebdddf8e3b12d88"
-SRC_URI[gstreamer.sha256sum] = "930c1ec408a160f17de8fe7932883197efaeed714d1575fda2a3b789337f0e06"
-SRC_URI[wayland.sha256sum] = "dd5558d7f871af9004ebf0af0215eea4fe1701bf685b1ca2b94639055c87638a"
-SRC_URI[weston.sha256sum] = "11ecb4b51091f4a8f5815b562c65dc0efde4eab1f5923fe215d64ae0777642a6"
-SRC_URI[libvulkan.sha256sum] = "a9cd1f36d04e7a9c24d137fecaf75e17902a91c8a84b264dea1105dcd140bc05"
+MAINSUM = "29ba862c908bca508a21342c36b0af519b66531ea4e3f5bdcd7b8f4286fe729b"
+SRC_URI[camera.sha256sum] = "2a54032022756214348d34b20e4d294cd731f9ed7f9baf9eea530ceeab5e7225"
+SRC_URI[gstreamer.sha256sum] = "f9578171ddd1b92297076eab39c803e2868923cb06e4411cfcc8bcacb1095219"
+SRC_URI[wayland.sha256sum] = "adb7bfb15b5915fdb0b3fd75011536809af46738b5f08c11ad0d2f3f4fbec7a3"
+SRC_URI[weston.sha256sum] = "a89ba6b1a56d72a373e3abce99d6bdf3d546014411a10c71e5dad4d6208f939c"
+SRC_URI[libvulkan.sha256sum] = "b50b0881305c90eef19c93534b8630fe4b1ca37e1fb297ab21055c28777ca44f"
 
 PASSTHRU_ROOT = "${datadir}/nvidia-container-passthrough"
 

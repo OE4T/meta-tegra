@@ -10,7 +10,7 @@ PV .= "${@l4t_bsp_debian_version_suffix(d, pkgname='nvidia-l4t-weston')}"
 
 inherit l4t_deb_pkgfeed
 
-SRC_URI[sha256sum] = "11ecb4b51091f4a8f5815b562c65dc0efde4eab1f5923fe215d64ae0777642a6"
+SRC_URI[sha256sum] = "a89ba6b1a56d72a373e3abce99d6bdf3d546014411a10c71e5dad4d6208f939c"
 
 S = "${WORKDIR}/${BPN}"
 B = "${S}"
