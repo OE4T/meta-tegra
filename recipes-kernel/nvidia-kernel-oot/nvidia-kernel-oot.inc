@@ -9,15 +9,8 @@ TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 inherit module
 inherit ${TEGRA_UEFI_SIGNING_CLASS}
 
-SRC_REPO = "github.com/OE4T/nvidia-kernel-oot;protocol=https"
-SRC_URI = "gitsm://${SRC_REPO};branch=${SRCBRANCH}"
-SRCBRANCH = "main"
-SRCREV = "92c7803bcf2e6ce7f12a69ca5570c36095518d94"
-PV = "36.4.3+git"
-
 COMPATIBLE_MACHINE = "(tegra)"
 
-S = "${WORKDIR}/git"
 B = "${S}"
 
 KERNEL_MODULE_PACKAGE_PREFIX = "nv-"
@@ -190,6 +183,7 @@ TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_BLUETOOTH_DRIVERS}"
 TEGRA_OOT_EXTRA_WIFI_DRIVERS ??= ""
 TEGRA_OOT_WIFI_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-rtl8822ce \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-rtl8852ce \
     ${TEGRA_OOT_EXTRA_WIFI_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_WIFI_DRIVERS}"
