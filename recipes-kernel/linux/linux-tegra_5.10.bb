@@ -15,14 +15,14 @@ DEPENDS:remove = "kern-tools-native"
 DEPENDS:append = " kern-tools-tegra-native"
 
 LINUX_VERSION ?= "5.10.216"
-PV = "${LINUX_VERSION}+git"
+PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
 LINUX_VERSION_EXTENSION ?= "-l4t-${@'.'.join(d.getVar('L4T_VERSION').split('.'))}"
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "4bce4d148ef3ff159ab55c127d8761aeaac5cc28"
+SRCREV = "4e110b95829d222e4a9059fe9dc691895cd5b5b9"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-tegra-5.10.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
