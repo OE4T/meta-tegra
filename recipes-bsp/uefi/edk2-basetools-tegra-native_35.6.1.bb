@@ -6,7 +6,7 @@
 SUMMARY = "EDK2 Base Tools"
 LICENSE = "BSD-2-Clause-Patent"
 
-require edk2-firmware-core-tegra-35.6.0.inc
+require edk2-firmware-core-tegra-35.6.1.inc
 
 inherit native
 

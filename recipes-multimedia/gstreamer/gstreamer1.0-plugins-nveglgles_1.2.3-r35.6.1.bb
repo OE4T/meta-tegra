@@ -6,7 +6,7 @@ LIC_FILES_CHKSUM = "file://gst-libs/gst/egl/LICENSE.libgstnvegl-1.0;md5=de0f9dfa
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/public/gstegl_src.tbz2"
 
-require recipes-bsp/tegra-sources/tegra-sources-35.6.0.inc
+require recipes-bsp/tegra-sources/tegra-sources-35.6.1.inc
 
 SRC_URI += " file://0001-Makefile-fixes-for-OE-builds.patch \
              file://0002-Fix-builds-without-x11.patch \
