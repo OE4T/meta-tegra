@@ -1,4 +1,4 @@
-From db2149be6f91e529104a695924e520af9f8831aa Mon Sep 17 00:00:00 2001
+From f5fdaf5e2fd94cc7ee4e953b03590d8bc9a3b32e Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Thu, 29 Feb 2024 13:03:50 +0000
 Subject: [PATCH] Update tegra python scripts for Python3
@@ -7,6 +7,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 
 Upstream-Status: Pending
+
 ---
  ...ate-tegra-python-scripts-for-Python3.patch | 126 ++++++++++++++++++
  bootloader/tegraflash_impl_t234.py            |   7 +-
@@ -15,10 +16,11 @@ Upstream-Status: Pending
  4 files changed, 139 insertions(+), 12 deletions(-)
  create mode 100644 0001-Update-tegra-python-scripts-for-Python3.patch
 
-Index: Linux_for_Tegra/0001-Update-tegra-python-scripts-for-Python3.patch
-===================================================================
+diff --git a/0001-Update-tegra-python-scripts-for-Python3.patch b/0001-Update-tegra-python-scripts-for-Python3.patch
+new file mode 100644
+index 0000000..609099d
 --- /dev/null
-+++ Linux_for_Tegra/0001-Update-tegra-python-scripts-for-Python3.patch
++++ b/0001-Update-tegra-python-scripts-for-Python3.patch
 @@ -0,0 +1,126 @@
 +From 504737120f684c713c2ee95dbc0d189b1830c43b Mon Sep 17 00:00:00 2001
 +From: Ilies CHERGUI <ichergui@nvidia.com>
@@ -146,14 +148,14 @@ Index: Linux_for_Tegra/0001-Update-tegra-python-scripts-for-Python3.patch
 +-- 
 +2.34.1
 +
-Index: Linux_for_Tegra/bootloader/tegraflash_impl_t234.py
-===================================================================
---- Linux_for_Tegra.orig/bootloader/tegraflash_impl_t234.py
-+++ Linux_for_Tegra/bootloader/tegraflash_impl_t234.py
+diff --git a/bootloader/tegraflash_impl_t234.py b/bootloader/tegraflash_impl_t234.py
+index 502c7e9..5885077 100644
+--- a/bootloader/tegraflash_impl_t234.py
++++ b/bootloader/tegraflash_impl_t234.py
 @@ -1,3 +1,4 @@
 +#!/usr/bin/env python3
  #
- # SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA Corporation.  All Rights Reserved.
+ # SPDX-FileCopyrightText: Copyright (c) 2014-2025, NVIDIA Corporation.  All Rights Reserved.
  # SPDX-License-Identifier: LicenseRef-NvidiaProprietary
 @@ -1384,7 +1385,7 @@ class TFlashT23x_Base(object):
  
@@ -164,7 +166,7 @@ Index: Linux_for_Tegra/bootloader/tegraflash_impl_t234.py
                  if m:
                      bpmp_dtb = m.group(1)
              if bpmp_dtb == None and bpmp_dtb_in_layout == None:
-@@ -2713,7 +2714,7 @@ class TFlashT23x_Base(object):
+@@ -2717,7 +2718,7 @@ class TFlashT23x_Base(object):
              command.extend(['--generategpt', '--pt', self.tegraparser_values['--pt']])
              run_command(command)
  
@@ -173,7 +175,7 @@ Index: Linux_for_Tegra/bootloader/tegraflash_impl_t234.py
              contents = os.listdir('.')
              for f in contents:
                  if patt.match(f):
-@@ -2764,7 +2765,7 @@ class TFlashT23x_Base(object):
+@@ -2768,7 +2769,7 @@ class TFlashT23x_Base(object):
              binaries.extend(["cpu-bootloader", values['--bl']])
  
          if values['--cfg'] is not None :
@@ -182,16 +184,16 @@ Index: Linux_for_Tegra/bootloader/tegraflash_impl_t234.py
              signed_files.extend(self.tegraflash_copy_signed_binaries(self.tegrahost_values['--signed_list'], output_dir))
              if self.tegrabct_values['--bct'] is None and not values['--external_device']:
                  raise tegraflash_exception("Unable to find bct file")
-Index: Linux_for_Tegra/bootloader/tegraflash_internal.py
-===================================================================
---- Linux_for_Tegra.orig/bootloader/tegraflash_internal.py
-+++ Linux_for_Tegra/bootloader/tegraflash_internal.py
+diff --git a/bootloader/tegraflash_internal.py b/bootloader/tegraflash_internal.py
+index 3601dfa..6f74a46 100755
+--- a/bootloader/tegraflash_internal.py
++++ b/bootloader/tegraflash_internal.py
 @@ -1,3 +1,4 @@
 +#!/usr/bin/env python3
  #
  # SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA Corporation.  All Rights Reserved.
  # SPDX-License-Identifier: LicenseRef-NvidiaProprietary
-@@ -1195,8 +1196,7 @@ def tegraflash_encrypt_and_sign(exports)
+@@ -1195,8 +1196,7 @@ def tegraflash_encrypt_and_sign(exports):
          command = exec_file('tegraparser')
          command.extend(['--generategpt', '--pt', tegraparser_values['--pt']])
          run_command(command)
@@ -211,7 +213,7 @@ Index: Linux_for_Tegra/bootloader/tegraflash_internal.py
              contents = os.listdir('.')
              for f in contents:
                  if patt.match(f):
-@@ -3983,7 +3982,7 @@ def tegraflash_bpmp_update_valid_entries
+@@ -3983,7 +3982,7 @@ def tegraflash_bpmp_update_valid_entries(ramcode, lines, dtb_start_pos,
      for i in range(0, len(dtb_start_pos)):
          for line_num in range(dtb_start_pos[i], dtb_end_pos[i]):
              if "phandle" in lines[line_num] and not "linux" in lines[line_num]:
@@ -220,7 +222,7 @@ Index: Linux_for_Tegra/bootloader/tegraflash_internal.py
                  if cur_strap_id == strap_ids_ph_str[ramcode]:
                      valid_entry.append(True)
                  else:
-@@ -4052,7 +4051,7 @@ def tegraflash_bpmp_get_strap_handles(ra
+@@ -4052,7 +4051,7 @@ def tegraflash_bpmp_get_strap_handles(ramcode, test_dts):
              #   emc-strap {
              #       select = <0xa 0x0 0x0 0x0>;
              #   };
@@ -229,7 +231,7 @@ Index: Linux_for_Tegra/bootloader/tegraflash_internal.py
              strap_ids_ph_str = strap_ids_ph_str.split(' ')
              break
  
-@@ -4519,7 +4518,7 @@ def tegraflash_update_t194_bpmp_dtb(bpmp
+@@ -4519,7 +4518,7 @@ def tegraflash_update_t194_bpmp_dtb(bpmp_uphy_config):
  
      bpmp_dtb = get_partition_filename('bpmp_fw_dtb', 'type')
      if (values['--bins']):
@@ -238,16 +240,16 @@ Index: Linux_for_Tegra/bootloader/tegraflash_internal.py
          if m:
              bpmp_dtb = m.group(1)
      if bpmp_dtb == None:
-Index: Linux_for_Tegra/bootloader/tegrasign_v3_internal.py
-===================================================================
---- Linux_for_Tegra.orig/bootloader/tegrasign_v3_internal.py
-+++ Linux_for_Tegra/bootloader/tegrasign_v3_internal.py
+diff --git a/bootloader/tegrasign_v3_internal.py b/bootloader/tegrasign_v3_internal.py
+index 1bac7cd..9c1654a 100755
+--- a/bootloader/tegrasign_v3_internal.py
++++ b/bootloader/tegrasign_v3_internal.py
 @@ -1,3 +1,4 @@
 +#!/usr/bin/env python3
  #
  # Copyright (c) 2018-2024, NVIDIA Corporation.  All Rights Reserved.
  #
-@@ -1033,7 +1034,7 @@ def is_PKC_key(keyfilename, p_key, pkh,
+@@ -1033,7 +1034,7 @@ def is_PKC_key(keyfilename, p_key, pkh, mont):
          return False
  
      # scan the return string for decimal value
@@ -256,7 +258,7 @@ Index: Linux_for_Tegra/bootloader/tegrasign_v3_internal.py
      if m:
          p_key.keysize = int(m.group(1))
          if (p_key.keysize > 0) and (p_key.keysize < NV_RSA_MAX_KEY_SIZE):
-@@ -1504,7 +1505,7 @@ def do_kdf_oem_enc(kdf_list, p_key, bloc
+@@ -1504,7 +1505,7 @@ def do_kdf_oem_enc(kdf_list, p_key, blockSize):
          src = bytearray(f.read())
  
      patt = 'kdf_args_' + temp_stem + '.yaml'
