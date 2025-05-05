@@ -69,6 +69,7 @@ do_install() {
     install -d ${D}/boot/devicetree
     install -m 0644 ${B}/kernel-devicetree/generic-dts/dtbs/* ${D}/boot/devicetree/
     install -d ${D}${includedir}/${BPN}
+    ln -s ${BPN} ${D}${includedir}/kernel-module-${BPN}
     find ${B} -name Module.symvers -type f | xargs sed -e's:${B}/::g' >${D}${includedir}/${BPN}/Module.symvers
 
     cp -R ${S}/nvidia-oot/include/* ${D}/${includedir}/${BPN}
@@ -85,9 +86,11 @@ KERNEL_MODULE_PROBECONF = "nvgpu"
 module_conf_nvgpu = 'options nvgpu devfreq_timer="delayed"'
 
 PACKAGES =+ "${PN}-devicetrees ${PN}-display ${PN}-cameras ${PN}-bluetooth ${PN}-wifi ${PN}-canbus ${PN}-virtualization ${PN}-alsa ${PN}-test ${PN}-base ${PN}-extra"
+PROVIDES += "kernel-module-${BPN}"
 FILES:${PN}-devicetrees = "/boot/devicetree"
 FILES:${PN}-dev = "\
     ${includedir}/${BPN} \
+    ${includedir}/kernel-module-${BPN} \
     /usr/src/device-tree \
 "
 ALLOW_EMPTY:${PN}-display = "1"
