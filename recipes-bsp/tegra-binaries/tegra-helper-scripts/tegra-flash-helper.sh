@@ -667,6 +667,9 @@ bootloader_dtb $TBCDTB_FILE"
          --dev_params $DEV_PARAMS,$DEV_PARAMS_B \
          $overlay_dtb_arg"
     flashername=nvtboot_recovery_cpu_t194.bin
+    if [ $rcm_boot -eq 1 ]; then
+	flashername=uefi_jetson.bin
+    fi
 else
     BINSARGS="psc_fw pscfw_t234_prod.bin; \
 mts_mce mce_flash_o10_cr_prod.bin; \
@@ -701,6 +704,7 @@ eks eks.img"
          --concat_cpubl_bldtb \
          --cpubl uefi_jetson.bin \
          $overlay_dtb_arg $custinfo_args"
+    flashername=uefi_jetson_with_dtb.bin
 fi
 
 if [ $rcm_boot -ne 0 ]; then
@@ -762,12 +766,10 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     BCT="--sdram_config"
     boot_chain_select="A"
     if [ "$CHIPID" = "0x19" ]; then
-        flashername=nvtboot_recovery_cpu_t194.bin
         SOSARGS="--applet mb1_t194_prod.bin "
         NV_ARGS="--soft_fuses tegra194-mb1-soft-fuses-l4t.cfg "
         BCTARGS="$bctargs --bct_backup"
     elif [ "$CHIPID" = "0x23" ]; then
-        flashername="uefi_jetson_with_dtb.bin"
         UEFIBL="uefi_jetson_with_dtb.bin"
         mb1filename="mb1_t234_prod.bin"
         pscbl1filename="psc_bl1_t234_prod.bin"
@@ -813,7 +815,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
 fi
 
 if [ "$CHIPID" = "0x19" ]; then
-    flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
+    flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl $flashername \
               --sdram_config $sdramcfg_files \
               --odmdata $odmdata \
               --bldtb $TBCDTB_FILE \
@@ -825,7 +827,7 @@ if [ "$CHIPID" = "0x19" ]; then
               $bctargs $ramcodeargs $extdevargs \
               --bins \"$BINSARGS\""
 else
-    flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_dtb.bin \
+    flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl $flashername \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
