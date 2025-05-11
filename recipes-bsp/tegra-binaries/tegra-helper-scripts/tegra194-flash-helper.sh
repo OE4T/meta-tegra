@@ -485,6 +485,10 @@ want_signing=0
 if [ -n "$keyfile" ] || [ $rcm_boot -eq 1 ] || [ $no_flash -eq 1 -a $to_sign -eq 1 ]; then
     want_signing=1
 fi
+flashername=nvtboot_recovery_cpu_t194.bin
+if [ $rcm_boot -eq 1 ]; then
+    flashername=uefi_jetson.bin
+fi
 if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     CHIPID="0x19"
     tegraid="$CHIPID"
@@ -494,7 +498,6 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
     BINSARGS="--bins \"$BINSARGS\""
-    flashername=nvtboot_recovery_cpu_t194.bin
     BCT="--sdram_config"
     bctfilename=`echo $sdramcfg_files | cut -d, -f1`
     bctfile1name=`echo $sdramcfg_files | cut -d, -f2`
@@ -520,7 +523,7 @@ if [ $have_odmsign_func -eq 1 -a $want_signing -eq 1 ]; then
     touch odmsign.func
 fi
 
-flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl nvtboot_recovery_cpu_t194.bin \
+flashcmd="python3 $flashappname ${inst_args} --chip 0x19 --bl $flashername \
 	      --sdram_config $sdramcfg_files \
 	      --odmdata $odmdata \
 	      --bldtb $tbc_dtb_file \
