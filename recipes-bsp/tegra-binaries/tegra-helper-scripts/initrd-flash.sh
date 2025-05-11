@@ -188,11 +188,17 @@ sign_binaries() {
 prepare_for_rcm_boot() {
     if [ $have_odmsign_func -eq 1 ]; then
 	local dtbfile_for_rcmboot=kernel_$DTBFILE
+	local removearg addarg
 	if [ "$CHIPID" = "0x19" ]; then
 	    cp kernel_$DTBFILE rcm_kernel_$DTBFILE
 	    dtbfile_for_rcmboot=rcm_kernel_$DTBFILE
+	    local uefibin="$(ls -1 uefi_jetson_sigheader.bin.*)"
+	    removearg="--remove=--bl"
+	    addarg="--add=--securedev,--bl=$uefibin"
+	else
+	    addarg="--add=--securedev"
 	fi
-	"$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=$dtbfile_for_rcmboot --cmd rcmboot --add="--securedev" flash_signed.sh || return 1
+	"$here/rewrite-tegraflash-args" -o rcm-boot.sh --bins kernel=initrd-flash.img,kernel_dtb=$dtbfile_for_rcmboot --cmd rcmboot $removearg $addarg flash_signed.sh || return 1
 	if [ "$CHIPID" = "0x23" ]; then
 	    sed -i -e's,mb2_t234_with_mb2_bct_MB2,mb2_t234_with_mb2_cold_boot_bct_MB2,' -e's,_aligned_blob_w_bin,,' -e's, uefi_jetson, rcmboot_uefi_jetson,' rcm-boot.sh || return 1
 	fi
