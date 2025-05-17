@@ -2,7 +2,7 @@ OpenEmbedded/Yocto BSP layer for NVIDIA Jetson Modules
 ======================================================
 
 Jetson Linux release: R35.6.1
-JetPack release:      5.1.4
+JetPack release:      5.1.5
 
 Boards supported:
 * Jetson AGX Xavier development kit
