@@ -1,0 +1,55 @@
+From e63fa4f71d6dec3603172dbd3affc979640b705a Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 19 Dec 2021 08:36:56 -0800
+Subject: [PATCH] Update allocator to use actual frame sizes
+
+rather than the size of the buffer-tracking structure.
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+
+---
+ gstnvvconv.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/gstnvvconv.c b/gstnvvconv.c
+index d5774b4..1c699ba 100644
+--- a/gstnvvconv.c
++++ b/gstnvvconv.c
+@@ -378,6 +378,8 @@ gst_nv_filter_memory_allocator_alloc (GstAllocator * allocator,
+   GstNvvConvBuffer *nvbuf = NULL;
+   NvBufferParams params = {0};
+   NvBufferCreateParams input_params = {0};
++  unsigned int i;
++  gsize actsize;
+ 
+   mem = g_slice_new0 (GstNvFilterMemory);
+   nvbuf = g_slice_new0 (GstNvvConvBuffer);
+@@ -408,10 +410,13 @@ gst_nv_filter_memory_allocator_alloc (GstAllocator * allocator,
+ 
+   flags |= GST_MEMORY_FLAG_NO_SHARE;
+ 
++  for (actsize = 0, i = 0; i < params.num_planes; i++)
++    actsize += params.psize[i];
++
+   /* Check for init params */
+   gst_memory_init (GST_MEMORY_CAST (mem), flags, allocator, NULL,
+-      params.nv_buffer_size, 1 /* Alignment */,
+-      0, params.nv_buffer_size);
++      actsize, 1 /* Alignment */,
++      0, actsize);
+   mem->buf = nvbuf;
+ 
+   return GST_MEMORY_CAST (mem);
+@@ -1923,7 +1928,7 @@ gst_nvvconv_set_caps (GstBaseTransform * btrans, GstCaps * incaps,
+     newpool = gst_nv_filter_buffer_pool_new (GST_ELEMENT_CAST (space));
+ 
+     config = gst_buffer_pool_get_config (newpool);
+-    gst_buffer_pool_config_set_params (config, outcaps, NvBufferGetSize(), min, min);
++    gst_buffer_pool_config_set_params (config, outcaps, out_info.size, min, min);
+     gst_buffer_pool_config_set_allocator (config,
+         ((GstNvFilterBufferPool *) newpool)->allocator, NULL);
+     if (!gst_buffer_pool_set_config (newpool, config))
+-- 
+2.32.0
+

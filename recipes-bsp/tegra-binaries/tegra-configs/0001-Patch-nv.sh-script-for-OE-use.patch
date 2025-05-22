@@ -1,0 +1,334 @@
+From 08921d59ef6c2c7170dcdc8904c5760fa5b4006c Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Sun, 6 Oct 2024 19:31:39 +0100
+Subject: [PATCH] Patch nv.sh script for OE use
+
+Upstream-Status: Inappropriate [OE-Specific]
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ etc/systemd/nv.sh | 310 ----------------------------------------------
+ 1 file changed, 310 deletions(-)
+
+diff --git a/etc/systemd/nv.sh b/etc/systemd/nv.sh
+index 60ac7d0..84fca35 100755
+--- a/etc/systemd/nv.sh
++++ b/etc/systemd/nv.sh
+@@ -108,313 +108,3 @@ fi
+ if [ -e "/var/lib/lightdm" ]; then
+ 	sudo chown lightdm:lightdm /var/lib/lightdm -R
+ fi
+-
+-# Set INSTALL_DOWNSTREAM_WESTON="1" to install downstream weston. This will
+-# overwrite weston binaries in standard weston installation path with downstream
+-# weston binaries which are present in "/usr/lib/aarch64-linux-gnu/nvidia. This is default.
+-#
+-# Set INSTALL_DOWNSTREAM_WESTON="0" to avoid overwriting weston binaries in standard
+-# weston installation path with downstream weston binaries which are present in
+-# /usr/lib/aarch64-linux-gnu/nvidia.
+-INSTALL_DOWNSTREAM_WESTON="1"
+-if  [ "${INSTALL_DOWNSTREAM_WESTON}" -eq "1" ]; then
+-	desktop_shell="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/desktop-shell.so"
+-	if [ -e "${desktop_shell}" ]; then
+-		ln -sf "${desktop_shell}" "${LIB_DIR}/weston/desktop-shell.so"
+-	fi
+-
+-	drm_backend="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/drm-backend.so"
+-	if [ -e "${drm_backend}" ]; then
+-		ln -sf "${drm_backend}" "${LIB_DIR}/weston/drm-backend.so"
+-	fi
+-
+-	headless_backend="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/headless-backend.so"
+-	if [ -e "${headless_backend}" ]; then
+-		ln -sf "${headless_backend}" "${LIB_DIR}/weston/headless-backend.so"
+-	fi
+-
+-	fullscreen_shell="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/fullscreen-shell.so"
+-	if [ -e "${fullscreen_shell}" ]; then
+-		ln -sf "${fullscreen_shell}" "${LIB_DIR}/weston/fullscreen-shell.so"
+-	fi
+-
+-	gl_renderer="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/gl-renderer.so"
+-	if [ -e "${gl_renderer}" ]; then
+-		ln -sf "${gl_renderer}" "${LIB_DIR}/weston/gl-renderer.so"
+-	fi
+-
+-	hmi_controller="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/hmi-controller.so"
+-	if [ -e "${hmi_controller}" ]; then
+-		ln -sf "${hmi_controller}" "${LIB_DIR}/weston/hmi-controller.so"
+-	fi
+-
+-	ivi_controller="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/ivi-controller.so"
+-	if [ -e "${ivi_controller}" ]; then
+-		ln -sf "${ivi_controller}" "${LIB_DIR}/weston/ivi-controller.so"
+-	fi
+-
+-	ivi_shell="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/ivi-shell.so"
+-	if [ -e "${ivi_shell}" ]; then
+-		ln -sf "${ivi_shell}" "${LIB_DIR}/weston/ivi-shell.so"
+-	fi
+-
+-	color_lcms="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/color-lcms.so"
+-        if [ -e "${color_lcms}" ]; then
+-                ln -sf "${color_lcms}" "${LIB_DIR}/weston/color-lcms.so"
+-        fi
+-
+-	libweston_13="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/libweston-13.so.0"
+-	if [ -e "${libweston_13}" ]; then
+-		ln -sf "${libweston_13}" "${LIB_DIR}/libweston-13.so.0"
+-	fi
+-
+-	wayland_backend="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/wayland-backend.so"
+-	if [ -e "${wayland_backend}" ]; then
+-		ln -sf "${wayland_backend}" "${LIB_DIR}/weston/wayland-backend.so"
+-	fi
+-
+-	libilmClient_2_3_2="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/libilmClient.so.2.3.2"
+-	if [ -e "${libilmClient_2_3_2}" ]; then
+-		ln -sf "${libilmClient_2_3_2}" "${LIB_DIR}/libilmClient.so.2.3.2"
+-	fi
+-
+-	libilmCommon_2_3_2="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/libilmCommon.so.2.3.2"
+-	if [ -e "${libilmCommon_2_3_2}" ]; then
+-		ln -sf "${libilmCommon_2_3_2}" "${LIB_DIR}/libilmCommon.so.2.3.2"
+-	fi
+-
+-	libilmControl_2_3_2="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/libilmControl.so.2.3.2"
+-	if [ -e "${libilmControl_2_3_2}" ]; then
+-		ln -sf "${libilmControl_2_3_2}" "${LIB_DIR}/libilmControl.so.2.3.2"
+-	fi
+-
+-	libilmInput_2_3_2="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/libilmInput.so.2.3.2"
+-	if [ -e "${libilmInput_2_3_2}" ]; then
+-		ln -sf "${libilmInput_2_3_2}" "${LIB_DIR}/libilmInput.so.2.3.2"
+-	fi
+-
+-	weston_desktop_shell="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-desktop-shell"
+-	if [ -e "${weston_desktop_shell}" ]; then
+-		ln -sf "${weston_desktop_shell}" "/usr/bin/weston-desktop-shell"
+-	fi
+-
+-	weston_keyboard="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-keyboard"
+-	if [ -e "${weston_keyboard}" ]; then
+-		ln -sf "${weston_keyboard}" "/usr/bin/weston-keyboard"
+-	fi
+-
+-	weston_desktop_shell="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-desktop-shell"
+-	if [ -e "$weston_desktop_shell{}" ]; then
+-		ln -sf "${weston_desktop_shell}" "/usr/lib/weston/weston-desktop-shell"
+-	fi
+-
+-	weston_keyboard="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-keyboard"
+-	if [ -e "${weston_keyboard}" ]; then
+-		ln -sf "${weston_keyboard}" "/usr/lib/weston/weston-keyboard"
+-	fi
+-
+-	weston_screenshooter="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-screenshooter"
+-	if [ -e "${weston_screenshooter}" ]; then
+-		ln -sf "${weston_screenshooter}" "/usr/lib/weston/weston-screenshooter"
+-	fi
+-
+-	EGLWLInputEventExample="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/EGLWLInputEventExample"
+-	if [ -e "${EGLWLInputEventExample}" ]; then
+-		ln -sf "${EGLWLInputEventExample}" "/usr/bin/EGLWLInputEventExample"
+-	fi
+-
+-	EGLWLMockNavigation="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/EGLWLMockNavigation"
+-	if [ -e "${EGLWLMockNavigation}" ]; then
+-		ln -sf "${EGLWLMockNavigation}" "/usr/bin/EGLWLMockNavigation"
+-	fi
+-
+-	LayerManagerControl="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/LayerManagerControl"
+-	if [ -e "${LayerManagerControl}" ]; then
+-		ln -sf "${LayerManagerControl}" "/usr/bin/LayerManagerControl"
+-	fi
+-
+-	simple_weston_client="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/simple-weston-client"
+-	if [ -e "${simple_weston_client}" ]; then
+-		ln -sf "${simple_weston_client}" "/usr/bin/simple-weston-client"
+-	fi
+-
+-	spring_tool="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/spring-tool"
+-	if [ -e "${spring_tool}" ]; then
+-		ln -sf "${spring_tool}" "/usr/bin/spring-tool"
+-	fi
+-
+-	weston_bin="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston"
+-	if [ -e "${weston_bin}" ]; then
+-		ln -sf "${weston_bin}" "/usr/bin/weston"
+-	fi
+-
+-	weston_calibrator="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-calibrator"
+-	if [ -e "${weston_calibrator}" ]; then
+-		ln -sf "${weston_calibrator}" "/usr/bin/weston-calibrator"
+-	fi
+-
+-	weston_clickdot="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-clickdot"
+-	if [ -e "${weston_clickdot}" ]; then
+-		ln -sf "${weston_clickdot}" "/usr/bin/weston-clickdot"
+-	fi
+-
+-	weston_cliptest="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-cliptest"
+-	if [ -e "${weston_cliptest}" ]; then
+-		ln -sf "${weston_cliptest}" "/usr/bin/weston-cliptest"
+-	fi
+-
+-	weston_content_protection="/usr/lib/aarch64-linux-gnu/nvidia/weston/weston-content-protection"
+-	if [ -e "${weston_content_protection}" ]; then
+-		ln -sf "${weston_content_protection}" "/usr/bin/weston-content-protection"
+-	fi
+-
+-	weston_debug="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-debug"
+-	if [ -e "${weston_debug}" ]; then
+-		ln -sf "${weston_debug}" "/usr/bin/weston-debug"
+-	fi
+-
+-	weston_dnd="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-dnd"
+-	if [ -e "${weston_dnd}" ]; then
+-		ln -sf "${weston_dnd}" "/usr/bin/weston-dnd"
+-	fi
+-
+-	weston_eventdemo="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-eventdemo"
+-	if [ -e "${weston_eventdemo}" ]; then
+-		ln -sf "${weston_eventdemo}" "/usr/bin/weston-eventdemo"
+-	fi
+-
+-	weston_flower="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-flower"
+-	if [ -e "${weston_flower}" ]; then
+-		ln -sf "${weston_flower}" "/usr/bin/weston-flower"
+-	fi
+-
+-	weston_fullscreen="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-fullscreen"
+-	if [ -e "${weston_fullscreen}" ]; then
+-		ln -sf "${weston_fullscreen}" "/usr/bin/weston-fullscreen"
+-	fi
+-
+-	weston_image="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-image"
+-	if [ -e "${weston_image}" ]; then
+-		ln -sf "${weston_image}" "/usr/bin/weston-image"
+-	fi
+-
+-	weston_multi_resource="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-multi-resource"
+-	if [ -e "${weston_multi_resource}" ]; then
+-		ln -sf "${weston_multi_resource}" "/usr/bin/weston-multi-resource"
+-	fi
+-
+-	weston_resizor="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-resizor"
+-	if [ -e "${weston_resizor}" ]; then
+-		ln -sf "${weston_resizor}" "/usr/bin/weston-resizor"
+-	fi
+-
+-	weston_scaler="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-scaler"
+-	if [ -e "${weston_scaler}" ]; then
+-		ln -sf "${weston_scaler}" "/usr/bin/weston-scaler"
+-	fi
+-
+-	weston_simple_egl="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-simple-egl"
+-	if [ -e "${weston_simple_egl}" ]; then
+-		ln -sf "${weston_simple_egl}" "/usr/bin/weston-simple-egl"
+-	fi
+-
+-	weston_simple_shm="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-simple-shm"
+-	if [ -e "${weston_simple_shm}" ]; then
+-		ln -sf "${weston_simple_shm}" "/usr/bin/weston-simple-shm"
+-	fi
+-
+-	weston_simple_touch="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-simple-touch"
+-	if [ -e "${weston_simple_touch}" ]; then
+-		ln -sf "${weston_simple_touch}" "/usr/bin/weston-simple-touch"
+-	fi
+-
+-	weston_smoke="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-smoke"
+-	if [ -e "${weston_smoke}" ]; then
+-		ln -sf "${weston_smoke}" "/usr/bin/weston-smoke"
+-	fi
+-
+-	weston_stacking="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-stacking"
+-	if [ -e "${weston_stacking}" ]; then
+-		ln -sf "${weston_stacking}" "/usr/bin/weston-stacking"
+-	fi
+-
+-	weston_subsurfaces="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-subsurfaces"
+-	if [ -e "${weston_subsurfaces}" ]; then
+-		ln -sf "${weston_subsurfaces}" "/usr/bin/weston-subsurfaces"
+-	fi
+-
+-	weston_terminal="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-terminal"
+-	if [ -e "${weston_terminal}" ]; then
+-		ln -sf "${weston_terminal}" "/usr/bin/weston-terminal"
+-	fi
+-
+-	weston_transformed="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-transformed"
+-	if [ -e "${weston_transformed}" ]; then
+-		ln -sf "${weston_transformed}" "/usr/bin/weston-transformed"
+-	fi
+-
+-	weston_presentation_shm="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-presentation-shm"
+-	if [ -e "${weston_presentation_shm}" ]; then
+-		ln -sf "${weston_presentation_shm}" "/usr/bin/weston-presentation-shm"
+-	fi
+-
+-	weston_simple_damage="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-simple-damage"
+-	if [ -e "${weston_simple_damage}" ]; then
+-		ln -sf "${weston_simple_damage}" "/usr/bin/weston-simple-damage"
+-	fi
+-
+-	weston_simple_dmabuf_feedback="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-simple-dmabuf-feedback"
+-	if [ -e "${weston_simple_dmabuf_feedback}" ]; then
+-		ln -sf "${weston_simple_dmabuf_feedback}" "/usr/bin/weston-simple-dmabuf-feedback"
+-	fi
+-
+-	weston_simple_im="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-simple-im"
+-	if [ -e "${weston_simple_im}" ]; then
+-		ln -sf "${weston_simple_im}" "/usr/bin/weston-simple-im"
+-	fi
+-
+-	weston_tablet="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-tablet"
+-	if [ -e "${weston_tablet}" ]; then
+-		ln -sf "${weston_tablet}" "/usr/bin/weston-tablet"
+-	fi
+-
+-	weston_touch_calibrator="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-touch-calibrator"
+-	if [ -e "${weston_touch_calibrator}" ]; then
+-		ln -sf "${weston_touch_calibrator}" "/usr/bin/weston-touch-calibrator"
+-	fi
+-fi
+-
+-# On Ubuntu 22.04, libwayland-1.20 is supported by default. But, Weston 13.0 depends on
+-# libwayland-1.22. Until libwayland-1.22 is officially supported on Ubuntu 22.04 or until
+-# we migrate to Ubuntu 24.04, we need to maintain the pre-built libwayland-1.22 binaries on P4
+-# and package them on our samplefs manually.
+-#
+-# Set INSTALL_DOWNSTREAM_LIBWAYLAND="1" to install locally maintained libwayland-1.22. This will
+-# overwrite libwayland-*.so.0 symlinks in standard libwayland installation path with downstream
+-# libwayland-1.22 binaries which are present in "/usr/lib/aarch64-linux-gnu/nvidia". This is default.
+-#
+-# Set INSTALL_DOWNSTREAM_LIBWAYLAND="0" to avoid overwriting libwayland-*.so.0 symlinks in standard
+-# libwayland installation path with locally maintained libwayland-1.22 binaries which are present in
+-# /usr/lib/aarch64-linux-gnu/nvidia.
+-INSTALL_DOWNSTREAM_LIBWAYLAND="1"
+-if  [ "${INSTALL_DOWNSTREAM_LIBWAYLAND}" -eq "1" ]; then
+-	libwayland_client_0_22_0="/usr/lib/aarch64-linux-gnu/nvidia/libwayland-client.so.0.22.0"
+-	if [ -e "${libwayland_client_0_22_0}" ]; then
+-		ln -sf "${libwayland_client_0_22_0}" "${LIB_DIR}/libwayland-client.so.0"
+-	fi
+-
+-	libwayland_server_0_22_0="/usr/lib/aarch64-linux-gnu/nvidia/libwayland-server.so.0.22.0"
+-	if [ -e "${libwayland_server_0_22_0}" ]; then
+-		ln -sf "${libwayland_server_0_22_0}" "${LIB_DIR}/libwayland-server.so.0"
+-	fi
+-
+-	libwayland_cursor_0_22_0="/usr/lib/aarch64-linux-gnu/nvidia/libwayland-cursor.so.0.22.0"
+-	if [ -e "${libwayland_cursor_0_22_0}" ]; then
+-		ln -sf "${libwayland_cursor_0_22_0}" "${LIB_DIR}/libwayland-cursor.so.0"
+-	fi
+-
+-	libwayland_egl_1_22_0="/usr/lib/aarch64-linux-gnu/nvidia/libwayland-egl.so.1.22.0"
+-	if [ -e "${libwayland_egl_1_22_0}" ]; then
+-		ln -sf "${libwayland_egl_1_22_0}" "${LIB_DIR}/libwayland-egl.so.1"
+-	fi
+-fi
+-- 
+2.34.1
+

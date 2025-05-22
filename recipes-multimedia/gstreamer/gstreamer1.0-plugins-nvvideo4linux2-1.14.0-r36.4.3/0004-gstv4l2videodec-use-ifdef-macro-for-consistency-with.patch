@@ -1,0 +1,38 @@
+From 5089ddc47eb05ce6d2ed09bd71e58def50160f8b Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 17 Nov 2023 12:57:10 +0000
+Subject: [PATCH 4/7] gstv4l2videodec: use ifdef macro for consistency with the
+  rest of the code
+
+Upstream-Status: Pending
+Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ gstv4l2videodec.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/gstv4l2videodec.c b/gstv4l2videodec.c
+index cab3cbd..39afc70 100644
+--- a/gstv4l2videodec.c
++++ b/gstv4l2videodec.c
+@@ -679,7 +679,7 @@ gst_v4l2_video_dec_start (GstVideoDecoder * decoder)
+   gst_v4l2_object_unlock (self->v4l2output);
+   g_atomic_int_set (&self->active, TRUE);
+   self->output_flow = GST_FLOW_OK;
+-#if USE_V4L2_TARGET_NV
++#ifdef USE_V4L2_TARGET_NV
+   self->decoded_picture_cnt = 0;
+ #endif
+ 
+@@ -1279,7 +1279,7 @@ gst_v4l2_video_dec_loop (GstVideoDecoder * decoder)
+       gst_caps_unref(reference);
+     }
+ 
+-#if USE_V4L2_TARGET_NV
++#ifdef USE_V4L2_TARGET_NV
+ 
+     if (!gst_buffer_copy_into (frame->output_buffer, frame->input_buffer,
+           (GstBufferCopyFlags)GST_BUFFER_COPY_METADATA, 0, -1)) {
+-- 
+2.25.1
+

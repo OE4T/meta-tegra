@@ -1,0 +1,58 @@
+From cdc5b344ff32cd0c0beef5ca99852c7f82a48d9e Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 17 Nov 2023 12:57:58 +0000
+Subject: [PATCH 5/7] gstv4l2videodec: check if we have a pool before the
+ locking in video decoder set format
+
+There's a dead lock on nvv4l2decoder.
+The dead lock is because the gstv4l2bufferpool only set capture_plane_stopped if the object
+that use the poll are V4L2_TYPE_IS_OUTPUT and in this pipeline we have an encoder and h264parse
+in front of the decoder.
+This disable the pool on the nvv4l2decoder and because of this the gstv4l2bufferpool don't
+set the capture_plane_stopped and nvv4l2decoder will waiting forever for this.
+
+This only happens because the h264parse change the caps when the pipeline goes to running
+that will trigger a restart of the nvv4l2decoder in the gst_v4l2_video_dec_set_format.
+
+So disable the the check for capture_plane_stopped on nvv4l2decoder if we don't have a pool
+otherwise nvv4l2decoder will hang forever waiting for capture_plane_stopped.
+
+Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+
+Upstream-Status: Pending
+---
+ gstv4l2videodec.c | 15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
+
+diff --git a/gstv4l2videodec.c b/gstv4l2videodec.c
+index 39afc70..aa0ef4f 100644
+--- a/gstv4l2videodec.c
++++ b/gstv4l2videodec.c
+@@ -1714,14 +1714,17 @@ gst_v4l2_video_dec_handle_frame (GstVideoDecoder * decoder,
+             gst_v4l2_object_stop(self->v4l2capture);
+             self->output_flow = GST_FLOW_OK;
+ 
+-            g_mutex_lock(&self->v4l2capture->cplane_stopped_lock);
+-            while (self->v4l2capture->capture_plane_stopped != TRUE)
++            if (self->v4l2capture->pool)
+             {
+-                g_cond_wait(&self->v4l2capture->cplane_stopped_cond,
+-                            &self->v4l2capture->cplane_stopped_lock);
++                g_mutex_lock(&self->v4l2capture->cplane_stopped_lock);
++                while (self->v4l2capture->capture_plane_stopped != TRUE)
++                {
++                    g_cond_wait(&self->v4l2capture->cplane_stopped_cond,
++                                &self->v4l2capture->cplane_stopped_lock);
++                }
++                self->v4l2capture->capture_plane_stopped = FALSE;
++                g_mutex_unlock(&self->v4l2capture->cplane_stopped_lock);
+             }
+-            self->v4l2capture->capture_plane_stopped = FALSE;
+-            g_mutex_unlock(&self->v4l2capture->cplane_stopped_lock);
+ 
+             gst_v4l2_object_close(self->v4l2output);
+             gst_v4l2_object_close(self->v4l2capture);
+-- 
+2.25.1
+

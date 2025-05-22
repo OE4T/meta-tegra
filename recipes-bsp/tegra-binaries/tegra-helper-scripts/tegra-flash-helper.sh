@@ -15,6 +15,8 @@ imgfile=
 dataimg=
 inst_args=""
 extdevargs=
+sparseargs=
+erase_spi=
 blocksize=4096
 
 # These functions are used in odmsign.func but do not
@@ -50,11 +52,11 @@ get_value_from_PT_table() {
 	echo "ERR: unsupported flash layout field: $field" >&2
 	return 1
     fi
-    local value=$("$here/nvflashxmlparse" --get-filename "$partname" "$layoutfile")
+    local value=$("$here/nvflashxmlparse" --get-filename "$partname" "$layoutfile" 2>/dev/null)
     eval "$varname=\"$value\""
 }
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:,erase-spi" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -91,6 +93,10 @@ while true; do
         ;;
     --rcm-boot)
         rcm_boot=1
+        shift
+        ;;
+    --erase-spi)
+        erase_spi=yes
         shift
         ;;
     --external-device)
@@ -170,28 +176,40 @@ if [ -z "$CHIPID" ]; then
     exit 1
 fi
 
-rcm_bootcontrol_overlay="L4TConfiguration-rcmboot.dtbo"
-if [ $rcm_boot -eq 1 -a $to_sign -eq 0 ]; then
-    overlay_dtb_files="$rcm_bootcontrol_overlay"
+[ -n "$RCMBOOT_KERNEL" ] || RCMBOOT_KERNEL="initrd-flash.img"
+
+if [ $external_device -eq 0 ]; then
+    also_sign_rcmboot=1
 else
-    overlay_dtb_files="$BOOTCONTROL_OVERLAYS"
+    also_sign_rcmboot=0
 fi
-if [ -z "$overlay_dtb_files" ]; then
-    overlay_dtb_files="$PLUGIN_MANAGER_OVERLAYS"
-elif [ -n "$PLUGIN_MANAGER_OVERLAYS" ]; then
-    overlay_dtb_files="$overlay_dtb_files,$PLUGIN_MANAGER_OVERLAYS"
-fi
-if [ -z "$overlay_dtb_files" ]; then
-    overlay_dtb_files="$OVERLAY_DTB_FILE"
+
+rcm_bootcontrol_overlay="L4TConfiguration-rcmboot.dtbo"
+
+non_bootcontrol_overlays="$PLUGIN_MANAGER_OVERLAYS"
+if [ -z "$non_bootcontrol_overlays" ]; then
+    non_bootcontrol_overlays="$OVERLAY_DTB_FILE"
 elif [ -n "$OVERLAY_DTB_FILE" ]; then
-    overlay_dtb_files="$overlay_dtb_files,$OVERLAY_DTB_FILE"
+    non_bootcontrol_overlays="$non_bootcontrol_overlays,$OVERLAY_DTB_FILE"
 fi
+[ -z "$non_bootcontrol_overlays" ] || non_bootcontrol_overlays=",$non_bootcontrol_overlays"
+
+if [ $rcm_boot -ne 0 -a $to_sign -eq 0 ]; then
+    overlay_dtb_files="$rcm_bootcontrol_overlay$non_bootcontrol_overlays"
+    also_sign_rcmboot=0
+else
+    overlay_dtb_files="$BOOTCONTROL_OVERLAYS$non_bootcontrol_overlays"
+fi
+
 overlay_dtb_arg=
+rcm_overlay_dtb_arg=
 if [ -n "$overlay_dtb_files" ]; then
     overlay_dtb_arg="--overlay_dtb $overlay_dtb_files"
+    rcm_overlay_dtb_arg="--overlay_dtb $rcm_bootcontrol_overlay$non_bootcontrol_overlays"
 fi
 if [ -n "$DCE_OVERLAY" ]; then
     overlay_dtb_arg="$overlay_dtb_arg --dce_overlay_dtb $DCE_OVERLAY"
+    rcm_overlay_dtb_arg="$rcm_overlay_dtb_arg --dce_overlay_dtb $DCE_OVERLAY"
 fi
 
 fuselevel="fuselevel_production"
@@ -253,7 +271,13 @@ if [ -z "$CHIPREV" ]; then
     CHIPREV="${chipid:5:1}"
     skipuid="--skipuid"
     case $bootauth in
-        PKC|SBKPKC)
+        PKC)
+            if [ -z "$keyfile" ]; then
+                echo "ERR: Target is configured for secure boot ($bootauth); use -u option to specify key file" >&2
+                exit 1
+            fi
+            ;;
+        SBKPKC)
             if [ -z "$keyfile" -o -z "$sbk_keyfile" ]; then
                 echo "ERR: Target is configured for secure boot ($bootauth); use -u and -v options to specify key files" >&2
                 exit 1
@@ -296,10 +320,17 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
             exit 1
         fi
         CHIP_SKU=$($here/chkbdinfo -C chip_info.bin_bak | tr -d '[:space:]')
+        board_ramcode=$($here/chkbdinfo -R chip_info.bin_bak)
+        if [ -z "$board_ramcode" ]; then
+            echo "ERR: ramcode could not be extracted from chip info" >&2
+            exit 1
+        fi
+        board_ramcode="$(echo "$board_ramcode" | cut -d: -f4)"
+        board_ramcode=$((16#$board_ramcode % 16))
+        RAMCODE="$board_ramcode"
         # XXX- these don't appear to be used
         # chip_minor_revision=$($here/chkbdinfo -M chip_info.bin_bak)
         # bootrom_revision=$($here/chkbdinfo -O chip_info.bin_bak)
-        # ramcode_id=$($here/chkbdinfo -R chip_info.bin_bak)
         # -XXX
     fi
     skipuid=""
@@ -311,16 +342,15 @@ if [ -n "$BOARDID" ]; then
 else
     boardid=$($here/chkbdinfo -i ${cvm_bin} | tr -d '[:space:]')
     BOARDID="$boardid"
+    if [ -n "$CHECK_BOARDID" -a "$BOARDID" -ne "$CHECK_BOARDID" ]; then
+        echo "ERR: actual board ID $BOARDID does not match expected board ID $CHECK_BOARDID" >&2
+        exit 1;
+    fi
 fi
 
 if [ "$CHIPID" = "0x23" -a -z "$CHIP_SKU" ]; then
-    # see DEFAULT_CHIP_SKU in p3701.conf.common
-    # or DFLT_CHIP_SKU in p3767.conf.common
-    if [ "$BOARDID" = "3767" ]; then
-        CHIP_SKU="00:00:00:D3"
-    else
-        CHIP_SKU="00:00:00:D0"
-    fi
+    echo "ERR: no default chip SKU set" >&2
+    exit 1
 fi
 
 if [ -n "$FAB" ]; then
@@ -334,6 +364,10 @@ if [ -n "$BOARDSKU" ]; then
 elif [ -n "$have_boardinfo" ]; then
     board_sku=$($here/chkbdinfo -k ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z])
     BOARDSKU="$board_sku"
+    if [ -n "$CHECK_BOARDSKU" -a "$BOARDSKU" -ne "$CHECK_BOARDSKU" ]; then
+        echo "ERR: actual board SKU $BOARDSKU does not match expected board SKU $CHECK_BOARDSKU" >&2
+        exit 1;
+    fi
 fi
 if [ -n "$BOARDREV" ]; then
     board_revision="$BOARDREV"
@@ -347,6 +381,10 @@ fi
 
 [ -f ${cvm_bin} ] && rm -f ${cvm_bin}
 
+if [ -z "$RAMCODE" -a "$BOARDID" = "3701" -a "$FAB" = "301" ]; then
+    RAMCODE=0
+fi
+
 rm -f boardvars.sh
 cat >boardvars.sh <<EOF
 BOARDID="$BOARDID"
@@ -356,6 +394,9 @@ BOARDREV="$BOARDREV"
 CHIPREV="$CHIPREV"
 CHIP_SKU="$CHIP_SKU"
 EOF
+if [ -n "$RAMCODE" ]; then
+    echo "RAMCODE=$RAMCODE" >>boardvars.sh
+fi
 if [ -n "$serial_number" ]; then
     echo "serial_number=$serial_number" >>boardvars.sh
 fi
@@ -369,16 +410,13 @@ if [ -n "$CHIP_SKU" ]; then
     echo "CHIP_SKU=\"$CHIP_SKU\"" >>boardvars.sh
 fi
 
-if [ "$BOARDID" = "3701" -a "$FAB" = "301" ]; then
-    RAMCODE=0
-fi
-
 if echo "$CHIP_SKU" | grep -q ":" 2>/dev/null; then
     chip_sku=$(echo "$CHIP_SKU" | cut -d: -f4)
 else
     chip_sku=$CHIP_SKU
 fi
 
+ramcodeargs=
 if [ "$CHIPID" = "0x23" ]; then
     if [ "$BOARDID" = "3701" ]; then
         case $chip_sku in
@@ -398,7 +436,9 @@ if [ "$CHIPID" = "0x23" ]; then
                 exit 1
                 ;;
         esac
-        if [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
+        if [ "$BOARDSKU" = "0004" -o "$BOARDSKU" = "0005" ]; then
+            PMICBOARDSKU="0005"
+        elif [ "$BOARDSKU" = "0000" -a "$FAB" != "QS1" ]; then
             PMICBOARDSKU="0005"
         else
             PMICBOARDSKU="0000"
@@ -419,7 +459,7 @@ if [ "$CHIPID" = "0x23" ]; then
             fi
         fi
         if [ "$BOARDSKU" = "0002" -o "$BOARDSKU" = "0008" ]; then
-            fsifw_binsarg="fsi_fw fsi-fw-ecc.bin;"
+            fsifw_binsarg="fsi_fw fsi-lk.bin;"
         else
             fsifw_binsarg=
         fi
@@ -440,13 +480,12 @@ if [ "$CHIPID" = "0x23" ]; then
                 ;;
         esac
         PINMUXREV="a03"
-        BPFDTBREV="a02"
         PMCREV="a03"
         PMICREV="a02"
         if [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0002" ]; then
             if [ "$FAB" = "TS1" -o "$FAB" = "EB1" ]; then
                 PINMUXREV="a01"
-                BPFDTBREV="a00"
+                BPFDTB_FILE="tegra234-bpmp-3767-0000-a00-3509-a02.dtb"
                 PMCREV="a01"
                 PMICREV="a00"
             fi
@@ -461,7 +500,10 @@ if [ "$CHIPID" = "0x23" ]; then
         PINMUX_CONFIG=$(echo "$PINMUX_CONFIG" | sed -e"s,@PINMUXREV@,$PINMUXREV,")
         PMC_CONFIG=$(echo "$PMC_CONFIG" | sed -e"s,@PMCREV@,$PMCREV,")
         PMIC_CONFIG=$(echo "$PMIC_CONFIG" | sed -e"s,@PMICREV@,$PMICREV,")
-        BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,@BPFDTBREV@,$BPFDTBREV,")
+    fi
+
+    if [ -n "$RAMCODE" ]; then
+        ramcodeargs="--ramcode $RAMCODE"
     fi
 
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS}";
@@ -541,8 +583,9 @@ if [ -f "$custinfo_out" ]; then
     custinfo_args="--cust_info $custinfo_out"
 fi
 
+binsargs_params=
 if [ "$CHIPID" = "0x23" ]; then
-    BINSARGS="psc_fw pscfw_t234_prod.bin; \
+    binsargs_params="psc_fw pscfw_t234_prod.bin; \
 mts_mce mce_flash_o10_cr_prod.bin; \
 mb2_applet applet_t234.bin; \
 mb2_bootloader mb2_t234.bin; \
@@ -575,11 +618,11 @@ eks eks.img"
          --bldtb $TBCDTB_FILE \
          --concat_cpubl_bldtb \
          --cpubl uefi_jetson.bin \
-         $overlay_dtb_arg $custinfo_args"
+         --cpubl_rcm uefi_jetson_minimal.bin"
 fi
 
-if [ $rcm_boot -ne 0 ]; then
-    BINSARGS="$BINSARGS; kernel $kernfile; kernel_dtb $kernel_dtbfile"
+if [ $rcm_boot -ne 0 -a $to_sign -eq 0 ]; then
+    binsargs_params="$binsargs_params; kernel $kernfile; kernel_dtb $kernel_dtbfile"
 fi
 
 if [ $bup_blob -ne 0 -o $to_sign -ne 0 -o "$sdcard" = "yes" -o $external_device -eq 1 ]; then
@@ -599,6 +642,10 @@ else
         fi
     fi
     tfcmd=${flash_cmd:-"flash;reboot"}
+fi
+
+if [ $no_flash -eq 0 -a "$erase_spi" != "yes" ] && echo "$tfcmd" | grep -q "flash"; then
+    sparseargs="--sparseupdate"
 fi
 
 want_signing=0
@@ -623,15 +670,17 @@ if [ $want_signing -eq 1 ]; then
     tbcdtbfilename="$TBCDTB_FILE"
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
-    BINSARGS="--bins \"$BINSARGS\""
+    BINSARGS="--bins \"$binsargs_params\""
     BCT="--sdram_config"
     boot_chain_select="A"
     if [ "$CHIPID" = "0x23" ]; then
-        flashername="uefi_jetson_with_dtb.bin"
+        flashername="uefi_jetson_minimal_with_dtb.bin"
+        RCM_UEFIBL="uefi_jetson_minimal_with_dtb.bin"
         UEFIBL="uefi_jetson_with_dtb.bin"
         mb1filename="mb1_t234_prod.bin"
         pscbl1filename="psc_bl1_t234_prod.bin"
         tbcfilename="uefi_jetson.bin"
+        rcm_tbcfile="uefi_jetson_minimal.bin"
         custinfofilename="$custinfo_out"
         SOSARGS="--applet mb1_t234_prod.bin "
         NV_ARGS=" "
@@ -639,10 +688,11 @@ if [ $want_signing -eq 1 ]; then
     BL_DIR="."
     bctfilename=$(echo $sdramcfg_files | cut -d, -f1)
     bctfile1name=$(echo $sdramcfg_files | cut -d, -f2)
-    BCTARGS="$bctargs --bct_backup"
+    BCTARGS="$bctargs $overlay_dtb_arg $custinfo_args --bct_backup"
     L4T_CONF_DTBO="L4TConfiguration.dtbo"
     rootfs_ab=0
-    FLASHARGS="--chip 0x23 --bl uefi_jetson_with_dtb.bin \
+    gen_rcmdump=0
+    FLASHARGS="--chip 0x23 --bl uefi_jetson_minimal_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
@@ -650,39 +700,50 @@ if [ $want_signing -eq 1 ]; then
           --cfg flash.xml \
           --bct_backup \
           --boot_chain A \
-          $bctargs $extdevargs $BINSARGS"
+          $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
     FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
     (odmsign_ext_sign_and_flash) || exit 1
-    if [ "$CHIPID" = "0x23" ]; then
-        cp uefi_jetson.bin rcmboot_uefi_jetson.bin
-        rcm_overlay_dtbs="$rcm_bootcontrol_overlay"
-        if [ -n "$PLUGIN_MANAGER_OVERLAYS" ]; then
-            rcm_overlay_dtbs="$rcm_overlay_dtbs,$PLUGIN_MANAGER_OVERLAYS"
-        fi
-        if [ -n "$OVERLAY_DTB_FILE" ]; then
-            rcm_overlay_dtbs="$rcm_overlay_dtbs,$OVERLAY_DTB_FILE"
-        fi
-        rcmbootsigncmd="python3 $flashappname $keyargs --chip 0x23 --odmdata $odmdata --bldtb $TBCDTB_FILE --concat_cpubl_bldtb --overlay_dtb $rcm_overlay_dtbs \
-                    --cmd \"sign rcmboot_uefi_jetson.bin bootloader_stage2 A_cpu-bootloader\""
-        eval $rcmbootsigncmd || exit 1
+    if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
+        mv flashcmd.txt secureflash.sh || exit 1
+        chmod +x secureflash.sh
+    fi
+    if [ $also_sign_rcmboot -ne 0 ]; then
+	outfolder="$(odmsign_get_folder)"
+	rm -rf ${outfolder}_save
+	mv ${outfolder} ${outfolder}_save
+	rm -f secureflash.xml.save
+	mv secureflash.xml secureflash.xml.save
+	BCTARGS="$bctargs $rcm_overlay_dtb_arg $custinfo_args --bct_backup"
+	L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
+	BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
+	FLASHARGS="--chip 0x23 --bl uefi_jetson_minimal_with_dtb.bin \
+          --sdram_config $sdramcfg_files \
+          --odmdata $odmdata \
+          --applet mb1_t234_prod.bin \
+          --cmd \"$tfcmd\" $skipuid \
+          --cfg flash.xml \
+          --bct_backup \
+          --boot_chain A \
+          $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
+	(rcm_boot=1 odmsign_ext_sign_and_flash) || exit 1
+	rm -f flashcmd.txt
+	rm -rf ${outfolder}
+	mv ${outfolder}_save ${outfolder}
+	cp -f ${outfolder}/* .
+	rm -f secureflash.xml
+	mv secureflash.xml.save secureflash.xml
     fi
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
-        if [ -f flashcmd.txt ]; then
-            chmod +x flashcmd.txt
-            ln -sf flashcmd.txt ./secureflash.sh
-        else
-            echo "WARN: signing completed successfully, but flashcmd.txt missing" >&2
-        fi
+        cp secureflash.sh flashcmd.txt
         rm -f APPFILE APPFILE_b DATAFILE
     fi
     if [ $bup_blob -eq 0 ]; then
         exit 0
     fi
-    touch odmsign.func
     flashcmd="python3 $flashappname ${inst_args} $FLASHARGS"
 else
-    flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_with_dtb.bin \
+    flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_minimal_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
@@ -690,8 +751,8 @@ else
           --cfg flash.xml \
           --bct_backup \
           --boot_chain A \
-          $bctargs $extdevargs \
-          --bins \"$BINSARGS\""
+          $bctargs $overlay_dtb_arg $custinfo_args $extdevargs $sparseargs \
+          --bins \"$binsargs_params\""
 fi
 
 if [ $bup_blob -ne 0 ]; then

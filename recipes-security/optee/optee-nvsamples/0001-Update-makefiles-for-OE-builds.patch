@@ -1,29 +1,33 @@
-From 8ccc1b1b9158f7c25d1f4705c8a2cca785f21e0b Mon Sep 17 00:00:00 2001
+From a96f5ccf52879d9ad045bf749d2a0a32508ec9ee Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Thu, 29 Feb 2024 11:19:48 +0000
+Date: Sun, 6 Oct 2024 20:17:01 +0100
 Subject: [PATCH] Update makefiles for OE builds
 
 - Remove the OPTEE_CLIENT_EXPORT references
 - Use install instead of cp to install host programs
 - Add LDFLAGS to nvhwkey-app build
 
+Upstream-Status: Inappropriate [OE-Specific]
+
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- Makefile                   |  4 ----
- cpubl-payload-dec/Makefile |  2 --
- ftpm-helper/Makefile       |  4 ----
- ftpm-helper/host/Makefile  | 16 ++++++----------
- hwkey-agent/Makefile       |  4 ----
- hwkey-agent/host/Makefile  | 15 ++++++---------
- luks-srv/Makefile          |  4 ----
- luks-srv/host/Makefile     | 14 +++++---------
- 8 files changed, 17 insertions(+), 46 deletions(-)
+ Makefile                    |  4 ----
+ cpubl-payload-dec/Makefile  |  2 --
+ ftpm-helper/Makefile        |  4 ----
+ ftpm-helper/host/Makefile   | 13 +++++--------
+ hwkey-agent/Makefile        |  4 ----
+ hwkey-agent/host/Makefile   | 15 ++++++---------
+ luks-srv/Makefile           |  4 ----
+ luks-srv/host/Makefile      | 14 +++++---------
+ pkcs11-sample/Makefile      |  4 ----
+ pkcs11-sample/host/Makefile | 11 +++++------
+ 10 files changed, 21 insertions(+), 54 deletions(-)
 
-Index: samples/Makefile
-===================================================================
---- samples.orig/Makefile
-+++ samples/Makefile
+diff --git a/Makefile b/Makefile
+index da3f40b..7671e2d 100644
+--- a/Makefile
++++ b/Makefile
 @@ -4,8 +4,6 @@
  # Input variables
  # CROSS_COMPILE: The cross compiler.
@@ -49,10 +53,10 @@ Index: samples/Makefile
  			O=$(O) \
  			clean || exit 1; \
  	done
-Index: samples/cpubl-payload-dec/Makefile
-===================================================================
---- samples.orig/cpubl-payload-dec/Makefile
-+++ samples/cpubl-payload-dec/Makefile
+diff --git a/cpubl-payload-dec/Makefile b/cpubl-payload-dec/Makefile
+index 9912522..d84c5bd 100644
+--- a/cpubl-payload-dec/Makefile
++++ b/cpubl-payload-dec/Makefile
 @@ -4,8 +4,6 @@
  # Input variables
  # CROSS_COMPILE: The cross compiler.
@@ -62,10 +66,83 @@ Index: samples/cpubl-payload-dec/Makefile
  # O: The base directory for build objects filetree.
  
  TARGET_DIR := $(notdir $(shell pwd))
-Index: samples/hwkey-agent/Makefile
-===================================================================
---- samples.orig/hwkey-agent/Makefile
-+++ samples/hwkey-agent/Makefile
+diff --git a/ftpm-helper/Makefile b/ftpm-helper/Makefile
+index 1069464..62cb216 100644
+--- a/ftpm-helper/Makefile
++++ b/ftpm-helper/Makefile
+@@ -4,8 +4,6 @@
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+ # TA_DEV_KIT_DIR: The base directory of the TA-devkit.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ TARGET_DIR := $(notdir $(shell pwd))
+@@ -18,7 +16,6 @@ all:
+ 		O=$(O)/early_ta/$(TARGET_DIR)
+ 	$(MAKE) -C host \
+ 		CROSS_COMPILE=$(CROSS_COMPILE) \
+-		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 		O=$(O)/ca/$(TARGET_DIR) \
+ 		--no-builtin-variables
+ 
+@@ -29,7 +26,6 @@ clean:
+ 		O=$(O)/early_ta/$(TARGET_DIR) \
+ 		clean
+ 	$(MAKE) -C host \
+-		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 		O=$(O)/ca/$(TARGET_DIR) \
+ 		clean
+ 	rm -rf $(O)/ca/$(TARGET_DIR)
+diff --git a/ftpm-helper/host/Makefile b/ftpm-helper/host/Makefile
+index 33ca6da..ac63623 100644
+--- a/ftpm-helper/host/Makefile
++++ b/ftpm-helper/host/Makefile
+@@ -3,24 +3,21 @@
+ 
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ CC ?= $(CROSS_COMPILE)gcc
+ STRIP ?= $(CROSS_COMPILE)strip
+ 
+ CFLAGS += -Wall -I../ta/include -I./include
+-CFLAGS += -I$(OPTEE_CLIENT_EXPORT)/include
+ CFLAGS += -fstack-protector-strong
+-LDADD += -lteec -L$(OPTEE_CLIENT_EXPORT)/lib
++LDADD += -lteec
+ 
+ SRCS = ftpm_helper_ca.c
+ OBJS = $(patsubst %.c,$(O)/%.o,$(SRCS))
+ BINARY = nvftpm-helper-app
+ 
+ .PHONY: all install
+-all: $(BINARY) install
++all: $(BINARY)
+ 
+ $(BINARY): $(OBJS)
+ 	$(CC) -o $(O)/$@ $< $(LDADD)
+@@ -31,9 +28,9 @@ $(O)/%.o: %.c
+ 	$(CC) $(CFLAGS) -c $< -o $@
+ 
+ install: $(BINARY)
+-	mkdir -p $(OPTEE_CLIENT_EXPORT)/sbin
+-	cp $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin
++	install -d $(DESTDIR)$(sbindir)
++	install -m 0755 $(O)/$(BINARY) $(DESTDIR)$(sbindir)/
+ 
+ .PHONY: clean
+ clean:
+-	rm -f $(OBJS) $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin/$(BINARY)
++	rm -f $(OBJS) $(O)/$(BINARY)
+diff --git a/hwkey-agent/Makefile b/hwkey-agent/Makefile
+index 7deda53..6557e0a 100644
+--- a/hwkey-agent/Makefile
++++ b/hwkey-agent/Makefile
 @@ -4,8 +4,6 @@
  # Input variables
  # CROSS_COMPILE: The cross compiler.
@@ -91,10 +168,10 @@ Index: samples/hwkey-agent/Makefile
  		O=$(O)/ca/$(TARGET_DIR) \
  		clean
  	rm -rf $(O)/ca/$(TARGET_DIR)
-Index: samples/hwkey-agent/host/Makefile
-===================================================================
---- samples.orig/hwkey-agent/host/Makefile
-+++ samples/hwkey-agent/host/Makefile
+diff --git a/hwkey-agent/host/Makefile b/hwkey-agent/host/Makefile
+index b7c2113..0c02865 100644
+--- a/hwkey-agent/host/Makefile
++++ b/hwkey-agent/host/Makefile
 @@ -3,35 +3,32 @@
  
  # Input variables
@@ -137,10 +214,10 @@ Index: samples/hwkey-agent/host/Makefile
  clean:
 -	rm -f $(OBJS) $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin/$(BINARY)
 +	rm -f $(OBJS) $(O)/$(BINARY)
-Index: samples/luks-srv/Makefile
-===================================================================
---- samples.orig/luks-srv/Makefile
-+++ samples/luks-srv/Makefile
+diff --git a/luks-srv/Makefile b/luks-srv/Makefile
+index dd71d34..875e893 100644
+--- a/luks-srv/Makefile
++++ b/luks-srv/Makefile
 @@ -4,8 +4,6 @@
  # Input variables
  # CROSS_COMPILE: The cross compiler.
@@ -166,10 +243,10 @@ Index: samples/luks-srv/Makefile
  		O=$(O)/ca/$(TARGET_DIR) \
  		clean
  	rm -rf $(O)/early_ta/$(TARGET_DIR)
-Index: samples/luks-srv/host/Makefile
-===================================================================
---- samples.orig/luks-srv/host/Makefile
-+++ samples/luks-srv/host/Makefile
+diff --git a/luks-srv/host/Makefile b/luks-srv/host/Makefile
+index c9a2dcc..7b72181 100644
+--- a/luks-srv/host/Makefile
++++ b/luks-srv/host/Makefile
 @@ -3,8 +3,6 @@
  
  # Input variables
@@ -216,3 +293,70 @@ Index: samples/luks-srv/host/Makefile
  clean:
 -	rm -f $(OBJS) $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin/$(BINARY)
 +	rm -f $(OBJS) $(O)/$(BINARY)
+diff --git a/pkcs11-sample/Makefile b/pkcs11-sample/Makefile
+index e58838c..82b7216 100644
+--- a/pkcs11-sample/Makefile
++++ b/pkcs11-sample/Makefile
+@@ -4,8 +4,6 @@
+ # Input variables
+ # CROSS_COMPILE: The cross compiler.
+ # TA_DEV_KIT_DIR: The base directory of the TA-devkit.
+-# OPTEE_CLIENT_EXPORT: The base directory points to optee client's
+-#		       header files and libraries
+ # O: The base directory for build objects filetree.
+ 
+ TARGET_DIR := $(notdir $(shell pwd))
+@@ -14,14 +12,12 @@ TARGET_DIR := $(notdir $(shell pwd))
+ all:
+ 	$(MAKE) -C host \
+ 		CROSS_COMPILE=$(CROSS_COMPILE) \
+-		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 		O=$(O)/ca/$(TARGET_DIR) \
+ 		--no-builtin-variables
+ 
+ .PHONY: clean
+ clean:
+ 	$(MAKE) -C host \
+-		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT) \
+ 		O=$(O)/ca/$(TARGET_DIR) \
+ 		clean
+ 	rm -rf $(O)/ca/$(TARGET_DIR)
+diff --git a/pkcs11-sample/host/Makefile b/pkcs11-sample/host/Makefile
+index 6212e02..a8285b4 100644
+--- a/pkcs11-sample/host/Makefile
++++ b/pkcs11-sample/host/Makefile
+@@ -10,16 +10,15 @@
+ CC ?= $(CROSS_COMPILE)gcc
+ 
+ CFLAGS += -Wall -I./include
+-CFLAGS += -I$(OPTEE_CLIENT_EXPORT)/include
+ CFLAGS += -fstack-protector-strong
+-LDADD += -lteec -lckteec -L$(OPTEE_CLIENT_EXPORT)/lib
++LDADD += -lteec -lckteec
+ 
+ SRCS = pkcs11_sample_ca.c
+ OBJS = $(patsubst %.c,$(O)/%.o,$(SRCS))
+ BINARY = nvpkcs11-sample-app
+ 
+ .PHONY: all install
+-all: $(BINARY) install
++all: $(BINARY)
+ 
+ $(BINARY): $(OBJS)
+ 	$(CC) -o $(O)/$@ $< $(LDADD)
+@@ -29,9 +28,9 @@ $(O)/%.o: %.c
+ 	$(CC) $(CFLAGS) -c $< -o $@
+ 
+ install: $(BINARY)
+-	mkdir -p $(OPTEE_CLIENT_EXPORT)/sbin
+-	cp $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin
++	install -d $(DESTDIR)$(sbindir)
++	install -m 0755 $(O)/$(BINARY) $(DESTDIR)$(sbindir)/
+ 
+ .PHONY: clean
+ clean:
+-	rm -f $(OBJS) $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin/$(BINARY)
++	rm -f $(OBJS) $(O)/$(BINARY)
+-- 
+2.34.1
+

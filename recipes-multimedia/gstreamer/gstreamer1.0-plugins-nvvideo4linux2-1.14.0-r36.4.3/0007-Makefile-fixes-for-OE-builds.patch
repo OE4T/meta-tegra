@@ -1,0 +1,97 @@
+From b7a7f55f9a864edd8d4f935e403c94ec7253f8ac Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 17 Nov 2023 13:00:06 +0000
+Subject: [PATCH 7/7] Makefile fixes for OE builds
+
+Upstream-Status: Inappropriate [OE-Specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+---
+ Makefile | 43 ++++++++++++++++++++-----------------------
+ 1 file changed, 20 insertions(+), 23 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 522a1f5..2102dd1 100644
+--- a/Makefile
++++ b/Makefile
+@@ -10,49 +10,45 @@
+ #
+ ###############################################################################
+ 
+-SO_NAME := libgstnvvideo4linux2.so
+-
+-TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
+-
+-NVDS_VERSION:=6.0
++prefix ?= /usr
++exec_prefix ?= $(prefix)
++libdir ?= $(exec_prefix)/lib
+ 
+-ifeq ($(TARGET_DEVICE),aarch64)
+-  GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
+-  LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-  INCLUDES += -I/usr/src/jetson_multimedia_api/include/
+-  CFLAGS:=
+-else
+-  GST_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/gst-plugins/
+-  LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/
+-  CFLAGS:= -DUSE_V4L2_TARGET_NV_CODECSDK=1 -DUSE_V4L2_TARGET_NV_X86=1 -DUSE_V4L2_GST_HEADER_VER_1_8
+-endif
++SO_NAME := libgstnvvideo4linux2.so
+ 
+ LIBS:= -lnvbufsurface -lnvbufsurftransform -lgstnvdsseimeta -lgstnvcustomhelper
+ SRCS := $(wildcard *.c)
+ 
+-INCLUDES += -I./ -I../
++INCLUDES += -I./
+ 
+ PKGS := gstreamer-1.0 \
+ 	gstreamer-base-1.0 \
+ 	gstreamer-video-1.0 \
+ 	gstreamer-allocators-1.0 \
+-	glib-2.0 \
+-	libv4l2
++	glib-2.0
++
++ifeq ($(USE_LIBV4L2),1)
++PKGS += libv4l2
++endif
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+ CFLAGS += -fPIC \
+ 	-DEXPLICITLY_ADDED=1 \
+         -DGETTEXT_PACKAGE=1 \
+-        -DHAVE_LIBV4L2=1 \
+         -DUSE_V4L2_TARGET_NV=1
+ 
+-CFLAGS += `pkg-config --cflags $(PKGS)`
++ifeq ($(USE_LIBV4L2),1)
++CFLAGS += -DHAVE_LIBV4L2=1
++endif
++
++CFLAGS += $(shell pkg-config --cflags $(PKGS))
+ 
+-LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
++LDFLAGS += -Wl,--no-undefined
+ 
+-LIBS += `pkg-config --libs $(PKGS)`
++LIBS += $(shell pkg-config --libs $(PKGS))
+ 
++.PHONY: all
+ all: $(SO_NAME)
+ 
+ %.o: %.c
+@@ -63,7 +59,8 @@ $(SO_NAME): $(OBJS)
+ 
+ .PHONY: install
+ install: $(SO_NAME)
+-	cp -vp $(SO_NAME) $(GST_INSTALL_DIR)
++	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
++	install -m 0644 $(SO_NAME) $(DESTDIR)$(libdir)/gstreamer-1.0
+ 
+ .PHONY: clean
+ clean:
+-- 
+2.25.1
+

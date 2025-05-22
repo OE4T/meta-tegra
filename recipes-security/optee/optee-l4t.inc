@@ -23,7 +23,7 @@ EXTRA_OEMAKE = "\
     CFLAGS64='${TOOLCHAIN_OPTIONS} ${DEBUG_PREFIX_MAP}' \
     platform-aflags-generic='${DEBUG_PREFIX_MAP} -pipe' \
     TA_DEV_KIT_DIR=${TA_DEV_KIT_DIR} \
-    CFG_WITH_STMM_SP=y CFG_STMM_PATH=../build/standalone_mm_optee.bin \
+    CFG_WITH_STMM_SP=y CFG_STMM_PATH=${@oe.path.relative(d.getVar('S'),d.getVar('B'))}/standalone_mm_optee.bin \
 "
 
 do_compile:prepend() {

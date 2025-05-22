@@ -10,7 +10,7 @@ under /usr/include and /usr/lib.
 Prepend these paths with a placeholder that can be replaced with the
 actual paths once they are resolved.
 
-Upstream status: inappropriate [OE specific]
+Upstream-Status: Inappropriate [OE specific]
 
 Signed-off-by: Ricardo Neri <ricardo.neri-calderon@linux.intel.com>
 

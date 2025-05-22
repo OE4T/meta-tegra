@@ -1,0 +1,270 @@
+From 44c16c2589a1ebd2ae53c7370c9a7c4f51d6b8c0 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 12 Oct 2024 07:09:37 -0700
+Subject: [PATCH] XusbControllerDxe: use BaseMemoryLib functions
+
+instead of memcpy/memset from the C runtime library.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../XusbControllerDxe/XusbControllerDxe.c     | 60 +++++++++----------
+ 1 file changed, 28 insertions(+), 32 deletions(-)
+
+diff --git a/Silicon/NVIDIA/Drivers/XusbControllerDxe/XusbControllerDxe.c b/Silicon/NVIDIA/Drivers/XusbControllerDxe/XusbControllerDxe.c
+index 6392401c..c6116f2f 100644
+--- a/Silicon/NVIDIA/Drivers/XusbControllerDxe/XusbControllerDxe.c
++++ b/Silicon/NVIDIA/Drivers/XusbControllerDxe/XusbControllerDxe.c
+@@ -26,7 +26,6 @@
+ #include "XusbDevControllerPriv.h"
+ #include <Library/DmaLib.h>
+ #include "XusbDevControllerDesc.h"
+-#include <string.h>
+ 
+ #define XUSB_INTERRUPT_POLL_PERIOD  10000
+ #define NUM_TRB_EVENT_RING          32U
+@@ -252,7 +251,7 @@ XudcQueueTrb (
+ 
+   /* If Control EP */
+   if (ep_index == EP0_IN) {
+-    memcpy (
++    CopyMem (
+       (VOID *)p_xusb_dev_context->cntrl_epenqueue_ptr,
+       (VOID *)p_trb,
+       sizeof (NORMAL_TRB_STRUCT)
+@@ -278,7 +277,7 @@ XudcQueueTrb (
+   }
+   /* Bulk Endpoint */
+   else if (ep_index == EP1_OUT) {
+-    memcpy (
++    CopyMem (
+       (VOID *)p_xusb_dev_context->bulkout_epenqueue_ptr,
+       (VOID *)p_trb,
+       sizeof (NORMAL_TRB_STRUCT)
+@@ -299,7 +298,7 @@ XudcQueueTrb (
+   }
+   /* Bulk Endpoint */
+   else if (ep_index == EP1_IN) {
+-    memcpy (
++    CopyMem (
+       (VOID *)p_xusb_dev_context->bulkin_epenqueue_ptr,
+       (VOID *)p_trb,
+       sizeof (NORMAL_TRB_STRUCT)
+@@ -372,7 +371,7 @@ XudcIssueStatusTrb (
+     return e;
+   }
+ 
+-  memset ((VOID *)&strb, 0, sizeof (STATUS_TRB_STRUCT));
++  ZeroMem ((VOID *)&strb, sizeof (STATUS_TRB_STRUCT));
+   XudcCreateStatusTrb (&strb, direction);
+ 
+   /* Note EP0_IN is bi-directional. */
+@@ -608,7 +607,7 @@ XudcGetDesc (
+       }
+ 
+       *tx_length = MIN (wlength, desc_length);
+-      memcpy ((VOID *)mPrivate->pSetupBuffer, (VOID *)desc, *tx_length);
++      CopyMem ((VOID *)mPrivate->pSetupBuffer, (VOID *)desc, *tx_length);
+       break;
+ 
+     case USB_DT_CONFIG:
+@@ -631,7 +630,7 @@ XudcGetDesc (
+         desc[30] = 0;
+       }
+ 
+-      memcpy ((VOID *)mPrivate->pSetupBuffer, (VOID *)desc, *tx_length);
++      CopyMem ((VOID *)mPrivate->pSetupBuffer, (VOID *)desc, *tx_length);
+       break;
+ 
+     case USB_DT_STRING:
+@@ -641,27 +640,27 @@ XudcGetDesc (
+         case USB_MANF_ID:
+           DEBUG ((EFI_D_ERROR, "%a: Get desc. Manf ID\r\n", __FUNCTION__));
+           *tx_length = MIN (wlength, (UINT16)sizeof (s_usb_manufacturer_id));
+-          memcpy ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_usb_manufacturer_id[0], *tx_length);
++          CopyMem ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_usb_manufacturer_id[0], *tx_length);
+           break;
+ 
+         case USB_PROD_ID:
+           DEBUG ((EFI_D_ERROR, "%a: Get desc. Prod ID\r\n", __FUNCTION__));
+           desc       = (UINT8 *)g_usbconfig->product.desc;
+           *tx_length = MIN (wlength, g_usbconfig->product.len);
+-          memcpy ((VOID *)mPrivate->pSetupBuffer, (VOID *)desc, *tx_length);
++          CopyMem ((VOID *)mPrivate->pSetupBuffer, (VOID *)desc, *tx_length);
+           break;
+ 
+         case USB_SERIAL_ID:
+           DEBUG ((EFI_D_ERROR, "%a: Get desc. Serial ID\r\n", __FUNCTION__));
+           desc       = (UINT8 *)g_usbconfig->serialno.desc;
+           *tx_length = MIN (wlength, g_usbconfig->serialno.len);
+-          memcpy ((VOID *)mPrivate->pSetupBuffer, (VOID *)desc, *tx_length);
++          CopyMem ((VOID *)mPrivate->pSetupBuffer, (VOID *)desc, *tx_length);
+           break;
+ 
+         case USB_LANGUAGE_ID:
+           DEBUG ((EFI_D_ERROR, "%a: Get desc. Lang ID\r\n", __FUNCTION__));
+           *tx_length = MIN (wlength, (UINT16)sizeof (s_usb_language_id));
+-          memcpy ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_usb_language_id[0], *tx_length);
++          CopyMem ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_usb_language_id[0], *tx_length);
+           break;
+ 
+         default:
+@@ -674,7 +673,7 @@ XudcGetDesc (
+     case USB_DT_DEVICE_QUALIFIER:
+       DEBUG ((EFI_D_ERROR, "%a: Get desc. Dev qualifier\r\n", __FUNCTION__));
+       *tx_length = MIN (wlength, (UINT16)sizeof (s_usb_device_qualifier));
+-      memcpy ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_usb_device_qualifier[0], *tx_length);
++      CopyMem ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_usb_device_qualifier[0], *tx_length);
+       break;
+ 
+     case USB_DT_OTHER_SPEED_CONFIG:
+@@ -697,13 +696,13 @@ XudcGetDesc (
+       }
+ 
+       *tx_length = MIN (wlength, (UINT16)sizeof (s_other_speed_config_desc));
+-      memcpy ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_other_speed_config_desc[0], *tx_length);
++      CopyMem ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_other_speed_config_desc[0], *tx_length);
+       break;
+ 
+     case USB_DT_BOS:
+       DEBUG ((EFI_D_ERROR, "%a: Get BOS\r\n", __FUNCTION__));
+       *tx_length = MIN (wlength, (UINT16)sizeof (s_bos_descriptor));
+-      memcpy ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_bos_descriptor[0], *tx_length);
++      CopyMem ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_bos_descriptor[0], *tx_length);
+       break;
+ 
+     default:
+@@ -742,7 +741,7 @@ XudcEpGetStatus (
+   }
+ 
+   *tx_length = (UINT16)sizeof (endpoint_status);
+-  memcpy ((VOID *)ptr_setup_buffer, (VOID *)&endpoint_status[0], sizeof (endpoint_status));
++  CopyMem ((VOID *)ptr_setup_buffer, (VOID *)&endpoint_status[0], sizeof (endpoint_status));
+ }
+ 
+ static VOID
+@@ -794,7 +793,7 @@ XudcIssueDataTrb (
+     return EFI_SUCCESS;
+   }
+ 
+-  memset ((VOID *)&dtrb, 0, sizeof (DATA_TRB_STRUCT));
++  ZeroMem ((VOID *)&dtrb, sizeof (DATA_TRB_STRUCT));
+   XudcCreateDataTrb (&dtrb, buffer, bytes, direction);
+ 
+   /* Note EP0_IN is bi-directional. */
+@@ -1009,13 +1008,13 @@ XudcHandleSetupPkt (
+         case GET_STATUS:
+           DEBUG ((EFI_D_ERROR, "%a: Get status\r\n", __FUNCTION__));
+           tx_length = MIN (wlength, (UINT16)sizeof (s_usb_dev_status));
+-          memcpy ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_usb_dev_status[0], tx_length);
++          CopyMem ((VOID *)mPrivate->pSetupBuffer, (VOID *)&s_usb_dev_status[0], tx_length);
+           break;
+ 
+         case GET_CONFIGURATION:
+           DEBUG ((EFI_D_ERROR, "%a: Get Config\r\n", __FUNCTION__));
+           tx_length = MIN (wlength, (UINT16)sizeof (p_xusb_dev_context->config_num));
+-          memcpy ((VOID *)mPrivate->pSetupBuffer, &p_xusb_dev_context->config_num, tx_length);
++          CopyMem ((VOID *)mPrivate->pSetupBuffer, &p_xusb_dev_context->config_num, tx_length);
+           break;
+ 
+         case GET_DESCRIPTOR:
+@@ -1054,7 +1053,7 @@ XudcHandleSetupPkt (
+           UINT8  interface_status[2] = { 0, 0 };
+ 
+           tx_length = MIN (wlength, (UINT16)sizeof (interface_status));
+-          memcpy ((VOID *)mPrivate->pSetupBuffer, &interface_status[0], tx_length);
++          CopyMem ((VOID *)mPrivate->pSetupBuffer, &interface_status[0], tx_length);
+           break;
+ 
+         case GET_INTERFACE:
+@@ -1062,7 +1061,7 @@ XudcHandleSetupPkt (
+           DEBUG ((EFI_D_ERROR, "%a: Get Interface D2H_I/F\r\n", __FUNCTION__));
+           tx_length = MIN (wlength, (UINT16)sizeof (p_xusb_dev_context->interface_num));
+ 
+-          memcpy (
++          CopyMem (
+             (VOID *)mPrivate->pSetupBuffer,
+             &p_xusb_dev_context->interface_num,
+             tx_length
+@@ -1571,7 +1570,7 @@ XudcHandleTxferEvent (
+       mPrivate->DataReceivedCallback (ReportReceived, mPrivate->DataPacket);
+ 
+       /* Prepare next Rx packet */
+-      memset (mPrivate->DataPacket, 0, MAX_TFR_LENGTH);
++      ZeroMem (mPrivate->DataPacket, MAX_TFR_LENGTH);
+ 
+       /* check the data size to put the next TRB */
+       if (mPrivate->CurrentRxLength == mPrivate->TotalRxLength) {
+@@ -1687,7 +1686,7 @@ XudcPollForEvent (
+  #endif
+       /* Check if we are waiting for setup packet */
+       p_setup_event_trb = (SETUP_EVENT_TRB_STRUCT *)p_event_trb;
+-      memcpy (
++      CopyMem (
+         (VOID *)&mPrivate->usb_setup_data[0],
+         (VOID *)&p_setup_event_trb->data[0],
+         8
+@@ -1900,21 +1899,18 @@ XudcInitTransferRing (
+ 
+   /* zero out tx ring */
+   if ((ep_index == EP0_IN) || (ep_index == EP0_OUT)) {
+-    memset (
++    ZeroMem (
+       (VOID *)mPrivate->pTxRingEP0,
+-      0,
+       NUM_TRB_TRANSFER_RING * sizeof (DATA_TRB_STRUCT)
+       );
+   } else if (ep_index == EP1_IN) {
+-    memset (
++    ZeroMem (
+       (VOID *)mPrivate->pTxRingEP1In,
+-      0,
+       NUM_TRB_TRANSFER_RING * sizeof (DATA_TRB_STRUCT)
+       );
+   } else if (ep_index == EP1_OUT) {
+-    memset (
++    ZeroMem (
+       (VOID *)mPrivate->pTxRingEP1Out,
+-      0,
+       NUM_TRB_TRANSFER_RING * sizeof (DATA_TRB_STRUCT)
+       );
+   } else {
+@@ -2034,7 +2030,7 @@ XudcInitEpContext (
+ 
+   /* Control Endpoint 0. */
+   if (ep_index == EP0_IN) {
+-    memset ((VOID *)ep_info, 0, sizeof (EP_CONTEXT));
++    ZeroMem ((VOID *)ep_info, sizeof (EP_CONTEXT));
+     /* Set Endpoint State to running. */
+     ep_info->ep_state = EP_RUNNING;
+     /* Set error count to 3 */
+@@ -2080,7 +2076,7 @@ XudcInitEpContext (
+     p_link_trb->trb_type       = LINK_TRB;
+   } else {
+     if (ep_index == EP1_OUT) {
+-      memset ((VOID *)ep_info, 0, sizeof (EP_CONTEXT));
++      ZeroMem ((VOID *)ep_info, sizeof (EP_CONTEXT));
+       ep_info->ep_state = EP_RUNNING;
+       /* Set error count to 3 */
+       ep_info->cerr = 3;
+@@ -2134,7 +2130,7 @@ XudcInitEpContext (
+       p_link_trb->trb_type       = LINK_TRB;
+     } else {
+       /* EP IN */
+-      memset ((VOID *)ep_info, 0, sizeof (EP_CONTEXT));
++      ZeroMem ((VOID *)ep_info, sizeof (EP_CONTEXT));
+       ep_info->ep_state = EP_RUNNING;
+       /* Set error count to 3 */
+       ep_info->cerr = 3;
+@@ -2615,7 +2611,7 @@ XudcIssueNormalTrb (
+   UINTN BufferSize = bytes;
+   VOID *Mapping;
+ 
+-  memset ((void *)&normal_trb, 0, sizeof (NORMAL_TRB_STRUCT));
++  ZeroMem ((void *)&normal_trb, sizeof (NORMAL_TRB_STRUCT));
+   e = DmaMap (
+         MapOperationBusMasterCommonBuffer,
+         (VOID *)buffer,
+-- 
+2.43.0
+

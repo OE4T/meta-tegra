@@ -48,6 +48,7 @@ sbk_keyfile=
 skip_bootloader=0
 early_final_status=0
 erase_nvme=0
+check_usb_instance="${TEGRAFLASH_CHECK_USB_INSTANCE:-no}"
 
 ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,erase-nvme" -o "u:v:h" -- "$@")
 if [ $? -ne 0 ]; then
@@ -128,42 +129,51 @@ copy_signed_binaries() {
     done < <("$here/nvflashxmlparse" -t boot "$signdir/$xmlfile"; "$here/nvflashxmlparse" -t rootfs "$signdir/$xmlfile")
 }
 
+create_rcm_boot_script() {
+    ln -sf "$here/tegrarcm_v2" rcmboot_blob/
+    cat > rcm-boot.sh <<EOF
+oldwd="\$PWD"
+cd rcmboot_blob
+EOF
+    cat rcmboot_blob/rcmbootcmd.txt >> rcm-boot.sh
+    cat >> rcm-boot.sh <<EOF
+cd "\$oldwd"
+EOF
+    chmod +x rcm-boot.sh
+}
+
 sign_binaries() {
     if [ -n "$PRESIGNED" ]; then
 	cp doflash.sh flash_signed.sh
+	sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
+	cp secureflash.xml internal-secureflash.xml
+	cp external-flash.xml.in external-secureflash.xml
 	if ! copy_bootloader_files bootloader_staging; then
 	    return 1
 	fi
+	if [ -e rcm-boot.sh ]; then
+	    return 0
+	fi
+	if [ ! -e rcmboot_blob/rcmbootcmd.txt ]; then
+	    echo "ERR: missing RCM boot blob in pre-signed binaries" >&2
+	    return 1
+	fi
+	create_rcm_boot_script
 	return 0
     fi
+
     if [ -z "$BOARDID" -o -z "$FAB" ]; then
 	wait_for_rcm
     fi
-    rm -rf rcm_blob
-    if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
-	      BOOTCONTROL_OVERLAYS=L4TConfiguration-rcmboot.dtbo \
-	      "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" $instance_args \
-	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA initrd-flash.img $ROOTFS_IMAGE; then
-	    ln -sf "$here/tegrarcm_v2" rcm_blob/
-	    cat > rcm-boot.sh <<EOF
-oldwd="\$PWD"
-cd rcm_blob
-EOF
-	    cat rcm_blob/rcmcmd.txt >> rcm-boot.sh
-	    cat >> rcm-boot.sh <<EOF
-cd "\$oldwd"
-EOF
-	    chmod +x rcm-boot.sh
-    else
-	return 1
-    fi
-    . ./boardvars.sh
+    rm -rf rcmboot_blob
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
 	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
 	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
 	cp flashcmd.txt flash_signed.sh
 	sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
-	mv secureflash.xml internal-secureflash.xml
+	cp secureflash.xml internal-secureflash.xml
+	cp external-flash.xml.in external-secureflash.xml
+	create_rcm_boot_script
     else
 	return 1
     fi
@@ -171,12 +181,17 @@ EOF
 	return 1
     fi
     if [ -e external-flash.xml.in ]; then
-        if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
-		  "$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args \
-		  external-flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
-	    mv secureflash.xml external-secureflash.xml
+	if grep -q 'oem_sign="true"' external-flash.xml.in 2>/dev/null; then
+	    . ./boardvars.sh
+            if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
+				"$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args \
+				external-flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
+		mv secureflash.xml external-secureflash.xml
+	    else
+		return 1
+	    fi
 	else
-	    return 1
+	    cp external-flash.xml.in external-secureflash.xml
 	fi
     fi
     return 0
@@ -238,15 +253,30 @@ unmount_and_release() {
 wait_for_usb_storage() {
     local sessid="$1"
     local name="$2"
+    local usbi="$3"
     local count=0
-    local output candidate cand_model cand_vendor
+    local output candidate cand_model cand_vendor cand_devpath ok
+    local fromname="${sessid:-${usbi}}"
 
-    echo -n "Waiting for USB storage device $name from $sessid..." >&2
+    echo -n "Waiting for USB storage device $name from ${fromname:-target}..." >&2
     while [ -z "$output" ]; do
 	for candidate in /dev/sd[a-z]; do
 	    [ -b "$candidate" ] || continue
-	    cand_model=$(udevadm info --query=property $candidate | grep '^ID_MODEL=' | cut -d= -f2)
-	    if [ "$cand_model" = "$sessid" ]; then
+	    ok=
+	    if [ -n "$sessid" ]; then
+		cand_model=$(udevadm info --query=property $candidate | grep '^ID_MODEL=' | cut -d= -f2)
+		if [ "$cand_model" = "$sessid" ]; then
+		    ok=yes
+		fi
+	    elif [ -n "$usbi" -a "$check_usb_instance" = "yes" ]; then
+		cand_devpath=$(udevadm info --query=property $candidate | grep '^DEVPATH=' | cut -d= -f2)
+		if echo "$cand_devpath" | grep -q "/$usbi/" 2>/dev/null; then
+		    ok=yes
+		fi
+	    else
+		ok=yes
+	    fi
+	    if [ "$ok" = "yes" ]; then
 		cand_vendor=$(udevadm info --query=property $candidate | grep '^ID_VENDOR=' | cut -d= -f2)
 		if [ "$cand_vendor" = "$name" ]; then
 		    echo "[$candidate]" >&2
@@ -317,7 +347,7 @@ copy_bootloader_files() {
 }
 
 generate_flash_package() {
-    local dev=$(wait_for_usb_storage "$session_id" "flashpkg")
+    local dev=$(wait_for_usb_storage "$session_id" "flashpkg" "$usb_instance")
     local exports
 
     if [ -z "$dev" ]; then
@@ -358,7 +388,7 @@ generate_flash_package() {
 write_to_device() {
     local devname="$1"
     local flashlayout="$2"
-    local dev=$(wait_for_usb_storage "$session_id" "$devname")
+    local dev=$(wait_for_usb_storage "$session_id" "$devname" "$usb_instance")
     local opts="$3"
     local rewritefiles="internal-secureflash.xml"
     local datased simgname rc=1
@@ -395,7 +425,7 @@ write_to_device() {
 
 get_final_status() {
     local dtstamp="$1"
-    local dev=$(wait_for_usb_storage "$session_id" "flashpkg")
+    local dev=$(wait_for_usb_storage "$session_id" "flashpkg" "$usb_instance")
     local mnt final_status logdir logfile
     if [ -z "$dev" ]; then
 	echo "ERR: could not get final status from device" >&2
@@ -473,11 +503,11 @@ fi
 [ ! -f ./boardvars.sh ] || . ./boardvars.sh
 
 if [ -z "$serial_number" ]; then
-    echo "ERR: did not get device serial number at $(date -Is)" | tee -a "$logfile"
-    exit 1
+    echo "WARN: did not get device serial number at $(date -Is)" | tee -a "$logfile"
+    session_id=
+else
+    session_id=$(printf "%x" "$serial_number" | tail -c8)
 fi
-
-session_id=$(printf "%x" "$serial_number" | tail -c8)
 
 # Boot device flashing
 step_banner "Sending flash sequence commands"

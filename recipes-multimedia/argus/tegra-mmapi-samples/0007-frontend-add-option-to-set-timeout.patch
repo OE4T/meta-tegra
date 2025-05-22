@@ -6,16 +6,17 @@ Subject: [PATCH 7/8] frontend: add option to set timeout
 instead of requiring a human to type 'q' to quit,
 to allow the sample to be used as an automated test.
 
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  samples/17_frontend/main.cpp | 15 ++++++++++++---
  1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/samples/17_frontend/main.cpp b/samples/17_frontend/main.cpp
-index 459aacb..9549364 100644
---- a/samples/17_frontend/main.cpp
-+++ b/samples/17_frontend/main.cpp
-@@ -27,6 +27,7 @@
+Index: jetson_multimedia_api/samples/17_frontend/main.cpp
+===================================================================
+--- jetson_multimedia_api.orig/samples/17_frontend/main.cpp
++++ jetson_multimedia_api/samples/17_frontend/main.cpp
+@@ -29,6 +29,7 @@
   */
  
  #include <stdio.h>
@@ -23,15 +24,15 @@ index 459aacb..9549364 100644
  #include <getopt.h>
  #include <sys/sysinfo.h>
  #include <termios.h>
-@@ -59,6 +60,7 @@ static std::string g_deployFile("../../data/Model/GoogleNet_three_class/GoogleNe
- static std::string g_modelFile("../../data/Model/GoogleNet_three_class/GoogleNet_modified_threeClass_VGA.caffemodel");
- static bool g_mode = false;
+@@ -59,6 +60,7 @@ static const unsigned   MAX_STREAM  = 4;
+ // Configurations which can be overrided by cmdline
+ static std::string g_engineFile("resnet10_dynamic_batch.engine");
  static bool g_bNoPreview = false;
 +static int g_timeOutSec = 0;
  
  // Globals.
  static NvEglRenderer *g_eglRenderer = NULL;
-@@ -155,8 +157,11 @@ runArgusProducer(const std::vector<StreamConsumer*> &consumers)
+@@ -155,8 +157,11 @@ runArgusProducer(const std::vector<Strea
      if (iCaptureSession->repeat(request.get()) != STATUS_OK)
          ORIGINATE_ERROR("Failed to start repeat capture request");
  
@@ -45,15 +46,15 @@ index 459aacb..9549364 100644
  
      // Stop the repeating request and wait for idle.
      iCaptureSession->stopRepeat();
-@@ -232,6 +237,7 @@ static void printHelp()
-            "  --fp32                Force to use fp32\n"
+@@ -230,6 +235,7 @@ static void printHelp()
+            "  --no-preview          Disables the renderer\n"
             "  -s                    Enable profiling\n"
             "  -v                    Enable verbose message\n"
 +           "  -t <seconds>          Timed run instead of interactive\n"
             "Commands\n"
             "  q:        exit\n");
  }
-@@ -256,7 +262,7 @@ static bool parseCmdline(int argc, char **argv)
+@@ -250,7 +256,7 @@ static bool parseCmdline(int argc, char
      };
  
      int c;
@@ -62,7 +63,7 @@ index 459aacb..9549364 100644
      {
          switch (c)
          {
-@@ -275,6 +281,9 @@ static bool parseCmdline(int argc, char **argv)
+@@ -263,6 +269,9 @@ static bool parseCmdline(int argc, char
              case 's':
                  g_bProfiling = true;
                  break;
@@ -72,6 +73,3 @@ index 459aacb..9549364 100644
              case 'v':
                  g_bVerbose = true;
                  break;
--- 
-2.34.1
-

@@ -32,7 +32,7 @@ def tegra_bootcontrol_overlay_list(d, bup=False, separator=','):
     overlays = d.getVar('TEGRA_BOOTCONTROL_OVERLAYS').split()
     if d.getVar('TEGRA_UEFI_USE_SIGNED_FILES') == "true":
         overlays.append('UefiDefaultSecurityKeys.dtbo')
-        if bup and os.path.exists('UefiUpdateSecurityKeys.dtbo'):
+        if bup and os.path.exists(os.path.join(d.getVar('STAGING_DATADIR'), 'tegra-uefi-keys', 'UefiUpdateSecurityKeys.dtbo')):
             overlays.append('UefiUpdateSecurityKeys.dtbo')
     return separator.join(overlays)
 
@@ -91,6 +91,7 @@ def tegra_kernel_image(d):
 IMAGE_TEGRAFLASH_KERNEL ?= "${@tegra_kernel_image(d)}"
 TEGRA_ESP_IMAGE ?= "tegra-espimage"
 IMAGE_TEGRAFLASH_ESPIMG ?= "${DEPLOY_DIR_IMAGE}/${TEGRA_ESP_IMAGE}-${MACHINE}.esp"
+ESP_FILE ?= "${@'esp.img' if d.getVar('TEGRA_ESP_IMAGE') else ''}"
 DATAFILE ??= ""
 IMAGE_TEGRAFLASH_DATA ??= ""
 
@@ -202,7 +203,7 @@ tegraflash_create_flash_config() {
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
         -e"s,APPUUID_b,," -e"s,APPUUID,," \
-	-e"s,ESP_FILE,esp.img," -e"/VARSTORE_FILE/d" \
+	-e"s,ESP_FILE,${ESP_FILE}," -e"/VARSTORE_FILE/d" \
 	-e"s,EXT_NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
 	-e"s,INT_NUM_SECTORS,${TEGRA_INTERNAL_DEVICE_SECTORS}," \
 	"$infile" \
@@ -289,6 +290,7 @@ tegraflash_populate_package() {
         DATAARGS="--datafile ${DATAFILE}"
     fi
     cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./uefi_jetson.bin
+    cp "${DEPLOY_DIR_IMAGE}/uefi_jetson_minimal.bin" ./uefi_jetson_minimal.bin
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${TEGRA_STAGED_BOOT_FIRMWARE}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
@@ -332,7 +334,9 @@ create_tegraflash_pkg() {
     mkdir -p ${WORKDIR}/tegraflash
     cd ${WORKDIR}/tegraflash
     tegraflash_populate_package ${IMAGE_TEGRAFLASH_KERNEL} ${LNXFILE} ${@tegra_bootcontrol_overlay_list(d)}
-    cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./esp.img
+    if [ -n "${ESP_FILE}" ]; then
+        cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./${ESP_FILE}
+    fi
     if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         cp "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ./initrd-flash.img
     fi
@@ -407,7 +411,9 @@ create_tegraflash_pkg[vardepsexclude] += "DATETIME"
 
 def tegraflash_bupgen_strip_cmd(d):
     images = d.getVar('TEGRA_BUPGEN_STRIP_IMG_NAMES').split()
-    images.append("esp.img")
+    esp_file = d.getVar('ESP_FILE')
+    if esp_file:
+        images.append(esp_file)
     if len(images) == 0:
         return 'cp flash.xml.in flash-stripped.xml.in'
     return 'sed {} flash.xml.in > flash-stripped.xml.in'.format(' '.join(['-e"/<filename>.*{}/d"'.format(img) for img in images]))
@@ -452,6 +458,6 @@ do_image_tegraflash[depends] += "${TEGRAFLASH_PKG_DEPENDS} dtc-native:do_populat
                                  virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${TEGRA_ESP_IMAGE}:do_image_complete' if d.getVar('TEGRA_ESP_IMAGE') != '' else  ''} \
-                                 virtual/bootloader:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS} \
+                                 virtual/bootloader:do_deploy edk2-firmware-tegra-minimal:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS} \
                                  ${@'${TEGRAFLASH_INITRD_FLASH_IMAGE}:do_image_complete' if d.getVar('TEGRAFLASH_INITRD_FLASH_IMAGE') != '' else ''}"
 IMAGE_TYPEDEP:tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"

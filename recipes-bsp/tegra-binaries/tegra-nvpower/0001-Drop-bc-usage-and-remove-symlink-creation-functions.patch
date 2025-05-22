@@ -1,30 +1,48 @@
-From dae2c99a22f25ed54e4eed69ca26066bdf88e8c2 Mon Sep 17 00:00:00 2001
+From 20a945128145290a457c507e24ee0a15422fea36 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Fri, 3 Nov 2023 23:44:46 +0000
+Date: Mon, 20 Jan 2025 10:36:25 +0000
 Subject: [PATCH] Drop bc usage and remove symlink creation functions
+
+Upstream-Status: Pending
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
-
-
-Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- etc/systemd/nvpower.sh | 164 ++++-------------------------------------
- 1 file changed, 13 insertions(+), 151 deletions(-)
+ etc/systemd/nvpower.sh | 178 ++---------------------------------------
+ 1 file changed, 7 insertions(+), 171 deletions(-)
 
-Index: tegra-nvpower-36.3.0-20240424200557/etc/systemd/nvpower.sh
-===================================================================
---- tegra-nvpower-36.3.0-20240424200557.orig/etc/systemd/nvpower.sh
-+++ tegra-nvpower-36.3.0-20240424200557/etc/systemd/nvpower.sh
-@@ -142,145 +142,6 @@ function set_power_state_perm()
- 	fi
+diff --git a/etc/systemd/nvpower.sh b/etc/systemd/nvpower.sh
+index df9afc7..8afcfaf 100755
+--- a/etc/systemd/nvpower.sh
++++ b/etc/systemd/nvpower.sh
+@@ -182,171 +182,6 @@ function is_nvpm_relinking_needed()
+ 	return 1
  }
  
 -function create_nvpmodel_symlink()
 -{
 -	conf_file=""
+-
+-	if [ -e "${NVPM_SYMLINK}" ]; then
+-		if is_nvpm_relinking_needed; then
+-			nvpm_back="/etc/nvpmodel_nvbackup.conf"
+-			echo "${SCRIPT_NAME} - NOTICE: Backing up the" \
+-				"existing ${NVPM_SYMLINK} to ${nvpm_back}!"
+-			cp -b -S .bak "${NVPM_SYMLINK}" "${nvpm_back}"
+-
+-			unlink "${NVPM_SYMLINK}"
+-			ret="$?"
+-			if [ "${ret}" -ne "0" ]; then
+-				echo "${SCRIPT_NAME} - Error: Failed" \
+-					"to unlink ${NVPM_SYMLINK}!"
+-			else
+-				rm /var/lib/nvpmodel/status
+-			fi
+-		fi
+-	fi
+-
 -	# create /etc/nvpmodel.conf symlink
--	if [ ! -e "/etc/nvpmodel.conf" ]; then
+-	if [ ! -e "${NVPM_SYMLINK}" ]; then
 -		if [ "${SOCFAMILY}" = "tegra194" ]; then
 -			if [ "${machine}" = "e3900" ]; then
 -				if [ -d "/sys/devices/gpu.0" ] &&
@@ -62,29 +80,37 @@ Index: tegra-nvpower-36.3.0-20240424200557/etc/systemd/nvpower.sh
 -				[ "${machine}" = "p3701-0004" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0004.conf"
 -			elif [ "${machine}" = "p3701-0008-safety" ]; then
--				conf_file="/etc/nvpmodel/nvpmodel_p3701_0008_3740_0002_safety.conf"
+-				conf_file="/etc/nvpmodel/nvpmodel_igx_orin_safety.conf"
 -			elif [ "${machine}" = "p3701-0008" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0008.conf"
--				if [ "${cvb}" = "p3740-0002-c01" ]; then
--					conf_file="/etc/nvpmodel/nvpmodel_p3701_0008_3740_0002.conf"
+-				if [ "${cvb}" = "p3740-0002-c01" ] || \
+-					[ "${cvb}" = "p3971" ]; then
+-					conf_file="/etc/nvpmodel/nvpmodel_igx_orin.conf"
 -				fi
 -			elif [ "${machine}" = "p3767-0000" ] || \
 -				[ "${machine}" = "p3767-0002" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000.conf"
+-			elif [ "${machine}" = "p3767-0000-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_super.conf"
+-			elif [ "${machine}" = "p3767-0000-px1" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_px1.conf"
 -			elif [ "${machine}" = "p3767-0000-as-p3767-0001" ] || \
 -				[ "${machine}" = "p3767-0001" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001.conf"
+-			elif [ "${machine}" = "p3767-0001-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001_super.conf"
 -			elif [ "${machine}" = "p3767-0003" ] || \
 -				[ "${machine}" = "p3767-0005" ] || \
 -				[ "${machine}" = "p3767-0000-as-p3767-0003" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0003.conf"
+-			elif [ "${machine}" = "p3767-0003-super" ] || \
+-				[ "${machine}" = "p3767-0005-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0003_super.conf"
 -			elif [ "${machine}" = "p3767-0004" ] || \
 -				[ "${machine}" = "p3767-0000-as-p3767-0004" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004.conf"
--			elif [ "${machine}" = "taylor-high" ]; then
--				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_taylor_high.conf"
--			elif [ "${machine}" = "taylor-low" ]; then
--				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_taylor_low.conf"
+-			elif [ "${machine}" = "p3767-0004-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004_super.conf"
 -			else
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0000.conf"
 -			fi
@@ -96,7 +122,7 @@ Index: tegra-nvpower-36.3.0-20240424200557/etc/systemd/nvpower.sh
 -
 -		if [ "${conf_file}" != "" ]; then
 -			if [ -e "${conf_file}" ]; then
--				ln -sf "${conf_file}" /etc/nvpmodel.conf
+-				ln -sf "${conf_file}" "${NVPM_SYMLINK}"
 -			else
 -				echo "${SCRIPT_NAME} - WARNING: file ${conf_file} not found!"
 -			fi
@@ -122,11 +148,10 @@ Index: tegra-nvpower-36.3.0-20240424200557/etc/systemd/nvpower.sh
 -			if [[ "${machine}" =~ "p3701" ]]; then
 -				# Use p3701_0000 as default fan settings for p3701 series
 -				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0000.conf"
--				if [ "${machine}" = "p3701-0008" ]; then
+-				if [[ "${machine}" =~ "p3701-0008" ]]; then
 -					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0008.conf"
 -				fi
--			elif [[ "${machine}" =~ "p3767" ]] ||
--				[ "${machine}" = "taylor-high" ] || [ "${machine}" = "taylor-low" ]; then
+-			elif [[ "${machine}" =~ "p3767" ]]; then
 -				# All p3767 series share the same fan settings
 -				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3767_0000.conf"
 -			else
@@ -162,46 +187,7 @@ Index: tegra-nvpower-36.3.0-20240424200557/etc/systemd/nvpower.sh
  # CPU hotplug helper function that turns on/off the CPU cores in the specified range
  # * Parameters:
  # * ${1}: desired online status (0 for offline, 1 for online)
-@@ -341,13 +202,8 @@ function set_cpufreq_governor()
- 	desired_cpufreq_gov="performance"
- 
- 	if [ ${IS_SAFETY_PLATFORM} -eq 0 ]; then
--		# Enable SCHEDUTIL governor for all SoC's except T194 in Kstable.
--		if [ "${SOCFAMILY}" = "tegra194" ] &&
--			[ "$(echo "${KERNEL_VERSION} >= 6.0" | bc)" -eq 1 ]; then
--			:
--		else
--			desired_cpufreq_gov="schedutil"
--		fi
-+		# Enable SCHEDUTIL governor for all SoC's
-+		desired_cpufreq_gov="schedutil"
- 	fi
- 
- 	if [ -e "${CPUFREQ_AVAIL_GOVS}" ]; then
-@@ -448,7 +304,7 @@ function set_devfreq_governor()
- 	if [ ${IS_SAFETY_PLATFORM} -ne 0 ]; then
- 		desired_devfreq_gov="performance"
- 	else
--		if [ "$(echo "${KERNEL_VERSION} == 5.15" | bc)" -eq 1 ]; then
-+		if [ "${KERNEL_VERSION}" = "5.15" ]; then
- 			desired_devfreq_gov="tegra_wmark"
- 		fi
- 	fi
-@@ -487,10 +343,10 @@ function lock_emc_frequency()
- 
- 	# Set EMC_FREQ to max for Kernel version >= 5.15
- 	# and when the Interconnect support is missing
--	if [ "$(echo "${KERNEL_VERSION} >= 5.15" | bc)" -eq 1 ]; then
-+	if [ "${KERNEL_VERSION}" = "5.15" ]; then
- 		if [ -e "${EMC_MAX_RATE}" ] && [ -e "${EMC_RATE}" ]; then
--			AVG_BW=$(grep "Memory Controller" ${ICC_NODE} | head -1 | awk -F ' ' '{print $3}')
--			PEAK_BW=$(grep "Memory Controller" ${ICC_NODE}| head -1 | awk -F ' ' '{print $4}')
-+			AVG_BW=$(grep "Memory Controller" ${ICC_NODE} | head -n 1 | awk -F ' ' '{print $3}')
-+			PEAK_BW=$(grep "Memory Controller" ${ICC_NODE}| head -n 1 | awk -F ' ' '{print $4}')
- 
- 			if [[ -z "${AVG_BW}" && -z "${PEAK_BW}" ]] ||
- 			   [[ "${AVG_BW}" = "0" && "${PEAK_BW}" = "0" ]]; then
-@@ -701,10 +557,12 @@ function setup_actmon()
+@@ -686,10 +521,12 @@ function setup_actmon()
  	debugfs_actmon="/sys/kernel/debug/tegra-host1x/actmon"
  
  	# Actmon settings should be the same across engines
@@ -218,7 +204,7 @@ Index: tegra-nvpower-36.3.0-20240424200557/etc/systemd/nvpower.sh
  }
  
  SOCFAMILY=""
-@@ -713,8 +571,6 @@ KERNEL_VERSION=$(uname -r | cut -d '.' -
+@@ -697,8 +534,6 @@ SOCFAMILY=""
  set_socfamily
  set_safety_flag
  set_power_state_perm
@@ -227,8 +213,11 @@ Index: tegra-nvpower-36.3.0-20240424200557/etc/systemd/nvpower.sh
  cpu_hotplug
  set_cpufreq_governor
  set_cpu_floor_freq
-@@ -725,3 +581,4 @@ validate_nvpmodel_conf
+@@ -707,3 +542,4 @@ lock_se_frequency
+ validate_nvpmodel_conf
  setup_hwmon
- setup_tmp451
  setup_actmon
 +exit 0
+-- 
+2.34.1
+

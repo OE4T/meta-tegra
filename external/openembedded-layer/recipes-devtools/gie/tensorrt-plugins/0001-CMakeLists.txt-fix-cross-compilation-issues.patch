@@ -1,25 +1,24 @@
-From 89635136951a06cbd5b90d52785454bac27249fb Mon Sep 17 00:00:00 2001
+From 44190caa09d27b1b9d221dee0006810013dea980 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Mon, 13 Nov 2023 09:05:03 -0800
+Date: Mon, 14 Oct 2024 04:13:16 -0700
 Subject: [PATCH] CMakeLists.txt: fix cross compilation issues
 
+Upstream-Status: Pending
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
-
 ---
- CMakeLists.txt               | 25 +++++++++++++++++++------
- parsers/CMakeLists.txt       |  6 ++++--
- parsers/caffe/CMakeLists.txt |  4 ++++
- plugin/CMakeLists.txt        | 14 ++++++++++----
- third_party/protobuf.cmake   |  2 +-
- 5 files changed, 38 insertions(+), 13 deletions(-)
+ CMakeLists.txt             | 17 ++++++++++++++---
+ parsers/CMakeLists.txt     |  9 ++++++---
+ plugin/CMakeLists.txt      | 14 ++++++++++----
+ third_party/protobuf.cmake |  2 +-
+ 4 files changed, 31 insertions(+), 11 deletions(-)
 
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 358b6f38..5d685bdb 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -58,6 +58,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+Index: git/CMakeLists.txt
+===================================================================
+--- git.orig/CMakeLists.txt
++++ git/CMakeLists.txt
+@@ -78,6 +78,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_T
  option(BUILD_PLUGINS "Build TensorRT plugin" ON)
  option(BUILD_PARSERS "Build TensorRT parsers" ON)
  option(BUILD_SAMPLES "Build TensorRT samples" ON)
@@ -27,7 +26,7 @@ index 358b6f38..5d685bdb 100644
  
  # C++14
  set(CMAKE_CXX_STANDARD 14)
-@@ -70,6 +71,9 @@ else()
+@@ -90,6 +91,9 @@ else()
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_SYSTEM=cmake_oss")
  endif()
  
@@ -37,35 +36,37 @@ index 358b6f38..5d685bdb 100644
  ############################################################################################
  # Cross-compilation settings
  
-@@ -120,19 +124,21 @@ include_directories(
-     ${CUDNN_ROOT_DIR}/include
+@@ -122,7 +126,7 @@ message(STATUS "Protobuf version set to
+ 
+ set(THREADS_PREFER_PTHREAD_FLAG ON)
+ find_package(Threads REQUIRED)
+-if (BUILD_PLUGINS OR BUILD_PARSERS)
++if (BUILD_PROTOBUF)
+     include(third_party/protobuf.cmake)
+ endif()
+ if(NOT CUB_ROOT_DIR)
+@@ -139,8 +143,10 @@ endif()
+ include_directories(
+     ${CUDA_INCLUDE_DIRS}
  )
- find_library(CUDNN_LIB cudnn HINTS
--    ${CUDA_TOOLKIT_ROOT_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib/x64 lib)
-+    ${CUDA_TOOLKIT_TARGET_DIR} ${CUDNN_ROOT_DIR} PATH_SUFFIXES lib64 lib)
- find_library(CUBLAS_LIB cublas HINTS
--    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
-+    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
- find_library(CUBLASLT_LIB cublasLt HINTS
--    ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib64 lib lib/x64 lib/stubs)
 -if(BUILD_PARSERS)
--    configure_protobuf(${PROTOBUF_VERSION})
-+    ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib64 lib lib/stubs)
 +if(BUILD_PROTOBUF)
-+  configure_protobuf(${PROTOBUF_VERSION})
+     configure_protobuf(${PROTOBUF_VERSION})
 +else()
-+  find_package(Protobuf REQUIRED)
++    find_package(Protobuf REQUIRED)
  endif()
  
- find_library_create_target(nvinfer nvinfer SHARED ${TRT_LIB_DIR})
- find_library_create_target(nvuffparser nvparsers SHARED ${TRT_LIB_DIR})
+ # Windows library names have major version appended.
+@@ -158,7 +164,7 @@ endif()
  
--find_library(CUDART_LIB cudart HINTS ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib/x64 lib64)
+ find_library_create_target(nvinfer ${nvinfer_lib_name} SHARED ${TRT_LIB_DIR})
+ 
+-find_library(CUDART_LIB cudart_static HINTS ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib/x64 lib64)
 +find_library(CUDART_LIB cudart HINTS ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib lib64)
  
  if (NOT MSVC)
      find_library(RT_LIB rt)
-@@ -143,6 +149,10 @@ set(CUDA_LIBRARIES ${CUDART_LIB})
+@@ -169,6 +175,10 @@ set(CUDA_LIBRARIES ${CUDART_LIB})
  ############################################################################################
  # CUDA targets
  
@@ -76,30 +77,21 @@ index 358b6f38..5d685bdb 100644
  if (DEFINED GPU_ARCHS)
    message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
    separate_arguments(GPU_ARCHS)
-@@ -189,6 +199,7 @@ if (${LATEST_SM} GREATER_EQUAL 70)
+@@ -214,6 +224,7 @@ set(GENCODES "${GENCODES} -gencode arch=
+ if (${LATEST_SM} GREATER_EQUAL 70)
      set(BERT_GENCODES "${BERT_GENCODES} -gencode arch=compute_${LATEST_SM},code=compute_${LATEST_SM}")
-     set(STABLE_DIFFUSION_GENCODES "${STABLE_DIFFUSION_GENCODES} -gencode arch=compute_${LATEST_SM},code=compute_${LATEST_SM}")
  endif()
 +endif()
  
  if(NOT MSVC)
-     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcompiler -Wno-deprecated-declarations")
-@@ -207,6 +218,8 @@ else()
- endif()
- 
- if(BUILD_PARSERS)
-+    set(BUILD_LIBRARY_ONLY 1)
-+    set(TENSORRT_LIBRARY_INFER_PLUGIN "nvinfer_plugin")
-     add_subdirectory(parsers)
- else()
-     find_library_create_target(nvcaffeparser nvparsers SHARED ${TRT_OUT_DIR} ${TRT_LIB_DIR})
-diff --git a/parsers/CMakeLists.txt b/parsers/CMakeLists.txt
-index 955e109d..8f9bbbae 100644
---- a/parsers/CMakeLists.txt
-+++ b/parsers/CMakeLists.txt
-@@ -22,8 +22,10 @@ add_custom_target(parsers DEPENDS
- 
- add_subdirectory(caffe)
+     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr -Xcompiler -Wno-deprecated-declarations")
+Index: git/parsers/CMakeLists.txt
+===================================================================
+--- git.orig/parsers/CMakeLists.txt
++++ git/parsers/CMakeLists.txt
+@@ -19,14 +19,17 @@
+ add_custom_target(parsers DEPENDS
+     nvonnxparser)
  
 -add_definitions("-D_PROTOBUF_INSTALL_DIR=${Protobuf_INSTALL_DIR}")
 -add_compile_options("-Dgoogle=google_private")
@@ -110,47 +102,19 @@ index 955e109d..8f9bbbae 100644
  set(TENSORRT_ROOT ${PROJECT_SOURCE_DIR})
  set(TENSORRT_BUILD ${TRT_OUT_DIR} ${TRT_LIB_DIR})
  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${TRT_OUT_DIR})
-diff --git a/parsers/caffe/CMakeLists.txt b/parsers/caffe/CMakeLists.txt
-index 74fd358f..d86758dc 100644
---- a/parsers/caffe/CMakeLists.txt
-+++ b/parsers/caffe/CMakeLists.txt
-@@ -66,6 +66,7 @@ target_link_libraries(${SHARED_TARGET}
-     nvinfer
- )
  
-+if(BUILD_PROTOBUF)
- # modify google namespace to avoid namespace collision.
- set(GOOGLE google_private)
- target_compile_definitions(${SHARED_TARGET}
-@@ -73,6 +74,7 @@ target_compile_definitions(${SHARED_TARGET}
-     "-Dgoogle=${GOOGLE}"
-     "-DGOOGLE_PROTOBUF_ARCH_64_BIT"
- )
-+endif()
+ include_directories(
+    ${Protobuf_INCLUDE_DIR}
+-)
++   ${PROJECT_SOURCE_DIR}/include
++ )
  
- set_target_properties(${SHARED_TARGET} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL")
- 
-@@ -115,6 +117,7 @@ target_link_libraries(${STATIC_TARGET}
-     ${Protobuf_LIBRARY}
- )
- 
-+if(BUILD_PROTOBUF)
- # modify google namespace to avoid namespace collision.
- set(GOOGLE google_private)
- target_compile_definitions(${STATIC_TARGET}
-@@ -122,6 +125,7 @@ target_compile_definitions(${STATIC_TARGET}
-     "-Dgoogle=${GOOGLE}"
-     "-DGOOGLE_PROTOBUF_ARCH_64_BIT"
- )
-+endif()
- 
- set_target_properties(${STATIC_TARGET} PROPERTIES LINK_FLAGS "-Wl,--exclude-libs,ALL")
- 
-diff --git a/plugin/CMakeLists.txt b/plugin/CMakeLists.txt
-index 158472e7..ff62393d 100644
---- a/plugin/CMakeLists.txt
-+++ b/plugin/CMakeLists.txt
-@@ -26,7 +26,8 @@ set(PLUGIN_EXPORT_MAP ${TARGET_DIR}/exports.map)
+ add_subdirectory(onnx)
+Index: git/plugin/CMakeLists.txt
+===================================================================
+--- git.orig/plugin/CMakeLists.txt
++++ git/plugin/CMakeLists.txt
+@@ -29,7 +29,8 @@ set(VFC_PLUGIN_EXPORT_MAP ${TARGET_DIR}/
  if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
  endif()
@@ -160,7 +124,7 @@ index 158472e7..ff62393d 100644
  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLED_SMS}")
  set(PLUGIN_SOURCES)
  set(PLUGIN_CU_SOURCES)
-@@ -70,7 +71,7 @@ set(PLUGIN_LISTS
+@@ -75,7 +76,7 @@ set(PLUGIN_LISTS
  )
  
  # Add BERT sources if ${BERT_GENCODES} was populated
@@ -169,7 +133,7 @@ index 158472e7..ff62393d 100644
      set(BERT_CU_SOURCES)
      set(PLUGIN_LISTS
          ${PLUGIN_LISTS}
-@@ -110,10 +111,15 @@ endforeach(PLUGIN_ITER)
+@@ -99,10 +100,15 @@ endforeach(PLUGIN_ITER)
  add_subdirectory(common)
  
  # Set gencodes
@@ -186,13 +150,13 @@ index 158472e7..ff62393d 100644
 +    endif()
      list(APPEND PLUGIN_SOURCES "${BERT_CU_SOURCES}")
  endif()
- if (STABLE_DIFFUSION_CU_SOURCES)
-diff --git a/third_party/protobuf.cmake b/third_party/protobuf.cmake
-index b1ae10e5..14f19120 100644
---- a/third_party/protobuf.cmake
-+++ b/third_party/protobuf.cmake
-@@ -206,7 +206,7 @@ function(protobuf_generate_cpp SRCS HDRS)
-             COMMAND LIBRARY_PATH=${Protobuf_LIB_DIR} ${Protobuf_PROTOC_EXECUTABLE}
+ 
+Index: git/third_party/protobuf.cmake
+===================================================================
+--- git.orig/third_party/protobuf.cmake
++++ git/third_party/protobuf.cmake
+@@ -209,7 +209,7 @@ function(protobuf_generate_cpp SRCS HDRS
+             COMMAND ${Protobuf_PROTOC_EXECUTABLE}
              ARGS --cpp_out ${CMAKE_CURRENT_BINARY_DIR}/${PROTO_DIR} -I${CMAKE_CURRENT_SOURCE_DIR}/${PROTO_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${proto}
              WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
 -            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${proto}" protobuf::libprotobuf Protobuf protobuf::protoc
@@ -200,3 +164,18 @@ index b1ae10e5..14f19120 100644
              COMMENT "${proto} -> ${PROTO_DIR}/${PROTO_SRC} ${PROTO_DIR}/${PROTO_HEADER}"
          )
  
+Index: git/parsers/onnx/CMakeLists.txt
+===================================================================
+--- git.orig/parsers/onnx/CMakeLists.txt
++++ git/parsers/onnx/CMakeLists.txt
+@@ -20,10 +20,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+ 
+ set(PARSER_LINKER_SCRIPT  ${ONNX2TRT_ROOT}/libnvonnxparser.version)
+ 
+-# Find length of source directory used to pad filename in Status.hpp
+-string(LENGTH "${CMAKE_SOURCE_DIR}/" SOURCE_LENGTH)
+-add_definitions("-DSOURCE_LENGTH=${SOURCE_LENGTH}")
+-
+ #--------------------------------------------------
+ # Version information
+ #--------------------------------------------------
