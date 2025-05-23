@@ -12,6 +12,7 @@ CUDA_COMPONENTS = " \
     libcusparse \
     libnpp\
     libnvjitlink \
+    libnvfatbin \
 "
 CUDA_COMPONENTS:append:class-target = " \
     libcudla \
