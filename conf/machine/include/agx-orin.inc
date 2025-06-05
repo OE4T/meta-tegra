@@ -4,7 +4,6 @@ require conf/machine/include/tegra234.inc
 
 KERNEL_ARGS ?= "mminit_loglevel=4 console=tty0 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 nospectre_bhb video=efifb:off console=tty0"
 
-EMMC_SIZE ?= "31276924928"
 EMMC_DEVSECT_SIZE ?= "512"
 BOOTPART_SIZE ?= "8388608"
 BOOTPART_LIMIT ?= "10485760"

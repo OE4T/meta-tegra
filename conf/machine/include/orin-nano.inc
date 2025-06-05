@@ -18,7 +18,6 @@ KERNEL_ARGS ?= "mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/et
 MACHINE_EXTRA_RRECOMMENDS += "kernel-module-r8168 kernel-module-r8169 kernel-module-realtek"
 MACHINE_EXTRA_RDEPENDS += "linux-firmware-rtl8168"
 
-EMMC_SIZE ?= ""
 BOOTPART_SIZE ?= "8388608"
 ROOTFSPART_SIZE_DEFAULT ?= "30064771072"
 ODMDATA ?= "gbe-uphy-config-8,hsstp-lane-map-3,hsio-uphy-config-0"
