@@ -10,8 +10,7 @@ SRC_URI = "\
     file://initrd-flash.scheme.in \
 "
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${UNPACKDIR}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 

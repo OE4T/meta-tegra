@@ -8,8 +8,7 @@ COMPATIBLE_MACHINE = "(cuda)"
 
 inherit cuda-gcc
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${UNPACKDIR}"
 
 COMPILER_CMD  = "${@d.getVar('CXX_FOR_CUDA').split()[0]}"
 CMAKE_CUDA_ARCHITECTURES = "${@d.getVar('CUDA_ARCHITECTURES') if d.getVar('CUDA_ARCHITECTURES') else 'OFF'}"

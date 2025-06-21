@@ -8,8 +8,7 @@ SRC_URI = "\
 
 COMPATIBLE_MACHINE = "tegra"
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${UNPACKDIR}"
 
 do_install() {
     if [ -s ${S}/tegra-wifi.rules ]; then

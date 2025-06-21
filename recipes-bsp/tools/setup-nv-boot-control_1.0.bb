@@ -17,8 +17,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 ESPMOUNT ?= "/boot/efi"
 ESPMOUNTUNIT ?= "${@'-'.join(d.getVar('ESPMOUNT').split('/')[1:])}.mount"
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${UNPACKDIR}"
 B = "${WORKDIR}/build"
 
 inherit systemd update-rc.d

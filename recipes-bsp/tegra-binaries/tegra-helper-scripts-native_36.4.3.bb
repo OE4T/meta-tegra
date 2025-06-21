@@ -16,8 +16,7 @@ SRC_URI = " \
     file://initrd-flash.sh \
 "
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${UNPACKDIR}"
 
 do_install() {
     install -d ${D}${bindir}/tegra-flash

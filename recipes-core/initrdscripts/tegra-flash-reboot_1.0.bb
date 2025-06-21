@@ -6,8 +6,7 @@ SRC_URI = "file://reboot-recovery.c"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${UNPACKDIR}"
 B = "${WORKDIR}/build"
 
 do_compile() {

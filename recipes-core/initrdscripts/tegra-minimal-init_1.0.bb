@@ -7,8 +7,7 @@ SRC_URI = "\
     file://platform-preboot.sh \
 "
 
-S = "${WORKDIR}/sources"
-UNPACKDIR = "${S}"
+S = "${UNPACKDIR}"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
