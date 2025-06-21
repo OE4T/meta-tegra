@@ -78,7 +78,9 @@ SRC_URI = "\
 
 SRC_URI[sha256sum] = "64f404c1a650f27fc33da242e1f2df54952e3963a49e06e73f6940f3223ac344"
 
-S = "${TMPDIR}/work-shared/gcc-${PV}-${PR}/gcc-${PV}"
+SOURCEDIR ?= "gcc-${PV}"
+UNPACKDIR = "${TMPDIR}/work-shared/gcc-${PV}-${PR}/sources"
+S = "${UNPACKDIR}/${SOURCEDIR}"
 
 # For dev release snapshotting
 #S = "${TMPDIR}/work-shared/gcc-${PV}-${PR}/gcc-${RELEASE}"

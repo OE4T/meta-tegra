@@ -93,8 +93,8 @@ MIRRORS =+ "\
 #
 gcclibdir = "${libdir}/gcc"
 BINV = "${PV}"
-#S = "${WORKDIR}/gcc-${PV}"
-S = "${TMPDIR}/work-shared/gcc-${PV}-${PR}/gcc-${PV}"
+UNPACKDIR = "${TMPDIR}/work-shared/gcc-${PV}-${PR}/sources"
+S = "${UNPACKDIR}/gcc-${PV}"
 
 B ?= "${WORKDIR}/gcc-${PV}/build.${HOST_SYS}.${TARGET_SYS}"
 
