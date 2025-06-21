@@ -50,8 +50,6 @@ GO_EXTRA_LDFLAGS:append = "\
     -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.gitCommit=${GITPKGV} \
 "
 
-S = "${WORKDIR}/git"
-
 REQUIRED_DISTRO_FEATURES = "virtualization"
 
 inherit go-mod gitpkgv features_check systemd

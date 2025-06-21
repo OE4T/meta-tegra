@@ -13,8 +13,6 @@ SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 SRCREV = "0b2f038a6c715e73e0c38ae8ec1680f4406d655d"
 PV = "1.0.1"
 
-S = "${WORKDIR}/git"
-
 inherit cmake pkgconfig features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"

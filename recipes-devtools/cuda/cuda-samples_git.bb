@@ -66,7 +66,6 @@ CUDA_SAMPLES ?= " \
     Samples/6_Performance/UnifiedMemoryPerf \
 "
 
-S = "${WORKDIR}/git"
 B = "${S}"
 
 CUDA_PATH = "/usr/local/cuda-${CUDA_VERSION}"

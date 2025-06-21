@@ -16,8 +16,6 @@ SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 # v1.1.1 tag
 SRCREV = "ee8ecd03d10e096ec2ca777f2d017c79e4a6ec5f"
 
-S = "${WORKDIR}/git"
-
 inherit meson pkgconfig
 
 do_install:append() {

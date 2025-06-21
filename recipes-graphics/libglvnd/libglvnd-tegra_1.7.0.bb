@@ -19,8 +19,6 @@ DEPENDS = "l4t-nvidia-glheaders"
 
 inherit meson pkgconfig features_check python3native
 
-S = "${WORKDIR}/git"
-
 PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"
 
 PACKAGECONFIG ?= "${@bb.utils.contains('DISTRO_FEATURES', 'x11', 'x11', '', d)}"

@@ -51,7 +51,6 @@ SRCREV_libnvidia = "921e2f3197385173cf8670342e96e98afe9b3dd3"
 SRCREV_modprobe = "149440ca0654d928f27df5ebff485a122bfe43b1"
 SRCREV_FORMAT = "libnvidia_modprobe"
 
-S = "${WORKDIR}/git"
 B = "${S}"
 
 PACKAGECONFIG ??= ""

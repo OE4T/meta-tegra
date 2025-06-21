@@ -13,8 +13,6 @@ SRCBRANCH = "master"
 SRC_REPO = "github.com/libusbgx/libusbgx.git;protocol=https"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
 
-S = "${WORKDIR}/git"
-
 PACKAGECONFIG = "examples gadget-schemes libconfig"
 PACKAGECONFIG[libconfig] = "--with-libconfig=yes,--without-libconfig,libconfig"
 PACKAGECONFIG[examples] = "--enable-examples,--disable-examples"

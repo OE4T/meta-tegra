@@ -19,8 +19,6 @@ SRCREV = "4aee01a027923cab1e40969f56f8ba58d3e6c0d1"
 
 PV .= "+git"
 
-S = "${WORKDIR}/git"
-
 inherit meson gettext pkgconfig features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"

@@ -7,8 +7,6 @@ SRC_URI = "git://github.com/NVIDIA/eglexternalplatform.git;protocol=https;branch
 # corresponds to 1.1 tag
 SRCREV = "7c8f8e2218e46b1a4aa9538520919747f1184d86"
 
-S = "${WORKDIR}/git"
-
 do_compile() {
 	:
 }

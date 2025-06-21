@@ -33,8 +33,6 @@ DEPENDS = "binutils-native gnu-efi help2man-native openssl util-linux"
 
 PV = "0.9.5-git"
 
-S = "${WORKDIR}/git"
-
 inherit autotools pkgconfig
 
 SBSIGN_SEARCH_BASE = "${RECIPE_SYSROOT}"

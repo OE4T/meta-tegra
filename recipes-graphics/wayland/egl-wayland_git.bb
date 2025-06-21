@@ -18,8 +18,6 @@ SRC_URI += " \
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-S = "${WORKDIR}/git"
-
 inherit meson pkgconfig features_check
 
 do_install:append() {

@@ -8,8 +8,6 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57"
 SRC_URI = "git://github.com/NVIDIA/nvidia-docker.git;protocol=https;branch=master"
 SRCREV = "178cec600ce52270f4b9d22326ba1fde218dba39"
 
-S = "${WORKDIR}/git"
-
 REQUIRED_DISTRO_FEATURES = "virtualization"
 
 inherit features_check
