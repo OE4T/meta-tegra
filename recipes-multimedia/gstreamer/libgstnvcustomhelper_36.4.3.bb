@@ -13,7 +13,7 @@ SRC_URI += " file://0001-Makefile-fixups-for-OE-builds.patch"
 
 DEPENDS = "gstreamer1.0"
 
-S = "${WORKDIR}/gst-nvcustomhelper"
+S = "${UNPACKDIR}/gst-nvcustomhelper"
 B = "${WORKDIR}/build"
 
 inherit pkgconfig

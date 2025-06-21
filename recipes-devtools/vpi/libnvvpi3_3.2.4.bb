@@ -26,7 +26,7 @@ SRC_URI[dev.sha256sum] = "6425dbf2c0fc00b2ab5b323c3834bda52edad7101d80176b0385c2
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-S = "${WORKDIR}/vpi3"
+S = "${UNPACKDIR}/vpi3"
 B = "${S}"
 
 DEPENDS = "cuda-cudart libcufft tegra-libraries-multimedia-utils tegra-libraries-multimedia tegra-libraries-eglcore \

@@ -20,7 +20,7 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 LIC_FILES_CHKSUM = "file://../../../share/doc/libnvinfer-samples/copyright;md5=32ccc6a9bbc79616807b9bc252844b2f"
 
-S = "${WORKDIR}/tensorrt/usr/src/tensorrt/samples"
+S = "${UNPACKDIR}/tensorrt/usr/src/tensorrt/samples"
 
 DEPENDS = "cuda-cudart cuda-crt cuda-profiler-api cudnn tegra-libraries-multimedia-utils tensorrt-core tensorrt-plugins libglvnd"
 

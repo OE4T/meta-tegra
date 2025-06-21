@@ -32,7 +32,7 @@ def extract_majver(d):
 BASEVER = "${@extract_basever(d)}"
 MAJVER = "${@extract_majver(d)}"
 
-S = "${WORKDIR}/cudnn"
+S = "${UNPACKDIR}/cudnn"
 
 do_configure() {
     :

@@ -24,7 +24,7 @@ PACKAGECONFIG[libv4l2] = ",,v4l-utils,tegra-libraries-multimedia-v4l"
 EXTRA_OEMAKE = "${@bb.utils.contains('PACKAGECONFIG', 'libv4l2', 'USE_LIBV4L2=1', '', d)}"
 CFLAGS += "-fcommon"
 
-S = "${WORKDIR}/gst-v4l2"
+S = "${UNPACKDIR}/gst-v4l2"
 
 inherit gettext pkgconfig features_check
 

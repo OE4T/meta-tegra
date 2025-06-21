@@ -15,7 +15,7 @@ LDADD:append:libc-musl = " -L${STAGING_LIBDIR} -largp"
 
 export LDADD
 
-S = "${WORKDIR}/samples"
+S = "${UNPACKDIR}/samples"
 B = "${WORKDIR}/build"
 
 EXTRA_OEMAKE += "CROSS_COMPILE=${HOST_PREFIX}"

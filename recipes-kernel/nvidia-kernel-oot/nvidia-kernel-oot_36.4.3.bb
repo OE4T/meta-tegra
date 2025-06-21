@@ -21,6 +21,6 @@ SRC_URI += "file://0001-Makefile-update-for-OE-builds.patch \
             file://0005-conftest-work-around-stringify-issue-with-__assign_s.patch \
            "
 
-S = "${WORKDIR}/${BPN}"
+S = "${UNPACKDIR}/${BPN}"
 
 require nvidia-kernel-oot.inc

@@ -13,7 +13,7 @@ SRC_URI[sha256sum] = "545166d6cac037744381d1e9cc5a5405094e7bfad16a411699bcff40bb
 
 PROVIDES = "libconfig"
 
-S = "${WORKDIR}/libconfig-${PV}"
+S = "${UNPACKDIR}/libconfig-${PV}"
 
 inherit autotools-brokensep pkgconfig
 

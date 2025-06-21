@@ -11,7 +11,7 @@ inherit l4t_deb_pkgfeed
 SRC_COMMON_DEBS = "nsight-systems-${BASE_VERSION}_${PV}_arm64.deb;subdir=${BPN}"
 SRC_URI[sha256sum] = "404b1d921366d94f60a027298523e295c5484ee6f6e3b8a27da304ad4fd92bad"
 
-S = "${WORKDIR}/${BPN}"
+S = "${UNPACKDIR}/${BPN}"
 B = "${S}"
 
 COMPATIBLE_MACHINE = "(tegra)"

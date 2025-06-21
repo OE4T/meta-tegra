@@ -10,7 +10,7 @@ inherit l4t_deb_pkgfeed
 
 SRC_URI[sha256sum] = "830f49b6b25ec7a8e682be1d700bee642a8ad324411722ce0b4214960d0aeb41"
 
-S = "${WORKDIR}/l4t-graphics-demos/usr/src/nvidia/graphics_demos"
+S = "${UNPACKDIR}/l4t-graphics-demos/usr/src/nvidia/graphics_demos"
 B = "${S}"
 
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"

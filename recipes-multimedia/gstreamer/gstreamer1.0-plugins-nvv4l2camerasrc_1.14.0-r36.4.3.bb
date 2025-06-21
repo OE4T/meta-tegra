@@ -19,7 +19,7 @@ SRC_URI += "\
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base gstreamer1.0-plugins-good libv4l virtual/egl tegra-libraries-multimedia"
 
-S = "${WORKDIR}/gst-nvv4l2camera"
+S = "${UNPACKDIR}/gst-nvv4l2camera"
 
 inherit pkgconfig features_check
 

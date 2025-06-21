@@ -15,7 +15,7 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 LIC_FILES_CHKSUM = "file://LICENSE.nvprop;md5=5c7c5200a29e873064f17b5bbf4d3c56 \
 		    file://argus/LICENSE.TXT;md5=271791ce6ff6f928d44a848145021687"
 
-S = "${WORKDIR}/tegra-mmapi/usr/src/jetson_multimedia_api"
+S = "${UNPACKDIR}/tegra-mmapi/usr/src/jetson_multimedia_api"
 B = "${S}"
 
 COMPATIBLE_MACHINE = "(tegra)"

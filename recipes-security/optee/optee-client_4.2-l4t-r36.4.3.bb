@@ -18,7 +18,7 @@ SRC_URI += "\
 
 DEPENDS = "optee-os-tadevkit util-linux-libuuid"
 
-S = "${WORKDIR}/optee_client"
+S = "${UNPACKDIR}/optee_client"
 B = "${WORKDIR}/build"
 
 inherit pkgconfig systemd update-rc.d

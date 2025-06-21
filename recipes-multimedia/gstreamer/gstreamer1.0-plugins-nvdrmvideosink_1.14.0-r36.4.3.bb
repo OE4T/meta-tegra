@@ -12,7 +12,7 @@ SRC_URI += " \
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libdrm tegra-libraries-multimedia-utils tegra-mmapi"
 
-S = "${WORKDIR}/gst-nvdrmvideosink"
+S = "${UNPACKDIR}/gst-nvdrmvideosink"
 
 inherit pkgconfig features_check
 

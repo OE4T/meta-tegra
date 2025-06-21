@@ -8,4 +8,4 @@ SRCREV_edk2 = "338f5d9e7c525ab2ec0882bb6fc699f62d107b31"
 
 SRC_URI = "${SRC_URI_EDK2};name=edk2;destsuffix=edk2-tegra/edk2"
 
-S = "${WORKDIR}/edk2-tegra/edk2"
+S = "${UNPACKDIR}/edk2-tegra/edk2"

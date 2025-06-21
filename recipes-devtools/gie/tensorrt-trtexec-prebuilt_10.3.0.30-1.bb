@@ -21,7 +21,7 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 LIC_FILES_CHKSUM = "file://usr/share/doc/libnvinfer-bin/copyright;md5=32ccc6a9bbc79616807b9bc252844b2f"
 
-S = "${WORKDIR}/tensorrt"
+S = "${UNPACKDIR}/tensorrt"
 
 DEPENDS = "cuda-cudart cudnn tensorrt-core tensorrt-plugins libcublas"
 

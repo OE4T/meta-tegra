@@ -16,7 +16,7 @@ OPTEE_ARCH:aarch64 = "arm64"
 NV_CCC_PREBUILT = ""
 NV_CCC_PREBUILT:tegra234 = "${S}/prebuilt/${OPTEE_NV_PLATFORM}/libcommon_crypto.a"
 
-S = "${WORKDIR}/optee_os"
+S = "${UNPACKDIR}/optee_os"
 B = "${WORKDIR}/build"
 
 CFLAGS[unexport] = "1"

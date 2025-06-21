@@ -43,7 +43,7 @@ def extract_majver(d):
 BASEVER = "${@extract_basever(d)}"
 MAJVER = "${@extract_majver(d)}"
 
-S = "${WORKDIR}/tensorrt"
+S = "${UNPACKDIR}/tensorrt"
 
 DEPENDS = "cuda-cudart tensorrt-core"
 

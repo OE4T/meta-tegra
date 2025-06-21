@@ -13,7 +13,7 @@ SRC_URI += "file://0001-workaround-to-fix-ld.bfd-warning-binutils-version-2..pat
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS:append = " virtual/cross-cc"
 
-S = "${WORKDIR}/arm-trusted-firmware"
+S = "${UNPACKDIR}/arm-trusted-firmware"
 B = "${WORKDIR}/build"
 
 COMPATIBLE_MACHINE = "(tegra234)"

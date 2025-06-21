@@ -16,7 +16,7 @@ SRC_URI[samples.sha256sum] = "d823a34d283bc12416e1a3606be83f50ee75d6ad59ae206a4e
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
-S = "${WORKDIR}/cudnn"
+S = "${UNPACKDIR}/cudnn"
 
 do_configure() {
     :

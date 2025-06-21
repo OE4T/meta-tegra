@@ -17,7 +17,7 @@ inherit deploy nopackages
 
 DEPENDS = "tegra-flashtools-native dtc-native optee-os arm-trusted-firmware"
 
-S = "${WORKDIR}/optee"
+S = "${UNPACKDIR}/optee"
 
 do_configure[noexec] = "1"
 

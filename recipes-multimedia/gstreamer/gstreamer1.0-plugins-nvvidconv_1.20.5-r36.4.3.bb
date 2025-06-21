@@ -15,7 +15,7 @@ SRC_URI += "\
     file://0002-Use-filter-function-for-fixating-caps.patch \
 "
 
-S = "${WORKDIR}/gst-nvvidconv"
+S = "${UNPACKDIR}/gst-nvvidconv"
 
 inherit pkgconfig features_check
 

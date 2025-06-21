@@ -11,7 +11,7 @@ TEGRA_SRC_SUBARCHIVE_OPTS = "--strip-components=1 optee/optee_test"
 
 DEPENDS += "optee-os-tadevkit optee-client openssl"
 
-S = "${WORKDIR}/optee_test"
+S = "${UNPACKDIR}/optee_test"
 B = "${WORKDIR}/build"
 
 CFLAGS += "-std=gnu17 -Wno-error=unterminated-string-initialization"

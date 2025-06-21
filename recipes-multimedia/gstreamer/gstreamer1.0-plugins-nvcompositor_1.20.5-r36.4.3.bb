@@ -13,7 +13,7 @@ DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl tegra-mmapi tegra-
 
 SRC_URI += " file://0001-Update-makefile-for-OE-builds.patch"
 
-S = "${WORKDIR}/gst-nvcompositor"
+S = "${UNPACKDIR}/gst-nvcompositor"
 
 inherit pkgconfig features_check
 

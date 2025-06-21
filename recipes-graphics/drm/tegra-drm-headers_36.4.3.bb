@@ -12,7 +12,7 @@ inherit l4t_deb_pkgfeed
 
 SRC_URI[sha256sum] = "9b86cc6f103bfbe1f188820a400b698b5fcfbbf98d9d338dadb3038a9f37ce57"
 
-S = "${WORKDIR}/${BPN}"
+S = "${UNPACKDIR}/${BPN}"
 B = "${S}"
 
 do_configure() {

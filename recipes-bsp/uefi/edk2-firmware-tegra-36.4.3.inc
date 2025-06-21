@@ -40,7 +40,7 @@ SRC_URI += "\
     file://0006-XsubcontrollerDxe-Fix-build-with-gcc-15.patch;patchdir=../edk2-nvidia \
 "
 
-S = "${WORKDIR}/edk2-tegra/edk2"
+S = "${UNPACKDIR}/edk2-tegra/edk2"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
