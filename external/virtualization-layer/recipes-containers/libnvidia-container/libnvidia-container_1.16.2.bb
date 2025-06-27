@@ -65,8 +65,8 @@ NVIDIA_MODPROBE_EXTRA_CFLAGS ?= "${DEBUG_PREFIX_MAP}"
 export OBJCPY = "${OBJCOPY}"
 
 patch_nv_modprobe() {
-    patch -d ${WORKDIR}/${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX} -p1 < ${S}/mk/nvidia-modprobe.patch
-    touch ${WORKDIR}/${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX}/.download_stamp
+    patch -d ${UNPACKDIR}/${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX} -p1 < ${S}/mk/nvidia-modprobe.patch
+    touch ${UNPACKDIR}/${NVIDIA_MODPROBE_SRCURI_DESTSUFFIX}/.download_stamp
 }
 
 do_patch[postfuncs] += "patch_nv_modprobe"
