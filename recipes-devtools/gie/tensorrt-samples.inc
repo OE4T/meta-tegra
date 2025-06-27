@@ -10,7 +10,7 @@ SRC_COMMON_DEBS = "\
     libnvinfer-samples_${PV}+cuda12.5_all.deb;downloadfilename=libnvinfer-samples_${PV}+cuda12.2_all.deb;name=samples;subdir=tensorrt \
 "
 
-SRC_URI += "file://0001-Makefile-fix-cross-compilation-issues.patch;patchdir=${WORKDIR}/tensorrt"
+SRC_URI += "file://0001-Makefile-fix-cross-compilation-issues.patch;patchdir=${UNPACKDIR}/tensorrt"
 
 SRC_URI[samples.sha256sum] = "57a3633cf1242a157138395da3e57ead9bcf1fc15c5653ad5422b1bd7a80aae0"
 
