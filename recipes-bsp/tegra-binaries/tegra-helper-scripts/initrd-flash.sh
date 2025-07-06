@@ -147,7 +147,9 @@ sign_binaries() {
 	cp doflash.sh flash_signed.sh
 	sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
 	cp secureflash.xml internal-secureflash.xml
-	cp external-flash.xml.in external-secureflash.xml
+	if [ -e external-flash.xml.in ]; then
+	    cp external-flash.xml.in external-secureflash.xml
+	fi
 	if ! copy_bootloader_files bootloader_staging; then
 	    return 1
 	fi
@@ -172,7 +174,9 @@ sign_binaries() {
 	cp flashcmd.txt flash_signed.sh
 	sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
 	cp secureflash.xml internal-secureflash.xml
-	cp external-flash.xml.in external-secureflash.xml
+	if [ -e external-flash.xml.in ]; then
+	    cp external-flash.xml.in external-secureflash.xml
+	fi
 	create_rcm_boot_script
     else
 	return 1
