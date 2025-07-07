@@ -1,4 +1,4 @@
-require edk2-firmware-tegra-35.6.1.inc
+require edk2-firmware-tegra-35.6.2.inc
 
 DESCRIPTION = "UEFI EDK2 Firmware for Jetson platforms"
 
