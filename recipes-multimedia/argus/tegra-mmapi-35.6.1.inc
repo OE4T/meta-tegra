@@ -8,6 +8,10 @@ SRC_URI[sha256sum] = "084adc5a5ab8def01cb61a06fbac78e11f8724a9d48d9c25eaaac3dec9
 
 inherit l4t_deb_pkgfeed features_check
 
+# No update for R35.6.2
+L4T_VERSION = "35.6.1"
+L4T_BSP_DEB_VERSION = "20250304015758"
+
 SRC_URI += "file://0001-Remove-DO-NOT-USE-declarations-from-v4l2_nv_extensio.patch"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
