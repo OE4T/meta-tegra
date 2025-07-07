@@ -18,7 +18,7 @@ LINUX_VERSION ?= "5.10.216"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
-LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.'))}"
+LINUX_VERSION_EXTENSION ?= "-l4t-r35.6.1"
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
