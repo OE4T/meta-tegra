@@ -1,6 +1,6 @@
 require conf/machine/include/tegra194.inc
 
-KERNEL_ARGS ?= "mminit_loglevel=4 console=tty0 console=ttyTCU0,115200 fbcon=map:0 video=efifb:off nospectre_bhb"
+KERNEL_ARGS ?= "mminit_loglevel=4 console=tty0 console=ttyTCU0,115200 fbcon=map:0 video=efifb:off"
 
 EMMC_SIZE ?= "31276924928"
 EMMC_DEVSECT_SIZE ?= "512"
