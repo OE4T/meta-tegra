@@ -14,7 +14,7 @@ MACHINEOVERRIDES =. "xavier-nx:"
 require conf/machine/include/tegra194.inc
 
 KERNEL_DEVICETREE ?= "tegra194-p3668-all-p3509-0000.dtb"
-KERNEL_ARGS ?= "console=ttyTCU0,115200 console=tty0 fbcon=map:0 video=efifb:off nospectre_bhb"
+KERNEL_ARGS ?= "console=ttyTCU0,115200 console=tty0 fbcon=map:0 video=efifb:off"
 
 EMMC_DEVSECT_SIZE ?= "512"
 BOOTPART_SIZE ?= ""
