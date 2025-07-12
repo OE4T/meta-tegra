@@ -141,6 +141,27 @@ make_partitions() {
     return 0
 }
 
+create_filesystems() {
+    local partnumber
+    local pline mke2fscmd fstype
+		local errlog=$(mktemp)
+    for pline in "${PARTS[@]}"; do
+			eval "$pline"
+	    if [ -n "$fstype" ] && [ "$fstype" != "basic" ]; then
+				printf "Creating $fstype filesystem to /dev/$DEVNAME$PARTSEP$partnumber"
+				$mke2fscmd="mke2fs -t $fstype /dev/$DEVNAME$PARTSEP$partnumber"
+				if ! eval "$mke2fscmd" >/dev/null 2>"$errlog"; then
+					echo "ERR: filesystem failed" >&2
+					cat "$errlog" >&2
+					rm -f "$errlog"
+					return 1
+				fi
+			fi
+    done
+    rm -f "$errlog"
+    return 0
+}
+
 copy_to_device() {
     local src="$1"
     local dst="$2"
@@ -451,6 +472,7 @@ if ! sgdisk "$output" --verify >/dev/null 2>&1; then
     echo "ERR: verification failed for $output" >&2
     exit 1
 fi
+create_filesystems || exit 1
 if [ -b "$output" ]; then
     sleep 1
     if ! $SUDO partprobe "$output" >/dev/null 2>&1; then
