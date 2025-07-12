@@ -20,7 +20,7 @@ LIC_FILES_CHKSUM = "file://LICENSE.GPLv3;md5=9eef91148a9b14ec7f9df333daebc746 \
 # The original upstream is git://kernel.ubuntu.com/jk/sbsigntool but it has
 # not been maintained and many patches have been backported in this repo.
 SRC_URI = "git://git.kernel.org/pub/scm/linux/kernel/git/jejb/sbsigntools.git;protocol=https;name=sbsigntools;branch=master \
-           git://github.com/rustyrussell/ccan.git;protocol=https;destsuffix=git/lib/ccan.git;name=ccan;branch=master \
+           git://github.com/rustyrussell/ccan.git;protocol=https;destsuffix=${BB_GIT_DEFAULT_DESTSUFFIX}/lib/ccan.git;name=ccan;branch=master \
            file://0001-Updates-for-OE-cross-builds.patch \
            file://0002-ccan-simplify-SCOREDIR.patch;patchdir=lib/ccan.git \
            "
