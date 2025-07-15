@@ -68,7 +68,7 @@ compute_size() {
 }
 
 find_finalpart() {
-    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
     local appidx app_b_idx pline i
     if [ -n "$ignore_finalpart" ]; then
 	FINALPART=999
@@ -102,7 +102,7 @@ find_finalpart() {
 }
 
 make_partitions() {
-    local blksize partnumber partname partsize partfile partguid partfilltoend start_location
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
     local i pline alignarg sgdiskcmd parttype
     if [ "$use_start_locations" = "yes" ]; then
 	alignarg="-a 1"
@@ -192,7 +192,7 @@ unmount_device() {
 }
 
 write_partitions_to_device() {
-    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
     local i dest pline destsize filesize n_written
     n_written=0
     i=0
@@ -269,7 +269,7 @@ write_partitions_to_device() {
 
 write_partitions_to_image() {
     local -a partstart
-    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
     local i s e stuff partstart partend pline
 
     while read partnumber s e stuff; do
