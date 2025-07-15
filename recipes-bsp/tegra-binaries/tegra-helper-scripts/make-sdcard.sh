@@ -142,8 +142,8 @@ make_partitions() {
 }
 
 create_filesystems() {
-    local partnumber
-    local pline mke2fscmd fstype
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
+    local pline mke2fscmd
     local errlog=$(mktemp)
     for pline in "${PARTS[@]}"; do
 	eval "$pline"
