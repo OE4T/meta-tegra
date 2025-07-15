@@ -104,7 +104,7 @@ class Partition(object):
         self.filename = "" if fname is None or fname.text is None else fname.text.strip()
         logging.info("Partition {}: id={}, type={}, start={}, size={}, parttype={}, fstype={}".format(self.name, self.id, self.type,
                                                                                           self.start_location, self.size,
-                                                                                          self.parttype, self.fstype)
+                                                                                          self.parttype, self.fstype))
 
     def filltoend(self):
         return (self.alloc_attr & 0x800) == 0x800
