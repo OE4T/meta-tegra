@@ -17,6 +17,7 @@ inst_args=""
 extdevargs=
 sparseargs=
 erase_spi=
+hsm_arg=
 blocksize=4096
 
 # These functions are used in odmsign.func but do not
@@ -56,7 +57,7 @@ get_value_from_PT_table() {
     eval "$varname=\"$value\""
 }
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:,erase-spi" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,hsm,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:,erase-spi" -o "u:v:s:b:B:yc:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -74,6 +75,10 @@ while true; do
     --bup-type)
         bup_type="$2"
         shift 2
+        ;;
+    --hsm)
+        hsm_arg=" --hsm"
+        shift
         ;;
     --no-flash)
         no_flash=1
@@ -295,9 +300,14 @@ elif [ "$CHIPID" = "0x23" ]; then
     skipuid="--skipuid"
 fi
 
+if [ -n "$hsm_arg" -a -z "$keyfile" ]; then
+    echo "ERR: using --hsm requires -u <keyfile> option" >&2
+    exit 1
+fi
+
 have_boardinfo=
 keyargs=
-[ -z "$keyfile" ] || keyargs="$keyargs --key $keyfile"
+[ -z "$keyfile" ] || keyargs="$keyargs $hsm_arg --key $keyfile"
 [ -z "$sbk_keyfile" ] || keyargs="$keyargs --encrypt_key $sbk_keyfile"
 if [ -z "$FAB" -o -z "$BOARDID" ]; then
     if [ -n "$EMC_FUSE_DEV_PARAMS" ]; then
@@ -691,8 +701,9 @@ if [ $want_signing -eq 1 ]; then
     BCTARGS="$bctargs $overlay_dtb_arg $custinfo_args --bct_backup"
     L4T_CONF_DTBO="L4TConfiguration.dtbo"
     rootfs_ab=0
-    gen_rcmdump=0
-    FLASHARGS="--chip 0x23 --bl uefi_jetson_minimal_with_dtb.bin \
+    gen_read_ramcode=0
+    debug_mode=0
+    FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_jetson_minimal_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
@@ -717,7 +728,7 @@ if [ $want_signing -eq 1 ]; then
 	BCTARGS="$bctargs $rcm_overlay_dtb_arg $custinfo_args --bct_backup"
 	L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
 	BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
-	FLASHARGS="--chip 0x23 --bl uefi_jetson_minimal_with_dtb.bin \
+	FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_jetson_minimal_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
@@ -743,7 +754,7 @@ if [ $want_signing -eq 1 ]; then
     fi
     flashcmd="python3 $flashappname ${inst_args} $FLASHARGS"
 else
-    flashcmd="python3 $flashappname ${inst_args} --chip 0x23 --bl uefi_jetson_minimal_with_dtb.bin \
+    flashcmd="python3 $flashappname ${inst_args} --chip 0x23 $hsm_arg --bl uefi_jetson_minimal_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \

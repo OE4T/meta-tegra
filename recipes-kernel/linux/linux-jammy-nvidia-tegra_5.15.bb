@@ -14,11 +14,11 @@ LINUX_VERSION ?= "5.15.148"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
-LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:2])}-1012.12"
+LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}-1012.12"
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "8dc079d5c8c47d3954b4261473a152a8034ff7f0"
+SRCREV = "c8a82765359ec59e11b0e39f03cf3dfc7e039426"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-jammy-nvidia-tegra.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"

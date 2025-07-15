@@ -14,7 +14,7 @@ TEGRA_BUPGEN_SPECS ?= "fab=000;boardsku=0005;boardrev=;chipsku=00:00:00:D5;bup_t
                        fab=000;boardsku=0005;boardrev=;bup_type=kernel"
 
 KERNEL_DEVICETREE ?= "tegra234-p3768-0000+p3767-0005-nv-super.dtb"
-KERNEL_ARGS ?= "mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 nospectre_bhb video=efifb:off console=tty0"
+KERNEL_ARGS ?= "mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 nospectre_bhb console=tty0"
 MACHINE_EXTRA_RRECOMMENDS += "kernel-module-r8168 kernel-module-r8169 kernel-module-realtek"
 MACHINE_EXTRA_RDEPENDS += "linux-firmware-rtl8168"
 
