@@ -147,7 +147,7 @@ create_filesystems() {
     local errlog=$(mktemp)
     for pline in "${PARTS[@]}"; do
 	eval "$pline"
-	if [ -n "$fstype" ] && [ "$fstype" != "basic" ]; then
+	if [ -z "$partfile" ] && [ -n "$fstype" ] && [ "$fstype" != "basic" ]; then
 	    printf "Creating $fstype filesystem to /dev/$DEVNAME$PARTSEP$partnumber"
 	    mke2fscmd="mkfs.$fstype /dev/$DEVNAME$PARTSEP$partnumber"
 	    if ! eval "$mke2fscmd" >/dev/null 2>"$errlog"; then
