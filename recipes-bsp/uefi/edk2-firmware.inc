@@ -55,6 +55,8 @@ inherit deploy
 S = "${UNPACKDIR}/edk2"
 B = "${WORKDIR}/build"
 
+TOOLCHAIN = "gcc"
+
 LDFLAGS[unexport] = "1"
 
 do_configure[cleandirs] += "${B}"

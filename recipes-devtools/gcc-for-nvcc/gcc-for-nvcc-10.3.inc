@@ -10,6 +10,8 @@ BINV = "10.3.0"
 
 FILESEXTRAPATHS =. "${FILE_DIRNAME}/gcc-for-nvcc:${FILE_DIRNAME}/gcc-for-nvcc/backport:"
 
+TOOLCHAIN = "gcc"
+
 DEPENDS =+ "mpfr gmp libmpc zlib flex-native"
 NATIVEDEPS = "mpfr-native gmp-native libmpc-native zlib-native flex-native zstd-native"
 
