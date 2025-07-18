@@ -68,7 +68,7 @@ compute_size() {
 }
 
 find_finalpart() {
-    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
     local appidx app_b_idx pline i
     if [ -n "$ignore_finalpart" ]; then
 	FINALPART=999
@@ -102,7 +102,7 @@ find_finalpart() {
 }
 
 make_partitions() {
-    local blksize partnumber partname partsize partfile partguid partfilltoend start_location
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
     local i pline alignarg sgdiskcmd parttype
     if [ "$use_start_locations" = "yes" ]; then
 	alignarg="-a 1"
@@ -141,6 +141,27 @@ make_partitions() {
     return 0
 }
 
+create_filesystems() {
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
+    local pline mke2fscmd
+    local errlog=$(mktemp)
+    for pline in "${PARTS[@]}"; do
+	eval "$pline"
+	if [ -z "$partfile" ] && [ -n "$fstype" ] && [ "$fstype" != "basic" ]; then
+	    printf "Creating $fstype filesystem to /dev/$DEVNAME$PARTSEP$partnumber\n"
+	    mke2fscmd="mkfs.$fstype /dev/$DEVNAME$PARTSEP$partnumber"
+	    if ! eval "$mke2fscmd" >/dev/null 2>"$errlog"; then
+		    echo "ERR: filesystem failed" >&2
+		    cat "$errlog" >&2
+		    rm -f "$errlog"
+		    return 1
+	    fi
+	fi
+    done
+    rm -f "$errlog"
+    return 0
+}
+
 copy_to_device() {
     local src="$1"
     local dst="$2"
@@ -171,7 +192,7 @@ unmount_device() {
 }
 
 write_partitions_to_device() {
-    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
     local i dest pline destsize filesize n_written
     n_written=0
     i=0
@@ -248,7 +269,7 @@ write_partitions_to_device() {
 
 write_partitions_to_image() {
     local -a partstart
-    local blksize partnumber partname partsize partfile partguid partfilltoend
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
     local i s e stuff partstart partend pline
 
     while read partnumber s e stuff; do
@@ -458,6 +479,7 @@ if [ -b "$output" ]; then
 	exit 1
     fi
     sleep 1
+    create_filesystems || exit 1
 fi
 if type -p bmaptool >/dev/null 2>&1; then
     HAVEBMAPTOOL=yes
