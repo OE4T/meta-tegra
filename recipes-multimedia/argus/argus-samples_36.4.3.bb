@@ -15,4 +15,5 @@ inherit cmake pkgconfig cuda
 OECMAKE_SOURCEPATH = "${S}/argus"
 EXTRA_OECMAKE = "-DMULTIPROCESS=ON \
                  -DCMAKE_INCLUDE_PATH=${S}/include/libjpeg-8b-tegra \
-                 -DJPEG_NAMES=libnvjpeg.so"
+                 -DJPEG_NAMES=libnvjpeg.so \
+                 -DCMAKE_POLICY_VERSION_MINIMUM=3.5"
