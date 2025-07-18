@@ -60,6 +60,9 @@ class Partition(object):
         parttype = element.find('partition_type_guid')
         self.parttype = "" if parttype is None else parttype.text.strip()
 
+        fstype = element.find('filesystem_type')
+        self.fstype = "" if fstype is None else fstype.text.strip()
+
         alignment = element.find('align_boundary')
         if alignment is not None:
             alignval = int(alignment.text.strip(), base=0) # in bytes
@@ -99,9 +102,9 @@ class Partition(object):
 
         fname = element.find('filename')
         self.filename = "" if fname is None or fname.text is None else fname.text.strip()
-        logging.info("Partition {}: id={}, type={}, start={}, size={} parttype={}".format(self.name, self.id, self.type,
+        logging.info("Partition {}: id={}, type={}, start={}, size={}, parttype={}, fstype={}".format(self.name, self.id, self.type,
                                                                                           self.start_location, self.size,
-                                                                                          self.parttype))
+                                                                                          self.parttype, self.fstype))
 
     def filltoend(self):
         return (self.alloc_attr & 0x800) == 0x800
@@ -466,7 +469,7 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
     blksize = layout.devices[args.type].sector_size
     for n, part in enumerate(partitions):
         print("blksize={};partnumber={};partname=\"{}\";start_location={};partsize={};"
-              "partfile=\"{}\";partguid=\"{}\";parttype=\"{}\";partfilltoend={}".format(blksize,
+              "partfile=\"{}\";partguid=\"{}\";parttype=\"{}\";fstype=\"{}\";partfilltoend={}".format(blksize,
                                                                                         part.id,
                                                                                         part.name,
                                                                                         part.start_location,
@@ -474,6 +477,7 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
                                                                                         part.filename,
                                                                                         part.partguid,
                                                                                         part.parttype,
+                                                                                        part.fstype,
                                                                                         1 if part.filltoend() else 0),
               file=outf)
     outf.close()
