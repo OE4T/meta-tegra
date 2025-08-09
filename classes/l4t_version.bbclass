@@ -1,1 +1,1 @@
-L4T_VERSION ?= "36.4.3"
+L4T_VERSION ?= "36.4.4"

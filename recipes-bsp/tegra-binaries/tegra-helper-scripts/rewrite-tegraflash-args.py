@@ -24,7 +24,7 @@ def main():
                   "applet_softfuse=", "boot_chain=", "bct_backup",
                   "mb1_bin=", "psc_bl1_bin=", "rcmboot_pt_layout=", "coldboot_pt_layout=", "rcmboot_bct_cfg=", "coldboot_bct_cfg=",
                   "duk=", "dce_base_dtb=", "dce_overlay_dtb=", "dry_run", "enable_mods", "X", "disable_random_iv", "no_flash",
-                  "compress="]
+                  "compress=", "hsm"]
     parser = argparse.ArgumentParser(
         description="""
 Extracts/manipulates partition information in an NVIDIA flash layout XML file
