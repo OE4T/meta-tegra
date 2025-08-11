@@ -1,4 +1,4 @@
-inherit l4t_bsp
+inherit l4t_bsp python3native
 
 DEPENDS += "edk2-basetools-tegra-native"
 
@@ -19,7 +19,7 @@ UEFI_CAPSULE_TRUSTED_PUBLIC_CERT ?= "${PYTHON_BASETOOLS}/Pkcs7Sign/TestRoot.pub.
 sign_uefi_capsules() {
     export PYTHONPATH="${PYTHONPATH}:${PYTHON_BASETOOLS}"
     if [ -e ${B}/${BUPFILENAME}.bl_only.bup-payload ]; then
-        python3 ${PYTHON_BASETOOLS}/Capsule/GenerateCapsule.py \
+        ${PYTHON} ${PYTHON_BASETOOLS}/Capsule/GenerateCapsule.py \
             -v --encode --monotonic-count 1 \
             --fw-version "${BSP_VERSION32}" \
             --lsv "${BSP_VERSION32}" \
@@ -31,7 +31,7 @@ sign_uefi_capsules() {
             ${B}/${BUPFILENAME}.bl_only.bup-payload
     fi
     if [ -e ${B}/${BUPFILENAME}.kernel_only.bup-payload ]; then
-        python3 ${PYTHON_BASETOOLS}/Capsule/GenerateCapsule.py \
+        ${PYTHON} ${PYTHON_BASETOOLS}/Capsule/GenerateCapsule.py \
             -v --encode --monotonic-count 1 \
             --fw-version "${BSP_VERSION32}" \
             --lsv "${BSP_VERSION32}" \
