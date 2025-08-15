@@ -12,7 +12,7 @@ inherit l4t_bsp dos2unix
 
 # Override convert_crlf_to_lf task to only convert "*.dts*" files
 do_convert_crlf_to_lf () {
-	find ${S} -type f  -name "*.dts*" -exec dos2unix {} \;
+    find ${S} -type f  -name "*.dts*" -exec dos2unix {} \;
 }
 
 

@@ -16,6 +16,6 @@ S = "${UNPACKDIR}/gst-nvipcpipeline"
 inherit pkgconfig
 
 do_install() {
-	oe_runmake install DESTDIR="${D}"
+    oe_runmake install DESTDIR="${D}"
 }
 FILES:${PN} = "${libdir}/gstreamer-1.0"

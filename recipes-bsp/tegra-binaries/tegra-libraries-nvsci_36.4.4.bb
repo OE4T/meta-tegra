@@ -18,7 +18,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
 do_install() {
     install_libraries
     for libname in nvscibuf nvscicommon nvscistream nvscisync; do
-	ln -sf lib$libname.so.1 ${D}${libdir}/lib$libname.so
+        ln -sf lib$libname.so.1 ${D}${libdir}/lib$libname.so
     done
 }
 

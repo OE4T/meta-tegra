@@ -44,21 +44,21 @@ wait_for_storage() {
     local message="Waiting for $file_or_dev..."
     local tries
     for tries in $(seq 1 15); do
-	if [ -e "$file_or_dev" ]; then
-	    if [ "$message" = "." ]; then
-		echo "[OK]"
-	    else
-		echo "Found $file_or_dev"
-	    fi
-	    break
-	fi
-	echo -n "$message"
-	message="."
-	sleep 1
+        if [ -e "$file_or_dev" ]; then
+            if [ "$message" = "." ]; then
+                echo "[OK]"
+            else
+                echo "Found $file_or_dev"
+            fi
+            break
+        fi
+        echo -n "$message"
+        message="."
+        sleep 1
     done
     if [ $tries -ge 15 ]; then
-	echo "[FAIL]"
-	return 1
+        echo "[FAIL]"
+        return 1
     fi
     return 0
 }
@@ -68,7 +68,7 @@ setup_usb_export() {
     local export_name="$2"
     wait_for_storage "$storage_export" || return 1
     if [ -e /sys/kernel/config/usb_gadget/l4t ]; then
-	gadget-vid-pid-remove 1d6b:104
+        gadget-vid-pid-remove 1d6b:104
     fi
     sed -e"s,@SERIALNUMBER@,$sernum," -e"s,@STORAGE_EXPORT@,$storage_export," /etc/initrd-flash/initrd-flash.scheme.in > /run/initrd-flash.scheme
     chmod 0644 /run/initrd-flash.scheme
@@ -76,7 +76,7 @@ setup_usb_export() {
     printf "%-8s%-16s" "$export_name" "$sernum" > /sys/kernel/config/usb_gadget/l4t/functions/mass_storage.l4t_storage/lun.0/inquiry_string
     echo "$UDC" > /sys/kernel/config/usb_gadget/l4t/UDC
     if [ -e /sys/class/usb_role/usb2-0-role-switch/role ]; then
-	echo "device" > /sys/class/usb_role/usb2-0-role-switch/role
+        echo "device" > /sys/class/usb_role/usb2-0-role-switch/role
     fi
     echo "Exported $storage_export as $export_name"
     return 0
@@ -87,17 +87,17 @@ wait_for_connect() {
     local count=0
     echo -n "Waiting for host to connect..."
     while true; do
-	configured=$(cat /sys/class/udc/$UDC/state)
-	if [ "$configured" = "configured" ]; then
-	    echo "[connected]"
-	    break
-	fi
-	sleep 1
-	count=$(expr $count \+ 1)
-	if [ $count -ge 5 ]; then
-	    echo -n "."
-	    count=0
-	fi
+        configured=$(cat /sys/class/udc/$UDC/state)
+        if [ "$configured" = "configured" ]; then
+            echo "[connected]"
+            break
+        fi
+        sleep 1
+        count=$(expr $count \+ 1)
+        if [ $count -ge 5 ]; then
+            echo -n "."
+            count=0
+        fi
     done
     return 0
 }
@@ -107,17 +107,17 @@ wait_for_disconnect() {
     local count=0
     echo -n "Waiting for host to disconnect..."
     while true; do
-	configured=$(cat /sys/class/udc/$UDC/state)
-	if [ "$configured" != "configured" ]; then
-	    echo "[disconnected]"
-	    break
-	fi
-	sleep 1
-	count=$(expr $count \+ 1)
-	if [ $count -ge 5 ]; then
-	    echo -n "."
-	    count=0
-	fi
+        configured=$(cat /sys/class/udc/$UDC/state)
+        if [ "$configured" != "configured" ]; then
+            echo "[disconnected]"
+            break
+        fi
+        sleep 1
+        count=$(expr $count \+ 1)
+        if [ $count -ge 5 ]; then
+            echo -n "."
+            count=0
+        fi
     done
     echo "" > /sys/kernel/config/usb_gadget/l4t/UDC
     return 0
@@ -142,9 +142,9 @@ get_flash_package() {
 process_bootloader_package() {
     rm -f /run/bootloader-status
     if program-boot-device /tmp/flashpkg/flashpkg/bootloader; then
-	echo "SUCCESS" > /run/bootloader-status
+        echo "SUCCESS" > /run/bootloader-status
     else
-	echo "FAILED" > /run/bootloader-status
+        echo "FAILED" > /run/bootloader-status
     fi
 }
 
@@ -167,77 +167,77 @@ if [ ! -e /tmp/flashpkg/flashpkg/conf/command_sequence ]; then
 else
     exit_early=
     while read cmd args; do
-	[ -z "$exit_early" ] || break
-	echo "Processing: $cmd $args"
-	case "$cmd" in
-	    bootloader)
-		process_bootloader_package 2>&1 > /tmp/flashpkg/flashpkg/logs/bootloader.log &
-		wait_for_bootloader=yes
-		;;
-	    extra-pre-wipe)
-		if [ -f "/init-extra-pre-wipe" ]; then
-		    ./init-extra-pre-wipe
-		else
-		    echo "No init-extra-pre-wipe was found" >&2
-		fi
-		;;
-	    erase-mmc)
-		if [ -b /dev/mmcblk0 ]; then
-		    blkdiscard -f /dev/mmcblk0 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
-		else
-		    echo "/dev/mmcblk0 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
-		fi
-		;;
-	    erase-nvme)
-		if [ -b /dev/nvme0n1 ]; then
-		    blkdiscard -f /dev/nvme0n1 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-nvme.log
-		else
-		    echo "/dev/nvme0n1 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-nvme.log
-		fi
-		;;
-	    export-devices)
-		for dev in $args; do
-		    if setup_usb_export /dev/$dev $dev 2>&1 > /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
-			if wait_for_connect 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
-			    if wait_for_disconnect 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
-				sgdisk /dev/$dev --verify 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log
-				sgdisk /dev/$dev --print 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log
-				continue
-			    fi
-			fi
-		    fi
-		    echo "Export of $dev failed" >&2
-		    exit_early=yes
-		    break
-		done
-		;;
-	    extra)
-		if [ -f "/init-extra" ]; then
-		    ./init-extra
-		else
-		    echo "No init-extra was found" >&2
-		fi
-		;;
-	    reboot)
-		reboot_type="$args"
-		final_status="SUCCESS"
-		# reboot command is expected to be the last in the sequence, if present
-		break
-		;;
-	    *)
-		echo "Unrecognized command: $cmd $args" > /tmp/flashpkg/flashpkg/logs/commandloop.log
-		exit_early="yes"
-		;;
-	esac
+        [ -z "$exit_early" ] || break
+        echo "Processing: $cmd $args"
+        case "$cmd" in
+            bootloader)
+                process_bootloader_package 2>&1 > /tmp/flashpkg/flashpkg/logs/bootloader.log &
+                wait_for_bootloader=yes
+                ;;
+            extra-pre-wipe)
+                if [ -f "/init-extra-pre-wipe" ]; then
+                    ./init-extra-pre-wipe
+                else
+                    echo "No init-extra-pre-wipe was found" >&2
+                fi
+                ;;
+            erase-mmc)
+                if [ -b /dev/mmcblk0 ]; then
+                    blkdiscard -f /dev/mmcblk0 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
+                else
+                    echo "/dev/mmcblk0 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
+                fi
+                ;;
+            erase-nvme)
+                if [ -b /dev/nvme0n1 ]; then
+                    blkdiscard -f /dev/nvme0n1 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-nvme.log
+                else
+                    echo "/dev/nvme0n1 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-nvme.log
+                fi
+                ;;
+            export-devices)
+                for dev in $args; do
+                    if setup_usb_export /dev/$dev $dev 2>&1 > /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
+                        if wait_for_connect 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
+                            if wait_for_disconnect 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
+                                sgdisk /dev/$dev --verify 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log
+                                sgdisk /dev/$dev --print 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log
+                                continue
+                            fi
+                        fi
+                    fi
+                    echo "Export of $dev failed" >&2
+                    exit_early=yes
+                    break
+                done
+                ;;
+            extra)
+                if [ -f "/init-extra" ]; then
+                    ./init-extra
+                else
+                    echo "No init-extra was found" >&2
+                fi
+                ;;
+            reboot)
+                reboot_type="$args"
+                final_status="SUCCESS"
+                # reboot command is expected to be the last in the sequence, if present
+                break
+                ;;
+            *)
+                echo "Unrecognized command: $cmd $args" > /tmp/flashpkg/flashpkg/logs/commandloop.log
+                exit_early="yes"
+                ;;
+        esac
     done < /tmp/flashpkg/flashpkg/conf/command_sequence
 fi
 
 if [ -n "$wait_for_bootloader" ]; then
     message="Waiting for boot device programming to complete..."
     while [ ! -e /run/bootloader-status ]; do
-	echo -n "$message"
-	message="."
-	sleep 1
+        echo -n "$message"
+        message="."
+        sleep 1
     done
     blstatus=$(cat /run/bootloader-status)
     if [ "$blstatus" = "FAILED" ]; then

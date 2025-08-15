@@ -43,16 +43,16 @@ inherit nopackages
 deltask do_build
 
 do_configure:prepend () {
-	install -d ${STAGING_INCDIR}
-	touch ${STAGING_INCDIR}/limits.h
-	sed -i -e 's#INHIBIT_LIBC_CFLAGS =.*#INHIBIT_LIBC_CFLAGS = -Dinhibit_libc#' ${B}/gcc/libgcc.mvars
-	sed -i -e 's#inhibit_libc = false#inhibit_libc = true#' ${B}/gcc/Makefile
+    install -d ${STAGING_INCDIR}
+    touch ${STAGING_INCDIR}/limits.h
+    sed -i -e 's#INHIBIT_LIBC_CFLAGS =.*#INHIBIT_LIBC_CFLAGS = -Dinhibit_libc#' ${B}/gcc/libgcc.mvars
+    sed -i -e 's#inhibit_libc = false#inhibit_libc = true#' ${B}/gcc/Makefile
 }
 
 do_configure:append () {
-	sed -i -e 's#thread_header = .*#thread_header = gthr-single.h#' ${B}/${BPN}/Makefile
+    sed -i -e 's#thread_header = .*#thread_header = gthr-single.h#' ${B}/${BPN}/Makefile
 }
 
 do_install:append () {
-	ln -s libgcc.a ${D}${libdir}/${TARGET_SYS}/${BINV}/libgcc_eh.a
+    ln -s libgcc.a ${D}${libdir}/${TARGET_SYS}/${BINV}/libgcc_eh.a
 }

@@ -31,15 +31,15 @@ functions :
         type = "mass_storage";
         attrs :
         {
-	    stall = true;
-	    luns = (
-	        {
-		    cdrom = false;
-		    ro = false;
-		    nofua = false;
-		    removable = true;
-		    file = "@STORAGE_EXPORT@";
-		});
+            stall = true;
+            luns = (
+                {
+                    cdrom = false;
+                    ro = false;
+                    nofua = false;
+                    removable = true;
+                    file = "@STORAGE_EXPORT@";
+                });
         };
         os_descs = ( );
     };

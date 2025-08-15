@@ -6,7 +6,7 @@ DEVSUM = "c97e77cef8833c13207ddaed119201434b643267be7c08f7e7f735467f7ec15b"
 DEVSUM:x86-64 = "d6eb66ba9113c075b7f62ee9e091413f6d6e1d717e4e22b80d0ca3bed302450a"
 
 do_compile:prepend() {
-	rm -rf ${B}/usr/local/cuda-${CUDA_VERSION}/res
+    rm -rf ${B}/usr/local/cuda-${CUDA_VERSION}/res
 }
 
 FILES:${PN} += "${prefix}/local/cuda-${CUDA_VERSION}/res"

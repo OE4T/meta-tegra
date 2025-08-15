@@ -26,7 +26,7 @@ install_libraries() {
     install -d ${D}${libdir}
     for f in ${TEGRA_LIBRARIES_TO_INSTALL}; do
         fbasename=$(basename "$f")
-	install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/$f ${D}${libdir}/$fbasename
+        install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/$f ${D}${libdir}/$fbasename
     done
 }
 

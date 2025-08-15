@@ -33,8 +33,8 @@ do_compile() {
     . ./flashvars
     tegraflash_custom_sign_bup
     for bup in ${B}/bup-payload/${BUP_PAYLOAD_DIR}/*; do
-	    [ -e $bup ] || continue
-	    BUP_generator.py --contents --check $bup
+        [ -e $bup ] || continue
+        BUP_generator.py --contents --check $bup
     done
     mv ${B}/bup-payload/${BUP_PAYLOAD_DIR}/* .
     cd "$oldwd"

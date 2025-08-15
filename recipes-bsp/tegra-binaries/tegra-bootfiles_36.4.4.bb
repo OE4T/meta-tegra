@@ -23,7 +23,7 @@ prepare_badpage_mapfile()  {
         dd if=/dev/zero of="badpage.bin" bs=${BADPAGE_SIZE} count=1;
     else
         echo "reusing existing ${S}/bootloader/badpage.bin"
-	cp ${S}/bootloader/badpage.bin ${B}
+        cp ${S}/bootloader/badpage.bin ${B}
         # Clear BCH Header
         dd if=/dev/zero of="badpage.bin" bs=${BADPAGE_SIZE} seek=0 count=1;
     fi
@@ -53,16 +53,16 @@ do_install() {
 
 install_other_boot_firmware_files() {
     case "${SOC_FAMILY}" in
-	tegra234)
-	    install -m 0644 ${S}/bootloader/tegra234-*.dts* ${D}${datadir}/tegraflash/
-	    install -m 0644 ${S}/bootloader/fuse_t234.xml ${D}${datadir}/tegraflash/
-	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra234-bpmp-*.dtb ${D}${datadir}/tegraflash/
-	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra234* ${D}${datadir}/tegraflash/
-	    install -m 0644 ${S}/bootloader/bpmp_t234-*.bin ${D}${datadir}/tegraflash/
-	    ;;
-	*)
-	    bberror "Unrecognized SOC_FAMILY: ${SOC_FAMILY}"
-	    ;;
+        tegra234)
+            install -m 0644 ${S}/bootloader/tegra234-*.dts* ${D}${datadir}/tegraflash/
+            install -m 0644 ${S}/bootloader/fuse_t234.xml ${D}${datadir}/tegraflash/
+            install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra234-bpmp-*.dtb ${D}${datadir}/tegraflash/
+            install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra234* ${D}${datadir}/tegraflash/
+            install -m 0644 ${S}/bootloader/bpmp_t234-*.bin ${D}${datadir}/tegraflash/
+            ;;
+        *)
+            bberror "Unrecognized SOC_FAMILY: ${SOC_FAMILY}"
+            ;;
     esac
     install -m 0644 ${B}/badpage.bin ${D}${datadir}/tegraflash/
 }

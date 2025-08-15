@@ -39,24 +39,24 @@ do_configure() {
 do_compile() {
     for winsys in egldevice ${PACKAGECONFIG}; do
         cflags="-std=gnu17 -isystem${S}/include -I${S}/nvgldemo -I${S}/nvtexfont -I${S}/gears-lib -I=${includedir}/libdrm/nvidia"
-	ldflags="-ldl"
-	extra=
+        ldflags="-ldl"
+        extra=
         case $winsys in
-	    egldevice)
-	        cflags="$cflags -DEGL_NO_X11 `pkg-config --cflags libdrm`"
-		ldflags="$ldflags `pkg-config --libs libdrm`"
-		;;
+            egldevice)
+                cflags="$cflags -DEGL_NO_X11 `pkg-config --cflags libdrm`"
+                ldflags="$ldflags `pkg-config --libs libdrm`"
+                ;;
             x11)
-	        cflags="$cflags -DX11 `pkg-config --cflags x11`"
+                cflags="$cflags -DX11 `pkg-config --cflags x11`"
                 ldflags="$ldflags `pkg-config --libs x11`"
-		;;
-	    wayland)
-	        cflags="$cflags -DEGL_NO_X11 -DWAYLAND `pkg-config --cflags xkbcommon wayland-client wayland-egl libffi libdrm`"
-		ldflags="$ldflags -lnvbufsurface `pkg-config --libs xkbcommon wayland-client wayland-egl libffi`"
-		extra=weston-dmabuf-formats
-		;;
-	esac
-	for demo in bubble ctree eglstreamcube gears-lib gears-basic gears-cube $extra; do
+                ;;
+            wayland)
+                cflags="$cflags -DEGL_NO_X11 -DWAYLAND `pkg-config --cflags xkbcommon wayland-client wayland-egl libffi libdrm`"
+                ldflags="$ldflags -lnvbufsurface `pkg-config --libs xkbcommon wayland-client wayland-egl libffi`"
+                extra=weston-dmabuf-formats
+                ;;
+        esac
+        for demo in bubble ctree eglstreamcube gears-lib gears-basic gears-cube $extra; do
             oe_runmake -C $demo $mflags NV_WINSYS=$winsys CC="${CC}" CXX="${CXX}" LD="${CC}" AR="${AR}" NV_PLATFORM_LDFLAGS="${LDFLAGS}" NV_PLATFORM_OPT="${CFLAGS}" NV_PLATFORM_SDK_LIB="" NV_PLATFORM_SDK_INC="$cflags" NV_PLATFORM_WINSYS_LIBS="$ldflags"
         done
     done
@@ -67,13 +67,13 @@ do_install() {
     for winsys in egldevice ${PACKAGECONFIG}; do
         install -d ${D}${bindir}/${BPN}/$winsys
         for demo in bubble ctree eglstreamcube; do
-	    install -m 0755 ${B}/$demo/$winsys/$demo ${D}${bindir}/${BPN}/$winsys/
+            install -m 0755 ${B}/$demo/$winsys/$demo ${D}${bindir}/${BPN}/$winsys/
         done
-	install -m 0755 ${B}/gears-basic/$winsys/gears ${D}${bindir}/${BPN}/$winsys/
-	install -m 0755 ${B}/gears-cube/$winsys/gearscube ${D}${bindir}/${BPN}/$winsys/
-	if [ "$winsys" = "wayland" ]; then
-	    install -m 0755 ${B}/weston-dmabuf-formats/$winsys/weston-dmabuf-formats ${D}${bindir}/${BPN}/$winsys/
-	fi
+        install -m 0755 ${B}/gears-basic/$winsys/gears ${D}${bindir}/${BPN}/$winsys/
+        install -m 0755 ${B}/gears-cube/$winsys/gearscube ${D}${bindir}/${BPN}/$winsys/
+        if [ "$winsys" = "wayland" ]; then
+            install -m 0755 ${B}/weston-dmabuf-formats/$winsys/weston-dmabuf-formats ${D}${bindir}/${BPN}/$winsys/
+        fi
     done
 }
 

@@ -143,55 +143,55 @@ do_compile () {
     remove_sysroot_paths_from_configargs '/'
     remove_sysroot_paths_from_checksum_options '${STAGING_DIR_TARGET}' '/'
 
-	oe_runmake all-host
+    oe_runmake all-host
 }
 
 do_install () {
-	oe_runmake 'DESTDIR=${D}' install-host
+    oe_runmake 'DESTDIR=${D}' install-host
 
-	# Add unwind.h, it comes from libgcc which we don't want to build again
-	install ${STAGING_LIBDIR_NATIVE}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/include/unwind.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
+    # Add unwind.h, it comes from libgcc which we don't want to build again
+    install ${STAGING_LIBDIR_NATIVE}/${TARGET_SYS}/gcc/${TARGET_SYS}/${BINV}/include/unwind.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
 
-	# Info dir listing isn't interesting at this point so remove it if it exists.
-	if [ -e "${D}${infodir}/dir" ]; then
-		rm -f ${D}${infodir}/dir
-	fi
+    # Info dir listing isn't interesting at this point so remove it if it exists.
+    if [ -e "${D}${infodir}/dir" ]; then
+        rm -f ${D}${infodir}/dir
+    fi
 
-	# Cleanup some of the ${libdir}{,exec}/gcc stuff ...
-	rm -r ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/install-tools
-	rm -r ${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/install-tools
-	rm -rf ${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/*.la
-	rmdir ${D}${includedir}
-	rm -rf ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude
+    # Cleanup some of the ${libdir}{,exec}/gcc stuff ...
+    rm -r ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/install-tools
+    rm -r ${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/install-tools
+    rm -rf ${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/*.la
+    rmdir ${D}${includedir}
+    rm -rf ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude
 
-	# Hack around specs file assumptions
-	test -f ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/specs && sed -i -e '/^*cross_compile:$/ { n; s/1/0/; }' ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/specs
+    # Hack around specs file assumptions
+    test -f ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/specs && sed -i -e '/^*cross_compile:$/ { n; s/1/0/; }' ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/specs
 
-	# Cleanup manpages..
-	rm -rf ${D}${mandir}/man7
+    # Cleanup manpages..
+    rm -rf ${D}${mandir}/man7
 
-	# Don't package details about the build host
-	rm -f ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/plugin/include/auto-build.h
-	rm -f ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/plugin/include/bconfig.h
+    # Don't package details about the build host
+    rm -f ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/plugin/include/auto-build.h
+    rm -f ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/plugin/include/bconfig.h
 
-	cd ${D}${bindir}
+    cd ${D}${bindir}
 
-	# We care about g++ not c++
-	rm -f *c++*
+    # We care about g++ not c++
+    rm -f *c++*
 
-	# Not sure why we end up with these but we don't want them...
-	rm -f ${TARGET_PREFIX}${TARGET_PREFIX}*
+    # Not sure why we end up with these but we don't want them...
+    rm -f ${TARGET_PREFIX}${TARGET_PREFIX}*
 
-	ln -sf ${TARGET_PREFIX}g++-${BINV} g++-${BINV}
-	ln -sf ${TARGET_PREFIX}gcc-${BINV} gcc-${BINV}
-	ln -sf ${TARGET_PREFIX}cpp-${BINV} cpp-${BINV}
-	ln -sf ${TARGET_PREFIX}gcov-${BINV} gcov-${BINV}
-	ln -sf ${TARGET_PREFIX}gcov-tool-${BINV} gcov-tool-${BINV}
-	ln -sf g++-${BINV} c++-${BINV}
-	ln -sf gcc-${BINV} cc-${BINV}
-	chown -R root:root ${D}
+    ln -sf ${TARGET_PREFIX}g++-${BINV} g++-${BINV}
+    ln -sf ${TARGET_PREFIX}gcc-${BINV} gcc-${BINV}
+    ln -sf ${TARGET_PREFIX}cpp-${BINV} cpp-${BINV}
+    ln -sf ${TARGET_PREFIX}gcov-${BINV} gcov-${BINV}
+    ln -sf ${TARGET_PREFIX}gcov-tool-${BINV} gcov-tool-${BINV}
+    ln -sf g++-${BINV} c++-${BINV}
+    ln -sf gcc-${BINV} cc-${BINV}
+    chown -R root:root ${D}
 
-	cleanup_installed_include_fixed
+    cleanup_installed_include_fixed
 }
 
 # Installing /usr/lib/gcc/* means we'd have two copies, one from gcc-cross

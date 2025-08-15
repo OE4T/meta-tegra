@@ -45,28 +45,28 @@ export WINDRES_FOR_TARGET = "${TARGET_PREFIX}windres"
 export ARCH_FLAGS_FOR_TARGET = "--sysroot=${STAGING_DIR_TARGET}"
 
 do_configure () {
-        if [ ! -d ${RECIPE_SYSROOT}/${target_includedir} ]; then
-            mkdir -p ${RECIPE_SYSROOT}/${target_includedir}
-        fi
-	export CC_FOR_BUILD="${BUILD_CC}"
-	export CXX_FOR_BUILD="${BUILD_CXX}"
-	export CFLAGS_FOR_BUILD="${BUILD_CFLAGS}"
-	export CPPFLAGS_FOR_BUILD="${BUILD_CPPFLAGS}"
-	export CXXFLAGS_FOR_BUILD="${BUILD_CXXFLAGS}"
-	export LDFLAGS_FOR_BUILD="${BUILD_LDFLAGS}"
-	export CFLAGS_FOR_TARGET="${TARGET_CFLAGS}"
-	export CPPFLAGS_FOR_TARGET="${TARGET_CPPFLAGS}"
-	export CXXFLAGS_FOR_TARGET="${TARGET_CXXFLAGS}"
-	export LDFLAGS_FOR_TARGET="${TARGET_LDFLAGS}"
-	oe_runconf
+    if [ ! -d ${RECIPE_SYSROOT}/${target_includedir} ]; then
+        mkdir -p ${RECIPE_SYSROOT}/${target_includedir}
+    fi
+    export CC_FOR_BUILD="${BUILD_CC}"
+    export CXX_FOR_BUILD="${BUILD_CXX}"
+    export CFLAGS_FOR_BUILD="${BUILD_CFLAGS}"
+    export CPPFLAGS_FOR_BUILD="${BUILD_CPPFLAGS}"
+    export CXXFLAGS_FOR_BUILD="${BUILD_CXXFLAGS}"
+    export LDFLAGS_FOR_BUILD="${BUILD_LDFLAGS}"
+    export CFLAGS_FOR_TARGET="${TARGET_CFLAGS}"
+    export CPPFLAGS_FOR_TARGET="${TARGET_CPPFLAGS}"
+    export CXXFLAGS_FOR_TARGET="${TARGET_CXXFLAGS}"
+    export LDFLAGS_FOR_TARGET="${TARGET_LDFLAGS}"
+    oe_runconf
 }
 
 do_compile () {
-	remove_sysroot_paths_from_configargs '/host'
-	remove_sysroot_paths_from_checksum_options '${STAGING_DIR_HOST}' '/host'
+    remove_sysroot_paths_from_configargs '/host'
+    remove_sysroot_paths_from_checksum_options '${STAGING_DIR_HOST}' '/host'
 
-	oe_runmake all-host configure-target-libgcc
-	(cd ${B}/${TARGET_SYS}/libgcc; oe_runmake enable-execute-stack.c unwind.h md-unwind-support.h sfp-machine.h gthr-default.h)
+    oe_runmake all-host configure-target-libgcc
+    (cd ${B}/${TARGET_SYS}/libgcc; oe_runmake enable-execute-stack.c unwind.h md-unwind-support.h sfp-machine.h gthr-default.h)
 }
 
 PACKAGES = "${PN}-dbg ${PN} ${PN}-doc"
@@ -100,79 +100,79 @@ EXEEXT = ""
 BINRELPATH = "${@os.path.relpath(d.expand("${bindir}"), d.expand("${libexecdir}/gcc/${TARGET_SYS}/${BINV}"))}"
 
 do_install () {
-	( cd ${B}/${TARGET_SYS}/libgcc; oe_runmake 'DESTDIR=${D}' install-unwind_h-forbuild install-unwind_h )
-	oe_runmake 'DESTDIR=${D}' install-host
+    ( cd ${B}/${TARGET_SYS}/libgcc; oe_runmake 'DESTDIR=${D}' install-unwind_h-forbuild install-unwind_h )
+    oe_runmake 'DESTDIR=${D}' install-host
 
-	# Cleanup some of the ${libdir}{,exec}/gcc stuff ...
-	rm -r ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/install-tools
-	rm -r ${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/install-tools
-	rm -rf ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude
+    # Cleanup some of the ${libdir}{,exec}/gcc stuff ...
+    rm -r ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/install-tools
+    rm -r ${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/install-tools
+    rm -rf ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/finclude
 
-	# We care about g++ not c++
-	rm -f ${D}${bindir}/*c++
+    # We care about g++ not c++
+    rm -f ${D}${bindir}/*c++
 
-	# We don't care about the gcc-<version> copies
-	rm -f ${D}${bindir}/*gcc-${BINV}*
+    # We don't care about the gcc-<version> copies
+    rm -f ${D}${bindir}/*gcc-${BINV}*
 
-	# Cleanup empty directories which are not shipped
-	# we use rmdir instead of 'rm -f' to ensure the non empty directories are not deleted
-	# ${D}${libdir}/../lib only seems to appear with SDKMACHINE=i686
-	local empty_dirs="${D}${libdir}/../lib ${D}${prefix}/${TARGET_SYS}/lib ${D}${prefix}/${TARGET_SYS} ${D}${includedir}"
-	for i in $empty_dirs; do
-		[ -d $i ] && rmdir --ignore-fail-on-non-empty $i
-	done
+    # Cleanup empty directories which are not shipped
+    # we use rmdir instead of 'rm -f' to ensure the non empty directories are not deleted
+    # ${D}${libdir}/../lib only seems to appear with SDKMACHINE=i686
+    local empty_dirs="${D}${libdir}/../lib ${D}${prefix}/${TARGET_SYS}/lib ${D}${prefix}/${TARGET_SYS} ${D}${includedir}"
+    for i in $empty_dirs; do
+        [ -d $i ] && rmdir --ignore-fail-on-non-empty $i
+    done
 
-	# Insert symlinks into libexec so when tools without a prefix are searched for, the correct ones are
-	# found.
-	dest=${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/
-	install -d $dest
-	suffix=${EXEEXT}
-	for t in ar as ld ld.bfd ld.gold nm objcopy objdump ranlib strip; do
-		if [ "$t" = "g77" -o "$t" = "gfortran" ] && [ ! -e ${D}${bindir}/${TARGET_PREFIX}$t$suffix ]; then
-			continue
-		fi
+    # Insert symlinks into libexec so when tools without a prefix are searched for, the correct ones are
+    # found.
+    dest=${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/
+    install -d $dest
+    suffix=${EXEEXT}
+    for t in ar as ld ld.bfd ld.gold nm objcopy objdump ranlib strip; do
+        if [ "$t" = "g77" -o "$t" = "gfortran" ] && [ ! -e ${D}${bindir}/${TARGET_PREFIX}$t$suffix ]; then
+            continue
+        fi
 
-		ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t$suffix $dest$t$suffix
-	done
-	for t in gcc cpp; do
-	    ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t-${BINV}$suffix $dest$t-${BINV}$suffix
-	done
-	t=real-ld
-	ln -sf ${BINRELPATH}/${TARGET_PREFIX}ld$suffix $dest$t$suffix
+        ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t$suffix $dest$t$suffix
+    done
+    for t in gcc cpp; do
+        ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t-${BINV}$suffix $dest$t-${BINV}$suffix
+    done
+    t=real-ld
+    ln -sf ${BINRELPATH}/${TARGET_PREFIX}ld$suffix $dest$t$suffix
 
-	# libquadmath headers need to  be available in the gcc libexec dir
-	install -d ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
-	cp ${S}/libquadmath/quadmath.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
-	cp ${S}/libquadmath/quadmath_weak.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
+    # libquadmath headers need to  be available in the gcc libexec dir
+    install -d ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
+    cp ${S}/libquadmath/quadmath.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
+    cp ${S}/libquadmath/quadmath_weak.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
 
-	chown -R root:root ${D}
+    chown -R root:root ${D}
 
-	cross_canadian_bindirlinks
+    cross_canadian_bindirlinks
 
-	for i in linux ${CANADIANEXTRAOS}
-	do
-		for v in ${CANADIANEXTRAVENDOR}
-		do
-			d=${D}${bindir}/../${TARGET_ARCH}$v-$i
-			install -d $d
-			for j in ${TARGET_PREFIX}gcc-${BINV}${EXEEXT} ${TARGET_PREFIX}g++-${BINV}${EXEEXT}
-			do
-				p=${TARGET_ARCH}$v-$i-`echo $j | sed -e s,${TARGET_PREFIX},,`
-				case $i in
-				*musl*)
-					rm -rf $d/$p
-					echo "#!/usr/bin/env sh" > $d/$p
-					echo "exec \`dirname \$0\`/../${TARGET_SYS}/$j -mmusl \$@" >> $d/$p
-					chmod 0755 $d/$p
-					;;
-				*)
-					;;
-				esac
-			done
-		done
-	done
+    for i in linux ${CANADIANEXTRAOS}
+    do
+        for v in ${CANADIANEXTRAVENDOR}
+        do
+            d=${D}${bindir}/../${TARGET_ARCH}$v-$i
+            install -d $d
+            for j in ${TARGET_PREFIX}gcc-${BINV}${EXEEXT} ${TARGET_PREFIX}g++-${BINV}${EXEEXT}
+            do
+                p=${TARGET_ARCH}$v-$i-`echo $j | sed -e s,${TARGET_PREFIX},,`
+                case $i in
+                *musl*)
+                    rm -rf $d/$p
+                    echo "#!/usr/bin/env sh" > $d/$p
+                    echo "exec \`dirname \$0\`/../${TARGET_SYS}/$j -mmusl \$@" >> $d/$p
+                    chmod 0755 $d/$p
+                    ;;
+                *)
+                    ;;
+                esac
+            done
+        done
+    done
 
-	cleanup_installed_include_fixed
+    cleanup_installed_include_fixed
 }
 
 ELFUTILS = "nativesdk-elfutils"

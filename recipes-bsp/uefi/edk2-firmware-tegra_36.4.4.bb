@@ -78,8 +78,8 @@ do_deploy() {
     install -d ${DEPLOYDIR}
     install -m 0644 ${B}/images/${EDK2_BIN_NAME} ${DEPLOYDIR}/
     for dtb in ${TEGRA_BOOTCONTROL_OVERLAYS} L4TConfiguration-rcmboot.dtbo; do
-	[ -e ${B}/images/$dtb ] || continue
-	install -m 0644 ${B}/images/$dtb ${DEPLOYDIR}/
+        [ -e ${B}/images/$dtb ] || continue
+        install -m 0644 ${B}/images/$dtb ${DEPLOYDIR}/
     done
 }
 do_deploy[depends] += "${@'l4t-launcher-rootfs-ab-config:do_deploy' if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else ''}"

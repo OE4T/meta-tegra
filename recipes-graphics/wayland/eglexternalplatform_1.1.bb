@@ -8,14 +8,14 @@ SRC_URI = "git://github.com/NVIDIA/eglexternalplatform.git;protocol=https;branch
 SRCREV = "7c8f8e2218e46b1a4aa9538520919747f1184d86"
 
 do_compile() {
-	:
+    :
 }
 
 do_install() {
-	install -d ${D}${includedir}
-	install -m 0644 ${S}/interface/*.h ${D}${includedir}/
-	install -d ${D}${datadir}/pkgconfig
-	install -m 0644 ${S}/eglexternalplatform.pc ${D}${datadir}/pkgconfig/
+    install -d ${D}${includedir}
+    install -m 0644 ${S}/interface/*.h ${D}${includedir}/
+    install -d ${D}${datadir}/pkgconfig
+    install -m 0644 ${S}/eglexternalplatform.pc ${D}${datadir}/pkgconfig/
 }
 
 ALLOW_EMPTY:${PN} = "1"

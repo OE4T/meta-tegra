@@ -2,7 +2,7 @@ DESCRIPTION = "Out-of-tree kernel modules and device trees for Jetson Linux plat
 LICENSE = "GPL-2.0-only & BSD-3-Clause & (MIT | GPL-2.0-only)"
 LIC_FILES_CHKSUM = "file://nvdisplay/COPYING;md5=1d5fa2a493e937d5a4b96e5e03b90f7c \
                     file://Makefile;beginline=2;endline=2;md5=a670216ac93e92dc066b1a876610705f \
-		    file://nvidia-oot/Makefile;endline=1;md5=daad6f7f7a0a286391cd7773ccf79340"
+                    file://nvidia-oot/Makefile;endline=1;md5=daad6f7f7a0a286391cd7773ccf79340"
 
 TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 

@@ -21,9 +21,9 @@ set_efi_var() {
     fi
     local datatmp
     if [ -n "$RUNTIME_DIRECTORY" ]; then
-	datatmp=$(TMPDIR=$RUNTIME_DIRECTORY mktemp --tmpdir nvcvar.XXXXXX)
+        datatmp=$(TMPDIR=$RUNTIME_DIRECTORY mktemp --tmpdir nvcvar.XXXXXX)
     else
-	datatmp=$(mktemp)
+        datatmp=$(mktemp)
     fi
     printf "%b" "$value" > "$datatmp"
     efivar -w -f "$datatmp" -n "${guid}-$varname"

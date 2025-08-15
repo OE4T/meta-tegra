@@ -187,10 +187,10 @@ tegraflash_create_flash_config() {
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
         -e"s,APPUUID_b,," -e"s,APPUUID,," \
-	-e"s,ESP_FILE,${ESP_FILE}," -e"/VARSTORE_FILE/d" \
-	-e"s,EXT_NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
-	-e"s,INT_NUM_SECTORS,${TEGRA_INTERNAL_DEVICE_SECTORS}," \
-	"$infile" \
+        -e"s,ESP_FILE,${ESP_FILE}," -e"/VARSTORE_FILE/d" \
+        -e"s,EXT_NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
+        -e"s,INT_NUM_SECTORS,${TEGRA_INTERNAL_DEVICE_SECTORS}," \
+        "$infile" \
         > "$destfile"
 }
 
@@ -200,10 +200,10 @@ copy_dtbs() {
     if [ -n "${EXTERNAL_KERNEL_DEVICETREE}" ]; then
         for dtbcand in ${KERNEL_DEVICETREE}; do
             dtb=$(find "${EXTERNAL_KERNEL_DEVICETREE}" -name "$(basename $dtbcand)" -printf '%P' 2>/dev/null)
-	    if [ -z "$dtb" ]; then
-	        bbwarn "Not found in ${EXTERNAL_KERNEL_DEVICETREE}: $dtbcand"
-		continue
-	    fi
+            if [ -z "$dtb" ]; then
+                bbwarn "Not found in ${EXTERNAL_KERNEL_DEVICETREE}: $dtbcand"
+                continue
+            fi
             dtbf=`basename $dtb`
             if [ -e $destination/$dtbf ]; then
                 bbnote "Overwriting $destination/$dtbf with EXTERNAL_KERNEL_DEVICETREE content"
@@ -211,12 +211,12 @@ copy_dtbs() {
             fi
             bbnote "Copying EXTERNAL_KERNEL_DEVICETREE entry $dtb to $destination"
             cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$dtb" $destination/$dtbf
-	    if ${TEGRA_UEFI_USE_SIGNED_FILES}; then
+            if ${TEGRA_UEFI_USE_SIGNED_FILES}; then
                 cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$dtb.signed" $destination/$dtbf.signed
-	    fi
+            fi
         done
     else
-	for dtb in ${KERNEL_DEVICETREE}; do
+        for dtb in ${KERNEL_DEVICETREE}; do
             dtbf=`basename $dtb`
             if [ -e $destination/$dtbf ]; then
             bbnote "Overwriting $destination/$dtbf with KERNEL_DEVICETREE content"
@@ -224,10 +224,10 @@ copy_dtbs() {
             fi
             bbnote "Copying KERNEL_DEVICETREE entry $dtbf to $destination"
             cp -L "${DEPLOY_DIR_IMAGE}/$dtbf" $destination/$dtbf
-	    if ${TEGRA_UEFI_USE_SIGNED_FILES}; then
+            if ${TEGRA_UEFI_USE_SIGNED_FILES}; then
             cp -L "${DEPLOY_DIR_IMAGE}/$dtbf.signed" $destination/$dtbf.signed
-	    fi
-	done
+            fi
+        done
     fi
 }
 
@@ -246,14 +246,14 @@ copy_dtb_overlays() {
         dtbf=`basename $dtb`
         if [ -n "${EXTERNAL_KERNEL_DEVICETREE}" ]; then
             local extdtb=$(find "${EXTERNAL_KERNEL_DEVICETREE}" -name $dtbf -printf '%P' 2>/dev/null)
-	    if [ -n "$extdtb" ]; then
-	        bbnote "Copying external overlay $extdtb to $destination"
-		cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$extdtb" $destination/$dtbf
-		continue
-	    fi
-	fi
-	bbnote "Copying overlay $dtb to $destination"
-	cp -L "${DEPLOY_DIR_IMAGE}/$dtb" $destination/$dtbf
+            if [ -n "$extdtb" ]; then
+                bbnote "Copying external overlay $extdtb to $destination"
+                cp -L "${EXTERNAL_KERNEL_DEVICETREE}/$extdtb" $destination/$dtbf
+                continue
+            fi
+        fi
+        bbnote "Copying overlay $dtb to $destination"
+        cp -L "${DEPLOY_DIR_IMAGE}/$dtb" $destination/$dtbf
     done
 }
 
@@ -294,10 +294,10 @@ tegraflash_populate_package() {
     copy_dtb_overlays . $bcos
     if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
         cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* .
-	if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
-	    rm -f ./initrd-flash
-	fi
-	if [ -d rollback ]; then
+        if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
+            rm -f ./initrd-flash
+        fi
+        if [ -d rollback ]; then
             mv rollback_parser.py ./rollback/
         else
             rm -f rollback_parser.py
@@ -342,7 +342,7 @@ END
 
     if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         rm -f .env.initrd-flash
-	cat > .env.initrd-flash <<END
+        cat > .env.initrd-flash <<END
 FLASH_HELPER=tegra-flash-helper.sh
 BOOTDEV="${TNSPEC_BOOTDEV}"
 ROOTFS_DEVICE="${ROOTFS_DEVICE_FOR_INITRD_FLASH}"

@@ -22,9 +22,9 @@ def arch_flags(d):
 
 do_compile() {
     sed -e"s!@CUDA_NVCC_ARCH_FLAGS@!${CUDA_NVCC_ARCH_FLAGS}!" \
-	-e"s!@ARCHFLAGS@!${@arch_flags(d)}!" \
-	-e"s!@CUDA_ARCHITECTURES@!${CMAKE_CUDA_ARCHITECTURES}!" \
-	-e"s!@COMPILER_CMD@!${COMPILER_CMD}!" ${S}/cuda_target.sh.in > ${B}/cuda_target.sh
+        -e"s!@ARCHFLAGS@!${@arch_flags(d)}!" \
+        -e"s!@CUDA_ARCHITECTURES@!${CMAKE_CUDA_ARCHITECTURES}!" \
+        -e"s!@COMPILER_CMD@!${COMPILER_CMD}!" ${S}/cuda_target.sh.in > ${B}/cuda_target.sh
 }
 
 do_install() {

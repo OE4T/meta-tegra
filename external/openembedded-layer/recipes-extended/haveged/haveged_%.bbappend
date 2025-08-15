@@ -10,9 +10,9 @@ SRC_URI:append:tegra = " ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'fil
 
 do_install:append:tegra() {
     if ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'true', 'false', d)}; then
-	install -d ${D}${systemd_system_unitdir}
-	install -m 0644 ${UNPACKDIR}/haveged.service ${D}${systemd_system_unitdir}/haveged.service
-	sed -i -e "s,@SBIN_DIR@,${sbindir},g" ${D}${systemd_system_unitdir}/haveged.service
+        install -d ${D}${systemd_system_unitdir}
+        install -m 0644 ${UNPACKDIR}/haveged.service ${D}${systemd_system_unitdir}/haveged.service
+        sed -i -e "s,@SBIN_DIR@,${sbindir},g" ${D}${systemd_system_unitdir}/haveged.service
     fi
 }
 

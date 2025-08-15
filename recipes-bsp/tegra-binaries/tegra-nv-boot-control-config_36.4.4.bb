@@ -7,7 +7,7 @@ OTABOOTDEV ??= "/dev/mmcblk0boot0"
 OTAGPTDEV ??= "/dev/mmcblk0boot1"
 
 do_compile() {
-	cat > ${B}/nv_boot_control.template <<EOF
+    cat > ${B}/nv_boot_control.template <<EOF
 TNSPEC @TNSPEC@
 COMPATIBLE_SPEC @COMPATIBLE_SPEC@
 TEGRA_BOOT_STORAGE @BOOT_STORAGE@
@@ -19,9 +19,9 @@ EOF
 }
 
 do_install() {
-	install -d ${D}${sysconfdir}
-	install -m 0644 ${B}/nv_boot_control.template ${D}${sysconfdir}/
-	ln -sf /run/nv_boot_control/nv_boot_control.conf ${D}${sysconfdir}/
+    install -d ${D}${sysconfdir}
+    install -m 0644 ${B}/nv_boot_control.template ${D}${sysconfdir}/
+    ln -sf /run/nv_boot_control/nv_boot_control.conf ${D}${sysconfdir}/
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"

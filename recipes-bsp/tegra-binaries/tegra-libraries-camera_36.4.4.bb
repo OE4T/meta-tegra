@@ -55,7 +55,7 @@ do_install() {
     cp -R ${B}/var/nvidia ${D}${localstatedir}/
     if ${@bb.utils.contains('PACKAGECONFIG', 'x11', 'true', 'false', d)}; then
         install -d ${D}${libdir}/libv4l/plugins/
-	install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/libv4l2_nvargus.so ${D}${libdir}/libv4l/plugins/
+        install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/libv4l2_nvargus.so ${D}${libdir}/libv4l/plugins/
     fi
     install -d ${D}${sbindir}
     install -m755 ${B}/usr/sbin/nvargus-daemon ${D}${sbindir}/
