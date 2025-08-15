@@ -45,8 +45,8 @@ do_deploy() {
     install -d ${DEPLOYDIR}
     install -m 0644 ${B}/uefi_jetson.bin ${B}/uefi_jetson_minimal.bin ${DEPLOYDIR}/
     for dtbo in ${TEGRA_BOOTCONTROL_OVERLAYS}; do
-	[ -e ${S}/kernel/dtb/$dtbo ] || continue
-	install -m 0644 ${S}/kernel/dtb/$dtbo ${DEPLOYDIR}/
+        [ -e ${S}/kernel/dtb/$dtbo ] || continue
+        install -m 0644 ${S}/kernel/dtb/$dtbo ${DEPLOYDIR}/
     done
     install -m 0644 ${S}/kernel/dtb/L4TConfiguration.dtbo ${DEPLOYDIR}/L4TConfiguration-rcmboot.dtbo
     fdtput -t s ${DEPLOYDIR}/L4TConfiguration-rcmboot.dtbo /fragment@0/__overlay__/firmware/uefi/variables/gNVIDIATokenSpaceGuid/DefaultBootPriority data boot.img

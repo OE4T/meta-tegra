@@ -45,27 +45,27 @@ ARCH_FLAGS_FOR_TARGET += "-isystem${STAGING_DIR_TARGET}${target_includedir}"
 
 
 do_configure:prepend () {
-	install -d ${RECIPE_SYSROOT}${target_includedir}
-	touch ${RECIPE_SYSROOT}${target_includedir}/limits.h
+    install -d ${RECIPE_SYSROOT}${target_includedir}
+    touch ${RECIPE_SYSROOT}${target_includedir}/limits.h
 }
 
 do_compile () {
-	export CC="${BUILD_CC}"
-	export AR_FOR_TARGET="${TARGET_SYS}-ar"
-	export RANLIB_FOR_TARGET="${TARGET_SYS}-ranlib"
-	export LD_FOR_TARGET="${TARGET_SYS}-ld"
-	export NM_FOR_TARGET="${TARGET_SYS}-nm"
-	export CC_FOR_TARGET="${CCACHE} ${TARGET_SYS}-gcc"
-	export CFLAGS_FOR_TARGET="${TARGET_CFLAGS}"
-	export CPPFLAGS_FOR_TARGET="${TARGET_CPPFLAGS}"
-	export CXXFLAGS_FOR_TARGET="${TARGET_CXXFLAGS}"
-	export LDFLAGS_FOR_TARGET="${TARGET_LDFLAGS}"
+    export CC="${BUILD_CC}"
+    export AR_FOR_TARGET="${TARGET_SYS}-ar"
+    export RANLIB_FOR_TARGET="${TARGET_SYS}-ranlib"
+    export LD_FOR_TARGET="${TARGET_SYS}-ld"
+    export NM_FOR_TARGET="${TARGET_SYS}-nm"
+    export CC_FOR_TARGET="${CCACHE} ${TARGET_SYS}-gcc"
+    export CFLAGS_FOR_TARGET="${TARGET_CFLAGS}"
+    export CPPFLAGS_FOR_TARGET="${TARGET_CPPFLAGS}"
+    export CXXFLAGS_FOR_TARGET="${TARGET_CXXFLAGS}"
+    export LDFLAGS_FOR_TARGET="${TARGET_LDFLAGS}"
 
-	remove_sysroot_paths_from_configargs '/host'
-	remove_sysroot_paths_from_checksum_options '${STAGING_DIR_HOST}' '/host'
+    remove_sysroot_paths_from_configargs '/host'
+    remove_sysroot_paths_from_checksum_options '${STAGING_DIR_HOST}' '/host'
 
-	oe_runmake all-host configure-target-libgcc
-	(cd ${B}/${TARGET_SYS}/libgcc; oe_runmake enable-execute-stack.c unwind.h md-unwind-support.h sfp-machine.h gthr-default.h)
+    oe_runmake all-host configure-target-libgcc
+    (cd ${B}/${TARGET_SYS}/libgcc; oe_runmake enable-execute-stack.c unwind.h md-unwind-support.h sfp-machine.h gthr-default.h)
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
@@ -74,45 +74,45 @@ INHIBIT_PACKAGE_STRIP = "1"
 BINRELPATH = "${@os.path.relpath(d.expand("${STAGING_DIR_NATIVE}${prefix_native}/bin/${TARGET_SYS}"), d.expand("${libexecdir}/gcc/${TARGET_SYS}/${BINV}"))}"
 
 do_install () {
-	( cd ${B}/${TARGET_SYS}/libgcc; oe_runmake 'DESTDIR=${D}' install-unwind_h-forbuild install-unwind_h )
-	oe_runmake 'DESTDIR=${D}' install-host
+    ( cd ${B}/${TARGET_SYS}/libgcc; oe_runmake 'DESTDIR=${D}' install-unwind_h-forbuild install-unwind_h )
+    oe_runmake 'DESTDIR=${D}' install-host
 
-	install -d ${D}${target_base_libdir}
-	install -d ${D}${target_libdir}
+    install -d ${D}${target_base_libdir}
+    install -d ${D}${target_libdir}
 
-	# Insert symlinks into libexec so when tools without a prefix are searched for, the correct ones are
-	# found. These need to be relative paths so they work in different locations.
-	dest=${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/
-	install -d $dest
-	for t in ar as ld ld.bfd ld.gold nm objcopy objdump ranlib strip; do
-		ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t $dest$t
-		ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t ${dest}${TARGET_PREFIX}$t
-	done
-	# These are from this recipe, and we built with version suffix
-	for t in gcc cpp; do
-		ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t-${BINV} $dest$t
-		ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t-${BINV} ${dest}${TARGET_PREFIX}$t
-	done
-	dest=${D}${exec_prefix}/bin/${TARGET_SYS}-${BINV}/
-	install -d $dest
-	for t in ar as ld ld.bfd ld.gold nm objcopy objdump ranlib strip; do
-		ln -sf ../${TARGET_SYS}/${TARGET_PREFIX}$t ${dest}${TARGET_PREFIX}$t
-	done
-	for t in c++ cpp g++ gcc gcc-ar gcc-nm gcc-ranlib gcov gcov-dump gcov-tool; do
-		ln -sf ../${TARGET_SYS}/${TARGET_PREFIX}$t-${BINV} ${dest}${TARGET_PREFIX}$t
-	done
+    # Insert symlinks into libexec so when tools without a prefix are searched for, the correct ones are
+    # found. These need to be relative paths so they work in different locations.
+    dest=${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/
+    install -d $dest
+    for t in ar as ld ld.bfd ld.gold nm objcopy objdump ranlib strip; do
+        ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t $dest$t
+        ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t ${dest}${TARGET_PREFIX}$t
+    done
+    # These are from this recipe, and we built with version suffix
+    for t in gcc cpp; do
+        ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t-${BINV} $dest$t
+        ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t-${BINV} ${dest}${TARGET_PREFIX}$t
+    done
+    dest=${D}${exec_prefix}/bin/${TARGET_SYS}-${BINV}/
+    install -d $dest
+    for t in ar as ld ld.bfd ld.gold nm objcopy objdump ranlib strip; do
+        ln -sf ../${TARGET_SYS}/${TARGET_PREFIX}$t ${dest}${TARGET_PREFIX}$t
+    done
+    for t in c++ cpp g++ gcc gcc-ar gcc-nm gcc-ranlib gcov gcov-dump gcov-tool; do
+        ln -sf ../${TARGET_SYS}/${TARGET_PREFIX}$t-${BINV} ${dest}${TARGET_PREFIX}$t
+    done
 
-	# Remove things we don't need but keep share/java
-	for d in info man share/doc share/locale share/man share/info; do
-		rm -rf ${D}${STAGING_DIR_NATIVE}${prefix_native}/$d
-	done
+    # Remove things we don't need but keep share/java
+    for d in info man share/doc share/locale share/man share/info; do
+        rm -rf ${D}${STAGING_DIR_NATIVE}${prefix_native}/$d
+    done
 
-	# libquadmath headers need to  be available in the gcc libexec dir
-	install -d ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
-	cp ${S}/libquadmath/quadmath.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
-	cp ${S}/libquadmath/quadmath_weak.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
+    # libquadmath headers need to  be available in the gcc libexec dir
+    install -d ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
+    cp ${S}/libquadmath/quadmath.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
+    cp ${S}/libquadmath/quadmath_weak.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
 
-	cleanup_installed_include_fixed
+    cleanup_installed_include_fixed
 
 }
 
@@ -134,11 +134,11 @@ do_gcc_stash_builddir[dirs] = "${B}"
 do_gcc_stash_builddir[cleandirs] = "${BUILDDIRSTASH}"
 do_gcc_stash_builddir[postfuncs] += "gcc_stash_builddir_fixrpaths"
 do_gcc_stash_builddir () {
-	dest=${BUILDDIRSTASH}
-	hardlinkdir . $dest
-	# Makefile does move-if-change which can end up with 'timestamp' as file contents so break links to those files
-	rm $dest/gcc/include/*.h
-	cp gcc/include/*.h $dest/gcc/include/
+    dest=${BUILDDIRSTASH}
+    hardlinkdir . $dest
+    # Makefile does move-if-change which can end up with 'timestamp' as file contents so break links to those files
+    rm $dest/gcc/include/*.h
+    cp gcc/include/*.h $dest/gcc/include/
 }
 addtask do_gcc_stash_builddir after do_compile before do_install
 SSTATETASKS += "do_gcc_stash_builddir"

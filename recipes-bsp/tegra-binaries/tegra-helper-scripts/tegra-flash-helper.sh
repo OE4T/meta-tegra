@@ -50,8 +50,8 @@ get_value_from_PT_table() {
     local layoutfile="$3"
     local varname="$4"
     if [ "$field" != "filename" ]; then
-	echo "ERR: unsupported flash layout field: $field" >&2
-	return 1
+        echo "ERR: unsupported flash layout field: $field" >&2
+        return 1
     fi
     local value=$("$here/nvflashxmlparse" --get-filename "$partname" "$layoutfile" 2>/dev/null)
     eval "$varname=\"$value\""
@@ -720,15 +720,15 @@ if [ $want_signing -eq 1 ]; then
         chmod +x secureflash.sh
     fi
     if [ $also_sign_rcmboot -ne 0 ]; then
-	outfolder="$(odmsign_get_folder)"
-	rm -rf ${outfolder}_save
-	mv ${outfolder} ${outfolder}_save
-	rm -f secureflash.xml.save
-	mv secureflash.xml secureflash.xml.save
-	BCTARGS="$bctargs $rcm_overlay_dtb_arg $custinfo_args --bct_backup"
-	L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
-	BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
-	FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_jetson_minimal_with_dtb.bin \
+        outfolder="$(odmsign_get_folder)"
+        rm -rf ${outfolder}_save
+        mv ${outfolder} ${outfolder}_save
+        rm -f secureflash.xml.save
+        mv secureflash.xml secureflash.xml.save
+        BCTARGS="$bctargs $rcm_overlay_dtb_arg $custinfo_args --bct_backup"
+        L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
+        BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
+        FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_jetson_minimal_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
@@ -737,13 +737,13 @@ if [ $want_signing -eq 1 ]; then
           --bct_backup \
           --boot_chain A \
           $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
-	(rcm_boot=1 odmsign_ext_sign_and_flash) || exit 1
-	rm -f flashcmd.txt
-	rm -rf ${outfolder}
-	mv ${outfolder}_save ${outfolder}
-	cp -f ${outfolder}/* .
-	rm -f secureflash.xml
-	mv secureflash.xml.save secureflash.xml
+        (rcm_boot=1 odmsign_ext_sign_and_flash) || exit 1
+        rm -f flashcmd.txt
+        rm -rf ${outfolder}
+        mv ${outfolder}_save ${outfolder}
+        cp -f ${outfolder}/* .
+        rm -f secureflash.xml
+        mv secureflash.xml.save secureflash.xml
     fi
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
         cp secureflash.sh flashcmd.txt

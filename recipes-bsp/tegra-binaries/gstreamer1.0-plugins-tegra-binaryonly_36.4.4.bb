@@ -2,11 +2,11 @@ DESCRIPTION = "NVIDIA prebuilt binary-only GStreamer plugins"
 L4T_DEB_COPYRIGHT_MD5 = "20bbd485b9b57fbc0b55d6efc08e3f4a"
 
 DEPENDS = "\
-	glib-2.0 \
-	gstreamer1.0-plugins-base \
-	tegra-libraries-multimedia tegra-libraries-multimedia-utils \
-	${@bb.utils.contains('DISTRO_FEATURES', ['x11', 'alsa'], 'virtual/libx11 alsa-lib', '', d)} \
-	libdrm virtual/egl virtual/libgles2 \
+    glib-2.0 \
+    gstreamer1.0-plugins-base \
+    tegra-libraries-multimedia tegra-libraries-multimedia-utils \
+    ${@bb.utils.contains('DISTRO_FEATURES', ['x11', 'alsa'], 'virtual/libx11 alsa-lib', '', d)} \
+    libdrm virtual/egl virtual/libgles2 \
 "
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-gstreamer"

@@ -31,8 +31,8 @@ inherit gettext pkgconfig features_check
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 remove_headers() {
-	rm ${UNPACKDIR}/nvbufsurface.h
-	rm ${UNPACKDIR}/v4l2_nv_extensions.h
+    rm ${UNPACKDIR}/nvbufsurface.h
+    rm ${UNPACKDIR}/v4l2_nv_extensions.h
 }
 
 do_unpack:append() {
@@ -41,7 +41,7 @@ do_unpack:append() {
 }
 
 do_install() {
-	oe_runmake install DESTDIR="${D}"
+    oe_runmake install DESTDIR="${D}"
 }
 FILES:${PN} = "${libdir}/gstreamer-1.0"
 RDEPENDS:${PN} += "libgstnvcustomhelper"
