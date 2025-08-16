@@ -35,6 +35,9 @@
 
 UBOOT_EXTLINUX_LABELS ??= "primary"
 UBOOT_EXTLINUX_FDT ??= ""
+USE_OVERLAYS_IN_EXTLINUX ??= "0"
+UBOOT_EXTLINUX_OVERLAYS ??= "${@d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS') if bb.utils.to_boolean(d.getVar('USE_OVERLAYS_IN_EXTLINUX')) else ''}"
+UBOOT_EXTLINUX_OVERLAY_DIR ??= "${@'/boot' if bb.utils.to_boolean(d.getVar('USE_OVERLAYS_IN_EXTLINUX')) else ''}"
 UBOOT_EXTLINUX_KERNEL_IMAGE ??= "/boot/${KERNEL_IMAGETYPE}"
 UBOOT_EXTLINUX_KERNEL_ARGS ??= ""
 UBOOT_EXTLINUX_MENU_DESCRIPTION_primary ??= "${DISTRO_NAME}"
@@ -89,10 +92,16 @@ python do_create_extlinux_config() {
         kernel_image = localdata.getVar('UBOOT_EXTLINUX_KERNEL_IMAGE')
 
         fdt = localdata.getVar('UBOOT_EXTLINUX_FDT')
+        overlays = localdata.getVar('UBOOT_EXTLINUX_OVERLAYS')
         if fdt:
             fdt = '\tFDT ' + fdt + '\n'
+            if overlays:
+                overlay_paths = ",".join([ localdata.getVar('UBOOT_EXTLINUX_OVERLAY_DIR') + "/" + overlay for overlay in overlays.split(" ") ])
+                overlays = '\tOVERLAYS ' + overlay_paths + '\n'
+        elif overlays:
+            bb.fatal('UBOOT_EXTLINUX_OVERLAYS set to % when UBOOT_EXTLINUX_FDT is not set.  This is not a supported config' % overlays)
 
-        cfg += 'LABEL %s\n\tMENU LABEL %s\n\tLINUX %s\n%s' % (label, menu_description, kernel_image, fdt)
+        cfg += 'LABEL %s\n\tMENU LABEL %s\n\tLINUX %s\n%s%s' % (label, menu_description, kernel_image, fdt, overlays)
 
         initrd = localdata.getVar('UBOOT_EXTLINUX_INITRD')
         if initrd:

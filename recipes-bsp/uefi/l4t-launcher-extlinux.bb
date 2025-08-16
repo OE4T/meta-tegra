@@ -52,6 +52,10 @@ python do_concat_dtb_overlays() {
         oe4t.dtbutils.concat_dtb_overlays(d.getVar('DTBFILE'),
                                           d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS'),
                                           os.path.join(d.getVar('B'), d.getVar('DTBFILE')), d)
+
+   if d.getVar('UBOOT_EXTLINUX_OVERLAYS'):
+        oe4t.dtbutils.copy_dtb_files(d.getVar('UBOOT_EXTLINUX_OVERLAYS'),
+                                          d.getVar('B'), d)
 }
 do_concat_dtb_overlays[dirs] = "${B}"
 do_concat_dtb_overlays[depends] += "virtual/kernel:do_deploy"
@@ -71,6 +75,9 @@ do_sign_files() {
     if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
         files_to_sign="$files_to_sign ${DTBFILE}"
     fi
+    if [ -n "${UBOOT_EXTLINUX_OVERLAYS}" ]; then
+        files_to_sign="$files_to_sign ${UBOOT_EXTLINUX_OVERLAYS}"
+    fi
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
         files_to_sign="$files_to_sign initrd"
     fi
@@ -86,6 +93,11 @@ do_install() {
     install -m 0644 ${B}/${KERNEL_IMAGETYPE} ${D}/boot/
     if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
         install -m 0644 ${B}/${DTBFILE}* ${D}/boot/
+    fi
+    if [ -n "${UBOOT_EXTLINUX_OVERLAYS}" ]; then
+        for overlay in ${UBOOT_EXTLINUX_OVERLAYS}; do
+            install -m 0644 ${B}/$overlay ${D}/boot/
+        done
     fi
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
         install -m 0644 ${B}/initrd* ${D}/boot/
