@@ -23,6 +23,6 @@ inherit gettext pkgconfig cuda features_check
 EXTRA_OEMAKE = "CUDA_VER=${CUDA_VERSION}"
 
 do_install() {
-	oe_runmake install DEST_DIR="${D}${libdir}/gstreamer-1.0"
+    oe_runmake install DEST_DIR="${D}${libdir}/gstreamer-1.0"
 }
 FILES:${PN} = "${libdir}/gstreamer-1.0"

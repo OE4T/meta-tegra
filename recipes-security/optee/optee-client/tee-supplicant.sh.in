@@ -18,19 +18,19 @@ set -e
 
 case $1 in
     start)
-	    echo -n "Starting $DESC: "
-	    start-stop-daemon --start $SSD_OPTIONS
+        echo -n "Starting $DESC: "
+        start-stop-daemon --start $SSD_OPTIONS
         echo "${DAEMON##*/}."
         ;;
     stop)
-	    echo -n "Stopping $DESC: "
-	    start-stop-daemon --stop $SSD_OPTIONS
+        echo -n "Stopping $DESC: "
+        start-stop-daemon --stop $SSD_OPTIONS
         echo "${DAEMON##*/}."
         ;;
     restart|force-reload)
-	    $0 stop
-	    sleep 1
-	    $0 start
+        $0 stop
+        sleep 1
+        $0 start
         ;;
     *)
         echo "Usage: $0 {start|stop|restart|force-reload}" >&2
