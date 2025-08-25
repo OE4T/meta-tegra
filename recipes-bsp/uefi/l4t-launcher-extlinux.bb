@@ -47,17 +47,20 @@ do_compile() {
 do_compile[depends] += "${@compute_dependencies(d)}"
 do_compile[dirs] = "${B}"
 
-python do_concat_dtb_overlays() {
-   if d.getVar('UBOOT_EXTLINUX_FDT'):
-        oe4t.dtbutils.concat_dtb_overlays(d.getVar('DTBFILE'),
-                                          d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS'),
-                                          os.path.join(d.getVar('B'), d.getVar('DTBFILE')), d)
-}
-do_concat_dtb_overlays[dirs] = "${B}"
-do_concat_dtb_overlays[depends] += "virtual/kernel:do_deploy"
-do_concat_dtb_overlays[depends] += "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
+python do_copy_dtb_overlays() {
+   if d.getVar('L4T_UBOOT_EXTLINUX_FDT'):
+        oe4t.dtbutils.copy_dtb_files(d.getVar('L4T_UBOOT_EXTLINUX_FDT'),
+                                          d.getVar('B'), d)
 
-addtask concat_dtb_overlays after do_configure before do_sign_files
+   if d.getVar('UBOOT_EXTLINUX_FDTOVERLAYS'):
+        oe4t.dtbutils.copy_dtb_files(d.getVar('UBOOT_EXTLINUX_FDTOVERLAYS'),
+                                          d.getVar('B'), d)
+}
+do_copy_dtb_overlays[dirs] = "${B}"
+do_copy_dtb_overlays[depends] += "virtual/kernel:do_deploy"
+do_copy_dtb_overlays[depends] += "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
+
+addtask copy_dtb_overlays after do_configure before do_sign_files
 
 sign_extlinux_files() {
     while [ $# -gt 0 ]; do
@@ -68,8 +71,11 @@ sign_extlinux_files() {
 
 do_sign_files() {
     local files_to_sign="extlinux.conf"
-    if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
-        files_to_sign="$files_to_sign ${DTBFILE}"
+    if [ -n "${L4T_UBOOT_EXTLINUX_FDT}" ]; then
+        files_to_sign="$files_to_sign ${L4T_UBOOT_EXTLINUX_FDT}"
+    fi
+    if [ -n "${UBOOT_EXTLINUX_FDTOVERLAYS}" ]; then
+        files_to_sign="$files_to_sign ${UBOOT_EXTLINUX_FDTOVERLAYS}"
     fi
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
         files_to_sign="$files_to_sign initrd"
@@ -79,19 +85,24 @@ do_sign_files() {
 do_sign_files[dirs] = "${B}"
 do_sign_files[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
 
-addtask sign_files after do_compile do_create_extlinux_config do_concat_dtb_overlays before do_install
+addtask sign_files after do_compile do_create_extlinux_config do_copy_dtb_overlays before do_install
 
 do_install() {
-    install -d ${D}/boot/extlinux
-    install -m 0644 ${B}/${KERNEL_IMAGETYPE} ${D}/boot/
-    if [ -n "${UBOOT_EXTLINUX_FDT}" ]; then
-        install -m 0644 ${B}/${DTBFILE}* ${D}/boot/
+    install -d ${D}${L4T_EXTLINUX_BASEDIR}/extlinux
+    install -m 0644 ${B}/${KERNEL_IMAGETYPE} ${D}${L4T_EXTLINUX_BASEDIR}/
+    if [ -n "${L4T_UBOOT_EXTLINUX_FDT}" ]; then
+        install -m 0644 ${B}/${L4T_UBOOT_EXTLINUX_FDT}* ${D}${L4T_EXTLINUX_BASEDIR}/
+    fi
+    if [ -n "${UBOOT_EXTLINUX_FDTOVERLAYS}" ]; then
+        for overlay in ${UBOOT_EXTLINUX_FDTOVERLAYS}; do
+            install -m 0644 ${B}/${overlay}* ${D}${L4T_EXTLINUX_BASEDIR}/
+        done
     fi
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
-        install -m 0644 ${B}/initrd* ${D}/boot/
+        install -m 0644 ${B}/initrd* ${D}${L4T_EXTLINUX_BASEDIR}/
     fi
-    install -m 0644 ${B}/extlinux.conf* ${D}/boot/extlinux/
+    install -m 0644 ${B}/extlinux.conf* ${D}${L4T_EXTLINUX_BASEDIR}/extlinux/
 }
 
-FILES:${PN} = "/boot"
+FILES:${PN} = "${L4T_EXTLINUX_BASEDIR}"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
