@@ -52,6 +52,9 @@ python do_copy_dtb_overlays() {
         oe4t.dtbutils.copy_dtb_files(d.getVar('L4T_UBOOT_EXTLINUX_FDT'),
                                           d.getVar('B'), d)
 
+   if d.getVar('UBOOT_EXTLINUX_FDTOVERLAYS'):
+        oe4t.dtbutils.copy_dtb_files(d.getVar('UBOOT_EXTLINUX_FDTOVERLAYS'),
+                                          d.getVar('B'), d)
 }
 do_copy_dtb_overlays[dirs] = "${B}"
 do_copy_dtb_overlays[depends] += "virtual/kernel:do_deploy"
@@ -71,6 +74,9 @@ do_sign_files() {
     if [ -n "${L4T_UBOOT_EXTLINUX_FDT}" ]; then
         files_to_sign="$files_to_sign ${L4T_UBOOT_EXTLINUX_FDT}"
     fi
+    if [ -n "${UBOOT_EXTLINUX_FDTOVERLAYS}" ]; then
+        files_to_sign="$files_to_sign ${UBOOT_EXTLINUX_FDTOVERLAYS}"
+    fi
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
         files_to_sign="$files_to_sign initrd"
     fi
@@ -86,6 +92,11 @@ do_install() {
     install -m 0644 ${B}/${KERNEL_IMAGETYPE} ${D}${L4T_EXTLINUX_BASEDIR}/
     if [ -n "${L4T_UBOOT_EXTLINUX_FDT}" ]; then
         install -m 0644 ${B}/${L4T_UBOOT_EXTLINUX_FDT}* ${D}${L4T_EXTLINUX_BASEDIR}/
+    fi
+    if [ -n "${UBOOT_EXTLINUX_FDTOVERLAYS}" ]; then
+        for overlay in ${UBOOT_EXTLINUX_FDTOVERLAYS}; do
+            install -m 0644 ${B}/${overlay}* ${D}${L4T_EXTLINUX_BASEDIR}/
+        done
     fi
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
         install -m 0644 ${B}/initrd* ${D}${L4T_EXTLINUX_BASEDIR}/
