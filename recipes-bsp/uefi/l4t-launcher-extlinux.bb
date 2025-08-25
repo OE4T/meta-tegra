@@ -47,17 +47,16 @@ do_compile() {
 do_compile[depends] += "${@compute_dependencies(d)}"
 do_compile[dirs] = "${B}"
 
-python do_concat_dtb_overlays() {
+python do_copy_dtb_overlays() {
    if d.getVar('UBOOT_EXTLINUX_FDT'):
-        oe4t.dtbutils.concat_dtb_overlays(d.getVar('DTBFILE'),
-                                          d.getVar('TEGRA_PLUGIN_MANAGER_OVERLAYS'),
-                                          os.path.join(d.getVar('B'), d.getVar('DTBFILE')), d)
+        oe4t.dtbutils.copy_dtb_files(d.getVar('DTBFILE'),
+                                          d.getVar('B'), d)
 }
-do_concat_dtb_overlays[dirs] = "${B}"
-do_concat_dtb_overlays[depends] += "virtual/kernel:do_deploy"
-do_concat_dtb_overlays[depends] += "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
+do_copy_dtb_overlays[dirs] = "${B}"
+do_copy_dtb_overlays[depends] += "virtual/kernel:do_deploy"
+do_copy_dtb_overlays[depends] += "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
 
-addtask concat_dtb_overlays after do_configure before do_sign_files
+addtask copy_dtb_overlays after do_configure before do_sign_files
 
 sign_extlinux_files() {
     while [ $# -gt 0 ]; do
@@ -79,7 +78,7 @@ do_sign_files() {
 do_sign_files[dirs] = "${B}"
 do_sign_files[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
 
-addtask sign_files after do_compile do_create_extlinux_config do_concat_dtb_overlays before do_install
+addtask sign_files after do_compile do_create_extlinux_config do_copy_dtb_overlays before do_install
 
 do_install() {
     install -d ${D}/boot/extlinux
