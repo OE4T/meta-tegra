@@ -24,6 +24,12 @@
 #     in this bbclass.) ** NB: In L4T R35.2.1, a bug in the L4TLauncher
 #     code also requires this line to be present.
 #  8. L4TLauncher uses 'LINUX' instead of 'KERNEL' for the kernel image.
+#  9. Instead of UBOOT_EXTLINUX_FDTDIR (which supports and defaults to
+#     a relative path) we use fixed paths prefixed by ${L4T_EXTLINUX_BASEDIR}
+#     (defaulted to /boot) for  kernel image and fdt.
+#     The extlinux.conf is located under this directory as well.
+#     This is necessary since the logic in L4TLauncher does not suport
+#     relative paths.
 #
 # External variables:
 #   See uboot-extlinux-config.bbclass for the basic set.
@@ -33,14 +39,29 @@
 # Copyright (C) 2016, O.S. Systems Software LTDA.  All Rights Reserved
 # Released under the MIT license (see packages/COPYING)
 
+# BASEDIR define is unique to L4T, we don't use relative paths in extlinux.conf
+# Changing this variable would require a patch to at least edk2-nvidia
+L4T_EXTLINUX_BASEDIR ??= "/boot"
+
 UBOOT_EXTLINUX_LABELS ??= "primary"
 UBOOT_EXTLINUX_FDT ??= ""
-UBOOT_EXTLINUX_KERNEL_IMAGE ??= "/boot/${KERNEL_IMAGETYPE}"
+UBOOT_EXTLINUX_KERNEL_IMAGE ??= "${KERNEL_IMAGETYPE}"
 UBOOT_EXTLINUX_KERNEL_ARGS ??= ""
 UBOOT_EXTLINUX_MENU_DESCRIPTION_primary ??= "${DISTRO_NAME}"
 UBOOT_EXTLINUX_MENU_TITLE ??= "L4T boot options"
 
 UBOOT_EXTLINUX_CONFIG = "${B}/extlinux.conf"
+
+def get_l4t_extlinux_compat_var(varname, d):
+    rtnvar = d.getVar(varname)
+    if rtnvar.startswith('/boot/'):
+        rtnvar = rtnvar.replace('/boot/', '')
+        bb.warn("Please remove /boot/ prefix from %s and use %s instead to conform with uboot syntax" % (varname, rtnvar))
+    return rtnvar
+
+# Make compatible version of each of the FDT variable which
+# removes the /boot/ prefix for backwards compatibility
+L4T_UBOOT_EXTLINUX_FDT = "${@get_l4t_extlinux_compat_var('UBOOT_EXTLINUX_FDT', d)}"
 
 python do_create_extlinux_config() {
     if d.getVar('UBOOT_EXTLINUX') != '1':
@@ -88,9 +109,9 @@ python do_create_extlinux_config() {
 
         kernel_image = localdata.getVar('UBOOT_EXTLINUX_KERNEL_IMAGE')
 
-        fdt = localdata.getVar('UBOOT_EXTLINUX_FDT')
+        fdt = get_l4t_extlinux_compat_var('UBOOT_EXTLINUX_FDT', localdata)
         if fdt:
-            fdt = '\tFDT ' + fdt + '\n'
+            fdt = '\tFDT ' + localdata.getVar('L4T_EXTLINUX_BASEDIR') + '/' + fdt + '\n'
 
         cfg += 'LABEL %s\n\tMENU LABEL %s\n\tLINUX %s\n%s' % (label, menu_description, kernel_image, fdt)
 
