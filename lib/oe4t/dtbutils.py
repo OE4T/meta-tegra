@@ -30,31 +30,14 @@ def locate_dtb_files(dtbnames, d):
         result.append(os.path.join(imgdeploydir, dtb))
     return result
 
-def concat_dtb_overlays(dtbfile, overlays, outfile, d):
+def copy_dtb_files(overlays, outdir, d):
     """
-    Produce an output DTB file that has zero or more
-    overlay DTBs concatenated to it, for processing by
-    NVIDIA's OverlayManager UEFI driver.
-
-    Source DTB and overlay files can reside either under
-    ${EXTERNAL_KERNEL_DEVICETREE} or in ${DEPLOY_DIR_IMAGE}.
-
-    dtbfile: Main DTB file
-    overlays: space-separated list of zero or more DTBO files
-    outfile: name of output file
-    d: recipe context
+    Copy the list of overlays into outdir
+    overlays: List of overlays to copy
+    outdir: Output directory to copy into
     """
-    import os
-    import bb.utils
+    import shutil
+    infiles = locate_dtb_files(overlays.split(), d)
+    for infile in infiles:
+        shutil.copy(infile, outdir)
 
-
-    infiles = locate_dtb_files([dtbfile] + overlays.split(), d)
-    bb.note("Creating concatenated device tree: ", outfile)
-    with open(outfile, "wb") as outf:
-        for infile in infiles:
-            # the overlay manager expects all DTBOs to start
-            # on a 4K page boundary
-            outf.write(bytearray(int((outf.tell() + 4095) / 4096) * 4096))
-            bb.note("    Adding:  ", infile)
-            with open(infile, "rb") as inf:
-                outf.write(inf.read())
