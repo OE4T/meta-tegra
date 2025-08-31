@@ -21,6 +21,6 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 CFLAGS:append = " -fpic"
 
 do_install() {
-	oe_runmake install DESTDIR="${D}"
+    oe_runmake install DESTDIR="${D}"
 }
 FILES:${PN} = "${libdir}/gstreamer-1.0"

@@ -58,19 +58,19 @@ BUILDTIMESTAMP ?= "${@generate_build_timestamp(d)}"
 ATF_DEBUG ?= "0"
 ATF_LOG_LEVEL ?= "20"
 EXTRA_OEMAKE = 'BUILD_BASE=${B} CROSS_COMPILE="${TARGET_PREFIX}" PLAT=tegra ${TARGET_SOC_OEMAKE} \
-	        DEBUG=${ATF_DEBUG} LOG_LEVEL=${ATF_LOG_LEVEL} V=1 TARGET_SOC=${TARGET_SOC} \
-	        ${BUILDTIMESTAMP} ${BUILD_STRING} ${PACKAGECONFIG_CONFARGS}'
+            DEBUG=${ATF_DEBUG} LOG_LEVEL=${ATF_LOG_LEVEL} V=1 TARGET_SOC=${TARGET_SOC} \
+            ${BUILDTIMESTAMP} ${BUILD_STRING} ${PACKAGECONFIG_CONFARGS}'
 
 do_configure[noexec] = "1"
 
 do_compile() {
-	oe_runmake -C ${S} all
+    oe_runmake -C ${S} all
 }
 do_compile[cleandirs] = "${B}"
 
 do_install() {
-	install -d ${D}${datadir}/trusted-os
-	install -m 0644 ${B}/tegra/${TARGET_SOC}/release/bl31.bin ${D}${datadir}/trusted-os/
+    install -d ${D}${datadir}/trusted-os
+    install -m 0644 ${B}/tegra/${TARGET_SOC}/release/bl31.bin ${D}${datadir}/trusted-os/
 }
 
 ALLOW_EMPTY:${PN} = "1"

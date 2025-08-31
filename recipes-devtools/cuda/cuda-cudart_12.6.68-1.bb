@@ -13,9 +13,9 @@ inherit siteinfo
 do_compile:append() {
     echo "${prefix}/local/cuda-${CUDA_VERSION}/${baselib}" > ${B}/cuda-${CUDA_VERSION_DASHED}.conf
     if [ "${baselib}" != "lib64" -a "${SITEINFO_BITS}" = "64" ]; then
-	if [ -e ${B}/usr/local/cuda-${CUDA_VERSION}/${baselib} ]; then
+        if [ -e ${B}/usr/local/cuda-${CUDA_VERSION}/${baselib} ]; then
             ln -s ${baselib} ${B}/usr/local/cuda-${CUDA_VERSION}/lib64
-	fi
+        fi
     fi
 }
 

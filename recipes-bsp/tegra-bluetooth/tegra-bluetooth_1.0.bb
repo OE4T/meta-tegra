@@ -20,11 +20,11 @@ inherit systemd
 do_install() {
     if ${@bb.utils.contains('MACHINE_FEATURES', 'bluetooth', 'true', 'false', d)}; then
         install -d ${D}${sbindir}
-	install -m 0755 ${S}/tegra-bluetooth-init.sh ${D}${sbindir}/tegra-bluetooth-init
-	install -d ${D}${systemd_system_unitdir}
-	install -m 0644 ${S}/tegra-bluetooth.service ${D}${systemd_system_unitdir}/
-	install -d ${D}${nonarch_base_libdir}/udev/rules.d
-	install -m 0644 ${S}/tegra-bluetooth.rules ${D}${nonarch_base_libdir}/udev/rules.d/99-tegra-bluetooth.rules
+        install -m 0755 ${S}/tegra-bluetooth-init.sh ${D}${sbindir}/tegra-bluetooth-init
+        install -d ${D}${systemd_system_unitdir}
+        install -m 0644 ${S}/tegra-bluetooth.service ${D}${systemd_system_unitdir}/
+        install -d ${D}${nonarch_base_libdir}/udev/rules.d
+        install -m 0644 ${S}/tegra-bluetooth.rules ${D}${nonarch_base_libdir}/udev/rules.d/99-tegra-bluetooth.rules
     fi
 }
 

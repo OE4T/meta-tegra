@@ -5,48 +5,48 @@ require gcc-for-nvcc-configure-common.inc
 INHIBIT_DEFAULT_DEPS = "1"
 
 do_configure () {
-	install -d ${D}${base_libdir} ${D}${libdir}
-	mkdir -p ${B}/${BPN}
-	mkdir -p ${B}/${TARGET_SYS}/${BPN}/
-	cd ${B}/${BPN}
-	chmod a+x ${S}/${BPN}/configure
-	relpath=${@os.path.relpath("${S}/${BPN}", "${B}/${BPN}")}
-	$relpath/configure ${CONFIGUREOPTS} ${EXTRA_OECONF}
+    install -d ${D}${base_libdir} ${D}${libdir}
+    mkdir -p ${B}/${BPN}
+    mkdir -p ${B}/${TARGET_SYS}/${BPN}/
+    cd ${B}/${BPN}
+    chmod a+x ${S}/${BPN}/configure
+    relpath=${@os.path.relpath("${S}/${BPN}", "${B}/${BPN}")}
+    $relpath/configure ${CONFIGUREOPTS} ${EXTRA_OECONF}
 }
 EXTRACONFFUNCS += "extract_stashed_builddir"
 do_configure[depends] += "${COMPILERDEP}"
 
 do_compile () {
-	cd ${B}/${BPN}
-	oe_runmake MULTIBUILDTOP=${B}/${TARGET_SYS}/${BPN}/
+    cd ${B}/${BPN}
+    oe_runmake MULTIBUILDTOP=${B}/${TARGET_SYS}/${BPN}/
 }
 
 do_install () {
-	cd ${B}/${BPN}
-	oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/${TARGET_SYS}/${BPN}/ install
+    cd ${B}/${BPN}
+    oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/${TARGET_SYS}/${BPN}/ install
 
-	# install the runtime in /usr/lib/ not in /usr/lib/gcc on target
-	# so that cross-gcc can find it in the sysroot
+    # install the runtime in /usr/lib/ not in /usr/lib/gcc on target
+    # so that cross-gcc can find it in the sysroot
 
-	mv ${D}${libdir}/gcc/* ${D}${libdir}
-	rm -rf ${D}${libdir}/gcc/
-	# unwind.h is installed here which is shipped in gcc-cross
-	# as well as target gcc and they are identical so we dont
-	# ship one with libgcc here
-	rm -rf ${D}${libdir}/${TARGET_SYS}/${BINV}/include
-	# Rely on mainline toolchain to provide libgcc_s
-	rm -f ${D}${libdir}/${TARGET_SYS}/${BINV}/libgcc_s.so*
+    mv ${D}${libdir}/gcc/* ${D}${libdir}
+    rm -rf ${D}${libdir}/gcc/
+    # unwind.h is installed here which is shipped in gcc-cross
+    # as well as target gcc and they are identical so we dont
+    # ship one with libgcc here
+    rm -rf ${D}${libdir}/${TARGET_SYS}/${BINV}/include
+    # Rely on mainline toolchain to provide libgcc_s
+    rm -f ${D}${libdir}/${TARGET_SYS}/${BINV}/libgcc_s.so*
 }
 
 do_install:append:libc-baremetal () {
-	if [ "${base_libdir}" != "${libdir}" ]; then
-		rmdir ${D}${base_libdir}
-	fi
+    if [ "${base_libdir}" != "${libdir}" ]; then
+        rmdir ${D}${base_libdir}
+    fi
 }
 do_install:append:libc-newlib () {
-	if [ "${base_libdir}" != "${libdir}" ]; then
-		rmdir ${D}${base_libdir}
-	fi
+    if [ "${base_libdir}" != "${libdir}" ]; then
+        rmdir ${D}${base_libdir}
+    fi
 }
 
 # No rpm package is actually created but -dev depends on it, avoid dnf error

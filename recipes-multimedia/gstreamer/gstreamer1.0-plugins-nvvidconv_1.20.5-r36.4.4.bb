@@ -24,6 +24,6 @@ EXTRA_OEMAKE = "CUDA_VER=${CUDA_VERSION}"
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 do_install() {
-	oe_runmake install DESTDIR="${D}"
+    oe_runmake install DESTDIR="${D}"
 }
 FILES:${PN} = "${libdir}/gstreamer-1.0"

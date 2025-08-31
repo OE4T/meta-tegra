@@ -37,9 +37,9 @@ do_configure() {
     TRT_MAJMINPATCH=${TRT_MAJOR}.${TRT_MINOR}.${TRT_PATCH}
     varsubst() {
         sed -e "s|\#\#TENSORRT_VERSION\#\#|${TRT_VERSION}|g" \
-	    -e "s|\#\#TENSORRT_MAJMINPATCH\#\#|${TRT_MAJMINPATCH}|g" \
-	    -e "s|\#\#TENSORRT_PYTHON_VERSION\#\#|${TRT_MAJMINPATCH}|g" \
-	    -e "s|\#\#TENSORRT_MODULE\#\#|tensorrt|g" $1 >$2
+            -e "s|\#\#TENSORRT_MAJMINPATCH\#\#|${TRT_MAJMINPATCH}|g" \
+            -e "s|\#\#TENSORRT_PYTHON_VERSION\#\#|${TRT_MAJMINPATCH}|g" \
+            -e "s|\#\#TENSORRT_MODULE\#\#|tensorrt|g" $1 >$2
     }
 
     rm -rf ${B}/tensorrt
