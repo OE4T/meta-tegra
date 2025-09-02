@@ -60,6 +60,7 @@ do_sign_efi_launcher() {
 }
 do_sign_efi_launcher[dirs] = "${B}"
 do_sign_efi_launcher[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
+do_sign_efi_launcher[file-checksums] += "${TEGRA_UEFI_SIGNING_FILECHECKSUMS}"
 
 addtask sign_efi_launcher after do_compile before do_install
 

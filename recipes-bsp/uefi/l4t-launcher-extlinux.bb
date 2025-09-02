@@ -84,6 +84,7 @@ do_sign_files() {
 }
 do_sign_files[dirs] = "${B}"
 do_sign_files[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
+do_sign_files[file-checksums] += "${TEGRA_UEFI_SIGNING_FILECHECKSUMS}"
 
 addtask sign_files after do_compile do_create_extlinux_config do_copy_dtb_overlays before do_install
 

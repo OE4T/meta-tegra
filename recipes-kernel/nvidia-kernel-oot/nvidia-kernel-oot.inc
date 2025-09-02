@@ -60,6 +60,7 @@ do_sign_dtbs() {
 }
 do_sign_dtbs[dirs] = "${B}"
 do_sign_dtbs[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
+do_sign_dtbs[file-checksums] += "${TEGRA_UEFI_SIGNING_FILECHECKSUMS}"
 
 addtask sign_dtbs after do_compile before do_install
 
