@@ -6,11 +6,18 @@ def tegra_uefi_signing_deps(d, tasks=False):
         return ' '.join([d + ':do_populate_sysroot' for d in deps])
     return ' '.join(deps)
 
+def tegra_uefi_signing_filechecksums(d):
+    if not d.getVar('TEGRA_UEFI_DB_KEY') or not d.getVar('TEGRA_UEFI_DB_CERT'):
+        return ''
+    files = ['${TEGRA_UEFI_DB_KEY}', '${TEGRA_UEFI_DB_CERT}']
+    return ' '.join([f + ':True' for f in files])
+
 TEGRA_UEFI_DB_KEY ??= ""
 TEGRA_UEFI_DB_CERT ??= ""
 TEGRA_UEFI_SIGNING_TASKDEPS ?= "${@tegra_uefi_signing_deps(d, tasks=True)}"
 TEGRA_UEFI_SIGNING_DEPENDS ?= "${@tegra_uefi_signing_deps(d)}"
 TEGRA_UEFI_USE_SIGNED_FILES ?= "${@'true' if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT') else 'false'}"
+TEGRA_UEFI_SIGNING_FILECHECKSUMS ?= "${@tegra_uefi_signing_filechecksums(d)}"
 
 # Standard signing, input file modified with signature
 tegra_uefi_sbsign() {
