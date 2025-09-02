@@ -19,6 +19,7 @@ do_sign_kernel() {
 }
 do_sign_kernel[dirs] = "${B}"
 do_sign_kernel[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
+do_sign_kernel[file-checksums] += "${TEGRA_UEFI_SIGNING_FILECHECKSUMS}"
 
 addtask sign_kernel after do_compile before do_install
 
@@ -72,6 +73,7 @@ do_deploy:append() {
 }
 
 do_deploy[depends] += "tegra-flashtools-native:do_populate_sysroot ${TEGRA_UEFI_SIGNING_TASKDEPS}"
+do_deploy[file-checksums] += "${TEGRA_UEFI_SIGNING_FILECHECKSUMS}"
 
 RRECOMMENDS:${KERNEL_PACKAGE_NAME}-base = ""
 
