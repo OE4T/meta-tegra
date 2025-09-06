@@ -21,7 +21,7 @@ EXTRA_OECONF:append:armv6:class-target = " --with-arch=armv6${ARMFPARCHEXT}"
 EXTRA_OECONF:append:armv7a:class-target = " --with-arch=armv7-a${ARMFPARCHEXT}"
 EXTRA_OECONF:append:armv7ve:class-target = " --with-arch=armv7ve${ARMFPARCHEXT}"
 EXTRA_OECONF:append:arc:class-target = " --with-cpu=${TUNE_PKGARCH}"
-EXTRA_OECONF:append:x86-64:class-target = " --with-arch=native"
+EXTRA_OECONF:append:x86-64:class-target = " ${@get_gcc_x86_64_arch_setting(bb, d)}"
 
 # libcc1 requres gcc_cv_objdump when cross build, but gcc_cv_objdump is
 # set in subdir gcc, so subdir libcc1 can't use it, export it here to
@@ -34,6 +34,7 @@ PACKAGES = "\
     ${PN} ${PN}-plugins ${PN}-symlinks \
     g++-for-nvcc g++-for-nvcc-symlinks \
     cpp-for-nvcc cpp-for-nvcc-symlinks \
+    g77-for-nvcc g77-for-nvcc-symlinks \
     gcov-for-nvcc gcov-for-nvcc-symlinks \
     ${PN}-doc \
     ${PN}-dev \
@@ -53,6 +54,7 @@ FILES:${PN} = "\
     ${gcclibdir}/${TARGET_SYS}/${BINV}/lib*${SOLIBS} \
     ${gcclibdir}/${TARGET_SYS}/${BINV}/include \
     ${gcclibdir}/${TARGET_SYS}/${BINV}/include-fixed \
+    ${libdir}/bfd-plugins-${BINV}/*.so \
 "
 INSANE_SKIP:${PN} += "dev-so"
 RRECOMMENDS:${PN} += "\
@@ -92,27 +94,15 @@ RRECOMMENDS:g77 = "\
     libg2c-dev \
 "
 
-FILES:gfortran = "\
-    ${bindir}/${TARGET_PREFIX}gfortran \
-    ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/f951 \
-"
-RRECOMMENDS:gfortran = "\
-    libquadmath \
-    libquadmath-dev \
-"
-FILES:gfortran-symlinks = "\
-    ${bindir}/gfortran \
-    ${bindir}/f95"
-
 FILES:cpp-for-nvcc = "\
     ${bindir}/${TARGET_PREFIX}cpp* \
-    ${base_libdir}/gcc/${TARGET_SYS}/${BINV}/cpp \
+    ${base_libdir}/cpp \
     ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/cc1"
 FILES:cpp-for-nvcc-symlinks = "${bindir}/cpp-${BINV}"
 
-FILES:gcov-for-nvcc = "${bindir}/${TARGET_PREFIX}gcov-${BINV} \
-    ${bindir}/${TARGET_PREFIX}gcov-tool-${BINV} \
-    ${bindir}/${TARGET_PREFIX}gcov-dump-${BINV} \
+FILES:gcov-for-nvcc = "${bindir}/${TARGET_PREFIX}gcov-${BINV}* \
+    ${bindir}/${TARGET_PREFIX}gcov-tool-${BINV}* \
+    ${bindir}/${TARGET_PREFIX}gcov-dump-${BINV}* \
 "
 FILES:gcov-for-nvcc-symlinks = "${bindir}/gcov-${BINV} \
     ${bindir}/gcov-tool-${BINV} \
@@ -140,8 +130,20 @@ FILES:${PN}-doc = "\
 "
 
 do_compile () {
-    remove_sysroot_paths_from_configargs '/'
-    remove_sysroot_paths_from_checksum_options '${STAGING_DIR_TARGET}' '/'
+    # Prevent full target sysroot path from being used in configargs.h header,
+	# as it will be rewritten when used by other sysroots preventing support
+	# for gcc plugins. Additionally the path is embeddeded into the output
+	# binary, this prevents building a reproducible binary.
+	oe_runmake configure-gcc
+	sed -i 's@${STAGING_DIR_TARGET}@/@g' ${B}/gcc/configargs.h
+	sed -i 's@${STAGING_DIR_HOST}@/@g' ${B}/gcc/configargs.h
+
+	# Prevent sysroot/workdir paths from being used in checksum-options.
+	# checksum-options is used to generate a checksum which is embedded into
+	# the output binary.
+	oe_runmake TARGET-gcc=checksum-options all-gcc
+	sed -i 's@${DEBUG_PREFIX_MAP}@@g' ${B}/gcc/checksum-options
+	sed -i 's@${STAGING_DIR_TARGET}@/@g' ${B}/gcc/checksum-options
 
 	oe_runmake all-host
 }
@@ -179,19 +181,60 @@ do_install () {
 	# We care about g++ not c++
 	rm -f *c++*
 
+	# We don't care about the gcc-<version> ones for this
+	rm -f *gcc-?*.?*
+
 	# Not sure why we end up with these but we don't want them...
 	rm -f ${TARGET_PREFIX}${TARGET_PREFIX}*
 
+	# Symlinks so we can use these trivially on the target
+	if [ -e ${TARGET_PREFIX}g77 ]; then
+		ln -sf ${TARGET_PREFIX}g77 g77 || true
+		ln -sf g77 f77 || true
+	fi
 	ln -sf ${TARGET_PREFIX}g++-${BINV} g++-${BINV}
 	ln -sf ${TARGET_PREFIX}gcc-${BINV} gcc-${BINV}
 	ln -sf ${TARGET_PREFIX}cpp-${BINV} cpp-${BINV}
 	ln -sf ${TARGET_PREFIX}gcov-${BINV} gcov-${BINV}
 	ln -sf ${TARGET_PREFIX}gcov-tool-${BINV} gcov-tool-${BINV}
+	install -d ${D}${base_libdir}
+	ln -sf ${bindir}/${TARGET_PREFIX}cpp ${D}${base_libdir}/cpp
 	ln -sf g++-${BINV} c++-${BINV}
 	ln -sf gcc-${BINV} cc-${BINV}
+	install -d ${D}${libdir}/bfd-plugins-${BINV}
+	ln -sf ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/liblto_plugin.so ${D}${libdir}/bfd-plugins-${BINV}/liblto_plugin.so
 	chown -R root:root ${D}
+}
 
-	cleanup_installed_include_fixed
+do_install:append () {
+        #
+        # Thefixinc.sh script, run on the gcc's compile phase, looks into sysroot header
+        # files and places the modified files into
+        # {D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include-fixed folder. This makes the
+        # build not deterministic. The following code prunes all those headers
+        # except those under include-fixed/linux, *limits.h and README, yielding
+        # the same include-fixed folders no matter what sysroot
+
+        include_fixed="${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include-fixed"
+        for f in $(find ${include_fixed} -type f); do
+                case $f in
+                */include-fixed/linux/*)
+                    continue
+                    ;;
+                */include-fixed/*limits.h)
+                    continue
+                    ;;
+                */include-fixed/README)
+                    continue
+                    ;;
+                *)
+                    # remove file and directory if empty
+                    bbdebug 2 "Pruning $f"
+                    rm $f
+                    find $(dirname $f) -maxdepth 0 -empty -exec rmdir {} \;
+                    ;;
+                esac
+        done
 }
 
 # Installing /usr/lib/gcc/* means we'd have two copies, one from gcc-cross
