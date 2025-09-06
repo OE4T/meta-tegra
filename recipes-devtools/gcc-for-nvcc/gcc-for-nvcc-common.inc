@@ -31,6 +31,16 @@ def get_gcc_float_setting(bb, d):
 
 get_gcc_float_setting[vardepvalue] = "${@get_gcc_float_setting(bb, d)}"
 
+def get_gcc_x86_64_arch_setting(bb, d):
+    import re
+    march = re.match(r'^.*-march=([^\s]*)', d.getVar('TUNE_CCARGS'))
+    if march:
+        return "--with-arch=%s " % march.group(1)
+    # The earliest supported x86-64 CPU
+    return "--with-arch=core2"
+
+get_gcc_x86_64_arch_setting[vardepvalue] = "${@get_gcc_x86_64_arch_setting(bb, d)}"
+
 def get_gcc_mips_plt_setting(bb, d):
     if d.getVar('TRANSLATED_TARGET_ARCH') in [ 'mips', 'mipsel' ] and bb.utils.contains('DISTRO_FEATURES', 'mplt', True, False, d):
         return "--with-mips-plt"
@@ -93,7 +103,7 @@ MIRRORS =+ "\
 gcclibdir = "${libdir}/gcc"
 BINV = "${PV}"
 #S = "${WORKDIR}/gcc-${PV}"
-S = "${TMPDIR}/work-shared/gcc-${PV}-${PR}/gcc-${PV}"
+S = "${TMPDIR}/work-shared/gcc-for-nvcc-${PV}-${PR}/gcc-${PV}"
 
 B ?= "${WORKDIR}/gcc-${PV}/build.${HOST_SYS}.${TARGET_SYS}"
 
@@ -106,29 +116,3 @@ target_prefix ?= "${prefix}"
 # The real WORKDIR location isn't a dependency for the shared workdir.
 src_patches[vardepsexclude] = "WORKDIR"
 should_apply[vardepsexclude] += "PN"
-
-remove_sysroot_paths_from_configargs () {
-    replacement=${1}
-    # Prevent sysroot path from being used in configargs.h header, as it will
-    # be rewritten when used by other sysroots preventing support for gcc
-    # plugins. Additionally the path is embeddeded into the output binary, this
-    # prevents building a reproducible binary.
-    oe_runmake configure-gcc
-    sed -i "s@${STAGING_DIR_TARGET}@$replacement@g" ${B}/gcc/configargs.h
-    sed -i "s@${STAGING_DIR_HOST}@/$replacement@g" ${B}/gcc/configargs.h
-}
-
-remove_sysroot_paths_from_checksum_options () {
-    stagingdir=${1}
-    replacement=${2}
-    # Prevent sysroot/workdir paths from being used in checksum-options.
-    # checksum-options is used to generate a checksum which is embedded into
-    # the output binary.
-    oe_runmake TARGET-gcc=checksum-options all-gcc
-    sed -i "s@${DEBUG_PREFIX_MAP}@@g" ${B}/gcc/checksum-options
-    sed -i "s@$stagingdir@$replacement@g" ${B}/gcc/checksum-options
-}
-
-cleanup_installed_include_fixed () {
-    find ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include-fixed -type f -not -name "README" -not -name limits.h -not -name syslimits.h | xargs rm -f
-}

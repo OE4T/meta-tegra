@@ -29,7 +29,7 @@
 
 require libgcc-for-nvcc-common.inc
 
-DEPENDS = "virtual/${TARGET_PREFIX}gcc"
+DEPENDS = "virtual/${TARGET_PREFIX}cuda-gcc"
 
 LICENSE = "GPL-3.0-with-GCC-exception"
 

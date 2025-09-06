@@ -39,6 +39,7 @@ LICENSE:${PN}-dbg = "GPL-3.0-with-GCC-exception"
 
 
 FILES:${PN}-dev = "\
+    ${base_libdir}/libgcc*.so \
     ${@oe.utils.conditional('BASETARGET_SYS', '${TARGET_SYS}', '', '${libdir}/${BASETARGET_SYS}', d)} \
     ${libdir}/${TARGET_SYS}/${BINV}* \
     ${libdir}/${TARGET_ARCH}${TARGET_VENDOR}* \
