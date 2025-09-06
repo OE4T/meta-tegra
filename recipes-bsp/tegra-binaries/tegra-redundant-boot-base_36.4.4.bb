@@ -10,11 +10,11 @@ DEPENDS = "tegra-libraries-core"
 MAINSUM = "864281721f202c9e3ae8c7b66ff469b05ee8abc6d3ae6cb0eaaa8a5e7769398f"
 
 do_install() {
-	install -d ${D}${sbindir}
-	install -m 0755 ${S}/usr/sbin/nvbootctrl ${D}${sbindir}
-	install -m 0755 ${S}/usr/sbin/nv_bootloader_payload_updater ${D}${sbindir}
-	install -m 0755 ${S}/usr/sbin/nv_update_engine ${D}${sbindir}
-	install -d ${D}/opt/ota_package
+    install -d ${D}${sbindir}
+    install -m 0755 ${S}/usr/sbin/nvbootctrl ${D}${sbindir}
+    install -m 0755 ${S}/usr/sbin/nv_bootloader_payload_updater ${D}${sbindir}
+    install -m 0755 ${S}/usr/sbin/nv_update_engine ${D}${sbindir}
+    install -d ${D}/opt/ota_package
 }
 
 PACKAGES = "tegra-redundant-boot-update-engine ${PN} ${PN}-dev"

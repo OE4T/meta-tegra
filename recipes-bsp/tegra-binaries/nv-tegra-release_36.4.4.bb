@@ -12,7 +12,7 @@ INHIBIT_DEFAULT_DEPS = "1"
 B = "${WORKDIR}/build"
 
 do_compile() {
-	head -n 1 ${S}/etc/nv_tegra_release > ${B}/nv_tegra_release
+    head -n 1 ${S}/etc/nv_tegra_release > ${B}/nv_tegra_release
 }
 
 do_install() {

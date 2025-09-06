@@ -21,9 +21,9 @@ inherit pkgconfig
 EXTRA_OEMAKE = "-C ${S} -f Makefile.public OUT_DIR=${B}"
 
 do_install() {
-	oe_runmake install DESTDIR="${D}"
-	install -d ${D}${includedir}
-	install -m0644 ${S}/gst-nvcustomevent.h ${D}${includedir}/
+    oe_runmake install DESTDIR="${D}"
+    install -d ${D}${includedir}
+    install -m0644 ${S}/gst-nvcustomevent.h ${D}${includedir}/
 }
 RPROVIDES:${PN} += "libgstnvcustomhelper.so()(64bit)"
 

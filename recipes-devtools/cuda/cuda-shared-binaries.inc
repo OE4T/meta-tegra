@@ -7,7 +7,7 @@ L4T_DEB_FEED_BASE ??= "file://"
 CUDA_LICENSE_PKG ?= "cuda-documentation-${CUDA_VERSION_DASHED}_12.6.68-1_${CUDA_DEB_PKGARCH}.deb;name=lic;subdir=${BP}"
 SRC_COMMON_DEBS = "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb;name=%s;subdir=${BP}' \
                                 % (pkg, 'dev' if pkg.endswith('-dev') else 'main') for pkg in d.getVar('CUDA_PKG').split()])} \
-	           ${CUDA_LICENSE_PKG}"
+                   ${CUDA_LICENSE_PKG}"
 
 
 SRC_URI[main.sha256sum] = "${MAINSUM}"
@@ -37,36 +37,36 @@ do_compile() {
     [ -L ${B}/usr/local/cuda-${CUDA_VERSION}/include ] && rm ${B}/usr/local/cuda-${CUDA_VERSION}/include
     if [ -d ${B}/usr/local/cuda-${CUDA_VERSION}/targets/${CUDA_INSTALL_ARCH}-${HOST_OS} ]; then
         oldwd="$PWD"
-	cd ${B}/usr/local/cuda-${CUDA_VERSION}/targets/${CUDA_INSTALL_ARCH}-${HOST_OS}
-	for d in *; do
-	    [ -d $d ] || continue
-	    if [ -d ${B}/usr/local/cuda-${CUDA_VERSION}/$d ]; then
-	        mv $d/* ${B}/usr/local/cuda-${CUDA_VERSION}/$d/
-		rmdir $d
-	    else
-	        mv $d ${B}/usr/local/cuda-${CUDA_VERSION}/
-	    fi
-	done
-	cd "$oldwd"
-	rmdir ${B}/usr/local/cuda-${CUDA_VERSION}/targets/${CUDA_INSTALL_ARCH}-${HOST_OS}
-	rmdir ${B}/usr/local/cuda-${CUDA_VERSION}/targets
+        cd ${B}/usr/local/cuda-${CUDA_VERSION}/targets/${CUDA_INSTALL_ARCH}-${HOST_OS}
+        for d in *; do
+            [ -d $d ] || continue
+            if [ -d ${B}/usr/local/cuda-${CUDA_VERSION}/$d ]; then
+                mv $d/* ${B}/usr/local/cuda-${CUDA_VERSION}/$d/
+                rmdir $d
+            else
+                mv $d ${B}/usr/local/cuda-${CUDA_VERSION}/
+            fi
+        done
+        cd "$oldwd"
+        rmdir ${B}/usr/local/cuda-${CUDA_VERSION}/targets/${CUDA_INSTALL_ARCH}-${HOST_OS}
+        rmdir ${B}/usr/local/cuda-${CUDA_VERSION}/targets
     fi
     if [ -d ${B}/usr/lib/pkgconfig ]; then
         for f in ${B}/usr/lib/pkgconfig/*; do
             sed -i -r -e's,^(libdir=.*/)lib[^/]*$,\1${baselib},' \
-		-e's,/targets/${CUDA_INSTALL_ARCH}-${HOST_OS},,g' \
+                -e's,/targets/${CUDA_INSTALL_ARCH}-${HOST_OS},,g' \
                 -e's,^(libdir=.*/)lib[^/]*(/.*)$,\1${baselib}\2,' \
                 -e's!^(Libs:.*)!\1 -Wl,-rpath=$!' $f
             sed -i -re's,^(Libs:.*),\1{libdir},' $f
-	done
+        done
     fi
     if [ "${baselib}" != "lib" ]; then
         if [ -d ${B}/usr/lib ]; then
             mv ${B}/usr/lib ${B}/usr/${baselib}
-	fi
-	if [ -d ${B}/usr/local/cuda-${CUDA_VERSION}/lib ]; then
+        fi
+        if [ -d ${B}/usr/local/cuda-${CUDA_VERSION}/lib ]; then
             mv ${B}/usr/local/cuda-${CUDA_VERSION}/lib ${B}/usr/local/cuda-${CUDA_VERSION}/${baselib}
-	fi
+        fi
     fi
     rm -rf ${B}/usr/share/doc
     if [ -d "${B}/usr/share" ]; then

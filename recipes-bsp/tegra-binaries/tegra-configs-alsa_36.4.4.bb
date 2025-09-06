@@ -12,14 +12,14 @@ SRC_URI += "file://asound.conf.tegra-hda-p3767-p3509"
 do_install() {
     if [ -n "${TEGRA_AUDIO_DEVICE}" ]; then
         install -d ${D}${sysconfdir}
-	if [ -e "${UNPACKDIR}/asound.conf.${TEGRA_AUDIO_DEVICE}" ]; then
+        if [ -e "${UNPACKDIR}/asound.conf.${TEGRA_AUDIO_DEVICE}" ]; then
             install -m 0644 ${UNPACKDIR}/asound.conf.${TEGRA_AUDIO_DEVICE} ${D}${sysconfdir}/asound.conf
-	else
+        else
             install -m 0644 ${S}/etc/asound.conf.${TEGRA_AUDIO_DEVICE} ${D}${sysconfdir}/asound.conf
-	    if [ "${TEGRA_AUDIO_DEVICE}" = "tegra-hda-jetson-agx" ]; then
-	        sed -i -e's!HDA,8!HDA,3!' ${D}${sysconfdir}/asound.conf
-	    fi
-	fi
+            if [ "${TEGRA_AUDIO_DEVICE}" = "tegra-hda-jetson-agx" ]; then
+                sed -i -e's!HDA,8!HDA,3!' ${D}${sysconfdir}/asound.conf
+            fi
+        fi
     fi
 
     install -d ${D}${datadir}/alsa/cards ${D}${datadir}/alsa/init/postinit
