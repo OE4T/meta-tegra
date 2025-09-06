@@ -10,3 +10,6 @@ GCCMULTILIB = "--disable-multilib"
 
 DEPENDS = "virtual/nativesdk-cross-binutils gettext-native ${NATIVEDEPS}"
 PROVIDES = "virtual/nativesdk-cross-cuda-gcc virtual/nativesdk-cross-cuda-g++"
+
+gcc_multilib_setup[vardepsexclude] = "MULTILIB_VARIANTS"
+

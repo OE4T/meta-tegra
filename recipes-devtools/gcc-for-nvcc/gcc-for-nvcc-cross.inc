@@ -61,8 +61,19 @@ do_compile () {
 	export CXXFLAGS_FOR_TARGET="${TARGET_CXXFLAGS}"
 	export LDFLAGS_FOR_TARGET="${TARGET_LDFLAGS}"
 
-	remove_sysroot_paths_from_configargs '/host'
-	remove_sysroot_paths_from_checksum_options '${STAGING_DIR_HOST}' '/host'
+	# Prevent native/host sysroot path from being used in configargs.h header,
+	# as it will be rewritten when used by other sysroots preventing support
+	# for gcc plugins
+	oe_runmake configure-gcc
+	sed -i 's@${STAGING_DIR_TARGET}@/host@g' ${B}/gcc/configargs.h
+	sed -i 's@${STAGING_DIR_HOST}@/host@g' ${B}/gcc/configargs.h
+
+	# Prevent sysroot/workdir paths from being used in checksum-options.
+	# checksum-options is used to generate a checksum which is embedded into
+	# the output binary.
+	oe_runmake TARGET-gcc=checksum-options all-gcc
+	sed -i 's@${DEBUG_PREFIX_MAP}@@g' ${B}/gcc/checksum-options
+	sed -i 's@${STAGING_DIR_HOST}@/host@g' ${B}/gcc/checksum-options
 
 	oe_runmake all-host configure-target-libgcc
 	(cd ${B}/${TARGET_SYS}/libgcc; oe_runmake enable-execute-stack.c unwind.h md-unwind-support.h sfp-machine.h gthr-default.h)
@@ -72,6 +83,8 @@ INHIBIT_PACKAGE_STRIP = "1"
 
 # Compute how to get from libexecdir to bindir in python (easier than shell)
 BINRELPATH = "${@os.path.relpath(d.expand("${STAGING_DIR_NATIVE}${prefix_native}/bin/${TARGET_SYS}"), d.expand("${libexecdir}/gcc/${TARGET_SYS}/${BINV}"))}"
+# linker plugin path
+LIBRELPATH = "${@os.path.relpath(d.expand("${libexecdir}/gcc/${TARGET_SYS}/${BINV}"), d.expand("${STAGING_LIBDIR_NATIVE}/${TARGET_SYS}/bfd-plugins-${BINV}"))}"
 
 do_install () {
 	( cd ${B}/${TARGET_SYS}/libgcc; oe_runmake 'DESTDIR=${D}' install-unwind_h-forbuild install-unwind_h )
@@ -84,7 +97,7 @@ do_install () {
 	# found. These need to be relative paths so they work in different locations.
 	dest=${D}${libexecdir}/gcc/${TARGET_SYS}/${BINV}/
 	install -d $dest
-	for t in ar as ld ld.bfd ld.gold nm objcopy objdump ranlib strip; do
+	for t in ar as ld ld.bfd ld.gold nm objcopy objdump ranlib strip gcc cpp; do
 		ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t $dest$t
 		ln -sf ${BINRELPATH}/${TARGET_PREFIX}$t ${dest}${TARGET_PREFIX}$t
 	done
@@ -112,8 +125,11 @@ do_install () {
 	cp ${S}/libquadmath/quadmath.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
 	cp ${S}/libquadmath/quadmath_weak.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
 
-	cleanup_installed_include_fixed
+	find ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include-fixed -type f -not -name "README" -not -name limits.h -not -name syslimits.h | xargs rm -f
 
+	# install LTO linker plugins where binutils tools can find it
+	install -d ${D}${libdir}/bfd-plugins-${BINV}
+	ln -sf ${LIBRELPATH}/liblto_plugin.so ${D}${libdir}/bfd-plugins-${BINV}/liblto_plugin.so
 }
 
 do_package[noexec] = "1"
@@ -139,6 +155,7 @@ do_gcc_stash_builddir () {
 	# Makefile does move-if-change which can end up with 'timestamp' as file contents so break links to those files
 	rm $dest/gcc/include/*.h
 	cp gcc/include/*.h $dest/gcc/include/
+	sysroot-relativelinks.py $dest
 }
 addtask do_gcc_stash_builddir after do_compile before do_install
 SSTATETASKS += "do_gcc_stash_builddir"
