@@ -4,16 +4,13 @@ require gcc-for-nvcc-configure-common.inc
 
 INHIBIT_DEFAULT_DEPS = "1"
 
-DEBUG_PREFIX_MAP:remove:class-target = "-fcanon-prefix-map"
-
 do_configure () {
 	install -d ${D}${base_libdir} ${D}${libdir}
 	mkdir -p ${B}/${BPN}
 	mkdir -p ${B}/${TARGET_SYS}/${BPN}/
 	cd ${B}/${BPN}
 	chmod a+x ${S}/${BPN}/configure
-	relpath=${@os.path.relpath("${S}/${BPN}", "${B}/${BPN}")}
-	$relpath/configure ${CONFIGUREOPTS} ${EXTRA_OECONF}
+	${S}/${BPN}/configure ${CONFIGUREOPTS} ${EXTRA_OECONF}
 }
 EXTRACONFFUNCS += "extract_stashed_builddir"
 do_configure[depends] += "${COMPILERDEP}"
@@ -26,6 +23,14 @@ do_compile () {
 do_install () {
 	cd ${B}/${BPN}
 	oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/${TARGET_SYS}/${BPN}/ install
+
+	# Move libgcc_s into /lib
+	mkdir -p ${D}${base_libdir}
+	if [ -f ${D}${libdir}/nof/libgcc_s.so ]; then
+		mv ${D}${libdir}/nof/libgcc* ${D}${base_libdir}
+	else
+		mv ${D}${libdir}/libgcc* ${D}${base_libdir} || true
+	fi
 
 	# install the runtime in /usr/lib/ not in /usr/lib/gcc on target
 	# so that cross-gcc can find it in the sysroot
@@ -52,8 +57,8 @@ do_install:append:libc-newlib () {
 }
 
 # No rpm package is actually created but -dev depends on it, avoid dnf error
-RDEPENDS:${PN}-dev:libc-baremetal = ""
-RDEPENDS:${PN}-dev:libc-newlib = ""
+DEV_PKG_DEPENDENCY:libc-baremetal = ""
+DEV_PKG_DEPENDENCY:libc-newlib = ""
 
 BBCLASSEXTEND = "nativesdk"
 

@@ -8,10 +8,10 @@ RM_WORK_EXCLUDE += "${PN}"
 inherit nopackages
 
 PN = "gcc-source-for-nvcc-${PV}"
-WORKDIR = "${TMPDIR}/work-shared/gcc-${PV}-${PR}"
+WORKDIR = "${TMPDIR}/work-shared/gcc-for-nvcc-${PV}-${PR}"
 SSTATE_SWSPEC = "sstate:gcc::${PV}:${PR}::${SSTATE_VERSION}:"
 
-STAMP = "${STAMPS_DIR}/work-shared/gcc-${PV}-${PR}"
+STAMP = "${STAMPS_DIR}/work-shared/gcc-for-nvcc-${PV}-${PR}"
 STAMPCLEAN = "${STAMPS_DIR}/work-shared/gcc-${PV}-*"
 
 INHIBIT_DEFAULT_DEPS = "1"
