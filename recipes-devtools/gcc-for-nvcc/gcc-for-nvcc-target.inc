@@ -54,7 +54,6 @@ FILES:${PN} = "\
     ${gcclibdir}/${TARGET_SYS}/${BINV}/lib*${SOLIBS} \
     ${gcclibdir}/${TARGET_SYS}/${BINV}/include \
     ${gcclibdir}/${TARGET_SYS}/${BINV}/include-fixed \
-    ${libdir}/bfd-plugins-${BINV}/*.so \
 "
 INSANE_SKIP:${PN} += "dev-so"
 RRECOMMENDS:${PN} += "\
@@ -96,7 +95,7 @@ RRECOMMENDS:g77 = "\
 
 FILES:cpp-for-nvcc = "\
     ${bindir}/${TARGET_PREFIX}cpp* \
-    ${base_libdir}/cpp \
+    ${base_libdir}/gcc/${TARGET_SYS}/${BINV}/cpp \
     ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/cc1"
 FILES:cpp-for-nvcc-symlinks = "${bindir}/cpp-${BINV}"
 
@@ -181,16 +180,13 @@ do_install () {
 	# We care about g++ not c++
 	rm -f *c++*
 
-	# We don't care about the gcc-<version> ones for this
-	rm -f *gcc-?*.?*
-
 	# Not sure why we end up with these but we don't want them...
 	rm -f ${TARGET_PREFIX}${TARGET_PREFIX}*
 
 	# Symlinks so we can use these trivially on the target
-	if [ -e ${TARGET_PREFIX}g77 ]; then
-		ln -sf ${TARGET_PREFIX}g77 g77 || true
-		ln -sf g77 f77 || true
+	if [ -e ${TARGET_PREFIX}g77-${BINV} ]; then
+		ln -sf ${TARGET_PREFIX}g77-${BINV} g77-${BINV} || true
+		ln -sf g77-${BINV} f77-${BINV} || true
 	fi
 	ln -sf ${TARGET_PREFIX}g++-${BINV} g++-${BINV}
 	ln -sf ${TARGET_PREFIX}gcc-${BINV} gcc-${BINV}
@@ -198,11 +194,8 @@ do_install () {
 	ln -sf ${TARGET_PREFIX}gcov-${BINV} gcov-${BINV}
 	ln -sf ${TARGET_PREFIX}gcov-tool-${BINV} gcov-tool-${BINV}
 	install -d ${D}${base_libdir}
-	ln -sf ${bindir}/${TARGET_PREFIX}cpp ${D}${base_libdir}/cpp
 	ln -sf g++-${BINV} c++-${BINV}
 	ln -sf gcc-${BINV} cc-${BINV}
-	install -d ${D}${libdir}/bfd-plugins-${BINV}
-	ln -sf ${libexecdir}/gcc/${TARGET_SYS}/${BINV}/liblto_plugin.so ${D}${libdir}/bfd-plugins-${BINV}/liblto_plugin.so
 	chown -R root:root ${D}
 }
 

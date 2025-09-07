@@ -24,14 +24,6 @@ do_install () {
 	cd ${B}/${BPN}
 	oe_runmake 'DESTDIR=${D}' MULTIBUILDTOP=${B}/${TARGET_SYS}/${BPN}/ install
 
-	# Move libgcc_s into /lib
-	mkdir -p ${D}${base_libdir}
-	if [ -f ${D}${libdir}/nof/libgcc_s.so ]; then
-		mv ${D}${libdir}/nof/libgcc* ${D}${base_libdir}
-	else
-		mv ${D}${libdir}/libgcc* ${D}${base_libdir} || true
-	fi
-
 	# install the runtime in /usr/lib/ not in /usr/lib/gcc on target
 	# so that cross-gcc can find it in the sysroot
 
@@ -42,7 +34,8 @@ do_install () {
 	# ship one with libgcc here
 	rm -rf ${D}${libdir}/${TARGET_SYS}/${BINV}/include
 	# Rely on mainline toolchain to provide libgcc_s
-	rm -f ${D}${libdir}/${TARGET_SYS}/${BINV}/libgcc_s.so*
+	rm -f ${D}${libdir}/${TARGET_SYS}/${BINV}/libgcc_s.so* ${D}${libdir}/libgcc*
+	rm -rf ${D}${libdir}/nof
 }
 
 do_install:append:libc-baremetal () {
