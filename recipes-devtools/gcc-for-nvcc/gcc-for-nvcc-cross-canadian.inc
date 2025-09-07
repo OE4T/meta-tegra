@@ -79,7 +79,6 @@ FILES:${PN} = "\
     ${gcclibdir}/${TARGET_SYS}/${BINV}/include-fixed \
     ${gcclibdir}/${TARGET_SYS}/${BINV}/plugin/include/ \
     ${gcclibdir}/${TARGET_SYS}/${BINV}/plugin/gtype.* \
-    ${libdir}/bfd-plugins-${BINV}/*.so \
     ${includedir}/c++/${BINV} \
     ${prefix}/${TARGET_SYS}/bin/* \
     ${prefix}/${TARGET_SYS}/lib/* \
@@ -140,10 +139,6 @@ do_install () {
 	install -d ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
 	cp ${S}/libquadmath/quadmath.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
 	cp ${S}/libquadmath/quadmath_weak.h ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include/
-
-	# install LTO linker plugins where binutils tools can find it
-	install -d ${D}${libdir}/bfd-plugins-${BINV}
-	ln -sf ${LIBRELPATH}/liblto_plugin.so ${D}${libdir}/bfd-plugins-${BINV}/liblto_plugin.so
 
 	chown -R root:root ${D}
 

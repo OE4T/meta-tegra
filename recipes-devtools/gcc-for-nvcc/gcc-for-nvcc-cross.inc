@@ -127,9 +127,6 @@ do_install () {
 
 	find ${D}${libdir}/gcc/${TARGET_SYS}/${BINV}/include-fixed -type f -not -name "README" -not -name limits.h -not -name syslimits.h | xargs rm -f
 
-	# install LTO linker plugins where binutils tools can find it
-	install -d ${D}${libdir}/bfd-plugins-${BINV}
-	ln -sf ${LIBRELPATH}/liblto_plugin.so ${D}${libdir}/bfd-plugins-${BINV}/liblto_plugin.so
 }
 
 do_package[noexec] = "1"
