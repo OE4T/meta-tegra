@@ -36,10 +36,40 @@ def tegra_bootcontrol_overlay_list(d, bup=False, separator=','):
             overlays.append('UefiUpdateSecurityKeys.dtbo')
     return separator.join(overlays)
 
+def tegra_signing_filechecksums(d):
+    files = []
+    if d.getVar('TEGRA_SIGNING_PKC'):
+        files.append('${TEGRA_SIGNING_PKC}')
+    if d.getVar('TEGRA_SIGNING_SBK'):
+        files.append('${TEGRA_SIGNING_SBK}')
+    if len(files) == 0:
+        return ''
+    return ' '.join([f + ':True' for f in files])
+
+def tegra_signing_args(d):
+    import os
+    import bb
+
+    args = ''
+    pkc = d.getVar('TEGRA_SIGNING_PKC')
+    if pkc:
+        if not os.path.exists(pkc):
+            bb.fatal("Signing file does not exist: %s" % pkc)
+        args += ' -u ${TEGRA_SIGNING_PKC}'
+    sbk = d.getVar('TEGRA_SIGNING_SBK')
+    if sbk:
+        if not os.path.exists(sbk):
+            bb.fatal("Signing file does not exist: %s" % sbk)
+        args += ' -v ${TEGRA_SIGNING_SBK}'
+    return args
+
 IMAGE_ROOTFS_SIZE ?= "${@tegra_default_rootfs_size(d)}"
 
 KERNEL_ARGS ??= ""
-TEGRA_SIGNING_ARGS ??= ""
+TEGRA_SIGNING_PKC ??= ""
+TEGRA_SIGNING_SBK ??= ""
+TEGRA_SIGNING_ARGS ??= "${@tegra_signing_args(d)}"
+TEGRA_SIGNING_FILECHECKSUMS ??= "${@tegra_signing_filechecksums(d)}"
 TEGRA_SIGNING_ENV ??= ""
 TEGRA_SIGNING_EXCLUDE_TOOLS ??= ""
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
@@ -392,6 +422,7 @@ END
     cd "$oldwd"
 }
 create_tegraflash_pkg[vardepsexclude] += "DATETIME"
+do_image_tegraflash_tar[file-checksums] += "${TEGRA_SIGNING_FILECHECKSUMS}"
 
 def tegraflash_bupgen_strip_cmd(d):
     images = d.getVar('TEGRA_BUPGEN_STRIP_IMG_NAMES').split()

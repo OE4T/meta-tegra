@@ -58,6 +58,7 @@ do_compile() {
         bberror "${B}/tegra-kernel.cap wasn't generated"
     fi
 }
+do_compile[file-checksums] += "${TEGRA_SIGNING_FILECHECKSUMS}"
 
 TEGRA_UEFI_CAPSULE_INSTALL_DIR ??= "/opt/nvidia/UpdateCapsule"
 
