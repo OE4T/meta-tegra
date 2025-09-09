@@ -8,6 +8,8 @@ NATIVEDEPS = ""
 
 CVE_PRODUCT = "gcc"
 
+TOOLCHAIN = "gcc"
+
 inherit autotools gettext texinfo
 
 BPN = "gcc"
