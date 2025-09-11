@@ -55,6 +55,8 @@ do_sign_dtbs() {
         local dtb="${B}/kernel-devicetree/generic-dts/dtbs/${dtbf}"
         if [ -e "$dtb" ]; then
             tegra_uefi_attach_sign "$dtb"
+            rm "$dtb"
+            mv "$dtb.signed" "$dtb"
         fi
     done
 }
