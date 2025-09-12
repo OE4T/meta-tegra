@@ -3,7 +3,10 @@ require tegra-shared-binaries.inc
 
 COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "tegra-flashvars tegra-storage-layout tegra-eks-image dtc-native coreutils-native lz4-native"
+DEPENDS = "tegra-flashvars tegra-storage-layout dtc-native coreutils-native lz4-native"
+DEPENDS += "${@bb.utils.contains('USE_PREBUILT_EKS_IMAGE', '1', \
+                ' tegra-eks-image', \
+                ' tegra-eks-image-custom', d)}"
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
