@@ -19,6 +19,8 @@ OPTEE_NV_PLATFORM:tegra234 = "t234"
 
 TA_DEV_KIT_DIR = "${STAGING_INCDIR}/optee/export-user_ta"
 
+TEGRA_OPTEE_TA_SIGN_KEY ?= ""
+
 # Common to all of the builds
 EXTRA_OEMAKE = "\
     V=1 \
@@ -32,4 +34,10 @@ EXTRA_OEMAKE = "\
 
 do_compile:prepend() {
     cp ${STAGING_DATADIR}/edk2-nvidia/standalone_mm_optee.bin ${B}/
+}
+python __anonymous() {
+    key = d.getVar("TEGRA_OPTEE_TA_SIGN_KEY")
+    if key and os.path.exists(key):
+        d.appendVarFlag("do_compile", "file-checksums", f" {key}:True")
+        d.appendVar("EXTRA_OEMAKE", f" TA_SIGN_KEY={key}")
 }
