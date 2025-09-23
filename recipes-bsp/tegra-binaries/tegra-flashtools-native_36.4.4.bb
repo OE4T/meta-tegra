@@ -63,6 +63,8 @@ do_install() {
 
     install -m 0755 ${S}/l4t_sign_image.sh ${D}${BINDIR}
     sed -i -e's,^\(L4T_BOOTLOADER_DIR=.*\)/bootloader,\1,' ${D}${BINDIR}/l4t_sign_image.sh
+
+    install -m 0755 ${S}/tools/gen_uefi_keys_dts.sh ${D}${BINDIR}
 }
 
 INHIBIT_SYSROOT_STRIP = "1"
