@@ -32,6 +32,7 @@ addtask preconfigure after do_patch before do_configure
 do_install() {
     install -d ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/chkbdinfo ${D}${BINDIR}
+    install -m 0755 ${S}/bootloader/fiptool ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/tegrabct_v2 ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/tegradevflash_v2 ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/tegrahost_v2 ${D}${BINDIR}
@@ -60,6 +61,8 @@ do_install() {
 
     install -m 0755 ${S}/l4t_sign_image.sh ${D}${BINDIR}
     sed -i -e's,^\(L4T_BOOTLOADER_DIR=.*\)/bootloader,\1,' ${D}${BINDIR}/l4t_sign_image.sh
+    install -m 0755 ${S}/create_l4t_bsp_images.py ${D}${BINDIR}/
+    cp -R --no-dereference --preserve=links,mode,timestamps ${S}/unified_flash ${D}${BINDIR}/
 }
 
 INHIBIT_SYSROOT_STRIP = "1"
