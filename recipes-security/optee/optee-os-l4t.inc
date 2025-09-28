@@ -13,8 +13,7 @@ OPTEEMACHINE:tegra ?= "tegra"
 OPTEE_ARCH = "null"
 OPTEE_ARCH:aarch64 = "arm64"
 
-NV_CCC_PREBUILT = ""
-NV_CCC_PREBUILT:tegra234 = "${S}/prebuilt/${OPTEE_NV_PLATFORM}/libcommon_crypto.a"
+NV_CCC_PREBUILT = "${S}/prebuilt/${OPTEE_NV_PLATFORM}/libcommon_crypto.a"
 
 S = "${UNPACKDIR}/optee_os"
 B = "${WORKDIR}/build"
