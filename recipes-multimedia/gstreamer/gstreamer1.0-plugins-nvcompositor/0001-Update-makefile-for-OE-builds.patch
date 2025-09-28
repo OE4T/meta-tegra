@@ -1,20 +1,21 @@
-From 4a6fd5367fb2610193a96419fe688fd9e39d278d Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Sun, 31 Jan 2021 06:30:53 -0800
+From c76d53aadf25e5115c370dd284448cbb90a2eba1 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Wed, 16 Apr 2025 17:06:13 +0100
 Subject: [PATCH] Update makefile for OE builds
 
 Upstream-Status: Inappropriate [OE-specific]
+
 Signed-off-by: Matt Madison <matt@madison.systems>
-
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- Makefile | 23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ Makefile | 31 +++++++++++++++++--------------
+ 1 file changed, 17 insertions(+), 14 deletions(-)
 
-Index: gst-nvcompositor/Makefile
-===================================================================
---- gst-nvcompositor.orig/Makefile
-+++ gst-nvcompositor/Makefile
-@@ -25,24 +25,20 @@
+diff --git a/Makefile b/Makefile
+index b44e205..0f21d0f 100644
+--- a/Makefile
++++ b/Makefile
+@@ -25,24 +25,26 @@
  # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
@@ -33,7 +34,11 @@ Index: gst-nvcompositor/Makefile
  SRCS := $(wildcard *.c)
  
 -INCLUDES += -I./
--
++CUDA_VER?=
++ifeq ($(CUDA_VER),)
++  $(error "CUDA_VER is not set")
++endif
+ 
  PKGS := gstreamer-1.0 \
  	gstreamer-base-1.0 \
 -	gstreamer-bad-video-1.0 \
@@ -41,11 +46,12 @@ Index: gst-nvcompositor/Makefile
  	gstreamer-allocators-1.0 \
 -	glib-2.0
 +	glib-2.0 \
-+	egl
++	cudart-$(CUDA_VER) \
++	cuda-$(CUDA_VER)
  
  OBJS := $(SRCS:.c=.o)
  
-@@ -51,22 +47,23 @@ CFLAGS += -fPIC \
+@@ -51,22 +53,23 @@ CFLAGS += -fPIC \
  
  CFLAGS += `pkg-config --cflags $(PKGS)`
  
@@ -74,3 +80,6 @@ Index: gst-nvcompositor/Makefile
  
  .PHONY: clean
  clean:
+-- 
+2.34.1
+
