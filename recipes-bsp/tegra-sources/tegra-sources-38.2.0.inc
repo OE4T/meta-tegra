@@ -56,5 +56,4 @@ python do_unpack() {
         shutil.move(unpackdir + '/' + basedir, workdir + '/' + basedir)
 }
 
-COMPATIBLE_MACHINE = "tegra"
 PACKAGE_ARCH = "${L4T_BSP_PKGARCH}"
