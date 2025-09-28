@@ -1,7 +1,7 @@
-From 5e4df8fdd206222ec2c58d389154ab2ecd51b688 Mon Sep 17 00:00:00 2001
+From 678cbeb4bcc34be148de2f593b4b57f0dc6a6813 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Mon, 11 Aug 2025 16:46:40 +0100
-Subject: [PATCH 2/6] Fix nvdisplay modules builds
+Date: Mon, 11 Aug 2025 16:47:36 +0100
+Subject: [PATCH 4/6] Fix unifiedgpudisp modules builds
 
 Update the makefiles, Kbuild, and conftest.sh script so
 that headers and symbols from the out-of-tree drivers can
@@ -9,30 +9,17 @@ be found when building the display driver modules.
 
 Upstream-Status: Inappropriate [OE specific]
 
-Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- Makefile                          |  1 +
- nvdisplay/kernel-open/Kbuild      | 15 ++++++++-------
- nvdisplay/kernel-open/Makefile    |  1 +
- nvdisplay/kernel-open/conftest.sh | 32 +++++++++++++++++--------------
- 4 files changed, 28 insertions(+), 21 deletions(-)
+ unifiedgpudisp/kernel-open/Kbuild      | 15 ++++++------
+ unifiedgpudisp/kernel-open/Makefile    |  1 +
+ unifiedgpudisp/kernel-open/conftest.sh | 32 +++++++++++++++-----------
+ 3 files changed, 27 insertions(+), 21 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index b915c67..9979b43 100644
---- a/Makefile
-+++ b/Makefile
-@@ -134,6 +134,7 @@ define display-cmd
- 		SYSSRCNVOOT=$(MAKEFILE_DIR)/nvidia-oot \
- 		SYSSRC=$(KERNEL_SRC) \
- 		SYSOUT=$(KBUILD_OUTPUT) \
-+		OOTSRC=$(MAKEFILE_DIR)/nvidia-oot \
- 		KBUILD_EXTRA_SYMBOLS=$(MAKEFILE_DIR)/nvidia-oot/Module.symvers \
- 		CC="$(CC)" \
- 		LD="$(LD)" \
-diff --git a/nvdisplay/kernel-open/Kbuild b/nvdisplay/kernel-open/Kbuild
-index 1b07b82..87ff3cc 100644
---- a/nvdisplay/kernel-open/Kbuild
-+++ b/nvdisplay/kernel-open/Kbuild
+diff --git a/unifiedgpudisp/kernel-open/Kbuild b/unifiedgpudisp/kernel-open/Kbuild
+index 710570f..9ade365 100644
+--- a/unifiedgpudisp/kernel-open/Kbuild
++++ b/unifiedgpudisp/kernel-open/Kbuild
 @@ -77,6 +77,7 @@ $(foreach _module, $(NV_KERNEL_MODULES), \
  
  ccflags-y += -I$(src)/common/inc
@@ -90,10 +77,10 @@ index 1b07b82..87ff3cc 100644
  
  # Perform all sanity checks before generating the conftest headers
  
-diff --git a/nvdisplay/kernel-open/Makefile b/nvdisplay/kernel-open/Makefile
-index 1b98d33..fe0b40d 100644
---- a/nvdisplay/kernel-open/Makefile
-+++ b/nvdisplay/kernel-open/Makefile
+diff --git a/unifiedgpudisp/kernel-open/Makefile b/unifiedgpudisp/kernel-open/Makefile
+index 245d91b..ea53d57 100644
+--- a/unifiedgpudisp/kernel-open/Makefile
++++ b/unifiedgpudisp/kernel-open/Makefile
 @@ -129,6 +129,7 @@ else
    KBUILD_PARAMS += ARCH=$(ARCH)
    KBUILD_PARAMS += NV_KERNEL_SOURCES=$(KERNEL_SOURCES)
@@ -102,10 +89,10 @@ index 1b98d33..fe0b40d 100644
    KBUILD_PARAMS += NV_KERNEL_MODULES="$(NV_KERNEL_MODULES)"
    KBUILD_PARAMS += INSTALL_MOD_DIR="$(INSTALL_MOD_DIR)"
    KBUILD_PARAMS += NV_SPECTRE_V2=$(SPECTRE_V2_RETPOLINE)
-diff --git a/nvdisplay/kernel-open/conftest.sh b/nvdisplay/kernel-open/conftest.sh
+diff --git a/unifiedgpudisp/kernel-open/conftest.sh b/unifiedgpudisp/kernel-open/conftest.sh
 index fdec0d6..3f42ff2 100755
---- a/nvdisplay/kernel-open/conftest.sh
-+++ b/nvdisplay/kernel-open/conftest.sh
+--- a/unifiedgpudisp/kernel-open/conftest.sh
++++ b/unifiedgpudisp/kernel-open/conftest.sh
 @@ -11,6 +11,8 @@ ARCH=$2
  SOURCES=$3
  HEADERS=$SOURCES/include
