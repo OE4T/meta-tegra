@@ -8,7 +8,7 @@ require recipes-bsp/tegra-sources/tegra-sources-${L4T_VERSION}.inc
 CVE_PRODUCT = "linaro:op-tee op-tee:op-tee_os"
 
 DEPENDS = "python3-pyelftools-native python3-cryptography-native"
-DEPENDS:append:tegra234 = " standalone-mm-optee-tegra"
+DEPENDS:append:tegra234 = " edk2-nvidia-standalone-mm"
 # python3-cryptography needs the legacy provider, so set OPENSSL_MODULES to the
 # right path until this is relocated automatically.
 export OPENSSL_MODULES = "${STAGING_LIBDIR_NATIVE}/ossl-modules"
