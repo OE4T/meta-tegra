@@ -16,6 +16,13 @@ PACKAGE_INSTALL = "\
     kernel-module-phy-tegra194-p2u \
     kernel-module-tegra-xudc \
     kernel-module-ucsi-ccg \
+    kernel-module-dummy \
+    kernel-module-uas \
+    kernel-module-tegra-bpmp-thermal \
+    kernel-module-pwm-tegra \
+    kernel-module-pwm-fan \
+    nv-kernel-module-pcie-tegra264 \
+    nv-kernel-module-ufs-tegra \
 "
 
 IMAGE_FEATURES = ""

@@ -1,0 +1,104 @@
+From 7ffddfe2a693bc086ed7c002f832cf8117ad8063 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 15 Feb 2026 09:55:38 -0800
+Subject: [PATCH 11/11] Fix drm-fb builds for Linux 6.17
+
+Linux 6.17 added a parameter to framebuffer creation
+functions for passing a pointer to a drm_format_info
+struct. Add a conftest for this and update the code
+to account for the added parameter.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/conftest.sh                      | 21 ++++++++++++++++++++
+ kernel-open/nvidia-drm/nvidia-drm-fb.c       |  6 ++++++
+ kernel-open/nvidia-drm/nvidia-drm-fb.h       |  3 +++
+ kernel-open/nvidia-drm/nvidia-drm-sources.mk |  1 +
+ 4 files changed, 31 insertions(+)
+
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index e369be8..88f35a8 100755
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -3693,6 +3693,27 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_MODE_CONFIG_HAS_ALLOW_FB_MODIFIERS" "" "types"
+         ;;
+ 
++        drm_mode_config_fb_create_has_drm_format_info)
++            #
++            # Determine if the 'fb_create' function pointer in the
++	    # 'drm_mode_config_funcs' structure takes a pointer to
++            # the 'drm_format_info' structure.
++            #
++            # The parameter was added by commit 81112eaac ("drm: Pass the format info
++	    # to .fb_create()") in v6.17.
++            #
++            CODE="$CONFTEST_PREAMBLE
++            #include <drm/drm_mode_config.h>
++            struct drm_framebuffer *conftest_drm_mode_config_fb_create_has_drm_format_info(
++	        struct drm_mode_config_funcs *funcs,
++		struct drm_device *dev, struct drm_file *file_priv,
++		struct drm_format_info *info, struct drm_mode_fb_cmd2 *mode_cmd) {
++                return funcs->fb_create(dev, file_priv, info, mode_cmd);
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_MODE_CONFIG_FB_CREATE_HAS_DRM_FORMAT_INFO" "" "types"
++        ;;
++
+         drm_has_hdr_output_metadata)
+             #
+             # Determine if drm_mode.h has 'hdr_output_metadata' structure.
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-fb.c b/kernel-open/nvidia-drm/nvidia-drm-fb.c
+index f8558fa..77e9267 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-fb.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-fb.c
+@@ -242,6 +242,9 @@ fail:
+ struct drm_framebuffer *nv_drm_framebuffer_create(
+     struct drm_device *dev,
+     struct drm_file *file,
++#if defined(NV_DRM_MODE_CONFIG_FB_CREATE_HAS_DRM_FORMAT_INFO)
++    const struct drm_format_info *info,
++#endif
+     const struct drm_mode_fb_cmd2 *cmd)
+ {
+     struct nv_drm_device *nv_dev = to_nv_device(dev);
+@@ -289,6 +292,9 @@ struct drm_framebuffer *nv_drm_framebuffer_create(
+     drm_helper_mode_fill_fb_struct(
+         dev,
+         &nv_fb->base,
++#if defined(NV_DRM_MODE_CONFIG_FB_CREATE_HAS_DRM_FORMAT_INFO)
++        NULL,
++#endif
+         cmd);
+ 
+     /*
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-fb.h b/kernel-open/nvidia-drm/nvidia-drm-fb.h
+index 3a0e5e5..f13cfeb 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-fb.h
++++ b/kernel-open/nvidia-drm/nvidia-drm-fb.h
+@@ -53,6 +53,9 @@ static inline struct nv_drm_framebuffer *to_nv_framebuffer(
+ struct drm_framebuffer *nv_drm_framebuffer_create(
+     struct drm_device *dev,
+     struct drm_file *file,
++#if defined(NV_DRM_MODE_CONFIG_FB_CREATE_HAS_DRM_FORMAT_INFO)
++    const struct drm_format_info *info,
++#endif
+     const struct drm_mode_fb_cmd2 *cmd);
+ 
+ #endif /* NV_DRM_ATOMIC_MODESET_AVAILABLE */
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-sources.mk b/kernel-open/nvidia-drm/nvidia-drm-sources.mk
+index 2e51ca1..7767769 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-sources.mk
++++ b/kernel-open/nvidia-drm/nvidia-drm-sources.mk
+@@ -87,6 +87,7 @@ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_plane_atomic_check_has_atomic_state_arg
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_device_has_pdev
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_crtc_state_has_no_vblank
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_mode_config_has_allow_fb_modifiers
++NV_CONFTEST_TYPE_COMPILE_TESTS += drm_mode_config_fb_create_has_drm_format_info
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_has_hdr_output_metadata
+ NV_CONFTEST_TYPE_COMPILE_TESTS += dma_resv_add_fence
+ NV_CONFTEST_TYPE_COMPILE_TESTS += dma_resv_reserve_fences
+-- 
+2.43.0
+

@@ -8,7 +8,7 @@ SRC_URI = "\
 
 S = "${UNPACKDIR}"
 
-COMPATIBLE_MACHINE = "(tegra234)"
+COMPATIBLE_MACHINE = "(tegra234|tegra264)"
 
 # enable modesetting and fbdev support by default
 NVIDIA_DRM_MODESET ?= "1"

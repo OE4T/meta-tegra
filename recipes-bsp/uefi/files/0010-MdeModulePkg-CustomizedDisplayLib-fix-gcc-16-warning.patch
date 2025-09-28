@@ -1,0 +1,46 @@
+From 9a31e3f7c107bc928dd174b2073abb94defa705b Mon Sep 17 00:00:00 2001
+From: Gerd Hoffmann <kraxel@redhat.com>
+Date: Thu, 29 Jan 2026 09:32:15 +0100
+Subject: [PATCH 09/13] MdeModulePkg/CustomizedDisplayLib: fix gcc 16 warning
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.c: In function ‘CreateDialog’:
+MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.c:435:18: error: variable ‘Count’ set but not used [-Werror=unused-but-set-variable=]
+  435 |   UINTN          Count;
+      |                  ^~~~~
+
+Upstream-Status: Backport [https://github.com/tianocore/edk2/pull/12047]
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../Library/CustomizedDisplayLib/CustomizedDisplayLib.c       | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.c b/MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.c
+index b3da13d0a3..9efdd69430 100644
+--- a/MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.c
++++ b/MdeModulePkg/Library/CustomizedDisplayLib/CustomizedDisplayLib.c
+@@ -432,7 +432,6 @@ CreateDialog (
+   UINTN          LargestString;
+   UINTN          LineNum;
+   UINTN          Index;
+-  UINTN          Count;
+   CHAR16         Character;
+   UINTN          Start;
+   UINTN          End;
+@@ -503,9 +502,8 @@ CreateDialog (
+   PrintCharAt ((UINTN)-1, (UINTN)-1, Character);
+   Character = BOXDRAW_VERTICAL;
+ 
+-  Count = 0;
+   VA_START (Marker, Key);
+-  for (Index = Top; Index + 2 < Bottom; Index++, Count++) {
++  for (Index = Top; Index + 2 < Bottom; Index++) {
+     String = VA_ARG (Marker, CHAR16 *);
+ 
+     if (String[0] == CHAR_NULL) {
+-- 
+2.43.0
+

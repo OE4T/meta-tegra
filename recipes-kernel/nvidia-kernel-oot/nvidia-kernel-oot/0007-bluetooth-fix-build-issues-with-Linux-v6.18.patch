@@ -1,0 +1,77 @@
+From 99aec0a3a6a874aa5f73e99ebd93e6db4e2bd9b7 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 13 Feb 2026 14:09:33 -0800
+Subject: [PATCH 7/7] bluetooth: fix build issues with Linux v6.18
+
+* quirks tracking changes in struct hci_dev
+* typo corrected in event structure name
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/bluetooth/realtek/rtk_bt.c   | 12 +++++++++---
+ drivers/bluetooth/realtek/rtk_coex.c |  4 ++++
+ 2 files changed, 13 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/bluetooth/realtek/rtk_bt.c b/drivers/bluetooth/realtek/rtk_bt.c
+index 7a778a96..9d9291e2 100644
+--- a/drivers/bluetooth/realtek/rtk_bt.c
++++ b/drivers/bluetooth/realtek/rtk_bt.c
+@@ -19,6 +19,8 @@
+  *
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -2035,14 +2037,18 @@ static int btusb_probe(struct usb_interface *intf,
+ 	hdev->owner = THIS_MODULE;
+ #endif
+ 
++#if HCI_VERSION_CODE < KERNEL_VERSION(6, 16, 0)
++#define hci_set_quirk(hdev, nr) set_bit((nr), &(hdev)->quirks)
++#endif
++
+ #if HCI_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+ 	set_bit(BTUSB_USE_ALT3_FOR_WBS, &data->flags);
+-	set_bit(HCI_QUIRK_WIDEBAND_SPEECH_SUPPORTED, &hdev->quirks);
++	hci_set_quirk(hdev, HCI_QUIRK_WIDEBAND_SPEECH_SUPPORTED);
+ #endif
+ 
+ #if HCI_VERSION_CODE >= KERNEL_VERSION(3, 7, 1)
+ 	if (!reset)
+-		set_bit(HCI_QUIRK_RESET_ON_CLOSE, &hdev->quirks);
++		hci_set_quirk(hdev, HCI_QUIRK_RESET_ON_CLOSE);
+ #endif
+ 
+ 	/* Interface numbers are hardcoded in the specification */
+@@ -2059,7 +2065,7 @@ static int btusb_probe(struct usb_interface *intf,
+ 	}
+ 
+ #if HCI_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
+-	set_bit(HCI_QUIRK_SIMULTANEOUS_DISCOVERY, &hdev->quirks);
++	hci_set_quirk(hdev, HCI_QUIRK_SIMULTANEOUS_DISCOVERY);
+ #endif
+ 
+ 	err = hci_register_dev(hdev);
+diff --git a/drivers/bluetooth/realtek/rtk_coex.c b/drivers/bluetooth/realtek/rtk_coex.c
+index 08155ee2..1d15a687 100644
+--- a/drivers/bluetooth/realtek/rtk_coex.c
++++ b/drivers/bluetooth/realtek/rtk_coex.c
+@@ -2430,7 +2430,11 @@ static void rtk_handle_le_terminate_big_complete_evt(u8 * p)
+ 
+ static void rtk_handle_le_big_sync_established_evt(void * p)
+ {
++#if HCI_VERSION_CODE >= KERNEL_VERSION(6, 18, 0)
++	struct hci_evt_le_big_sync_established *ev = p;
++#else
+ 	struct hci_evt_le_big_sync_estabilished *ev = p;
++#endif
+ 	u8 status;
+ 	u16 big_handle;
+ 	u16 bis_handle;
+-- 
+2.43.0
+

@@ -1,6 +1,6 @@
-From 4880f5ca83993463bc162fd0a2e6144a4849fcd7 Mon Sep 17 00:00:00 2001
+From 839c45145baf7f19ba2b8a7e03515d0eb85ff8d9 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Tue, 5 Mar 2024 11:52:33 +0000
+Date: Thu, 15 Jan 2026 17:38:05 -0800
 Subject: [PATCH] OE cross-build fixups
 
 Upstream-Status: Inappropriate [OE-specific]
@@ -16,7 +16,7 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  4 files changed, 25 insertions(+), 22 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index a374cc09..018cc61d 100644
+index 1a5115c7..29f9476a 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -24,17 +24,17 @@ WITH_SECCOMP ?= yes
@@ -46,7 +46,7 @@ index a374cc09..018cc61d 100644
  export DEPS_DIR    ?= $(CURDIR)/deps
  export DIST_DIR    ?= $(CURDIR)/dist
  export MAKE_DIR    ?= $(CURDIR)/mk
-@@ -137,20 +137,22 @@ LIBGO_SYMLINK := $(LIBGO_NAME).so
+@@ -138,20 +138,22 @@ LIBGO_SYMLINK := $(LIBGO_NAME).so
  
  # Common flags
  CPPFLAGS := -D_GNU_SOURCE -D_FORTIFY_SOURCE=2 $(CPPFLAGS)
@@ -73,7 +73,7 @@ index a374cc09..018cc61d 100644
  ifeq ($(WITH_NVCGO), yes)
  LIB_CPPFLAGS       += -DWITH_NVCGO
  LIB_LDLIBS_SHARED  += -lpthread
-@@ -202,13 +204,17 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
+@@ -203,13 +205,17 @@ DEPENDENCIES   := $(BIN_OBJS:%.o=%.d) $(LIB_OBJS:%.lo=%.d)
  $(BUILD_DEFS):
  	@printf '#define BUILD_DATE     "%s"\n' '$(strip $(DATE))' >$(BUILD_DEFS)
  	@printf '#define BUILD_COMPILER "%s " __VERSION__\n' '$(notdir $(COMPILER))' >>$(BUILD_DEFS)
@@ -92,7 +92,7 @@ index a374cc09..018cc61d 100644
  
  $(LIB_OBJS): %.lo: %.c | deps $(SRCS_DIR)/nvc.h
  	$(CC) $(LIB_CFLAGS) $(LIB_CPPFLAGS) -MMD -MF $*.d -c $(OUTPUT_OPTION) $<
-@@ -224,17 +230,14 @@ $(LIB_SHARED): $(LIB_OBJS)
+@@ -225,17 +231,14 @@ $(LIB_SHARED): $(LIB_OBJS)
  	$(OBJCPY) --only-keep-debug $@ $(LIB_SONAME)
  	$(OBJCPY) --add-gnu-debuglink=$(LIB_SONAME) $@
  	$(MV) $(LIB_SONAME) $(DEBUG_DIR)
@@ -110,7 +110,7 @@ index a374cc09..018cc61d 100644
  
  ##### Public rules #####
  
-@@ -244,7 +247,6 @@ all: shared static tools
+@@ -245,7 +248,6 @@ all: shared static tools
  # Run with ASAN_OPTIONS="protect_shadow_gap=0" to avoid CUDA OOM errors
  debug: CFLAGS += -pedantic -fsanitize=undefined -fno-omit-frame-pointer -fno-common -fsanitize=address
  debug: LDLIBS += -lubsan
@@ -118,7 +118,7 @@ index a374cc09..018cc61d 100644
  debug: shared static tools
  
  tools: $(BIN_NAME)
-@@ -266,7 +268,7 @@ ifeq ($(WITH_TIRPC), yes)
+@@ -267,7 +269,7 @@ ifeq ($(WITH_TIRPC), yes)
  	$(MAKE) -f $(MAKE_DIR)/libtirpc.mk DESTDIR=$(DEPS_DIR) install
  endif
  
@@ -141,7 +141,7 @@ index f6d5fbf2..d46584b7 100644
  
  ifeq ($(DATE),)
 diff --git a/mk/nvidia-modprobe.mk b/mk/nvidia-modprobe.mk
-index 34062224..71866af8 100644
+index 1633e0c4..27bc18f4 100644
 --- a/mk/nvidia-modprobe.mk
 +++ b/mk/nvidia-modprobe.mk
 @@ -26,6 +26,7 @@ PATCH_FILE     := $(MAKE_DIR)/nvidia-modprobe.patch
@@ -162,7 +162,7 @@ index 34062224..71866af8 100644
  ##### Public rules #####
  
 diff --git a/src/nvcgo/Makefile b/src/nvcgo/Makefile
-index eaee95a4..8ae626f3 100644
+index 7276e29b..3083a9a0 100644
 --- a/src/nvcgo/Makefile
 +++ b/src/nvcgo/Makefile
 @@ -39,7 +39,7 @@ build: $(OBJ_NAME)

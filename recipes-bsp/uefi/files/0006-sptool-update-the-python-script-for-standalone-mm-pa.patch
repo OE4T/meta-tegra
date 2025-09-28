@@ -1,0 +1,48 @@
+From 3e634bbebac824f62590ab1befafb77ff846cebe Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 3 Oct 2025 09:40:19 +0100
+Subject: [PATCH] sptool: update the python script for standalone-mm package
+ generation
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ Silicon/NVIDIA/edk2nv/sptool.py | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/Silicon/NVIDIA/edk2nv/sptool.py b/Silicon/NVIDIA/edk2nv/sptool.py
+index c0e758cd..a23cc39b 100755
+--- a/Silicon/NVIDIA/edk2nv/sptool.py
++++ b/Silicon/NVIDIA/edk2nv/sptool.py
+@@ -9,6 +9,8 @@
+ import struct
+ import os
+ import logging
++import argparse
++import sys
+ 
+ PAGE_SIZE = 4096
+ OFFSET_MAGIC = struct.pack("!I", 0x52415346)
+@@ -72,3 +74,19 @@ def sptool(manifest_file, img_file, out_file):
+ 
+     logging.info("Wrote PKG into: %s Entrypoint-offset: 0x%x" % (out_file, fw_offset))
+     return 0
++
++def Main():
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--image", required=True, help="Path to the partition image")
++    parser.add_argument("--manifest", required=True, help="Path to the partition image")
++    parser.add_argument("--output", required=True, help="set output file path.")
++    args = parser.parse_args()
++
++    if not os.path.exists(os.path.dirname(args.output)):
++        logging.error("Provide a valid output file path!", exc_info=True)
++
++    sptool(args.manifest, args.image, args.output)
++    return 0
++
++if __name__ == "__main__":
++    sys.exit(Main())
+-- 
+2.34.1
+

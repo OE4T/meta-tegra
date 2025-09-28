@@ -26,11 +26,10 @@ TNSPEC_MACHINE ??= "${MACHINE}"
 TNSPEC_BOOTDEV_DEFAULT ??= "mmcblk0p1"
 TNSPEC_BOOTDEV ??= "${TNSPEC_BOOTDEV_DEFAULT}"
 
-PREFERRED_PROVIDER_virtual/kernel ?= "linux-jammy-nvidia-tegra"
+PREFERRED_PROVIDER_virtual/kernel ?= "linux-noble-nvidia-tegra"
 PREFERRED_PROVIDER_virtual/dtb ?= "nvidia-kernel-oot-dtb"
 PREFERRED_PROVIDER_virtual/bootloader ?= "edk2-firmware-tegra"
-OPTEE_MM_PROVIDER = "${@'tegra-uefi-prebuilt' if d.getVar('PREFERRED_PROVIDER_virtual/bootloader') == 'tegra-uefi-prebuilt' else 'standalone-mm-optee-tegra'}"
-PREFERRED_PROVIDER_standalone-mm-optee-tegra ?= "${OPTEE_MM_PROVIDER}"
+PREFERRED_PROVIDER_edk2-nvidia-standalone-mm ?= "edk2-nvidia-standalone-mm"
 TEGRA_LIBGLVND_PROVIDER ?= "libglvnd"
 PREFERRED_PROVIDER_libglvnd = "${TEGRA_LIBGLVND_PROVIDER}"
 PREFERRED_PROVIDER_virtual/egl = "${PREFERRED_PROVIDER_libglvnd}"
@@ -55,7 +54,7 @@ PREFERRED_RPROVIDER_optee-nvsamples ?= "${@'nvidia-l4t-optee-nvsamples' if oe.ty
 PREFERRED_RPROVIDER_optee-nvsamples-hwkey-agent ?= "${@'nvidia-l4t-optee-nvsamples-hwkey-agent' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'optee-nvsamples-hwkey-agent'}"
 PREFERRED_RPROVIDER_optee-nvsamples-luks-srv ?= "${@'nvidia-l4t-optee-nvsamples-luks-srv' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else 'optee-nvsamples-luks-srv'}"
 
-TEGRA_OPTEE_VERSION ?= "${@'' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else '4.2-l4t%'}"
+TEGRA_OPTEE_VERSION ?= "${@'' if oe.types.boolean(d.getVar('USE_PREBUILT_OPTEE')) else '4.4-l4t%'}"
 PREFERRED_VERSION_optee-os = "${TEGRA_OPTEE_VERSION}"
 PREFERRED_VERSION_optee-os-tadevkit = "${TEGRA_OPTEE_VERSION}"
 PREFERRED_VERSION_optee-client = "${TEGRA_OPTEE_VERSION}"
@@ -81,9 +80,9 @@ TEGRA_ESSENTIAL_EXTRA_RDEPENDS ?= "${@'l4t-launcher-extlinux' if d.getVar('UBOOT
 MACHINE_FEATURES = "alsa usbhost pci rtc cuda ext2"
 MACHINE_ESSENTIAL_EXTRA_RDEPENDS = "tegra-firmware ${TEGRA_ESSENTIAL_EXTRA_RDEPENDS} nvidia-kernel-oot-base"
 MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS = "kernel-module-ina3221 kernel-module-lm90 kernel-module-tegra-bpmp-thermal kernel-module-spi-tegra114 kernel-module-pwm-fan \
-                                       kernel-module-governor-userspace kernel-module-ucsi-ccg kernel-module-pcie-tegra194 kernel-module-phy-tegra194-p2u \
+                                       kernel-module-ucsi-ccg kernel-module-pcie-tegra194 kernel-module-phy-tegra194-p2u \
                                        kernel-module-nvme kernel-module-pwm-tegra kernel-module-tegra-xudc"
-MACHINE_EXTRA_RDEPENDS = "tegra-nvphs tegra-nvs-service tegra-nvsciipc tegra-nvstartup tegra-nvfancontrol tegra-configs-udev tegra-redundant-boot nvidia-kernel-oot-display"
+MACHINE_EXTRA_RDEPENDS = "tegra-nvsciipc tegra-nvstartup tegra-nvfancontrol tegra-configs-udev tegra-redundant-boot nvidia-kernel-oot-display"
 MACHINE_EXTRA_RRECOMMENDS = "kernel-module-snd-hda-tegra kernel-module-snd-hda-codec-hdmi nvidia-kernel-oot-cameras nvidia-kernel-oot-canbus"
 MACHINE_HWCODECS = "gstreamer1.0-plugins-nvvideo4linux2"
 
@@ -107,7 +106,7 @@ PREFERRED_RPROVIDER_kernel-module-snd-soc-tegra210-sfc ?= "nv-kernel-module-snd-
 PREFERRED_RPROVIDER_kernel-module-tegra-bpmp-thermal ?= "nv-kernel-module-tegra-bpmp-thermal"
 PREFERRED_RPROVIDER_kernel-module-tegra-drm ?= "nv-kernel-module-tegra-drm"
 
-CUDA_VERSION ?= "12.6"
+CUDA_VERSION ?= "13.0"
 CUDA_ARCHITECTURES ?= "${TEGRA_CUDA_ARCHITECTURE}"
 CUDA_NVCC_ARCH_FLAGS ?= "--gpu-architecture=compute_${TEGRA_CUDA_ARCHITECTURE} --gpu-code=sm_${TEGRA_CUDA_ARCHITECTURE}"
 
@@ -119,20 +118,23 @@ TEGRA_SIGNING_ENV ?= "CHIPREV=${TEGRA_CHIPREV} BOARDID=${TEGRA_BOARDID} FAB=${TE
 
 TEGRA_FLASHVARS ?= "BPFDTB_FILE BPF_FILE BR_CMD_CONFIG CHIP_SKU DCE_OVERLAY DEVICEPROD_CONFIG DEVICE_CONFIG DEV_PARAMS DEV_PARAMS_B EMC_FUSE_DEV_PARAMS GPIOINT_CONFIG MB2BCT_CFG MINRATCHET_CONFIG MISC_CONFIG PINMUX_CONFIG PMC_CONFIG PMIC_CONFIG PROD_CONFIG SCR_CONFIG RAMCODE RCM_UEFI_IMAGE TBCDTB_FILE UEFI_IMAGE UPHY_CONFIG WB0SDRAM_BCT"
 TEGRA_FLASHVAR_DCE_OVERLAY ??= ""
+TEGRA_FLASHVAR_BCTFILE ?= "${EMC_BCT}"
+TEGRA_FLASHVAR_DTB_FILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 TEGRA_FLASHVAR_TBCDTB_FILE ?= "@DTBFILE@"
 TEGRA_FLASH_CHECK_VARS ?= "BOARDID BOARDSKU"
 TEGRA_FLASH_CHECK_BOARDID ?= "${TEGRA_BOARDID}"
 TEGRA_FLASH_CHECK_BOARDSKU ?= "${TEGRA_BOARDSKU}"
 
 # For more information on UEFI configurations, see the edk2-nvidia
-# sources.
+# sources, or the bootloader/uefi_bins/README_uefi.txt file in
+# the L4T kit.
 TEGRA_EDK2_CONFIGURATION ?= "general"
 TEGRA_FLASHVAR_UEFI_IMAGE ?= "uefi_${TEGRA_EDK2_PLATFORM}_${TEGRA_EDK2_CONFIGURATION}"
-TEGRA_RCM_EDK2_CONFIGURATION ?= "embedded"
+TEGRA_RCM_EDK2_CONFIGURATION ?= "minimal"
 TEGRA_FLASHVAR_RCM_UEFI_IMAGE ?= "uefi_${TEGRA_EDK2_PLATFORM}_rcmboot"
-TEGRA_RCM_EDK2_DEPENDS ?= "edk2-firmware-tegra-rcmboot:do_deploy"
+TEGRA_RCM_EDK2_DEPENDS ?= "${@'edk2-firmware-tegra-rcmboot' if d.getVar('TEGRA_RCM_EDK2_CONFIGURATION') != d.getVar('TEGRA_EDK2_CONFIGURATION') else 'virtual/bootloader'}:do_deploy"
 
-EMMC_BCTS ?= "${EMMC_BCT}${@',' + d.getVar('EMMC_BCT_OVERRIDE') if d.getVar('EMMC_BCT_OVERRIDE') else ''}"
+EMC_BCTS ?= "${EMC_BCT}${@',' + d.getVar('EMC_BCT_OVERRIDE') if d.getVar('EMC_BCT_OVERRIDE') else ''}"
 
 TEGRA_UEFI_SIGNING_CLASS ?= "tegra-uefi-signing"
 
@@ -145,12 +147,8 @@ PARTITION_LAYOUT_TEMPLATE_REDUNDANT ?= "${@d.getVar('PARTITION_LAYOUT_TEMPLATE_D
 PARTITION_LAYOUT_TEMPLATE ?= "${@d.getVar('PARTITION_LAYOUT_TEMPLATE_REDUNDANT') if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else d.getVar('PARTITION_LAYOUT_TEMPLATE_DEFAULT')}"
 PARTITION_LAYOUT_EXTERNAL_REDUNDANT ?= "${@d.getVar('PARTITION_LAYOUT_EXTERNAL_DEFAULT').replace('.xml','_rootfs_ab.xml')}"
 PARTITION_LAYOUT_EXTERNAL ?= "${@d.getVar('PARTITION_LAYOUT_EXTERNAL_REDUNDANT') if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else d.getVar('PARTITION_LAYOUT_EXTERNAL_DEFAULT')}"
+PARTITION_LAYOUT_RCMBOOT_DEFAULT ??= ""
+PARTITION_LAYOUT_RCMBOOT ?= "${PARTITION_LAYOUT_RCMBOOT_DEFAULT}"
 
 ROOTFSPART_SIZE_REDUNDANT ?= "${@int(d.getVar('ROOTFSPART_SIZE_DEFAULT')) // 2}"
 ROOTFSPART_SIZE ?= "${@d.getVar('ROOTFSPART_SIZE_REDUNDANT') if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else d.getVar('ROOTFSPART_SIZE_DEFAULT')}"
-
-BB_RECIPE_VIRTUAL_PROVIDERS:append = " virtual/cross-cuda-gcc virtual/cross-cuda-g++"
-PREFERRED_PROVIDER_virtual/cross-cuda-gcc = "${MLPREFIX}gcc-for-nvcc-cross-${TARGET_ARCH}"
-PREFERRED_PROVIDER_virtual/cross-cuda-gcc:class-nativesdk = "${MLPREFIX}gcc-for-nvcc-crosssdk-${SDK_SYS}"
-PREFERRED_PROVIDER_virtual/cross-cuda-g++ = "${MLPREFIX}gcc-for-nvcc-cross-${TARGET_ARCH}"
-PREFERRED_PROVIDER_virtual/cross-cuda-g++:class-nativesdk = "${MLPREFIX}gcc-for-nvcc-crosssdk-${SDK_SYS}"

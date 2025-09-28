@@ -1,0 +1,87 @@
+From 678da7d99a86888b363626f1aaa96278b9ac7e8d Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 13 Feb 2026 13:06:29 -0800
+Subject: [PATCH 4/7] tegra_virt_storage: fix build error for Linux v6.18
+
+The call signature of the getgeo function pointer changed
+in v6.18. Conftest added to handle this.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../block/tegra_virt_storage/tegra_hv_vblk.c  |  8 ++++++-
+ scripts/conftest/Makefile                     |  1 +
+ scripts/conftest/conftest.sh                  | 22 +++++++++++++++++++
+ 3 files changed, 30 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/block/tegra_virt_storage/tegra_hv_vblk.c b/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
+index 2208c69e..f46c65e4 100644
+--- a/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
++++ b/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
+@@ -1214,11 +1214,17 @@ static void vblk_release(struct gendisk *disk, fmode_t mode)
+  *   - Runtime: Yes
+  *   - De-Init: No
+  */
++#ifdef NV_BLOCK_DEVICE_OPERATIONS_GETGEO_HAS_GENDISK_ARG
++static int vblk_getgeo(struct gendisk *disk, struct hd_geometry *geo)
++{
++#else
+ static int vblk_getgeo(struct block_device *device, struct hd_geometry *geo)
+ {
++	struct gendisk *disk = device->bd_disk;
++#endif
+ 	geo->heads = VS_LOG_HEADS;
+ 	geo->sectors = VS_LOG_SECTS;
+-	geo->cylinders = get_capacity(device->bd_disk) /
++	geo->cylinders = get_capacity(disk) /
+ 		(geo->heads * geo->sectors);
+ 
+ 	return 0;
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 83cd241c..fd9e260f 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -100,6 +100,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += blk_mq_alloc_queue
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += blk_mq_destroy_queue
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += blk_queue_max_hw_sectors
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += blk_rq_map_sg_has_no_queue_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += block_device_operations_getgeo_has_gendisk_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += block_device_operations_open_has_gendisk_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += block_device_operations_release_has_no_mode_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += queue_limits_struct_has_features
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 4f96e281..d0fc7371 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -6695,6 +6695,28 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_BLK_QUEUE_MAX_HW_SECTORS_PRESENT" "" "functions"
+         ;;
+ 
++        block_device_operations_getgeo_has_gendisk_arg)
++            #
++            # Determine if the 'getgeo' function pointer from the
++            # 'block_device_operations' structure has 'gendisk' type argument.
++            #
++            # In Linux v6.18, commit 4fc8728aa ("block: switch ->getgeo() to struct gendisk")
++            # changed the first argument for the getgeo function pointer from
++	    # a block_device pointer to a gendisk pointer.
++            #
++            CODE="
++            #include <linux/blkdev.h>
++            int conftest_block_device_operations_getgeo_has_gendisk_arg(
++                struct block_device_operations *ops,
++                struct gendisk *disk,
++                struct hd_geometry *geo) {
++                    return ops->getgeo(disk, geo);
++            }"
++
++            compile_check_conftest "$CODE" \
++                    "NV_BLOCK_DEVICE_OPERATIONS_GETGEO_HAS_GENDISK_ARG" "" "types"
++        ;;
++
+         block_device_operations_open_has_gendisk_arg)
+             #
+             # Determine if the 'open' function pointer from the
+-- 
+2.43.0
+

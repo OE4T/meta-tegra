@@ -1,29 +1,25 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Jetson Modules
 ======================================================
 
-Jetson Linux release: R36.5.0
-JetPack release:      6.2.2
+Jetson Linux release: R39.2.0
+JetPack release:      7.2
 
 Boards supported:
+* Jetson AGX Thor development kit
 * Jetson AGX Orin development kit
 * Jetson Orin NX 16GB (p3767-0000) in Xavier NX (p3509) carrier
 * Jetson Orin NX 16GB (p3767-0000) in Orin Nano (p3768) carrier
 * Jetson Orin Nano development kit
 * Jetson AGX Orin Industrial 64GB (P3701-0008) in Orin AGX (P3737) carrier
 
+
 This layer depends on:
 URI: https://git.openembedded.org/openembedded-core
 branch: master
 LAYERSERIES_COMPAT: blacksail
 
-
-CUDA toolchain compatibility note
----------------------------------
-
-CUDA 12.6 supports up through gcc 13.2 only, so recipes are included
-for adding the gcc 13.2 toolchain to the build for CUDA use, and `cuda.bbclass`
-has been updated to pass the g++ 13 compiler to nvcc for CUDA code compilation.
-
+Please consult [this wiki page](https://github.com/OE4T/meta-tegra/wiki/JetPack-7.1-L4T-R38.4.x-Notes)
+for information about support for this release.
 
 Getting Help
 ------------
@@ -33,15 +29,13 @@ setup please use the
 [Discussions](https://github.com/OE4T/meta-tegra/discussions) tab of the
 meta-tegra repository:
 
-* Use the Ideas category for anything you'd like to see included in meta-tegra,
-Wiki content, or the
-[tegra-demo-distro](https://github.com/OE4T/tegra-demo-distro/issues).
-* Use the Q&A category for questions about how to build or modify your Tegra
-target based on the content here.
+* Use the Ideas category for anything you'd like to see included in the layer
+  or the wiki content.
+* Use the Q&A category for questions about the layer, recipes, etc.
 * Use the "Show and Tell" category for any projects you'd like to share which
-are related to meta-tegra.
+are related to the layer.
 * Use the General channel for anything that doesn't fit well into the categories
-above, and which doesn't relate to a build or runtime issue with Tegra yocto
+above, and which doesn't relate to a build or runtime issue with Yocto/OE
 builds.
 
 Reporting Issues

@@ -1,0 +1,75 @@
+From 94972c7ab1c57ca9a9da2b4b8a6bc154105aa010 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 13 Feb 2026 13:19:52 -0800
+Subject: [PATCH 5/7] ASoC: tegra-virt-alt: fix build error with Linux v6.18
+
+Add conftest for the snd_soc_dapm_context change in v6.18.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ scripts/conftest/Makefile                     |  1 +
+ scripts/conftest/conftest.sh                  | 18 ++++++++++++++++++
+ sound/soc/tegra-virt-alt/tegra_pcm_virt_alt.c |  4 ++++
+ 3 files changed, 23 insertions(+)
+
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index fd9e260f..8a002602 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -224,6 +224,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_component_driver_struct_has_non_le
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_dai_link_struct_has_c2c_params_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_dai_ops_struct_has_probe
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_dai_struct_has_symmetric_prefix
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_dapm_context_has_idle_bias
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_of_get_dai_name_has_index_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_rtd_to_codec
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += simple_util_dai_init
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index d0fc7371..6580d586 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -8713,6 +8713,24 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_SND_SOC_DAI_STRUCT_HAS_SYMMETRIC_PREFIX" "" "types"
+         ;;
+ 
++        snd_soc_dapm_context_has_idle_bias)
++            #
++            # Determine whether the snd_soc_dapm_context struct
++            # contains the idle_bias boolean.
++            #
++            # Commit 889dd56f8c ("ASoC: soc-dapm: tidyup idle_bias handling - step1")
++            # in Linux v6.18 switched from using a 1-bit 'idle_bias_off' bitfield
++            # to using an 'idle_bias' boolean.
++            #
++            CODE="
++            #include <sound/soc.h>
++            bool conftest_snd_soc_dapm_context_has_idle_bias(struct snd_soc_dapm_context *dapm) {
++	        return dapm->idle_bias;
++            }"
++
++            compile_check_conftest "$CODE" "NV_SND_SOC_DAPM_CONTEXT_HAS_IDLE_BIAS" "" "types"
++        ;;
++
+         snd_soc_of_get_dai_name_has_index_arg)
+             #
+             # Determine if the function 'snd_soc_of_get_dai_name()' has an index argument.
+diff --git a/sound/soc/tegra-virt-alt/tegra_pcm_virt_alt.c b/sound/soc/tegra-virt-alt/tegra_pcm_virt_alt.c
+index b057e401..2a477e58 100644
+--- a/sound/soc/tegra-virt-alt/tegra_pcm_virt_alt.c
++++ b/sound/soc/tegra-virt-alt/tegra_pcm_virt_alt.c
+@@ -329,7 +329,11 @@ static int tegra_alt_pcm_ioctl(struct snd_soc_component *component,
+ static int tegra_alt_pcm_probe(struct snd_soc_component *component)
+ {
+ 	struct snd_soc_dapm_context *dapm = snd_soc_component_get_dapm(component);
++#if defined(NV_SND_SOC_DAPM_CONTEXT_HAS_IDLE_BIAS) /* Linux 6.18 */
++	dapm->idle_bias = false;
++#else
+ 	dapm->idle_bias_off = 1;
++#endif
+ 	return 0;
+ }
+ 
+-- 
+2.43.0
+
