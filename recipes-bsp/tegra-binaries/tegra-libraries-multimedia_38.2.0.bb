@@ -1,16 +1,9 @@
-L4T_DEB_COPYRIGHT_MD5 = "770b0fc2a5cffa1d2b7eda7393e6b012"
+L4T_DEB_COPYRIGHT_MD5 = "c5a9810a8ac2bdcdce4e85013d7044d4"
 DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-multimedia-utils tegra-libraries-nvsci pango cairo glib-2.0 virtual/egl"
 
 require tegra-debian-libraries-common.inc
 
-LICENSE += "& MIT & BSD-3-Clause"
-LIC_FILES_CHKSUM += "\
-    file://usr/share/doc/nvidia-tegra/LICENSE.libnveventlib;md5=42479ac5ddc96ba7997ecf0636e707d2 \
-    file://usr/share/doc/nvidia-tegra/LICENSE.libnvtracebuf;md5=42479ac5ddc96ba7997ecf0636e707d2 \
-    file://usr/share/doc/nvidia-tegra/LICENSE.libnvjpeg;md5=1b873f8976e4e3683c04133e3035be98 \
-"
-
-MAINSUM = "55c001ffe6b17b886e008bd54ce46fb1ab6fea70c123548acf7f30a67f23f986"
+MAINSUM = "01df66107ccc771bdfa22b0772c6cc49406b2ef53401148dacf556127bbbb81e"
 
 inherit features_check
 
@@ -22,7 +15,6 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnveventlib.so \
     nvidia/libnvexif.so \
     nvidia/libnvid_mapper.so.1.0.0 \
-    nvidia/libnvjpeg.so \
     nvidia/libnvmedia.so \
     nvidia/libnvmedia2d.so \
     nvidia/libnvmedia_2d.so \
@@ -44,7 +36,6 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvmmlite_image.so \
     nvidia/libnvmmlite_utils.so \
     nvidia/libnvmmlite_video.so \
-    nvidia/libnvofsdk.so \
     nvidia/libnvoggopus.so \
     nvidia/libnvosd.so \
     nvidia/libnvparser.so \
@@ -53,6 +44,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvtvmr_2d.so \
     nvidia/libnvvideo.so \
     nvidia/libnvvideoencode_ppe.so \
+    nvidia/libnvmm_jpeg.so \
 "
 
 do_install() {
@@ -67,4 +59,5 @@ PACKAGES =+ "${PN}-osd"
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
 FILES:${PN}-osd = "${libdir}/libnvosd*"
+RDEPENDS:${PN} = "libnvjpeg"
 RDEPENDS:${PN}-osd = "liberation-fonts"
