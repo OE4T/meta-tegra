@@ -9,6 +9,7 @@ DEPENDS = "tegra-helper-scripts-native tegra-storage-layout-base"
 
 PARTITION_FILE ?= "${STAGING_DATADIR}/l4t-storage-layout/${PARTITION_LAYOUT_TEMPLATE}"
 PARTITION_FILE_EXTERNAL ?= "${STAGING_DATADIR}/l4t-storage-layout/${PARTITION_LAYOUT_EXTERNAL}"
+PARTITION_FILE_RCMBOOT ?= "${STAGING_DATADIR}/l4t-storage-layout/${PARTITION_LAYOUT_RCMBOOT}"
 EXTRA_XML_SPLIT_ARGS = "--change-device-type=sdcard"
 PATH =. "${STAGING_BINDIR_NATIVE}/tegra-flash:"
 
@@ -53,7 +54,7 @@ copy_in_flash_layout() {
                 -e"s,WB0FILE,sc7_t264_prod.bin," \
                 -e"s,PSCRF_IMAGE,psc_rf_t264_prod.bin," \
                 -e"s,MB2RF_IMAGE,mb2rf_t264.bin," \
-                -e"s,TBCDTB-FILE,uefi_jetson_ffa.bin," \
+                -e"s,TBCDTB-FILE,uefi_t26x_general.bin," \
                 -e"s,DCE,display-t264-dce.bin," \
                 -e"s,PVA_FILE,nvpva_030.fw," \
                 -e"s,RCE1FW,nv-rce1-t264.bin," \
@@ -63,6 +64,9 @@ copy_in_flash_layout() {
                 -e"s,IGBFW,igbfw_gb10b_gsc_package_prod.bin," \
                 -e"s,ATF_FW,bl31_t264.fip," \
                 -e"s,HAFNIUM_FW,hafnium_t264.fip," \
+                -e"s,WB0BOOT,sc7_t264_prod.bin," \
+                -e"s,SOSFILE,applet_t264.bin," \
+		-e"/FSIFW/d" \
                 "$dstfile"
             ;;
         *)
@@ -87,6 +91,9 @@ do_compile() {
     if [ -n "${PARTITION_LAYOUT_EXTERNAL}" ]; then
         copy_in_flash_layout ${PARTITION_FILE_EXTERNAL} external-flash.xml
     fi
+    if [ -n "${PARTITION_LAYOUT_RCMBOOT}" ]; then
+        copy_in_flash_layout ${PARTITION_FILE_RCMBOOT} ${PARTITION_LAYOUT_RCMBOOT}
+    fi
 
 }
 
@@ -99,6 +106,10 @@ do_install() {
     fi
     if [ -e ${B}/external-flash.xml ]; then
         install -m 0644 ${B}/external-flash.xml ${D}${datadir}/tegraflash/
+    fi
+
+    if [ -n "${PARTITION_LAYOUT_RCMBOOT}" ]; then
+        install -m 0644 ${B}/${PARTITION_LAYOUT_RCMBOOT} ${D}${datadir}/tegraflash/${PARTITION_LAYOUT_RCMBOOT}
     fi
 }
 
