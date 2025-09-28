@@ -5,7 +5,7 @@ require conf/image-uefi.conf
 COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
 
-PROVIDES = "virtual/bootloader standalone-mm-optee-tegra"
+PROVIDES = "virtual/bootloader edk2-nvidia-standalone-mm"
 
 DEPENDS = "coreutils-native dtc-native"
 
@@ -72,15 +72,15 @@ do_deploy() {
 }
 do_deploy[depends] += "${@'l4t-launcher-rootfs-ab-config:do_deploy' if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else ''}"
 
-PACKAGES = "l4t-launcher-prebuilt standalone-mm-optee-tegra-prebuilt"
+PACKAGES = "l4t-launcher-prebuilt edk2-nvidia-standalone-mm-prebuilt"
 RPROVIDES:l4t-launcher-prebuilt = "l4t-launcher"
 RCONFLICTS:l4t-launcher-prebuilt = "l4t-launcher"
 RREPLACES:l4t-launcher-prebuilt = "l4t-launcher"
 FILES:l4t-launcher-prebuilt = "${EFIDIR}"
-RPROVIDES:standalone-mm-optee-tegra-prebuilt = "standalone-mm-optee-tegra"
-RREPLACES:standalone-mm-optee-tegra-prebuilt = "standalone-mm-optee-tegra"
-RCONFLICTS:standalone-mm-optee-tegra-prebuilt = "standalone-mm-optee-tegra"
-FILES:standalone-mm-optee-tegra-prebuilt = "${datadir}/edk2-nvidia"
+RPROVIDES:edk2-nvidia-standalone-mm-prebuilt = "edk2-nvidia-standalone-mm"
+RREPLACES:edk2-nvidia-standalone-mm-prebuilt = "edk2-nvidia-standalone-mm"
+RCONFLICTS:edk2-nvidia-standalone-mm-prebuilt = "edk2-nvidia-standalone-mm"
+FILES:edk2-nvidia-standalone-mm-prebuilt = "${datadir}/edk2-nvidia"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
 
 addtask deploy before do_build after do_install
