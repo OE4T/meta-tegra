@@ -1,7 +1,7 @@
 DESCRIPTION = "NVIDIA nvarguscamerasrc GStreamer plugin"
 SECTION = "multimedia"
 LICENSE = "BSD-3-Clause & Proprietary"
-LIC_FILES_CHKSUM = "file://nvbufsurface.h;endline=9;md5=ba9f51385aebf755c973fc0a6b2277ad \
+LIC_FILES_CHKSUM = "file://nvbufsurface.h;endline=9;md5=b973ef2bfaa397b1e255c76c2d2cb64b \
                     file://README.txt;endline=25;md5=364434949752edc42711344c8401d55b \
 "
 
