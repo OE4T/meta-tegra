@@ -7,7 +7,7 @@ require optee-l4t.inc
 
 TEGRA_SRC_SUBARCHIVE_OPTS = "--strip-components=1 optee/samples"
 
-S = "${WORKDIR}/samples"
+S = "${UNPACKDIR}/samples"
 
 COMPATIBLE_MACHINE = ""
 
