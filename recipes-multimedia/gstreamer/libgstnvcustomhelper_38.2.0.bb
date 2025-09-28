@@ -7,7 +7,7 @@ LIC_FILES_CHKSUM = "file://LICENSE.libgstnvcustomhelper;md5=9e0fe9cd844e2cba9b43
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/libgstnvcustomhelper_src.tbz2"
 
-require recipes-bsp/tegra-sources/tegra-sources-36.4.4.inc
+require recipes-bsp/tegra-sources/tegra-sources-38.2.0.inc
 
 SRC_URI += " file://0001-Makefile-fixups-for-OE-builds.patch"
 
