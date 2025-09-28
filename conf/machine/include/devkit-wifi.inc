@@ -1,5 +1,5 @@
 MACHINE_FEATURES += "wifi bluetooth"
 LINUX_WIFI ?= "kernel-module-rtk-btusb kernel-module-rtw88-8822ce linux-firmware-rtl8822"
 NVIDIA_WIFI ?= "kernel-module-rtk-btusb kernel-module-rtl8822ce tegra-firmware-rtl8822"
-MACHINE_EXTRA_RRECOMMENDS += "${@'${NVIDIA_WIFI}' if d.getVar('PREFERRED_PROVIDER_virtual/kernel') == 'linux-jammy-nvidia-tegra' else '${LINUX_WIFI}'}"
+MACHINE_EXTRA_RRECOMMENDS += "${@'${NVIDIA_WIFI}' if d.getVar('PREFERRED_PROVIDER_virtual/kernel') == 'linux-noble-nvidia-tegra' else '${LINUX_WIFI}'}"
 TEGRA_BT_SUPPORT_PACKAGE ?= ""

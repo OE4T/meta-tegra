@@ -27,7 +27,7 @@ TNSPEC_MACHINE ??= "${MACHINE}"
 TNSPEC_BOOTDEV_DEFAULT ??= "mmcblk0p1"
 TNSPEC_BOOTDEV ??= "${TNSPEC_BOOTDEV_DEFAULT}"
 
-PREFERRED_PROVIDER_virtual/kernel ?= "linux-jammy-nvidia-tegra"
+PREFERRED_PROVIDER_virtual/kernel ?= "linux-noble-nvidia-tegra"
 PREFERRED_PROVIDER_virtual/dtb ?= "nvidia-kernel-oot-dtb"
 PREFERRED_PROVIDER_virtual/bootloader ?= "edk2-firmware-tegra"
 PREFERRED_PROVIDER_edk2-nvidia-standalone-mm ?= "edk2-nvidia-standalone-mm-prebuilt"
