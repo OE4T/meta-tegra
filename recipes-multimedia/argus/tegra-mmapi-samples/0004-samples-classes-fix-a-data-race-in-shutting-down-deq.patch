@@ -1,6 +1,6 @@
-From 27de2fa4ef71a952a1c0fcbb8dd8b73b8d619f21 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Wed, 30 Mar 2022 22:04:38 +0100
+From cecffa1c09428b986421dde2271bcc6a91efaa89 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 8 Sep 2025 09:52:56 +0100
 Subject: [PATCH 4/8] samples: classes: fix a data race in shutting down
  dequeue thread
 
@@ -15,10 +15,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  samples/common/classes/NvV4l2ElementPlane.cpp | 23 +++++++++++++++----
  3 files changed, 28 insertions(+), 6 deletions(-)
 
-Index: jetson_multimedia_api/samples/common/classes/NvApplicationProfiler.cpp
-===================================================================
---- jetson_multimedia_api.orig/samples/common/classes/NvApplicationProfiler.cpp
-+++ jetson_multimedia_api/samples/common/classes/NvApplicationProfiler.cpp
+diff --git a/samples/common/classes/NvApplicationProfiler.cpp b/samples/common/classes/NvApplicationProfiler.cpp
+index f37a31b..4458845 100644
+--- a/samples/common/classes/NvApplicationProfiler.cpp
++++ b/samples/common/classes/NvApplicationProfiler.cpp
 @@ -126,7 +126,10 @@ void
  NvApplicationProfiler::stop()
  {
@@ -31,11 +31,11 @@ Index: jetson_multimedia_api/samples/common/classes/NvApplicationProfiler.cpp
  
      pthread_mutex_lock(&thread_lock);
      gettimeofday(&data.stop_time, NULL);
-Index: jetson_multimedia_api/samples/common/classes/NvEglRenderer.cpp
-===================================================================
---- jetson_multimedia_api.orig/samples/common/classes/NvEglRenderer.cpp
-+++ jetson_multimedia_api/samples/common/classes/NvEglRenderer.cpp
-@@ -144,6 +144,7 @@ NvEglRenderer::NvEglRenderer(const char
+diff --git a/samples/common/classes/NvEglRenderer.cpp b/samples/common/classes/NvEglRenderer.cpp
+index e8bd71b..f8f6abe 100644
+--- a/samples/common/classes/NvEglRenderer.cpp
++++ b/samples/common/classes/NvEglRenderer.cpp
+@@ -144,6 +144,7 @@ NvEglRenderer::NvEglRenderer(const char *name, uint32_t width, uint32_t height,
      if(isInError())
      {
          pthread_join(render_thread, NULL);
@@ -55,11 +55,11 @@ Index: jetson_multimedia_api/samples/common/classes/NvEglRenderer.cpp
  
      pthread_mutex_destroy(&render_lock);
      pthread_cond_destroy(&render_cond);
-Index: jetson_multimedia_api/samples/common/classes/NvV4l2ElementPlane.cpp
-===================================================================
---- jetson_multimedia_api.orig/samples/common/classes/NvV4l2ElementPlane.cpp
-+++ jetson_multimedia_api/samples/common/classes/NvV4l2ElementPlane.cpp
-@@ -888,10 +888,18 @@ NvV4l2ElementPlane::stopDQThread()
+diff --git a/samples/common/classes/NvV4l2ElementPlane.cpp b/samples/common/classes/NvV4l2ElementPlane.cpp
+index c5a6ac7..34e2dba 100644
+--- a/samples/common/classes/NvV4l2ElementPlane.cpp
++++ b/samples/common/classes/NvV4l2ElementPlane.cpp
+@@ -895,10 +895,18 @@ NvV4l2ElementPlane::stopDQThread()
          PLANE_WARN_MSG("Should not be called in blocking mode");
          return 0;
      }
@@ -82,7 +82,7 @@ Index: jetson_multimedia_api/samples/common/classes/NvV4l2ElementPlane.cpp
      return 0;
  }
  
-@@ -911,6 +919,13 @@ NvV4l2ElementPlane::waitForDQThread(uint
+@@ -918,6 +926,13 @@ NvV4l2ElementPlane::waitForDQThread(uint32_t max_wait_ms)
      timeToWait.tv_nsec = timeToWait.tv_nsec % 1000000000L;
  
      pthread_mutex_lock(&plane_lock);
@@ -96,3 +96,6 @@ Index: jetson_multimedia_api/samples/common/classes/NvV4l2ElementPlane.cpp
      while (dqthread_running)
      {
          ret = pthread_cond_timedwait(&plane_cond, &plane_lock, &timeToWait);
+-- 
+2.34.1
+
