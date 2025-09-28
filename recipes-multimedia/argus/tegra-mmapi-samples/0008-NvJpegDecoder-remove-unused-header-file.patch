@@ -1,33 +1,33 @@
-From 62bb9017fac69fd753e04b4ef5bf99db2c08e0ba Mon Sep 17 00:00:00 2001
+From 862cd2188407a48cb91cf15600d7c32e15d60c11 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Tue, 21 Nov 2023 09:09:10 +0000
-Subject: [PATCH 10/10] NvJpegDecoder: remove unused header file
+Date: Mon, 8 Sep 2025 10:07:21 +0100
+Subject: [PATCH 8/8] NvJpegDecoder: remove unused header file
 
 Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- samples/common/classes/NvJpegDecoder.cpp | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ samples/common/classes/NvJpegDecoder.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/samples/common/classes/NvJpegDecoder.cpp b/samples/common/classes/NvJpegDecoder.cpp
-index 0a1cdf0..6f27cc1 100644
+index 08adfed..cb053ac 100644
 --- a/samples/common/classes/NvJpegDecoder.cpp
 +++ b/samples/common/classes/NvJpegDecoder.cpp
-@@ -33,12 +33,13 @@
+@@ -35,13 +35,13 @@
  #include "unistd.h"
  #include "stdlib.h"
- #include "nvbufsurface.h"
+ #include "NvBufSurface.h"
 -#include "jpegint.h"
+ #include <cuda.h>
  
  #define MAX(a, b) ((a) > (b) ? (a) : (b))
  #define ROUND_UP_4(num)  (((num) + 3) & ~3)
  
  #define CAT_NAME "JpegDecoder"
 +#define DSTATE_READY 202
-+
  
  NvJPEGDecoder::NvJPEGDecoder(const char *comp_name)
      :NvElement(comp_name, valid_fields)
 -- 
-2.25.1
+2.34.1
 

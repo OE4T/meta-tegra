@@ -1,7 +1,7 @@
-From 88c64af0d0f97771df719070e9365211076cb502 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Wed, 30 Mar 2022 23:02:28 +0100
-Subject: [PATCH 8/8] camera_v4l2_cuda: add option for setting max frame count
+From f30b72e28215591cb93269f07943c14affb3ac64 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 8 Sep 2025 10:05:27 +0100
+Subject: [PATCH 7/8] camera_v4l2_cuda: add option for setting max frame count
 
 to a allow for an automated timed run, instead of interactive.
 
