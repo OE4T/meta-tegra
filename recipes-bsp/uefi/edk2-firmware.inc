@@ -42,6 +42,7 @@ EDK2_ARCH:riscv64  = "RISCV64"
 
 # Extra arguments passed to build
 EDK2_EXTRA_BUILD   = ""
+TEGRA_BUILD_GUID ??= ""
 
 # build --buildtarget
 EDK2_BUILD_MODE ?= "${@bb.utils.contains('EDK2_BUILD_RELEASE', '1', 'RELEASE', 'DEBUG', d)}"
@@ -115,7 +116,7 @@ do_compile() {
        --tagname ${EDK_COMPILER} \
        --platform ${EDK2_PLATFORM_DSC} \
        ${@oe.utils.parallel_make_argument(d, "-n %d")} \
-       ${EDK2_EXTRA_BUILD}
+       ${EDK2_EXTRA_BUILD} ${TEGRA_BUILD_GUID}
 }
 
 do_install() {
