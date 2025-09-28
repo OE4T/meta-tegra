@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM = "file://opt/nvidia/nsight-systems/${BASE_VERSION}/EULA.txt;md
 inherit l4t_deb_pkgfeed
 
 SRC_COMMON_DEBS = "nsight-systems-${BASE_VERSION}_${PV}_arm64.deb;subdir=${BPN}"
-SRC_URI[sha256sum] = "404b1d921366d94f60a027298523e295c5484ee6f6e3b8a27da304ad4fd92bad"
+SRC_URI[sha256sum] = "ddc6acec32074696b8e974749ad9fa59837d2d19bedb8c4eaae0a2f6461c90aa"
 
 S = "${UNPACKDIR}/${BPN}"
 B = "${S}"
@@ -26,7 +26,7 @@ do_compile() {
 
 do_install() {
     install -d ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
-    cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-tegra-armv8/ ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
+    cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-sbsa-armv8// ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
     cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/host-linux-armv8/ ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
     cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/bin/ ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
 }
@@ -38,7 +38,7 @@ EXCLUDE_FROM_SHLIBS = "1"
 
 PACKAGES += "${PN}-qdstrmimporter"
 FILES:${PN} = " \
-    /opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-tegra-armv8 \
+    /opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-sbsa-armv8 \
 "
 FILES:${PN}-qdstrmimporter = " \
     /opt/nvidia/nsight-systems/${BASE_VERSION}/host-linux-armv8 \
