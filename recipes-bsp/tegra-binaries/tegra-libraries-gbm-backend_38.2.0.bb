@@ -1,11 +1,11 @@
-L4T_DEB_COPYRIGHT_MD5 = "2521cfe2b2ac49a92c192eab83a32ecc"
+L4T_DEB_COPYRIGHT_MD5 = "39ac713283a8a4beb6e0bcb38782e3a1"
 DEPENDS = "tegra-libraries-eglcore"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-gbm"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "56ccd7679e8e26b7e8eae7dc211db30173b9e0f81faf1a3b31f6f4c535dd64a9"
+MAINSUM = "94f5fa03f8fe8b7f147c23ccce7cf9c85195ae8b5a2af4094b439adb51c21962"
 
 RPROVIDES:${PN} += "tegra-gbm-backend"
 

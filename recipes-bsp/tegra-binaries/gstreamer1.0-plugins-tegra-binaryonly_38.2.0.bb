@@ -1,10 +1,10 @@
 DESCRIPTION = "NVIDIA prebuilt binary-only GStreamer plugins"
-L4T_DEB_COPYRIGHT_MD5 = "20bbd485b9b57fbc0b55d6efc08e3f4a"
+L4T_DEB_COPYRIGHT_MD5 = "cf5e527faa5ef67c91ec75b7f6c501e7"
 
 DEPENDS = "\
 	glib-2.0 \
 	gstreamer1.0-plugins-base \
-	tegra-libraries-multimedia tegra-libraries-multimedia-utils \
+	tegra-libraries-multimedia tegra-libraries-multimedia-utils tegra-libraries-camera \
 	${@bb.utils.contains('DISTRO_FEATURES', ['x11', 'alsa'], 'virtual/libx11 alsa-lib', '', d)} \
 	libdrm virtual/egl virtual/libgles2 \
 "
@@ -14,7 +14,7 @@ L4T_DEB_IS_COMMON = "1"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "f69922d5a90f462335d057b0312929f5f4b1c81d98c0c18001a64188588e76e7"
+MAINSUM = "c1ed76fd652e5a540be17facde291858885f6bb84862ef22776085b9da857650"
 
 inherit features_check
 

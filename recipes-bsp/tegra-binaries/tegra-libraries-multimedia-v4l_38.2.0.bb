@@ -1,23 +1,28 @@
-L4T_DEB_COPYRIGHT_MD5 = "770b0fc2a5cffa1d2b7eda7393e6b012"
+L4T_DEB_COPYRIGHT_MD5 = "c5a9810a8ac2bdcdce4e85013d7044d4"
 DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-multimedia tegra-libraries-multimedia-utils"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-multimedia"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "55c001ffe6b17b886e008bd54ce46fb1ab6fea70c123548acf7f30a67f23f986"
+SRC_SOC_DEBS += "\
+    ${@l4t_deb_pkgname(d, 'multimedia-openrm')};subdir=${BP};name=openrm \
+"
+
+MAINSUM = "01df66107ccc771bdfa22b0772c6cc49406b2ef53401148dacf556127bbbb81e"
+OPENRMSUM = "03e0af96424ef39882cf5faaf2de5106efee5e1efe267965617a488ac16b9fb2"
+
+SRC_URI[openrm.sha256sum] = "${OPENRMSUM}"
 
 inherit features_check
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
-    nvidia/libtegrav4l2.so \
     nvidia/libnvcuvidv4l2.so \
 "
 
 TEGRA_PLUGINS = "\
-    libv4l2_nvvideocodec.so \
     libv4l2_nvcuvidvideocodec.so \
 "
 
@@ -32,3 +37,4 @@ do_install() {
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
 FILES:${PN} += "${libdir}/libv4l"
+RDEPENDS:${PN} = "tegra-libraries-video-codec"

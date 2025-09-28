@@ -1,4 +1,4 @@
-L4T_DEB_COPYRIGHT_MD5 = "770b0fc2a5cffa1d2b7eda7393e6b012"
+L4T_DEB_COPYRIGHT_MD5 = "c5a9810a8ac2bdcdce4e85013d7044d4"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-multimedia"
 
@@ -12,11 +12,11 @@ SRC_SOC_DEBS += "\
 SRC_COMMON_DEBS += "\
     ${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP}/full;name=gstreamer \
 "
-MAINSUM = "55c001ffe6b17b886e008bd54ce46fb1ab6fea70c123548acf7f30a67f23f986"
-SRC_URI[camera.sha256sum] = "d473f73c489e415e23d86b41fe1df53b29f64b8699eadfdd90e645f0b2b19580"
-SRC_URI[gstreamer.sha256sum] = "f69922d5a90f462335d057b0312929f5f4b1c81d98c0c18001a64188588e76e7"
-SRC_URI[wayland.sha256sum] = "7171279c2d27c02398021591ebfa41552f85928b5517432c9c02f2c64562514c"
-SRC_URI[weston.sha256sum] = "f42f8e224decc13b57e9b8d09fd51752ef02da4edadfe7a51d8684ff00719f78"
+MAINSUM = "01df66107ccc771bdfa22b0772c6cc49406b2ef53401148dacf556127bbbb81e"
+SRC_URI[camera.sha256sum] = "a090471986756c28297c40be9598b9e0116db68c868f3ccd32ccea3ae4462287"
+SRC_URI[gstreamer.sha256sum] = "c1ed76fd652e5a540be17facde291858885f6bb84862ef22776085b9da857650"
+SRC_URI[wayland.sha256sum] = "d31380c1906a9b3aacaa4be09fb0266da0aa2deaead86d512e7671b30d38fbea"
+SRC_URI[weston.sha256sum] = "8cc2522c2c47e30ffef2d69c313ccf7569c7d9825b04bc023da1e43ae77bb0a2"
 
 PASSTHRU_ROOT = "${datadir}/nvidia-container-passthrough"
 
@@ -26,7 +26,7 @@ do_install() {
     cp -R --preserve=mode,links,timestamps ${S}/full/usr/lib/aarch64-linux-gnu ${D}${PASSTHRU_ROOT}/usr/lib/
     # Just the V4L2 files for the multimedia package
     cp -R --preserve=mode,links,timestamps ${S}/usr/lib/aarch64-linux-gnu/libv4l ${D}${PASSTHRU_ROOT}/usr/lib/aarch64-linux-gnu/
-    for f in libnvv4l2.so libnvv4lconvert.so libv4l2_nvvideocodec.so libv4l2_nvcuvidvideocodec.so libv4l2_nvargus.so; do
+    for f in libnvv4l2.so libnvv4lconvert.so libv4l2_nvargus.so; do
         install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/$f ${D}${PASSTHRU_ROOT}/usr/lib/aarch64-linux-gnu/nvidia/
     done
     ln -sf libnvv4l2.so ${D}${PASSTHRU_ROOT}/usr/lib/aarch64-linux-gnu/nvidia/libv4l2.so.0

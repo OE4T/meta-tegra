@@ -1,18 +1,14 @@
 DESCRIPTION = "L4T bootloader update support tools"
-L4T_DEB_COPYRIGHT_MD5 = "8dd8762d7a7fea51677fa5d99d4653e2"
+L4T_DEB_COPYRIGHT_MD5 = "396b81964d013b4c92daf8bf82b93494"
 
-L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-tools"
+L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-bootloader-utils"
 
 require tegra-debian-libraries-common.inc
 
-DEPENDS = "tegra-libraries-core"
-
-MAINSUM = "2b985d1a7943b92888fcc150b0f5364f56edba0529c05d2e3993cb5793819d66"
+MAINSUM = "c478a97c581ab8c743ff3dcd65f49b4011bd3f82a40bcb0732d3b5710c8a79a8"
 
 do_install() {
-	install -d ${D}${sbindir}
-	install -m 0755 ${S}/usr/sbin/nv_update_engine ${D}${sbindir}
-	install -d ${D}/opt/ota_package
+	install -D -m 0755 -t ${D}${sbindir} ${S}/usr/sbin/nvbootctrl
 }
 
 PACKAGES = "tegra-redundant-boot-update-engine ${PN} ${PN}-dev"

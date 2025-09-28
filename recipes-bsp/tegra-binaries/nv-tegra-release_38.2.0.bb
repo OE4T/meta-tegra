@@ -1,11 +1,11 @@
 DESCRIPTION = "Release version information file from L4T"
-L4T_DEB_COPYRIGHT_MD5 = "8dc9729e1dc38aac4adb4bd6f6e3b370"
+L4T_DEB_COPYRIGHT_MD5 = "d9a8361f8068fc4e3b934118d1de9f3f"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-core"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "04975607d121dd679a9f026939d5c126dd9e682bbba6b71c01942212ebc2b090"
+MAINSUM = "5ce971e279e87f9b8d7a1f6f3e040219b54c4f47c90c295d1a2cba083cbff659"
 
 INHIBIT_DEFAULT_DEPS = "1"
 

@@ -1,11 +1,11 @@
 SUMMARY = "NVIDIA DLA Compiler"
-L4T_DEB_COPYRIGHT_MD5 = "45d9a257d98fb290f71e4f5f87f805b4"
+L4T_DEB_COPYRIGHT_MD5 = "0bcf16925f181c03665ce6ed3b238e77"
 
 L4T_DEB_IS_COMMON = "1"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "01f0453a154e077a468c9bfb9b19c817cb130d207cd82d1d57487ffffe7c65b9"
+MAINSUM = "d10524e9a3b5ecb6db7770d65d54b75df8a4e3fcd45446127ff4480ae343f862"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvdla_compiler.so \

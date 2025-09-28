@@ -1,4 +1,4 @@
-L4T_DEB_COPYRIGHT_MD5 = "770b0fc2a5cffa1d2b7eda7393e6b012"
+L4T_DEB_COPYRIGHT_MD5 = "c5a9810a8ac2bdcdce4e85013d7044d4"
 DEPENDS = "tegra-libraries-multimedia glib-2.0 gstreamer1.0-plugins-base"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-multimedia"
@@ -7,7 +7,7 @@ require tegra-debian-libraries-common.inc
 
 LICENSE += "& MIT & BSD-3-Clause"
 
-MAINSUM = "55c001ffe6b17b886e008bd54ce46fb1ab6fea70c123548acf7f30a67f23f986"
+MAINSUM = "01df66107ccc771bdfa22b0772c6cc49406b2ef53401148dacf556127bbbb81e"
 
 inherit features_check
 
