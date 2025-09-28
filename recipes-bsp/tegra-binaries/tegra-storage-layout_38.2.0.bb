@@ -93,8 +93,11 @@ do_compile() {
     fi
     if [ -n "${PARTITION_LAYOUT_RCMBOOT}" ]; then
         copy_in_flash_layout ${PARTITION_FILE_RCMBOOT} ${PARTITION_LAYOUT_RCMBOOT}
+        # XXX -
+        # Might be better to adapt nvflashxmlparse to rewrite this for us
+        # - XXX
+        sed -i -e"s,<filename> boot\.img </filename>,<filename> initrd-flash.img </filename>," ${PARTITION_LAYOUT_RCMBOOT}
     fi
-
 }
 
 do_install() {
