@@ -31,7 +31,8 @@ LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=16;md
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-DEPENDS = "tegra-libraries-multimedia tegra-libraries-dla-compiler"
+DEPENDS = "tegra-libraries-multimedia"
+DEPENDS:append:tegra234 = " tegra-libraries-dla-compiler"
 
 def extract_basever(d):
     ver = d.getVar('PV').split('-')[0]
