@@ -2,7 +2,7 @@ DESCRIPTION = "L4T graphics demo programs"
 require l4t-graphics-demos.inc
 
 LICENSE = "MIT & Proprietary"
-LIC_FILES_CHKSUM = "file://README;endline=21;md5=17bf753e98379a9888c5bd3f81da8d44 \
+LIC_FILES_CHKSUM = "file://README;endline=21;md5=050dd71cf7e1524e1c4047cde5d052d4 \
                     file://gears-cube/Makefile;endline=8;md5=a2d67caf4241d62192371ef03b193fea"
 
 SRC_URI += "\
@@ -51,7 +51,7 @@ do_compile() {
                 ldflags="$ldflags `pkg-config --libs x11`"
 		;;
 	    wayland)
-	        cflags="$cflags -DEGL_NO_X11 -DWAYLAND `pkg-config --cflags xkbcommon wayland-client wayland-egl libffi libdrm`"
+	        cflags="$cflags -DEGL_NO_X11 -DWAYLAND -DENABLE_XDG_SHELL `pkg-config --cflags xkbcommon wayland-client wayland-egl libffi libdrm`"
 		ldflags="$ldflags -lnvbufsurface `pkg-config --libs xkbcommon wayland-client wayland-egl libffi`"
 		extra=weston-dmabuf-formats
 		;;
