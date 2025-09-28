@@ -381,7 +381,7 @@ create_tegraflash_pkg() {
         tegraflash_create_flash_config external-flash.xml.in ${LNXFILE} ${STAGING_DATADIR}/tegraflash/external-flash.xml
     fi
     if [ -n "${PARTITION_LAYOUT_RCMBOOT}" ]; then
-        tegraflash_create_flash_config ${PARTITION_LAYOUT_RCMBOOT} ${LNXFILE} ${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_RCMBOOT}
+        tegraflash_create_flash_config rcmboot-flash.xml.in ${LNXFILE} ${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_RCMBOOT}
     fi
     rm -f doflash.sh
     cat > doflash.sh <<END
