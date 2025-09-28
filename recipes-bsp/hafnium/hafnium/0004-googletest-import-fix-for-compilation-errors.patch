@@ -1,0 +1,32 @@
+From 659bbde2903c636a2bf67fb08c3409f92e33cde8 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 9 Oct 2025 11:22:50 -0700
+Subject: [PATCH] googletest: import fix for compilation errors
+
+Upstream-Status: Backport [https://github.com/google/googletest/pull/3024]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ googletest/googletest/src/gtest-death-test.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/googletest/googletest/src/gtest-death-test.cc b/googletest/googletest/src/gtest-death-test.cc
+index 0908355..d6f492e 100644
+--- a/googletest/googletest/src/gtest-death-test.cc
++++ b/googletest/googletest/src/gtest-death-test.cc
+@@ -1212,14 +1212,14 @@ static int ExecDeathTestChildMain(void* child_arg) {
+ static void StackLowerThanAddress(const void* ptr,
+                                   bool* result) GTEST_NO_INLINE_;
+ static void StackLowerThanAddress(const void* ptr, bool* result) {
+-  int dummy;
++  int dummy = 0;
+   *result = (&dummy < ptr);
+ }
+ 
+ // Make sure AddressSanitizer does not tamper with the stack here.
+ GTEST_ATTRIBUTE_NO_SANITIZE_ADDRESS_
+ static bool StackGrowsDown() {
+-  int dummy;
++  int dummy = 0;
+   bool result;
+   StackLowerThanAddress(&dummy, &result);
+   return result;

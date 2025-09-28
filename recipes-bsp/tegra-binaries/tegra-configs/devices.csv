@@ -33,6 +33,7 @@ dev, /dev/nvgpu/igpu0/sched
 dev, /dev/nvgpu/igpu0/tsg
 dev, /dev/nvidia-modeset
 dev, /dev/nvidia0
+dev, /dev/nvidia1
 dev, /dev/nvidiactl
 dev, /dev/nvmap
 dev, /dev/nvsciipc

@@ -22,7 +22,7 @@ TEGRA_CUDA_ARCHITECTURE ?= "87"
 require conf/machine/include/tegra-common.inc
 
 L4T_BSP_PREFIX = "Jetson"
-L4T_DEB_SOCNAME = "t234"
+L4T_DEB_SOCNAME = "som"
 
 NVPMODEL ?= "nvpmodel_p3701_0000"
 NVPOWER ?= "jetsonpower_t234"
