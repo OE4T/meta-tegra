@@ -3,7 +3,7 @@ import os
 from kconfiglib import Kconfig
 
 # Adapted from edk2-nvidia/Silicon/NVIDIA/edk2nv/stuart/builder.py BuildConfigFile method
-def build_config_file(kconf_path, defconfig_file, config_out):
+def build_config_file(kconf_path, defconfig_file, config_out_dir):
     kconf = Kconfig(kconf_path, warn_to_stderr=False,
                     suppress_traceback=True)
     kconf.warn_assign_undef = True
@@ -16,6 +16,7 @@ def build_config_file(kconf_path, defconfig_file, config_out):
         # replace=False creates a merged configuration
         print(kconf.load_config(config, replace=False))
 
+    config_out = os.path.join(config_out_dir, ".config")
     if os.path.exists(config_out):
         print(kconf.load_config(config_out, replace=False))
 
@@ -36,10 +37,21 @@ def build_config_file(kconf_path, defconfig_file, config_out):
 
     # Write the merged configuration
     print(kconf.write_config(config_out))
+    # Write the platform/build GUID
+    guid_out = os.path.join(config_out_dir, "PLATFORM_GUID")
+    if "PLATFORM_GUID" in kconf.syms:
+        with open(guid_out, "w") as f:
+            print(kconf.syms["PLATFORM_GUID"].str_value, file=f)
+    elif os.path.exists(guid_out):
+        os.unlink(guid_out)
     return 0
 
 build_config_file(sys.argv[1], sys.argv[2], sys.argv[3])
 
-with open(sys.argv[3], "r") as f, open(sys.argv[4], "w") as fo:
+# Convert the Kbuild-style config into edk2-style build config
+with open(os.path.join(sys.argv[3], ".config"), "r") as f, open(os.path.join(sys.argv[3], "config.dsc.inc"), "w") as fo:
     for line in f:
-        fo.write(line.replace('"', '').replace("'", ""))
+        line = line.rstrip().replace('"', '').replace("'", "")
+        if line.startswith("CONFIG_") and line.endswith("="):
+            line = "# " + line[:-1] + " is not set"
+        print(line, file=fo)
