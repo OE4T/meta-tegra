@@ -1,17 +1,17 @@
-From b7a7f55f9a864edd8d4f935e403c94ec7253f8ac Mon Sep 17 00:00:00 2001
+From 98f7a09d8d999eabe3b945bfc31689cd9cb11f61 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Fri, 17 Nov 2023 13:00:06 +0000
-Subject: [PATCH 7/7] Makefile fixes for OE builds
+Date: Tue, 12 Aug 2025 14:30:44 +0100
+Subject: [PATCH] Makefile fixes for OE builds
 
 Upstream-Status: Inappropriate [OE-Specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
-Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- Makefile | 43 ++++++++++++++++++++-----------------------
- 1 file changed, 20 insertions(+), 23 deletions(-)
+ Makefile | 47 ++++++++++++++++++++++-------------------------
+ 1 file changed, 22 insertions(+), 25 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 522a1f5..2102dd1 100644
+index 2a11457..187adef 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -10,49 +10,45 @@
@@ -22,7 +22,7 @@ index 522a1f5..2102dd1 100644
 -
 -TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 -
--NVDS_VERSION:=6.0
+-NVDS_VERSION:=8.0
 +prefix ?= /usr
 +exec_prefix ?= $(prefix)
 +libdir ?= $(exec_prefix)/lib
@@ -42,7 +42,7 @@ index 522a1f5..2102dd1 100644
  LIBS:= -lnvbufsurface -lnvbufsurftransform -lgstnvdsseimeta -lgstnvcustomhelper
  SRCS := $(wildcard *.c)
  
--INCLUDES += -I./ -I../
+-INCLUDES += -I./ -I../ -I/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/includes/
 +INCLUDES += -I./
  
  PKGS := gstreamer-1.0 \
@@ -61,15 +61,17 @@ index 522a1f5..2102dd1 100644
  
  CFLAGS += -fPIC \
  	-DEXPLICITLY_ADDED=1 \
-         -DGETTEXT_PACKAGE=1 \
+-        -DGETTEXT_PACKAGE=1 \
 -        -DHAVE_LIBV4L2=1 \
-         -DUSE_V4L2_TARGET_NV=1
- 
--CFLAGS += `pkg-config --cflags $(PKGS)`
+-        -DUSE_V4L2_TARGET_NV=1
++	-DGETTEXT_PACKAGE=1 \
++	-DUSE_V4L2_TARGET_NV=1
++
 +ifeq ($(USE_LIBV4L2),1)
 +CFLAGS += -DHAVE_LIBV4L2=1
 +endif
-+
+ 
+-CFLAGS += `pkg-config --cflags $(PKGS)`
 +CFLAGS += $(shell pkg-config --cflags $(PKGS))
  
 -LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
@@ -93,5 +95,5 @@ index 522a1f5..2102dd1 100644
  .PHONY: clean
  clean:
 -- 
-2.25.1
+2.34.1
 
