@@ -9,6 +9,8 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/gst-nvcompositor_src.tbz2"
 TEGRA_SRC_SUBARCHIVE_OPTS = "--exclude=3rdpartyheaders.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-38.2.0.inc
 
+COMPATIBLE_MACHINE = "(tegra)"
+
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl tegra-mmapi tegra-libraries-multimedia-utils cuda-cudart"
 
 SRC_URI += " file://0001-Update-makefile-for-OE-builds.patch"

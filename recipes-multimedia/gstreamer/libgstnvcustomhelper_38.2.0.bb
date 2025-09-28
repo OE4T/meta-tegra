@@ -9,6 +9,8 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/libgstnvcustomhelper_src.tbz2"
 
 require recipes-bsp/tegra-sources/tegra-sources-38.2.0.inc
 
+COMPATIBLE_MACHINE = "(tegra)"
+
 SRC_URI += " file://0001-Makefile-fixups-for-OE-builds.patch"
 
 DEPENDS = "gstreamer1.0"

@@ -8,6 +8,8 @@ LIC_FILES_CHKSUM = "file://LICENSE.libgstnvvideosinks;md5=86ed1f32df3aaa376956e4
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/libgstnvvideosinks_src.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-38.2.0.inc
 
+COMPATIBLE_MACHINE = "(tegra)"
+
 SRC_URI += "file://0001-build-fixups.patch"
 
 DEPENDS = "gstreamer1.0 glib-2.0 gstreamer1.0-plugins-base virtual/egl \
