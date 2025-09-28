@@ -3,8 +3,8 @@ L4T_DEB_GROUP = "cuda-sanitizer-api"
 
 require cuda-shared-binaries.inc
 
-MAINSUM = "9003f6266f6169b3c52eb2d5fa7f9114bc98048de9bd8a55f2574d41ebd3bed6"
-MAINSUM:x86-64 = "63803e9ddf0714f82e934341ae303ec74f82440f185574a4b0621d2a47010034"
+MAINSUM = "5385dc3d3177e5eb8caf62939eb60de8e0606e453be7369e438e8997ced4cbd0"
+MAINSUM:x86-64 = "5da503e34a89632ba55bcc902cc88d3a0c1824b0a5420203eb4c7896ef40c3c8"
 
 do_compile:append() {
     rm -rf ${S}/usr/local/cuda-${CUDA_VERSION}/compute-sanitizer/x86
