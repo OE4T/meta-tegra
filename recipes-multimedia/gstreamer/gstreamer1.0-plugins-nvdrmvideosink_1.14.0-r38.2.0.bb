@@ -6,6 +6,8 @@ LIC_FILES_CHKSUM = "file://LICENSE.libgstnvdrmvideosink;md5=674ef4559ff709167b72
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/libgstnvdrmvideosink_src.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-38.2.0.inc
 
+COMPATIBLE_MACHINE = "(tegra)"
+
 SRC_URI += " \
     file://0001-Update-makefile-for-OE-builds.patch \
 "

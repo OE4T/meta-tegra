@@ -12,6 +12,8 @@ TEGRA_SRC_EXTRA_SUBARCHIVE_OPTS = "-C ${UNPACKDIR}/gst-nvv4l2camera --strip-comp
 
 require recipes-bsp/tegra-sources/tegra-sources-38.2.0.inc
 
+COMPATIBLE_MACHINE = "(tegra)"
+
 SRC_URI += "\
     file://0001-Build-fixups.patch \
     file://0002-Clean-up-compiler-warnings.patch \

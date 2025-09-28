@@ -8,6 +8,8 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/gstegl_src.tbz2"
 
 require recipes-bsp/tegra-sources/tegra-sources-38.2.0.inc
 
+COMPATIBLE_MACHINE = "(tegra)"
+
 SRC_URI += "\
     file://0001-Makefile-fixes-for-OE-builds.patch;patchdir=.. \
     file://0002-Fix-builds-without-x11.patch;patchdir=.. \
