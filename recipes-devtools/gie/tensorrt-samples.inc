@@ -7,12 +7,12 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvinfer-samples_${PV}+cuda12.5_all.deb;downloadfilename=libnvinfer-samples_${PV}+cuda12.2_all.deb;name=samples;subdir=tensorrt \
+    libnvinfer-samples_${PV}+cuda13.0_all.deb;downloadfilename=libnvinfer-samples_${PV}+cuda13.0_all.deb;name=samples;subdir=tensorrt \
 "
 
 SRC_URI += "file://0001-Makefile-fix-cross-compilation-issues.patch;patchdir=${UNPACKDIR}/tensorrt"
 
-SRC_URI[samples.sha256sum] = "57a3633cf1242a157138395da3e57ead9bcf1fc15c5653ad5422b1bd7a80aae0"
+SRC_URI[samples.sha256sum] = "4dbb93a88db67c37b87a948640f7ef7d06f74760a2ac70978268b9c5567b1799"
 
 COMPATIBLE_MACHINE = "(tegra)"
 

@@ -1,23 +1,24 @@
-From 14a0443a2b99337edcb1a1e97ce6c430b97d89ec Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Sun, 13 Oct 2024 09:14:21 -0700
+From 11c7ba1c5270cf715bcdd587e2e98bdbbf21a796 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Tue, 12 Aug 2025 12:00:43 +0100
 Subject: [PATCH] Makefile: fix cross compilation issues
 
 Upstream-Status: Inappropriate [OE-specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- usr/src/tensorrt/samples/Makefile.config      | 55 +++++++++++--------
- .../samples/sampleNonZeroPlugin/Makefile      | 11 ++--
- 2 files changed, 40 insertions(+), 26 deletions(-)
+ usr/src/tensorrt/samples/Makefile.config      | 52 ++++++++-------
+ .../samples/sampleNonZeroPlugin/Makefile      | 63 -------------------
+ 2 files changed, 31 insertions(+), 84 deletions(-)
 
 diff --git a/usr/src/tensorrt/samples/Makefile.config b/usr/src/tensorrt/samples/Makefile.config
-index 5c11358..463167e 100644
+index e0cad89..ad74f29 100644
 --- a/usr/src/tensorrt/samples/Makefile.config
 +++ b/usr/src/tensorrt/samples/Makefile.config
 @@ -15,9 +15,12 @@ PROTOBUF_TRIPLE ?= x86_64-linux-gnu
  SAFE_PDK ?= 0
- CPP_STANDARD ?= 14
+ CPP_STANDARD ?= 17
  TARGET ?= $(shell uname -m)
 +CUSTOM_CXX_FLAGS ?=
 +CUSTOM_CU_FLAGS ?=
@@ -39,7 +40,7 @@ index 5c11358..463167e 100644
  ifeq ($(ENABLE_DLA), 1)
    ifneq ($(PDK_DIR), )
      PDK_LIB_DIR ?= $(PDK_DIR)/lib-target
-@@ -54,19 +61,20 @@ CUDA_LIBDIR = lib
+@@ -49,19 +56,20 @@ CUDA_LIBDIR = lib
  ifeq ($(TARGET), aarch64)
    ifeq ($(shell uname -m), aarch64)
      CUDA_LIBDIR = lib64
@@ -65,23 +66,16 @@ index 5c11358..463167e 100644
  else ifeq ($(TARGET), qnx)
    ifndef QNX_VERSION
      $(error QNX_VERSION is not set)
-@@ -77,12 +85,13 @@ else ifeq ($(TARGET), qnx)
-     COMMON_FLAGS += -D_QNX_SOURCE -D__aarch64__ -V8.3.0,gcc_ntoaarch64le
-     COMMON_LD_FLAGS += -D_QNX_SOURCE -D__aarch64__ -V8.3.0,gcc_ntoaarch64le
-   endif
--  CUCC = $(CUDA_INSTALL_DIR)/bin/nvcc -m64 -ccbin $(CC)
-+  CUDAHOSTCXX ?= $(CXX)
-+  CUCC = $(CUDA_NVCC_BINDIR)/nvcc -m64 -ccbin $(CUDAHOSTCXX)
- else ########
+@@ -79,7 +87,7 @@ else ########
    $(error Auto-detection of platform failed. Please specify one of the following arguments to make: TARGET=[aarch64|x86_64|qnx])
  endif
  
 -CC_MAJOR_VER = $(shell $(CC) -dumpversion | sed -e "s/\..*//")
 +CC_MAJOR_VER = $(shell $(CXX) -dumpversion | sed -e "s/\..*//")
  ifeq ($(CC_MAJOR_VER), 4)
-   CPP_STANDARD := 11
+   CPP_STANDARD := 17
  endif
-@@ -139,11 +148,11 @@ endef
+@@ -136,11 +144,11 @@ endef
  ifneq ($(USE_QCC), 1)
  # Usage: $(call make-depend,source-file,object-file,depend-file)
  define make-depend
@@ -95,7 +89,7 @@ index 5c11358..463167e 100644
  endef
  endif
  
-@@ -212,12 +221,6 @@ ifeq ($(TRT_STATIC), 1)
+@@ -225,12 +233,6 @@ ifeq ($(TRT_STATIC), 1)
    endif
  endif
  
@@ -108,7 +102,7 @@ index 5c11358..463167e 100644
  INCPATHS += -I"../common" -I"../utils" -I".." -I"$(CUDA_INSTALL_DIR)/include" -I"../include" -I"../../include" -I"../../parsers/onnxOpenSource"
  LIBPATHS += -L"$(CUDA_INSTALL_DIR)/$(CUDA_LIBDIR)" -Wl,-rpath-link="$(CUDA_INSTALL_DIR)/$(CUDA_LIBDIR)"
  LIBPATHS += -L"../lib" -L"../../lib" -L"$(TRT_LIB_DIR)" -Wl,-rpath-link="$(TRT_LIB_DIR)" $(STUBS_DIR)
-@@ -330,15 +333,23 @@ DOBJS = $(patsubst %.cpp, $(DOBJDIR)/%.o, $(wildcard *.cpp $(addsuffix /*.cpp, $
+@@ -346,15 +348,23 @@ DOBJS = $(patsubst %.cpp, $(DOBJDIR)/%.o, $(wildcard *.cpp $(addsuffix /*.cpp, $
  CUOBJS = $(patsubst %.cu, $(OBJDIR)/%.o, $(wildcard *.cu $(addsuffix /*.cu, $(EXTRA_DIRECTORIES))))
  CUDOBJS = $(patsubst %.cu, $(DOBJDIR)/%.o, $(wildcard *.cu $(addsuffix /*.cu, $(EXTRA_DIRECTORIES))))
  
@@ -135,7 +129,7 @@ index 5c11358..463167e 100644
  
  release: $(OUTDIR)/$(OUTNAME_RELEASE)
  debug: $(OUTDIR)/$(OUTNAME_DEBUG)
-@@ -353,25 +364,25 @@ test_release:
+@@ -369,25 +379,25 @@ test_release:
  
  $(OUTDIR)/$(OUTNAME_RELEASE): $(OBJS) $(CUOBJS)
  	$(ECHO) Linking: $@
@@ -166,25 +160,77 @@ index 5c11358..463167e 100644
  ######################################################################### CU
  $(OBJDIR)/%.o: %.cu
 diff --git a/usr/src/tensorrt/samples/sampleNonZeroPlugin/Makefile b/usr/src/tensorrt/samples/sampleNonZeroPlugin/Makefile
-index f9462aa..734e46d 100644
+index bcf7e31..2111032 100644
 --- a/usr/src/tensorrt/samples/sampleNonZeroPlugin/Makefile
 +++ b/usr/src/tensorrt/samples/sampleNonZeroPlugin/Makefile
-@@ -14,11 +14,14 @@ EXTRA_DIRECTORIES = ../common ../utils
+@@ -14,67 +14,4 @@ EXTRA_DIRECTORIES = ../common ../utils
  SAMPLE_DIR_NAME = $(shell basename $(dir $(abspath $(firstword $(MAKEFILE_LIST)))))
  MAKEFILE ?= ../Makefile.config
  
 -ifneq ($(CUDA_INSTALL_DIR), )
 -	CUDA_INST_DIR ?= $(CUDA_INSTALL_DIR)
-+ifeq ($(CUDA_NVCC_BINDIR), )
-+  ifneq ($(CUDA_INSTALL_DIR), )
-+	CUDA_NVCC_BINDIR ?= $(CUDA_INSTALL_DIR)/bin
-+  else
-+	CUDA_NVCC_BINDIR ?= /usr/local/cuda/bin
-+  endif
- endif
+-endif
 -CUDA_INST_DIR ?= /usr/local/cuda
 -CUDA_VER := $(shell $(CUDA_INST_DIR)/bin/nvcc --version | grep "release" | sed 's/.*release //' | sed 's/,.*//')
-+CUDA_VER := $(shell $(CUDA_NVCC_BINDIR)/nvcc --version | grep "release" | sed 's/.*release //' | sed 's/,.*//')
- 
- define cuda-ge
-     CUDA_VER_GE_$(1)_$(2) := 0
+-
+-define cuda-ge
+-    CUDA_VER_GE_$(1)_$(2) := 0
+-    ifeq ($$(lastword $$(sort $(3) $(1).$(2))), $(3))
+-        CUDA_VER_GE_$(1)_$(2) := 1
+-    endif
+-
+-    CUDA_GE_$(1)_$(2) ?= $$(CUDA_VER_GE_$(1)_$(2))
+-
+-endef
+-
+-$(eval $(foreach minor,$(shell seq 0 9),$(call cuda-ge,11,$(minor),$(CUDA_VER))))
+-$(eval $(foreach minor,$(shell seq 0 9),$(call cuda-ge,12,$(minor),$(CUDA_VER))))
+-$(eval $(foreach minor,$(shell seq 0 9),$(call cuda-ge,13,$(minor),$(CUDA_VER))))
+-
+-# Define THOR_SM based on CUDA version
+-ifeq ($(CUDA_GE_13_0), 1)
+-    THOR_SM = 110
+-else
+-    THOR_SM = 101
+-endif
+-
+-SAMPLE_SMS = 75
+-ifeq ($(CUDA_GE_11_0), 1)
+-    SAMPLE_SMS += 80
+-endif
+-
+-ifeq ($(CUDA_GE_11_1), 1)
+-    SAMPLE_SMS += 86
+-endif
+-
+-ifeq ($(CUDA_GE_11_4), 1)
+-    SAMPLE_SMS += 87
+-endif
+-
+-ifeq ($(CUDA_GE_11_8), 1)
+-    SAMPLE_SMS += 89 90
+-endif
+-
+-ifeq ($(CUDA_GE_12_8), 1)
+-    SAMPLE_SMS += 100 $(THOR_SM) 120
+-endif
+-
+-# Non-hardware forward compatible SMs
+-NON_HFC_SMS := 89 90
+-
+-ifeq ($(CUDA_GE_12_8), 1)
+-    NON_HFC_SMS += 100 $(THOR_SM) 120
+-endif
+-
+-ifeq ($(GENCODES),)
+-    $(foreach sm,$(SAMPLE_SMS),$(eval GENCODES += -gencode arch=compute_$(sm),code=sm_$(sm)))
+-    HFC_SMS := $(filter-out $(NON_HFC_SMS),$(SAMPLE_SMS))
+-    # Generate PTX with the highest supported FC SM
+-    GEN_PTX_SM := $(lastword $(sort $(HFC_SMS)))
+-    GENCODES += -gencode arch=compute_$(GEN_PTX_SM),code=compute_$(GEN_PTX_SM)
+-endif
+-
+ include $(MAKEFILE)
+-- 
+2.34.1
+

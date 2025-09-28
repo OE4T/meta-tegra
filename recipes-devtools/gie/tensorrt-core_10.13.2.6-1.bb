@@ -8,30 +8,30 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvinfer10_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer10_${PV}+cuda12.5_arm64.deb;name=lib;subdir=tensorrt \
-    libnvinfer-dev_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-dev_${PV}+cuda12.5_arm64.deb;name=dev;subdir=tensorrt \
-    libnvinfer-headers-dev_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-headers-dev_${PV}+cuda12.5_arm64.deb;name=hdev;subdir=tensorrt \
-    libnvinfer-dispatch10_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-dispatch10_${PV}+cuda12.5_arm64.deb;name=disp;subdir=tensorrt \
-    libnvinfer-dispatch-dev_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-dispatch-dev_${PV}+cuda12.5_arm64.deb;name=dispdev;subdir=tensorrt \
-    libnvinfer-lean10_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-lean10_${PV}+cuda12.5_arm64.deb;name=nvl;subdir=tensorrt \
-    libnvinfer-lean-dev_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-lean-dev_${PV}+cuda12.5_arm64.deb;name=nvldev;subdir=tensorrt \
+    libnvinfer10_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer10_${PV}+cuda13.0_arm64.deb;name=lib;subdir=tensorrt \
+    libnvinfer-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-dev_${PV}+cuda13.0_arm64.deb;name=dev;subdir=tensorrt \
+    libnvinfer-headers-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-headers-dev_${PV}+cuda13.0_arm64.deb;name=hdev;subdir=tensorrt \
+    libnvinfer-dispatch10_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-dispatch10_${PV}+cuda13.0_arm64.deb;name=disp;subdir=tensorrt \
+    libnvinfer-dispatch-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-dispatch-dev_${PV}+cuda13.0_arm64.deb;name=dispdev;subdir=tensorrt \
+    libnvinfer-lean10_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-lean10_${PV}+cuda13.0_arm64.deb;name=nvl;subdir=tensorrt \
+    libnvinfer-lean-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-lean-dev_${PV}+cuda13.0_arm64.deb;name=nvldev;subdir=tensorrt \
 "
 
-SRC_URI[lib.sha256sum] = "fabaad3ac8a50cf25da83a25938844808be4a3a43c2e76ea0b70b9cd2c6234bc"
-SRC_URI[dev.sha256sum] = "b24b0c9d09fda80b2b9d4fdee6f02deb513e3f876f94e4119caa538a68964e15"
-SRC_URI[hdev.sha256sum] = "40a4fa566218f71176144a0eafa5aef8cf0af7ee9211b20487f1970d5344bbb8"
-SRC_URI[disp.sha256sum] = "0a39d0e37017d677ee05e122ae3bad500e7d819c4c11ea3c92197dcc62e322bc"
-SRC_URI[dispdev.sha256sum] = "a87c324e438bcc669c86c7e959ba9fb6827cd0d3122a1d730b2224f7ca82c91a"
-SRC_URI[nvl.sha256sum] = "27e2d97fd79f1a0a6f864d6a2ec234be72c173f48dbfa8788b38e89df49261de"
-SRC_URI[nvldev.sha256sum] = "3c8bba2c5a5fdac9e57ac13490ca42eb79ae9caf8ca1a07bd94a9f7ed10d370b"
+SRC_URI[lib.sha256sum] = "9ee71924fe29c00929eb9cdafaf0354658ea2733959f574a1a70355765e26900"
+SRC_URI[dev.sha256sum] = "30f989a8cb99c0a1ff7d25c9514ba96445be6f32489e520a54ec1b0a899c9d8f"
+SRC_URI[hdev.sha256sum] = "faf32d2a0533a4c96c7f7f1d06905abf44a1cebd2e60aec201f21bb38f521f29"
+SRC_URI[disp.sha256sum] = "4c95231e0e2c50eb62db053855e7561852aaf7d91200e26c3465efdf0f7bad5b"
+SRC_URI[dispdev.sha256sum] = "f56c82f7f861718b83caeee5d9cd526a5f0488126d833e8d31cb6a8addd70b25"
+SRC_URI[nvl.sha256sum] = "9cd7d049ddcb309fa2f932c276b1e699afddfa8a5443ccc13c9c7747accaa7b8"
+SRC_URI[nvldev.sha256sum] = "411861e0703860828dabd059328be281ece6b45c173f090004285df172a27916"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=16;md5=cac95541e748626c31067a3f6573562f"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=16;md5=57233dd35fa68de1b2e210aced617156"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-DEPENDS = "tegra-libraries-multimedia libcudla tegra-libraries-dla-compiler"
+DEPENDS = "tegra-libraries-multimedia tegra-libraries-dla-compiler"
 
 def extract_basever(d):
     ver = d.getVar('PV').split('-')[0]
