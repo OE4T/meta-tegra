@@ -2,7 +2,7 @@ DESCRIPTION = "NVIDIA v4l2 GStreamer plugin"
 SECTION = "multimedia"
 LICENSE = "LGPL-2.0-only & BSD-3-Clause & Proprietary"
 LIC_FILES_CHKSUM = "file://LICENSE.gst-nvvideo4linux2;md5=457fb5d7ae2d8cd8cabcc21789a37e5c \
-                    file://README.txt;endline=11;md5=71af624b03396c4f2c70c9c8684ff3d2 \
+                    file://README.txt;endline=11;md5=c5bf1833f4b7ed06fc647441eafc8f82 \
 "
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/gst-nvvideo4linux2_src.tbz2"
