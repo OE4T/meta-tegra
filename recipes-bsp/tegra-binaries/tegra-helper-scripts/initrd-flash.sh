@@ -170,12 +170,21 @@ sign_binaries() {
     rm -rf rcmboot_blob
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
 	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
-	      flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
+	      flash.xml.in $DTBFILE $EMC_BCTS "$ODMDATA" initrd-flash.img $ROOTFS_IMAGE; then
 	cp flashcmd.txt flash_signed.sh
 	sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
 	cp secureflash.xml internal-secureflash.xml
 	if [ -e external-flash.xml.in ]; then
 	    cp external-flash.xml.in external-secureflash.xml
+	fi
+	if [ "$CHIPID" = "0x26" ]; then
+	    . ./boardvars.sh
+	    if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
+		      "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" $instance_args \
+		      flash.xml.in $DTBFILE $EMC_BCTS "$ODMDATA" $LNXFILE $ROOTFS_IMAGE; then
+		echo "ERR: could not create RCM boot blob" >&2
+		return 1
+	    fi
 	fi
 	create_rcm_boot_script
     else
@@ -189,7 +198,7 @@ sign_binaries() {
 	    . ./boardvars.sh
             if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
 				"$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args \
-				external-flash.xml.in $DTBFILE $EMMC_BCTS $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
+				external-flash.xml.in $DTBFILE $EMC_BCTS "$ODMDATA" $LNXFILE $ROOTFS_IMAGE; then
 		mv secureflash.xml external-secureflash.xml
 	    else
 		return 1

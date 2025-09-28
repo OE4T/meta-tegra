@@ -10,21 +10,21 @@ import logging
 def main():
     # see main program in tegraflash.py
     tf_options = ["skipuid", "bct=", "bct_cold_boot=", "cfg=", "bl=", "hostbin=", "cmd=", "key=", "encrypt_key=","instance=",
-                  "out=", "chip=", "dtb=", "bldtb=", "kerneldtb=", "bpfdtb=", "nct=", "applet=", "fb=", "odmdata=", "overlay_dtb=",
-                  "lnx=", "tos=", "eks=", "boardconfig=", "securedev", "keyindex=", "wb=", "keep", "secureboot",
-                  "bl-load=", "bins=", "dev_params=", "sdram_config=", "ramcode=", "misc_config=", "misc_cold_boot_config=",
-                  "mb1_bct=", "mb2_bct=", "mb2_cold_boot_bct=", "mb2bct_cfg=", "ecid=",
-                  "pinmux_config=", "scr_config=", "scr_cold_boot_config=",
-                  "pmc_config=", "pmic_config=", "gpioint_config=", "uphy_config=", "br_cmd_config=",
-                  "prod_config=", "device_config=", "applet-cpu=", "bpf=", "skipsanitize",
-                  "encrypt_key=", "enable_user_kdk", "nv_key=", "nvencrypt_key=", "cl=", "soft_fuses=", "cust_info=", "fuse_info=",
-                  "deviceprod_config=", "rcm_bct=","mem_bct=", "mem_bct_cold_boot=", "mb1_cold_boot_bct=", "wb0sdram_config=",
-                  "minratchet_config=", "blversion=", "output_dir=", "nv_nvratchet=", "nv_oemratchet=", "image_dirs=",
-                  "trim_bpmp_dtb", "cpubl=", "cpubl_rcm=", "concat_cpubl_bldtb", "external_device", "sparseupdate", "ratchet_blob=",
-                  "applet_softfuse=", "boot_chain=", "bct_backup",
-                  "mb1_bin=", "psc_bl1_bin=", "rcmboot_pt_layout=", "coldboot_pt_layout=", "rcmboot_bct_cfg=", "coldboot_bct_cfg=",
-                  "duk=", "dce_base_dtb=", "dce_overlay_dtb=", "dry_run", "enable_mods", "X", "disable_random_iv", "no_flash",
-                  "compress=", "hsm"]
+               "out=", "chip=", "dtb=", "bldtb=", "kerneldtb=", "bpfdtb=", "nct=", "applet=", "fb=", "odmdata=", "overlay_dtb=",
+               "lnx=", "tos=", "eks=", "boardconfig=", "securedev", "keyindex=", "wb=", "keep", "secureboot",
+               "bl-load=", "bins=", "dev_params=", "sdram_config=", "ramcode=", "misc_config=", "misc_cold_boot_config=",
+               "mb1_bct=", "mb2_bct=", "mb2_cold_boot_bct=", "mb2bct_cfg=", "ecid=",
+               "pinmux_config=", "scr_config=", "scr_cold_boot_config=",
+               "pmc_config=", "pmic_config=", "gpioint_config=", "uphy_config=", "br_cmd_config=",
+               "prod_config=", "device_config=", "applet-cpu=", "bpf=", "skipsanitize",
+               "encrypt_key=", "enable_user_kdk", "nv_key=", "nvencrypt_key=", "cl=", "soft_fuses=", "cust_info=", "fuse_info=",
+               "deviceprod_config=", "rcm_bct=","mem_bct=", "mem_bct_cold_boot=", "mb1_cold_boot_bct=", "wb0sdram_config=",
+               "minratchet_config=", "blversion=", "output_dir=", "nv_nvratchet=", "nv_oemratchet=", "image_dirs=",
+               "trim_bpmp_dtb", "cpubl=", "cpubl_rcm=", "concat_cpubl_bldtb", "external_device", "sparseupdate", "ratchet_blob=",
+               "applet_softfuse=", "boot_chain=", "bct_backup", "no_pva=",
+               "mb1_bin=", "psc_bl1_bin=", "rcmboot_pt_layout=", "coldboot_pt_layout=", "rcmboot_bct_cfg=", "coldboot_bct_cfg=",
+               "duk=", "dce_base_dtb=", "dce_overlay_dtb=", "dry_run", "X", "disable_random_iv", "no_flash", "key_list=",
+               "compress=", "enable_mods", "hsm", "bct_flags_file=", "overlay_bct_flags_file="]
     parser = argparse.ArgumentParser(
         description="""
 Extracts/manipulates partition information in an NVIDIA flash layout XML file
