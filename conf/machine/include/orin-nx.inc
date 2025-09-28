@@ -25,8 +25,8 @@ MACHINE_EXTRA_RDEPENDS += "linux-firmware-rtl8168"
 BOOTPART_SIZE ?= "8388608"
 # 55GiB default rootfs size
 ROOTFSPART_SIZE_DEFAULT ?= "59055800320"
-ODMDATA ?= "gbe-uphy-config-8,hsstp-lane-map-3,hsio-uphy-config-0"
-EMMC_BCT ?= "tegra234-p3767-0000-sdram-l4t.dts"
+TEGRA_FLASHVAR_ODMDATA ?= "gbe-uphy-config-8,hsstp-lane-map-3,hsio-uphy-config-0"
+EMC_BCT ?= "tegra234-p3767-0000-sdram-l4t.dts"
 TEGRA_AUDIO_DEVICE ?= "tegra-hda-p3767-p3509"
 
 OTABOOTDEV ?= "/dev/mtdblock0"

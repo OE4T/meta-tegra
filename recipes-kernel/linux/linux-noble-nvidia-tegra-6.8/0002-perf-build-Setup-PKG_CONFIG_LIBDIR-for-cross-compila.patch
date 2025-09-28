@@ -1,0 +1,104 @@
+From 440cf77625e300e683ca0edc39fbc4b6f3175feb Mon Sep 17 00:00:00 2001
+From: Leo Yan <leo.yan@arm.com>
+Date: Wed, 17 Jul 2024 09:22:06 +0100
+Subject: [PATCH] perf: build: Setup PKG_CONFIG_LIBDIR for cross compilation
+
+On recent Linux distros like Ubuntu Noble and Debian Bookworm, the
+'pkg-config-aarch64-linux-gnu' package is missing. As a result, the
+aarch64-linux-gnu-pkg-config command is not available, which causes
+build failures.
+
+When a build passes the environment variables PKG_CONFIG_LIBDIR or
+PKG_CONFIG_PATH, like a user uses make command or a build system
+(like Yocto, Buildroot, etc) prepares the variables and passes to the
+Perf's Makefile, the commit keeps these variables for package
+configuration. Otherwise, this commit sets the PKG_CONFIG_LIBDIR
+variable to use the Multiarch libs for the cross compilation.
+
+Upstream-Status: Backport [440cf77625e300e683ca0edc39fbc4b6f3175feb]
+
+Signed-off-by: Leo Yan <leo.yan@arm.com>
+Tested-by: Ian Rogers <irogers@google.com>
+Cc: amadio@gentoo.org
+Cc: Thomas Richter <tmricht@linux.ibm.com>
+Link: https://lore.kernel.org/r/20240717082211.524826-2-leo.yan@arm.com
+Signed-off-by: Namhyung Kim <namhyung@kernel.org>
+---
+ tools/build/feature/Makefile | 25 ++++++++++++++++++++++++-
+ tools/perf/Makefile.perf     | 27 ++++++++++++++++++++++++++-
+ 2 files changed, 50 insertions(+), 2 deletions(-)
+
+diff --git a/tools/build/feature/Makefile b/tools/build/feature/Makefile
+index ed54cef450f5..dff65d03d30d 100644
+--- a/tools/build/feature/Makefile
++++ b/tools/build/feature/Makefile
+@@ -82,7 +82,30 @@ FILES=                                          \
+
+ FILES := $(addprefix $(OUTPUT),$(FILES))
+
+-PKG_CONFIG ?= $(CROSS_COMPILE)pkg-config
++# Some distros provide the command $(CROSS_COMPILE)pkg-config for
++# searching packges installed with Multiarch. Use it for cross
++# compilation if it is existed.
++ifneq (, $(shell which $(CROSS_COMPILE)pkg-config))
++  PKG_CONFIG ?= $(CROSS_COMPILE)pkg-config
++else
++  PKG_CONFIG ?= pkg-config
++
++  # PKG_CONFIG_PATH or PKG_CONFIG_LIBDIR, alongside PKG_CONFIG_SYSROOT_DIR
++  # for modified system root, are required for the cross compilation.
++  # If these PKG_CONFIG environment variables are not set, Multiarch library
++  # paths are used instead.
++  ifdef CROSS_COMPILE
++    ifeq ($(PKG_CONFIG_LIBDIR)$(PKG_CONFIG_PATH)$(PKG_CONFIG_SYSROOT_DIR),)
++      CROSS_ARCH = $(shell $(CC) -dumpmachine)
++      PKG_CONFIG_LIBDIR := /usr/local/$(CROSS_ARCH)/lib/pkgconfig/
++      PKG_CONFIG_LIBDIR := $(PKG_CONFIG_LIBDIR):/usr/local/lib/$(CROSS_ARCH)/pkgconfig/
++      PKG_CONFIG_LIBDIR := $(PKG_CONFIG_LIBDIR):/usr/lib/$(CROSS_ARCH)/pkgconfig/
++      PKG_CONFIG_LIBDIR := $(PKG_CONFIG_LIBDIR):/usr/local/share/pkgconfig/
++      PKG_CONFIG_LIBDIR := $(PKG_CONFIG_LIBDIR):/usr/share/pkgconfig/
++      export PKG_CONFIG_LIBDIR
++    endif
++  endif
++endif
+
+ all: $(FILES)
+
+diff --git a/tools/perf/Makefile.perf b/tools/perf/Makefile.perf
+index 175e4c7898f0..f8148db5fc38 100644
+--- a/tools/perf/Makefile.perf
++++ b/tools/perf/Makefile.perf
+@@ -193,7 +193,32 @@ HOSTLD  ?= ld
+ HOSTAR  ?= ar
+ CLANG   ?= clang
+
+-PKG_CONFIG = $(CROSS_COMPILE)pkg-config
++# Some distros provide the command $(CROSS_COMPILE)pkg-config for
++# searching packges installed with Multiarch. Use it for cross
++# compilation if it is existed.
++ifneq (, $(shell which $(CROSS_COMPILE)pkg-config))
++  PKG_CONFIG ?= $(CROSS_COMPILE)pkg-config
++else
++  PKG_CONFIG ?= pkg-config
++
++  # PKG_CONFIG_PATH or PKG_CONFIG_LIBDIR, alongside PKG_CONFIG_SYSROOT_DIR
++  # for modified system root, is required for the cross compilation.
++  # If these PKG_CONFIG environment variables are not set, Multiarch library
++  # paths are used instead.
++  ifdef CROSS_COMPILE
++    ifeq ($(PKG_CONFIG_LIBDIR)$(PKG_CONFIG_PATH)$(PKG_CONFIG_SYSROOT_DIR),)
++      CROSS_ARCH = $(shell $(CC) -dumpmachine)
++      PKG_CONFIG_LIBDIR := /usr/local/$(CROSS_ARCH)/lib/pkgconfig/
++      PKG_CONFIG_LIBDIR := $(PKG_CONFIG_LIBDIR):/usr/local/lib/$(CROSS_ARCH)/pkgconfig/
++      PKG_CONFIG_LIBDIR := $(PKG_CONFIG_LIBDIR):/usr/lib/$(CROSS_ARCH)/pkgconfig/
++      PKG_CONFIG_LIBDIR := $(PKG_CONFIG_LIBDIR):/usr/local/share/pkgconfig/
++      PKG_CONFIG_LIBDIR := $(PKG_CONFIG_LIBDIR):/usr/share/pkgconfig/
++      export PKG_CONFIG_LIBDIR
++      $(warning Missing PKG_CONFIG_LIBDIR, PKG_CONFIG_PATH and PKG_CONFIG_SYSROOT_DIR for cross compilation,)
++      $(warning set PKG_CONFIG_LIBDIR for using Multiarch libs.)
++    endif
++  endif
++endif
+
+ RM      = rm -f
+ LN      = ln -f

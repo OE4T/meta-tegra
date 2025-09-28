@@ -1,4 +1,4 @@
-From a007d9400002107b044774c688ac327f0df22fa2 Mon Sep 17 00:00:00 2001
+From 441423420991d8afced04b784ad21ef6170b744b Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 14 Oct 2024 02:19:11 -0700
 Subject: [PATCH] Fixups for cross building in OE
@@ -10,14 +10,14 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 5 deletions(-)
 
 diff --git a/python/CMakeLists.txt b/python/CMakeLists.txt
-index 49f5d8a1..9f891ffe 100644
+index 6666511d..4b003d20 100644
 --- a/python/CMakeLists.txt
 +++ b/python/CMakeLists.txt
-@@ -38,11 +38,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${TENSORRT_MODULE}/)
- set(CPP_STANDARD 14 CACHE STRING "CPP Standard Version")
+@@ -319,11 +319,6 @@ set(CPP_STANDARD
+     CACHE STRING "CPP Standard Version")
  set(CMAKE_CXX_STANDARD ${CPP_STANDARD})
- 
--if (NOT MSVC)
+
+-if(NOT MSVC)
 -    # This allows us to use TRT libs shipped with standalone wheels.
 -    set(CMAKE_SHARED_LINKER_FLAGS -Wl,-rpath=$ORIGIN:$ORIGIN/../${TENSORRT_MODULE}_libs)
 -endif()
@@ -25,3 +25,4 @@ index 49f5d8a1..9f891ffe 100644
  # -------- PATHS --------
  message(STATUS "EXT_PATH: ${EXT_PATH}")
  message(STATUS "TENSORRT_BUILD: ${TENSORRT_BUILD}")
+--

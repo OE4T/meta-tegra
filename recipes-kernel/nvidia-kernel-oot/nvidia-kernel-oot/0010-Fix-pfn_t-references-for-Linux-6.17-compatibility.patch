@@ -1,0 +1,47 @@
+From 0b8d07db7ff7885eaae63b45ac7a741246947ce8 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 15 Feb 2026 09:37:03 -0800
+Subject: [PATCH 10/11] Fix pfn_t references for Linux 6.17 compatibility
+
+The linux/pfn_t.h header was removed in the 6.17 kernel.
+Add a header presence check and modify the nvidia-drm code
+to account for the change.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/header-presence-tests.mk                | 1 +
+ kernel-open/nvidia-drm/nvidia-drm-gem-user-memory.c | 4 ++++
+ 2 files changed, 5 insertions(+)
+
+diff --git a/kernel-open/header-presence-tests.mk b/kernel-open/header-presence-tests.mk
+index 33de4ce..2c869fd 100644
+--- a/kernel-open/header-presence-tests.mk
++++ b/kernel-open/header-presence-tests.mk
+@@ -20,6 +20,7 @@ NV_HEADER_PRESENCE_TESTS = \
+   generated/utsrelease.h \
+   linux/aperture.h \
+   linux/dma-direct.h \
++  linux/pfn_t.h \
+   linux/platform/tegra/mc_utils.h \
+   xen/ioemu.h \
+   linux/fence.h \
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-gem-user-memory.c b/kernel-open/nvidia-drm/nvidia-drm-gem-user-memory.c
+index a0b02ef..2b7fc9f 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-gem-user-memory.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-gem-user-memory.c
+@@ -33,7 +33,11 @@
+ #include "linux/dma-buf.h"
+ #include "linux/mm.h"
+ #include "nv-mm.h"
++#if defined(NV_LINUX_PFN_T_H_PRESENT)
+ #include "linux/pfn_t.h"
++#else
++#define pfn_to_pfn_t(x) (x)
++#endif
+ 
+ #if defined(NV_BSD)
+ #include <vm/vm_pageout.h>
+-- 
+2.43.0
+

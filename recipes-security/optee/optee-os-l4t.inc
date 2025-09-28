@@ -13,8 +13,7 @@ OPTEEMACHINE:tegra ?= "tegra"
 OPTEE_ARCH = "null"
 OPTEE_ARCH:aarch64 = "arm64"
 
-NV_CCC_PREBUILT = ""
-NV_CCC_PREBUILT:tegra234 = "${S}/prebuilt/${OPTEE_NV_PLATFORM}/libcommon_crypto.a"
+NV_CCC_PREBUILT = "${S}/prebuilt/${OPTEE_NV_PLATFORM}/libcommon_crypto.a"
 
 S = "${UNPACKDIR}/optee_os"
 B = "${WORKDIR}/build"
@@ -33,6 +32,7 @@ EXTRA_OEMAKE += "\
     CROSS_COMPILE_core=${HOST_PREFIX} \
     CROSS_COMPILE_ta_${OPTEE_ARCH}=${HOST_PREFIX} \
     ${@' NV_CCC_PREBUILT=${NV_CCC_PREBUILT}' if d.getVar('NV_CCC_PREBUILT') else ''} \
+    CFG_CORE_TPM_EVENT_LOG=y CFG_REE_STATE=y CFG_JETSON_FTPM_HELPER_PTA=y \
 "
 
 do_compile() {
