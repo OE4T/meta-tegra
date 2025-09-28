@@ -1,12 +1,12 @@
 LICENSE = "Proprietary"
-LIC_FILES_CHKSUM = "file://Tegra_Software_License_Agreement-Tegra-Linux.txt;md5=2d48d198004cfe9c3bc0df31c1b89805 \
+LIC_FILES_CHKSUM = "file://Tegra_Software_License_Agreement-Tegra-Linux.txt;md5=376d20bd5275442226fcdf54e4844ddf \
                     file://nv_tegra/LICENSE.brcm_patchram_plus;md5=38fb07f0dacf4830bc57f40a0fb7532e"
 
 SRC_URI = "\
     ${L4T_URI_BASE}/${L4T_BSP_PREFIX}_Linux_R${L4T_VERSION}_aarch64.tbz2 \
 "
 
-SRC_URI[sha256sum] = "a6ce11c22100ab0976e419959182417c83d62f4272501bc8714f2e076e010f3b"
+SRC_URI[sha256sum] = "bef352597d8ebcb1bedff1f2abef5957dbd34faa8c8cff7d9d1e576c18c7a46d"
 
 inherit l4t_bsp dos2unix
 

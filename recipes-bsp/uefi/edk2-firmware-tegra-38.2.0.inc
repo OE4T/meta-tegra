@@ -1,5 +1,5 @@
 require edk2-firmware.inc
-require edk2-firmware-core-tegra-36.4.4.inc
+require edk2-firmware-core-tegra-38.2.0.inc
 require conf/image-uefi.conf
 
 LICENSE .= " & Proprietary"
@@ -12,10 +12,10 @@ inherit python3native
 
 DEPENDS += "dtc-native python3-kconfiglib-native"
 
-SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r36.4.4-updates"
-SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r36.4.4-updates"
-SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r36.4.4-updates"
-SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r36.4.4-updates"
+SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r38.2.0-updates"
+SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r38.2.0-updates"
+SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r38.2.0-updates"
+SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r38.2.0-updates"
 
 SRCREV_edk2-non-osi = "8c09bd0955338db38813e0d8ae1faa634f545f73"
 SRCREV_edk2-nvidia = "0887a54c21c363296841f269de952b5e87b81fd8"
