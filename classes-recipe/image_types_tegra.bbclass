@@ -99,6 +99,7 @@ TEGRA_EXT4_OPTIONS ?= ""
 EXTRA_IMAGECMD:append:ext4 = " ${TEGRA_EXT4_OPTIONS}"
 
 TEGRA_STAGED_BOOT_FIRMWARE = "${TEGRA_BOOT_FIRMWARE_FILES} eks.img badpage.bin"
+TEGRA_STAGED_BOOT_FIRMWARE:tegra264 = "${TEGRA_BOOT_FIRMWARE_FILES} eks.img"
 
 def tegra_initrd_image(d):
     if d.getVar('IMAGE_UBOOT'):
@@ -129,6 +130,7 @@ IMAGE_TEGRAFLASH_INITRD_FLASHER ?= "${@'${DEPLOY_DIR_IMAGE}/${TEGRAFLASH_INITRD_
 
 TOSIMGFILENAME = "tos-optee.img"
 TOSIMGFILENAME:tegra234 = "tos-optee_t234.img"
+TOSIMGFILENAME:tegra264 = "tos-optee_t264.img"
 
 BUP_PAYLOAD_DIR = "payloads_t${@d.getVar('NVIDIA_CHIP')[2:]}x"
 FLASHTOOLS_DIR = "tegra-flash"
@@ -213,7 +215,7 @@ tegraflash_create_flash_config() {
         -e"s,EKSFILE,eks.img," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,${TEGRA_RECOVERY_KERNEL_PART_SIZE}," -e"s,RECDTB-NAME,recovery-dtb," \
         -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
-        -e"/IST_UCODE/d" -e"/IST_BPMPFW/d" -e"/IST_ICTBIN/d" -e"/IST_TESTIMG/d" -e"/IST_RTINFO/d" \
+        -e"/IST_UCODE/d" -e"/IST_BPMPFW/d" -e"/IST_ICTBIN/d" -e"/IST_TESTIMG/d" -e"/IST_RTINFO/d" -e"/IST_RTID/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \
         -e"s,APPUUID_b,," -e"s,APPUUID,," \
@@ -294,17 +296,21 @@ tegraflash_populate_package() {
     PATH="${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}:$PATH"
 
     cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
-    cp "${STAGING_DATADIR}/tegraflash/${EMMC_BCT}" .
-    if [ -n "${EMMC_BCT_OVERRIDE}" ]; then
-        cp "${STAGING_DATADIR}/tegraflash/${EMMC_BCT_OVERRIDE}" .
+    cp "${STAGING_DATADIR}/tegraflash/${EMC_BCT}" .
+    if [ -n "${EMC_BCT_OVERRIDE}" ]; then
+        cp "${STAGING_DATADIR}/tegraflash/${EMC_BCT_OVERRIDE}" .
     fi
     cp "$kernelimg" ./$lnxfile
     if [ -n "${DATAFILE}" -a -n "${IMAGE_TEGRAFLASH_DATA}" ]; then
         cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
         DATAARGS="--datafile ${DATAFILE}"
     fi
-    cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./uefi_jetson.bin
-    cp "${DEPLOY_DIR_IMAGE}/uefi_jetson_minimal.bin" ./uefi_jetson_minimal.bin
+    if [ "${SOC_FAMILY}" = "tegra234" ]; then
+        cp "${DEPLOY_DIR_IMAGE}/uefi_t23x_general.bin" ./uefi_t23x_general.bin
+    fi
+    if [ "${SOC_FAMILY}" = "tegra264" ]; then
+        cp "${DEPLOY_DIR_IMAGE}/uefi_t26x_general.bin" ./uefi_t26x_general.bin
+    fi
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${TEGRA_STAGED_BOOT_FIRMWARE}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
@@ -317,6 +323,12 @@ tegraflash_populate_package() {
         cp ${STAGING_DATADIR}/tegraflash/tegra234-*.dts* .
         cp ${STAGING_DATADIR}/tegraflash/fuse_t234.xml .
         cp ${STAGING_DATADIR}/tegraflash/tegra234-bpmp-*.dtb .
+    elif [ "${SOC_FAMILY}" = "tegra264" ]; then
+        cp ${STAGING_DATADIR}/tegraflash/bpmp_t264-*.bin .
+        cp ${STAGING_DATADIR}/tegraflash/tegra264* .
+        cp ${STAGING_DATADIR}/tegraflash/t264* .
+        cp ${STAGING_DATADIR}/tegraflash/tegra264-bpmp-*.dtb .
+        cp ${STAGING_DATADIR}/tegraflash/platform_config_profile.yaml .
     fi
 
     copy_dtbs .
@@ -327,11 +339,6 @@ tegraflash_populate_package() {
 	if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
 	    rm -f ./initrd-flash
 	fi
-	if [ -d rollback ]; then
-            mv rollback_parser.py ./rollback/
-        else
-            rm -f rollback_parser.py
-        fi
         sed -i -e 's,^function ,,' ./l4t_bup_gen.func
         tegraflash_generate_bupgen_script
     fi
@@ -363,10 +370,13 @@ create_tegraflash_pkg() {
     if [ "${TEGRAFLASH_ROOTFS_EXTERNAL}" = "1" ]; then
         tegraflash_create_flash_config external-flash.xml.in ${LNXFILE} ${STAGING_DATADIR}/tegraflash/external-flash.xml
     fi
+    if [ -n "${PARTITION_LAYOUT_RCMBOOT}" ]; then
+        tegraflash_create_flash_config ${PARTITION_LAYOUT_RCMBOOT} ${LNXFILE} ${STAGING_DATADIR}/tegraflash/${PARTITION_LAYOUT_RCMBOOT}
+    fi
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh $DATAARGS flash.xml.in ${DTBFILE} ${EMC_BCTS} "${ODMDATA}" ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
     chmod +x doflash.sh
 
@@ -384,7 +394,7 @@ DEFAULTS[CHIPREV]="${TEGRA_CHIPREV}"
 DEFAULTS[BOARDSKU]="${TEGRA_BOARDSKU}"
 DEFAULTS[BOARDREV]="${TEGRA_BOARDREV}"
 DTBFILE="${DTBFILE}"
-EMMC_BCTS="${EMMC_BCTS}"
+EMC_BCTS="${EMC_BCTS}"
 ODMDATA="${ODMDATA}"
 LNXFILE="${LNXFILE}"
 ROOTFS_IMAGE="${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
@@ -396,7 +406,7 @@ END
     if [ -e ./odmfuse_pkc.xml ]; then
         cat > burnfuses.sh <<END
 #!/bin/sh
-MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh -c "burnfuses odmfuse_pkc.xml" --no-flash $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh -c "burnfuses odmfuse_pkc.xml" --no-flash $DATAARGS flash.xml.in ${DTBFILE} ${EMC_BCTS} "${ODMDATA}" ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x burnfuses.sh
     fi
@@ -404,7 +414,7 @@ END
         rm -f dosdcard.sh
         cat > dosdcard.sh <<END
 #!/bin/sh
-MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash.xml.in ${DTBFILE} ${EMC_BCTS} "${ODMDATA}" ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x dosdcard.sh
     fi
@@ -412,7 +422,7 @@ END
         rm -f doexternal.sh
         cat > doexternal.sh <<END
 #!/bin/sh
-MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -b ${IMAGE_BASENAME} $DATAARGS --external-device external-flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -b ${IMAGE_BASENAME} $DATAARGS --external-device external-flash.xml.in ${DTBFILE} ${EMC_BCTS} "${ODMDATA}" ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
 END
         chmod +x doexternal.sh
     fi
@@ -459,7 +469,7 @@ EOF
             buptype_arg=""
         fi
         cat <<EOF >> $outfile
-MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" CHIP_SKU="$chipsku" ./tegra-flash-helper.sh --sign --bup $buptype_arg ./flash-stripped.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} "\$@"
+MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" CHIP_SKU="$chipsku" ./tegra-flash-helper.sh --sign --bup $buptype_arg ./flash-stripped.xml.in ${DTBFILE} ${EMC_BCTS} "${ODMDATA}" "\$@"
 EOF
     done
     chmod +x $outfile
