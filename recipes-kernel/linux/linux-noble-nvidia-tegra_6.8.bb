@@ -10,23 +10,23 @@ require tegra-kernel.inc
 
 KERNEL_DISABLE_FW_USER_HELPER ?= "y"
 
-LINUX_VERSION ?= "5.15.148"
+LINUX_VERSION ?= "6.8.12"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
-LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}-1012.12"
+LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}-1009.9"
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "c8a82765359ec59e11b0e39f03cf3dfc7e039426"
+SRCREV = "46537355fa1fbb9faac9bdae8582ea30a038a1e8"
 KBRANCH = "${SRCBRANCH}"
-SRC_REPO = "github.com/OE4T/linux-jammy-nvidia-tegra.git;protocol=https"
+SRC_REPO = "github.com/OE4T/linux-noble-nvidia-tegra.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
-           ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
-           ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
-           ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
-           file://disable-module-signing.cfg \
+    ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
+    ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
+    ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
+    file://disable-module-signing.cfg \
 "
 
 KBUILD_DEFCONFIG = "defconfig"
