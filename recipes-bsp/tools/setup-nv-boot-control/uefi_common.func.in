@@ -59,6 +59,13 @@ gen_compat_3767() {
     return 0
 }
 
+gen_compat_3834() {
+    fab=""
+    boardrev=""
+    chiprev=""
+    return 0
+}
+
 # boardspec should be piped into this function
 gen_compat_spec() {
     IFS=- read boardid fab boardsku boardrev fuselevel chiprev
