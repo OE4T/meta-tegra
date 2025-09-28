@@ -7,7 +7,6 @@ TEGRA_INITRD_FLASH_BASEUTILS ?= "busybox"
 
 PACKAGE_INSTALL = "\
     tegra-firmware-xusb \
-    tegra-flash-init \
     ${TEGRA_INITRD_FLASH_BASEUTILS} \
     ${ROOTFS_BOOTSTRAP_INSTALL} \
     ${TEGRA_INITRD_FLASH_INSTALL} \
@@ -20,7 +19,7 @@ PACKAGE_INSTALL = "\
     kernel-module-pwm-fan \
     nv-kernel-module-pcie-tegra264 \
     nv-kernel-module-ufs-tegra \
-    adb-prebuilt \
+    tegra-target-flash-scripts \
 "
 
 IMAGE_FEATURES = ""
