@@ -9,7 +9,7 @@ BOOTPART_SIZE ?= "8388608"
 BOOTPART_LIMIT ?= "10485760"
 ROOTFSPART_SIZE_DEFAULT ?= "30064771072"
 ODMDATA ?= "gbe-uphy-config-22,hsstp-lane-map-3,nvhs-uphy-config-0,hsio-uphy-config-0,gbe0-enable-10g"
-EMMC_BCT ?= "tegra234-p3701-0000-sdram-l4t.dts"
+EMC_BCT ?= "tegra234-p3701-0000-sdram-l4t.dts"
 PARTITION_LAYOUT_TEMPLATE_DEFAULT ?= "flash_t234_qspi_sdmmc.xml"
 TEGRA_AUDIO_DEVICE ?= "tegra-hda-jetson-agx"
 
