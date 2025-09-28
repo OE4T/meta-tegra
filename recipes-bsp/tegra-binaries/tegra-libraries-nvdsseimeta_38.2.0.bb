@@ -1,5 +1,5 @@
 DESCRIPTION = "NVIDIA SEI metadata support library for GStreamer"
-L4T_DEB_COPYRIGHT_MD5 = "20bbd485b9b57fbc0b55d6efc08e3f4a"
+L4T_DEB_COPYRIGHT_MD5 = "cf5e527faa5ef67c91ec75b7f6c501e7"
 
 DEPENDS = "glib-2.0 gstreamer1.0"
 
@@ -8,7 +8,7 @@ L4T_DEB_IS_COMMON = "1"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "f69922d5a90f462335d057b0312929f5f4b1c81d98c0c18001a64188588e76e7"
+MAINSUM = "c1ed76fd652e5a540be17facde291858885f6bb84862ef22776085b9da857650"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libgstnvdsseimeta.so.1.0.0 \

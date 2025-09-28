@@ -1,20 +1,20 @@
-L4T_DEB_COPYRIGHT_MD5 = "0fe01f1aa1cd50ac8907271b9fb59bd2"
+L4T_DEB_COPYRIGHT_MD5 = "131ace355007ed982c3ed68c6abadcf9"
 DEPENDS = "tegra-libraries-core tegra-libraries-multimedia tegra-libraries-multimedia-utils tegra-libraries-cuda virtual/egl virtual/libgles2 expat"
 
 require tegra-debian-libraries-common.inc
 
 LICENSE += "& BSD-3-Clause"
 LIC_FILES_CHKSUM += "\
-    file://usr/share/doc/nvidia-tegra/LICENSE.libnvargus;md5=271791ce6ff6f928d44a848145021687 \
-    file://usr/share/doc/nvidia-tegra/LICENSE.libnvcam_imageencoder;md5=059e39d33711ff9e6a76760cffcf0811 \
+    file://usr/share/doc/nvidia-l4t-camera/LICENSE.libnvargus;md5=271791ce6ff6f928d44a848145021687 \
+    file://usr/share/doc/nvidia-l4t-camera/LICENSE.libnvcam_imageencoder;md5=059e39d33711ff9e6a76760cffcf0811 \
 "
 
 SRC_COMMON_DEBS += "${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP};name=gstreamer"
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'core')};subdir=${BP};name=core"
 
-MAINSUM = "d473f73c489e415e23d86b41fe1df53b29f64b8699eadfdd90e645f0b2b19580"
-GSTSUM = "f69922d5a90f462335d057b0312929f5f4b1c81d98c0c18001a64188588e76e7"
-CORESUM = "04975607d121dd679a9f026939d5c126dd9e682bbba6b71c01942212ebc2b090"
+MAINSUM = "a090471986756c28297c40be9598b9e0116db68c868f3ccd32ccea3ae4462287"
+GSTSUM = "c1ed76fd652e5a540be17facde291858885f6bb84862ef22776085b9da857650"
+CORESUM = "5ce971e279e87f9b8d7a1f6f3e040219b54c4f47c90c295d1a2cba083cbff659"
 SRC_URI[gstreamer.sha256sum] = "${GSTSUM}"
 SRC_URI[core.sha256sum] = "${CORESUM}"
 
@@ -47,6 +47,15 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvfnetstorehdfx.so \
     nvidia/libnvodm_imager.so \
     nvidia/libnvscf.so \
+    nvidia/libnvcamerahal.so \
+    nvidia/libnvsipl.so \
+    nvidia/libnvsipl_control.so \
+    nvidia/libnvsipl_devblk.so \
+    nvidia/libnvsipl_devblk_cdi.so \
+    nvidia/libnvsipl_devblk_crypto.so \
+    nvidia/libnvsipl_devblk_ddi.so \
+    nvidia/libnvsipl_pipeline.so \
+    nvidia/libnvsipl_query.so \
 "
 
 do_install() {

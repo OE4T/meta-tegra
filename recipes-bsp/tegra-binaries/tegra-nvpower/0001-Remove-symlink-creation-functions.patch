@@ -1,0 +1,247 @@
+From c23b095fb29b4eaa49e95c2e96ed1ae4712859cb Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 26 Sep 2025 06:14:24 -0700
+Subject: [PATCH] Remove symlink creation functions
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ etc/systemd/nvpower.sh | 211 +----------------------------------------
+ 1 file changed, 4 insertions(+), 207 deletions(-)
+
+diff --git a/etc/systemd/nvpower.sh b/etc/systemd/nvpower.sh
+index 3911340..1c3bc84 100755
+--- a/etc/systemd/nvpower.sh
++++ b/etc/systemd/nvpower.sh
+@@ -174,210 +174,6 @@ function set_power_state_perm()
+ 	fi
+ }
+ 
+-function is_nvpm_relinking_needed()
+-{
+-	declare -a plat_variants=("super" "safety")
+-	linked_conf="$(readlink "${NVPM_SYMLINK}")"
+-	ret="$?"
+-
+-	if [ "${ret}" -ne "0" ]; then
+-		# Early return if the nvpmodel conf is not symlink or on error
+-		return 1
+-	fi
+-
+-	# Check if there is a mismatch between compatible str and conf in use
+-	for plat in "${plat_variants[@]}"; do
+-		if [[ "${machine}" =~ ${plat} ]] && \
+-			[[ ! "${linked_conf}" =~ ${plat} ]]; then
+-			echo "${SCRIPT_NAME} - NOTICE: Relinking the" \
+-				"nvpmodel conf from non-${plat} to ${plat}"
+-			return 0
+-		elif [[ ! "${machine}" =~ ${plat} ]] && \
+-			[[ "${linked_conf}" =~ ${plat} ]]; then
+-			echo "${SCRIPT_NAME} - NOTICE: Relinking the" \
+-				"nvpmodel conf from ${plat} to non-${plat}"
+-			return 0
+-		fi
+-	done
+-
+-	return 1
+-}
+-
+-function create_nvpmodel_symlink()
+-{
+-	conf_file=""
+-
+-	if [ -e "${NVPM_SYMLINK}" ]; then
+-		if is_nvpm_relinking_needed; then
+-			nvpm_back="/etc/nvpmodel_nvbackup.conf"
+-			echo "${SCRIPT_NAME} - NOTICE: Backing up the" \
+-				"existing ${NVPM_SYMLINK} to ${nvpm_back}!"
+-			cp -b -S .bak "${NVPM_SYMLINK}" "${nvpm_back}"
+-
+-			unlink "${NVPM_SYMLINK}"
+-			ret="$?"
+-			if [ "${ret}" -ne "0" ]; then
+-				echo "${SCRIPT_NAME} - Error: Failed" \
+-					"to unlink ${NVPM_SYMLINK}!"
+-			else
+-				rm /var/lib/nvpmodel/status
+-			fi
+-		fi
+-	fi
+-
+-	# create /etc/nvpmodel.conf symlink
+-	if [ ! -e "${NVPM_SYMLINK}" ]; then
+-		if [ "${SOCFAMILY}" = "tegra234" ]; then
+-			if [ "${machine}" = "p3701-0000-as-p3767-0000" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000.conf"
+-			elif [ "${machine}" = "p3701-0000-as-p3767-0001" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001.conf"
+-			elif [ "${machine}" = "p3701-0000-as-p3767-0003" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0003.conf"
+-			elif [ "${machine}" = "p3701-0000-as-p3767-0004" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004.conf"
+-			elif [ "${machine}" = "e2421-1099+e2425-1099" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_e2421_1099.conf"
+-			elif [ "${machine}" = "p3701-0000-as-pxxxx" ] || \
+-				[ "${machine}" = "e2421-1099-as-pxxxx" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_pxxxx.conf"
+-			elif [ "${machine}" = "p3701-0002" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3701_0002.conf"
+-			elif [ "${machine}" = "p3701-0000-as-p3701-0004" ] || \
+-				[ "${machine}" = "p3701-0004" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3701_0004.conf"
+-			elif [ "${machine}" = "p3701-0008-safety" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_igx_orin_safety.conf"
+-			elif [ "${machine}" = "p3701-0008" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3701_0008.conf"
+-				if [ "${cvb}" = "p3740-0002-c01" ] || \
+-					[ "${cvb}" = "p3971" ]; then
+-					conf_file="/etc/nvpmodel/nvpmodel_igx_orin.conf"
+-				fi
+-			elif [ "${machine}" = "p3767-0000" ] || \
+-				[ "${machine}" = "p3767-0002" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000.conf"
+-			elif [ "${machine}" = "p3767-0000-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_super.conf"
+-			elif [ "${machine}" = "p3767-0000-px1" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0000_px1.conf"
+-			elif [ "${machine}" = "p3767-0000-as-p3767-0001" ] || \
+-				[ "${machine}" = "p3767-0001" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001.conf"
+-			elif [ "${machine}" = "p3767-0001-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0001_super.conf"
+-			elif [ "${machine}" = "p3767-0003" ] || \
+-				[ "${machine}" = "p3767-0005" ] || \
+-				[ "${machine}" = "p3767-0000-as-p3767-0003" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0003.conf"
+-			elif [ "${machine}" = "p3767-0003-super" ] || \
+-				[ "${machine}" = "p3767-0005-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0003_super.conf"
+-			elif [ "${machine}" = "p3767-0004" ] || \
+-				[ "${machine}" = "p3767-0000-as-p3767-0004" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004.conf"
+-			elif [ "${machine}" = "p3767-0004-super" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3767_0004_super.conf"
+-			else
+-				conf_file="/etc/nvpmodel/nvpmodel_p3701_0000.conf"
+-			fi
+-		elif [ "${SOCFAMILY}" = "tegra239" ]; then
+-			if [ "${machine}" = "e2423" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_e2423.conf"
+-			fi
+-		elif [ "${SOCFAMILY}" = "tegra264" ]; then
+-			if [ "${machine}" = "p3834-0005" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3834_0005.conf"
+-			elif [ "${machine}" = "p3834-0008-safety" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_igx_thor_safety.conf"
+-			elif [ "${machine}" = "p3834-0008" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3834_0008.conf"
+-			elif [ "${machine}" = "e3921-0000" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_e3921_0000.conf"
+-			else
+-				conf_file="/etc/nvpmodel/nvpmodel_p3834_0005.conf"
+-			fi
+-		fi
+-
+-		if [ "${conf_file}" != "" ]; then
+-			if [ -e "${conf_file}" ]; then
+-				ln -sf "${conf_file}" "${NVPM_SYMLINK}"
+-			else
+-				echo "${SCRIPT_NAME} - WARNING: file ${conf_file} not found!"
+-			fi
+-		fi
+-	fi
+-}
+-
+-function create_nvfancontrol_symlink()
+-{
+-	conf_file=""
+-	if [ ! -e "/etc/nvfancontrol.conf" ]; then
+-		if [ "${SOCFAMILY}" = "tegra234" ]; then
+-			if [[ "${machine}" =~ "p3701" ]]; then
+-				# Use p3701_0000 as default fan settings for p3701 series
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0000.conf"
+-				if [[ "${machine}" =~ "p3701-0008" ]]; then
+-					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0008.conf"
+-				fi
+-			elif [[ "${machine}" =~ "p3767" ]]; then
+-				# All p3767 series share the same fan settings
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3767_0000.conf"
+-			else
+-				# Use p3701_0000 as default fan settings for other tegra234 platforms
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3701_0000.conf"
+-			fi
+-
+-			if [ "${cvb}" = "p3711-0000" ]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3711_0000.conf"
+-			elif [ "${cvb}" = "p3740-0002-b01" ]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3740_0002_b01.conf"
+-			elif [ "${cvb}" = "p3740-0002-c01" ]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3740_0002_c01.conf"
+-			fi
+-		fi
+-
+-		if [ "${SOCFAMILY}" = "tegra239" ]; then
+-			if [ "${machine}" = "e2423" ]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_e2423.conf"
+-			fi
+-		fi
+-
+-		if [ "${SOCFAMILY}" = "tegra264" ]; then
+-			if [[ "${cvb}" =~ "p4071" ]]; then
+-				if [[ "${machine}" =~ "p3834-0008" ]]; then
+-					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3834_0008_p4071_0000.conf"
+-				else
+-					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3834_0008_p4071_0000.conf"
+-				fi
+-			elif [[ "${cvb}" =~ "p3971" ]]; then
+-				if [[ "${machine}" =~ "p3834-0005" ]]; then
+-					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3834_0005_p3971_0000.conf"
+-				elif [[ "${machine}" =~ "p3834-0008" ]]; then
+-					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3834_0008_p3971_0000.conf"
+-				else
+-					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3834_0008_p3971_0000.conf"
+-				fi
+-			elif [[ "${cvb}" =~ "e3925" ]]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_e3921_0000_e3925_0000.conf"
+-			elif [ "${cvb}" = "p3740-0002-c01" ]; then
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3834_0008_p3740_0002.conf"
+-			else
+-				# Default fan settings for other tegra264 platforms
+-				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3834_0008_p3971_0000.conf"
+-			fi
+-		fi
+-
+-		if [ "${conf_file}" != "" ]; then
+-			if [ -e "${conf_file}" ]; then
+-				ln -sf "${conf_file}" /etc/nvfancontrol.conf
+-			else
+-				echo "${SCRIPT_NAME} - WARNING: file ${conf_file} not found!"
+-			fi
+-		fi
+-	fi
+-}
+-
+ # CPU hotplug helper function that turns on/off the CPU cores in the specified range
+ # * Parameters:
+ # * ${1}: desired online status (0 for offline, 1 for online)
+@@ -429,7 +225,10 @@ function set_cpufreq_governor()
+ 		governor="schedutil"
+ 	fi
+ 
+-	tee /sys/devices/system/cpu/cpufreq/policy*/scaling_governor 1>/dev/null 2>&1 <<< $governor
++	for pd in /sys/devices/system/cpu/cpufreq/policy*; do
++	    [ -d "$pd" ] || continue
++	    echo "$governor" > "$pd/scaling_governor"
++	done
+ 
+ 	if [[ "$governor" = "schedutil" ]] && [[ -e "/sys/devices/system/cpu/cpufreq/schedutil/rate_limit_us" ]]; then
+ 		echo 2000 > /sys/devices/system/cpu/cpufreq/schedutil/rate_limit_us
+@@ -846,8 +645,6 @@ function udev_ina238_handler()
+ # This path is triggered once when systemd start the nvpower.service in one-shot manner
+ if [[ "$#" -eq 0 ]]; then
+ 	set_power_state_perm
+-	create_nvpmodel_symlink
+-	create_nvfancontrol_symlink
+ 	cpu_hotplug
+ 	set_cpufreq_governor
+ 	set_cpu_floor_freq
