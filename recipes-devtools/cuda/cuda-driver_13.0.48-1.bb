@@ -1,12 +1,14 @@
 CUDA_PKG = "${BPN}-dev"
+CUDA_INSTALL_ARCH:class-target = "sbsa"
+CUDA_INSTALL_ARCH:class-native = "${HOST_ARCH}"
 
 require cuda-shared-binaries.inc
 
 DEPENDS:tegra = "tegra-libraries-cuda tegra-cuda-utils"
 
 L4T_DEB_GROUP = "cuda-cudart"
-DEVSUM = "0c453507da39a28ca214723c8980c5a4832d8ea3e8f28dfd8ac83a1b2055dda1"
-DEVSUM:x86-64 = "296c391b1d7fba881180595693a7e2742c3529c30f4909cd0b00a0cae8d2294e"
+DEVSUM = "73a305ac2aa16d53cda27feee38f05941ca573332995687105f519190f4350d2"
+DEVSUM:x86-64 = "6644cbf207e520117cf37c7b2667b5a04e0c36a0bcc41074fde0fee21f812360"
 
 ALLOW_EMPTY:${PN} = "1"
 EXCLUDE_PACKAGES_FROM_SHLIBS = ""

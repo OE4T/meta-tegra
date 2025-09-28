@@ -1,10 +1,9 @@
 CUDA_PKG = "${BPN}"
-L4T_DEB_GROUP = "cuda-nvcc"
 
 require cuda-shared-binaries.inc
 
-MAINSUM = "32ba801d719a593cb35abd4aeb93c672c0a02d47539455b5780c6004f03462cd"
-MAINSUM:x86-64 = "dd229d8e29d5c6ab5d55c7de31efbcf9d89f490cff600555c0d33eb6c106e57b"
+MAINSUM = "ee1ebce1ffe6a0f15bd86576f6d2acf10032484f9469eada6ff5e6c9050b6ec6"
+MAINSUM:x86-64 = "ce319e81bfb19abd2a9c2ed1fa2d683e4a4936b598617c1460ca3463a24855c4"
 
 FILES:${PN} = "${prefix}/local/cuda-${CUDA_VERSION}"
 FILES:${PN}-dev = ""
