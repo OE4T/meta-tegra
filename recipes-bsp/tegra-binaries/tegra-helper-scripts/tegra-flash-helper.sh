@@ -319,6 +319,7 @@ if [ -z "$CHIPREV" ]; then
             fi
             ;;
     esac
+    BOOTSEC_MODE="$bootauth"
 elif [ "$CHIPID" = "0x23" ]; then
     skipuid="--skipuid"
 fi
@@ -350,7 +351,7 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
     elif [ "$CHIPID" = "0x26" ]; then
 	rm -f diag_bct_cfg.xml
 	cp flash_l4t_t264_bct_cfg.xml diag_bct_cfg.xml
-	if ! "$here/nvbct-config" -v diag_bct_cfg.xml \
+	if ! "$here/nvbct-config" diag_bct_cfg.xml \
 			     brbct_cfg/bpmp_mem_cfg=$BPMP_MEM_CONFIG \
 			     brbct_cfg/brcommand=$BOOTROM_CONFIG \
 			     brbct_cfg/wb0sdram=$WB0SDRAM_BCT \
@@ -462,6 +463,9 @@ CHIP_SKU="$CHIP_SKU"
 EOF
 if [ -n "$RAMCODE" ]; then
     echo "RAMCODE=$RAMCODE" >>boardvars.sh
+fi
+if [ -n "$BOOTSEC_MODE" ]; then
+    echo "BOOTSEC_MODE=$BOOTSEC_MODE" >>boardvars.sh
 fi
 if [ -n "$serial_number" ]; then
     echo "serial_number=$serial_number" >>boardvars.sh
@@ -673,11 +677,9 @@ fi
 
 binsargs_params=
 if [ "$CHIPID" = "0x26" ]; then
-    rm -f flash-rcmboot.xml
-    sed -e"s,BPFDTB_FILE,$BPFDTB_FILE," -e"s,BPFFILE,$BPF_FILE," $PARTITION_LAYOUT_RCMBOOT > flash-rcmboot.xml
     rm -f coldboot_bct_cfg.xml rcmboot_bct_cfg.xml
     cp flash_l4t_t264_bct_cfg.xml coldboot_bct_cfg.xml
-    if ! "$here/nvbct-config" -v coldboot_bct_cfg.xml \
+    if ! "$here/nvbct-config" coldboot_bct_cfg.xml \
 	 brbct_cfg/uphy=$UPHY_CONFIG \
 	 brbct_cfg/device=$DEVICE_CONFIG \
 	 brbct_cfg/misc=$MISC_CONFIG \
@@ -764,7 +766,7 @@ eks eks.img"
 fi
 
 if [ $rcm_boot -ne 0 -a $to_sign -eq 0 ]; then
-    binsargs_params="$binsargs_params; kernel $kernfile; kernel_dtb $kernel_dtbfile"
+    binsargs_params="$binsargs_params; kernel $kernfile; kernel_dtb $kernel_dtbfile; bootloader_dtb $TBCDTB_FILE"
 fi
 
 if [ $bup_blob -ne 0 -o $to_sign -ne 0 -o "$sdcard" = "yes" -o $external_device -eq 1 ]; then
@@ -862,7 +864,6 @@ if [ $want_signing -eq 1 ]; then
           --applet applet_t264.bin \
           --cmd \"$tfcmd\" $skipuid \
           --coldboot_pt_layout flash.xml \
-          --rcmboot_pt_layout flash_t264_rcmboot.xml \
           --bct_backup \
           --boot_chain A \
 	  --no_pva 0 \
@@ -893,15 +894,6 @@ if [ $want_signing -eq 1 ]; then
 --cfg flash.xml \
 --bct_backup \
 --boot_chain A \
-$bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
-	elif [ "$CHIPID" = "0x26" ]; then
-	    FLASHARGS="--chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
---applet mb1_t264.bin \
---cmd \"rcmboot\" $skipuid \
---rcmboot_pt_layout flash-rcmboot.xml \
---bct_backup \
---boot_chain A \
---no_pva 0 \
 $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
 	fi
 	(rcm_boot=1 odmsign_ext) || exit 1
@@ -937,8 +929,7 @@ $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 	    flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
 --applet mb1_t264.bin \
 --cmd \"$tfcmd\" $skipuid \
---coldboot_pt_layout flash.xml \
---rcmboot_pt_layout flash-rcmboot.xml \
+--rcmboot_pt_layout flash.xml \
 --bct_backup \
 --boot_chain A \
 --no_pva 0 \
@@ -949,7 +940,6 @@ $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparsearg
 --applet mb1_t264.bin \
 --cmd \"$tfcmd\" $skipuid \
 --coldboot_pt_layout flash.xml \
---rcmboot_pt_layout flash-rcmboot.xml \
 --bct_backup \
 --boot_chain A \
 --no_pva 0 \
