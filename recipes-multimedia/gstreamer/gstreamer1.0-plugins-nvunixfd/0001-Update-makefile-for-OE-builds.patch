@@ -1,37 +1,61 @@
-From 55e1503e104a9e9bd275d683146db0833b7301f4 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Tue, 22 Oct 2024 13:02:51 -0700
+From d780a253ccadc38faf7067dc96fca2a559be88d4 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Wed, 16 Apr 2025 14:29:42 +0100
 Subject: [PATCH] Update makefile for OE builds
 
 Upstream-Status: Inappropriate [OE-specific]
+
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- Makefile | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ Makefile | 26 ++++++++------------------
+ 1 file changed, 8 insertions(+), 18 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index efc1953..0589827 100644
+index 31b7d07..880a7a4 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -11,13 +11,12 @@
- #
- ###############################################################################
+@@ -17,25 +17,15 @@ endif
  
--SO_NAME := libgstnvunixfd.so
+ SO_NAME := libgstnvunixfd.so
+ 
+-CC := gcc
+-
+-TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
+-ifeq ($(TARGET_DEVICE),aarch64)
+-	GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
+-	LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib/
+-else
+-	GST_INSTALL_DIR?=/usr/lib/x86_64-linux-gnu/gstreamer-1.0/
+-	LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib/
+-endif
 +prefix ?= /usr
 +exec_prefix ?= $(prefix)
 +libdir ?= $(exec_prefix)/lib
  
--CC := gcc
-+SO_NAME := libgstnvunixfd.so
- 
--GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
--LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-CUDA_HOME:= /usr/local/cuda-$(CUDA_VER)
 -CFLAGS:=
- LIBS:= -lnvbufsurface -lnvbufsurftransform -lpthread
+ LIBS:= -lnvbufsurface -lnvbufsurftransform -lpthread -ldl
  
  SRCS := $(wildcard *.c)
-@@ -41,7 +40,7 @@ CFLAGS += -fPIC \
+ 
+ INCLUDES += -I./ -I../
+-INCLUDES += -I$(CUDA_HOME)/include
+ 
+ PKGS := gstreamer-1.0 \
+ 	gstreamer-base-1.0 \
+@@ -43,7 +33,9 @@ PKGS := gstreamer-1.0 \
+ 	gstreamer-allocators-1.0 \
+ 	glib-2.0 \
+ 	gio-2.0 \
+-	gio-unix-2.0
++	gio-unix-2.0 \
++	cudart-$(CUDA_VER) \
++	cuda-$(CUDA_VER)
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+@@ -54,12 +46,10 @@ CFLAGS += -fPIC \
  
  CFLAGS += `pkg-config --cflags $(PKGS)`
  
@@ -40,7 +64,12 @@ index efc1953..0589827 100644
  
  LIBS += `pkg-config --libs $(PKGS)`
  
-@@ -56,7 +55,7 @@ $(SO_NAME): $(OBJS)
+-LIBS += -L$(CUDA_HOME)/lib64 -lcuda -lcudart
+-
+ all: $(SO_NAME)
+ 
+ %.o: %.c
+@@ -71,7 +61,7 @@ $(SO_NAME): $(OBJS)
  
  .PHONY: install
  install: $(SO_NAME)
@@ -49,3 +78,6 @@ index efc1953..0589827 100644
  
  .PHONY: clean
  clean:
+-- 
+2.34.1
+
