@@ -5,8 +5,8 @@ COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS = "tegra-flashvars tegra-storage-layout tegra-eks-image dtc-native coreutils-native lz4-native"
 
-BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
-BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
+BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMC_BCT}"
+BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMC_BCT_OVERRIDE}"
 ODMFUSE_FILE ?= ""
 TEGRA_SOCNAME_SHORT = "${@d.getVar('SOC_FAMILY')[0:1] + d.getVar('SOC_FAMILY')[-3:]}"
 # Work around bitbake parsing quirk with shell-style escapes
@@ -31,6 +31,7 @@ prepare_badpage_mapfile()  {
 
     case "${SOC_FAMILY}" in
         tegra234)
+	    printf "${BACKSLASH_X_01}" | dd of="badpage.bin" bs=1 seek=4064 count=1 conv=notrunc &> /dev/null
             printf 'BINF' | dd of="badpage.bin" bs=1 seek=5120 count=4 conv=notrunc &> /dev/null
             ;;
         tegra264)
@@ -50,7 +51,7 @@ do_install() {
     install_other_boot_firmware_files
 
     [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
-    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT}
+    install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMC_BCT}
 }
 
 install_other_boot_firmware_files() {
@@ -74,6 +75,7 @@ install_other_boot_firmware_files() {
 	    install -m 0644 ${S}/bootloader/bpmp_t264-*.bin ${D}${datadir}/tegraflash/
 	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra264-bpmp-*.dtb ${D}${datadir}/tegraflash/
 	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra264* ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/bctflags/platform_config_profile.yaml ${D}${datadir}/tegraflash/
 	    ;;
 	*)
 	    bberror "Unrecognized SOC_FAMILY: ${SOC_FAMILY}"
