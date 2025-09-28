@@ -13,6 +13,14 @@ PACKAGE_INSTALL = "\
     ${TEGRA_INITRD_FLASH_INSTALL} \
     ${MACHINE_ESSENTIAL_EXTRA_RDEPENDS} \
     ${MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS} \
+    kernel-module-dummy \
+    kernel-module-uas \
+    kernel-module-tegra-bpmp-thermal \
+    kernel-module-pwm-tegra \
+    kernel-module-pwm-fan \
+    nv-kernel-module-pcie-tegra264 \
+    nv-kernel-module-ufs-tegra \
+    adb-prebuilt \
 "
 
 IMAGE_FEATURES = ""
