@@ -5,7 +5,7 @@ require conf/image-uefi.conf
 COMPATIBLE_MACHINE = "(tegra)"
 INHIBIT_DEFAULT_DEPS = "1"
 
-PROVIDES = "virtual/bootloader edk2-firmware-tegra-minimal standalone-mm-optee-tegra"
+PROVIDES = "virtual/bootloader standalone-mm-optee-tegra"
 
 DEPENDS = "coreutils-native dtc-native"
 
