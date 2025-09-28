@@ -12,6 +12,7 @@ do_install() {
     install -d ${D}${datadir}/l4t-storage-layout
     install -m 0644 ${PARTITION_FILE} ${D}${datadir}/l4t-storage-layout/${PARTITION_LAYOUT_TEMPLATE}
     [ -z "${PARTITION_LAYOUT_EXTERNAL}" ] || install -m 0644 ${PARTITION_FILE_EXTERNAL} ${D}${datadir}/l4t-storage-layout/${PARTITION_LAYOUT_EXTERNAL}
+    [ -z "${PARTITION_LAYOUT_RCMBOOT}" ] || install -m 0644 ${S}/bootloader/${PARTITION_LAYOUT_RCMBOOT} ${D}${datadir}/l4t-storage-layout/${PARTITION_LAYOUT_RCMBOOT}
 }
 
 PACKAGES = "${PN}-dev"
