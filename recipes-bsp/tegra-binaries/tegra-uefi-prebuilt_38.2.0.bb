@@ -13,13 +13,23 @@ TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 
 inherit deploy ${TEGRA_UEFI_SIGNING_CLASS}
 
-do_compile() {
-    cp ${S}/bootloader/uefi_jetson.bin ${S}/bootloader/BOOTAA64.efi ${B}
-    cp ${S}/bootloader/uefi_jetson_minimal.bin ${B}
+do_compile(){
+    cp ${S}/bootloader/BOOTAA64.efi ${B}
+    if [ "${SOC_FAMILY}" = "tegra234" ]; then
+        cp ${S}/bootloader/uefi_t23x_general.bin ${B}
+        cp ${S}/bootloader/uefi_t23x_embedded.bin ${B}
+    elif [ "${SOC_FAMILY}" = "tegra264" ]; then
+        cp ${S}/bootloader/uefi_t26x_general.bin ${B}
+        cp ${S}/bootloader/uefi_t26x_embedded.bin ${B}
+    fi
 }
 
 do_compile:append:tegra234() {
     cp ${S}/bootloader/standalonemm_optee_t234.bin ${B}/standalone_mm_optee.bin
+}
+
+do_compile:append:tegra264() {
+    cp ${S}/bootloader/standalonemm_jetson.pkg ${B}/standalonemm_jetson.pkg
 }
 
 sign_efi_app() {
@@ -39,12 +49,20 @@ do_install() {
     install -d ${D}${EFIDIR}
     install -m 0644 ${B}/BOOTAA64.efi ${D}${EFIDIR}/${EFI_BOOT_IMAGE}
     install -d ${D}${datadir}/edk2-nvidia
-    install -m 0644 ${B}/standalone_mm_optee.bin ${D}${datadir}/edk2-nvidia/
+    if [ "${SOC_FAMILY}" = "tegra234" ]; then
+        install -m 0644 ${B}/standalone_mm_optee.bin ${D}${datadir}/edk2-nvidia/
+    elif [ "${SOC_FAMILY}" = "tegra264" ]; then
+        install -m 0644 ${B}/standalonemm_jetson.pkg ${D}${datadir}/edk2-nvidia/
+    fi
 }
 
 do_deploy() {
     install -d ${DEPLOYDIR}
-    install -m 0644 ${B}/uefi_jetson.bin ${B}/uefi_jetson_minimal.bin ${DEPLOYDIR}/
+    if [ "${SOC_FAMILY}" = "tegra234" ]; then
+        install -m 0644 ${B}/uefi_t23x_general.bin ${B}/uefi_t23x_embedded.bin ${DEPLOYDIR}/
+    elif [ "${SOC_FAMILY}" = "tegra264" ]; then
+        install -m 0644 ${B}/uefi_t26x_general.bin ${B}/uefi_t26x_embedded.bin ${DEPLOYDIR}/
+    fi
     for dtbo in ${TEGRA_BOOTCONTROL_OVERLAYS}; do
 	[ -e ${S}/kernel/dtb/$dtbo ] || continue
 	install -m 0644 ${S}/kernel/dtb/$dtbo ${DEPLOYDIR}/

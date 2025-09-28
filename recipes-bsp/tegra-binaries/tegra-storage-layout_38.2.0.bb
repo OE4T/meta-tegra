@@ -42,6 +42,31 @@ copy_in_flash_layout() {
                 -e"s,PVA_FILE,nvpva_020.fw," \
                 "$dstfile"
             ;;
+        tegra264)
+            sed -i -e"s,MB1FILE,mb1_t264_prod.bin," \
+                -e"s,CAMERAFW,camera-rtcpu-t264-rce.img," \
+                -e"s,BADPAGETYPE,black_list_info," -e"s,BADPAGEFILE,badpage.bin," -e"s,BADPAGENAME,bad-page," \
+                -e"s,PSCBL1FILE,psc_bl1_t264_prod.bin," \
+                -e"s,TSECFW,tsec_t264_prod.bin," \
+                -e"s,MB2BLFILE,mb2_t264.bin," \
+                -e"s,XUSB_FW,xusb_t264_prod.bin," \
+                -e"s,PSCFW,pscfw_t264_prod.bin," \
+                -e"s,MCE_IMAGE,mce_flash_o10_cr_prod.bin," \
+                -e"s,WB0FILE,sc7_t264_prod.bin," \
+                -e"s,PSCRF_IMAGE,psc_rf_t264_prod.bin," \
+                -e"s,MB2RF_IMAGE,mb2rf_t264.bin," \
+                -e"s,TBCDTB-FILE,uefi_jetson_ffa.bin," \
+                -e"s,DCE,display-t264-dce.bin," \
+                -e"s,PVA_FILE,nvpva_030.fw," \
+                -e"s,RCE1FW,nv-rce1-t264.bin," \
+                -e"s,AON_ADSPFW,aon-fw_t264.bin," \
+                -e"s,ADSP0FW,adsp0-fw_t264.bin," \
+                -e"s,ADSP1FW,adsp1-fw_t264.bin," \
+                -e"s,IGBFW,igbfw_gb10b_gsc_package_prod.bin," \
+                -e"s,ATF_FW,bl31_t264.fip," \
+                -e"s,HAFNIUM_FW,hafnium_t264.fip," \
+                "$dstfile"
+            ;;
         *)
             bberror "Unrecognized SOC_FAMILY: ${SOC_FAMILY}"
             ;;

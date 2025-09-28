@@ -44,14 +44,11 @@ do_install() {
     install -m 0644 ${S}/bootloader/pyfdt/*.py ${D}${BINDIR}/pyfdt/
     install -m 0755 ${S}/bootloader/tegraflash*.py ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/ed25519.py ${D}${BINDIR}
-    install -m 0644 ${S}/bootloader/t194.py ${D}${BINDIR}
     install -m 0644 ${S}/bootloader/t234.py ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/dtbcheck.py ${D}${BINDIR}
     install -m 0755 ${S}/bootloader/sw_memcfg_overlay.pl ${D}${BINDIR}
     sed -i -e's,^#!/usr/bin/perl,#!/usr/bin/env perl,' ${D}${BINDIR}/sw_memcfg_overlay.pl
     install -m 0755 ${S}/bootloader/BUP_generator.py ${D}${BINDIR}
-    install -m 0755 ${S}/bootloader/rollback/rollback_parser.py ${D}${BINDIR}
-    sed -i -e's,^#!.*,#!/usr/bin/env python3,' ${D}${BINDIR}/rollback_parser.py
     install -m 0644 ${S}/bootloader/l4t_bup_gen.func ${D}${BINDIR}
 
     install -m 0644 ${S}/bootloader/odmsign.func ${D}${BINDIR}

@@ -1,9 +1,9 @@
-L4T_DEB_COPYRIGHT_MD5 = "91cf75b2c9b94ab2c5ee5b09aafb954e"
+L4T_DEB_COPYRIGHT_MD5 = "4108d6904a9ac6948333d8c6b1d756e5"
 DEPENDS = "tegra-libraries-core"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "bbe949ff0c279221e1327ab00006b505e4a1cd4fd46d30f80134c90d62baf03c"
+MAINSUM = "8c85c1bb6b7152a72245094a6ce606c507a662af8799aef04eb7cf2214a343cd"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvidia-ml.so.1 \
@@ -18,4 +18,3 @@ do_install() {
 
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
-RRECOMMENDS:${PN} = "kernel-module-nvgpu"

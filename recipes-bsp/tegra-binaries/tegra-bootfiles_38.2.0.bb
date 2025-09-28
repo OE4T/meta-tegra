@@ -32,6 +32,8 @@ prepare_badpage_mapfile()  {
         tegra234)
             printf 'BINF' | dd of="badpage.bin" bs=1 seek=5120 count=4 conv=notrunc &> /dev/null
             ;;
+        tegra264)
+            ;;
         *)
             bberror "Unrecognized SOC_FAMILY: ${SOC_FAMILY}"
             ;;
@@ -57,6 +59,19 @@ install_other_boot_firmware_files() {
 	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra234-bpmp-*.dtb ${D}${datadir}/tegraflash/
 	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra234* ${D}${datadir}/tegraflash/
 	    install -m 0644 ${S}/bootloader/bpmp_t234-*.bin ${D}${datadir}/tegraflash/
+	    ;;
+	tegra264)
+	    install -m 0644 ${S}/bootloader/tegra264-*.dts* ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/tegra264-p3834-0008-* ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/tegra264-mb1-bct-* ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/t264_tegrabl_* ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/t264-pinctrl-tegra.h ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/tegra264-gpio.h ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/tegra264-firewall-config-base.dtsi ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/tegra264-mb2-bct-common.dtsi ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/bpmp_t264-*.bin ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/tegra264-bpmp-*.dtb ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/${NVIDIA_BOARD}/BCT/tegra264* ${D}${datadir}/tegraflash/
 	    ;;
 	*)
 	    bberror "Unrecognized SOC_FAMILY: ${SOC_FAMILY}"

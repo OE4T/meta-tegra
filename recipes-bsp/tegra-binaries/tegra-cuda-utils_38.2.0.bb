@@ -1,12 +1,12 @@
 DESCRIPTION = "NVIDIA CUDA utils"
-L4T_DEB_COPYRIGHT_MD5 = "3eee7940f3706b5eb2411a575788e804"
+L4T_DEB_COPYRIGHT_MD5 = "1df45365b467c00fc5fb22df229af6e6"
 DEPENDS = "tegra-libraries-cuda"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-cuda-utils"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "be4e1095d4a8e8b9cf9c7c511ba53be1acd77677f95234f30331957e082dee82"
+MAINSUM = "817ce42e9d6e22199e680d0046f7bab398c3b745dd4dbf9140d4ee125825a3cb"
 
 do_install() {
     install -d ${D}${bindir}
