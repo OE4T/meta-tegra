@@ -13,10 +13,9 @@ CUDA_COMPONENTS = " \
     libnpp\
     libnvjitlink \
     libnvfatbin \
+    libnvjpeg \
 "
-CUDA_COMPONENTS:append:class-target = " \
-    libcudla \
-"
+
 DEPENDS = "${CUDA_COMPONENTS}"
 
 do_fetch[noexec] = "1"
