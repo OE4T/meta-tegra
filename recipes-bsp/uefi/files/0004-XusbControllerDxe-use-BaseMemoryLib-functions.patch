@@ -1,7 +1,7 @@
-From 44c16c2589a1ebd2ae53c7370c9a7c4f51d6b8c0 Mon Sep 17 00:00:00 2001
+From 8bbf8cb436aa701ec6118decf0d41c1bb88bfcaa Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 12 Oct 2024 07:09:37 -0700
-Subject: [PATCH] XusbControllerDxe: use BaseMemoryLib functions
+Subject: [PATCH 4/4] XusbControllerDxe: use BaseMemoryLib functions
 
 instead of memcpy/memset from the C runtime library.
 
@@ -12,7 +12,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 28 insertions(+), 32 deletions(-)
 
 diff --git a/Silicon/NVIDIA/Drivers/XusbControllerDxe/XusbControllerDxe.c b/Silicon/NVIDIA/Drivers/XusbControllerDxe/XusbControllerDxe.c
-index 6392401c..c6116f2f 100644
+index 3a088fa7..baeb93ac 100644
 --- a/Silicon/NVIDIA/Drivers/XusbControllerDxe/XusbControllerDxe.c
 +++ b/Silicon/NVIDIA/Drivers/XusbControllerDxe/XusbControllerDxe.c
 @@ -26,7 +26,6 @@
@@ -23,7 +23,7 @@ index 6392401c..c6116f2f 100644
  
  #define XUSB_INTERRUPT_POLL_PERIOD  10000
  #define NUM_TRB_EVENT_RING          32U
-@@ -252,7 +251,7 @@ XudcQueueTrb (
+@@ -255,7 +254,7 @@ XudcQueueTrb (
  
    /* If Control EP */
    if (ep_index == EP0_IN) {
@@ -32,7 +32,7 @@ index 6392401c..c6116f2f 100644
        (VOID *)p_xusb_dev_context->cntrl_epenqueue_ptr,
        (VOID *)p_trb,
        sizeof (NORMAL_TRB_STRUCT)
-@@ -278,7 +277,7 @@ XudcQueueTrb (
+@@ -281,7 +280,7 @@ XudcQueueTrb (
    }
    /* Bulk Endpoint */
    else if (ep_index == EP1_OUT) {
@@ -41,7 +41,7 @@ index 6392401c..c6116f2f 100644
        (VOID *)p_xusb_dev_context->bulkout_epenqueue_ptr,
        (VOID *)p_trb,
        sizeof (NORMAL_TRB_STRUCT)
-@@ -299,7 +298,7 @@ XudcQueueTrb (
+@@ -302,7 +301,7 @@ XudcQueueTrb (
    }
    /* Bulk Endpoint */
    else if (ep_index == EP1_IN) {
@@ -50,7 +50,7 @@ index 6392401c..c6116f2f 100644
        (VOID *)p_xusb_dev_context->bulkin_epenqueue_ptr,
        (VOID *)p_trb,
        sizeof (NORMAL_TRB_STRUCT)
-@@ -372,7 +371,7 @@ XudcIssueStatusTrb (
+@@ -375,7 +374,7 @@ XudcIssueStatusTrb (
      return e;
    }
  
@@ -59,7 +59,7 @@ index 6392401c..c6116f2f 100644
    XudcCreateStatusTrb (&strb, direction);
  
    /* Note EP0_IN is bi-directional. */
-@@ -608,7 +607,7 @@ XudcGetDesc (
+@@ -611,7 +610,7 @@ XudcGetDesc (
        }
  
        *tx_length = MIN (wlength, desc_length);
@@ -68,7 +68,7 @@ index 6392401c..c6116f2f 100644
        break;
  
      case USB_DT_CONFIG:
-@@ -631,7 +630,7 @@ XudcGetDesc (
+@@ -634,7 +633,7 @@ XudcGetDesc (
          desc[30] = 0;
        }
  
@@ -77,7 +77,7 @@ index 6392401c..c6116f2f 100644
        break;
  
      case USB_DT_STRING:
-@@ -641,27 +640,27 @@ XudcGetDesc (
+@@ -644,27 +643,27 @@ XudcGetDesc (
          case USB_MANF_ID:
            DEBUG ((EFI_D_ERROR, "%a: Get desc. Manf ID\r\n", __FUNCTION__));
            *tx_length = MIN (wlength, (UINT16)sizeof (s_usb_manufacturer_id));
@@ -109,7 +109,7 @@ index 6392401c..c6116f2f 100644
            break;
  
          default:
-@@ -674,7 +673,7 @@ XudcGetDesc (
+@@ -677,7 +676,7 @@ XudcGetDesc (
      case USB_DT_DEVICE_QUALIFIER:
        DEBUG ((EFI_D_ERROR, "%a: Get desc. Dev qualifier\r\n", __FUNCTION__));
        *tx_length = MIN (wlength, (UINT16)sizeof (s_usb_device_qualifier));
@@ -118,7 +118,7 @@ index 6392401c..c6116f2f 100644
        break;
  
      case USB_DT_OTHER_SPEED_CONFIG:
-@@ -697,13 +696,13 @@ XudcGetDesc (
+@@ -700,13 +699,13 @@ XudcGetDesc (
        }
  
        *tx_length = MIN (wlength, (UINT16)sizeof (s_other_speed_config_desc));
@@ -134,7 +134,7 @@ index 6392401c..c6116f2f 100644
        break;
  
      default:
-@@ -742,7 +741,7 @@ XudcEpGetStatus (
+@@ -745,7 +744,7 @@ XudcEpGetStatus (
    }
  
    *tx_length = (UINT16)sizeof (endpoint_status);
@@ -143,7 +143,7 @@ index 6392401c..c6116f2f 100644
  }
  
  static VOID
-@@ -794,7 +793,7 @@ XudcIssueDataTrb (
+@@ -797,7 +796,7 @@ XudcIssueDataTrb (
      return EFI_SUCCESS;
    }
  
@@ -152,7 +152,7 @@ index 6392401c..c6116f2f 100644
    XudcCreateDataTrb (&dtrb, buffer, bytes, direction);
  
    /* Note EP0_IN is bi-directional. */
-@@ -1009,13 +1008,13 @@ XudcHandleSetupPkt (
+@@ -1012,13 +1011,13 @@ XudcHandleSetupPkt (
          case GET_STATUS:
            DEBUG ((EFI_D_ERROR, "%a: Get status\r\n", __FUNCTION__));
            tx_length = MIN (wlength, (UINT16)sizeof (s_usb_dev_status));
@@ -168,7 +168,7 @@ index 6392401c..c6116f2f 100644
            break;
  
          case GET_DESCRIPTOR:
-@@ -1054,7 +1053,7 @@ XudcHandleSetupPkt (
+@@ -1057,7 +1056,7 @@ XudcHandleSetupPkt (
            UINT8  interface_status[2] = { 0, 0 };
  
            tx_length = MIN (wlength, (UINT16)sizeof (interface_status));
@@ -177,7 +177,7 @@ index 6392401c..c6116f2f 100644
            break;
  
          case GET_INTERFACE:
-@@ -1062,7 +1061,7 @@ XudcHandleSetupPkt (
+@@ -1065,7 +1064,7 @@ XudcHandleSetupPkt (
            DEBUG ((EFI_D_ERROR, "%a: Get Interface D2H_I/F\r\n", __FUNCTION__));
            tx_length = MIN (wlength, (UINT16)sizeof (p_xusb_dev_context->interface_num));
  
@@ -186,7 +186,7 @@ index 6392401c..c6116f2f 100644
              (VOID *)mPrivate->pSetupBuffer,
              &p_xusb_dev_context->interface_num,
              tx_length
-@@ -1571,7 +1570,7 @@ XudcHandleTxferEvent (
+@@ -1574,7 +1573,7 @@ XudcHandleTxferEvent (
        mPrivate->DataReceivedCallback (ReportReceived, mPrivate->DataPacket);
  
        /* Prepare next Rx packet */
@@ -195,7 +195,7 @@ index 6392401c..c6116f2f 100644
  
        /* check the data size to put the next TRB */
        if (mPrivate->CurrentRxLength == mPrivate->TotalRxLength) {
-@@ -1687,7 +1686,7 @@ XudcPollForEvent (
+@@ -1690,7 +1689,7 @@ XudcPollForEvent (
   #endif
        /* Check if we are waiting for setup packet */
        p_setup_event_trb = (SETUP_EVENT_TRB_STRUCT *)p_event_trb;
@@ -204,7 +204,7 @@ index 6392401c..c6116f2f 100644
          (VOID *)&mPrivate->usb_setup_data[0],
          (VOID *)&p_setup_event_trb->data[0],
          8
-@@ -1900,21 +1899,18 @@ XudcInitTransferRing (
+@@ -1903,21 +1902,18 @@ XudcInitTransferRing (
  
    /* zero out tx ring */
    if ((ep_index == EP0_IN) || (ep_index == EP0_OUT)) {
@@ -229,7 +229,7 @@ index 6392401c..c6116f2f 100644
        NUM_TRB_TRANSFER_RING * sizeof (DATA_TRB_STRUCT)
        );
    } else {
-@@ -2034,7 +2030,7 @@ XudcInitEpContext (
+@@ -2037,7 +2033,7 @@ XudcInitEpContext (
  
    /* Control Endpoint 0. */
    if (ep_index == EP0_IN) {
@@ -238,7 +238,7 @@ index 6392401c..c6116f2f 100644
      /* Set Endpoint State to running. */
      ep_info->ep_state = EP_RUNNING;
      /* Set error count to 3 */
-@@ -2080,7 +2076,7 @@ XudcInitEpContext (
+@@ -2083,7 +2079,7 @@ XudcInitEpContext (
      p_link_trb->trb_type       = LINK_TRB;
    } else {
      if (ep_index == EP1_OUT) {
@@ -247,7 +247,7 @@ index 6392401c..c6116f2f 100644
        ep_info->ep_state = EP_RUNNING;
        /* Set error count to 3 */
        ep_info->cerr = 3;
-@@ -2134,7 +2130,7 @@ XudcInitEpContext (
+@@ -2137,7 +2133,7 @@ XudcInitEpContext (
        p_link_trb->trb_type       = LINK_TRB;
      } else {
        /* EP IN */
@@ -256,7 +256,7 @@ index 6392401c..c6116f2f 100644
        ep_info->ep_state = EP_RUNNING;
        /* Set error count to 3 */
        ep_info->cerr = 3;
-@@ -2615,7 +2611,7 @@ XudcIssueNormalTrb (
+@@ -2531,7 +2527,7 @@ XudcIssueNormalTrb (
    UINTN BufferSize = bytes;
    VOID *Mapping;
  
