@@ -1,20 +1,22 @@
-L4T_DEB_COPYRIGHT_MD5 = "76b3130e18f6d6dc3236584f2c985e43"
+L4T_DEB_COPYRIGHT_MD5 = "7ba9fe4d974b9fed20dcba24ab20b859"
 
 require tegra-debian-libraries-common.inc
 
 DESCRIPTION = "Prebuilt OPTEE normal-world binaries"
-MAINSUM = "ed014c60512b5877680c1d5b8dda11e350fa48e25e78bbd58f809698a5baa016"
+MAINSUM = "695610b11dadc6e98c20a3c8dd5bc712d237fb77ecd54884e5f3686e20ac9607"
 
 inherit systemd
 
 LIC_FILES_CHKSUM += " \
-    file://usr/share/doc/nvidia-tegra/LICENSE.optee_test;md5=daa2bcccc666345ab8940aab1315a4fa \
-    file://usr/share/doc/nvidia-tegra/LICENSE.optee_client;md5=69663ab153298557a59c67a60a743e5b \
-    file://usr/share/doc/nvidia-tegra/LICENSE.libteeacl.libuuid;md5=58dcd8452651fc8b07d1f65ce07ca8af \
-    file://usr/share/doc/nvidia-tegra/LICENSE.libuuid;md5=58dcd8452651fc8b07d1f65ce07ca8af \
-    file://usr/share/doc/nvidia-tegra/LICENSE.nvhwkey-app;md5=6938d70d5e5d49d31049419e85bb82f8 \
-    file://usr/share/doc/nvidia-tegra/LICENSE.nvluks-srv-app;md5=6938d70d5e5d49d31049419e85bb82f8 \
-    file://usr/share/doc/nvidia-tegra/LICENSE.82154947-c1bc-4bdf-b89d-04f93c0ea97c.ta;md5=6938d70d5e5d49d31049419e85bb82f8 \
+    file://usr/share/doc/nvidia-l4t-optee/LICENSE.libteeacl.libuuid;md5=58dcd8452651fc8b07d1f65ce07ca8af \
+    file://usr/share/doc/nvidia-l4t-optee/LICENSE.nvftpm-helper-app;md5=fef5f5b6f5a8dbfcee8c7b4815182c44 \
+    file://usr/share/doc/nvidia-l4t-optee/LICENSE.libuuid;md5=58dcd8452651fc8b07d1f65ce07ca8af \
+    file://usr/share/doc/nvidia-l4t-optee/LICENSE.nvpkcs11-sample-app;md5=4d5dc17b72fe03af129b3d3ea5580434 \
+    file://usr/share/doc/nvidia-l4t-optee/LICENSE.optee_test;md5=a8fa504109e4cd7ea575bc49ea4be560 \
+    file://usr/share/doc/nvidia-l4t-optee/LICENSE.nvluks-srv-app;md5=6938d70d5e5d49d31049419e85bb82f8 \
+    file://usr/share/doc/nvidia-l4t-optee/LICENSE.nvhwkey-app;md5=6938d70d5e5d49d31049419e85bb82f8 \
+    file://usr/share/doc/nvidia-l4t-optee/LICENSE.optee_client;md5=69663ab153298557a59c67a60a743e5b \
+    file://usr/share/doc/nvidia-l4t-optee/LICENSE.82154947-c1bc-4bdf-b89d-04f93c0ea97c.ta;md5=6938d70d5e5d49d31049419e85bb82f8 \
 "
 LICENSE += "& BSD-2-Clause & BSD-3-Clause & GPL-2.0-only"
 LICENSE:${PN} = "BSD-2-Clause & BSD-3-Clause"
@@ -41,8 +43,10 @@ do_install() {
     install -m 0755 ${S}/usr/lib/tee-supplicant/plugins/f07bfc66-958c-4a15-99c0-260e4e7375dd.plugin ${D}${libdir}/tee-supplicant/plugins
 
     install -d ${D}${sbindir}
+    install -m 0755 ${S}/usr/sbin/nvftpm-helper-app ${D}${sbindir}
     install -m 0755 ${S}/usr/sbin/nvhwkey-app ${D}${sbindir}
     install -m 0755 ${S}/usr/sbin/nvluks-srv-app ${D}${sbindir}
+    install -m 0755 ${S}/usr/sbin/nvpkcs11-sample-app ${D}${sbindir}
     install -m 0755 ${S}/usr/sbin/tee-supplicant ${D}${sbindir}
 
     install -d ${D}${base_libdir}/optee_armtz

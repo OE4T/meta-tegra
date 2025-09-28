@@ -1,16 +1,17 @@
-L4T_DEB_COPYRIGHT_MD5 = "2dff92eb07c96bdcd80b098adca7826a"
+L4T_DEB_COPYRIGHT_MD5 = "93552430651503d037a4922ab34a8208"
 DEPENDS = "tegra-libraries-core"
 
 require tegra-debian-libraries-common.inc
 
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, '3d-core')};subdir=${BP};name=core3d"
-MAINSUM = "b7bcb9d5b6c10347b1c4d05cd2540edc5e69f438d9bd249fff00c536f7bea0cb"
-CORE3DSUM = "12440f0eff87ff22906726fdad61d87a2681bf8ace9d824b8b208e0ee8dfdbcc"
+MAINSUM = "4d117a90895218525bfb19d1dbd673be365485c8f7a66e151a37c21bb5be02f3"
+CORE3DSUM = "598f103e1e01aad3659578ed4112297a7390976f3eac4ce65ebcb41f445cabaf"
 SRC_URI[core3d.sha256sum] = "${CORE3DSUM}"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libcuda.so.1.1 \
     nvidia/libnvcudla.so \
+    nvidia/libnvcuextend.so \
     nvidia/libnvidia-ptxjitcompiler.so.${L4T_LIB_VERSION} \
     nvidia/libnvidia-nvvm.so.${L4T_LIB_VERSION} \
 "
@@ -36,4 +37,3 @@ do_install() {
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
 RPROVIDES:${PN} += "libcuda.so()(64bit)"
-RRECOMMENDS:${PN} = "kernel-module-nvgpu"

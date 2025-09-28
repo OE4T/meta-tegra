@@ -1,11 +1,11 @@
 DESCRIPTION = "Sound configuration files provided by L4T"
-L4T_DEB_COPYRIGHT_MD5 = "27caeb86bc9bb9f3419a7c87e9a301f6"
+L4T_DEB_COPYRIGHT_MD5 = "1d9a81a4a5115c509c05a2219bd840b9"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-init"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "165ca517257cc4ff89a17afe83f6d9e04df8630f55837f0649f792dccaefc156"
+MAINSUM = "2fb9b0ce47bd0649ecd86cbd7fcc20c87e158924701268787bc7fd5fa86bbddb"
 
 SRC_URI += "file://asound.conf.tegra-hda-p3767-p3509"
 

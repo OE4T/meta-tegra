@@ -1,23 +1,23 @@
-From 08921d59ef6c2c7170dcdc8904c5760fa5b4006c Mon Sep 17 00:00:00 2001
+From 0fa2e501a8da7b53a155a749cf1677a291094a97 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Sun, 6 Oct 2024 19:31:39 +0100
-Subject: [PATCH] Patch nv.sh script for OE use
+Date: Mon, 7 Jul 2025 15:56:04 +0100
+Subject: [PATCH] Patch nv-graphics.sh script for OE use
 
 Upstream-Status: Inappropriate [OE-Specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- etc/systemd/nv.sh | 310 ----------------------------------------------
- 1 file changed, 310 deletions(-)
+ etc/systemd/nv-graphics.sh | 281 -------------------------------------
+ 1 file changed, 281 deletions(-)
 
-diff --git a/etc/systemd/nv.sh b/etc/systemd/nv.sh
-index 60ac7d0..84fca35 100755
---- a/etc/systemd/nv.sh
-+++ b/etc/systemd/nv.sh
-@@ -108,313 +108,3 @@ fi
- if [ -e "/var/lib/lightdm" ]; then
- 	sudo chown lightdm:lightdm /var/lib/lightdm -R
+diff --git a/etc/systemd/nv-graphics.sh b/etc/systemd/nv-graphics.sh
+index baee14c..c63405d 100755
+--- a/etc/systemd/nv-graphics.sh
++++ b/etc/systemd/nv-graphics.sh
+@@ -52,284 +52,3 @@ getent passwd gnome-initial-setup > /dev/null
+ if [ $? -eq 0 ]; then
+ 	adduser gnome-initial-setup video
  fi
 -
 -# Set INSTALL_DOWNSTREAM_WESTON="1" to install downstream weston. This will
@@ -86,22 +86,22 @@ index 60ac7d0..84fca35 100755
 -
 -	libilmClient_2_3_2="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/libilmClient.so.2.3.2"
 -	if [ -e "${libilmClient_2_3_2}" ]; then
--		ln -sf "${libilmClient_2_3_2}" "${LIB_DIR}/libilmClient.so.2.3.2"
+-		ln -sf "${libilmClient_2_3_2}" "${LIB_DIR}/libilmClient.so"
 -	fi
 -
 -	libilmCommon_2_3_2="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/libilmCommon.so.2.3.2"
 -	if [ -e "${libilmCommon_2_3_2}" ]; then
--		ln -sf "${libilmCommon_2_3_2}" "${LIB_DIR}/libilmCommon.so.2.3.2"
+-		ln -sf "${libilmCommon_2_3_2}" "${LIB_DIR}/libilmCommon.so"
 -	fi
 -
 -	libilmControl_2_3_2="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/libilmControl.so.2.3.2"
 -	if [ -e "${libilmControl_2_3_2}" ]; then
--		ln -sf "${libilmControl_2_3_2}" "${LIB_DIR}/libilmControl.so.2.3.2"
+-		ln -sf "${libilmControl_2_3_2}" "${LIB_DIR}/libilmControl.so"
 -	fi
 -
 -	libilmInput_2_3_2="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/libilmInput.so.2.3.2"
 -	if [ -e "${libilmInput_2_3_2}" ]; then
--		ln -sf "${libilmInput_2_3_2}" "${LIB_DIR}/libilmInput.so.2.3.2"
+-		ln -sf "${libilmInput_2_3_2}" "${LIB_DIR}/libilmInput.so"
 -	fi
 -
 -	weston_desktop_shell="/usr/lib/aarch64-linux-gnu/nvidia/weston-13.0/weston-desktop-shell"
@@ -294,39 +294,10 @@ index 60ac7d0..84fca35 100755
 -		ln -sf "${weston_touch_calibrator}" "/usr/bin/weston-touch-calibrator"
 -	fi
 -fi
--
--# On Ubuntu 22.04, libwayland-1.20 is supported by default. But, Weston 13.0 depends on
--# libwayland-1.22. Until libwayland-1.22 is officially supported on Ubuntu 22.04 or until
--# we migrate to Ubuntu 24.04, we need to maintain the pre-built libwayland-1.22 binaries on P4
--# and package them on our samplefs manually.
--#
--# Set INSTALL_DOWNSTREAM_LIBWAYLAND="1" to install locally maintained libwayland-1.22. This will
--# overwrite libwayland-*.so.0 symlinks in standard libwayland installation path with downstream
--# libwayland-1.22 binaries which are present in "/usr/lib/aarch64-linux-gnu/nvidia". This is default.
--#
--# Set INSTALL_DOWNSTREAM_LIBWAYLAND="0" to avoid overwriting libwayland-*.so.0 symlinks in standard
--# libwayland installation path with locally maintained libwayland-1.22 binaries which are present in
--# /usr/lib/aarch64-linux-gnu/nvidia.
--INSTALL_DOWNSTREAM_LIBWAYLAND="1"
--if  [ "${INSTALL_DOWNSTREAM_LIBWAYLAND}" -eq "1" ]; then
--	libwayland_client_0_22_0="/usr/lib/aarch64-linux-gnu/nvidia/libwayland-client.so.0.22.0"
--	if [ -e "${libwayland_client_0_22_0}" ]; then
--		ln -sf "${libwayland_client_0_22_0}" "${LIB_DIR}/libwayland-client.so.0"
--	fi
--
--	libwayland_server_0_22_0="/usr/lib/aarch64-linux-gnu/nvidia/libwayland-server.so.0.22.0"
--	if [ -e "${libwayland_server_0_22_0}" ]; then
--		ln -sf "${libwayland_server_0_22_0}" "${LIB_DIR}/libwayland-server.so.0"
--	fi
--
--	libwayland_cursor_0_22_0="/usr/lib/aarch64-linux-gnu/nvidia/libwayland-cursor.so.0.22.0"
--	if [ -e "${libwayland_cursor_0_22_0}" ]; then
--		ln -sf "${libwayland_cursor_0_22_0}" "${LIB_DIR}/libwayland-cursor.so.0"
--	fi
--
--	libwayland_egl_1_22_0="/usr/lib/aarch64-linux-gnu/nvidia/libwayland-egl.so.1.22.0"
--	if [ -e "${libwayland_egl_1_22_0}" ]; then
--		ln -sf "${libwayland_egl_1_22_0}" "${LIB_DIR}/libwayland-egl.so.1"
+-if [ -e "/proc/device-tree/compatible" ]; then
+-	machine=$(tr -d '\0' </proc/device-tree/compatible)
+-	if [[ "$machine" =~ "264" ]]; then
+-		sudo bash -c "cp /etc/X11/xorg.conf.pci /etc/X11/xorg.conf"
 -	fi
 -fi
 -- 

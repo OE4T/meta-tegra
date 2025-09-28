@@ -1,12 +1,12 @@
 DESCRIPTION = "NVIDIA Fan Control"
-L4T_DEB_COPYRIGHT_MD5 = "c86b17102e0b23818b51e4460a55e4b5"
+L4T_DEB_COPYRIGHT_MD5 = "d95be6c3cf958e72e34231acb466ebee"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-nvfancontrol"
 DEPENDS = "tegra-nvpower"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "016a328ae93d64d74cf7845322caf66501be1d216d656b6717371a388e72aef9"
+MAINSUM = "7f1ba2660123344e4dd082965acbf4748a9cafa902fafb1550024c2385a243a4"
 
 SRC_URI += "\
    file://nvfancontrol.init \

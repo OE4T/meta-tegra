@@ -36,7 +36,7 @@ index cff2872..f4cb962 100755
  	local sig_file="${1}"
 -	echo "${CMD} --chip ${chip} ${options[*]} --cmd sign ${sig_file} ${ftype}" >&5
 -	output="$("${CMD}" --chip "${chip}" "${options[@]}" --cmd "sign \"${sig_file}\" \"${ftype}\"" | tee >(cat - >&5))"
-+	[ $quiet -eq 1 ] || echo "${CMD} --chip ${chip} ${options[*]} --cmd sign ${file} ${ftype}"
++	[ $quiet -eq 1 ] || "${CMD} --chip ${chip} ${options[*]} --cmd sign ${file} ${ftype}"
 +	output="$("${CMD}" --chip "${chip}" "${options[@]}" --cmd "sign \"${file}\" \"${ftype}\"")"
 +	[ $quiet -eq 1 ] || echo $output
  	if [ -n "${encryptkey}" ]; then
