@@ -8,10 +8,10 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvinfer-bin_${PV}+cuda12.5_arm64.deb;downloadfilename=libnvinfer-bin_${PV}+cuda12.5_arm64.deb;name=bin;subdir=tensorrt \
+    libnvinfer-bin_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-bin_${PV}+cuda13.0_arm64.deb;name=bin;subdir=tensorrt \
 "
 
-BINSHA256SUM = "98494de17fc6596475141fa342ab34ce05f6c19d34769cf686628e16398484b7"
+BINSHA256SUM = "788d6c834ddc846d848e4e9fbd57853450862b2470afa295bdf46e1c86e3f652"
 
 SRC_URI[bin.sha256sum] = "${BINSHA256SUM}"
 
