@@ -10,13 +10,16 @@ L4T_DEB_GROUP = "cudnn"
 DEPENDS = "libcublas zlib"
 
 SRC_COMMON_DEBS = "\
-    libcudnn9-cuda-12_${PV}_arm64.deb;name=lib;subdir=cudnn \
-    libcudnn9-static-cuda-12_${PV}_arm64.deb;name=staticlib;subdir=cudnn \
-    libcudnn9-dev-cuda-12_${PV}_arm64.deb;name=dev;subdir=cudnn \
+    libcudnn9-cuda-13_${PV}_arm64.deb;name=lib;subdir=cudnn \
+    libcudnn9-static-cuda-13_${PV}_arm64.deb;name=staticlib;subdir=cudnn \
+    libcudnn9-dev-cuda-13_${PV}_arm64.deb;name=dev;subdir=cudnn \
+    libcudnn9-headers-cuda-13_${PV}_arm64.deb;name=hdr;subdir=cudnn \
 "
-SRC_URI[lib.sha256sum] = "0f3a869f4b9f5c20912acfb043c911f210304a554de27c71346638ac73c96377"
-SRC_URI[staticlib.sha256sum] = "8f951856fedc3b890b56109917e2877413c5c49a2d2cb81a4dd4d30269d2d565"
-SRC_URI[dev.sha256sum] = "749c910beca1b32216a0dbb2705aac261c3180437eb69922cb70932c2315ceff"
+
+SRC_URI[lib.sha256sum] = "04a793a6e206b153578851f25d7dcb923a17d19e166fb1acb4e4b2f47e7a6516"
+SRC_URI[staticlib.sha256sum] = "f928d0f40c641c251e6f0397d007fa39d82653da04b65efef9df0a5c45b5f945"
+SRC_URI[dev.sha256sum] = "854b889fee8135209acdb076c5feffd8170e9d6c330e5f6d3c19005d7a555917"
+SRC_URI[hdr.sha256sum] = "4f8f12616437d16629769ca899524dfa3057d40c6044c2e8b44078d37be7e467"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
@@ -44,7 +47,7 @@ do_compile() {
 
 do_install() {
     install -d ${D}${includedir} ${D}${libdir} ${D}${datadir}
-    install -m 0644 ${S}/usr/include/aarch64-linux-gnu/*.h ${D}${includedir}
+    install -m 0644 ${S}/usr/include/aarch64-linux-gnu/*_v${MAJVER}.h ${D}${includedir}
     for f in ${D}${includedir}/*_v${MAJVER}.h; do
 	incname=$(basename $f)
 	ln -s ${incname} ${D}${includedir}/$(basename ${incname} _v${MAJVER}.h).h
