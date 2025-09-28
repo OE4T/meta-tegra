@@ -61,7 +61,7 @@ do_deploy() {
     if [ "${SOC_FAMILY}" = "tegra234" ]; then
         install -m 0644 ${B}/uefi_t23x_general.bin ${B}/uefi_t23x_embedded.bin ${DEPLOYDIR}/
     elif [ "${SOC_FAMILY}" = "tegra264" ]; then
-        install -m 0644 ${B}/uefi_t26x_general.bin ${B}/uefi_t26x_embedded.bin ${DEPLOYDIR}/
+        install -m 0644 ${B}/uefi_t26x_general.bin ${B}/uefi_t26x_embedded.bin ${B}/standalonemm_jetson.pkg ${DEPLOYDIR}/
     fi
     for dtbo in ${TEGRA_BOOTCONTROL_OVERLAYS}; do
 	[ -e ${S}/kernel/dtb/$dtbo ] || continue
