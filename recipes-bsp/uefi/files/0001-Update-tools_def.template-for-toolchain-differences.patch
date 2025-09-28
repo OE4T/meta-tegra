@@ -1,7 +1,7 @@
-From d96ca1c5f34f352d367e07c92f8e73c091a385f3 Mon Sep 17 00:00:00 2001
+From 43dd169d89153bec0775ca87baeb483dd13dd940 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 12 Oct 2024 06:43:03 -0700
-Subject: [PATCH] Update tools_def.template for toolchain differences
+Subject: [PATCH 1/2] Update tools_def.template for toolchain differences
 
 * Add support for passing SOURCE_DATE_EPOCH and DEBUG_PREFIX_MAP from environment
 * Add linker flags that are built into the toolchain NVIDIA uses for ther builds
@@ -14,19 +14,19 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/BaseTools/Conf/tools_def.template b/BaseTools/Conf/tools_def.template
-index 1395ce9ad0..a41189ba1b 100755
+index 2a39a3c28f..7008b17b95 100755
 --- a/BaseTools/Conf/tools_def.template
 +++ b/BaseTools/Conf/tools_def.template
-@@ -739,7 +739,7 @@ NOOPT_*_*_OBJCOPY_ADDDEBUGFLAG     = --add-gnu-debuglink="$(DEBUG_DIR)/$(MODULE_
+@@ -894,7 +894,7 @@ NOOPT_*_*_OBJCOPY_ADDDEBUGFLAG     = --add-gnu-debuglink="$(DEBUG_DIR)/$(MODULE_
  *_*_*_DTCPP_PATH                   = DEF(DTCPP_BIN)
  *_*_*_DTC_PATH                     = DEF(DTC_BIN)
  
 -DEFINE GCC_ALL_CC_FLAGS            = -g -Os -fshort-wchar -fno-builtin -fno-strict-aliasing -Wall -Werror -Wno-array-bounds -include AutoGen.h -fno-common
 +DEFINE GCC_ALL_CC_FLAGS            = -g -Os -fshort-wchar -fno-builtin -fno-strict-aliasing -Wall -Werror -Wno-array-bounds -include AutoGen.h -fno-common ENV(DEBUG_PREFIX_MAP) ENV(SOURCE_DATE_EPOCH_FLAG)
  DEFINE GCC_ARM_CC_FLAGS            = DEF(GCC_ALL_CC_FLAGS) -mlittle-endian -mabi=aapcs -fno-short-enums -funsigned-char -ffunction-sections -fdata-sections -fomit-frame-pointer -Wno-address -mthumb -fno-pic -fno-pie
- DEFINE GCC_LOONGARCH64_CC_FLAGS    = DEF(GCC_ALL_CC_FLAGS) -mabi=lp64d -fno-asynchronous-unwind-tables -fno-plt -Wno-address -fno-short-enums -fsigned-char -ffunction-sections -fdata-sections
+ DEFINE GCC_LOONGARCH64_CC_FLAGS    = DEF(GCC_ALL_CC_FLAGS) -mabi=lp64d -fno-asynchronous-unwind-tables -Wno-address -fno-short-enums -fsigned-char -ffunction-sections -fdata-sections
  DEFINE GCC_ARM_CC_XIPFLAGS         = -mno-unaligned-access
-@@ -749,7 +749,7 @@ DEFINE GCC_RISCV64_CC_XIPFLAGS     = -mstrict-align -mgeneral-regs-only
+@@ -904,7 +904,7 @@ DEFINE GCC_RISCV64_CC_XIPFLAGS     = -mstrict-align -mgeneral-regs-only
  DEFINE GCC_DLINK_FLAGS_COMMON      = -nostdlib --pie
  DEFINE GCC_DLINK2_FLAGS_COMMON     = -Wl,--script=$(EDK_TOOLS_PATH)/Scripts/GccBase.lds
  DEFINE GCC_IA32_X64_DLINK_COMMON   = DEF(GCC_DLINK_FLAGS_COMMON) --gc-sections
@@ -35,7 +35,7 @@ index 1395ce9ad0..a41189ba1b 100755
  DEFINE GCC_LOONGARCH64_DLINK_COMMON= -Wl,--emit-relocs -nostdlib -Wl,--gc-sections -u $(IMAGE_ENTRY_POINT) -Wl,-e,$(IMAGE_ENTRY_POINT),-Map,$(DEST_DIR_DEBUG)/$(BASE_NAME).map
  DEFINE GCC_ARM_DLINK_FLAGS         = DEF(GCC_ARM_AARCH64_DLINK_COMMON) -z common-page-size=0x20 -Wl,--pic-veneer
  DEFINE GCC_AARCH64_DLINK_FLAGS     = DEF(GCC_ARM_AARCH64_DLINK_COMMON) -z common-page-size=0x20
-@@ -789,7 +789,7 @@ DEFINE GCC48_X64_DLINK_FLAGS         = DEF(GCC48_IA32_X64_DLINK_FLAGS) -Wl,-melf
+@@ -944,7 +944,7 @@ DEFINE GCC48_X64_DLINK_FLAGS         = DEF(GCC48_IA32_X64_DLINK_FLAGS) -Wl,-melf
  DEFINE GCC48_X64_DLINK2_FLAGS        = -Wl,--defsym=PECOFF_HEADER_SIZE=0x228 DEF(GCC_DLINK2_FLAGS_COMMON)
  DEFINE GCC48_ASM_FLAGS               = DEF(GCC_ASM_FLAGS)
  DEFINE GCC48_ARM_ASM_FLAGS           = $(PLATFORM_FLAGS) DEF(GCC_ASM_FLAGS) -mlittle-endian

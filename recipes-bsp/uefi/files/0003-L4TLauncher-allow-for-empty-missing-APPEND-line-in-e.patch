@@ -1,7 +1,7 @@
-From 4dcda9f95a724623ce2813d73486324243dc2266 Mon Sep 17 00:00:00 2001
+From 82854e7f5acf3eb3c147af756535502efd8f48ab Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sat, 12 Oct 2024 06:43:52 -0700
-Subject: [PATCH] L4TLauncher: allow for empty/missing APPEND line in
+Subject: [PATCH 3/4] L4TLauncher: allow for empty/missing APPEND line in
  extlinux.conf
 
 Upstream-Status: Pending
@@ -11,12 +11,12 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 16 insertions(+), 14 deletions(-)
 
 diff --git a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
-index ab86f3e0..3be26f82 100644
+index 76fb920c..cb6d8a1c 100644
 --- a/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
 +++ b/Silicon/NVIDIA/Application/L4TLauncher/L4TLauncher.c
-@@ -1422,21 +1422,23 @@ ExtLinuxBoot (
-   CHAR8                      SWModule[] = "kernel";
-   INTN                       FdtStatus;
+@@ -1448,21 +1448,23 @@ ExtLinuxBoot (
+   CHAR8                                 SWModule[] = "kernel";
+   INTN                                  FdtStatus;
  
 -  // Process Args
 -  ArgSize = StrSize (BootOption->BootArgs) + MAX_CBOOTARG_SIZE;
@@ -34,17 +34,17 @@ index ab86f3e0..3be26f82 100644
 +      goto Exit;
 +    }
  
--  Status = gBS->LocateProtocol (&gAndroidBootImgProtocolGuid, NULL, (VOID **)&AndroidBootProtocol);
+-  Status = gBS->LocateProtocol (&gNVIDIAPlatformKernelArgsProtocolGuid, NULL, (VOID **)&KernelArgsProtocol);
 -  if (!EFI_ERROR (Status)) {
--    if (AndroidBootProtocol->AppendArgs != NULL) {
--      Status = AndroidBootProtocol->AppendArgs (NewArgs, ArgSize);
+-    if (KernelArgsProtocol->Append != NULL) {
+-      Status = KernelArgsProtocol->Append (NewArgs, ArgSize);
 -      if (EFI_ERROR (Status)) {
 -        ErrorPrint (L"%a: Failed to get platform addition arguments\r\n", __FUNCTION__);
 -        goto Exit;
-+    Status = gBS->LocateProtocol (&gAndroidBootImgProtocolGuid, NULL, (VOID **)&AndroidBootProtocol);
++    Status = gBS->LocateProtocol (&gNVIDIAPlatformKernelArgsProtocolGuid, NULL, (VOID **)&KernelArgsProtocol);
 +    if (!EFI_ERROR (Status)) {
-+      if (AndroidBootProtocol->AppendArgs != NULL) {
-+        Status = AndroidBootProtocol->AppendArgs (NewArgs, ArgSize);
++      if (KernelArgsProtocol->Append != NULL) {
++        Status = KernelArgsProtocol->Append (NewArgs, ArgSize);
 +        if (EFI_ERROR (Status)) {
 +          ErrorPrint (L"%a: Failed to get platform addition arguments\r\n", __FUNCTION__);
 +          goto Exit;

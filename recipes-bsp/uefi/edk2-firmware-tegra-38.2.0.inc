@@ -7,20 +7,21 @@ LICENSE .= " & Proprietary"
 LIC_FILES_CHKSUM += "file://../edk2-platforms/License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia/LICENSE;md5=52d8683e3d65a77ef84cc863e3f24f25"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-chips-platform.efi;md5=782048cadee3851a0da2b4a3fdae0d93"
+LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-gb1xx-platform.efi;md5=9e5f17821be35eed9a8cd2c7fc05897d"
 
 inherit python3native
 
 DEPENDS += "dtc-native python3-kconfiglib-native"
 
-SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r38.2.0-updates"
-SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r38.2.0-updates"
-SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r38.2.0-updates"
-SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r38.2.0-updates"
+SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r38.2-updates"
+SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r38.2-updates"
+SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r38.2-updates"
+SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r38.2-updates"
 
-SRCREV_edk2-non-osi = "8c09bd0955338db38813e0d8ae1faa634f545f73"
-SRCREV_edk2-nvidia = "0887a54c21c363296841f269de952b5e87b81fd8"
-SRCREV_edk2-nvidia-non-osi = "66507d4d72f0b7a7b7c4b6306bb45e84da489e48"
-SRCREV_edk2-platforms = "0b05eaed3d0c624a2084034fcc2bd0721809d041"
+SRCREV_edk2-non-osi = "889f9c90de53e7c8729d1f449b8781a5477f0df4"
+SRCREV_edk2-nvidia = "899cdbc99a47b40721a6a074d966b4a00959412b"
+SRCREV_edk2-nvidia-non-osi = "144b4ffcef44e0927d8d6d0c522bce9591544a6e"
+SRCREV_edk2-platforms = "0dbe07c94b64c9ae8680637cf2302cadbf04bfb9"
 
 SRC_URI += "\
     ${SRC_URI_EDK2_PLATFORMS};name=edk2-platforms;destsuffix=edk2-tegra/edk2-platforms \
@@ -33,12 +34,10 @@ SRCREV_FORMAT = "edk2_edk2-platforms_edk2-non-osi_edk2-nvidia_edk2-nvidia-non-os
 
 SRC_URI += "\
     file://0001-Update-tools_def.template-for-toolchain-differences.patch \
-    file://0002-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=../edk2-nvidia \
-    file://0003-XusbControllerDxe-use-BaseMemoryLib-functions.patch;patchdir=../edk2-nvidia \
-    file://0004-MdePkg-Check-if-compiler-has-__has_builtin-before-tr.patch \
-    file://0005-BaseFdtLib-Define-bool-only-for-C17-or-lower.patch \
-    file://0006-XsubcontrollerDxe-Fix-build-with-gcc-15.patch;patchdir=../edk2-nvidia \
-    file://0007-BaseTools-Pccts-set-C-standard.patch \
+    file://0002-MdePkg-BaseFdtLib-fix-build-with-gcc-15.patch \
+    file://0003-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=../edk2-nvidia \
+    file://0004-XusbControllerDxe-use-BaseMemoryLib-functions.patch;patchdir=../edk2-nvidia \
+    file://0005-PrePi-use-GCC5-instead-of-GCC-in-build-options.patch;patchdir=../edk2-nvidia \
 "
 
 S = "${UNPACKDIR}/edk2-tegra/edk2"
@@ -71,25 +70,20 @@ apply_tools_def_updates() {
 def nvidia_edk2_packages_path(d):
     paths = ':'.join([os.path.normpath(os.path.join(d.getVar('S'), '../{}'.format(m))) for m in ['edk2/BaseTools', 'edk2', 'edk2-platforms', 'edk2-nvidia',
                                                                                                  'edk2-nvidia-non-osi', 'edk2-non-osi',
+                                                                                                 'edk2-platforms/Features',
                                                                                                  'edk2-platforms/Features/Intel/OutOfBandManagement']])
-    paths += ':' + os.path.normpath(os.path.join(d.getVar('B'), 'nvidia-config', 'Jetson'))
+    paths += ':' + os.path.normpath(os.path.join(d.getVar('B'), 'nvidia-config', 'Tegra', '${EDK2_PLATFORM}'))
     return paths
 
-do_configure[dirs] =+ "${B}/nvidia-config/Jetson"
-do_compile[dirs] =+ "${B}/nvidia-config/Jetson"
+do_configure[dirs] =+ "${B}/nvidia-config/Tegra/${EDK2_PLATFORM}"
+do_compile[dirs] =+ "${B}/nvidia-config/Tegra/${EDK2_PLATFORM}"
 
 PACKAGES_PATH = "${@nvidia_edk2_packages_path(d)}"
 
-TEGRA_UEFI_MINIMAL ??= "0"
-def nvidia_edk2_build_ids(d):
-    if bb.utils.to_boolean(d.getVar('TEGRA_UEFI_MINIMAL')):
-        return "-D BUILD_GUID=f98bcf32-fd20-4ba9-ada4-e0406947ca3c -DBUILD_NAME=JetsonMinimal"
-    else:
-        return "-D BUILD_GUID=49a79a15-8f69-4be7-a30c-a172f44abce7 -DBUILD_NAME=Jetson"
-
 # BUILD_* taken from Silicon/NVIDIA/edk2nv/stuart/settings.py and
-#                    builder.py, plus Platform/NVIDIA/Jetson/PlatformBuild.py
-EDK2_EXTRA_BUILD = '-D "BUILDID_STRING=v${PV}" -D "BUILD_DATE_TIME=${@format_build_date(d)}" -D "BUILD_PROJECT_TYPE=EDK2" ${@nvidia_edk2_build_ids(d)}'
+#                    builder.py, plus Platform/NVIDIA/Tegra/PlatformBuild.py
+EDK2_EXTRA_BUILD = '-D "BUILDID_STRING=v${PV}" -D "BUILD_DATE_TIME=${@format_build_date(d)}" -D "BUILD_PROJECT_TYPE=EDK2"'
+TEGRA_BUILD_GUID = '-D "BUILD_GUID=$(cat ${B}/nvidia-config/Tegra/${EDK2_PLATFORM}/PLATFORM_GUID)" -D "BUILD_NAME=${EDK2_PLATFORM}"'
 
 def format_build_date(d):
     import datetime
