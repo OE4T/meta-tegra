@@ -1,6 +1,6 @@
-From 86bceea19f6463b94c3005d78f626ecf8cc15c0b Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Mon, 7 Jun 2021 04:22:40 -0700
+From 73eede365f59920bd7310ea00a260ed5d891897b Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Sun, 13 Apr 2025 12:29:41 +0100
 Subject: [PATCH] Fix location of bsp_version file in l4t_bup_gen.func
 
 Upstream-Status: Inappropriate [OE specific]
@@ -11,10 +11,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
-index 6c7e176..1e820c7 100644
+index a363afc..75b1b57 100644
 --- a/bootloader/l4t_bup_gen.func
 +++ b/bootloader/l4t_bup_gen.func
-@@ -648,13 +648,13 @@ function l4t_bup_gen()
+@@ -625,13 +625,13 @@ function l4t_bup_gen()
  	export OUT=$(pwd);
  
  	# get the bsp version to fill the entry list version.
@@ -31,3 +31,6 @@ index 6c7e176..1e820c7 100644
  		echo "bootloader update payload creation failed"
  		exit 1
  	fi
+-- 
+2.34.1
+

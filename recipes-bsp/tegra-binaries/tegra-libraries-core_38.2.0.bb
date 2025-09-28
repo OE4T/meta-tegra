@@ -1,11 +1,11 @@
-L4T_DEB_COPYRIGHT_MD5 = "8dc9729e1dc38aac4adb4bd6f6e3b370"
+L4T_DEB_COPYRIGHT_MD5 = "d9a8361f8068fc4e3b934118d1de9f3f"
 
 require tegra-debian-libraries-common.inc
 
 LICENSE += "& Apache-2.0"
-LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-tegra/LICENSE.tegra_sensors;md5=e7fe81c64aaee40b3d9e5b11c3e0ea58"
+LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-l4t-core/LICENSE.libnvidia-rmapi-tegra;md5=5c7c5200a29e873064f17b5bbf4d3c56"
 
-MAINSUM = "04975607d121dd679a9f026939d5c126dd9e682bbba6b71c01942212ebc2b090"
+MAINSUM = "5ce971e279e87f9b8d7a1f6f3e040219b54c4f47c90c295d1a2cba083cbff659"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvcolorutil.so \
@@ -18,10 +18,8 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvimp.so \
     nvidia/libnvisp_utils.so \
     nvidia/libnvos.so \
-    nvidia/libnvphs.so \
     nvidia/libnvpva.so \
     nvidia/libnvpva_algorithms.so \
-    nvidia/libnvpvaumd.so \
     nvidia/libnvrm_chip.so \
     nvidia/libnvrm_gpu.so \
     nvidia/libnvrm_host1x.so \
@@ -33,11 +31,8 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvsocsys.so \
     nvidia/libnvtegrahv.so \
     nvidia/libnvvic.so \
-    nvidia/libsensors.hal-client.nvs.so \
-    nvidia/libsensors.l4t.no_fusion.nvs.so \
-    nvidia/libsensors_hal.nvs.so \
+    nvidia/libnvplayfair.so \
 "
 
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
-RRECOMMENDS:${PN} = "kernel-module-nvgpu"

@@ -1,5 +1,5 @@
 DESCRIPTION = "nvpower tool and configuration files"
-L4T_DEB_COPYRIGHT_MD5 = "8dc9729e1dc38aac4adb4bd6f6e3b370"
+L4T_DEB_COPYRIGHT_MD5 = "d9a8361f8068fc4e3b934118d1de9f3f"
 
 L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-core"
 
@@ -8,12 +8,11 @@ require tegra-debian-libraries-common.inc
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'init')};subdir=${BP};name=init"
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'tools')};subdir=${BP};name=tools"
 
-MAINSUM = "04975607d121dd679a9f026939d5c126dd9e682bbba6b71c01942212ebc2b090"
-SRC_URI[init.sha256sum] = "165ca517257cc4ff89a17afe83f6d9e04df8630f55837f0649f792dccaefc156"
-SRC_URI[tools.sha256sum] = "864281721f202c9e3ae8c7b66ff469b05ee8abc6d3ae6cb0eaaa8a5e7769398f"
+MAINSUM = "5ce971e279e87f9b8d7a1f6f3e040219b54c4f47c90c295d1a2cba083cbff659"
+SRC_URI[init.sha256sum] = "2fb9b0ce47bd0649ecd86cbd7fcc20c87e158924701268787bc7fd5fa86bbddb"
+SRC_URI[tools.sha256sum] = "2b985d1a7943b92888fcc150b0f5364f56edba0529c05d2e3993cb5793819d66"
 
 SRC_URI += "\
-    file://0001-Drop-bc-usage-and-remove-symlink-creation-functions.patch \
     file://nvpower.init \
     file://nvpower.service \
 "
@@ -24,9 +23,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
 
 do_install() {
     install_libraries
-    install -d ${D}${libexecdir}
     install -d ${D}${sysconfdir}/nvpower/libjetsonpower
-    install -m 0755 ${B}/etc/systemd/nvpower.sh ${D}${libexecdir}/
     install -m 0644 ${B}/etc/nvpower/libjetsonpower/${NVPOWER}.conf ${D}${sysconfdir}/nvpower/libjetsonpower/
     install -d ${D}${sysconfdir}/init.d
     install -m 0755 ${UNPACKDIR}/nvpower.init ${D}${sysconfdir}/init.d/nvpower
