@@ -170,7 +170,7 @@ sign_binaries() {
     rm -rf rcmboot_blob
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
 	      "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
-	      flash.xml.in $DTBFILE $EMC_BCTS "$ODMDATA" initrd-flash.img $ROOTFS_IMAGE; then
+	      flash.xml.in $DTBFILE $EMC_BCTS "$ODMDATA" $LNXFILE $ROOTFS_IMAGE; then
 	cp flashcmd.txt flash_signed.sh
 	sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
 	cp secureflash.xml internal-secureflash.xml
@@ -178,19 +178,30 @@ sign_binaries() {
 	    cp external-flash.xml.in external-secureflash.xml
 	fi
 	if [ "$CHIPID" = "0x26" ]; then
+	    rm -rf tools/kernel_flash/images
+	    mkdir -p tools/kernel_flash/images/internal
+	    if ! stage_files_for_uniflash tools/kernel_flash/images/internal; then
+		return 1
+	    fi
 	    . ./boardvars.sh
 	    if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
 		      "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" $instance_args \
-		      flash.xml.in $DTBFILE $EMC_BCTS "$ODMDATA" $LNXFILE $ROOTFS_IMAGE; then
+		      rcmboot-flash.xml.in $DTBFILE $EMC_BCTS "$ODMDATA" initrd-flash.img $ROOTFS_IMAGE; then
 		echo "ERR: could not create RCM boot blob" >&2
 		return 1
 	    fi
+	    rm -rf bootloader
+	    mkdir bootloader
+	    mv applet bootloader/
+	    mv rcmboot_blob bootloader/
+	    echo "$RAMCODE" > bootloader/ramcode.txt
+	else
+	    create_rcm_boot_script
+	    if ! copy_bootloader_files bootloader_staging; then
+		return 1
+	    fi
 	fi
-	create_rcm_boot_script
     else
-	return 1
-    fi
-    if ! copy_bootloader_files bootloader_staging; then
 	return 1
     fi
     if [ -e external-flash.xml.in ]; then
@@ -200,6 +211,22 @@ sign_binaries() {
 				"$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args \
 				external-flash.xml.in $DTBFILE $EMC_BCTS "$ODMDATA" $LNXFILE $ROOTFS_IMAGE; then
 		mv secureflash.xml external-secureflash.xml
+	    else
+		return 1
+	    fi
+	elif [ "$CHIPID" = "0x26" ]; then
+	    . ./boardvars.sh
+            if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
+				"$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args \
+				external-flash.xml.in $DTBFILE $EMC_BCTS "$ODMDATA" $LNXFILE $ROOTFS_IMAGE; then
+		mkdir -p tools/kernel_flash/images/external
+		if ! stage_files_for_uniflash tools/kernel_flash/images/external; then
+		    return 1
+		fi
+		# XXX need to handle APP_b, APP_ENC, APP_ENC_b
+		# XXX better solution might be to munge the flash.idx file, so other partitions get handled too
+		$here/mksparse -b 4096 --fillpattern=0 $ROOTFS_IMAGE tools/kernel_flash/images/external/system.img
+		echo "APP_ext=system.img" >> tools/kernel_flash/images/external/flash.cfg
 	    else
 		return 1
 	    fi
@@ -359,6 +386,27 @@ copy_bootloader_files() {
     return 0
 }
 
+stage_files_for_uniflash() {
+    local dest="$1"
+    local partnumber partloc partname start_location partsize partfile partattrs partsha
+    local devnum instnum
+    while IFS=", " read partnumber partloc start_location partsize partfile partattrs partsha; do
+	if [ -n "$partfile" ]; then
+	    cp "$partfile" "$dest/" || return 1
+	fi
+    done < flash.idx
+    cp flash.idx "$dest/" || return 1
+    if [ -e flash-upi.idx ]; then
+	while IFS=", " read partnumber partloc start_location partsize partfile partattrs partsha; do
+	    if [ -n "$partfile" ]; then
+		cp "$partfile" "$dest/" || return 1
+	    fi
+	done < flash-upi.idx
+	cp flash-upi.idx "$dest/" || return 1
+    fi
+    return 0
+}
+
 generate_flash_package() {
     local dev=$(wait_for_usb_storage "$session_id" "flashpkg" "$usb_instance")
     local exports
@@ -499,6 +547,36 @@ if ! sign_binaries 2>&1 >>"$logfile"; then
 fi
 if [ -z "$PRESIGNED" ]; then
     [ ! -f ./boardvars.sh ] || . ./boardvars.sh
+fi
+if [ "$CHIPID" = "0x26" ]; then
+    step_banner "Prepare for unified flashing"
+    export CHIP_SKU
+    convargs="--profile base"
+    if [ $EXTERNAL_ROOTFS_DRIVE -eq 1 ]; then
+	convargs="$convargs --external-device $ROOTFS_DEVICE external-secureflash.xml"
+    fi
+    if [ -n "$BOOTSEC_MODE" ]; then
+	convargs="$convargs --security-mode $BOOTSEC_MODE"
+    fi
+    rm -rf out
+    mkdir out
+    ./unified_flash/tools/flashtools/bootburn/create_bsp_images.py -b jetson-t264 --toolsonly -l -g $PWD/out --l4t
+    mkdir -p out/flash_workspace/flash-images out/flash_workspace/rcm-boot
+    ./create_l4t_bsp_images.py $convargs --info --dest $PWD/out
+    ./create_l4t_bsp_images.py $convargs --dest $PWD/out/flash_workspace/flash-images
+    ./create_l4t_bsp_images.py $convargs --dest $PWD/out/flash_workspace/rcm-boot --rcm-boot
+    cp -R out/flash_workspace/rcm-boot out/flash_workspace/rcm-flash
+    cat > out/doflash.sh <<EOF
+here=\$(readlink -f \$(dirname "\$0"))
+oldwd="\$PWD"
+"\$here/tools/flashtools/bootburn/flash_bsp_images.py" -b jetson-t264 --l4t -D -P "\$here/flash_workspace" $instance_args
+rc=\$?
+cd "\$oldwd"
+exit \$rc
+EOF
+    chmod +x out/doflash.sh
+    echo "Run out/doflash.sh for unified flash"
+    exit 0
 fi
 step_banner "Boot Jetson via RCM"
 if ! prepare_for_rcm_boot 2>&1 >>"$logfile"; then
