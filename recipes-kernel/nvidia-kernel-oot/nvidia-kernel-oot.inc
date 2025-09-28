@@ -1,8 +1,9 @@
 DESCRIPTION = "Out-of-tree kernel modules and device trees for Jetson Linux platforms"
 LICENSE = "GPL-2.0-only & BSD-3-Clause & (MIT | GPL-2.0-only)"
 LIC_FILES_CHKSUM = "file://nvdisplay/COPYING;md5=1d5fa2a493e937d5a4b96e5e03b90f7c \
+                    file://unifiedgpudisp/COPYING;md5=1d5fa2a493e937d5a4b96e5e03b90f7c \
                     file://Makefile;beginline=2;endline=2;md5=a670216ac93e92dc066b1a876610705f \
-		    file://nvidia-oot/Makefile;endline=1;md5=daad6f7f7a0a286391cd7773ccf79340"
+                    file://nvidia-oot/Makefile;endline=1;md5=829e563511c9a1d6d41f17a7a4989d6a"
 
 TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 
@@ -41,7 +42,7 @@ TEGRA_OOT_REPLACEMENT_DRIVERS = "\
 EXTRA_OEMAKE += '\
     IGNORE_PREEMPT_RT_PRESENCE=1 KERNEL_PATH="${STAGING_KERNEL_BUILDDIR}" \
     CC="${KERNEL_CC} -std=gnu17 -Wno-error=header-guard" CXX="${KERNEL_CC} -x c++" LD="${KERNEL_LD}" AR="${KERNEL_AR}" \
-    OBJCOPY="${KERNEL_OBJCOPY}" \
+    OBJCOPY="${KERNEL_OBJCOPY}" OPENRM=1 kernel_name="noble" \
 '
 
 do_compile() {
@@ -83,9 +84,6 @@ do_install() {
 SYSROOT_DIRS += "/boot/devicetree"
 SYSROOT_DIRS += "/usr/src/device-tree"
 
-KERNEL_MODULE_PROBECONF = "nvgpu"
-module_conf_nvgpu = 'options nvgpu devfreq_timer="delayed"'
-
 PACKAGES =+ "${PN}-devicetrees ${PN}-display ${PN}-cameras ${PN}-bluetooth ${PN}-wifi ${PN}-canbus ${PN}-virtualization ${PN}-alsa ${PN}-test ${PN}-base ${PN}-extra"
 PROVIDES += "kernel-module-${BPN}"
 FILES:${PN}-devicetrees = "/boot/devicetree"
@@ -124,6 +122,7 @@ TEGRA_OOT_DISPLAY_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvidia-modeset \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-dce \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-drm \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvidia-uvm \
     ${TEGRA_OOT_EXTRA_DISPLAY_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_DISPLAY_DRIVERS}"
@@ -158,7 +157,6 @@ TEGRA_OOT_CAMERA_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvhost-capture \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvhost-isp5 \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvhost-nvcsi \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvhost-nvcsi-t194 \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvhost-vi5 \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvhost-vi-tpg-t19x \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nv-imx185 \
@@ -174,6 +172,7 @@ TEGRA_OOT_CAMERA_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-camera-rtcpu \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-virtual-i2c-mux \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-max929x \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-capture-coe \
     ${TEGRA_OOT_EXTRA_CAMERA_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_CAMERA_DRIVERS}"
@@ -219,21 +218,8 @@ TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_VIRTUALIZATION_DRIVERS}"
 TEGRA_OOT_EXTRA_ALSA_DRIVERS ??= ""
 TEGRA_OOT_ALSA_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra186-arad \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra186-asrc \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra186-dspk \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-admaif \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-adx \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-afc \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-ahub \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-amx \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-dmic \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-i2s \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-iqc \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-mixer \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-mvc \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-ope \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-sfc \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra-machine-driver \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra-utils \
     ${TEGRA_OOT_EXTRA_ALSA_DRIVERS} \
 "
@@ -265,7 +251,6 @@ TEGRA_OOT_BASE_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-mc-hwpm \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-mc-utils \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvethernet \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvgpu \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvhost-nvdla \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvhost-pva \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvhwpm \
@@ -327,6 +312,30 @@ TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-uss-io-proxy \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-ti-fpdlink-dp-serializer \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-wch \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-aocluster \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-cpuidle-cg-disable-t264 \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se-kds \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-host1x-emu \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-i2c-tegra-slave-byte \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-capture-isp \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-mc-t26x \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-mem-qual \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-smmu-hwpm \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra264-mc-hwpm \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-cec \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvtzvault \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-pcie-tegra264-ep \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-pcie-tegra264 \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-pcie-dma-lib \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-xhci-debug \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-xhci \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvadsp \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvdisp-serdes \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-virt-alt-adsp \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra-controls \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-adsp \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-comm \
     ${TEGRA_OOT_EXTRA_OTHER_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_OTHER_DRIVERS}"
