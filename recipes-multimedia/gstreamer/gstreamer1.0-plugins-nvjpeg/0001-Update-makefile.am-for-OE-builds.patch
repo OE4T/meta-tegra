@@ -1,0 +1,78 @@
+From e0e8730c6ffd2002f439cf06ac1661724c03609b Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 27 Sep 2025 06:55:25 -0700
+Subject: [PATCH] Update makefile.am for OE builds
+
+and the configure.ac file to point JPEG_LIBS at
+the NVIDIA special version.
+
+Upstream-Status: Inappropriate [OE-specific]
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ gst-jpeg/gst-jpeg-1.0/configure.ac         | 15 ++-------------
+ gst-jpeg/gst-jpeg-1.0/ext/jpeg/Makefile.am | 21 ++++++++++++---------
+ 2 files changed, 14 insertions(+), 22 deletions(-)
+
+diff --git a/gst-jpeg/gst-jpeg-1.0/configure.ac b/gst-jpeg/gst-jpeg-1.0/configure.ac
+index 6babf28..3ba6931 100644
+--- a/gst-jpeg/gst-jpeg-1.0/configure.ac
++++ b/gst-jpeg/gst-jpeg-1.0/configure.ac
+@@ -383,19 +383,8 @@ dnl *** jpeg ***
+ dnl FIXME: we could use header checks here as well IMO
+ translit(dnm, m, l) AM_CONDITIONAL(USE_JPEG, true)
+ AG_GST_CHECK_FEATURE(JPEG, [jpeg library], jpeg, [
+-  AC_ARG_WITH(jpeg-mmx,
+-    [  --with-jpeg-mmx, path to MMX'ified JPEG library])
+-  OLD_LIBS="$LIBS"
+-  if test x$with_jpeg_mmx != x; then
+-    LIBS="$LIBS -L$with_jpeg_mmx"
+-  fi
+-  AC_CHECK_LIB(jpeg-mmx, jpeg_set_defaults, HAVE_JPEG="yes", HAVE_JPEG="no")
+-  JPEG_LIBS="$LIBS -ljpeg-mmx"
+-  LIBS="$OLD_LIBS"
+-  if test x$HAVE_JPEG != xyes; then
+-    AC_CHECK_LIB(jpeg, jpeg_set_defaults, HAVE_JPEG="yes", HAVE_JPEG="no")
+-    JPEG_LIBS="-ljpeg"
+-  fi
++  AC_CHECK_LIB(nvmm_jpeg, jpeg_set_defaults, HAVE_JPEG="yes", HAVE_JPEG="no")
++  JPEG_LIBS="-lnvmm_jpeg"
+   AC_SUBST(JPEG_LIBS)
+ ])
+ 
+diff --git a/gst-jpeg/gst-jpeg-1.0/ext/jpeg/Makefile.am b/gst-jpeg/gst-jpeg-1.0/ext/jpeg/Makefile.am
+index f394efb..c410b98 100644
+--- a/gst-jpeg/gst-jpeg-1.0/ext/jpeg/Makefile.am
++++ b/gst-jpeg/gst-jpeg-1.0/ext/jpeg/Makefile.am
+@@ -1,18 +1,21 @@
+-plugin_LTLIBRARIES = libgstjpeg.la
++plugin_LTLIBRARIES = libgstnvjpeg.la
+ 
+-libgstjpeg_la_SOURCES = \
++libgstnvjpeg_la_SOURCES = \
+ 	gstjpeg.c \
+ 	gstjpegenc.c \
+-	gstjpegdec.c
++	gstjpegdec.c \
++	gstnvjpegbufferpool.c
++
+ # deprected gstsmokeenc.c smokecodec.c gstsmokedec.c
+ 
+-libgstjpeg_la_CFLAGS = $(GST_PLUGINS_BASE_CFLAGS) $(GST_BASE_CFLAGS) $(GST_CFLAGS)
+-libgstjpeg_la_LIBADD = $(GST_PLUGINS_BASE_LIBS) $(GST_BASE_LIBS) $(GST_LIBS) -lgstvideo-$(GST_API_VERSION) \
+-	$(JPEG_LIBS) $(LIBM)
+-libgstjpeg_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
+-libgstjpeg_la_LIBTOOLFLAGS = $(GST_PLUGIN_LIBTOOLFLAGS)
++libgstnvjpeg_la_CFLAGS = $(GST_PLUGINS_BASE_CFLAGS) $(GST_BASE_CFLAGS) $(GST_CFLAGS)
++libgstnvjpeg_la_LIBADD = $(GST_PLUGINS_BASE_LIBS) $(GST_BASE_LIBS) $(GST_LIBS) -lgstvideo-$(GST_API_VERSION) \
++       $(JPEG_LIBS) $(LIBM)
++libgstnvjpeg_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS)
++libgstnvjpeg_la_LIBTOOLFLAGS = $(GST_PLUGIN_LIBTOOLFLAGS)
+ 
+ noinst_HEADERS = \
+ 	gstjpeg.h \
+-	gstjpegdec.h gstjpegenc.h
++	gstjpegdec.h gstjpegenc.h \
++	gstnvjpegbufferpool.h
+ # deprecated gstsmokeenc.h gstsmokedec.h smokecodec.h smokeformat.h
