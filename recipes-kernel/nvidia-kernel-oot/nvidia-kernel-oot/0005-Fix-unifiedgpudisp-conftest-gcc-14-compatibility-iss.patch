@@ -1,19 +1,19 @@
-From 646f94c5b7d929f33755cc4316b5449685914e77 Mon Sep 17 00:00:00 2001
+From aff20e7425f18828efd4a1bc3f7b53da08d77025 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Mon, 11 Aug 2025 16:47:04 +0100
-Subject: [PATCH 3/6] Fix nvdisplay conftest gcc 14 compatibility issues
+Date: Mon, 11 Aug 2025 16:47:59 +0100
+Subject: [PATCH 5/6] Fix unifiedgpudisp conftest gcc 14 compatibility issues
 
 Upstream-Status: Inappropriate [OE specific]
 
-Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- nvdisplay/kernel-open/conftest.sh | 4 ++--
+ unifiedgpudisp/kernel-open/conftest.sh | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/nvdisplay/kernel-open/conftest.sh b/nvdisplay/kernel-open/conftest.sh
+diff --git a/unifiedgpudisp/kernel-open/conftest.sh b/unifiedgpudisp/kernel-open/conftest.sh
 index 3f42ff2..12acf19 100755
---- a/nvdisplay/kernel-open/conftest.sh
-+++ b/nvdisplay/kernel-open/conftest.sh
+--- a/unifiedgpudisp/kernel-open/conftest.sh
++++ b/unifiedgpudisp/kernel-open/conftest.sh
 @@ -106,8 +106,8 @@ build_cflags() {
      ISYSTEM=`$CC -print-file-name=include 2> /dev/null`
      BASE_CFLAGS="-O2 -D__KERNEL__ \
