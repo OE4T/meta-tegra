@@ -9,6 +9,8 @@ TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/nvgstapps_src.tbz2"
 
 require recipes-bsp/tegra-sources/tegra-sources-38.2.0.inc
 
+COMPATIBLE_MACHINE = "(tegra)"
+
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libx11 libxext"
 
 SRC_URI += "file://0002-Fix-stringop-truncation-warning.patch"

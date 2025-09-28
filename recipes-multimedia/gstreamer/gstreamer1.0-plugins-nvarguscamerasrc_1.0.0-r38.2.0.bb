@@ -10,6 +10,8 @@ TEGRA_SRC_SUBARCHIVE_OPTS = "--exclude=3rdpartyheaders.tbz2"
 
 require recipes-bsp/tegra-sources/tegra-sources-38.2.0.inc
 
+COMPATIBLE_MACHINE = "(tegra)"
+
 SRC_URI += "\
     file://0001-Build-fixups.patch \
 "
