@@ -342,6 +342,15 @@ tegraflash_populate_package() {
         sed -i -e 's,^function ,,' ./l4t_bup_gen.func
         tegraflash_generate_bupgen_script
     fi
+    # See generate_unified_flash_files function in l4t_initrd_flash_internal.sh
+    if [ -d ./unified_flash/tools/flashtools/flash ]; then
+        local f
+	# XXX losetup and e2fsprogs, along with adbd, need to go into
+	# our flashing initrd
+	for f in resize2fs losetup e2fsck dumpe2fs flash_lz4 tegrakeyhash xmss-sign tegrasign_v3_nvkey_load.py tegrasign_v3_nvkey.yaml t234_sbk_dev.key t234_rsa_dev.key; do
+	    touch ./unified_flash/tools/flashtools/flash/$f
+	done
+    fi
     if [ -e ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ]; then
         cp ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ./odmfuse_pkc.xml
     fi
