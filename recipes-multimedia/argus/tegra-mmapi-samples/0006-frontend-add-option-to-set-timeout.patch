@@ -1,7 +1,7 @@
-From 7f47519ebe1f2df2b2ca5a3465582875364c9421 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Wed, 30 Mar 2022 22:54:03 +0100
-Subject: [PATCH 7/8] frontend: add option to set timeout
+From bfc672e348fec711d9ba9b568ef1e275aaf06ba5 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 8 Sep 2025 10:04:48 +0100
+Subject: [PATCH 6/8] frontend: add option to set timeout
 
 instead of requiring a human to type 'q' to quit,
 to allow the sample to be used as an automated test.
@@ -12,10 +12,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  samples/17_frontend/main.cpp | 15 ++++++++++++---
  1 file changed, 12 insertions(+), 3 deletions(-)
 
-Index: jetson_multimedia_api/samples/17_frontend/main.cpp
-===================================================================
---- jetson_multimedia_api.orig/samples/17_frontend/main.cpp
-+++ jetson_multimedia_api/samples/17_frontend/main.cpp
+diff --git a/samples/17_frontend/main.cpp b/samples/17_frontend/main.cpp
+index dc86696..6f61db9 100644
+--- a/samples/17_frontend/main.cpp
++++ b/samples/17_frontend/main.cpp
 @@ -29,6 +29,7 @@
   */
  
@@ -32,7 +32,7 @@ Index: jetson_multimedia_api/samples/17_frontend/main.cpp
  
  // Globals.
  static NvEglRenderer *g_eglRenderer = NULL;
-@@ -155,8 +157,11 @@ runArgusProducer(const std::vector<Strea
+@@ -155,8 +157,11 @@ runArgusProducer(const std::vector<StreamConsumer*> &consumers)
      if (iCaptureSession->repeat(request.get()) != STATUS_OK)
          ORIGINATE_ERROR("Failed to start repeat capture request");
  
@@ -54,7 +54,7 @@ Index: jetson_multimedia_api/samples/17_frontend/main.cpp
             "Commands\n"
             "  q:        exit\n");
  }
-@@ -250,7 +256,7 @@ static bool parseCmdline(int argc, char
+@@ -250,7 +256,7 @@ static bool parseCmdline(int argc, char **argv)
      };
  
      int c;
@@ -63,7 +63,7 @@ Index: jetson_multimedia_api/samples/17_frontend/main.cpp
      {
          switch (c)
          {
-@@ -263,6 +269,9 @@ static bool parseCmdline(int argc, char
+@@ -263,6 +269,9 @@ static bool parseCmdline(int argc, char **argv)
              case 's':
                  g_bProfiling = true;
                  break;
@@ -73,3 +73,6 @@ Index: jetson_multimedia_api/samples/17_frontend/main.cpp
              case 'v':
                  g_bVerbose = true;
                  break;
+-- 
+2.34.1
+
