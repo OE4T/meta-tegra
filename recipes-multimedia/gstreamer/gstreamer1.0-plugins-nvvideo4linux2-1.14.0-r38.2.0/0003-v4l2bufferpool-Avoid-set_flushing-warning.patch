@@ -1,6 +1,6 @@
-From 3502b229347c8afff015d309614aa76bba4e83b9 Mon Sep 17 00:00:00 2001
+From 0e47b62aa84657fb23bc342ab41d5e28021881ac Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Fri, 17 Nov 2023 12:56:24 +0000
+Date: Tue, 8 Jul 2025 19:04:21 +0100
 Subject: [PATCH 3/7] v4l2bufferpool: Avoid set_flushing warning
 
 The gst_buffer_pool_set_flushing() warns when that function is called
@@ -11,25 +11,25 @@ Part-of: <https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requ
 
 Upstream-Status: Backport [https://gitlab.freedesktop.org/gstreamer/gst-plugins-good/-/merge_requests/649]
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
-Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
  gstv4l2bufferpool.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/gstv4l2bufferpool.c b/gstv4l2bufferpool.c
-index 35cbb91..6303ff0 100644
+index bf02884..0bc2caa 100644
 --- a/gstv4l2bufferpool.c
 +++ b/gstv4l2bufferpool.c
-@@ -1301,7 +1301,7 @@ gst_v4l2_buffer_pool_flush_start (GstBufferPool * bpool)
+@@ -1345,7 +1345,7 @@ gst_v4l2_buffer_pool_flush_start (GstBufferPool * bpool)
    g_cond_broadcast (&pool->empty_cond);
    GST_OBJECT_UNLOCK (pool);
  
 -  if (pool->other_pool)
 +  if (pool->other_pool && gst_buffer_pool_is_active (pool->other_pool))
      gst_buffer_pool_set_flushing (pool->other_pool, TRUE);
- }
  
-@@ -1312,7 +1312,7 @@ gst_v4l2_buffer_pool_flush_stop (GstBufferPool * bpool)
+   GST_DEBUG_OBJECT (pool, "End flushing");
+@@ -1358,7 +1358,7 @@ gst_v4l2_buffer_pool_flush_stop (GstBufferPool * bpool)
  
    GST_DEBUG_OBJECT (pool, "stop flushing");
  
@@ -39,5 +39,5 @@ index 35cbb91..6303ff0 100644
  
  #ifndef USE_V4L2_TARGET_NV
 -- 
-2.25.1
+2.34.1
 
