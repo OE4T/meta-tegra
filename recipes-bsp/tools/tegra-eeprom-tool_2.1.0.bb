@@ -1,12 +1,12 @@
 DESCRIPTION = "Tegra ID EEPROM tools"
 HOMEPAGE = "https://github.com/OE4T/tegra-eeprom-tool"
 LICENSE = "MIT"
-LIC_FILES_CHKSUM = "file://LICENSE;md5=22c98979a7dd9812d2455ff5dbc88771"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=8a8a812fed70c7ff54c110c71eb80207"
 
 DEPENDS = "libedit"
 
 SRC_URI = "https://github.com/OE4T/${BPN}/releases/download/v${PV}/${BP}.tar.gz"
-SRC_URI[sha256sum] = "56e8e3d73a23d919e80b5398903f68e60dda71c4f9ca289cecf043bb496989f3"
+SRC_URI[sha256sum] = "8d729064693cee7f7a7c9242bc75acda6ac2d64dc8ccfbac0408ee76744abfb0"
 
 inherit cmake pkgconfig
 
