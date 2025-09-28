@@ -1,7 +1,7 @@
-From aa9a718c22ce1041876230c245d83ce4b72f329f Mon Sep 17 00:00:00 2001
+From 0bd470e96c00d69d2530706eb8fbd5b66941b3f9 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Sun, 6 Oct 2024 17:33:08 +0100
-Subject: [PATCH] Makefile: update for OE builds
+Date: Mon, 11 Aug 2025 16:45:52 +0100
+Subject: [PATCH 1/6] Makefile: update for OE builds
 
 * Pass needed make variables through from caller
   for the compiler, linker, etc.
@@ -17,21 +17,27 @@ Subject: [PATCH] Makefile: update for OE builds
 Upstream-Status: Pending
 
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- Makefile | 96 ++++++++++++++++++++++++++------------------------------
- 1 file changed, 44 insertions(+), 52 deletions(-)
+ Makefile | 78 ++++++++++++++++++++++++++++++++------------------------
+ 1 file changed, 45 insertions(+), 33 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index ad7dc07..64bec51 100644
+index 24ee6c5..b915c67 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -5,19 +5,21 @@ KERNEL_HEADERS ?= /lib/modules/$(shell uname -r)/build
- KERNEL_OUTPUT ?= ${KERNEL_HEADERS}
+@@ -2,11 +2,20 @@
+ # SPDX-License-Identifier: BSD-3-Clause
+ 
+ KERNEL_HEADERS ?= /lib/modules/$(shell uname -r)/build
+-KERNEL_OUTPUT ?= ${KERNEL_HEADERS}
++KERNEL_OUTPUT ?= $(KERNEL_HEADERS)
  
  MAKEFILE_DIR := $(abspath $(shell dirname $(lastword $(MAKEFILE_LIST))))
--NVIDIA_HEADERS ?= ${MAKEFILE_DIR}/out/nvidia-linux-header
 -NVIDIA_CONFTEST ?= ${MAKEFILE_DIR}/out/nvidia-conftest
+-NVIDIA_DTS_BUILD_SCRIPTS ?= $(realpath ${MAKEFILE_DIR}/kernel-devicetree)
 +NVIDIA_CONFTEST ?= $(MAKEFILE_DIR)/out/nvidia-conftest
++NVIDIA_DTS_BUILD_SCRIPTS ?= $(realpath $(MAKEFILE_DIR)/kernel-devicetree)
 +HOSTCC ?= gcc
 +MODLIB ?= /lib/modules
 +CC ?= $(CROSS_COMPILE)gcc
@@ -42,7 +48,9 @@ index ad7dc07..64bec51 100644
 +
 +V ?= 0
  
- ifneq ($(words $(subst :, ,$(MAKEFILE_DIR))), 1)
+ OPENRM ?= 1
+ ifeq ($(OPENRM), 1)
+@@ -19,11 +28,6 @@ ifneq ($(words $(subst :, ,$(MAKEFILE_DIR))), 1)
  $(error source directory cannot contain spaces or colons)
  endif
  
@@ -51,20 +59,19 @@ index ad7dc07..64bec51 100644
 -ifeq ("$(wildcard $(KERNEL_OUTPUT))","")
 -$(error kernel headers/output directory "$(KERNEL_OUTPUT)" does not exist!)
 -endif
--
- .PHONY : help modules modules_install clean conftest nvidia-headers hwpm nvidia-oot nvgpu
  
- # help is default target!
-@@ -35,6 +37,8 @@ dtbs: nvidia-dtbs
+ .PHONY : help modules modules_install clean conftest hwpm nvidia-oot nvgpu
+ 
+@@ -42,6 +46,8 @@ dtbs: nvidia-dtbs
  modules_install: hwpm nvidia-oot nvgpu nvidia-display-install
- clean: hwpm nvidia-oot nvgpu nvidia-display-clean nvidia-dtbs-clean
+ clean: hwpm nvidia-oot nvgpu nvidia-display-clean nvidia-dtbs-clean conftest-clean
  
 +$(NVIDIA_CONFTEST):
 +	mkdir -p $@
  
  conftest:
  ifeq ($(MAKECMDGOALS), modules)
-@@ -42,12 +46,12 @@ ifeq ($(MAKECMDGOALS), modules)
+@@ -49,12 +55,12 @@ ifeq ($(MAKECMDGOALS), modules)
  	@echo   "make $(MAKECMDGOALS) - conftest ..."
  	@echo   "================================================================================"
  	mkdir -p $(NVIDIA_CONFTEST)/nvidia;
@@ -82,7 +89,7 @@ index ad7dc07..64bec51 100644
  		-f $(NVIDIA_CONFTEST)/nvidia/Makefile
  endif
  
-@@ -59,9 +63,10 @@ hwpm: conftest
+@@ -66,9 +72,10 @@ hwpm: conftest
  	@echo   "================================================================================"
  	@echo   "make $(MAKECMDGOALS) - hwpm ..."
  	@echo   "================================================================================"
@@ -95,7 +102,7 @@ index ad7dc07..64bec51 100644
  		CONFIG_TEGRA_OOT_MODULE=m \
  		srctree.hwpm=$(MAKEFILE_DIR)/hwpm \
  		srctree.nvconftest=$(NVIDIA_CONFTEST) \
-@@ -75,10 +80,12 @@ nvidia-oot: conftest hwpm
+@@ -82,10 +89,12 @@ nvidia-oot: conftest hwpm
  	@echo   "================================================================================"
  	@echo   "make $(MAKECMDGOALS) - nvidia-oot ..."
  	@echo   "================================================================================"
@@ -110,7 +117,7 @@ index ad7dc07..64bec51 100644
  		srctree.nvidia-oot=$(MAKEFILE_DIR)/nvidia-oot \
  		srctree.hwpm=$(MAKEFILE_DIR)/hwpm \
  		srctree.nvconftest=$(NVIDIA_CONFTEST) \
-@@ -93,9 +100,10 @@ nvgpu: conftest nvidia-oot
+@@ -105,9 +114,10 @@ nvgpu: conftest nvidia-oot
  	@echo   "================================================================================"
  	@echo   "make $(MAKECMDGOALS) - nvgpu ..."
  	@echo   "================================================================================"
@@ -123,28 +130,28 @@ index ad7dc07..64bec51 100644
  		CONFIG_TEGRA_OOT_MODULE=m \
  		srctree.nvidia=$(MAKEFILE_DIR)/nvidia-oot \
  		srctree.nvidia-oot=$(MAKEFILE_DIR)/nvidia-oot \
-@@ -105,37 +113,23 @@ nvgpu: conftest nvidia-oot
- 
+@@ -117,19 +127,19 @@ nvgpu: conftest nvidia-oot
+ endif
  
  define display-cmd
 -	$(MAKE) -j $(NPROC) ARCH=arm64 TARGET_ARCH=aarch64 \
 +	$(MAKE) ARCH=arm64 TARGET_ARCH=aarch64 \
- 		-C $(MAKEFILE_DIR)/nvdisplay \
+ 		-C $(MAKEFILE_DIR)/$(NVIDIA_DISPLAY_DIR) \
 -		LOCALVERSION=$(version) \
 -		NV_VERBOSE=0 \
 +		NV_VERBOSE=$(V) \
  		KERNELRELEASE="" \
--		SYSSRC=$(NVIDIA_HEADERS) \
--		SYSOUT=$(NVIDIA_HEADERS) \
-+		SYSSRC=$(KERNEL_SRC) \
-+		SYSOUT=$(KBUILD_OUTPUT) \
-+		KBUILD_EXTRA_SYMBOLS=$(MAKEFILE_DIR)/nvidia-oot/Module.symvers \
- 		SYSSRCHOST1X=$(MAKEFILE_DIR)/nvidia-oot/drivers/gpu/host1x/include \
+ 		SYSSRCNVOOT=$(MAKEFILE_DIR)/nvidia-oot \
+-		SYSSRC=$(KERNEL_HEADERS) \
+-		SYSOUT=$(KERNEL_OUTPUT) \
 -		CC=$(CROSS_COMPILE)gcc \
 -		LD=$(CROSS_COMPILE)ld.bfd \
 -		AR=$(CROSS_COMPILE)ar \
 -		CXX=$(CROSS_COMPILE)g++ \
 -		OBJCOPY=$(CROSS_COMPILE)objcopy
++		SYSSRC=$(KERNEL_SRC) \
++		SYSOUT=$(KBUILD_OUTPUT) \
++		KBUILD_EXTRA_SYMBOLS=$(MAKEFILE_DIR)/nvidia-oot/Module.symvers \
 +		CC="$(CC)" \
 +		LD="$(LD)" \
 +		AR="$(AR)" \
@@ -153,47 +160,18 @@ index ad7dc07..64bec51 100644
  endef
  
  
--nvidia-headers: nvidia-oot
--	mkdir -p $(NVIDIA_HEADERS)
--	cp -LR $(KERNEL_HEADERS)/* $(NVIDIA_HEADERS)
--	if [ "$(KERNEL_HEADERS)" != "$(KERNEL_OUTPUT)" ] ; then \
--		cp -LR $(KERNEL_OUTPUT)/include/* $(NVIDIA_HEADERS)/include/ ; \
--		cp -LR $(KERNEL_OUTPUT)/arch/arm64/include/* $(NVIDIA_HEADERS)/arch/arm64/include/ ; \
--		cp -LR $(KERNEL_OUTPUT)/scripts/* $(NVIDIA_HEADERS)/scripts/ ; \
--		cp $(KERNEL_OUTPUT)/System.map $(NVIDIA_HEADERS)/ || true ; \
--	fi
--	cp -LR $(MAKEFILE_DIR)/nvidia-oot/include/* $(NVIDIA_HEADERS)/include/
--	cat $(KERNEL_OUTPUT)/Module.symvers $(MAKEFILE_DIR)/nvidia-oot/Module.symvers > \
--		$(NVIDIA_HEADERS)/Module.symvers
--
--
--nvidia-display: nvidia-headers
-+nvidia-display: nvidia-oot
- 	@if [ ! -d "$(MAKEFILE_DIR)/nvdisplay" ] ; then \
- 		echo "Directory nvdisplay is not found, exiting.."; \
- 		false; \
-@@ -153,17 +147,15 @@ nvidia-display-install:
+@@ -151,7 +161,9 @@ nvidia-display-install:
  	@echo   "================================================================================"
  	@echo   "make $(MAKECMDGOALS) - nvidia-display ..."
  	@echo   "================================================================================"
--	$(MAKE) -C $(NVIDIA_HEADERS) \
+-	$(MAKE) -C $(KERNEL_OUTPUT) INSTALL_MOD_DIR=updates/opensrc-disp \
 +	$(MAKE) -C $(KERNEL_PATH) \
 +		KERNEL_MODLIB=$(MODLIB) \
- 		M=$(MAKEFILE_DIR)/nvdisplay/kernel-open modules_install
++		INSTALL_MOD_DIR=updates/opensrc-disp \
+ 		M=$(MAKEFILE_DIR)/$(NVIDIA_DISPLAY_DIR)/kernel-open modules_install
  
  nvidia-display-clean:
- 	@echo   "================================================================================"
- 	@echo   "make $(MAKECMDGOALS) - nvidia-display ..."
- 	@echo   "================================================================================"
--	if [ -d $(NVIDIA_HEADERS) ]; then \
--		$(display-cmd) clean && \
--		rm -fr $(NVIDIA_HEADERS); \
--	fi
-+	$(display-cmd) clean
- 
- nvidia-dtbs:
- 	@if [ ! -d "$(MAKEFILE_DIR)/kernel-devicetree" ] ; then \
-@@ -174,10 +166,10 @@ nvidia-dtbs:
+@@ -169,10 +181,10 @@ nvidia-dtbs:
  	@echo   "make nvidia-dtbs ..."
  	@echo   "================================================================================"
  	TEGRA_TOP=$(MAKEFILE_DIR) \
@@ -201,11 +179,11 @@ index ad7dc07..64bec51 100644
 -	objtree=$(KERNEL_OUTPUT) \
 +	srctree=$(KERNEL_SRC) \
 +	objtree=$(KBUILD_OUTPUT) \
- 	oottree=$(MAKEFILE_DIR)/kernel-devicetree \
+ 	oottree=$(NVIDIA_DTS_BUILD_SCRIPTS) \
 -	HOSTCC=gcc \
 +	HOSTCC="$(HOSTCC)" \
- 	$(MAKE) -f $(MAKEFILE_DIR)/kernel-devicetree/scripts/Makefile.build \
- 		obj=$(MAKEFILE_DIR)/kernel-devicetree/generic-dts \
+ 	$(MAKE) -f $(NVIDIA_DTS_BUILD_SCRIPTS)/scripts/Makefile.build \
+ 		obj=$(NVIDIA_DTS_BUILD_SCRIPTS)/generic-dts \
  		dtbs
 -- 
 2.34.1
