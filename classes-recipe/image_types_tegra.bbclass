@@ -335,9 +335,6 @@ tegraflash_populate_package() {
         sed -i -e 's,^function ,,' ./l4t_bup_gen.func
         tegraflash_generate_bupgen_script
     fi
-    if [ -e ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ]; then
-        cp ${STAGING_DATADIR}/tegraflash/odmfuse_pkc_${MACHINE}.xml ./odmfuse_pkc.xml
-    fi
 }
 
 create_tegraflash_pkg() {
@@ -392,13 +389,6 @@ DATAFILE="${DATAFILE}"
 EXTERNAL_ROOTFS_DRIVE=${TEGRAFLASH_ROOTFS_EXTERNAL}
 NO_INTERNAL_STORAGE=${TEGRAFLASH_NO_INTERNAL_STORAGE}
 END
-    fi
-    if [ -e ./odmfuse_pkc.xml ]; then
-        cat > burnfuses.sh <<END
-#!/bin/sh
-MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh -c "burnfuses odmfuse_pkc.xml" --no-flash $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
-END
-        chmod +x burnfuses.sh
     fi
     if [ "$has_sdcard" = "yes" ]; then
         rm -f dosdcard.sh
