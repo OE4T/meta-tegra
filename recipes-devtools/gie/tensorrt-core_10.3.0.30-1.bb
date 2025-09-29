@@ -71,8 +71,6 @@ do_install() {
     ln -s libnvinfer_lean.so.${BASEVER} ${D}${libdir}/libnvinfer_lean.so.${MAJVER}
     ln -s libnvinfer_dispatch.so.${BASEVER} ${D}${libdir}/libnvinfer_dispatch.so
     ln -s libnvinfer_dispatch.so.${BASEVER} ${D}${libdir}/libnvinfer_dispatch.so.${MAJVER}
-    ln -s libnvparsers.so.${BASEVER} ${D}${libdir}/libnvparsers.so.${MAJVER}
-    ln -s libnvparsers.so.${BASEVER} ${D}${libdir}/libnvparsers.so
     ln -s libnvinfer.so.${BASEVER} ${D}${libdir}/libnvinfer.so.${MAJVER}
     ln -s libnvinfer.so.${BASEVER} ${D}${libdir}/libnvinfer.so
 }
