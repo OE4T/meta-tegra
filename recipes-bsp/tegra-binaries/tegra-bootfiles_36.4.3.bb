@@ -7,7 +7,6 @@ DEPENDS = "tegra-flashvars tegra-storage-layout tegra-eks-image dtc-native coreu
 
 BCT_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT}"
 BCT_OVERRIDE_TEMPLATE ?= "${S}/bootloader/${NVIDIA_BOARD}/BCT/${EMMC_BCT_OVERRIDE}"
-ODMFUSE_FILE ?= ""
 TEGRA_SOCNAME_SHORT = "${@d.getVar('SOC_FAMILY')[0:1] + d.getVar('SOC_FAMILY')[-3:]}"
 # Work around bitbake parsing quirk with shell-style escapes
 BACKSLASH_X_01 = "${@'\\' + 'x01'}"
@@ -47,7 +46,6 @@ do_install() {
     done
     install_other_boot_firmware_files
 
-    [ -z "${ODMFUSE_FILE}" ] || install -m 0644 ${ODMFUSE_FILE} ${D}${datadir}/tegraflash/odmfuse_pkc_${MACHINE}.xml
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMMC_BCT}
 }
 
