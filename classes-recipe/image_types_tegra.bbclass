@@ -25,7 +25,7 @@ def tegra_dtb_extra_deps(d):
     if d.getVar('PREFERRED_PROVIDER_virtual/dtb'):
         deps.append('virtual/dtb:do_populate_sysroot')
     if d.getVar('TEGRA_UEFI_USE_SIGNED_FILES') == "true":
-        deps.append('tegra-uefi-keys-dtb:do_populate_sysroot')
+        deps.append('tegra-uefi-keys-dtb:do_deploy')
     return ' '.join(deps)
 
 def tegra_bootcontrol_overlay_list(d, bup=False, separator=','):
