@@ -18,7 +18,7 @@ LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "46537355fa1fbb9faac9bdae8582ea30a038a1e8"
+SRCREV = "d1dee2ab0b39854eaef89976dd15c0da861c45d3"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-noble-nvidia-tegra.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
