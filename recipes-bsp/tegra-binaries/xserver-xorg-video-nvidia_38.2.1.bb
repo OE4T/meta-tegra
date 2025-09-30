@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-3d-core"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "598f103e1e01aad3659578ed4112297a7390976f3eac4ce65ebcb41f445cabaf"
+MAINSUM = "49d5c4d659293d3850f77bae7f5a8888d40ced71abaec585ba40e88ea29fa293"
 
 inherit features_check
 
