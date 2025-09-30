@@ -3,7 +3,7 @@ DEPENDS = "tegra-libraries-core tegra-libraries-nvsci tegra-libraries-cuda"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "a721d6a39897803f17b946ecb3e071a7d275221e43e4564acc93ccd7e4711fcb"
+MAINSUM = "a6e2f703c68c2b3285e0214da34f7ed2fa38964df5b9970762c2c2b0dc6e589c"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvpvaintf.so \
