@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-video-codec-openrm"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "3bee738a26b39e7b4c5a04f202cc281a95c1fac523351367670c6bf6a41f7275"
+MAINSUM = "652192212d67ccd0b468e47777262dafd768a53e4dc985ee84cdfa07ed9c7e0e"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvcuvid.so \

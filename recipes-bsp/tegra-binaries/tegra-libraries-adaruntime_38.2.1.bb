@@ -3,7 +3,7 @@ DEPENDS = "tegra-libraries-core"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "eb229e994cff6d5e5f7b407c32c5eef8eb9fcf33b4b268de5d32508c11acaa97"
+MAINSUM = "a4f872d8bda41388d186db70dee80939e95943d79084dcf8929b341223debe4b"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libgnarl-24.so \

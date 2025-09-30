@@ -14,7 +14,7 @@ L4T_DEB_IS_COMMON = "1"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "c1ed76fd652e5a540be17facde291858885f6bb84862ef22776085b9da857650"
+MAINSUM = "9e5926560c4cab693182d4e342d3f1a7f3f517f10e1ee2dfee8c3b5e46110613"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     libgstnvegl-1.0.so.0 \
