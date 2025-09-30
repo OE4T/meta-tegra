@@ -9,8 +9,8 @@ SRC_SOC_DEBS += "\
     ${@l4t_deb_pkgname(d, 'multimedia-openrm')};subdir=${BP};name=openrm \
 "
 
-MAINSUM = "01df66107ccc771bdfa22b0772c6cc49406b2ef53401148dacf556127bbbb81e"
-OPENRMSUM = "03e0af96424ef39882cf5faaf2de5106efee5e1efe267965617a488ac16b9fb2"
+MAINSUM = "992338e6a0955500206b0be07d4ac5e51f1ff7b6f78ebf2ce44f42ae8d449f87"
+OPENRMSUM = "e76c2ebb92ed22dbed3df3c792c9347a28c7ee2659b80b7a6b79c8175510df14"
 
 SRC_URI[openrm.sha256sum] = "${OPENRMSUM}"
 
