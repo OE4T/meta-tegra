@@ -36,11 +36,7 @@ do_compile() {
 }
 
 do_install() {
-    install -d ${D}${datadir}/tegra-uefi-keys/
-    install -m 0644 ${B}/UefiDefaultSecurityKeys.dtbo ${D}${datadir}/tegra-uefi-keys/
-    if [ -e "${B}/UefiUpdateSecurityKeys.dtbo" ]; then
-        install -m 0644 ${B}/UefiUpdateSecurityKeys.dtbo ${D}${datadir}/tegra-uefi-keys/
-    fi
+    :
 }
 
 do_deploy() {
