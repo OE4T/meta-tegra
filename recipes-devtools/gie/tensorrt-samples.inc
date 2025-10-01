@@ -12,7 +12,7 @@ SRC_COMMON_DEBS = "\
 
 SRC_URI += "file://0001-Makefile-fix-cross-compilation-issues.patch;patchdir=${UNPACKDIR}/tensorrt"
 
-SRC_URI[samples.sha256sum] = "4dbb93a88db67c37b87a948640f7ef7d06f74760a2ac70978268b9c5567b1799"
+SRC_URI[samples.sha256sum] = "3a0acf115e34987c0f2e3534374696ac0c4ef05e6a02314a3eafc4397ec9675c"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
