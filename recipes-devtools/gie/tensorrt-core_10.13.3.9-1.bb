@@ -17,13 +17,13 @@ SRC_COMMON_DEBS = "\
     libnvinfer-lean-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-lean-dev_${PV}+cuda13.0_arm64.deb;name=nvldev;subdir=tensorrt \
 "
 
-SRC_URI[lib.sha256sum] = "9ee71924fe29c00929eb9cdafaf0354658ea2733959f574a1a70355765e26900"
-SRC_URI[dev.sha256sum] = "30f989a8cb99c0a1ff7d25c9514ba96445be6f32489e520a54ec1b0a899c9d8f"
-SRC_URI[hdev.sha256sum] = "faf32d2a0533a4c96c7f7f1d06905abf44a1cebd2e60aec201f21bb38f521f29"
-SRC_URI[disp.sha256sum] = "4c95231e0e2c50eb62db053855e7561852aaf7d91200e26c3465efdf0f7bad5b"
-SRC_URI[dispdev.sha256sum] = "f56c82f7f861718b83caeee5d9cd526a5f0488126d833e8d31cb6a8addd70b25"
-SRC_URI[nvl.sha256sum] = "9cd7d049ddcb309fa2f932c276b1e699afddfa8a5443ccc13c9c7747accaa7b8"
-SRC_URI[nvldev.sha256sum] = "411861e0703860828dabd059328be281ece6b45c173f090004285df172a27916"
+SRC_URI[lib.sha256sum] = "c153dd67175d12661437d5bc9b573344467bc716c03133bc77ed1befa820eac6"
+SRC_URI[dev.sha256sum] = "40b2b769b6f5c77684d5feec2ca01e87cbb3d0e1ff8b41c679e264f7d98b65e8"
+SRC_URI[hdev.sha256sum] = "61baa587776b5a074fc4bc794836b32c3fb4d0573ce7610389fc65f58ac0336b"
+SRC_URI[disp.sha256sum] = "da615f77ffd29b14652dc62658089b29cc9cde4560af9991d54f12d45a64b0cd"
+SRC_URI[dispdev.sha256sum] = "7d7a89a6873dbcb7640e39d0f1819f39d5854e6a81a56d3763efc98a43eff80b"
+SRC_URI[nvl.sha256sum] = "85a6ecce9b42d5dac0a9a8c1df2e03e90410b98c6cc99d16aa90ed8fef657ea1"
+SRC_URI[nvldev.sha256sum] = "a84eea17806bef0de03c222a8a3952d6aec2e05e162ae5cc9cdeda5b28982997"
 
 COMPATIBLE_MACHINE = "(tegra)"
 

@@ -17,13 +17,13 @@ SRC_COMMON_DEBS = "\
     libnvinfer-vc-plugin-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-vc-plugin-dev_${PV}+cuda13.0_arm64.deb;name=vcdev;subdir=tensorrt \
 "
 
-SRC_URI[onnx.sha256sum] = "0128fecb00bb7d7f59d2816b803f19653f921729ba06eb61da2cb777a95050ae"
-SRC_URI[onnxdev.sha256sum] = "c68edca25b9480b8515e0747962f510ac81f95e60ef762c3319da637250b7733"
-SRC_URI[plugin.sha256sum] = "4673987380a8e0117076c37b80189b7cec1145f46561e19c268479864ca55738"
-SRC_URI[plugindev.sha256sum] = "692ae002e3a9ba1c4d3b90c89d7d2f83bbc958322c1977da9f4489d69264dde1"
-SRC_URI[hplugindev.sha256sum] = "e15f944f2fc86c0dfcb8811cedd1ef063f5f101a48e42b0c768f743bffb4f915"
-SRC_URI[vc.sha256sum] = "7dac97d1596e40217134b7328570d053a2f26ee0a3b0518837348129c30ae750"
-SRC_URI[vcdev.sha256sum] = "d840c502211925604e3de5898fe429bad85117345175494a7d44f881455e2787"
+SRC_URI[onnx.sha256sum] = "64c34bd51d057c048baa7c055ab676e20bb30100f3d63d3eb0ef3032d6686d4f"
+SRC_URI[onnxdev.sha256sum] = "c6345331c14119f0bd236b74c82dc967fdd6f9a55f489f626423b3d9268cdb55"
+SRC_URI[plugin.sha256sum] = "0af6f955b17da27fc94284cdd39a67b6702452bc8bc8587f9f6a63be58ca1f71"
+SRC_URI[plugindev.sha256sum] = "23a3e2f949ddbc266c5945b257f7be276171b6f19ec3d67d76857e890d36f42d"
+SRC_URI[hplugindev.sha256sum] = "8e66fb552c748f7c890cf69eb7596d4a42ab48f916dfbc2036987a79aab43cd5"
+SRC_URI[vc.sha256sum] = "732f161bbebe8b2d1567f2f3cb8e26de38ef469ab08bbfdad2edffa460696e19"
+SRC_URI[vcdev.sha256sum] = "c39aa8d25d8be49e9cd17bc96f2dc45efa2bc8c8606cec0f33cc2ddede402944"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
