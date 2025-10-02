@@ -4,9 +4,9 @@ DESCRIPTION = "Standalone Memory Manager for Tegra platforms"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-DEPENDS += "l4t-atf-tools-native"
+SRC_URI += "file://0006-sptool-update-the-python-script-for-standalone-mm-pa.patch;patchdir=../edk2-nvidia"
 
-SMM_NAME = "StandaloneMm"
+SMM_NAME = "StandaloneMmJetson"
 SMM_NAME:tegra234 = "StandaloneMmOptee"
 
 EDK2_PLATFORM = "${SMM_NAME}"
@@ -17,14 +17,15 @@ EDK2_PLATFORM_DSC:tegra234 = "Platform/NVIDIA/${SMM_NAME}/${SMM_NAME}.dsc"
 EDK2_BIN_NAME = "standalonemm_jetson.pkg"
 EDK2_BIN_NAME:tegra234 = "standalone_mm_optee.bin"
 
-TEGRA_BUILD_GUID = '-D "BUILD_GUID=fb0e2152-1441-49e0-b376-5f8593d66678" -D "BUILD_NAME=${EDK2_PLATFORM}"'
+TEGRA_BUILD_GUID = '-D "BUILD_GUID=3a7930b4-77f6-463e-b2c1-2436b0af492b" -D "BUILD_NAME=${EDK2_PLATFORM}"'
 
 do_compile:append:tegra264() {
     rm -rf ${B}/images
     mkdir ${B}/images
-    ${PYTHON} ${STAGING_BINDIR_NATIVE}/sptool.py \
-        -i ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/FV/UEFI_MM.Fv:${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/AARCH64/Silicon/NVIDIA/StandaloneMm/Manifest/Manifest/OUTPUT/StandaloneMm.dtb \
-        -o ${B}/images/${EDK2_BIN_NAME}
+    ${PYTHON} ${S_EDK2_NVIDIA}/Silicon/NVIDIA/edk2nv/sptool.py \
+        --image ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/FV/UEFI_MM.Fv \
+        --manifest ${B}/Build/${EDK2_PLATFORM}/${EDK2_BUILD_MODE}_${EDK_COMPILER}/AARCH64/Silicon/NVIDIA/StandaloneMm/Manifest/ManifestStmmJetson/OUTPUT/StandaloneMmJetson.dtb \
+        --output ${B}/images/${EDK2_BIN_NAME}
 }
 
 do_compile:append:tegra234() {
