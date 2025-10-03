@@ -14,13 +14,23 @@ do_configure[noexec] = "1"
 do_compile() {
     abootimg -x ${S}/unified_flash/tools/flashtools/flashing_kernel/initramfs/t264/boot_flashing.img
     abootimg-unpack-initrd initrd.img
-    # delete sections in init script that break things
+    # In all scripts we rewrite hard-coded /bin/ references to NV
+    # scripts to use bindir, since we can't assume usrmerge
+
+    # delete sections in init script that break things,
     sed -i -e'/create reboot/,/overlayfs_check/d' -e'/^cd .usr.sbin/,/^ln -s/d' \
+	-e's,/bin/nv_\(enable_remote\|fuse_read\|recovery\)\.sh,${bindir}/nv_\1.sh,g' \
 	 ${B}/ramdisk/init
     # our busybox has no 'bc' built in, so convert to normal bc
-    sed -i -e's,busybox bc,bc,g' ${B}/ramdisk/usr/bin/nv_enable_remote.sh
+    sed -i -e's,busybox bc,bc,g' \
+	-e's,/bin/nv_\(enable_remote\|fuse_read\|recovery\)\.sh,${bindir}/nv_\1.sh,g' \
+	${B}/ramdisk/usr/bin/nv_enable_remote.sh
     # sigh
-    sed -i -e's,^me=.*,me=root,' ${B}/ramdisk/usr/bin/nv_fuse_read.sh
+    sed -i -e's,^me=.*,me=root,' \
+	-e's,/bin/nv_\(enable_remote\|fuse_read\|recovery\)\.sh,${bindir}/nv_\1.sh,g' \
+	${B}/ramdisk/usr/bin/nv_fuse_read.sh
+    sed -i -e's,/bin/nv_\(enable_remote\|fuse_read\|recovery\)\.sh,${bindir}/nv_\1.sh,g' \
+	${B}/ramdisk/usr/bin/nv_recovery.sh
     cat >${B}/ramdisk/initrd_flash.cfg <<EOF
 adb=1
 EOF
