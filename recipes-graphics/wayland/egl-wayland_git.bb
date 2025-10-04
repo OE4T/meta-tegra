@@ -12,17 +12,11 @@ PV = "1.1.20"
 
 SRC_URI += " \
     file://0001-Fix-wayland-eglstream-protocols-pc-file.patch \
-    file://nvidia_wayland.json \
 "
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
 inherit meson pkgconfig features_check
-
-do_install:append() {
-    install -d ${D}${datadir}/egl/egl_external_platform.d
-    install -m 0644 ${UNPACKDIR}/nvidia_wayland.json ${D}${datadir}/egl/egl_external_platform.d/20_nvidia_wayland.json
-}
 
 FILES:${PN} += "${datadir}/egl"
 FILES:${PN}-dev += "${datadir}/wayland-eglstream"
