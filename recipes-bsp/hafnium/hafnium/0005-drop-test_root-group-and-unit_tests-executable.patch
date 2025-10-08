@@ -1,0 +1,91 @@
+From 9f114bf8a6c7f0daef5fbc1e441178338ffbd4a6 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Wed, 8 Oct 2025 19:24:39 +0100
+Subject: [PATCH 5/5] drop test_root group and unit_tests executable
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ hafnium/BUILD.gn          | 10 ----------
+ hafnium/soc/t264/BUILD.gn |  8 --------
+ hafnium/src/BUILD.gn      | 24 ------------------------
+ 3 files changed, 42 deletions(-)
+
+diff --git a/hafnium/BUILD.gn b/hafnium/BUILD.gn
+index 33b554c..c6e04e1 100644
+--- a/hafnium/BUILD.gn
++++ b/hafnium/BUILD.gn
+@@ -15,19 +15,9 @@ group("root") {
+   ]
+ }
+ 
+-# The root of the build for test artifacts.
+-group("test_root") {
+-  testonly = true
+-
+-  deps = [
+-    "${project}:test_root",
+-  ]
+-}
+-
+ group("default") {
+   testonly = true
+   deps = [
+     ":root",
+-    ":test_root",
+   ]
+ }
+diff --git a/hafnium/soc/t264/BUILD.gn b/hafnium/soc/t264/BUILD.gn
+index eee0f54..e8073ab 100644
+--- a/hafnium/soc/t264/BUILD.gn
++++ b/hafnium/soc/t264/BUILD.gn
+@@ -13,14 +13,6 @@ group("root") {
+   ]
+ }
+ 
+-group("test_root") {
+-  testonly = true
+-
+-  deps = [
+-    "//src:unit_tests(:host_fake_clang)",
+-  ]
+-}
+-
+ # Describe each of the platforms used in this project.
+ 
+ host_toolchain("host_fake") {
+diff --git a/hafnium/src/BUILD.gn b/hafnium/src/BUILD.gn
+index ce21104..6a0f0ab 100644
+--- a/hafnium/src/BUILD.gn
++++ b/hafnium/src/BUILD.gn
+@@ -165,27 +165,3 @@ source_set("panic") {
+ source_set("abort") {
+   sources = [ "abort.c" ]
+ }
+-
+-executable("unit_tests") {
+-  testonly = true
+-  sources = [
+-    "cpu_test.cc",
+-    "fdt_handler_test.cc",
+-    "fdt_test.cc",
+-    "manifest_test.cc",
+-    "mm_test.cc",
+-    "mpool_test.cc",
+-    "string_test.cc",
+-    "vm_test.cc",
+-  ]
+-  sources += [ "layout_fake.c" ]
+-  cflags_cc = [
+-    "-Wno-c99-extensions",
+-    "-Wno-nested-anon-types",
+-  ]
+-  deps = [
+-    ":memiter",
+-    ":src_testable",
+-    "//../googletest:gtest_main",
+-  ]
+-}
+-- 
+2.34.1
+

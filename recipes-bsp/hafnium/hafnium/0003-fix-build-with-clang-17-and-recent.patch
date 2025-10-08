@@ -1,0 +1,131 @@
+From f3c4f637431ea7126332133d7a2ed38a95300262 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Wed, 8 Oct 2025 18:23:49 +0100
+Subject: [PATCH 3/5] fix build with clang-17 and recent
+
+Those changes are besed on the following commit:
+https://github.com/TF-Hafnium/hafnium/commit/a5ea909bfc615d84e6ae9e4791014d81d39b71e8
+
+Upstream-Status: Inappropriate [OE-specific]
+
+Signed-off-by: Karl Meakin <karl.meakin@arm.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ hafnium/.clang-tidy                           | 2 +-
+ hafnium/build/toolchain/embedded.gni          | 5 ++---
+ hafnium/src/api.c                             | 3 ++-
+ hafnium/src/arch/aarch64/hypervisor/handler.c | 5 +++--
+ hafnium/src/arch/fake/mm.c                    | 2 +-
+ hafnium/src/ffa_memory.c                      | 7 +++++++
+ 6 files changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/hafnium/.clang-tidy b/hafnium/.clang-tidy
+index 39c2ff6..a8402cc 100644
+--- a/hafnium/.clang-tidy
++++ b/hafnium/.clang-tidy
+@@ -1,4 +1,4 @@
+-Checks: 'readability-*,-readability-identifier-length,portability-*,performance-*,misc-*,bugprone-*,-bugprone-easily-swappable-parameters,modernize-*,google-runtime-int,-modernize-deprecated-headers,-clang-analyzer-valist.Uninitialized,-readability-magic-numbers, -readability-function-cognitive-complexity,-modernize-macro-to-enum,-misc-redundant-expression,-readability-suspicious-call-argument'
++Checks: 'readability-*,-readability-identifier-length,portability-*,performance-*,misc-*,bugprone-*,-bugprone-easily-swappable-parameters,modernize-*,google-runtime-int,-modernize-deprecated-headers,-clang-analyzer-valist.Uninitialized,-readability-magic-numbers, -readability-function-cognitive-complexity,-modernize-macro-to-enum,-misc-redundant-expression,-readability-suspicious-call-argument,-misc-include-cleaner'
+ HeaderFilterRegex: '^(?!third_party).+'
+ FormatStyle: file
+ WarningsAsErrors: '*'
+diff --git a/hafnium/build/toolchain/embedded.gni b/hafnium/build/toolchain/embedded.gni
+index 53e48f1..1d76735 100644
+--- a/hafnium/build/toolchain/embedded.gni
++++ b/hafnium/build/toolchain/embedded.gni
+@@ -307,9 +307,8 @@ template("aarch64_common_toolchain") {
+ template("aarch64_toolchain") {
+   aarch64_common_toolchain("${target_name}") {
+     forward_variables_from(invoker, "*")
+-    target = "aarch64-none-eabi"
+-    tool_prefix = "aarch64-linux-gnu-"  # TODO: this isn't right for bare metal
+-                                        # but it works.
++    target = "aarch64-none-elf"
++    tool_prefix = "aarch64-none-elf-"
+     platform_name = target_name
+   }
+ }
+diff --git a/hafnium/src/api.c b/hafnium/src/api.c
+index 3f80573..c21fa27 100644
+--- a/hafnium/src/api.c
++++ b/hafnium/src/api.c
+@@ -1701,12 +1701,13 @@ struct ffa_value api_ffa_msg_send2(ffa_vm_id_t sender_vm_id, uint32_t flags,
+ 	struct vm_locked sender_locked;
+ 	const void *from_msg;
+ 	struct ffa_value ret;
+-	struct ffa_partition_rxtx_header header;
+ 	ffa_vm_id_t sender_id;
+ 	ffa_vm_id_t receiver_id;
+ 	uint32_t msg_size;
+ 	ffa_notifications_bitmap_t rx_buffer_full;
+ 
++	alignas(8) struct ffa_partition_rxtx_header header;
++
+ 	/* Only Hypervisor can set `sender_vm_id` when forwarding messages. */
+ 	if (from->id != HF_HYPERVISOR_VM_ID && sender_vm_id != 0) {
+ 		dlog_error("Sender VM ID must be zero.\n");
+diff --git a/hafnium/src/arch/aarch64/hypervisor/handler.c b/hafnium/src/arch/aarch64/hypervisor/handler.c
+index 674cc72..c8a0b90 100644
+--- a/hafnium/src/arch/aarch64/hypervisor/handler.c
++++ b/hafnium/src/arch/aarch64/hypervisor/handler.c
+@@ -706,9 +706,10 @@ static bool ffa_handler(struct ffa_value *args, struct vcpu *current,
+ 	case FFA_CONSOLE_LOG_64:
+ 		*args = api_ffa_console_log(*args, current);
+ 		return true;
++	default:
++		dlog_verbose("Unsupported function %#x\n", func);
++		return false;
+ 	}
+-
+-	return false;
+ }
+ 
+ /**
+diff --git a/hafnium/src/arch/fake/mm.c b/hafnium/src/arch/fake/mm.c
+index b67266e..ef3ccb6 100644
+--- a/hafnium/src/arch/fake/mm.c
++++ b/hafnium/src/arch/fake/mm.c
+@@ -28,7 +28,7 @@
+ #define PTE_ADDR_MASK (~(PTE_ATTR_MODE_MASK | (UINT64_C(1) << PAGE_BITS) - 1))
+ 
+ /* Offset the bits of each level so they can't be misued. */
+-#define PTE_LEVEL_SHIFT(lvl) ((lvl)*2)
++#define PTE_LEVEL_SHIFT(lvl) ((lvl) * 2)
+ 
+ pte_t arch_mm_absent_pte(uint8_t level)
+ {
+diff --git a/hafnium/src/ffa_memory.c b/hafnium/src/ffa_memory.c
+index 28e55d6..fdb3f6f 100644
+--- a/hafnium/src/ffa_memory.c
++++ b/hafnium/src/ffa_memory.c
+@@ -335,6 +335,8 @@ static inline uint32_t ffa_memory_permissions_to_mode(
+ 		break;
+ 	case FFA_DATA_ACCESS_RESERVED:
+ 		panic("Tried to convert FFA_DATA_ACCESS_RESERVED.");
++	default:
++		panic("Unknown data access");
+ 	}
+ 
+ 	switch (ffa_get_instruction_access_attr(permissions)) {
+@@ -348,6 +350,8 @@ static inline uint32_t ffa_memory_permissions_to_mode(
+ 		break;
+ 	case FFA_INSTRUCTION_ACCESS_RESERVED:
+ 		panic("Tried to convert FFA_INSTRUCTION_ACCESS_RESVERVED.");
++	default:
++		panic("Unknown instruction access");
+ 	}
+ 
+ 	return mode;
+@@ -1599,6 +1603,9 @@ struct ffa_value ffa_memory_send(struct vm_locked from_locked,
+ 		memory_region->flags |=
+ 			FFA_MEMORY_REGION_TRANSACTION_TYPE_DONATE;
+ 		break;
++	default:
++		dlog_verbose("Unknown share func %#x\n", share_func);
++		return ffa_error(FFA_INVALID_PARAMETERS);
+ 	}
+ 
+ 	share_states = share_states_lock();
+-- 
+2.34.1
+

@@ -1,0 +1,103 @@
+From 27f0274ee1a8698cdc59f14f5a4acd5517639c75 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Wed, 8 Oct 2025 18:46:44 +0100
+Subject: [PATCH 4/5] Updates for OE cross builds
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ hafnium/Makefile                              | 1 -
+ hafnium/build/BUILDCONFIG.gn                  | 2 --
+ hafnium/build/toolchain/embedded.gni          | 3 +--
+ hafnium/src/BUILD.gn                          | 6 +++---
+ hafnium/src/arch/aarch64/hypervisor/handler.c | 2 +-
+ 5 files changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/hafnium/Makefile b/hafnium/Makefile
+index 6a88205..fb82bb7 100644
+--- a/hafnium/Makefile
++++ b/hafnium/Makefile
+@@ -13,7 +13,6 @@ ENABLE_ASSERTIONS ?= 1
+ 
+ GN_ARGS := project="$(PROJECT)"
+ #GN_ARGS += prebuilts="$(TOOLPATH)" --> byan: ???
+-GN_ARGS += third_party_root="$(HAFNIUM_ROOT)"
+ GN_ARGS += toolchain_lib="$(TOOLCHAIN_LIB)"
+ ifeq ($(filter $(ENABLE_ASSERTIONS), 1 0),)
+          $(error invalid value for ENABLE_ASSERTIONS, should be 1 or 0)
+diff --git a/hafnium/build/BUILDCONFIG.gn b/hafnium/build/BUILDCONFIG.gn
+index 6e08c39..9c2fef3 100644
+--- a/hafnium/build/BUILDCONFIG.gn
++++ b/hafnium/build/BUILDCONFIG.gn
+@@ -14,8 +14,6 @@ declare_args() {
+   toolchain_lib =
+       rebase_path("//prebuilts/linux-x64/clang/lib64/clang/12.0.5/include")
+ 
+-  third_party_root = "//"
+-
+   # Whether to build against the platform for embedded images consisting of
+   # include paths and defines. This is also used for host targets that simulate
+   # an embedded image.
+diff --git a/hafnium/build/toolchain/embedded.gni b/hafnium/build/toolchain/embedded.gni
+index 1d76735..c6b0653 100644
+--- a/hafnium/build/toolchain/embedded.gni
++++ b/hafnium/build/toolchain/embedded.gni
+@@ -333,11 +333,10 @@ template("aarch64_toolchains") {
+                              "toolchain_args",
+                              "branch_protection",
+                            ])
+-    cpu = "${invoker.cpu}+nofp"
++    cpu = "${invoker.cpu}"
+ 
+     # Add a macro so files can tell whether they are not being built for a VM.
+     extra_defines = " -DVM_TOOLCHAIN=0"
+-    extra_cflags = " -mgeneral-regs-only"
+   }
+ 
+   # Toolchain for building test VMs which run under Hafnium.
+diff --git a/hafnium/src/BUILD.gn b/hafnium/src/BUILD.gn
+index d68afee..ce21104 100644
+--- a/hafnium/src/BUILD.gn
++++ b/hafnium/src/BUILD.gn
+@@ -141,7 +141,7 @@ source_set("fdt") {
+   deps = [
+     ":memiter",
+     ":string",
+-    "${third_party_root}/dtc:libfdt",
++    "//../dtc:libfdt",
+   ]
+ }
+ 
+@@ -150,7 +150,7 @@ source_set("fdt_patch") {
+   deps = [
+     ":dlog",
+     ":fdt",
+-    "${third_party_root}/dtc:libfdt",
++    "//../dtc:libfdt",
+   ]
+ }
+ 
+@@ -186,6 +186,6 @@ executable("unit_tests") {
+   deps = [
+     ":memiter",
+     ":src_testable",
+-    "${third_party_root}/googletest:gtest_main",
++    "//../googletest:gtest_main",
+   ]
+ }
+diff --git a/hafnium/src/arch/aarch64/hypervisor/handler.c b/hafnium/src/arch/aarch64/hypervisor/handler.c
+index c8a0b90..16227a9 100644
+--- a/hafnium/src/arch/aarch64/hypervisor/handler.c
++++ b/hafnium/src/arch/aarch64/hypervisor/handler.c
+@@ -359,7 +359,7 @@ static bool spmd_handler(struct ffa_value *args, struct vcpu *current)
+ 		uint32_t psci_msg_response = PSCI_ERROR_NOT_SUPPORTED;
+ 		struct vcpu *boot_vcpu = vcpu_get_boot_vcpu();
+ 		struct vm *vm = boot_vcpu->vm;
+-		struct vcpu *vcpu;
++		struct vcpu *vcpu = NULL;
+ 		struct vcpu_locked vcpu_locked;
+ 
+ 		/*
+-- 
+2.34.1
+
