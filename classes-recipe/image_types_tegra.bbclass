@@ -328,6 +328,7 @@ tegraflash_populate_package() {
         cp ${STAGING_DATADIR}/tegraflash/bpmp_t264-*.bin .
         cp ${STAGING_DATADIR}/tegraflash/tegra264* .
         cp ${STAGING_DATADIR}/tegraflash/t264* .
+        cp ${STAGING_DATADIR}/tegraflash/fuse_t264.xml .
         cp ${STAGING_DATADIR}/tegraflash/tegra264-bpmp-*.dtb .
         cp ${STAGING_DATADIR}/tegraflash/platform_config_profile.yaml .
     fi
