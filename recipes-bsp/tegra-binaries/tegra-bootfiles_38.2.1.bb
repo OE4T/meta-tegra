@@ -63,6 +63,7 @@ install_other_boot_firmware_files() {
 	    ;;
 	tegra264)
 	    install -m 0644 ${S}/bootloader/tegra264-*.dts* ${D}${datadir}/tegraflash/
+	    install -m 0644 ${S}/bootloader/fuse_t264.xml ${D}${datadir}/tegraflash/
 	    install -m 0644 ${S}/bootloader/tegra264-p3834-0008-* ${D}${datadir}/tegraflash/
 	    install -m 0644 ${S}/bootloader/tegra264-mb1-bct-* ${D}${datadir}/tegraflash/
 	    install -m 0644 ${S}/bootloader/t264_tegrabl_* ${D}${datadir}/tegraflash/
