@@ -311,6 +311,7 @@ tegraflash_populate_package() {
     if [ "${SOC_FAMILY}" = "tegra264" ]; then
         cp "${DEPLOY_DIR_IMAGE}/uefi_t26x_general.bin" ./uefi_t26x_general.bin
         cp "${DEPLOY_DIR_IMAGE}/standalonemm_jetson.pkg" ./standalonemm_jetson.pkg
+        cp "${DEPLOY_DIR_IMAGE}/hafnium_t264.fip" ./hafnium_t264.fip
     fi
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${TEGRA_STAGED_BOOT_FIRMWARE}; do
