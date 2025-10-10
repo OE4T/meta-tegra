@@ -5,17 +5,19 @@ BUGTRACKER = "https://github.com/hyperrealm/libconfig/issues"
 SECTION = "libs"
 
 LICENSE = "LGPL-2.1-only"
-LIC_FILES_CHKSUM = "file://COPYING.LIB;md5=fad9b3332be894bab9bc501572864b29"
+LIC_FILES_CHKSUM = "file://COPYING.LIB;md5=17c8e32f0f72580cc2906b409d46b5ac"
 
 SRC_URI = "https://hyperrealm.github.io/libconfig/dist/libconfig-${PV}.tar.gz"
-SRC_URI[md5sum] = "15ec701205f91f21b1187f8b61e0d64f"
-SRC_URI[sha256sum] = "545166d6cac037744381d1e9cc5a5405094e7bfad16a411699bcff40bbb31ee7"
+SRC_URI[md5sum] = "82563b674c793dee5175f5d52f202688"
+SRC_URI[sha256sum] = "87c6f382994b245f9213be34a2bf19c8ee7d033d7abaa51e88fbb7bad79e2dc6"
 
 PROVIDES = "libconfig"
 
 S = "${UNPACKDIR}/libconfig-${PV}"
 
 inherit autotools-brokensep pkgconfig
+
+EXTRA_OECONF += "--disable-examples"
 
 PACKAGE_BEFORE_PN = "${PN}++"
 FILES:${PN}++ = "${libdir}/${BPN}++*${SOLIBS}"
