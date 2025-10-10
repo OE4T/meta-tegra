@@ -64,7 +64,7 @@ do_deploy() {
 }
 
 TOS_DEPLOY_DEPS = ""
-TOS_DEPLOY_DEPS:tegra264 = "edk2-nvidia-standalone-mm:do_deploy"
+TOS_DEPLOY_DEPS:tegra264 = "edk2-nvidia-standalone-mm:do_deploy hafnium:do_deploy"
 do_deploy[depends] += "${TOS_DEPLOY_DEPS}"
 
 addtask deploy before do_build after do_compile

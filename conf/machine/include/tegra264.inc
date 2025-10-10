@@ -55,7 +55,6 @@ TEGRA_BOOT_FIRMWARE_FILES = "\
     hpseraw_t264_prod.bin \
     sbraw_t264_prod.bin \
     tsec_t264_prod.bin \
-    hafnium_t264.fip \
     sc7_t264_prod.bin \
     display-t264-dce.bin \
     nv-rce1-t264.bin \
@@ -70,3 +69,6 @@ TEGRA_BOOT_FIRMWARE_FILES = "\
     readinfo_t264_min_prod.xml \
     flash_l4t_t264_bct_cfg.xml \
 "
+
+PREFERRED_PROVIDER_hafnium ?= "hafnium"
+PREFERRED_VERSION_hafnium ?= "2.9-l4t%"
