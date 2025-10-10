@@ -454,6 +454,10 @@ if [ ${#PARTS[@]} -eq 0 ]; then
 fi
 
 echo  "Creating partitions"
+if ! command -v sgdisk >/dev/null 2>&1; then
+    echo "ERR: 'sgdisk' command not found. Please install the 'gdisk' package." >&2
+    exit 1
+fi
 [ -b "$output" ] || dd if=/dev/zero of="$output" bs=512 count=0 seek=$outsize status=none
 if ! sgdisk "$output" --clear --mbrtogpt >/dev/null 2>&1; then
     if ! sgdisk "$output" --zap-all >/dev/null 2>&1; then
