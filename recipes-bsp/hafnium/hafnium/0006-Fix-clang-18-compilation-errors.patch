@@ -1,0 +1,91 @@
+From 2c53ef75254558693eef5ac3551dcce6c2669c99 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 10 Oct 2025 03:58:42 -0700
+Subject: [PATCH] Fix clang-18 compilation errors
+
+by tagging use of the FP extension where needed.
+
+This is a partial backport of the upstream commit,
+since that commit was made after some refactoring of
+the hypervisor code.
+
+Upstream-Status: Backport [66a38bd5184d941f5319a5e38d389986f64a4f7c]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ hafnium/src/arch/aarch64/hypervisor/exceptions.S | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/hafnium/src/arch/aarch64/hypervisor/exceptions.S b/hafnium/src/arch/aarch64/hypervisor/exceptions.S
+index 0334a5e..9ed1ad4 100644
+--- a/hafnium/src/arch/aarch64/hypervisor/exceptions.S
++++ b/hafnium/src/arch/aarch64/hypervisor/exceptions.S
+@@ -423,9 +423,11 @@ skip_vhe_save:
+ 	/* Save floating point registers. */
+ 	/* Use x28 as the base. */
+ 	add x28, x1, #VCPU_FREGS
++	.arch_extension fp
+ 	simd_op_vectors stp, x28
+ 	mrs x3, fpsr
+ 	mrs x4, fpcr
++	.arch_extension nofp
+ 	stp x3, x4, [x28]
+ 
+ 	/* Save new vCPU pointer in non-volatile register. */
+@@ -476,8 +478,10 @@ other_world_loop:
+ 	/* Restore FP status and control registers. */
+ 	add x18, x19, #VCPU_FPSR
+ 	ldp x0, x1, [x18]
++	.arch_extension fp
+ 	msr fpsr, x0
+ 	msr fpcr, x1
++	.arch_extension nofp
+ 
+ 	/* Check if SVE is implemented. */
+ 	bl is_arch_feat_sve_supported
+@@ -485,7 +489,9 @@ other_world_loop:
+ 
+ 	/* Restore the other world SIMD context to the other world VM vCPU. */
+ 	add x18, x19, #VCPU_FREGS
++	.arch_extension fp
+ 	simd_op_vectors ldp, x18
++	.arch_extension nofp
+ 	b sve_skip_context_restore
+ 
+ 	/* Restore the other world SVE context from internal buffer. */
+@@ -571,8 +577,10 @@ sve_skip_context_restore:
+ 	stp x16, x17, [x19, #VCPU_REGS + 8 * 16]
+ 
+ 	/* Save FP status and control registers. */
++	.arch_extension fp
+ 	mrs x0, fpsr
+ 	mrs x1, fpcr
++	.arch_extension nofp
+ 	add x18, x19, #VCPU_FPSR
+ 	stp x0, x1, [x18]
+ 
+@@ -582,7 +590,9 @@ sve_skip_context_restore:
+ 
+ 	/* Save the other world SIMD context to the other world VM vCPU. */
+ 	add x18, x19, #VCPU_FREGS
++	.arch_extension fp
+ 	simd_op_vectors stp, x18
++	.arch_extension nofp
+ 	b sve_skip_context_save
+ 
+ 	/* Save the other world SVE context to internal buffer. */
+@@ -648,6 +658,7 @@ sve_skip_context_save:
+ 	 * Restore floating point registers.
+ 	 */
+ 	add x2, x0, #VCPU_FREGS
++	.arch_extension fp
+ 	simd_op_vectors ldp, x2
+ 	ldp x3, x4, [x2]
+ 	msr fpsr, x3
+@@ -660,6 +671,7 @@ sve_skip_context_save:
+ 	cmp x5, x4
+ 	b.eq vcpu_restore_lazy_and_run
+ 	msr fpcr, x4
++	.arch_extension nofp
+ 	/* Intentional fallthrough. */
+ 
+ vcpu_restore_lazy_and_run:

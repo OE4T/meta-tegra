@@ -1,0 +1,24 @@
+From b1eecd7f7dd9714f37ee8fa738138b200c3f0220 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 10 Oct 2025 03:33:46 -0700
+Subject: [PATCH] toolchain/host: add BUILD_LDFLAGS
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ hafnium/build/toolchain/host.gni | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/hafnium/build/toolchain/host.gni b/hafnium/build/toolchain/host.gni
+index 9d9b3dd..8df2d48 100644
+--- a/hafnium/build/toolchain/host.gni
++++ b/hafnium/build/toolchain/host.gni
+@@ -14,7 +14,7 @@ template("host_cc_toolchain") {
+     # Collect extra flags from the toolchain.
+     extra_defines = ""
+     extra_cflags = ""
+-    extra_ldflags = ""
++    extra_ldflags = getenv("BUILD_LDFLAGS")
+     if (defined(invoker.extra_defines)) {
+       extra_defines += " ${invoker.extra_defines}"
+     }

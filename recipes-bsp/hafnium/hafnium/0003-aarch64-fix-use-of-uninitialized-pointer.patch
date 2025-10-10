@@ -1,0 +1,34 @@
+From eb16ea91e2cb40b1514d43be1c27fcafc7439744 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 9 Oct 2025 11:19:22 -0700
+Subject: [PATCH] aarch64: fix use of uninitialized pointer
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ hafnium/src/arch/aarch64/hypervisor/handler.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/hafnium/src/arch/aarch64/hypervisor/handler.c b/hafnium/src/arch/aarch64/hypervisor/handler.c
+index c8a0b90..78c413e 100644
+--- a/hafnium/src/arch/aarch64/hypervisor/handler.c
++++ b/hafnium/src/arch/aarch64/hypervisor/handler.c
+@@ -369,9 +369,6 @@ static bool spmd_handler(struct ffa_value *args, struct vcpu *current)
+ 		 */
+ 		switch (args->arg3) {
+ 		case PSCI_CPU_OFF: {
+-			dlog_verbose("cpu%u off notification!\n",
+-				     vcpu_index(vcpu));
+-
+ 			if (vm_power_management_cpu_off_requested(vm) == true) {
+ 				/* Allow only S-EL1 MP SPs to reach here. */
+ 				CHECK(vm->el0_partition == false);
+@@ -382,6 +379,8 @@ static bool spmd_handler(struct ffa_value *args, struct vcpu *current)
+ 				vcpu->state = VCPU_STATE_OFF;
+ 				vcpu_unlock(&vcpu_locked);
+ 				cpu_off(vcpu->cpu);
++				dlog_verbose("cpu%u off notification!\n",
++					     vcpu_index(vcpu));
+ 			}
+ 
+ 			psci_msg_response = PSCI_RETURN_SUCCESS;
