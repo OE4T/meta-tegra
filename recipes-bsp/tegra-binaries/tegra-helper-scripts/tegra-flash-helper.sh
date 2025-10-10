@@ -169,6 +169,12 @@ here=$(readlink -f $(dirname "$0"))
 flashappname="tegraflash.py"
 custinfo_out="custinfo_out.bin"
 
+# tegraflash.py depends on the dtc command
+if ! command -v dtc >/dev/null 2>&1; then
+    echo "ERR: 'dtc' command not found. Please install the 'device-tree-compiler' package." >&2
+    exit 1
+fi
+
 if [ ! -e ./flashvars ]; then
     echo "ERR: missing flash variables file" >&2
     exit 1
