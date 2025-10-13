@@ -12,6 +12,8 @@ PARTITION_FILE_EXTERNAL ?= "${STAGING_DATADIR}/l4t-storage-layout/${PARTITION_LA
 EXTRA_XML_SPLIT_ARGS = "--change-device-type=sdcard"
 PATH =. "${STAGING_BINDIR_NATIVE}/tegra-flash:"
 
+S = "${UNPACKDIR}"
+
 # Applies any fixed, per-SoC rewrites.  Consult the flash.sh script
 # and conf files in the L4T kit for how these are derived.
 copy_in_flash_layout() {
