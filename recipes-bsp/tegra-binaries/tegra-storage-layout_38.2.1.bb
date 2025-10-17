@@ -44,6 +44,10 @@ copy_in_flash_layout() {
                 "$dstfile"
             ;;
         tegra264)
+	    local fsifw_sed="-e/FSIFW/d"
+	    if [ -n "${TEGRA_FLASHVAR_FSIFW}" ]; then
+	        fsifw_sed="-es,FSIFW,${TEGRA_FLASHVAR_FSIFW}"
+	    fi
             sed -i -e"s,MB1FILE,mb1_t264_prod.bin," \
                 -e"s,CAMERAFW,camera-rtcpu-t264-rce.img," \
                 -e"s,BADPAGETYPE,black_list_info," -e"s,BADPAGEFILE,badpage.bin," -e"s,BADPAGENAME,bad-page," \
@@ -67,7 +71,7 @@ copy_in_flash_layout() {
                 -e"s,HAFNIUM_FW,hafnium_t264.fip," \
                 -e"s,WB0BOOT,sc7_t264_prod.bin," \
                 -e"s,SOSFILE,applet_t264.bin," \
-		-e"/FSIFW/d" \
+		$fsifw_sed \
                 "$dstfile"
             ;;
         *)
