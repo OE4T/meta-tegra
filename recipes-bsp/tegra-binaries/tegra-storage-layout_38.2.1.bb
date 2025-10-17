@@ -10,7 +10,6 @@ DEPENDS = "tegra-helper-scripts-native tegra-storage-layout-base"
 PARTITION_FILE ?= "${STAGING_DATADIR}/l4t-storage-layout/${PARTITION_LAYOUT_TEMPLATE}"
 PARTITION_FILE_EXTERNAL ?= "${STAGING_DATADIR}/l4t-storage-layout/${PARTITION_LAYOUT_EXTERNAL}"
 PARTITION_FILE_RCMBOOT ?= "${STAGING_DATADIR}/l4t-storage-layout/${PARTITION_LAYOUT_RCMBOOT}"
-EXTRA_XML_SPLIT_ARGS = "--change-device-type=sdcard"
 PATH =. "${STAGING_BINDIR_NATIVE}/tegra-flash:"
 
 S = "${UNPACKDIR}"
