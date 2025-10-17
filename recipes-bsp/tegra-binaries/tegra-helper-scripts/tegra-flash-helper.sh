@@ -144,12 +144,9 @@ while true; do
 done
 
 flash_in="$1"
-dtb_file="$2"
-sdramcfg_files="$3"
-odmdata="$4"
-kernfile="$5"
-imgfile="$6"
-shift 6
+kernfile="$2"
+imgfile="$3"
+shift 3
 
 here=$(readlink -f $(dirname "$0"))
 flashappname="tegraflash.py"
@@ -174,6 +171,8 @@ if [ -z "$CHIPID" ]; then
 fi
 
 [ -n "$RCMBOOT_KERNEL" ] || RCMBOOT_KERNEL="initrd-flash.img"
+
+dtb_file="$DTB_FILE"
 
 if [ $external_device -eq 0 -a "$CHPID" != "0x26" ]; then
     also_sign_rcmboot=1
@@ -359,7 +358,7 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
                              brbct_cfg/pmic=$PMIC_CONFIG \
                              brbct_cfg/pmc=$PMC_CONFIG \
                              brbct_cfg/dev_param=$EMC_FUSE_DEV_PARAMS \
-                             brbct_cfg/sdram=$sdramcfg_files ; then
+                             brbct_cfg/sdram=$BCTFILE ; then
             echo "ERR: could not update BCT configuration" >&2
             exit 1
         fi
@@ -689,9 +688,9 @@ if [ "$CHIPID" = "0x26" ]; then
          hpct_cfg/dev_param=$DEV_PARAMS \
          sbct_cfg/dev_param=$DEV_PARAMS \
          brbct_cfg/mb2bctcfg=$MB2BCT_CFG \
-         brbct_cfg/sdram=$sdramcfg_files \
-         hpct_cfg/sdram=$sdramcfg_files \
-         sbct_cfg/sdram=$sdramcfg_files \
+         brbct_cfg/sdram=$BCTFILE \
+         hpct_cfg/sdram=$BCTFILE \
+         sbct_cfg/sdram=$BCTFILE \
          hpct_cfg/bl=hpse_bl1_t264_prod.bin \
          hpct_cfg/fw=hpsefw_t264_prod.bin \
          hpct_cfg/raw_bin=hpseraw_t264_prod.bin \
@@ -814,8 +813,8 @@ if [ $want_signing -eq 1 ]; then
     BCT="--sdram_config"
     boot_chain_select="A"
     BL_DIR="."
-    bctfilename=$(echo $sdramcfg_files | cut -d, -f1)
-    bctfile1name=$(echo $sdramcfg_files | cut -d, -f2)
+    bctfilename="$BCTFILE"
+    bctfile1name=
     BCTARGS="$bctargs $overlay_dtb_arg $custinfo_args --bct_backup"
     L4T_CONF_DTBO="L4TConfiguration.dtbo"
     rootfs_ab=0
@@ -833,8 +832,8 @@ if [ $want_signing -eq 1 ]; then
         SOSARGS="--applet mb1_t234_prod.bin "
         NV_ARGS=" "
         FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
-          --sdram_config $sdramcfg_files \
-          --odmdata $odmdata \
+          --sdram_config $BCTFILE \
+          --odmdata $ODMDATA \
           --applet mb1_t234_prod.bin \
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
@@ -879,8 +878,8 @@ if [ $want_signing -eq 1 ]; then
         BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
         if [ "$CHIPID" = "0x23" ]; then
             FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
---sdram_config $sdramcfg_files \
---odmdata $odmdata \
+--sdram_config $BCTFILE \
+--odmdata $ODMDATA \
 --applet mb1_t234_prod.bin \
 --cmd \"$tfcmd\" $skipuid \
 --cfg flash.xml \
@@ -907,8 +906,8 @@ $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparsearg
 else
     if [ "$CHIPID" = "0x23" ]; then
         flashcmd="python3 $flashappname ${inst_args} --chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
---sdram_config $sdramcfg_files \
---odmdata $odmdata \
+--sdram_config $BCTFILE \
+--odmdata $ODMDATA \
 --applet mb1_t234_prod.bin \
 --cmd \"$tfcmd\" $skipuid \
 --cfg flash.xml \
