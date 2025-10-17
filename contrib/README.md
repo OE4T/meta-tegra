@@ -6,19 +6,13 @@ meta-tegra that are not directly part of the BSP.
 
 ## gstreamer 1.14 recipes
 This layer also includes a port of the gstreamer 1.14
-recipes from the OE-Core warrior branch. When using the
-NVIDIA container runtime for Jetson platforms, you may
-need to use gstreamer 1.14 to ensure that the gstreamer
-libraries and plugins exported into NVIDIA's containers
-(which do not bundle them, but mount them from the underlying
-OS) are compatible.
-
-To use these recipes, add this line to your build
-configuration:
-
-    require conf/include/gstreamer-1.14.conf
-
-after including this layer in your `bblayers.conf` file.
+recipes from the OE-Core warrior branch. These recipes
+were sometimes required for running containers from the
+NVIDIA NGC catalog, prior to the introduction of the
+tegra-container-passthrough recipe. The recipes and
+configuration file for using them have been retained
+for backward compatibility, but should no longer be
+needed or used.
 
 Getting Help, Reporting Issues, Contributing
 --------------------------------------------
