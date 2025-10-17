@@ -52,7 +52,6 @@ copy_in_flash_layout() {
                 -e"s,MB2BLFILE,mb2_t264.bin," \
                 -e"s,XUSB_FW,xusb_t264_prod.bin," \
                 -e"s,PSCFW,pscfw_t264_prod.bin," \
-                -e"s,MCE_IMAGE,mce_flash_o10_cr_prod.bin," \
                 -e"s,WB0FILE,sc7_t264_prod.bin," \
                 -e"s,PSCRF_IMAGE,psc_rf_t264_prod.bin," \
                 -e"s,MB2RF_IMAGE,mb2rf_t264.bin," \
