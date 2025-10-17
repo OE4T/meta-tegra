@@ -24,24 +24,10 @@ blocksize=4096
 # need to do anything when run from this script, as we
 # have already copied needed files to the current working
 # directory.
-mkfilesoft() {
-    :
-}
-
-cp2local() {
-    :
-}
-
-signimage() {
-    :
-}
-
-process_l4t_conf_dtbo() {
-    :
-}
-
 partition_exists_in_PT_table() {
-    [ "$1" = "BCT-boot-chain_backup" ]
+    local partname="$1"
+    local layoutfile="$2"
+    "$here/nvflashxmlparse" --get-filename "$partname" "$layoutfile" >/dev/null 2>&1
 }
 
 get_value_from_PT_table() {
