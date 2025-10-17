@@ -10,12 +10,13 @@ COMPATIBLE_MACHINE = "(tegra)"
 inherit setuptools3 cmake cuda
 
 SRC_REPO = "github.com/NVIDIA/TensorRT.git;protocol=https"
-SRCBRANCH = "release/10.3"
+SRCBRANCH = "release/${PV}"
 SRC_URI = "gitsm://${SRC_REPO};branch=${SRCBRANCH} \
            file://0001-Fixups-for-cross-building-in-OE.patch \
-           "
-# v10.3.0 tag
-SRCREV = "c5b9de37f7ef9034e2efc621c664145c7c12436e"
+    "
+
+# v${PV} tag
+SRCREV = "94e2b9ef6d2cce74c76cdad499cca36cc4949197"
 
 OECMAKE_SOURCEPATH = "${S}/python"
 SETUPTOOLS_SETUP_PATH = "${B}"
@@ -29,16 +30,17 @@ CXXFLAGS += "${CUDA_CXXFLAGS}"
 
 do_configure() {
     cmake_do_configure
-    TRT_MAJOR=$(awk '/^#define NV_TENSORRT_MAJOR/ {print $3}' ${STAGING_INCDIR}/NvInferVersion.h)
-    TRT_MINOR=$(awk '/^#define NV_TENSORRT_MINOR/ {print $3}' ${STAGING_INCDIR}/NvInferVersion.h)
-    TRT_PATCH=$(awk '/^#define NV_TENSORRT_PATCH/ {print $3}' ${STAGING_INCDIR}/NvInferVersion.h)
-    TRT_BUILD=$(awk '/^#define NV_TENSORRT_BUILD/ {print $3}' ${STAGING_INCDIR}/NvInferVersion.h)
+    TRT_MAJOR=$(awk '/^#define TRT_MAJOR_ENTERPRISE/ {print $3}' ${STAGING_INCDIR}/NvInferVersion.h)
+    TRT_MINOR=$(awk '/^#define TRT_MINOR_ENTERPRISE/ {print $3}' ${STAGING_INCDIR}/NvInferVersion.h)
+    TRT_PATCH=$(awk '/^#define TRT_PATCH_ENTERPRISE/ {print $3}' ${STAGING_INCDIR}/NvInferVersion.h)
+    TRT_BUILD=$(awk '/^#define TRT_BUILD_ENTERPRISE/ {print $3}' ${STAGING_INCDIR}/NvInferVersion.h)
     TRT_VERSION=${TRT_MAJOR}.${TRT_MINOR}.${TRT_PATCH}.${TRT_BUILD}
     TRT_MAJMINPATCH=${TRT_MAJOR}.${TRT_MINOR}.${TRT_PATCH}
     varsubst() {
         sed -e "s|\#\#TENSORRT_VERSION\#\#|${TRT_VERSION}|g" \
 	    -e "s|\#\#TENSORRT_MAJMINPATCH\#\#|${TRT_MAJMINPATCH}|g" \
 	    -e "s|\#\#TENSORRT_PYTHON_VERSION\#\#|${TRT_MAJMINPATCH}|g" \
+	    -e "s|\#\#TENSORRT_PLUGIN_DISABLED\#\#|\"0\"|g" \
 	    -e "s|\#\#TENSORRT_MODULE\#\#|tensorrt|g" $1 >$2
     }
 
