@@ -50,8 +50,8 @@ get_value_from_PT_table() {
     local layoutfile="$3"
     local varname="$4"
     if [ "$field" != "filename" ]; then
-	echo "ERR: unsupported flash layout field: $field" >&2
-	return 1
+        echo "ERR: unsupported flash layout field: $field" >&2
+        return 1
     fi
     local value=$("$here/nvflashxmlparse" --get-filename "$partname" "$layoutfile" 2>/dev/null)
     eval "$varname=\"$value\""
@@ -269,7 +269,7 @@ if [ -z "$CHIPREV" ]; then
                 echo "ERR: unrecognized fused configuration 0x$flval" >&2
                 exit 1
         esac
-	CHIPREV="${chipid:5:1}"
+        CHIPREV="${chipid:5:1}"
     elif [ "${chipid:6:2}" = "23" ]; then
         flval="0x${chipid:2:1}"
         flval=$(printf "%x" "$((flval & 0x8))")
@@ -298,8 +298,8 @@ if [ -z "$CHIPREV" ]; then
                 echo "ERR: unrecognized fused configuration 0x$flval" >&2
                 exit 1
         esac
-	skipuid="--skipuid"
-	CHIPREV="${chipid:5:1}"
+        skipuid="--skipuid"
+        CHIPREV="${chipid:5:1}"
     else
         echo "ERR: unrecognized chip ID: 0x${chipid:6:2}" >&2
         exit 1
@@ -355,33 +355,33 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
             exit 1
         fi
     elif [ "$CHIPID" = "0x26" ]; then
-	rm -f diag_bct_cfg.xml
-	cp flash_l4t_t264_bct_cfg.xml diag_bct_cfg.xml
-	if ! "$here/nvbct-config" diag_bct_cfg.xml \
-			     brbct_cfg/bpmp_mem_cfg=$BPMP_MEM_CONFIG \
-			     brbct_cfg/brcommand=$BOOTROM_CONFIG \
-			     brbct_cfg/wb0sdram=$WB0SDRAM_BCT \
-			     brbct_cfg/deviceprod=$DEVICEPROD_CONFIG \
-			     brbct_cfg/prod=$PROD_CONFIG \
-			     brbct_cfg/scr=$SCR_CONFIG \
-			     brbct_cfg/mb2bctcfg=$MB2BCT_CFG \
-			     brbct_cfg/uphy=$UPHY_CONFIG \
-			     brbct_cfg/device=$DEVICE_CONFIG \
-			     brbct_cfg/misc=$MISC_CONFIG \
-			     brbct_cfg/pinmux=$PINMUX_CONFIG \
-			     brbct_cfg/gpioint=$GPIOINT_CONFIG \
-			     brbct_cfg/pmic=$PMIC_CONFIG \
-			     brbct_cfg/pmc=$PMC_CONFIG \
-			     brbct_cfg/dev_param=$EMC_FUSE_DEV_PARAMS \
-			     brbct_cfg/sdram=$sdramcfg_files ; then
-	    echo "ERR: could not update BCT configuration" >&2
-	    exit 1
-	fi
+        rm -f diag_bct_cfg.xml
+        cp flash_l4t_t264_bct_cfg.xml diag_bct_cfg.xml
+        if ! "$here/nvbct-config" diag_bct_cfg.xml \
+                             brbct_cfg/bpmp_mem_cfg=$BPMP_MEM_CONFIG \
+                             brbct_cfg/brcommand=$BOOTROM_CONFIG \
+                             brbct_cfg/wb0sdram=$WB0SDRAM_BCT \
+                             brbct_cfg/deviceprod=$DEVICEPROD_CONFIG \
+                             brbct_cfg/prod=$PROD_CONFIG \
+                             brbct_cfg/scr=$SCR_CONFIG \
+                             brbct_cfg/mb2bctcfg=$MB2BCT_CFG \
+                             brbct_cfg/uphy=$UPHY_CONFIG \
+                             brbct_cfg/device=$DEVICE_CONFIG \
+                             brbct_cfg/misc=$MISC_CONFIG \
+                             brbct_cfg/pinmux=$PINMUX_CONFIG \
+                             brbct_cfg/gpioint=$GPIOINT_CONFIG \
+                             brbct_cfg/pmic=$PMIC_CONFIG \
+                             brbct_cfg/pmc=$PMC_CONFIG \
+                             brbct_cfg/dev_param=$EMC_FUSE_DEV_PARAMS \
+                             brbct_cfg/sdram=$sdramcfg_files ; then
+            echo "ERR: could not update BCT configuration" >&2
+            exit 1
+        fi
 
-	if ! python3 $flashappname ${inst_args} --chip 0x26 $skipuid $keyargs \
-	      --applet applet_t264.bin \
-	      --rcmboot_bct_cfg diag_bct_cfg.xml \
-	      --rcmboot_pt_layout readinfo_t264_min_prod.xml \
+        if ! python3 $flashappname ${inst_args} --chip 0x26 $skipuid $keyargs \
+              --applet applet_t264.bin \
+              --rcmboot_bct_cfg diag_bct_cfg.xml \
+              --rcmboot_pt_layout readinfo_t264_min_prod.xml \
              --cmd "readfuses fuse_t264.bin fuse_t264.xml; dump eeprom cvm ${cvm_bin}; dump try_custinfo ${custinfo_out}; reboot recovery"; then
             echo "ERR: could not retrieve EEPROM board information" >&2
             exit 1
@@ -587,24 +587,24 @@ if [ "$CHIPID" = "0x23" ]; then
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${EMC_FUSE_DEV_PARAMS}";
 elif [ "$CHIPID" = "0x26" ]; then
     case $chip_sku in
-	00)
-	;;
-	A3)
-	    BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA1080SA-A1,")
-	    ;;
-	A0)
-	    BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA1090SA-A1,")
-	    ;;
-	E0)
-	    BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TE1090M-A1,")
-	    ;;
-	*)
-	    echo "ERR: unrecognized chip SKU: $chip_sku" >&2
-	    exit 1
-	    ;;
+        00)
+        ;;
+        A3)
+            BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA1080SA-A1,")
+            ;;
+        A0)
+            BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TA1090SA-A1,")
+            ;;
+        E0)
+            BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TE1090M-A1,")
+            ;;
+        *)
+            echo "ERR: unrecognized chip SKU: $chip_sku" >&2
+            exit 1
+            ;;
     esac
     if [ -n "$RAMCODE" ]; then
-	ramcodeargs="--ramcode $RAMCODE"
+        ramcodeargs="--ramcode $RAMCODE"
     fi
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS}";
     sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${EMC_FUSE_DEV_PARAMS}";
@@ -686,34 +686,34 @@ if [ "$CHIPID" = "0x26" ]; then
     rm -f coldboot_bct_cfg.xml rcmboot_bct_cfg.xml
     cp flash_l4t_t264_bct_cfg.xml coldboot_bct_cfg.xml
     if ! "$here/nvbct-config" coldboot_bct_cfg.xml \
-	 brbct_cfg/uphy=$UPHY_CONFIG \
-	 brbct_cfg/device=$DEVICE_CONFIG \
-	 brbct_cfg/misc=$MISC_CONFIG \
-	 brbct_cfg/pinmux=$PINMUX_CONFIG \
-	 brbct_cfg/gpioint=$GPIOINT_CONFIG \
-	 brbct_cfg/pmic=$PMIC_CONFIG \
-	 brbct_cfg/pmc=$PMC_CONFIG \
-	 brbct_cfg/deviceprod=$DEVICEPROD_CONFIG \
-	 brbct_cfg/prod=$PROD_CONFIG \
-	 brbct_cfg/scr=$SCR_CONFIG \
-	 brbct_cfg/wb0sdram=$WB0SDRAM_BCT \
-	 brbct_cfg/brcommand=$BOOTROM_CONFIG \
-	 brbct_cfg/bpmp_mem_cfg=$BPMP_MEM_CONFIG \
-	 brbct_cfg/dev_param=$DEV_PARAMS \
-	 hpct_cfg/dev_param=$DEV_PARAMS \
-	 sbct_cfg/dev_param=$DEV_PARAMS \
-	 brbct_cfg/mb2bctcfg=$MB2BCT_CFG \
-	 brbct_cfg/sdram=$sdramcfg_files \
-	 hpct_cfg/sdram=$sdramcfg_files \
-	 sbct_cfg/sdram=$sdramcfg_files \
-	 hpct_cfg/bl=hpse_bl1_t264_prod.bin \
-	 hpct_cfg/fw=hpsefw_t264_prod.bin \
-	 hpct_cfg/raw_bin=hpseraw_t264_prod.bin \
-	 sbct_cfg/bl=sb_bl1_t264_prod.bin \
-	 sbct_cfg/fw=sbfw_t264_prod.bin \
-	 sbct_cfg/raw_bin=sbraw_t264_prod.bin; then
-	echo "ERR: could not update BCT configuration" >&2
-	exit 1
+         brbct_cfg/uphy=$UPHY_CONFIG \
+         brbct_cfg/device=$DEVICE_CONFIG \
+         brbct_cfg/misc=$MISC_CONFIG \
+         brbct_cfg/pinmux=$PINMUX_CONFIG \
+         brbct_cfg/gpioint=$GPIOINT_CONFIG \
+         brbct_cfg/pmic=$PMIC_CONFIG \
+         brbct_cfg/pmc=$PMC_CONFIG \
+         brbct_cfg/deviceprod=$DEVICEPROD_CONFIG \
+         brbct_cfg/prod=$PROD_CONFIG \
+         brbct_cfg/scr=$SCR_CONFIG \
+         brbct_cfg/wb0sdram=$WB0SDRAM_BCT \
+         brbct_cfg/brcommand=$BOOTROM_CONFIG \
+         brbct_cfg/bpmp_mem_cfg=$BPMP_MEM_CONFIG \
+         brbct_cfg/dev_param=$DEV_PARAMS \
+         hpct_cfg/dev_param=$DEV_PARAMS \
+         sbct_cfg/dev_param=$DEV_PARAMS \
+         brbct_cfg/mb2bctcfg=$MB2BCT_CFG \
+         brbct_cfg/sdram=$sdramcfg_files \
+         hpct_cfg/sdram=$sdramcfg_files \
+         sbct_cfg/sdram=$sdramcfg_files \
+         hpct_cfg/bl=hpse_bl1_t264_prod.bin \
+         hpct_cfg/fw=hpsefw_t264_prod.bin \
+         hpct_cfg/raw_bin=hpseraw_t264_prod.bin \
+         sbct_cfg/bl=sb_bl1_t264_prod.bin \
+         sbct_cfg/fw=sbfw_t264_prod.bin \
+         sbct_cfg/raw_bin=sbraw_t264_prod.bin; then
+        echo "ERR: could not update BCT configuration" >&2
+        exit 1
     fi
     # Same values are set in both coldboot and rcmboot layouts
     cp coldboot_bct_cfg.xml rcmboot_bct_cfg.xml
@@ -821,9 +821,9 @@ if [ $want_signing -eq 1 ]; then
     bpfdtbfilename="$BPFDTB_FILE"
     localbootfile="$kernfile"
     if [ -n "$binsargs_params" ]; then
-	BINSARGS="--bins \"$binsargs_params\""
+        BINSARGS="--bins \"$binsargs_params\""
     else
-	BINSARGS=
+        BINSARGS=
     fi
     BCT="--sdram_config"
     boot_chain_select="A"
@@ -846,7 +846,7 @@ if [ $want_signing -eq 1 ]; then
         custinfofilename="$custinfo_out"
         SOSARGS="--applet mb1_t234_prod.bin "
         NV_ARGS=" "
-	FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
+        FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
@@ -866,13 +866,13 @@ if [ $want_signing -eq 1 ]; then
         custinfofilename="$custinfo_out"
         SOSARGS="--applet applet_t264.bin "
         NV_ARGS=" "
-	FLASHARGS="--chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
+        FLASHARGS="--chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
           --applet applet_t264.bin \
           --cmd \"$tfcmd\" $skipuid \
           --coldboot_pt_layout flash.xml \
           --bct_backup \
           --boot_chain A \
-	  --no_pva 0 \
+          --no_pva 0 \
           $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
     fi
     FBARGS="--cmd \"$tfcmd\""
@@ -883,16 +883,16 @@ if [ $want_signing -eq 1 ]; then
         chmod +x secureflash.sh
     fi
     if [ $also_sign_rcmboot -ne 0 ]; then
-	outfolder="$(odmsign_get_folder)"
-	rm -rf ${outfolder}_save
-	mv ${outfolder} ${outfolder}_save
-	rm -f secureflash.xml.save
-	mv secureflash.xml secureflash.xml.save
-	BCTARGS="$bctargs $rcm_overlay_dtb_arg $custinfo_args --bct_backup"
-	L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
-	BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
-	if [ "$CHIPID" = "0x23" ]; then
-	    FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
+        outfolder="$(odmsign_get_folder)"
+        rm -rf ${outfolder}_save
+        mv ${outfolder} ${outfolder}_save
+        rm -f secureflash.xml.save
+        mv secureflash.xml secureflash.xml.save
+        BCTARGS="$bctargs $rcm_overlay_dtb_arg $custinfo_args --bct_backup"
+        L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
+        BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
+        if [ "$CHIPID" = "0x23" ]; then
+            FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
 --sdram_config $sdramcfg_files \
 --odmdata $odmdata \
 --applet mb1_t234_prod.bin \
@@ -901,14 +901,14 @@ if [ $want_signing -eq 1 ]; then
 --bct_backup \
 --boot_chain A \
 $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
-	fi
-	(rcm_boot=1 odmsign_ext) || exit 1
-	rm -f flashcmd.txt
-	rm -rf ${outfolder}
-	mv ${outfolder}_save ${outfolder}
-	cp -f ${outfolder}/* .
-	rm -f secureflash.xml
-	mv secureflash.xml.save secureflash.xml
+        fi
+        (rcm_boot=1 odmsign_ext) || exit 1
+        rm -f flashcmd.txt
+        rm -rf ${outfolder}
+        mv ${outfolder}_save ${outfolder}
+        cp -f ${outfolder}/* .
+        rm -f secureflash.xml
+        mv secureflash.xml.save secureflash.xml
     fi
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
         cp secureflash.sh flashcmd.txt
@@ -920,7 +920,7 @@ $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparsearg
     flashcmd="python3 $flashappname ${inst_args} $FLASHARGS"
 else
     if [ "$CHIPID" = "0x23" ]; then
-	flashcmd="python3 $flashappname ${inst_args} --chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
+        flashcmd="python3 $flashappname ${inst_args} --chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
 --sdram_config $sdramcfg_files \
 --odmdata $odmdata \
 --applet mb1_t234_prod.bin \
@@ -931,8 +931,8 @@ else
 $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --bins \"$binsargs_params\""
     elif [ "$CHIPID" = "0x26" ]; then
-	if [ $rcm_boot -ne 0 ]; then
-	    flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
+        if [ $rcm_boot -ne 0 ]; then
+            flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
 --applet mb1_t264.bin \
 --cmd \"$tfcmd\" $skipuid \
 --rcmboot_pt_layout flash.xml \
@@ -941,8 +941,8 @@ $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --no_pva 0 \
 $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --bins \"$binsargs_params\""
-	else
-	    flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
+        else
+            flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
 --applet mb1_t264.bin \
 --cmd \"$tfcmd\" $skipuid \
 --coldboot_pt_layout flash.xml \
@@ -951,7 +951,7 @@ $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparsearg
 --no_pva 0 \
 $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --bins \"$binsargs_params\""
-	fi
+        fi
     fi
 fi
 
@@ -980,12 +980,12 @@ fi
 
 if [ $no_flash -ne 0 ]; then
     if [ "$CHIPID" = "0x26" -a $rcm_boot -ne 0 ]; then
-	[ -z "$keyargs" ] || flashcmd="${flashcmd} $keyargs"
-	eval $flashcmd --no_flash < /dev/null || exit 1
+        [ -z "$keyargs" ] || flashcmd="${flashcmd} $keyargs"
+        eval $flashcmd --no_flash < /dev/null || exit 1
     else
-	echo "$flashcmd" | sed -e 's,--skipuid,,g' > flashcmd.txt
-	chmod +x flashcmd.txt
-	rm -f APPFILE APPFILE_b DATAFILE
+        echo "$flashcmd" | sed -e 's,--skipuid,,g' > flashcmd.txt
+        chmod +x flashcmd.txt
+        rm -f APPFILE APPFILE_b DATAFILE
     fi
 else
     eval $flashcmd < /dev/null || exit 1
