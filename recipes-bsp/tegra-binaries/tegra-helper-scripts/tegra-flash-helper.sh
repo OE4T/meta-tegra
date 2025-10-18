@@ -221,7 +221,7 @@ if [ -z "$CHIPREV" ]; then
     chipidargs="--new_session --chip $CHIPID"
     BR_CID=$($here/tegrarcm_v2 ${chipidargs} ${inst_args} --uid | grep BR_CID | cut -d' ' -f2)
     chipid="$BR_CID"
-    if [ -z "$chipid" -a "$chipd" != "0x00000" ]; then
+    if [ -z "$chipid" -o "$chipid" = "0x00000" ]; then
         echo "ERR: could not retrieve chip ID" >&2
         exit 1
     fi
