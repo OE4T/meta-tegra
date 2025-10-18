@@ -14,6 +14,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
 
 GUID:tegra234 ?= "bf0d4599-20d4-414e-b2c5-3595b1cda402"
+GUID:tegra264 ?= "3c834404-d2d7-4912-8c1c-6e850b5f2824"
 
 do_compile() {
     # Generate BUP images
