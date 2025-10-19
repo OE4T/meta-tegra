@@ -7,7 +7,6 @@ keyfile=
 sbk_keyfile=
 spi_only=
 external_device=0
-sdcard=
 no_flash=0
 to_sign=0
 flash_cmd=
@@ -43,7 +42,7 @@ get_value_from_PT_table() {
     eval "$varname=\"$value\""
 }
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,hsm,no-flash,sign,sdcard,spi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:,erase-spi" -o "u:v:s:b:B:yc:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,hsm,no-flash,sign,spi-only,qspi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:,erase-spi" -o "u:v:B:c:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -74,11 +73,7 @@ while true; do
         to_sign=1
         shift
         ;;
-    --sdcard)
-        sdcard=yes
-        shift
-        ;;
-    --spi-only|--boot-only)
+    --spi-only|--boot-only|--qspi-only)
         spi_only=yes
         shift
         ;;
@@ -112,21 +107,9 @@ while true; do
         sbk_keyfile="$2"
         shift 2
         ;;
-    -s)
-        make_sdcard_args="$make_sdcard_args -s $2"
-        shift 2
-        ;;
-    -b)
-        make_sdcard_args="$make_sdcard_args -b $2"
-        shift 2
-        ;;
     -B)
         blocksize="$2"
         shift 2
-        ;;
-    -y)
-        make_sdcard_args="$make_sdcard_args -y"
-        shift
         ;;
     -c)
         flash_cmd="$2"
@@ -606,7 +589,7 @@ printf "0x%x\n" $(( (BSP_BRANCH<<16) | (BSP_MAJOR<<8) | BSP_MINOR )) >>${MACHINE
 bytes=$(wc -c ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1)
 cksum=$(python3 -c "import zlib; print(\"%X\" % (zlib.crc32(open(\"${MACHINE}_bootblob_ver.txt\", \"rb\").read()) & 0xFFFFFFFF))")
 echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
-if [ -z "$sdcard" -a $external_device -eq 0 ]; then
+if [ $external_device -eq 0 ]; then
     appfile=$(basename "$imgfile").img
     if [ -n "$dataimg" ]; then
     datafile=$(basename "$dataimg").img
@@ -619,17 +602,10 @@ appfile_sed=
 if [ $bup_blob -ne 0 -o $rcm_boot -ne 0 ]; then
     kernfile="${kernfile:-boot.img}"
     appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
-elif [ $no_flash -eq 0 -a -z "$sdcard" -a $external_device -eq 0 ]; then
+elif [ $no_flash -eq 0 -a $external_device -eq 0 ]; then
     appfile_sed="-es,APPFILE_b,$appfile, -es,APPFILE,$appfile, -es,DATAFILE,$datafile,"
 elif [ $no_flash -ne 0 ]; then
     touch APPFILE APPFILE_b DATAFILE
-else
-    pre_sdcard_sed="-es,APPFILE_b,$appfile, -es,APPFILE,$appfile,"
-    if [ -n "$datafile" ]; then
-        pre_sdcard_sed="$pre_sdcard_sed -es,DATAFILE,$datafile,"
-        touch DATAFILE
-    fi
-    touch APPFILE APPFILE_b
 fi
 
 if [ "$TBCDTB_FILE" = "@DTBFILE@" ]; then
@@ -760,13 +736,13 @@ if [ $rcm_boot -ne 0 -a $to_sign -eq 0 ]; then
     binsargs_params="$binsargs_params; kernel $kernfile; kernel_dtb $kernel_dtbfile; bootloader_dtb $TBCDTB_FILE"
 fi
 
-if [ $bup_blob -ne 0 -o $to_sign -ne 0 -o "$sdcard" = "yes" -o $external_device -eq 1 ]; then
+if [ $bup_blob -ne 0 -o $to_sign -ne 0 -o $external_device -eq 1 ]; then
     tfcmd=sign
     skipuid="--skipuid"
 elif [ $rcm_boot -ne 0 ]; then
     tfcmd=rcmboot
 else
-    if [ -z "$sdcard" -a $external_device -eq 0 -a $no_flash -eq 0 -a "$spi_only" != "yes" ]; then
+    if [ $external_device -eq 0 -a $no_flash -eq 0 -a "$spi_only" != "yes" ]; then
         rm -f "$appfile"
         echo "Creating sparseimage ${appfile}..."
         $here/mksparse -b ${blocksize} --fillpattern=0 "$imgfile" "$appfile" || exit 1
@@ -974,15 +950,4 @@ if [ $no_flash -ne 0 ]; then
     fi
 else
     eval $flashcmd < /dev/null || exit 1
-    if [ -n "$sdcard" -o $external_device -eq 1 ]; then
-        if [ $external_device -eq 1 -a -n "$serial_number" ]; then
-            make_sdcard_args="$make_sdcard_args --serial-number $serial_number"
-        fi
-        if [ -n "$pre_sdcard_sed" ]; then
-            rm -f signed/flash.xml.tmp.in
-            mv signed/flash.xml.tmp signed/flash.xml.tmp.in
-            sed $pre_sdcard_sed  signed/flash.xml.tmp.in > signed/flash.xml.tmp
-        fi
-        $here/make-sdcard $make_sdcard_args signed/flash.xml.tmp "$@"
-    fi
 fi
