@@ -193,10 +193,6 @@ fi
 
 fuselevel="fuselevel_production"
 
-# Temp file for storing cvm.bin in, if we need to query the board for its
-# attributes
-cvm_bin=$(mktemp cvm.bin.XXXXX)
-
 skipuid=""
 bootauth=""
 BR_CID=
@@ -303,23 +299,22 @@ if [ -n "$hsm_arg" -a -z "$keyfile" ]; then
     exit 1
 fi
 
-have_boardinfo=
 keyargs=
 [ -z "$keyfile" ] || keyargs="$keyargs $hsm_arg --key $keyfile"
 [ -z "$sbk_keyfile" ] || keyargs="$keyargs --encrypt_key $sbk_keyfile"
-if [ -z "$FAB" -o -z "$BOARDID" ]; then
+
+if [ $bup_blob -eq -0 -a ! -d rcmdump_blob ]; then
+    rm -rf rcmdump_blob
+    mkdir rcmdump_blob
     rm -f rcm_state
-    if [ -n "$EMC_FUSE_DEV_PARAMS" ]; then
-        sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "$EMC_FUSE_DEV_PARAMS"
-    fi
     if [ "$CHIPID" = "0x23" ]; then
         if ! python3 $flashappname ${inst_args} --chip 0x23 $skipuid $keyargs \
              --applet mb1_t234_prod.bin \
              --dev_params $EMC_FUSE_DEV_PARAMS \
              --cfg readinfo_t234_min_prod.xml \
              --device_config $DEVICE_CONFIG --misc_config $MISC_CONFIG --bins "mb2_applet applet_t234.bin" \
-             --cmd "readfuses fuse_t234.bin fuse_t234.xml; dump eeprom cvm ${cvm_bin}; dump try_custinfo ${custinfo_out}; reboot recovery"; then
-            echo "ERR: could not retrieve EEPROM board information" >&2
+             --cmd "dump gen_blob"; then
+            echo "ERR: could not generate rcmdump_blob" >&2
             exit 1
         fi
     elif [ "$CHIPID" = "0x26" ]; then
@@ -350,38 +345,66 @@ if [ -z "$FAB" -o -z "$BOARDID" ]; then
               --applet applet_t264.bin \
               --rcmboot_bct_cfg diag_bct_cfg.xml \
               --rcmboot_pt_layout readinfo_t264_min_prod.xml \
-             --cmd "readfuses fuse_t264.bin fuse_t264.xml; dump eeprom cvm ${cvm_bin}; dump try_custinfo ${custinfo_out}; reboot recovery"; then
-            echo "ERR: could not retrieve EEPROM board information" >&2
+             --cmd "dump gen_blob"; then
+            echo "ERR: could not generate rcmdump_blob" >&2
             exit 1
          fi
     fi
+    cp $here/tegrarcm_v2 $here/chkbdinfo rcmdump_blob/
+fi
 
-    # The chip_info.bin_bak file is created as a side effect of the above tegraflash.py invocation
-    if [ ! -e chip_info.bin_bak ]; then
-        echo "ERR: chip_info.bin_bak missing after dumping boardinfo" >&2
+declare -A board_info
+have_boardinfo=
+
+get_board_info() {
+    local oldwd="$PWD"
+    cd rcmdump_blob
+    rm -f chipinfo.bin cvm.bin rcm_state
+    if bash rcmdumpcmd.txt; then
+        if ./tegrarcm_v2 --chip $CHIPID 0 --oem platformdetails chip chipinfo.bin && \
+                ./tegrarcm_v2 --chip $CHIPID 0 --oem platformdetails eeprom cvm cvm.bin && \
+                [ -f cvm.bin -a -f chipinfo.bin ]; then
+            board_info[CHIP_SKU]=$(./chkbdinfo -C chipinfo.bin | tr -d '[:space:]')
+            board_ramcode=$(./chkbdinfo -R chipinfo.bin | tr -d '[:space:]')
+            if [ -z "$board_ramcode" ]; then
+                echo "ERR: ramcode could not be extracted from chip info" >&2
+                exit 1
+            fi
+            board_ramcode="$(echo "$board_ramcode" | cut -d: -f4)"
+            board_ramcode=$((16#$board_ramcode % 16))
+            board_info[RAMCODE]="$board_ramcode"
+            # XXX- these don't appear to be used
+            board_info[CHIP_MINOR]=$(./chkbdinfo -M chipinfo.bin)
+            board_info[BOOTROM_ID]=$(./chkbdinfo -O chipinfo.bin)
+            board_info[BOARDID]=$(./chkbdinfo -i cvm.bin | tr -d '[:space:]')
+            board_info[BOARDSKU]=$(./chkbdinfo -k cvm.bin | tr -d '[:space:]' | tr [a-z] [A-Z])
+            board_info[FAB]=$(./chkbdinfo -f cvm.bin | tr -d '[:space:]' | tr [a-z] [A-Z])
+            board_info[BOARDREV]=$(./chkbdinfo -r cvm.bin | tr -d '[:space:]' | tr [a-z] [A-Z])
+            board_info[SERIALNUMBER]=$(./chkbdinfo -a cvm.bin | tr -d '[:space:]')
+            skipuid=""
+            have_boardinfo="yes"
+            rm -f chipinfo.bin cvm.bin
+        else
+            echo "ERR: failed to retrieve chip and module info" >&2
+            have_boardinfo=
+        fi
+        ./tegrarcm_v2 --chip $CHIPID 0 --reboot recovery
+        sleep 1
+    fi
+    cd "$oldwd"
+}
+
+if [ -z "$FAB" -o -z "$BOARDID" ]; then
+    get_board_info
+    if [ -z "$have_boardinfo" ]; then
         exit 1
     fi
-    CHIP_SKU=$($here/chkbdinfo -C chip_info.bin_bak | tr -d '[:space:]')
-    board_ramcode=$($here/chkbdinfo -R chip_info.bin_bak)
-    if [ -z "$board_ramcode" ]; then
-        echo "ERR: ramcode could not be extracted from chip info" >&2
-        exit 1
-    fi
-    board_ramcode="$(echo "$board_ramcode" | cut -d: -f4)"
-    board_ramcode=$((16#$board_ramcode % 16))
-    RAMCODE="$board_ramcode"
-    # XXX- these don't appear to be used
-    # chip_minor_revision=$($here/chkbdinfo -M chip_info.bin_bak)
-    # bootrom_revision=$($here/chkbdinfo -O chip_info.bin_bak)
-    # -XXX
-    skipuid=""
-    have_boardinfo="yes"
 fi
 
 if [ -n "$BOARDID" ]; then
     boardid="$BOARDID"
 else
-    boardid=$($here/chkbdinfo -i ${cvm_bin} | tr -d '[:space:]')
+    boardid="${board_info[BOARDID]}"
     BOARDID="$boardid"
     if [ -n "$CHECK_BOARDID" -a "$BOARDID" -ne "$CHECK_BOARDID" ]; then
         echo "ERR: actual board ID $BOARDID does not match expected board ID $CHECK_BOARDID" >&2
@@ -389,21 +412,24 @@ else
     fi
 fi
 
-if [ "$CHIPID" = "0x23" -o "$CHIPID" = "0x26" ] && [ -z "$CHIP_SKU" ]; then
+if [ "$CHIPID" = "0x23" -o "$CHIPID" = "0x26" ] && [ -z "$CHIP_SKU" -a -z "$have_boardinfo" ]; then
     echo "ERR: no default chip SKU set" >&2
     exit 1
+elif [ -n "$have_boardinfo" -a "$CHIP_SKU" != "${board_info[CHIP_SKU]}" ]; then
+    echo "Using CHIP_SKU from board: ${board_info[CHIP_SKU]}"
+    CHIP_SKU="${board_info[CHIP_SKU]}"
 fi
 
 if [ -n "$FAB" ]; then
     board_version="$FAB"
 else
-    board_version=$($here/chkbdinfo -f ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z])
+    board_version="${board_info[FAB]}"
     FAB="$board_version"
 fi
 if [ -n "$BOARDSKU" ]; then
     board_sku="$BOARDSKU"
 elif [ -n "$have_boardinfo" ]; then
-    board_sku=$($here/chkbdinfo -k ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z])
+    board_sku="${board_info[BOARDSKU]}"
     BOARDSKU="$board_sku"
     if [ -n "$CHECK_BOARDSKU" -a "$BOARDSKU" -ne "$CHECK_BOARDSKU" ]; then
         echo "ERR: actual board SKU $BOARDSKU does not match expected board SKU $CHECK_BOARDSKU" >&2
@@ -413,14 +439,19 @@ fi
 if [ -n "$BOARDREV" ]; then
     board_revision="$BOARDREV"
 elif [ -n "$have_boardinfo" ]; then
-    board_revision=$($here/chkbdinfo -r ${cvm_bin} | tr -d '[:space:]' | tr [a-z] [A-Z])
+    board_revision="${board_info[BOARDREV]}"
     BOARDREV="$board_revision"
 fi
 if [ -z "$serial_number" -a -n "$have_boardinfo" ]; then
-    serial_number=$($here/chkbdinfo -a ${cvm_bin} | tr -d '[:space:]')
+    serial_number="${board_info[SERIALNUMBER]}"
 fi
 
-[ -f ${cvm_bin} ] && rm -f ${cvm_bin}
+if [ -n "$RAMCODE" -a -n "$have_boardinfo" ]; then
+    if [ "$RAMCODE" != "${board_info[RAMCODE]}" ]; then
+        echo "Using RAMCODE from board: ${board_info[RAMCODE]}"
+        RAMCODE="${board_info[RAMCODE]}"
+    fi
+fi
 
 if [ -z "$RAMCODE" -a "$BOARDID" = "3701" -a "$FAB" = "301" ]; then
     RAMCODE=0
@@ -449,9 +480,6 @@ if [ -n "$usb_instance" ]; then
 fi
 if [ -n "$BR_CID" ]; then
     echo "BR_CID=\"$BR_CID\"" >>boardvars.sh
-fi
-if [ -n "$CHIP_SKU" ]; then
-    echo "CHIP_SKU=\"$CHIP_SKU\"" >>boardvars.sh
 fi
 
 if echo "$CHIP_SKU" | grep -q ":" 2>/dev/null; then
@@ -550,9 +578,6 @@ if [ "$CHIPID" = "0x23" ]; then
         ramcodeargs="--ramcode $RAMCODE"
     fi
 
-    sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS}";
-    sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS_B}";
-    sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${EMC_FUSE_DEV_PARAMS}";
 elif [ "$CHIPID" = "0x26" ]; then
     case $chip_sku in
         00)
@@ -574,8 +599,6 @@ elif [ "$CHIPID" = "0x26" ]; then
     if [ -n "$RAMCODE" ]; then
         ramcodeargs="--ramcode $RAMCODE"
     fi
-    sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${DEV_PARAMS}";
-    sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" "${EMC_FUSE_DEV_PARAMS}";
 fi
 echo "Board ID($BOARDID) version($FAB) sku($BOARDSKU) revision($BOARDREV) Chip SKU($chip_sku) ramcode($RAMCODE)"
 
@@ -938,6 +961,37 @@ if [ $no_flash -ne 0 ]; then
     if [ "$CHIPID" = "0x26" -a $rcm_boot -ne 0 ]; then
         [ -z "$keyargs" ] || flashcmd="${flashcmd} $keyargs"
         eval $flashcmd --no_flash < /dev/null || exit 1
+        mem_rcm_file=$(awk -F"bct_mem " '/bct_mem /{print $2}' rcmboot_blob/rcmbootcmd.txt | cut -f1 -d' ')
+        sed -e"s,$mem_rcm_file,membct_ramcode_file," rcmboot_blob/rcmbootcmd.txt > rcmboot_blob/rcmbootcmd.tmp
+        cat > rcmboot_blob/rcmbootcmd.txt <<EOF
+#!/bin/bash
+oldwd="\$PWD"
+rm -rf rcmdump_blob
+tar -xf rcmdump_blob.tar
+cd rcmdump_blob
+rm -f chipinfo.bin
+if bash rcmdumpcmd.txt; then
+    ./tegrarcm_v2 --chip $CHIPID 0 --oem platformdetails chipinfo.bin
+    ./tegrarcm_v2 --chip $CHIPID 0 --reboot recovery
+    sleep 1
+fi
+board_ramcode=\$(./chkbdinfo -R chipinfo.bin)
+rm -f chipinfo.bin
+cd "\$oldwd"
+rm -rf rcmdump_blob
+if [ -z "\$board_ramcode" ]; then
+    echo "ERR: failed to get on-board ramcode" >&2
+    exit 1
+fi
+board_ramcode="\$(echo "\$board_ramcode" | cut -d: -f4)"
+board_ramcode=\$((16#\$board_ramcode % 16))
+RAMCODE="\$board_ramcode"
+ram_group=\$((\$board_ramcode / 2))
+cp -v \$(echo "$mem_rcm_file" | sed -re"s,membct_[0-9]+_,membct_\${ram_group}_,") membct_ramcode_file
+EOF
+        cat rcmboot_blob/rcmbootcmd.tmp >> rcmboot_blob/rcmbootcmd.txt
+        rm rcmboot_blob/rcmbootcmd.tmp
+        tar -cf rcmboot_blob/rcmdump_blob.tar rcmdump_blob
     else
         echo "$flashcmd" | sed -e 's,--skipuid,,g' > flashcmd.txt
         chmod +x flashcmd.txt
