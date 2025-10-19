@@ -839,10 +839,6 @@ if [ $want_signing -eq 1 ]; then
     FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
     (odmsign_ext) || exit 1
-    if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
-        mv flashcmd.txt secureflash.sh || exit 1
-        chmod +x secureflash.sh
-    fi
     if [ $also_sign_rcmboot -ne 0 ]; then
         outfolder="$(odmsign_get_folder)"
         rm -rf ${outfolder}_save
@@ -872,7 +868,6 @@ $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparsearg
         mv secureflash.xml.save secureflash.xml
     fi
     if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
-        cp secureflash.sh flashcmd.txt
         rm -f APPFILE APPFILE_b DATAFILE
     fi
     if [ $bup_blob -eq 0 ]; then

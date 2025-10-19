@@ -145,8 +145,6 @@ EOF
 
 sign_binaries() {
     if [ -n "$PRESIGNED" ]; then
-        cp doflash.sh flash_signed.sh
-        sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
         cp secureflash.xml internal-secureflash.xml
         if [ -e external-flash.xml.in ]; then
             cp external-flash.xml.in external-secureflash.xml
@@ -172,8 +170,6 @@ sign_binaries() {
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
               "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
               flash.xml.in $LNXFILE $ROOTFS_IMAGE; then
-        cp flashcmd.txt flash_signed.sh
-        sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
         cp secureflash.xml internal-secureflash.xml
         if [ -e external-flash.xml.in ]; then
             cp external-flash.xml.in external-secureflash.xml
