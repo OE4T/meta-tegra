@@ -18,6 +18,7 @@ sparseargs=
 erase_spi=
 hsm_arg=
 blocksize=4096
+get_board_info=0
 
 # These functions are used in odmsign.func but do not
 # need to do anything when run from this script, as we
@@ -42,7 +43,7 @@ get_value_from_PT_table() {
     eval "$varname=\"$value\""
 }
 
-ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,hsm,no-flash,sign,spi-only,qspi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:,erase-spi" -o "u:v:B:c:" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,hsm,no-flash,sign,spi-only,qspi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:,erase-spi,get-board-info" -o "u:v:B:c:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
     exit 1
@@ -79,6 +80,10 @@ while true; do
         ;;
     --rcm-boot)
         rcm_boot=1
+        shift
+        ;;
+    --get-board-info)
+        get_board_info=1
         shift
         ;;
     --erase-spi)
@@ -480,6 +485,11 @@ if [ -n "$usb_instance" ]; then
 fi
 if [ -n "$BR_CID" ]; then
     echo "BR_CID=\"$BR_CID\"" >>boardvars.sh
+fi
+
+if [ $get_board_info -eq 1 ]; then
+    echo "Board information written to boardvars.sh"
+    exit 0
 fi
 
 if echo "$CHIP_SKU" | grep -q ":" 2>/dev/null; then
