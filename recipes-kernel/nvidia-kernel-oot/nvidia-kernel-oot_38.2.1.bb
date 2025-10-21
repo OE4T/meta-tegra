@@ -3,11 +3,11 @@ TEGRA_SRC_SUBARCHIVE = "\
     Linux_for_Tegra/source/nvidia_kernel_display_driver_source.tbz2 \
     Linux_for_Tegra/source/nvidia_unified_gpu_display_driver_source.tbz2 \
 "
-TEGRA_SRC_SUBARCHIVE_OPTS = "-C ${UNPACKDIR}/${BPN}"
+TEGRA_SRC_SUBARCHIVE_OPTS = "-C ${S}"
 require recipes-bsp/tegra-sources/tegra-sources-38.2.1.inc
 
 do_unpack[depends] += "tegra-binaries:do_preconfigure"
-do_unpack[dirs] += "${UNPACKDIR}/${BPN}"
+do_unpack[dirs] += "${S}"
 
 unpack_makefile_from_bsp() {
     cp ${L4T_BSP_SHARED_SOURCE_DIR}/source/Makefile ${UNPACKDIR}
@@ -22,8 +22,6 @@ SRC_URI += "file://0001-Makefile-update-for-OE-builds.patch \
             file://0005-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch \
             file://0006-conftest-work-around-stringify-issue-with.patch \
            "
-
-S = "${UNPACKDIR}/${BPN}"
 
 require nvidia-kernel-oot.inc
 
