@@ -130,30 +130,9 @@ wait_for_rcm() {
     "$here/find-jetson-usb" --wait "$usb_instance"
 }
 
-copy_signed_binaries() {
-    local signdir="${1:-signed}"
-    local xmlfile="${2:-flash.xml.tmp}"
-    local destdir="${3:-.}"
-    local blksize partnumber partname partsize partfile partguid parttype partfilltoend
-    local line
-
-    while read line; do
-        eval "$line"
-        [ -n "$partfile" ] || continue
-        if [ ! -e "$signdir/$partfile" ]; then
-            if [ ! -e "$destdir/$partfile" ] && ! echo "$partfile" | grep -q "FILE"; then
-                echo "ERR: could not copy $partfile from $signdir" >&2
-                return 1
-            fi
-        else
-            cp "$signdir/$partfile" "$destdir"
-        fi
-    done < <("$here/nvflashxmlparse" -t boot "$signdir/$xmlfile"; "$here/nvflashxmlparse" -t rootfs "$signdir/$xmlfile")
-}
-
 get_board_info() {
     if ! "$here/$FLASH_HELPER" $instance_args --get-board-info 2>&1 >>"$logfile"; then
-        echo "ERR: could not retrieve borad information" >&2
+        echo "ERR: could not retrieve board information" >&2
         exit 1
     fi
     . ./boardvars.sh
@@ -171,45 +150,47 @@ prepare_binaries() {
     local kernel="$3"
     local rootfs_img="$4"
 
-    if [ "$target" = "rcm-boot" ]; then
-        rm -rf rcmboot_blob
-    fi
     if [ "$target" = "internal" ]; then
-        if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
-             "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
-            return 1
+        if [ -z "$PRESIGNED" ]; then
+            if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
+                 "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
+                return 1
+            fi
+            cp secureflash.xml internal-secureflash.xml
+            mv flash.idx internal-flash.idx
         fi
-        cp secureflash.xml internal-secureflash.xml
         mkdir -p tools/kernel_flash/images/internal
-        if ! stage_files_for_uniflash tools/kernel_flash/images/internal; then
+        if ! stage_files_for_uniflash tools/kernel_flash/images/internal internal-flash.idx internal-secureflash.xml; then
             return 1
         fi
         return 0
     elif [ "$target" = "external" ]; then
-        if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
-             "$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
-            return 1
+        if [ -z "$PRESIGNED" ]; then
+            if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
+                 "$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
+                return 1
+            fi
+            mv secureflash.xml external-secureflash.xml
+            mv flash.idx external-flash.idx
         fi
-        mv secureflash.xml external-secureflash.xml
         mkdir -p tools/kernel_flash/images/external
-        if ! stage_files_for_uniflash tools/kernel_flash/images/external; then
+        if ! stage_files_for_uniflash tools/kernel_flash/images/external external-flash.idx external-secureflash.xml; then
             return 1
         fi
-        # XXX need to handle APP_b, APP_ENC, APP_ENC_b
-        # XXX better solution might be to munge the flash.idx file, so other partitions get handled too
-        $here/mksparse -b 4096 --fillpattern=0 $rootfs_img tools/kernel_flash/images/external/system.img
-        echo "APP_ext=system.img" >> tools/kernel_flash/images/external/flash.cfg
         return 0
     elif [ "$target" = "rcm-boot" ]; then
-        if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
-             "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
-            echo "ERR: could not create RCM boot blob" >&2
-            return 1
+        if [ -z "$PRESIGNED" ]; then
+            rm -rf rcmboot_blob
+            if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
+                 "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
+                echo "ERR: could not create RCM boot blob" >&2
+                return 1
+            fi
         fi
         rm -rf bootloader
         mkdir bootloader
-        mv applet bootloader/
-        mv rcmboot_blob bootloader/
+        cp -R applet bootloader/
+        cp -R rcmboot_blob bootloader/
         echo "$RAMCODE" > bootloader/ramcode.txt
         return 0
     else
@@ -218,59 +199,44 @@ prepare_binaries() {
     fi
 }
 
-copy_bootloader_files() {
-    local dest="$1"
-    local partnumber partloc partname start_location partsize partfile partattrs partsha
-    local devnum instnum
-    local is_spi is_mmcboot
-    rm -f "$dest/partitions.conf"
-    while IFS=", " read partnumber partloc start_location partsize partfile partattrs partsha; do
-        # Need to trim off leading blanks
-        devnum=$(echo "$partloc" | cut -d':' -f 1)
-        instnum=$(echo "$partloc" | cut -d':' -f 2)
-        partname=$(echo "$partloc" | cut -d':' -f 3)
-        # SPI is 3:0
-        # eMMC boot blocks (boot0/boot1) are 0:3
-        # eMMC user is 1:3
-        # NVMe (any external device) is 9:0
-        if [ $devnum -eq 3 -a $instnum -eq 0 ] || [ $devnum -eq 0 -a $instnum -eq 3 ]; then
-            if [ -n "$partfile" ]; then
-                cp "$partfile" "$dest/"
-            fi
-            if [ $devnum -eq 3 -a $instnum -eq 0 ]; then
-                is_spi=yes
-            elif [ $devnum -eq 0 -a $instnum -eq 3 ]; then
-                is_mmcboot=yes
-            fi
-            echo "$partname:$start_location:$partsize:$partfile" >> "$dest/partitions.conf"
-        fi
-    done < flash.idx
-    if [ -n "$is_spi" ]; then
-        if [ -n "$is_mmcboot" ]; then
-            echo "ERR: found bootloader entries for both SPI flash and eMMC boot partitions" >&2
-            return 1
-        fi
-        echo "spi" > "$dest/boot_device_type"
-    elif [ -n "$is_mmcboot" ]; then
-        echo "mmcboot" > "$dest/boot_device_type"
-    else
-        echo "ERR: no SPI or eMMC boot partition entries found" >&2
-        return 1
+update_flash_cfg_for_partition() {
+    local flash_idx_partname="$1"
+    local storageline="$2"
+    local dest="$3"
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
+    eval "$storageline"
+    if [ "$partname" = "$flash_idx_partname" -a -n "$partfile" ]; then
+        cp "$partfile" "$dest/"
+        echo "${partname}_ext=$partfile" >> "$dest/flash.cfg"
+        echo "INFO: staged $dest/$partfile for partition $partname"
     fi
-    return 0
 }
 
 stage_files_for_uniflash() {
     local dest="$1"
+    local flash_idx="$2"
+    local layout_xml="$3"
     local partnumber partloc partname start_location partsize partfile partattrs partsha
+    local which=$(basename "$dest")
     local devnum instnum
+    local -a partitions
+    if [ -n "$layout_xml" ]; then
+        mapfile partitions < <("./nvflashxmlparse" -t rootfs "$layout_xml")
+    fi
     while IFS=", " read partnumber partloc start_location partsize partfile partattrs partsha; do
+        devnum=$(echo "$partloc" | cut -d':' -f 1)
+        instnum=$(echo "$partloc" | cut -d':' -f 2)
+        partname=$(echo "$partloc" | cut -d':' -f 3)
         if [ -n "$partfile" ]; then
             cp "$partfile" "$dest/" || return 1
+        else
+            for pline in "${partitions[@]}"; do
+                update_flash_cfg_for_partition "$partname" "$pline" "$dest"
+            done
         fi
-    done < flash.idx
-    cp flash.idx "$dest/" || return 1
-    if [ -e flash-upi.idx ]; then
+    done < "$flash_idx"
+    cp "$flash_idx" "$dest/flash.idx" || return 1
+    if [ "$which" = "internal" -a -e flash-upi.idx ]; then
         while IFS=", " read partnumber partloc start_location partsize partfile partattrs partsha; do
             if [ -n "$partfile" ]; then
                 cp "$partfile" "$dest/" || return 1
@@ -311,7 +277,7 @@ get_board_info
 rm -rf tools/kernel_flash/images
 
 if [ $skip_bootloader -eq 0 ] ; then
-    step_banner "Preparing boot firmware for QSPI"
+    step_banner "Preparing contents for QSPI boot flash"
     if ! prepare_binaries internal flash.xml.in $LNXFILE $ROOTFS_IMAGE 2>&1 >>"$logfile"; then
         echo "ERR: preparing QSPI partitions failed at $(date -Is)"  | tee -a "$logfile"
         exit 1
@@ -319,7 +285,7 @@ if [ $skip_bootloader -eq 0 ] ; then
 fi
 
 if [ $qspi_only -eq 0 ] && [ -e external-flash.xml.in ]; then
-    step_banner "Preparing partitions for external storage"
+    step_banner "Preparing contents for external storage"
     if ! prepare_binaries external external-flash.xml.in $LNXFILE $ROOTFS_IMAGE 2>&1 >>"$logfile"; then
         echo "ERR: preparing external partitions failed at $(date -Is)"  | tee -a "$logfile"
         exit 1
@@ -330,10 +296,6 @@ step_banner "Preparing for RCM boot"
 if ! prepare_binaries rcm-boot rcmboot-flash.xml.in initrd-flash.img $ROOTFS_IMAGE 2>&1 >>"$logfile"; then
     echo "ERR: preparing RCM boot blob at $(date -Is)"  | tee -a "$logfile"
     exit 1
-fi
-
-if [ -z "$PRESIGNED" ]; then
-    [ ! -f ./boardvars.sh ] || . ./boardvars.sh
 fi
 
 step_banner "Setting up unified flash workspace"

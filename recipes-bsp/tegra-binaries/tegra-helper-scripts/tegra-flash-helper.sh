@@ -622,23 +622,19 @@ printf "0x%x\n" $(( (BSP_BRANCH<<16) | (BSP_MAJOR<<8) | BSP_MINOR )) >>${MACHINE
 bytes=$(wc -c ${MACHINE}_bootblob_ver.txt | cut -d' ' -f1)
 cksum=$(python3 -c "import zlib; print(\"%X\" % (zlib.crc32(open(\"${MACHINE}_bootblob_ver.txt\", \"rb\").read()) & 0xFFFFFFFF))")
 echo "BYTES:$bytes CRC32:$cksum" >>${MACHINE}_bootblob_ver.txt
-if [ $external_device -eq 0 ]; then
-    appfile=$(basename "$imgfile").img
-    if [ -n "$dataimg" ]; then
-    datafile=$(basename "$dataimg").img
-    fi
-else
-    appfile="$imgfile"
-    datafile="$dataimg"
-fi
+appfile="$imgfile"
+datafile="$dataimg"
 appfile_sed=
 if [ $bup_blob -ne 0 -o $rcm_boot -ne 0 ]; then
     kernfile="${kernfile:-boot.img}"
     appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
-elif [ $no_flash -eq 0 -a $external_device -eq 0 ]; then
-    appfile_sed="-es,APPFILE_b,$appfile, -es,APPFILE,$appfile, -es,DATAFILE,$datafile,"
-elif [ $no_flash -ne 0 ]; then
-    touch APPFILE APPFILE_b DATAFILE
+else
+    appfile_sed="-es,APPFILE,$appfile,"
+    if [ -e "$datafile" ]; then
+        appfile_sed="$appfile_sed -es,DATAFILE,$datafile,"
+    else
+        appfile_sed="$appfile_sed -e/DATAFILE/d"
+    fi
 fi
 
 if [ "$TBCDTB_FILE" = "@DTBFILE@" ]; then
@@ -775,16 +771,6 @@ if [ $bup_blob -ne 0 -o $to_sign -ne 0 -o $external_device -eq 1 ]; then
 elif [ $rcm_boot -ne 0 ]; then
     tfcmd=rcmboot
 else
-    if [ $external_device -eq 0 -a $no_flash -eq 0 -a "$spi_only" != "yes" ]; then
-        rm -f "$appfile"
-        echo "Creating sparseimage ${appfile}..."
-        $here/mksparse -b ${blocksize} --fillpattern=0 "$imgfile" "$appfile" || exit 1
-        if [ -n "$datafile" ]; then
-            rm -f "$datafile"
-            echo "Creating sparseimage ${datafile}..."
-            $here/mksparse -b ${blocksize} --fillpattern=0 "$dataimg" "$datafile" || exit 1
-        fi
-    fi
     tfcmd=${flash_cmd:-"flash;reboot"}
 fi
 
@@ -900,9 +886,6 @@ $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparsearg
         rm -f secureflash.xml
         mv secureflash.xml.save secureflash.xml
     fi
-    if [ $bup_blob -eq 0 -a $no_flash -ne 0 ]; then
-        rm -f APPFILE APPFILE_b DATAFILE
-    fi
     if [ $bup_blob -eq 0 ]; then
         exit 0
     fi
@@ -1005,7 +988,6 @@ EOF
     else
         echo "$flashcmd" | sed -e 's,--skipuid,,g' > flashcmd.txt
         chmod +x flashcmd.txt
-        rm -f APPFILE APPFILE_b DATAFILE
     fi
 else
     eval $flashcmd < /dev/null || exit 1
