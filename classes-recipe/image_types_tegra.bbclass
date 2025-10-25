@@ -4,7 +4,7 @@ TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 inherit ${TEGRA_UEFI_SIGNING_CLASS}
 TEGRA_UEFI_USE_SIGNED_FILES ??= "false"
 
-IMAGE_TYPES += "tegraflash.tar ext4.simg"
+IMAGE_TYPES += "tegraflash.tar"
 CONVERSIONTYPES =+ "simg"
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
@@ -468,6 +468,16 @@ do_image_tegraflash_tar[depends] += "dtc-native:do_populate_sysroot coreutils-na
                                  ${@'${TEGRA_ESP_IMAGE}:do_image_complete' if d.getVar('TEGRA_ESP_IMAGE') != '' else  ''} \
                                  virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS} \
                                  ${@'${TEGRAFLASH_INITRD_FLASH_IMAGE}:do_image_complete' if d.getVar('TEGRAFLASH_INITRD_FLASH_IMAGE') != '' else ''}"
+# XXX-
+# Image type dependencies in OE-Core don't completely handle image
+# types with '.' in them correctly, so we need to specify these twice.
+#
+# The anonymous python in image.bbclass allows 'xxx.yyy' as an image
+# type, and translates the '.' to '_' where needed.
+# The imagetypes_getdepends() function in image_types.bbclass always
+# splits on '.' and only looks at IMAGE_TYPEDEP:xxx
+IMAGE_TYPEDEP:tegraflash += "${IMAGE_TEGRAFLASH_FS_TYPE}"
 IMAGE_TYPEDEP:tegraflash.tar += "${IMAGE_TEGRAFLASH_FS_TYPE}"
+# -XXX
 CONVERSION_CMD:simg = "tegra_mksparse ${IMAGE_NAME}.${type} ${IMAGE_NAME}.${type}.simg"
 CONVERSION_DEPENDS_simg = "tegra-flashtools-native"
