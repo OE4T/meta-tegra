@@ -14,6 +14,7 @@ Usage:
   $me [options]
 
 Options:
+  -D|--debug            Enable debug logging when running unified flash script
   -h|--help             Displays this usage information
   --external-only       Write only the external storage device
   -k|--partition NAME   Write only the specified partition
@@ -55,8 +56,9 @@ qspi_only=0
 partition_name=
 early_final_status=0
 check_usb_instance="${TEGRAFLASH_CHECK_USB_INSTANCE:-no}"
+uniflash_flags=""
 
-ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,external-only,qspi-only,partition" -o "u:v:k:h" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,external-only,qspi-only,partition,debug" -o "u:v:k:hD" -- "$@")
 if [ $? -ne 0 ]; then
     usage >&2
     exit 1
@@ -105,6 +107,10 @@ while true; do
         -h|--help)
             usage
             exit 0
+            ;;
+        -D|--debug)
+            uniflash_flags="-D"
+            shift
             ;;
         --)
             shift
@@ -326,7 +332,7 @@ EOF
 chmod +x out/doflash.sh
 
 step_banner "Running unified flash"
-./out/doflash.sh 2>&1 | tee -a "$logfile"
+./out/doflash.sh $uniflash_flags 2>&1 | tee -a "$logfile"
 echo "Finished at $(date -Is)" | tee -a "$logfile"
 echo "Host-side log:              $logfile"
 exit 0
