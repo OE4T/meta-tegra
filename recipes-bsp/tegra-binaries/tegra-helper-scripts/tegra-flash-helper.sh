@@ -162,6 +162,11 @@ fi
 
 dtb_file="$DTB_FILE"
 
+odmdata_arg=
+if [ -n "$ODMDATA" ]; then
+    odmdata_arg="--odmdata $ODMDATA"
+fi
+
 if [ $external_device -eq 0 -a "$CHPID" != "0x26" ]; then
     also_sign_rcmboot=1
 else
@@ -828,13 +833,12 @@ if [ $want_signing -eq 1 ]; then
         NV_ARGS=" "
         FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
           --sdram_config $BCTFILE \
-          --odmdata $ODMDATA \
           --applet mb1_t234_prod.bin \
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
           --bct_backup \
           --boot_chain A \
-          $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
+          $odmdata_arg $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
     elif [ "$CHIPID" = "0x26" ]; then
         flashername="uefi_t26x_general_with_dtb.bin"
         RCM_UEFIBL="uefi_t26x_general_with_dtb.bin"
@@ -853,7 +857,7 @@ if [ $want_signing -eq 1 ]; then
           --bct_backup \
           --boot_chain A \
           --no_pva 0 \
-          $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
+          $odmdata_arg $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
     fi
     FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
@@ -894,13 +898,12 @@ else
     if [ "$CHIPID" = "0x23" ]; then
         flashcmd="python3 $flashappname ${inst_args} --chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
 --sdram_config $BCTFILE \
---odmdata $ODMDATA \
 --applet mb1_t234_prod.bin \
 --cmd \"$tfcmd\" $skipuid \
 --cfg flash.xml \
 --bct_backup \
 --boot_chain A \
-$bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
+$odmdata_arg $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --bins \"$binsargs_params\""
     elif [ "$CHIPID" = "0x26" ]; then
         if [ $rcm_boot -ne 0 ]; then
@@ -911,7 +914,7 @@ $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --bct_backup \
 --boot_chain A \
 --no_pva 0 \
-$bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
+$odmdata_arg $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --bins \"$binsargs_params\""
         else
             flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
