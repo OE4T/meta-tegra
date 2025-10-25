@@ -14,6 +14,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
 
 GUID:tegra234 ?= "bf0d4599-20d4-414e-b2c5-3595b1cda402"
+GUID:tegra264 ?= "3c834404-d2d7-4912-8c1c-6e850b5f2824"
 
 do_compile() {
     # Generate BUP images
@@ -26,9 +27,6 @@ do_compile() {
     # BUP generator really wants to use 'boot.img' for the LNX
     # partition contents
     tegraflash_populate_package ${IMAGE_TEGRAFLASH_KERNEL} boot.img ${@tegra_bootcontrol_overlay_list(d, bup=True)}
-    if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
-        mv generate_bup_payload.sh doflash.sh
-    fi
     tegraflash_create_flash_config flash.xml.in boot.img ${STAGING_DATADIR}/tegraflash/bupgen-internal-flash.xml
     . ./flashvars
     tegraflash_custom_sign_bup
