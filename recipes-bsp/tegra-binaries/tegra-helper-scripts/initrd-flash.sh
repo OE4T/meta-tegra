@@ -103,13 +103,14 @@ while true; do
                 echo "ERR: specify only one of --external-only, --qspi-only, --partition" >&2
                 exit 1
             fi
+            uniflash_flags="$uniflash_flags -u $partition_name"
             ;;
         -h|--help)
             usage
             exit 0
             ;;
         -D|--debug)
-            uniflash_flags="-D"
+            uniflash_flags="$uniflash_flags -D"
             shift
             ;;
         --)
@@ -319,6 +320,9 @@ mkdir out
 mkdir -p out/flash_workspace/flash-images out/flash_workspace/rcm-boot
 ./create_l4t_bsp_images.py $convargs --info --dest $PWD/out
 ./create_l4t_bsp_images.py $convargs --dest $PWD/out/flash_workspace/flash-images
+if [ -n "$partition_name" ]; then
+    ./create_l4t_bsp_images.py $convargs -k $partition_name --dest $PWD/out/flash_workspace/flash-images
+fi
 ./create_l4t_bsp_images.py $convargs --dest $PWD/out/flash_workspace/rcm-boot --rcm-boot
 cp -R out/flash_workspace/rcm-boot out/flash_workspace/rcm-flash
 cat > out/doflash.sh <<EOF
