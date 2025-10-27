@@ -50,6 +50,15 @@ do_install() {
     install_other_boot_firmware_files
 
     install -m 0644 ${BCT_TEMPLATE} ${D}${datadir}/tegraflash/${EMC_BCT}
+    if [ -n "${TEGRA_FLASHVAR_DEV_PARAMS}" -a -e "${D}${datadir}/tegraflash/${TEGRA_FLASHVAR_DEV_PARAMS}" ]; then
+        sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" ${D}${datadir}/tegraflash/${TEGRA_FLASHVAR_DEV_PARAMS}
+    fi
+    if [ -n "${TEGRA_FLASHVAR_DEV_PARAMS_B}" -a -e "${D}${datadir}/tegraflash/${TEGRA_FLASHVAR_DEV_PARAMS_B}" ]; then
+        sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" ${D}${datadir}/tegraflash/${TEGRA_FLASHVAR_DEV_PARAMS_B}
+    fi
+    if [ -n "${TEGRA_FLASHVAR_EMC_FUSE_DEV_PARAMS}" -a -e "${D}${datadir}/tegraflash/${TEGRA_FLASHVAR_EMC_FUSE_DEV_PARAMS}" ]; then
+        sed -i "s/preprod_dev_sign = <1>/preprod_dev_sign = <0>/" ${D}${datadir}/tegraflash/${TEGRA_FLASHVAR_EMC_FUSE_DEV_PARAMS}
+    fi
 }
 
 install_other_boot_firmware_files() {

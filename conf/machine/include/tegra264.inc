@@ -25,6 +25,7 @@ TEGRA_CHIPREV ?= "1"
 TEGRA_CUDA_ARCHITECTURE ?= "110"
 
 TEGRA_FLASHVAR_BR_CMD_CONFIG ?= ""
+TEGRA_FLASHVAR_FSIFW ?= ""
 
 require conf/machine/include/tegra-common.inc
 

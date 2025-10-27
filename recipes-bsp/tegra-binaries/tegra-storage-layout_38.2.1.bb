@@ -10,7 +10,6 @@ DEPENDS = "tegra-helper-scripts-native tegra-storage-layout-base"
 PARTITION_FILE ?= "${STAGING_DATADIR}/l4t-storage-layout/${PARTITION_LAYOUT_TEMPLATE}"
 PARTITION_FILE_EXTERNAL ?= "${STAGING_DATADIR}/l4t-storage-layout/${PARTITION_LAYOUT_EXTERNAL}"
 PARTITION_FILE_RCMBOOT ?= "${STAGING_DATADIR}/l4t-storage-layout/${PARTITION_LAYOUT_RCMBOOT}"
-EXTRA_XML_SPLIT_ARGS = "--change-device-type=sdcard"
 PATH =. "${STAGING_BINDIR_NATIVE}/tegra-flash:"
 
 S = "${UNPACKDIR}"
@@ -44,6 +43,10 @@ copy_in_flash_layout() {
                 "$dstfile"
             ;;
         tegra264)
+	    local fsifw_sed="-e/FSIFW/d"
+	    if [ -n "${TEGRA_FLASHVAR_FSIFW}" ]; then
+	        fsifw_sed="-es,FSIFW,${TEGRA_FLASHVAR_FSIFW}"
+	    fi
             sed -i -e"s,MB1FILE,mb1_t264_prod.bin," \
                 -e"s,CAMERAFW,camera-rtcpu-t264-rce.img," \
                 -e"s,BADPAGETYPE,black_list_info," -e"s,BADPAGEFILE,badpage.bin," -e"s,BADPAGENAME,bad-page," \
@@ -52,7 +55,6 @@ copy_in_flash_layout() {
                 -e"s,MB2BLFILE,mb2_t264.bin," \
                 -e"s,XUSB_FW,xusb_t264_prod.bin," \
                 -e"s,PSCFW,pscfw_t264_prod.bin," \
-                -e"s,MCE_IMAGE,mce_flash_o10_cr_prod.bin," \
                 -e"s,WB0FILE,sc7_t264_prod.bin," \
                 -e"s,PSCRF_IMAGE,psc_rf_t264_prod.bin," \
                 -e"s,MB2RF_IMAGE,mb2rf_t264.bin," \
@@ -68,7 +70,7 @@ copy_in_flash_layout() {
                 -e"s,HAFNIUM_FW,hafnium_t264.fip," \
                 -e"s,WB0BOOT,sc7_t264_prod.bin," \
                 -e"s,SOSFILE,applet_t264.bin," \
-		-e"/FSIFW/d" \
+		$fsifw_sed \
                 "$dstfile"
             ;;
         *)
