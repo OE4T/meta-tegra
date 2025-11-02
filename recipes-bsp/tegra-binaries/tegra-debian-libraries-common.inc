@@ -20,7 +20,7 @@ SRC_SOC_DEBS = "${@format_deb_uri(d, False)}"
 SRC_COMMON_DEBS = "${@format_deb_uri(d, True)}"
 SRC_URI[main.sha256sum] = "${MAINSUM}"
 
-PV = "${L4T_VERSION}${@l4t_bsp_debian_version_suffix(d)}"
+PV = "${L4T_BSP_DEB_BASE_VERSION}${@l4t_bsp_debian_version_suffix(d)}"
 
 install_libraries() {
     install -d ${D}${libdir}
