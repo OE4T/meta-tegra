@@ -20,6 +20,10 @@ SRC_URI = "\
     ${SRC_URI_EDK2_PLATFORMS};branch=${SRCBRANCH_edk2};name=edk2-platforms;destsuffix=edk2/edk2-platforms \
 "
 
+EDK2_SUBHOOK_MIRROR_SPEC ?= "gitsm://github.com/Zeex/subhook.git gitsm://github.com/tianocore/edk2-subhook.git"
+PREMIRRORS =+ "${EDK2_SUBHOOK_MIRROR_SPEC}"
+MIRRORS += "${EDK2_SUBHOOK_MIRROR_SPEC}"
+
 SRCREV_FORMAT         = "edk2_edk2-platforms"
 UPSTREAM_CHECK_GITTAGREGEX = "^edk2-stable(?P<pver>\d+)$"
 
