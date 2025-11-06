@@ -145,7 +145,7 @@ copy_to_device() {
     local src="$1"
     local dst="$2"
     if [ -z "$HAVEBMAPTOOL" ]; then
-	dd if="$src" of="$dst" conv=fsync status=none >/dev/null 2>&1 || return 1
+	dd if="$src" of="$dst" conv=fsync bs=4M status=none >/dev/null 2>&1 || return 1
 	return 0
     fi
     local bmap=$(mktemp)
