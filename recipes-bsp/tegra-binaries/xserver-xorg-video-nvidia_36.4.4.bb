@@ -7,6 +7,10 @@ require tegra-debian-libraries-common.inc
 
 MAINSUM = "12440f0eff87ff22906726fdad61d87a2681bf8ace9d824b8b208e0ee8dfdbcc"
 
+inherit features_check
+
+REQUIRED_DISTRO_FEATURES = "x11"
+
 do_install() {
     install -d ${D}${libdir}/xorg/modules/drivers
     install -m 0644 ${S}/usr/lib/xorg/modules/drivers/nvidia_drv.so ${D}${libdir}/xorg/modules/drivers/
