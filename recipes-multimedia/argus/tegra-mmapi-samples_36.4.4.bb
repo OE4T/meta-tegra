@@ -19,7 +19,7 @@ inherit pkgconfig cuda python3native features_check
 PACKAGECONFIG ??= ""
 PACKAGECONFIG[objdetect] = "HAVE_OPENCV=1 HAVE_TENSORRT=1,,tensorrt-core tensorrt-plugins opencv"
 
-REQUIRED_DISTRO_FEATURES = "x11 opengl"
+REQUIRED_DISTRO_FEATURES = "x11 opengl vulkan"
 
 CXXFLAGS += "${CUDA_CXXFLAGS}"
 export NVCC = "nvcc"
