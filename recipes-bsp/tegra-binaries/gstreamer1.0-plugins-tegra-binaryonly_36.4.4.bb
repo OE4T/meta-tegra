@@ -16,6 +16,10 @@ require tegra-debian-libraries-common.inc
 
 MAINSUM = "f69922d5a90f462335d057b0312929f5f4b1c81d98c0c18001a64188588e76e7"
 
+inherit features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
+
 TEGRA_LIBRARIES_TO_INSTALL = "\
     libgstnvegl-1.0.so.0 \
     libgstnvexifmeta.so \
