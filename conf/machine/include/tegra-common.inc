@@ -141,9 +141,3 @@ PARTITION_LAYOUT_RCMBOOT ?= "${PARTITION_LAYOUT_RCMBOOT_DEFAULT}"
 
 ROOTFSPART_SIZE_REDUNDANT ?= "${@int(d.getVar('ROOTFSPART_SIZE_DEFAULT')) // 2}"
 ROOTFSPART_SIZE ?= "${@d.getVar('ROOTFSPART_SIZE_REDUNDANT') if bb.utils.to_boolean(d.getVar('USE_REDUNDANT_FLASH_LAYOUT')) else d.getVar('ROOTFSPART_SIZE_DEFAULT')}"
-
-BB_RECIPE_VIRTUAL_PROVIDERS:append = " virtual/cross-cuda-gcc virtual/cross-cuda-g++"
-PREFERRED_PROVIDER_virtual/cross-cuda-gcc = "${MLPREFIX}gcc-for-nvcc-cross-${TARGET_ARCH}"
-PREFERRED_PROVIDER_virtual/cross-cuda-gcc:class-nativesdk = "${MLPREFIX}gcc-for-nvcc-crosssdk-${SDK_SYS}"
-PREFERRED_PROVIDER_virtual/cross-cuda-g++ = "${MLPREFIX}gcc-for-nvcc-cross-${TARGET_ARCH}"
-PREFERRED_PROVIDER_virtual/cross-cuda-g++:class-nativesdk = "${MLPREFIX}gcc-for-nvcc-crosssdk-${SDK_SYS}"
