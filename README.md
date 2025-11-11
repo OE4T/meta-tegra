@@ -1,8 +1,6 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Jetson Modules
 ======================================================
 
-**NOTE** This is a work in progress. Do *NOT* use for production
-
 Jetson Linux release: R38.2.2
 JetPack release:      7.0
 
@@ -18,14 +16,6 @@ LAYERSERIES_COMPAT: whinlatter
 Please consult [this wiki page](https://github.com/OE4T/meta-tegra/wiki/JetPack-7.0-L4T-R38.2.x-Notes)
 for information about support for this release.
 
-CUDA toolchain compatibility note
----------------------------------
-
-CUDA 13 supports up through gcc 13.2 only, so recipes are included
-for adding the gcc 13 toolchain to the build for CUDA use, and `cuda.bbclass`
-has been updated to pass the g++ 13 compiler to nvcc for CUDA code compilation.
-
-
 Getting Help
 ------------
 
@@ -34,15 +24,13 @@ setup please use the
 [Discussions](https://github.com/OE4T/meta-tegra/discussions) tab of the
 meta-tegra repository:
 
-* Use the Ideas category for anything you'd like to see included in meta-tegra,
-Wiki content, or the
-[tegra-demo-distro](https://github.com/OE4T/tegra-demo-distro/issues).
-* Use the Q&A category for questions about how to build or modify your Tegra
-target based on the content here.
+* Use the Ideas category for anything you'd like to see included in the layer
+  or the wiki content.
+* Use the Q&A category for questions about the layer, recipes, etc.
 * Use the "Show and Tell" category for any projects you'd like to share which
-are related to meta-tegra.
+are related to the layer.
 * Use the General channel for anything that doesn't fit well into the categories
-above, and which doesn't relate to a build or runtime issue with Tegra yocto
+above, and which doesn't relate to a build or runtime issue with Yocto/OE
 builds.
 
 Reporting Issues
