@@ -1,34 +1,33 @@
-require tegra-binaries-${PV}.inc
+LICENSE = "Proprietary"
+LIC_FILES_CHKSUM = "file://Tegra_Software_License_Agreement-Tegra-Linux.txt;md5=376d20bd5275442226fcdf54e4844ddf \
+                    file://nv_tegra/LICENSE.brcm_patchram_plus;md5=38fb07f0dacf4830bc57f40a0fb7532e"
 
-WORKDIR = "${TMPDIR}/work-shared/L4T-native-${PV}-${PR}"
-SSTATE_SWSPEC = "sstate:tegra-binaries-native::${PV}:${PR}::${SSTATE_VERSION}:"
-STAMP = "${STAMPS_DIR}/work-shared/L4T-native-${PV}-${PR}"
-STAMPCLEAN = "${STAMPS_DIR}/work-shared/L4T-native-${PV}-*"
+SRC_URI = "\
+    ${L4T_URI_BASE}/${L4T_BSP_PREFIX}_Linux_R${L4T_VERSION}_aarch64.tbz2 \
+    file://0003-Convert-BUP_generator.py-to-Python3.patch \
+    file://0004-Convert-gen_tos_part_img.py-to-Python3.patch \
+    file://0006-Update-tegra-python-scripts-for-Python3.patch \
+    file://0009-Remove-xxd-dependency-from-l4t_sign_image.sh.patch \
+    file://0010-Rework-logging-in-l4t_sign_image.sh.patch \
+    file://0013-Fix-location-of-bsp_version-file-in-l4t_bup_gen.func.patch \
+    file://0014-Fix-SyntaxWarnings-in-unified-flash-scripts.patch \
+"
+SRC_URI[sha256sum] = "ada1ed68b78e0e9807c70db87be562b6eac6aa95d538bf63b6e9f8a30083704b"
 
-SRC_URI += "\
-           file://0003-Convert-BUP_generator.py-to-Python3.patch \
-           file://0004-Convert-gen_tos_part_img.py-to-Python3.patch \
-           file://0006-Update-tegra-python-scripts-for-Python3.patch \
-           file://0009-Remove-xxd-dependency-from-l4t_sign_image.sh.patch \
-           file://0010-Rework-logging-in-l4t_sign_image.sh.patch \
-           file://0013-Fix-location-of-bsp_version-file-in-l4t_bup_gen.func.patch \
-           file://0014-Fix-SyntaxWarnings-in-unified-flash-scripts.patch \
-           "
+inherit l4t_bsp
+
 S = "${UNPACKDIR}/Linux_for_Tegra"
 B = "${WORKDIR}/build"
 
-COMPATIBLE_MACHINE = ""
-
-inherit_defer native
+COMPATIBLE_HOST = "(x86_64.*)"
+COMPATIBLE_HOST:class-native = ""
 
 INHIBIT_DEFAULT_DEPS = "1"
-DEPENDS = "tegra-helper-scripts-native python3-pyyaml-native"
+DEPENDS = "tegra-helper-scripts python3-pyyaml"
 
 do_compile[noexec] = "1"
 
 BINDIR = "${bindir}/tegra-flash"
-
-addtask preconfigure after do_patch before do_configure
 
 do_install() {
     install -d ${D}${BINDIR}
@@ -66,4 +65,12 @@ do_install() {
     cp -R --no-dereference --preserve=links,mode,timestamps ${S}/unified_flash ${D}${BINDIR}/
 }
 
+RDEPENDS:${PN} = "tegra-helper-scripts python3-pyyaml bash"
+
+INHIBIT_PACKAGE_STRIP = "1"
+INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
+# Some of the prebuilt tools are for 32-bit x86 instead of x86-64
+INSANE_SKIP:${PN} = "arch"
+
+BBCLASSEXTEND = "native nativesdk"

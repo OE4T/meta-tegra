@@ -4,8 +4,6 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda
 
 INHIBIT_DEFAULT_DEPS = "1"
 
-inherit_defer native
-
 SRC_URI = " \
     file://tegra-flash-helper.sh \
     file://nvflashxmlparse.py \
@@ -24,3 +22,6 @@ do_install() {
     install -m 0755 ${S}/find-jetson-usb.sh ${D}${bindir}/tegra-flash/find-jetson-usb
     install -m 0755 ${S}/initrd-flash.sh ${D}${bindir}/tegra-flash/initrd-flash
 }
+
+RDEPENDS:${PN} = "bash python3-core"
+BBCLASSEXTEND = "native nativesdk"
