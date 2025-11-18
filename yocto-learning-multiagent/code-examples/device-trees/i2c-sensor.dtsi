@@ -1,0 +1,487 @@
+/*
+ * I2C Sensor Device Tree Include File for NVIDIA Jetson
+ *
+ * This file demonstrates:
+ * - I2C bus configuration
+ * - I2C device nodes for common sensors
+ * - Clock and pinmux configuration
+ * - Interrupt configuration
+ * - Power supply references
+ *
+ * Compatible with: Jetson TX2, Xavier, Orin
+ * Kernel: 5.10+
+ *
+ * Include this file in your main DTS:
+ *   #include "i2c-sensor.dtsi"
+ *
+ * Or convert to overlay:
+ *   dtc -@ -I dts -O dtb -o i2c-sensor.dtbo i2c-sensor.dtsi
+ */
+
+#include <dt-bindings/gpio/tegra194-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/* For other platforms, use appropriate headers:
+ * TX2:   dt-bindings/gpio/tegra186-gpio.h
+ * Nano:  dt-bindings/gpio/tegra210-gpio.h
+ */
+
+/ {
+    /*
+     * I2C Bus 1 Configuration
+     * Typically I2C_GP1 on Jetson carrier boards
+     */
+    i2c@3160000 {
+        compatible = "nvidia,tegra194-i2c";
+        status = "okay";
+
+        /* Bus speed: 100kHz (standard), 400kHz (fast), 1MHz (fast-plus) */
+        clock-frequency = <400000>;
+
+        /* DMA support (optional) */
+        dmas = <&gpcdma 21>, <&gpcdma 21>;
+        dma-names = "rx", "tx";
+
+        /* Pinmux configuration reference */
+        pinctrl-names = "default";
+        pinctrl-0 = <&i2c1_pins>;
+
+        /* Multi-master support */
+        multi-master;
+
+        /*
+         * BME280: Temperature, Humidity, Pressure Sensor
+         * Bosch Sensortec
+         * Address: 0x76 or 0x77
+         */
+        bme280@76 {
+            compatible = "bosch,bme280";
+            reg = <0x76>;
+            status = "okay";
+
+            /* Power supply */
+            vdd-supply = <&vdd_3v3_sys>;
+            vddio-supply = <&vdd_1v8_sys>;
+        };
+
+        /*
+         * BMP280: Pressure and Temperature Sensor
+         * Bosch Sensortec
+         * Address: 0x76 or 0x77
+         */
+        bmp280@77 {
+            compatible = "bosch,bmp280";
+            reg = <0x77>;
+            status = "disabled";  /* Disabled to avoid conflict with BME280 */
+
+            vdd-supply = <&vdd_3v3_sys>;
+            vddio-supply = <&vdd_1v8_sys>;
+
+            /* Interrupt pin (optional) */
+            interrupt-parent = <&gpio>;
+            interrupts = <TEGRA194_MAIN_GPIO(G, 3) IRQ_TYPE_EDGE_RISING>;
+        };
+
+        /*
+         * MPU6050: 6-Axis Gyro + Accelerometer
+         * InvenSense / TDK
+         * Address: 0x68 or 0x69
+         */
+        mpu6050@68 {
+            compatible = "invensense,mpu6050";
+            reg = <0x68>;
+            status = "okay";
+
+            /* Interrupt pin for data ready */
+            interrupt-parent = <&gpio>;
+            interrupts = <TEGRA194_MAIN_GPIO(G, 4) IRQ_TYPE_EDGE_RISING>;
+
+            /* Mounting matrix (sensor orientation) */
+            mount-matrix = "1",  "0",  "0",
+                          "0",  "1",  "0",
+                          "0",  "0",  "1";
+
+            vdd-supply = <&vdd_3v3_sys>;
+            vddio-supply = <&vdd_1v8_sys>;
+        };
+
+        /*
+         * MPU9250: 9-Axis IMU (Gyro + Accel + Magnetometer)
+         * InvenSense / TDK
+         * Address: 0x68 or 0x69
+         */
+        mpu9250@69 {
+            compatible = "invensense,mpu9250";
+            reg = <0x69>;
+            status = "disabled";
+
+            interrupt-parent = <&gpio>;
+            interrupts = <TEGRA194_MAIN_GPIO(G, 5) IRQ_TYPE_EDGE_RISING>;
+
+            i2c-gate {
+                /* Internal I2C bus for magnetometer */
+                #address-cells = <1>;
+                #size-cells = <0>;
+
+                ak8963@c {
+                    compatible = "asahi-kasei,ak8963";
+                    reg = <0x0c>;
+                };
+            };
+
+            vdd-supply = <&vdd_3v3_sys>;
+            vddio-supply = <&vdd_1v8_sys>;
+        };
+
+        /*
+         * ADS1015: 12-bit 4-Channel ADC
+         * Texas Instruments
+         * Address: 0x48-0x4B (configurable)
+         */
+        ads1015@48 {
+            compatible = "ti,ads1015";
+            reg = <0x48>;
+            status = "okay";
+
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+            /* Channel 0: Single-ended */
+            channel@0 {
+                reg = <0>;
+                ti,gain = <1>;
+                ti,datarate = <4>;
+            };
+
+            /* Channel 1: Single-ended */
+            channel@1 {
+                reg = <1>;
+                ti,gain = <1>;
+                ti,datarate = <4>;
+            };
+
+            /* Channel 2-3: Differential */
+            channel@4 {
+                reg = <4>;
+                ti,gain = <1>;
+                ti,datarate = <4>;
+            };
+        };
+
+        /*
+         * INA3221: Triple-Channel Current/Voltage Monitor
+         * Texas Instruments
+         * Address: 0x40-0x43 (configurable)
+         */
+        ina3221@40 {
+            compatible = "ti,ina3221";
+            reg = <0x40>;
+            status = "okay";
+
+            #address-cells = <1>;
+            #size-cells = <0>;
+
+            /* Channel 1: VDD_IN */
+            input@0 {
+                reg = <0>;
+                label = "VDD_IN";
+                shunt-resistor-micro-ohms = <10000>;  /* 10 mOhm */
+            };
+
+            /* Channel 2: VDD_CPU */
+            input@1 {
+                reg = <1>;
+                label = "VDD_CPU";
+                shunt-resistor-micro-ohms = <10000>;
+            };
+
+            /* Channel 3: VDD_GPU */
+            input@2 {
+                reg = <2>;
+                label = "VDD_GPU";
+                shunt-resistor-micro-ohms = <10000>;
+            };
+        };
+
+        /*
+         * PCA9685: 16-Channel 12-bit PWM Driver
+         * NXP
+         * Address: 0x40-0x7F (configurable)
+         */
+        pca9685@41 {
+            compatible = "nxp,pca9685-pwm";
+            reg = <0x41>;
+            status = "disabled";
+
+            #pwm-cells = <2>;
+
+            /* External clock (optional) */
+            /* clocks = <&pca9685_clk>; */
+
+            /* Output enable GPIO */
+            nxp,outdrv = <1>;  /* Totem-pole output */
+            nxp,inverted-outputs;  /* Invert outputs if needed */
+        };
+
+        /*
+         * VEML6030: Ambient Light Sensor
+         * Vishay
+         * Address: 0x10 or 0x48
+         */
+        veml6030@10 {
+            compatible = "vishay,veml6030";
+            reg = <0x10>;
+            status = "okay";
+
+            /* Power supply */
+            vdd-supply = <&vdd_3v3_sys>;
+        };
+
+        /*
+         * SGP30: Gas Sensor (TVOC and eCO2)
+         * Sensirion
+         * Address: 0x58
+         */
+        sgp30@58 {
+            compatible = "sensirion,sgp30";
+            reg = <0x58>;
+            status = "okay";
+
+            vdd-supply = <&vdd_3v3_sys>;
+        };
+
+        /*
+         * SHT3x: Temperature and Humidity Sensor
+         * Sensirion
+         * Address: 0x44 or 0x45
+         */
+        sht3x@44 {
+            compatible = "sensirion,sht31";
+            reg = <0x44>;
+            status = "okay";
+
+            vdd-supply = <&vdd_3v3_sys>;
+
+            /* Alert pin (optional) */
+            interrupt-parent = <&gpio>;
+            interrupts = <TEGRA194_MAIN_GPIO(G, 6) IRQ_TYPE_EDGE_FALLING>;
+        };
+
+        /*
+         * TSL2591: Light-to-Digital Converter
+         * AMS
+         * Address: 0x29
+         */
+        tsl2591@29 {
+            compatible = "amstaos,tsl2591";
+            reg = <0x29>;
+            status = "okay";
+
+            /* Interrupt pin for threshold alerts */
+            interrupt-parent = <&gpio>;
+            interrupts = <TEGRA194_MAIN_GPIO(G, 7) IRQ_TYPE_EDGE_FALLING>;
+
+            vdd-supply = <&vdd_3v3_sys>;
+        };
+
+        /*
+         * EEPROM: 24C256 (256Kbit I2C EEPROM)
+         * Generic
+         * Address: 0x50-0x57 (configurable)
+         */
+        eeprom@50 {
+            compatible = "atmel,24c256";
+            reg = <0x50>;
+            status = "disabled";
+
+            pagesize = <64>;
+            size = <32768>;  /* 256 Kbit = 32 KByte */
+            address-width = <16>;
+
+            /* Write protect GPIO */
+            wp-gpios = <&gpio TEGRA194_MAIN_GPIO(P, 0) GPIO_ACTIVE_HIGH>;
+        };
+
+        /*
+         * RTC: DS3231 (High-Precision RTC)
+         * Maxim Integrated
+         * Address: 0x68
+         */
+        rtc@68 {
+            compatible = "maxim,ds3231";
+            reg = <0x68>;
+            status = "disabled";  /* Disabled to avoid conflict with MPU6050 */
+
+            /* Interrupt pin for alarms */
+            interrupt-parent = <&gpio>;
+            interrupts = <TEGRA194_MAIN_GPIO(H, 0) IRQ_TYPE_EDGE_FALLING>;
+
+            /* Wakeup source */
+            wakeup-source;
+        };
+    };
+
+    /*
+     * I2C Bus 7 Configuration
+     * Typically I2C_GP7 on Jetson carrier boards
+     */
+    i2c@c240000 {
+        compatible = "nvidia,tegra194-i2c";
+        status = "okay";
+
+        clock-frequency = <400000>;
+
+        pinctrl-names = "default";
+        pinctrl-0 = <&i2c7_pins>;
+
+        /*
+         * Custom I2C Sensor Template
+         */
+        custom-sensor@30 {
+            compatible = "custom,i2c-sensor";
+            reg = <0x30>;
+            status = "okay";
+
+            /* Reset GPIO */
+            reset-gpios = <&gpio TEGRA194_MAIN_GPIO(Q, 5) GPIO_ACTIVE_LOW>;
+
+            /* Enable GPIO */
+            enable-gpios = <&gpio TEGRA194_MAIN_GPIO(Q, 6) GPIO_ACTIVE_HIGH>;
+
+            /* Interrupt */
+            interrupt-parent = <&gpio>;
+            interrupts = <TEGRA194_MAIN_GPIO(Q, 7) IRQ_TYPE_EDGE_RISING>;
+            interrupt-names = "data-ready";
+
+            /* Power supplies */
+            vdd-supply = <&vdd_3v3_sys>;
+            vddio-supply = <&vdd_1v8_sys>;
+
+            /* Custom properties */
+            max-speed = <1000000>;
+            operating-mode = "continuous";
+            sample-rate = <100>;
+
+            /* Clock input (if needed) */
+            clocks = <&bpmp_clks TEGRA194_CLK_OSC>;
+            clock-names = "osc";
+        };
+    };
+
+    /*
+     * Pinmux Configuration for I2C
+     */
+    pinmux@2430000 {
+        i2c1_pins: i2c1-pins {
+            i2c1-scl-sda {
+                nvidia,pins = "gen1_i2c_scl_pi3",
+                             "gen1_i2c_sda_pi4";
+                nvidia,function = "i2c1";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,open-drain = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+        };
+
+        i2c7_pins: i2c7-pins {
+            i2c7-scl-sda {
+                nvidia,pins = "gen7_i2c_scl_pl0",
+                             "gen7_i2c_sda_pl1";
+                nvidia,function = "i2c7";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,open-drain = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+        };
+    };
+};
+
+/*
+ * Usage Notes:
+ * ============
+ *
+ * 1. Include in main DTS:
+ *    #include "i2c-sensor.dtsi"
+ *
+ * 2. Enable specific sensors:
+ *    &bme280 {
+ *        status = "okay";
+ *    };
+ *
+ * 3. Override properties:
+ *    &i2c@3160000 {
+ *        clock-frequency = <100000>;
+ *    };
+ *
+ * 4. Compile device tree:
+ *    dtc -I dts -O dtb -o tegra194-custom.dtb tegra194-custom.dts
+ *
+ * 5. Scan I2C bus:
+ *    sudo i2cdetect -y -r 1
+ *
+ * 6. Read sensor registers:
+ *    sudo i2cdump -y 1 0x76
+ *
+ * 7. Read/Write single register:
+ *    sudo i2cget -y 1 0x76 0xd0
+ *    sudo i2cset -y 1 0x76 0xf4 0x27
+ *
+ * 8. Test sensor driver:
+ *    cat /sys/bus/i2c/devices/1-0076/name
+ *    cat /sys/bus/i2c/devices/1-0076/temp1_input
+ *
+ * 9. Debug I2C:
+ *    dmesg | grep i2c
+ *    cat /sys/class/i2c-adapter/i2c-1/name
+ *    ls /sys/bus/i2c/devices/
+ *
+ * I2C Bus Numbers:
+ * ================
+ * Jetson Xavier NX:
+ *   I2C1 (Gen1): bus 7
+ *   I2C2 (Gen2): bus 1
+ *   I2C3 (Gen3): bus 8
+ *
+ * Jetson Orin Nano:
+ *   I2C1 (Gen1): bus 7
+ *   I2C2 (Gen2): bus 1
+ *   I2C3 (Gen3): bus 2
+ *
+ * Check actual bus numbers: ls /dev/i2c-*
+ *
+ * Common I2C Addresses:
+ * =====================
+ * 0x10: VEML6030
+ * 0x29: TSL2591, VL6180X
+ * 0x40: INA3221, PCA9685
+ * 0x44-0x45: SHT3x
+ * 0x48: ADS1015, TMP102
+ * 0x50-0x57: EEPROM (24Cxx)
+ * 0x58: SGP30
+ * 0x68-0x69: MPU6050, MPU9250, DS3231
+ * 0x76-0x77: BMP280, BME280
+ *
+ * Troubleshooting:
+ * ================
+ * - No device detected:
+ *   - Check wiring (SDA, SCL, GND, VDD)
+ *   - Verify pull-up resistors (typically 4.7kΩ)
+ *   - Check device address (A0/A1/A2 pins)
+ *   - Verify voltage levels (3.3V vs 1.8V)
+ *
+ * - Communication errors:
+ *   - Reduce I2C speed (clock-frequency)
+ *   - Check signal quality with oscilloscope
+ *   - Verify pinmux configuration
+ *   - Check for bus conflicts
+ *
+ * - Driver not loading:
+ *   - Verify compatible string in driver
+ *   - Check module is loaded: lsmod
+ *   - Check kernel config: CONFIG_I2C=y
+ *   - Review dmesg for errors
+ */

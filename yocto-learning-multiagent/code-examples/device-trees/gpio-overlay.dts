@@ -1,0 +1,347 @@
+/*
+ * GPIO Configuration Device Tree Overlay for NVIDIA Jetson
+ *
+ * This overlay demonstrates:
+ * - GPIO pin configuration
+ * - Pin muxing and configuration
+ * - GPIO-based devices (buttons, LEDs)
+ * - GPIO interrupts
+ * - GPIO line naming
+ *
+ * Compatible with: Jetson TX2, Xavier, Orin
+ * Kernel: 5.10+
+ *
+ * To compile:
+ *   dtc -@ -I dts -O dtb -o gpio-overlay.dtbo gpio-overlay.dts
+ *
+ * To apply overlay (runtime):
+ *   sudo mkdir -p /sys/kernel/config/device-tree/overlays/gpio
+ *   sudo cat gpio-overlay.dtbo > /sys/kernel/config/device-tree/overlays/gpio/dtbo
+ *
+ * To remove overlay:
+ *   sudo rmdir /sys/kernel/config/device-tree/overlays/gpio
+ */
+
+/dts-v1/;
+/plugin/;
+
+/* Include Tegra GPIO definitions */
+#include <dt-bindings/gpio/tegra194-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/pinctrl-tegra.h>
+
+/* For other Jetson platforms, use appropriate headers:
+ * Jetson TX2:   tegra186-gpio.h
+ * Jetson Nano:  tegra210-gpio.h
+ * Jetson Xavier: tegra194-gpio.h
+ * Jetson Orin:  tegra234-gpio.h
+ */
+
+/ {
+    /* Overlay metadata */
+    fragment@0 {
+        target-path = "/";
+        __overlay__ {
+            compatible = "nvidia,jetson";
+
+            /*
+             * GPIO Controller Configuration
+             */
+            gpio@2200000 {
+                /* Enable GPIO controller if disabled */
+                status = "okay";
+
+                /* GPIO line names for easier identification */
+                gpio-line-names =
+                    /* GPIO chip 0 (AON GPIO) */
+                    "GPIO00", "GPIO01", "GPIO02", "GPIO03",
+                    "GPIO04", "GPIO05", "GPIO06", "GPIO07",
+                    /* Add more as needed */
+                    "";
+            };
+
+            /*
+             * GPIO-based LED Configuration
+             */
+            gpio-leds {
+                compatible = "gpio-leds";
+                status = "okay";
+
+                /* User LED 1 - Heartbeat */
+                led-user1 {
+                    label = "user:led1";
+                    /* Use GPIO12 (adjust for your board) */
+                    gpios = <&gpio TEGRA194_MAIN_GPIO(H, 4) GPIO_ACTIVE_HIGH>;
+                    linux,default-trigger = "heartbeat";
+                    default-state = "off";
+                };
+
+                /* User LED 2 - CPU Activity */
+                led-user2 {
+                    label = "user:led2";
+                    gpios = <&gpio TEGRA194_MAIN_GPIO(H, 5) GPIO_ACTIVE_HIGH>;
+                    linux,default-trigger = "cpu0";
+                    default-state = "off";
+                };
+
+                /* Status LED - Default On */
+                led-status {
+                    label = "status:green";
+                    gpios = <&gpio TEGRA194_MAIN_GPIO(H, 6) GPIO_ACTIVE_HIGH>;
+                    linux,default-trigger = "default-on";
+                    default-state = "on";
+                };
+
+                /* Power LED - Always On */
+                led-power {
+                    label = "power:red";
+                    gpios = <&gpio TEGRA194_MAIN_GPIO(H, 7) GPIO_ACTIVE_HIGH>;
+                    default-state = "on";
+                    retain-state-suspended;
+                };
+            };
+
+            /*
+             * GPIO-based Button Configuration
+             */
+            gpio-keys {
+                compatible = "gpio-keys";
+                status = "okay";
+
+                /* Power Button */
+                power-button {
+                    label = "Power Button";
+                    gpios = <&gpio TEGRA194_AON_GPIO(EE, 4) GPIO_ACTIVE_LOW>;
+                    linux,code = <116>;  /* KEY_POWER */
+                    linux,input-type = <1>;  /* EV_KEY */
+                    gpio-key,wakeup;
+                    debounce-interval = <10>;
+                };
+
+                /* User Button 1 */
+                user-button1 {
+                    label = "User Button 1";
+                    gpios = <&gpio TEGRA194_MAIN_GPIO(G, 1) GPIO_ACTIVE_LOW>;
+                    linux,code = <256>;  /* BTN_0 */
+                    linux,input-type = <1>;
+                    debounce-interval = <50>;
+                };
+
+                /* User Button 2 */
+                user-button2 {
+                    label = "User Button 2";
+                    gpios = <&gpio TEGRA194_MAIN_GPIO(G, 2) GPIO_ACTIVE_LOW>;
+                    linux,code = <257>;  /* BTN_1 */
+                    linux,input-type = <1>;
+                    debounce-interval = <50>;
+                };
+
+                /* Reset Button */
+                reset-button {
+                    label = "Reset Button";
+                    gpios = <&gpio TEGRA194_AON_GPIO(EE, 5) GPIO_ACTIVE_LOW>;
+                    linux,code = <0x198>;  /* KEY_RESTART */
+                    linux,input-type = <1>;
+                    debounce-interval = <10>;
+                };
+            };
+
+            /*
+             * GPIO Regulator Example
+             * Control a power regulator using GPIO
+             */
+            gpio-regulator-3v3 {
+                compatible = "regulator-fixed";
+                regulator-name = "gpio-3v3";
+                regulator-min-microvolt = <3300000>;
+                regulator-max-microvolt = <3300000>;
+                gpio = <&gpio TEGRA194_MAIN_GPIO(P, 6) GPIO_ACTIVE_HIGH>;
+                enable-active-high;
+                regulator-boot-on;
+                regulator-always-on;
+                vin-supply = <&vdd_5v0_sys>;
+            };
+
+            gpio-regulator-5v0 {
+                compatible = "regulator-fixed";
+                regulator-name = "gpio-5v0";
+                regulator-min-microvolt = <5000000>;
+                regulator-max-microvolt = <5000000>;
+                gpio = <&gpio TEGRA194_MAIN_GPIO(P, 7) GPIO_ACTIVE_HIGH>;
+                enable-active-high;
+                regulator-boot-on;
+            };
+
+            /*
+             * Custom GPIO Device Example
+             */
+            custom-gpio-device {
+                compatible = "custom,gpio-device";
+                status = "okay";
+
+                /* Control GPIOs */
+                enable-gpios = <&gpio TEGRA194_MAIN_GPIO(Q, 0) GPIO_ACTIVE_HIGH>;
+                reset-gpios = <&gpio TEGRA194_MAIN_GPIO(Q, 1) GPIO_ACTIVE_LOW>;
+
+                /* Status GPIOs (input) */
+                ready-gpios = <&gpio TEGRA194_MAIN_GPIO(Q, 2) GPIO_ACTIVE_HIGH>;
+                fault-gpios = <&gpio TEGRA194_MAIN_GPIO(Q, 3) GPIO_ACTIVE_LOW>;
+
+                /* Interrupt GPIO */
+                interrupt-parent = <&gpio>;
+                interrupts = <TEGRA194_MAIN_GPIO(Q, 4) IRQ_TYPE_EDGE_RISING>;
+                interrupt-names = "data-ready";
+            };
+        };
+    };
+
+    /*
+     * Pinmux Configuration Fragment
+     * Configure pin functions and electrical properties
+     */
+    fragment@1 {
+        target = <&pinmux>;
+        __overlay__ {
+            /* GPIO pins configuration */
+            custom_gpio_pins: custom-gpio-pins {
+                /* GPIO H4-H7 configuration (LEDs) */
+                gpio-h4-h7 {
+                    nvidia,pins = "gpio_h4_ph4", "gpio_h5_ph5",
+                                  "gpio_h6_ph6", "gpio_h7_ph7";
+                    nvidia,function = "rsvd0";  /* GPIO function */
+                    nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                    nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                    nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+                };
+
+                /* GPIO G1-G2 configuration (Buttons) */
+                gpio-g1-g2 {
+                    nvidia,pins = "gpio_g1_pg1", "gpio_g2_pg2";
+                    nvidia,function = "rsvd0";
+                    nvidia,pull = <TEGRA_PIN_PULL_UP>;  /* Pull-up for buttons */
+                    nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                    nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                };
+
+                /* Custom device pins */
+                custom-device-pins {
+                    nvidia,pins = "gpio_q0_pq0", "gpio_q1_pq1",
+                                  "gpio_q2_pq2", "gpio_q3_pq3";
+                    nvidia,function = "rsvd0";
+                    nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                    nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                    nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                    nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+                    nvidia,lpdr = <TEGRA_PIN_DISABLE>;
+                };
+
+                /* Interrupt pin configuration */
+                interrupt-pin {
+                    nvidia,pins = "gpio_q4_pq4";
+                    nvidia,function = "rsvd0";
+                    nvidia,pull = <TEGRA_PIN_PULL_DOWN>;
+                    nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                    nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                    nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+                };
+            };
+        };
+    };
+
+    /*
+     * GPIO Hog Configuration
+     * Reserve GPIOs in specific states
+     */
+    fragment@2 {
+        target = <&gpio>;
+        __overlay__ {
+            /* Reserve GPIO for output high */
+            gpio-hog-output-high {
+                gpio-hog;
+                gpios = <TEGRA194_MAIN_GPIO(N, 0) GPIO_ACTIVE_HIGH>;
+                output-high;
+                line-name = "reserved-output-high";
+            };
+
+            /* Reserve GPIO for output low */
+            gpio-hog-output-low {
+                gpio-hog;
+                gpios = <TEGRA194_MAIN_GPIO(N, 1) GPIO_ACTIVE_HIGH>;
+                output-low;
+                line-name = "reserved-output-low";
+            };
+
+            /* Reserve GPIO as input */
+            gpio-hog-input {
+                gpio-hog;
+                gpios = <TEGRA194_MAIN_GPIO(N, 2) GPIO_ACTIVE_HIGH>;
+                input;
+                line-name = "reserved-input";
+            };
+        };
+    };
+};
+
+/*
+ * Usage Notes:
+ * ============
+ *
+ * 1. Compilation:
+ *    dtc -@ -I dts -O dtb -o gpio-overlay.dtbo gpio-overlay.dts
+ *
+ * 2. Check for errors:
+ *    dtc -@ -I dts -O dtb -o gpio-overlay.dtbo gpio-overlay.dts 2>&1 | less
+ *
+ * 3. Install overlay (boot time):
+ *    - Copy to /boot/dtb/overlays/
+ *    - Add to /boot/extlinux/extlinux.conf:
+ *      FDT /boot/dtb/kernel_tegra194-overlay.dtb
+ *
+ * 4. Install overlay (runtime - ConfigFS):
+ *    sudo mkdir -p /sys/kernel/config/device-tree/overlays/gpio
+ *    sudo cat gpio-overlay.dtbo > /sys/kernel/config/device-tree/overlays/gpio/dtbo
+ *
+ * 5. Verify GPIO configuration:
+ *    cat /sys/kernel/debug/gpio
+ *    gpioinfo
+ *    gpioget gpiochip0 12
+ *    gpioset gpiochip0 12=1
+ *
+ * 6. Test LEDs:
+ *    cd /sys/class/leds/
+ *    echo 1 > user:led1/brightness
+ *    echo heartbeat > user:led1/trigger
+ *
+ * 7. Test buttons:
+ *    evtest /dev/input/event0
+ *
+ * 8. Monitor interrupts:
+ *    cat /proc/interrupts | grep gpio
+ *    watch -n 1 'cat /proc/interrupts | grep gpio'
+ *
+ * Pin Naming Convention:
+ * ======================
+ * TEGRA194_MAIN_GPIO(port, pin)
+ *   Port: A-Z, AA-EE
+ *   Pin: 0-7
+ *   Example: TEGRA194_MAIN_GPIO(H, 4) = GPIO H4
+ *
+ * TEGRA194_AON_GPIO(port, pin)
+ *   Always-On GPIO (survives sleep states)
+ *   Example: TEGRA194_AON_GPIO(EE, 4)
+ *
+ * GPIO Calculation:
+ * =================
+ * For Jetson Xavier/Orin:
+ *   Main GPIO base: varies by SoC
+ *   Calculate: (port - 'A') * 8 + pin
+ *   Example: GPIO H4 = (7 * 8) + 4 = 60
+ *
+ * Troubleshooting:
+ * ================
+ * - Check kernel messages: dmesg | grep gpio
+ * - Verify GPIO availability: cat /sys/kernel/debug/gpio
+ * - Check pin mux: cat /sys/kernel/debug/pinctrl/*/pinmux-pins
+ * - Verify device tree: ls /proc/device-tree/
+ * - Check GPIO export: ls /sys/class/gpio/
+ */

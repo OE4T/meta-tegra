@@ -1,0 +1,510 @@
+/*
+ * Custom Pinmux Configuration for NVIDIA Jetson Platforms
+ *
+ * This file demonstrates:
+ * - Pin multiplexing configuration
+ * - Electrical properties (pull-up/down, drive strength)
+ * - High-voltage I/O configuration
+ * - LPDR (Low Power Dynamic Retention) settings
+ * - Pin group management
+ *
+ * Compatible with: Jetson TX2, Xavier, Orin
+ * Kernel: 5.10+
+ *
+ * Include this file in your main DTS:
+ *   #include "custom-pinmux.dtsi"
+ *
+ * IMPORTANT: Pin configurations must match your hardware design!
+ * Incorrect pinmux can damage the board.
+ */
+
+#include <dt-bindings/pinctrl/pinctrl-tegra.h>
+
+/ {
+    /*
+     * Pinmux Controller
+     * Address varies by platform:
+     *   TX2: 0x2430000
+     *   Xavier: 0x2430000
+     *   Orin: 0x2430000
+     */
+    pinmux@2430000 {
+        compatible = "nvidia,tegra194-pinmux";
+        reg = <0x0 0x2430000 0x0 0x20000
+               0x0 0xc300000 0x0 0x4000>;
+        reg-names = "pinmux", "pctl";
+
+        status = "okay";
+
+        /*
+         * Pinmux Definitions
+         */
+        pinctrl-names = "default";
+        pinctrl-0 = <
+            &custom_uart_pins
+            &custom_i2c_pins
+            &custom_spi_pins
+            &custom_gpio_pins
+            &custom_can_pins
+            &custom_pwm_pins
+            &custom_audio_pins
+        >;
+
+        /*
+         * UART Configuration
+         * Configure UART pins for serial communication
+         */
+        custom_uart_pins: uart-pins {
+            /* UART1 (Console) */
+            uart1-tx-rx {
+                nvidia,pins = "uart1_tx_pu0", "uart1_rx_pu1";
+                nvidia,function = "uarta";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+                nvidia,lpdr = <TEGRA_PIN_DISABLE>;
+            };
+
+            uart1-cts-rts {
+                nvidia,pins = "uart1_cts_pu2", "uart1_rts_pu3";
+                nvidia,function = "uarta";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+            };
+
+            /* UART2 (GPS/External) */
+            uart2-tx-rx {
+                nvidia,pins = "uart2_tx_px4", "uart2_rx_px5";
+                nvidia,function = "uartb";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* UART3 (Bluetooth) */
+            uart3-tx-rx-cts-rts {
+                nvidia,pins = "uart3_tx_py0", "uart3_rx_py1",
+                             "uart3_cts_py2", "uart3_rts_py3";
+                nvidia,function = "uartc";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+            };
+        };
+
+        /*
+         * I2C Configuration
+         * Configure I2C pins with open-drain output
+         */
+        custom_i2c_pins: i2c-pins {
+            /* I2C1 (General Purpose) */
+            i2c1-scl-sda {
+                nvidia,pins = "gen1_i2c_scl_pi3", "gen1_i2c_sda_pi4";
+                nvidia,function = "i2c1";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;  /* External pull-ups */
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,open-drain = <TEGRA_PIN_ENABLE>;  /* Critical for I2C */
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+                nvidia,lpdr = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* I2C2 (Camera/Display) */
+            i2c2-scl-sda {
+                nvidia,pins = "gen2_i2c_scl_pcc7", "gen2_i2c_sda_pdd0";
+                nvidia,function = "i2c2";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,open-drain = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* I2C7 (CSI) */
+            i2c7-scl-sda {
+                nvidia,pins = "gen7_i2c_scl_pl0", "gen7_i2c_sda_pl1";
+                nvidia,function = "i2c7";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,open-drain = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+        };
+
+        /*
+         * SPI Configuration
+         * Configure SPI pins for high-speed communication
+         */
+        custom_spi_pins: spi-pins {
+            /* SPI1 */
+            spi1-mosi-miso-sck {
+                nvidia,pins = "spi1_mosi_pz5", "spi1_miso_pz4",
+                             "spi1_sck_pz3";
+                nvidia,function = "spi1";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+                nvidia,schmitt = <TEGRA_PIN_ENABLE>;  /* Noise immunity */
+            };
+
+            spi1-cs0-cs1 {
+                nvidia,pins = "spi1_cs0_pz6", "spi1_cs1_pz7";
+                nvidia,function = "spi1";
+                nvidia,pull = <TEGRA_PIN_PULL_UP>;  /* CS idle high */
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+            };
+
+            /* SPI2 */
+            spi2-mosi-miso-sck-cs0 {
+                nvidia,pins = "spi2_mosi_pw0", "spi2_miso_pw1",
+                             "spi2_sck_pw2", "spi2_cs0_pw3";
+                nvidia,function = "spi2";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+        };
+
+        /*
+         * GPIO Configuration
+         * Configure pins as general-purpose I/O
+         */
+        custom_gpio_pins: gpio-pins {
+            /* Output GPIOs (LEDs, Control signals) */
+            gpio-outputs {
+                nvidia,pins = "gpio_h4_ph4", "gpio_h5_ph5",
+                             "gpio_h6_ph6", "gpio_h7_ph7";
+                nvidia,function = "rsvd0";  /* GPIO function */
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_DISABLE>;  /* Output only */
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+                nvidia,lpdr = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* Input GPIOs (Buttons, Status) */
+            gpio-inputs {
+                nvidia,pins = "gpio_g1_pg1", "gpio_g2_pg2",
+                             "gpio_g3_pg3";
+                nvidia,function = "rsvd0";
+                nvidia,pull = <TEGRA_PIN_PULL_UP>;  /* Pull-up for buttons */
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* Bidirectional GPIOs */
+            gpio-bidir {
+                nvidia,pins = "gpio_n0_pn0", "gpio_n1_pn1";
+                nvidia,function = "rsvd0";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* High-voltage GPIOs (5V tolerant) */
+            gpio-hv {
+                nvidia,pins = "gpio_p0_pp0", "gpio_p1_pp1";
+                nvidia,function = "rsvd0";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_ENABLE>;  /* 5V tolerant */
+            };
+        };
+
+        /*
+         * CAN Bus Configuration
+         */
+        custom_can_pins: can-pins {
+            /* CAN0 */
+            can0-tx-rx {
+                nvidia,pins = "can0_dout_paa0", "can0_din_paa1";
+                nvidia,function = "can0";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* CAN1 */
+            can1-tx-rx {
+                nvidia,pins = "can1_dout_paa2", "can1_din_paa3";
+                nvidia,function = "can1";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+        };
+
+        /*
+         * PWM Configuration
+         * Configure pins for PWM output
+         */
+        custom_pwm_pins: pwm-pins {
+            /* PWM0 */
+            pwm0 {
+                nvidia,pins = "soc_gpio12_ph0";
+                nvidia,function = "gp";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* PWM1 */
+            pwm1 {
+                nvidia,pins = "soc_gpio13_ph1";
+                nvidia,function = "gp";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* PWM2 (Fan control) */
+            pwm2-fan {
+                nvidia,pins = "soc_gpio14_ph2";
+                nvidia,function = "gp";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+            };
+        };
+
+        /*
+         * Audio Configuration
+         * I2S interface pins
+         */
+        custom_audio_pins: audio-pins {
+            /* I2S1 (Audio Codec) */
+            i2s1-pins {
+                nvidia,pins = "dap1_fs_pb0",  /* LRCK (Frame Sync) */
+                             "dap1_din_pb1",  /* Data In */
+                             "dap1_dout_pb2", /* Data Out */
+                             "dap1_sclk_pb3"; /* Bit Clock */
+                nvidia,function = "i2s1";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+            };
+
+            /* I2S2 (HDMI/DP Audio) */
+            i2s2-pins {
+                nvidia,pins = "dap2_fs_paa4",
+                             "dap2_din_paa5",
+                             "dap2_dout_paa6",
+                             "dap2_sclk_paa7";
+                nvidia,function = "i2s2";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+            };
+        };
+
+        /*
+         * SDMMC Configuration
+         * SD/MMC card interface
+         */
+        custom_sdmmc_pins: sdmmc-pins {
+            /* SDMMC1 (SD Card) */
+            sdmmc1-clk {
+                nvidia,pins = "sdmmc1_clk_pm0";
+                nvidia,function = "sdmmc1";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+
+            sdmmc1-cmd-data {
+                nvidia,pins = "sdmmc1_cmd_pm1",
+                             "sdmmc1_dat0_pm2",
+                             "sdmmc1_dat1_pm3",
+                             "sdmmc1_dat2_pm4",
+                             "sdmmc1_dat3_pm5";
+                nvidia,function = "sdmmc1";
+                nvidia,pull = <TEGRA_PIN_PULL_UP>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* Card detect and write protect */
+            sdmmc1-cd-wp {
+                nvidia,pins = "gpio_m0_pm0", "gpio_m1_pm1";
+                nvidia,function = "rsvd0";
+                nvidia,pull = <TEGRA_PIN_PULL_UP>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+            };
+        };
+
+        /*
+         * CSI Camera Configuration
+         * MIPI CSI-2 interface
+         */
+        custom_csi_pins: csi-pins {
+            /* CSI Camera I2C */
+            cam-i2c-scl-sda {
+                nvidia,pins = "cam_i2c_scl_pp2", "cam_i2c_sda_pp3";
+                nvidia,function = "i2c3";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,open-drain = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+
+            /* Camera MCLK */
+            cam-mclk {
+                nvidia,pins = "cam_mclk_pw0";
+                nvidia,function = "extperiph3";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+            };
+        };
+
+        /*
+         * USB Configuration
+         * USB VBUS enable pins
+         */
+        custom_usb_pins: usb-pins {
+            /* USB VBUS enable */
+            usb-vbus-en0 {
+                nvidia,pins = "gpio_x1_aud_px1";
+                nvidia,function = "rsvd0";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+            };
+
+            usb-vbus-en1 {
+                nvidia,pins = "gpio_x2_aud_px2";
+                nvidia,function = "rsvd0";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+            };
+        };
+
+        /*
+         * Unused Pins Configuration
+         * Configure unused pins to minimize power consumption
+         */
+        custom_unused_pins: unused-pins {
+            unused-default {
+                nvidia,pins = "unused_pin0", "unused_pin1";
+                nvidia,function = "rsvd0";
+                nvidia,pull = <TEGRA_PIN_PULL_DOWN>;  /* Pull down unused */
+                nvidia,tristate = <TEGRA_PIN_ENABLE>;  /* Tristate to save power */
+                nvidia,enable-input = <TEGRA_PIN_DISABLE>;
+                nvidia,lpdr = <TEGRA_PIN_ENABLE>;  /* Low power mode */
+            };
+        };
+    };
+
+    /*
+     * Pad Control Configuration
+     * Configure drive strength, slew rate, and other electrical properties
+     */
+    padctl@c300000 {
+        compatible = "nvidia,tegra194-padctl";
+        reg = <0x0 0xc300000 0x0 0x4000>;
+        status = "okay";
+
+        /* SDMMC pad control */
+        sdmmc1-pad-ctrl {
+            nvidia,pins = "sdmmc1";
+            nvidia,drive-push-pull = <1>;
+            nvidia,drive-down-strength = <7>;
+            nvidia,drive-up-strength = <7>;
+            nvidia,slew-rate-rising = <0>;
+            nvidia,slew-rate-falling = <0>;
+        };
+
+        /* High-speed I/O pad control */
+        hsio-pad-ctrl {
+            nvidia,pins = "hsio";
+            nvidia,drive-push-pull = <1>;
+            nvidia,drive-down-strength = <10>;
+            nvidia,drive-up-strength = <10>;
+            nvidia,slew-rate-rising = <1>;
+            nvidia,slew-rate-falling = <1>;
+        };
+    };
+};
+
+/*
+ * Pin Configuration Reference:
+ * =============================
+ *
+ * nvidia,function: Pin function/mode
+ *   Options: specific to each pin (uarta, i2c1, spi1, gp, rsvd0-rsvd3, etc.)
+ *
+ * nvidia,pull: Pull-up/down configuration
+ *   TEGRA_PIN_PULL_NONE: No pull resistor
+ *   TEGRA_PIN_PULL_DOWN: Enable pull-down
+ *   TEGRA_PIN_PULL_UP: Enable pull-up
+ *
+ * nvidia,tristate: Tristate configuration
+ *   TEGRA_PIN_DISABLE: Normal operation
+ *   TEGRA_PIN_ENABLE: Tristate (high impedance)
+ *
+ * nvidia,enable-input: Input buffer enable
+ *   TEGRA_PIN_DISABLE: Output only
+ *   TEGRA_PIN_ENABLE: Input enabled
+ *
+ * nvidia,open-drain: Open-drain configuration
+ *   TEGRA_PIN_DISABLE: Push-pull output
+ *   TEGRA_PIN_ENABLE: Open-drain output (required for I2C)
+ *
+ * nvidia,io-high-voltage: I/O voltage level
+ *   TEGRA_PIN_DISABLE: 1.8V I/O
+ *   TEGRA_PIN_ENABLE: 3.3V/5V I/O (if supported)
+ *
+ * nvidia,lpdr: Low Power Dynamic Retention
+ *   TEGRA_PIN_DISABLE: Normal power
+ *   TEGRA_PIN_ENABLE: Low power mode
+ *
+ * nvidia,schmitt: Schmitt trigger
+ *   TEGRA_PIN_DISABLE: Disabled
+ *   TEGRA_PIN_ENABLE: Enabled (improves noise immunity)
+ *
+ * Usage Notes:
+ * ============
+ *
+ * 1. Find pin names:
+ *    cat /sys/kernel/debug/pinctrl/2430000.pinmux/pins
+ *
+ * 2. Check current configuration:
+ *    cat /sys/kernel/debug/pinctrl/2430000.pinmux/pinmux-pins
+ *
+ * 3. Verify pinmux groups:
+ *    cat /sys/kernel/debug/pinctrl/2430000.pinmux/pinmux-groups
+ *
+ * 4. List available functions:
+ *    cat /sys/kernel/debug/pinctrl/2430000.pinmux/pinmux-functions
+ *
+ * 5. Test configuration:
+ *    - Compile and flash device tree
+ *    - Verify with debugfs
+ *    - Test with multimeter/oscilloscope
+ *
+ * Safety Notes:
+ * =============
+ * - Verify voltage levels before connecting
+ * - Never exceed maximum pin ratings
+ * - Use appropriate pull resistors for I2C
+ * - Configure unused pins to minimize power
+ * - Review reference manual for pin capabilities
+ * - Test on development board first
+ */

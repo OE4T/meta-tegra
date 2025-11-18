@@ -1,0 +1,485 @@
+/*
+ * SPI Device Configuration Device Tree for NVIDIA Jetson
+ *
+ * This file demonstrates:
+ * - SPI controller configuration
+ * - SPI device nodes for common peripherals
+ * - Chip select configuration
+ * - DMA support
+ * - GPIO-based chip select
+ * - Clock and pinmux configuration
+ *
+ * Compatible with: Jetson TX2, Xavier, Orin
+ * Kernel: 5.10+
+ *
+ * Include this file in your main DTS:
+ *   #include "spi-device.dtsi"
+ */
+
+#include <dt-bindings/gpio/tegra194-gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+
+/ {
+    /*
+     * SPI1 Controller Configuration
+     * Typically SPI1 on 40-pin header
+     */
+    spi@3210000 {
+        compatible = "nvidia,tegra194-spi";
+        status = "okay";
+
+        /* DMA support for improved performance */
+        dmas = <&gpcdma 15>, <&gpcdma 15>;
+        dma-names = "rx", "tx";
+
+        /* SPI clock frequency (max depends on device) */
+        spi-max-frequency = <25000000>;  /* 25 MHz */
+
+        /* Number of chip selects */
+        num-cs = <2>;
+
+        /* Pinmux configuration */
+        pinctrl-names = "default";
+        pinctrl-0 = <&spi1_pins>;
+
+        /*
+         * MCP3008: 8-Channel 10-bit ADC
+         * Microchip
+         * Max SPI frequency: 3.6 MHz (VDD=5V), 1.35 MHz (VDD=2.7V)
+         */
+        adc@0 {
+            compatible = "microchip,mcp3008";
+            reg = <0>;  /* Chip select 0 */
+            status = "okay";
+
+            spi-max-frequency = <1000000>;  /* 1 MHz */
+            spi-cpol;  /* Clock polarity: idle high */
+            spi-cpha;  /* Clock phase: sample on trailing edge */
+
+            /* SPI mode 0: CPOL=0, CPHA=0 (most common)
+             * SPI mode 1: CPOL=0, CPHA=1
+             * SPI mode 2: CPOL=1, CPHA=0
+             * SPI mode 3: CPOL=1, CPHA=1
+             */
+
+            /* Power supply */
+            vdd-supply = <&vdd_3v3_sys>;
+            vref-supply = <&vdd_3v3_sys>;
+
+            /* Data ready GPIO (optional) */
+            drdy-gpios = <&gpio TEGRA194_MAIN_GPIO(R, 0) GPIO_ACTIVE_HIGH>;
+
+            #io-channel-cells = <1>;
+        };
+
+        /*
+         * MCP2515: CAN Controller with SPI Interface
+         * Microchip
+         * Max SPI frequency: 10 MHz
+         */
+        can@1 {
+            compatible = "microchip,mcp2515";
+            reg = <1>;  /* Chip select 1 */
+            status = "disabled";
+
+            spi-max-frequency = <10000000>;  /* 10 MHz */
+
+            /* Interrupt pin for CAN events */
+            interrupt-parent = <&gpio>;
+            interrupts = <TEGRA194_MAIN_GPIO(R, 1) IRQ_TYPE_EDGE_FALLING>;
+
+            /* CAN oscillator frequency */
+            clocks = <&can_osc>;
+
+            /* VDD supply */
+            vdd-supply = <&vdd_5v0_sys>;
+            xceiver-supply = <&vdd_5v0_sys>;
+
+            /* GPIO for CAN transceiver control */
+            mcp251x,stay-awake;
+        };
+    };
+
+    /*
+     * SPI2 Controller Configuration
+     * Typically SPI2 on carrier board
+     */
+    spi@3230000 {
+        compatible = "nvidia,tegra194-spi";
+        status = "okay";
+
+        dmas = <&gpcdma 16>, <&gpcdma 16>;
+        dma-names = "rx", "tx";
+
+        spi-max-frequency = <50000000>;  /* 50 MHz */
+        num-cs = <1>;
+
+        pinctrl-names = "default";
+        pinctrl-0 = <&spi2_pins>;
+
+        /*
+         * W25Q128: 128Mbit SPI Flash Memory
+         * Winbond
+         * Max SPI frequency: 104 MHz (read), 50 MHz (write)
+         */
+        flash@0 {
+            compatible = "jedec,spi-nor";
+            reg = <0>;
+            status = "okay";
+
+            spi-max-frequency = <50000000>;
+            m25p,fast-read;
+
+            /* Partition table */
+            partitions {
+                compatible = "fixed-partitions";
+                #address-cells = <1>;
+                #size-cells = <1>;
+
+                partition@0 {
+                    label = "bootloader";
+                    reg = <0x000000 0x080000>;  /* 512 KB */
+                    read-only;
+                };
+
+                partition@80000 {
+                    label = "env";
+                    reg = <0x080000 0x010000>;  /* 64 KB */
+                };
+
+                partition@90000 {
+                    label = "kernel";
+                    reg = <0x090000 0x400000>;  /* 4 MB */
+                };
+
+                partition@490000 {
+                    label = "rootfs";
+                    reg = <0x490000 0xB70000>;  /* 11.4 MB */
+                };
+            };
+        };
+    };
+
+    /*
+     * SPI3 Controller Configuration with GPIO Chip Select
+     * Demonstrates custom GPIO-based CS
+     */
+    spi@3240000 {
+        compatible = "nvidia,tegra194-spi";
+        status = "disabled";
+
+        dmas = <&gpcdma 17>, <&gpcdma 17>;
+        dma-names = "rx", "tx";
+
+        spi-max-frequency = <25000000>;
+
+        /* GPIO-based chip select */
+        cs-gpios = <&gpio TEGRA194_MAIN_GPIO(S, 0) GPIO_ACTIVE_LOW>,
+                   <&gpio TEGRA194_MAIN_GPIO(S, 1) GPIO_ACTIVE_LOW>;
+
+        pinctrl-names = "default";
+        pinctrl-0 = <&spi3_pins>;
+
+        /*
+         * NRF24L01+: 2.4GHz Wireless Transceiver
+         * Nordic Semiconductor
+         * Max SPI frequency: 10 MHz
+         */
+        nrf24@0 {
+            compatible = "nordic,nrf24l01";
+            reg = <0>;
+            status = "okay";
+
+            spi-max-frequency = <10000000>;
+
+            /* CE (Chip Enable) and IRQ pins */
+            ce-gpios = <&gpio TEGRA194_MAIN_GPIO(S, 2) GPIO_ACTIVE_HIGH>;
+            interrupt-parent = <&gpio>;
+            interrupts = <TEGRA194_MAIN_GPIO(S, 3) IRQ_TYPE_EDGE_FALLING>;
+
+            vdd-supply = <&vdd_3v3_sys>;
+        };
+
+        /*
+         * RFM95W: LoRa Transceiver Module
+         * HopeRF
+         * Max SPI frequency: 10 MHz
+         */
+        rfm95@1 {
+            compatible = "semtech,sx1276";
+            reg = <1>;
+            status = "disabled";
+
+            spi-max-frequency = <10000000>;
+
+            /* Reset and DIO pins */
+            reset-gpios = <&gpio TEGRA194_MAIN_GPIO(S, 4) GPIO_ACTIVE_LOW>;
+            interrupt-parent = <&gpio>;
+            interrupts = <TEGRA194_MAIN_GPIO(S, 5) IRQ_TYPE_EDGE_RISING>;
+
+            vdd-supply = <&vdd_3v3_sys>;
+        };
+    };
+
+    /*
+     * QSPI Controller Configuration
+     * For high-speed flash memory
+     */
+    spi@3270000 {
+        compatible = "nvidia,tegra194-qspi";
+        status = "disabled";
+
+        dmas = <&gpcdma 5>, <&gpcdma 5>;
+        dma-names = "rx", "tx";
+
+        spi-max-frequency = <133000000>;  /* 133 MHz for QSPI */
+
+        /*
+         * QSPI Flash Memory
+         * Supports Quad SPI (4-bit data bus)
+         */
+        qspi-flash@0 {
+            compatible = "jedec,spi-nor";
+            reg = <0>;
+            status = "okay";
+
+            spi-max-frequency = <133000000>;
+            spi-rx-bus-width = <4>;  /* Quad mode */
+            spi-tx-bus-width = <4>;
+            m25p,fast-read;
+
+            /* Partitions for QSPI flash */
+            partitions {
+                compatible = "fixed-partitions";
+                #address-cells = <1>;
+                #size-cells = <1>;
+
+                qspi_boot@0 {
+                    label = "qspi-boot";
+                    reg = <0x00000000 0x00100000>;
+                };
+
+                qspi_root@100000 {
+                    label = "qspi-root";
+                    reg = <0x00100000 0x00F00000>;
+                };
+            };
+        };
+    };
+
+    /*
+     * SPIDEV User-space Interface
+     * For custom SPI devices controlled from userspace
+     */
+    spi@3300000 {
+        compatible = "nvidia,tegra194-spi";
+        status = "disabled";
+
+        spi-max-frequency = <25000000>;
+        num-cs = <1>;
+
+        /*
+         * Generic SPIDEV Interface
+         * Access from userspace via /dev/spidev4.0
+         */
+        spidev@0 {
+            compatible = "rohm,dh2228fv";  /* Generic spidev compatible */
+            reg = <0>;
+            status = "okay";
+
+            spi-max-frequency = <25000000>;
+        };
+    };
+
+    /*
+     * Pinmux Configuration for SPI
+     */
+    pinmux@2430000 {
+        /* SPI1 Pinmux */
+        spi1_pins: spi1-pins {
+            spi1-mosi-miso-sck {
+                nvidia,pins = "spi1_mosi_pz5",
+                             "spi1_miso_pz4",
+                             "spi1_sck_pz3";
+                nvidia,function = "spi1";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+
+            spi1-cs0 {
+                nvidia,pins = "spi1_cs0_pz6";
+                nvidia,function = "spi1";
+                nvidia,pull = <TEGRA_PIN_PULL_UP>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+            };
+
+            spi1-cs1 {
+                nvidia,pins = "spi1_cs1_pz7";
+                nvidia,function = "spi1";
+                nvidia,pull = <TEGRA_PIN_PULL_UP>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+            };
+        };
+
+        /* SPI2 Pinmux */
+        spi2_pins: spi2-pins {
+            spi2-mosi-miso-sck-cs0 {
+                nvidia,pins = "spi2_mosi_pw0",
+                             "spi2_miso_pw1",
+                             "spi2_sck_pw2",
+                             "spi2_cs0_pw3";
+                nvidia,function = "spi2";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+                nvidia,io-high-voltage = <TEGRA_PIN_DISABLE>;
+            };
+        };
+
+        /* SPI3 Pinmux */
+        spi3_pins: spi3-pins {
+            spi3-mosi-miso-sck {
+                nvidia,pins = "spi3_mosi_px0",
+                             "spi3_miso_px1",
+                             "spi3_sck_px2";
+                nvidia,function = "spi3";
+                nvidia,pull = <TEGRA_PIN_PULL_NONE>;
+                nvidia,tristate = <TEGRA_PIN_DISABLE>;
+                nvidia,enable-input = <TEGRA_PIN_ENABLE>;
+            };
+
+            /* CS handled by GPIO */
+        };
+    };
+
+    /*
+     * External oscillator for CAN controller
+     */
+    can_osc: can-oscillator {
+        compatible = "fixed-clock";
+        #clock-cells = <0>;
+        clock-frequency = <16000000>;  /* 16 MHz */
+    };
+};
+
+/*
+ * Usage Notes:
+ * ============
+ *
+ * 1. Include in main DTS:
+ *    #include "spi-device.dtsi"
+ *
+ * 2. Enable specific devices:
+ *    &adc@0 {
+ *        status = "okay";
+ *    };
+ *
+ * 3. Compile device tree:
+ *    dtc -I dts -O dtb -o tegra194-custom.dtb tegra194-custom.dts
+ *
+ * 4. Check SPI buses:
+ *    ls /dev/spi*
+ *    ls /sys/class/spi_master/
+ *
+ * 5. Test with spidev:
+ *    # Install tools
+ *    sudo apt-get install spi-tools
+ *
+ *    # Test SPI device
+ *    spi-config -d /dev/spidev1.0 -q
+ *    spi-pipe -d /dev/spidev1.0 -s 1000000
+ *
+ * 6. Read/Write SPI:
+ *    # Python example
+ *    import spidev
+ *    spi = spidev.SpiDev()
+ *    spi.open(1, 0)
+ *    spi.max_speed_hz = 1000000
+ *    data = spi.xfer2([0x01, 0x80, 0x00])
+ *
+ * 7. Debug SPI:
+ *    dmesg | grep spi
+ *    cat /sys/class/spi_master/spi1/device/spi1.0/modalias
+ *
+ * SPI Bus Numbers:
+ * ================
+ * Jetson Xavier NX:
+ *   SPI1: /dev/spidev0.0
+ *   SPI2: /dev/spidev1.0
+ *
+ * Verify with: ls -l /dev/spi*
+ *
+ * SPI Modes:
+ * ==========
+ * Mode 0 (CPOL=0, CPHA=0): Most common
+ *   - Clock idle: LOW
+ *   - Sample: Rising edge
+ *   - Shift: Falling edge
+ *
+ * Mode 1 (CPOL=0, CPHA=1):
+ *   - Clock idle: LOW
+ *   - Sample: Falling edge
+ *   - Shift: Rising edge
+ *
+ * Mode 2 (CPOL=1, CPHA=0):
+ *   - Clock idle: HIGH
+ *   - Sample: Falling edge
+ *   - Shift: Rising edge
+ *
+ * Mode 3 (CPOL=1, CPHA=1):
+ *   - Clock idle: HIGH
+ *   - Sample: Rising edge
+ *   - Shift: Falling edge
+ *
+ * Specify mode in DT:
+ *   Mode 0: (no spi-cpol, no spi-cpha)
+ *   Mode 1: spi-cpha;
+ *   Mode 2: spi-cpol;
+ *   Mode 3: spi-cpol; spi-cpha;
+ *
+ * Performance Tuning:
+ * ===================
+ * 1. Enable DMA for large transfers
+ * 2. Increase SPI frequency (within device limits)
+ * 3. Use spi-cs-high if device requires active-high CS
+ * 4. Adjust DMA buffer sizes in driver
+ *
+ * Troubleshooting:
+ * ================
+ * - No /dev/spidev:
+ *   - Check driver is loaded: lsmod | grep spi
+ *   - Verify compatible string
+ *   - Check kernel config: CONFIG_SPI_SPIDEV=y
+ *
+ * - Transfer errors:
+ *   - Verify wiring (MOSI, MISO, SCK, CS, GND)
+ *   - Check voltage levels (3.3V vs 5V)
+ *   - Reduce SPI frequency
+ *   - Verify SPI mode matches device
+ *   - Check signal quality with oscilloscope
+ *
+ * - CS not working:
+ *   - Verify cs-gpios if using GPIO CS
+ *   - Check pinmux configuration
+ *   - Ensure CS pull-up resistor if needed
+ *
+ * - Data corruption:
+ *   - Reduce SPI frequency
+ *   - Add delays between transfers
+ *   - Check for ground loops
+ *   - Use shorter cables
+ *   - Add termination resistors
+ *
+ * Common SPI Devices:
+ * ===================
+ * ADC: MCP3008, ADS1256, MAX1168
+ * Flash: W25Q128, AT25SF128, MX25L12835F
+ * CAN: MCP2515, MCP2517FD
+ * Wireless: NRF24L01+, RFM95W, ESP8266
+ * Display: ILI9341, ST7735, SSD1306
+ * Sensor: BME280, MPU9250, LSM9DS1
+ */
