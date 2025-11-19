@@ -35,6 +35,7 @@ SRC_URI += "file://0003-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.pat
 
 # edk2
 SRC_URI += "file://0001-Use-bfd-linker.patch;patchdir=../edk2"
+SRC_URI += "file://0005-MdePkg-Check-if-compiler-has-__has_builtin-before-tr.patch"
 
 # edk2-platforms
 SRC_URI += "file://0004-Ext4Pkg-Advertise-CSUM_SEED-as-supported.patch;patchdir=../edk2-platforms"
