@@ -77,4 +77,13 @@ do_install() {
 }
 
 INSANE_SKIP:${PN} = "already-stripped"
+
+PACKAGES =+ "${PN}-dispatch-dev ${PN}-dispatch ${PN}-lean-dev ${PN}-lean"
+FILES:${PN}-dispatch = "${libdir}/libnvinfer_dispatch${SOLIBS}"
+FILES:${PN}-dispatch-dev = "${libdir}/libnvinfer_dispatch${SOLIBSDEV}"
+RDEPENDS:${PN}-dispatch-dev = "${PN}-dispatch"
+FILES:${PN}-lean = "${libdir}/libnvinfer_lean${SOLIBS}"
+FILES:${PN}-lean-dev = "${libdir}/libnvinfer_lean${SOLIBSDEV}"
+RDEPENDS:${PN}-lean-dev = "${PN}-lean"
+RDEPENDS:${PN}-dev += "${PN}-dispatch-dev ${PN}-lean-dev"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
