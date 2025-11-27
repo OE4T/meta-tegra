@@ -510,7 +510,13 @@ if [ -z "$serial_number" ]; then
     echo "WARN: did not get device serial number at $(date -Is)" | tee -a "$logfile"
     session_id=
 else
-    session_id=$(printf "%x" "$serial_number" | tail -c8)
+	last8_characters=$(echo "$serial_number" | tail -c8)
+	digits_only=${last8_characters//[!0-9]/}
+	if [ -z "$digits_only" ]; then
+		session_id=0
+	else
+		session_id=$(printf '%x' "$((10#$digits_only))")
+	fi
 fi
 
 # Boot device flashing
