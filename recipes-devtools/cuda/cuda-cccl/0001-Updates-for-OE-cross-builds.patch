@@ -1,0 +1,366 @@
+From 3e818a3abb1887b8f97d5fb2ed96046377ce8201 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Thu, 4 Dec 2025 09:33:29 +0000
+Subject: [PATCH] Updates for OE cross builds
+
+Fix:
+error: 'isfinite' has not been declared in '::'
+  343 | using ::isfinite;
+      |         ^~~~~~~~
+error: 'isinf' has not been declared in '::'
+  344 | using ::isinf;
+      |         ^~~~~
+error: 'isnan' has not been declared in '::'
+  345 | using ::isnan;
+      |         ^~~~~
+error: 'signbit' has not been declared in '::'
+  346 | using ::signbit;
+      |         ^~~~~~~
+error: 'fpclassify' has not been declared in '::'
+  401 | using ::fpclassify;
+      |         ^~~~~~~~~~
+error: 'isgreater' has not been declared in '::'
+  402 | using ::isgreater;
+      |         ^~~~~~~~~
+error: 'isgreaterequal' has not been declared in '::'
+  403 | using ::isgreaterequal;
+      |         ^~~~~~~~~~~~~~
+error: 'isless' has not been declared in '::'
+  404 | using ::isless;
+      |         ^~~~~~
+error: 'islessequal' has not been declared in '::'
+  405 | using ::islessequal;
+      |         ^~~~~~~~~~~
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Michael Schellenberger Costa <miscco@nvidia.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ .../cuda/std/detail/libcxx/include/cmath      | 272 +++++++++++++-----
+ 1 file changed, 200 insertions(+), 72 deletions(-)
+
+diff --git a/usr/local/cuda-12.6/include/cuda/std/detail/libcxx/include/cmath b/usr/local/cuda-12.6/include/cuda/std/detail/libcxx/include/cmath
+index ba26c8e..b615d08 100644
+--- a/usr/local/cuda-12.6/include/cuda/std/detail/libcxx/include/cmath
++++ b/usr/local/cuda-12.6/include/cuda/std/detail/libcxx/include/cmath
+@@ -310,13 +310,25 @@ long double    truncl(long double x);
+ #  pragma system_header
+ #endif // no system header
+ 
+-#if !defined(_CCCL_COMPILER_NVRTC)
+-#  include <math.h>
+-#endif // !_CCCL_COMPILER_NVRTC
+-
+-#if defined(_CCCL_COMPILER_NVHPC)
++#if defined(_CCCL_COMPILER_NVRTC)
++#  ifndef FP_NAN
++#    define FP_NAN 0
++#  endif // ! FP_NAN
++#  ifndef FP_INFINITE
++#    define FP_INFINITE 1
++#  endif // ! FP_INFINITE
++#  ifndef FP_ZERO
++#    define FP_ZERO 2
++#  endif // ! FP_ZERO
++#  ifndef FP_SUBNORMAL
++#    define FP_SUBNORMAL 3
++#  endif // ! FP_SUBNORMAL
++#  ifndef FP_NORMAL
++#    define FP_NORMAL 4
++#  endif // ! FP_NORMAL
++#else
+ #  include <cmath>
+-#endif // _CCCL_COMPILER_NVHPC
++#endif // !_CCCL_COMPILER_NVRTC
+ 
+ #include <cuda/std/limits>
+ #include <cuda/std/type_traits>
+@@ -340,10 +352,103 @@ _CCCL_PUSH_MACROS
+ 
+ _LIBCUDACXX_BEGIN_NAMESPACE_STD
+ 
+-using ::isfinite;
+-using ::isinf;
+-using ::isnan;
+-using ::signbit;
++template <typename _Tp, __enable_if_t<is_floating_point<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool isfinite(_Tp __val)
++{
++  return __builtin_isfinite(__val);
++}
++template <typename _Tp, __enable_if_t<is_integral<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool isfinite(_Tp __val)
++{
++  return true;
++}
++
++template <typename _Tp, __enable_if_t<is_floating_point<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool isinf(_Tp __val)
++{
++  // Workaround for nvbug 5120680
++  if (__builtin_is_constant_evaluated())
++  {
++    if (__builtin_isnan(__val))
++    {
++      return false;
++    }
++  }
++  return __builtin_isinf(__val);
++}
++template <typename _Tp, __enable_if_t<is_integral<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool isinf(_Tp __val)
++{
++  return false;
++}
++
++template <typename _Tp, __enable_if_t<is_floating_point<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool isnan(_Tp __val)
++{
++  return __builtin_isnan(__val);
++}
++template <typename _Tp, __enable_if_t<is_integral<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool isnan(_Tp __val)
++{
++  return false;
++}
++
++template <typename _Tp, __enable_if_t<is_floating_point<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool isnormal(_Tp __val)
++{
++  if (::cuda::std::isnan(__val))
++  {
++    return false;
++  }
++  else if (::cuda::std::isinf(__val))
++  {
++    return false;
++  }
++  if (__val > -numeric_limits<_Tp>::min() && __val < numeric_limits<_Tp>::min())
++  {
++    return false;
++  }
++  return true;
++}
++template <typename _Tp, __enable_if_t<is_integral<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool isnormal(_Tp __val)
++{
++  return __val != 0;
++}
++
++template <typename _Tp, __enable_if_t<is_floating_point<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY bool signbit(_Tp __val)
++{
++  return __builtin_signbit(__val);
++}
++template <typename _Tp, __enable_if_t<is_integral<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY bool signbit(_Tp __val)
++{
++  return is_signed<_Tp>::value ? __val < 0 : false;
++}
++
++template <typename _Tp, __enable_if_t<is_floating_point<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY int fpclassify(_Tp __val)
++{
++  if (::cuda::std::isnan(__val))
++  {
++    return FP_NAN;
++  }
++  else if (::cuda::std::isinf(__val))
++  {
++    return FP_INFINITE;
++  }
++  if (__val > -numeric_limits<_Tp>::min() && __val < numeric_limits<_Tp>::min())
++  {
++    return (__val == _Tp{}) ? FP_ZERO : FP_SUBNORMAL;
++  }
++  return FP_NORMAL;
++}
++template <typename _Tp, __enable_if_t<is_integral<_Tp>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY int fpclassify(_Tp __val)
++{
++  return (__val == 0) ? FP_ZERO : FP_NORMAL;
++}
+ 
+ using ::acos;
+ using ::acosf;
+@@ -398,15 +503,84 @@ using ::abs;
+ 
+ #ifndef _CCCL_COMPILER_NVRTC
+ 
+-using ::fpclassify;
+-using ::isgreater;
+-using ::isgreaterequal;
+-using ::isless;
+-using ::islessequal;
+-using ::islessgreater;
+-using ::isnormal;
++template <typename _A1,
++          typename _A2,
++          __enable_if_t<is_integral<_A1>::value || is_floating_point<_A1>::value, int> = 0,
++          __enable_if_t<is_integral<_A2>::value || is_floating_point<_A2>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY bool isgreater(_A1 __x, _A2 __y)
++{
++  using type = __promote_t<_A1, _A2>;
++  if (_CUDA_VSTD::isnan(__x) || _CUDA_VSTD::isnan(__y))
++  {
++    return false;
++  }
++  return static_cast<type>(__x) > static_cast<type>(__y);
++}
++
++template <typename _A1,
++          typename _A2,
++          __enable_if_t<is_integral<_A1>::value || is_floating_point<_A1>::value, int> = 0,
++          __enable_if_t<is_integral<_A2>::value || is_floating_point<_A2>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY bool isgreaterequal(_A1 __x, _A2 __y)
++{
++  using type = __promote_t<_A1, _A2>;
++  if (_CUDA_VSTD::isnan(__x) || _CUDA_VSTD::isnan(__y))
++  {
++    return false;
++  }
++  return static_cast<type>(__x) >= static_cast<type>(__y);
++}
++
++template <typename _A1,
++          typename _A2,
++          __enable_if_t<is_integral<_A1>::value || is_floating_point<_A1>::value, int> = 0,
++          __enable_if_t<is_integral<_A2>::value || is_floating_point<_A2>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY bool isless(_A1 __x, _A2 __y)
++{
++  using type = __promote_t<_A1, _A2>;
++  if (_CUDA_VSTD::isnan(__x) || _CUDA_VSTD::isnan(__y))
++  {
++    return false;
++  }
++  return static_cast<type>(__x) < static_cast<type>(__y);
++}
++
++template <typename _A1,
++          typename _A2,
++          __enable_if_t<is_integral<_A1>::value || is_floating_point<_A1>::value, int> = 0,
++          __enable_if_t<is_integral<_A2>::value || is_floating_point<_A2>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY bool islessequal(_A1 __x, _A2 __y)
++{
++  using type = __promote_t<_A1, _A2>;
++  if (_CUDA_VSTD::isnan(__x) || _CUDA_VSTD::isnan(__y))
++  {
++    return false;
++  }
++  return static_cast<type>(__x) <= static_cast<type>(__y);
++}
++
++template <typename _A1,
++          typename _A2,
++          __enable_if_t<is_integral<_A1>::value || is_floating_point<_A1>::value, int> = 0,
++          __enable_if_t<is_integral<_A2>::value || is_floating_point<_A2>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY bool islessgreater(_A1 __x, _A2 __y)
++{
++  using type = __promote_t<_A1, _A2>;
++  if (_CUDA_VSTD::isnan(__x) || _CUDA_VSTD::isnan(__y))
++  {
++    return false;
++  }
++  return static_cast<type>(__x) < static_cast<type>(__y) || static_cast<type>(__x) > static_cast<type>(__y);
++}
+ 
+-using ::isunordered;
++template <typename _A1,
++          typename _A2,
++          __enable_if_t<is_integral<_A1>::value || is_floating_point<_A1>::value, int> = 0,
++          __enable_if_t<is_integral<_A2>::value || is_floating_point<_A2>::value, int> = 0>
++_LIBCUDACXX_INLINE_VISIBILITY bool isunordered(_A1 __x, _A2 __y)
++{
++  return _CUDA_VSTD::isnan(__x) || _CUDA_VSTD::isnan(__y);
++}
+ 
+ using ::double_t;
+ using ::float_t;
+@@ -602,9 +776,8 @@ inline _LIBCUDACXX_INLINE_VISIBILITY long double hypot(long double x, long doubl
+ 
+ template <class _A1, class _A2, class _A3>
+ inline _LIBCUDACXX_INLINE_VISIBILITY
+-  __enable_if_t<is_arithmetic<_A1>::value && is_arithmetic<_A2>::value && is_arithmetic<_A3>::value,
+-                __promote<_A1, _A2, _A3>>
+-  hypot(_A1 __lcpp_x, _A2 __lcpp_y, _A3 __lcpp_z) noexcept
++__enable_if_t<is_arithmetic<_A1>::value && is_arithmetic<_A2>::value && is_arithmetic<_A3>::value,
++              __promote<_A1, _A2, _A3>> hypot(_A1 __lcpp_x, _A2 __lcpp_y, _A3 __lcpp_z) noexcept
+ {
+   using __result_type = __promote_t<_A1, _A2, _A3>;
+   static_assert(
+@@ -621,66 +794,21 @@ inline _LIBCUDACXX_INLINE_VISIBILITY
+ #endif // _LIBCUDACXX_HAS_NO_CONSTEXPR_COMPLEX_OPERATIONS
+ 
+ template <class _A1>
+-_LIBCUDACXX_INLINE_VISIBILITY constexpr __enable_if_t<is_floating_point<_A1>::value, bool>
+-__constexpr_isnan(_A1 __lcpp_x) noexcept
+-{
+-#if defined(_CCCL_CUDACC_BELOW_11_8)
+-  return __isnan(__lcpp_x);
+-#elif __has_builtin(__builtin_isnan)
+-  // nvcc at times has issues determining the type of __lcpp_x
+-  return __builtin_isnan(static_cast<double>(__lcpp_x));
+-#else
+-  return ::isnan(__lcpp_x);
+-#endif
+-}
+-
+-template <class _A1>
+-_LIBCUDACXX_INLINE_VISIBILITY constexpr __enable_if_t<!is_floating_point<_A1>::value, bool>
+-__constexpr_isnan(_A1 __lcpp_x) noexcept
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool __constexpr_isnan(_A1 __lcpp_x) noexcept
+ {
+-  return ::isnan(__lcpp_x);
++  return _CUDA_VSTD::isnan(__lcpp_x);
+ }
+ 
+ template <class _A1>
+-_LIBCUDACXX_INLINE_VISIBILITY constexpr __enable_if_t<is_floating_point<_A1>::value, bool>
+-__constexpr_isinf(_A1 __lcpp_x) noexcept
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool __constexpr_isinf(_A1 __lcpp_x) noexcept
+ {
+-#if defined(_CCCL_CUDACC_BELOW_11_8)
+-  return __isinf(__lcpp_x);
+-#elif __has_builtin(__builtin_isinf)
+-  // nvcc at times has issues determining the type of __lcpp_x
+-  return __builtin_isinf(static_cast<double>(__lcpp_x));
+-#else
+-  return ::isinf(__lcpp_x);
+-#endif
+-}
+-
+-template <class _A1>
+-_LIBCUDACXX_INLINE_VISIBILITY constexpr __enable_if_t<!is_floating_point<_A1>::value, bool>
+-__constexpr_isinf(_A1 __lcpp_x) noexcept
+-{
+-  return ::isinf(__lcpp_x);
+-}
+-
+-template <class _A1>
+-_LIBCUDACXX_INLINE_VISIBILITY constexpr __enable_if_t<is_floating_point<_A1>::value, bool>
+-__constexpr_isfinite(_A1 __lcpp_x) noexcept
+-{
+-#if defined(_CCCL_CUDACC_BELOW_11_8)
+-  return !__isinf(__lcpp_x) && !__isnan(__lcpp_x);
+-#elif __has_builtin(__builtin_isfinite)
+-  // nvcc at times has issues determining the type of __lcpp_x
+-  return __builtin_isfinite(static_cast<double>(__lcpp_x));
+-#else
+-  return ::isfinite(__lcpp_x);
+-#endif
++  return _CUDA_VSTD::isinf(__lcpp_x);
+ }
+ 
+ template <class _A1>
+-_LIBCUDACXX_INLINE_VISIBILITY constexpr __enable_if_t<!is_floating_point<_A1>::value, bool>
+-__constexpr_isfinite(_A1 __lcpp_x) noexcept
++_LIBCUDACXX_INLINE_VISIBILITY constexpr bool __constexpr_isfinite(_A1 __lcpp_x) noexcept
+ {
+-  return isfinite(__lcpp_x);
++  return _CUDA_VSTD::isfinite(__lcpp_x);
+ }
+ 
+ #if defined(_CCCL_COMPILER_MSVC) || defined(_CCCL_COMPILER_NVRTC)
+-- 
+2.34.1
+
