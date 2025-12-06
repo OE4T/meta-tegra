@@ -2,6 +2,8 @@ CUDA_PKG = "${BPN}"
 
 require cuda-shared-binaries.inc
 
+SRC_URI:append = " file://0001-Avoid-issues-with-function-like-macros-in-cmath.patch"
+
 MAINSUM = "0518e4f42f59d8fcc9081c331cce28b87494f2d66ae3d88a6bec35aa4fdb89d1"
 MAINSUM:x86-64 = "2a10b3d387da9407977dcb00e1b7f808ccc0c18a8c0f615fbe81e109dd734edd"
 
