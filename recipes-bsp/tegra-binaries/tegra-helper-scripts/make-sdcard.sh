@@ -14,6 +14,42 @@ HAVEBMAPTOOL=
 SUDO=
 [ $(id -u) -eq 0 ] || SUDO="sudo"
 
+# Check for required and optional tool dependencies.
+# Must be called after argument parsing, as it uses:
+#   - wait_for_usb_device: set by --serial-number option
+#   - keep_connection: set by --keep-connection option
+check_prerequisites() {
+    local missing=0
+
+    # Required: sgdisk (from gdisk package)
+    if ! command -v sgdisk >/dev/null 2>&1; then
+        echo "ERR: 'sgdisk' command not found." >&2
+        echo "     Please install the 'gdisk' (or 'gptfdisk' on some distributions) package." >&2
+        missing=1
+    fi
+
+    # Required for USB device operations: udisksctl (from udisks2 package)
+    if [ "$wait_for_usb_device" = "yes" -a "$keep_connection" != "yes" ]; then
+        if ! command -v udisksctl >/dev/null 2>&1; then
+            echo "ERR: 'udisksctl' command not found." >&2
+            echo "     Please install the 'udisks2' package." >&2
+            missing=1
+        fi
+    fi
+
+    # Optional but recommended: bmaptool (from bmap-tools package)
+    if command -v bmaptool >/dev/null 2>&1; then
+        HAVEBMAPTOOL=yes
+    else
+        echo "INFO: 'bmaptool' not found. Using 'dd' for partition writes (slower)." >&2
+        echo "      For faster flashing, install the 'bmap-tools' package." >&2
+    fi
+
+    if [ $missing -ne 0 ]; then
+        exit 1
+    fi
+}
+
 usage() {
     cat <<EOF
 
@@ -447,6 +483,8 @@ else
     fi
 fi
 
+check_prerequisites
+
 mapfile PARTS < <("$here/nvflashxmlparse" -t rootfs "$cfgfile")
 if [ ${#PARTS[@]} -eq 0 ]; then
     echo "No partition definitions found in $cfgfile" >&2
@@ -454,10 +492,6 @@ if [ ${#PARTS[@]} -eq 0 ]; then
 fi
 
 echo  "Creating partitions"
-if ! command -v sgdisk >/dev/null 2>&1; then
-    echo "ERR: 'sgdisk' command not found. Please install the 'gdisk' package." >&2
-    exit 1
-fi
 [ -b "$output" ] || dd if=/dev/zero of="$output" bs=512 count=0 seek=$outsize status=none
 if ! sgdisk "$output" --clear --mbrtogpt >/dev/null 2>&1; then
     if ! sgdisk "$output" --zap-all >/dev/null 2>&1; then
@@ -484,9 +518,6 @@ if [ -b "$output" ]; then
     fi
     sleep 1
     create_filesystems || exit 1
-fi
-if type -p bmaptool >/dev/null 2>&1; then
-    HAVEBMAPTOOL=yes
 fi
 echo "Writing partitions"
 if [ -b "$output" ]; then
