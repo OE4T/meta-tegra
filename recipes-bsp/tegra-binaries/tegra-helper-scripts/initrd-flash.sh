@@ -96,6 +96,23 @@ while true; do
     esac
 done
 
+check_prerequisites() {
+    local missing=0
+
+    # Required: udisksctl (from udisks2 package)
+    if ! command -v udisksctl >/dev/null 2>&1; then
+        echo "ERR: 'udisksctl' command not found." >&2
+        echo "     Please install the 'udisks2' package." >&2
+        missing=1
+    fi
+
+    if [ $missing -ne 0 ]; then
+        exit 1
+    fi
+}
+
+check_prerequisites
+
 if [ -n "$PRESIGNED" ]; then
     if [ -n "$keyfile" -o -n "$sbk_keyfile" ]; then
 	echo "WARN: binaries already signed; ignoring signing options" >&2
