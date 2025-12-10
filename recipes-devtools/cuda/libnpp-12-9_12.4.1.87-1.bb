@@ -1,0 +1,10 @@
+CUDA_PKG = "libnpp libnpp-dev"
+
+require cuda-shared-binaries-12.9.inc
+
+MAINSUM = "75e67d423cc6705926e18dad9acd273a7ef2304ae4f842117a532a916ffae6b1"
+MAINSUM:x86-64 = "bc613bc58b18e5486e623c60f84971c3d4f5487b77240663f8c0d39c77791eb3"
+DEVSUM = "96d5cd851e335087ca8a276d6d675b9350374af1bc084911b50f3be754bdddf3"
+DEVSUM:x86-64 = "a10f2393d7883236bdabc30dfde0bafe162660f73a93ad0482d8a6f645bfc248"
+
+BBCLASSEXTEND = "native nativesdk"

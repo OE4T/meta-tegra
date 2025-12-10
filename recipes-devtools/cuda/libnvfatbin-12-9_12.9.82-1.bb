@@ -1,0 +1,10 @@
+CUDA_PKG = "libnvfatbin libnvfatbin-dev"
+
+require cuda-shared-binaries-12.9.inc
+
+MAINSUM = "d0b2b1d484c726169b5a32f2888d08edd52c1ff5fd2e3e6ee2add1eee0c5f4f9"
+MAINSUM:x86-64 = "29e658354f3650e2cbfc41d7b7865986b46600347d7cb713bf637dc7f20f21a0"
+DEVSUM = "9667d2de82401b845312abce4fd00c5f6f8e5438ea39ed7187f07062dd003b9d"
+DEVSUM:x86-64 = "56063bdfa5279c0d3749d24d27aa479052f2f643557cc0f62720779e12655e2d"
+
+BBCLASSEXTEND = "native nativesdk"

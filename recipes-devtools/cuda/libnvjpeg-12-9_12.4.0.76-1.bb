@@ -1,0 +1,10 @@
+CUDA_PKG = "libnvjpeg libnvjpeg-dev"
+
+require cuda-shared-binaries-12.9.inc
+
+MAINSUM = "a8aad2e617e7c81c2575e82b4f148fa0400798d1244eb30578aa75764acb12b3"
+MAINSUM:x86-64 = "c965b608452aca8b8a273e6de110257b042eb9bc51fa0bd0dbf4781bbe48530a"
+DEVSUM = "677b245508b03d9b52f4446bce73590abb8440976a382566ba96e6f1f8a87325"
+DEVSUM:x86-64 = "fe73fba73d707ff40d91e85899e8397a0dfe7d9c0b5b262da55969c109a68809"
+
+BBCLASSEXTEND = "native nativesdk"
