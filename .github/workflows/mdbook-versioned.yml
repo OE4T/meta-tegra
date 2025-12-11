@@ -1,0 +1,56 @@
+name: Build & Deploy mdBook (versioned)
+
+on:
+  push:
+    branches:
+      - master
+      - scarthgap
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: peaceiris/mdbook
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Build mdBook using Docker
+      - name: Build mdBook
+        working-directory: docs/mdbook
+        run: |
+          mdbook build --dest-dir "./${{ github.ref_name }}"
+
+      # Upload book artifact for deploy job
+      - name: Upload book artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: book
+          path: |
+            docs/mdbook/${{ github.ref_name }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Download book artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: book
+          path: book
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: book
+          publish_branch: gh-pages
+          destination_dir: ./${{ github.ref_name }}
+          keep_files: false
