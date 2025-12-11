@@ -1,3 +1,6 @@
 # Summary
 
-- [Chapter 1](./chapter_1.md)
+[Introduction](../../../README.md)
+
+# User Guide
+- [Flashing the Dev Kit](./Flashing-the-Jetson-Dev-Kit.md)
