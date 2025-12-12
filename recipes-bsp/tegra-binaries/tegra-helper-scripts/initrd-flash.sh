@@ -156,11 +156,12 @@ prepare_binaries() {
     local layout_xml="$2"
     local kernel="$3"
     local rootfs_img="$4"
+    local datafile="$5"
 
     if [ "$target" = "internal" ]; then
         if [ -z "$PRESIGNED" ]; then
             if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
-                 "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
+                 "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --datafile "$datafile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
                 return 1
             fi
             cp secureflash.xml internal-secureflash.xml
@@ -174,7 +175,7 @@ prepare_binaries() {
     elif [ "$target" = "external" ]; then
         if [ -z "$PRESIGNED" ]; then
             if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
-                 "$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
+                 "$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" --datafile "$datafile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
                 return 1
             fi
             mv secureflash.xml external-secureflash.xml
@@ -189,7 +190,7 @@ prepare_binaries() {
         if [ -z "$PRESIGNED" ]; then
             rm -rf rcmboot_blob
             if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
-                 "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
+                 "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" --datafile "$datafile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
                 echo "ERR: could not create RCM boot blob" >&2
                 return 1
             fi
@@ -285,7 +286,7 @@ rm -rf tools/kernel_flash/images
 
 if [ $skip_bootloader -eq 0 ] ; then
     step_banner "Preparing contents for QSPI boot flash"
-    if ! prepare_binaries internal flash.xml.in $LNXFILE $ROOTFS_IMAGE 2>&1 >>"$logfile"; then
+    if ! prepare_binaries internal flash.xml.in $LNXFILE $ROOTFS_IMAGE $DATAFILE 2>&1 >>"$logfile"; then
         echo "ERR: preparing QSPI partitions failed at $(date -Is)"  | tee -a "$logfile"
         exit 1
     fi
@@ -293,14 +294,14 @@ fi
 
 if [ $qspi_only -eq 0 ] && [ -e external-flash.xml.in ]; then
     step_banner "Preparing contents for external storage"
-    if ! prepare_binaries external external-flash.xml.in $LNXFILE $ROOTFS_IMAGE 2>&1 >>"$logfile"; then
+    if ! prepare_binaries external external-flash.xml.in $LNXFILE $ROOTFS_IMAGE $DATAFILE 2>&1 >>"$logfile"; then
         echo "ERR: preparing external partitions failed at $(date -Is)"  | tee -a "$logfile"
         exit 1
     fi
 fi
 
 step_banner "Preparing for RCM boot"
-if ! prepare_binaries rcm-boot rcmboot-flash.xml.in initrd-flash.img $ROOTFS_IMAGE 2>&1 >>"$logfile"; then
+if ! prepare_binaries rcm-boot rcmboot-flash.xml.in initrd-flash.img $ROOTFS_IMAGE $DATAFILE 2>&1 >>"$logfile"; then
     echo "ERR: preparing RCM boot blob at $(date -Is)"  | tee -a "$logfile"
     exit 1
 fi
