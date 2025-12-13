@@ -22,6 +22,24 @@ for m in $MODULES_TO_LOAD; do
     modprobe -v "$m"
 done
 
+UDEVD=
+UDEVD_PATHS="/sbin/udev/udevd /sbin/udevd /lib/udev/udevd /lib/systemd/systemd-udevd"
+for path in $UDEVD_PATHS; do
+    if [ -x "$path" ]; then
+        UDEVD=$path
+        break
+    fi
+done
+
+if [ -x "$UDEVD" ]; then
+    # Workaround if console=null, systemd-udevd needs valid stdin, stdout and stderr to work
+    sh -c "exec 4< /dev/console" || { exec 0> /dev/null; exec 1> /dev/null; exec 2> /dev/null; }
+
+    $UDEVD --daemon
+    udevadm trigger --action=add
+    udevadm settle
+fi
+
 mount -t configfs configfs -o nosuid,nodev,noexec /sys/kernel/config
 
 [ ! -e /usr/sbin/wd_keepalive ] || /usr/sbin/wd_keepalive &
