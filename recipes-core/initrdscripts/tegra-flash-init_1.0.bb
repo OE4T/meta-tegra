@@ -38,7 +38,7 @@ do_install() {
 }
 
 FILES:${PN} = "/"
-RDEPENDS:${PN} = "util-linux-blkdiscard tegra-flash-reboot mtd-utils e2fsprogs-mke2fs libusbgx-tegra-initrd-flash watchdog-keepalive gptfdisk tegra-firmware kmod"
+RDEPENDS:${PN} = "util-linux-blkdiscard tegra-flash-reboot mtd-utils e2fsprogs-mke2fs libusbgx-tegra-initrd-flash watchdog-keepalive gptfdisk tegra-firmware kmod parted"
 RRECOMMENDS:${PN} = "kernel-module-loop \
                      kernel-module-libcomposite \
                      kernel-module-usb-f-mass-storage \
