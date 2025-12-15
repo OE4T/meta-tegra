@@ -21,6 +21,7 @@ SRC_URI[openrm.sha256sum] = "${OPENRMSUM}"
 
 SRC_URI += "\
     file://0001-Patch-nv-graphics.sh-script-for-OE-use.patch \
+    file://0001-Correct-path-to-nvpower.sh.patch \
     file://nv-l4t-bootloader-config.sh \
     file://devices.csv \
     file://drivers.csv \
