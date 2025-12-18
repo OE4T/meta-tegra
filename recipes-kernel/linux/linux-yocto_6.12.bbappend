@@ -4,6 +4,8 @@ require ${@'tegra-kernel.inc' if 'tegra' in d.getVar('MACHINEOVERRIDES').split('
 
 SRC_URI:append:tegra = " \
     file://0001-NVIDIA-SAUCE-soc-tegra-pmc-Add-sysfs-nodes-to-select.patch \
+    file://0002-UBUNTU-SAUCE-mtd-spi-nor-support-for-spansion-and-ma.patch \
+    file://0003-NVIDIA-SAUCE-enable-handling-of-macronix-block-prote.patch \
     file://tegra.cfg \
     file://tegra-drm.cfg \
     file://tegra-governors.cfg \
