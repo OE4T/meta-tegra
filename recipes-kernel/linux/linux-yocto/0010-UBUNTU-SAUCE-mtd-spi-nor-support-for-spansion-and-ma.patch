@@ -1,0 +1,56 @@
+From 64ea19263c4ebf747132a59d4a7d8a083f1ac5a4 Mon Sep 17 00:00:00 2001
+From: Vishwaroop A <va@nvidia.com>
+Date: Mon, 27 Mar 2023 04:44:56 +0000
+Subject: [PATCH] UBUNTU: SAUCE: mtd: spi-nor: support for spansion and
+ macronix
+
+BugLink: https://bugs.launchpad.net/bugs/2015755
+
+Add flash info for spansion and macronix flash
+devices.
+
+Upstream-Status: Backport [5.15.148-1012.12]
+
+Signed-off-by: Vishwaroop A <va@nvidia.com>
+Reviewed-by: Laxman Dewangan <ldewangan@nvidia.com>
+Signed-off-by: Abhilash G <abhilashg@nvidia.com>
+Tested-by: Laxman Dewangan <ldewangan@nvidia.com>
+Signed-off-by: Abhilash G <abhilashg@nvidia.com>
+Acked-by: Brad Figg <bfigg@nvidia.com>
+Acked-by: Ian May <ian.may@canonical.com>
+Acked-by: Jacob Martin <jacob.martin@canonical.com>
+Signed-off-by: Brad Figg <bfigg@nvidia.com>
+---
+ drivers/mtd/spi-nor/macronix.c | 3 +++
+ drivers/mtd/spi-nor/spansion.c | 4 ++++
+ 2 files changed, 7 insertions(+)
+
+diff --git a/drivers/mtd/spi-nor/macronix.c b/drivers/mtd/spi-nor/macronix.c
+index eb149e517c1f..688ea179674e 100644
+--- a/drivers/mtd/spi-nor/macronix.c
++++ b/drivers/mtd/spi-nor/macronix.c
+@@ -82,6 +82,9 @@ static const struct flash_info macronix_nor_parts[] = {
+ 	{ "mx25u51245g", INFO(0xc2253a, 0, 64 * 1024, 1024)
+ 		NO_SFDP_FLAGS(SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ)
+ 		FIXUP_FLAGS(SPI_NOR_4B_OPCODES) },
++	{ "mx25u51279g", INFO(0xc2953a, 0, 64 * 1024, 1024)
++		NO_SFDP_FLAGS(SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ)
++		FIXUP_FLAGS(SPI_NOR_4B_OPCODES) },
+ 	{ "mx25uw51245g", INFOB(0xc2813a, 0, 0, 0, 4)
+ 		PARSE_SFDP
+ 		FLAGS(SPI_NOR_RWW) },
+diff --git a/drivers/mtd/spi-nor/spansion.c b/drivers/mtd/spi-nor/spansion.c
+index 828b442735ee..c34f2d3f6637 100644
+--- a/drivers/mtd/spi-nor/spansion.c
++++ b/drivers/mtd/spi-nor/spansion.c
+@@ -802,6 +802,10 @@ static const struct flash_info spansion_nor_parts[] = {
+ 		NO_SFDP_FLAGS(SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ)
+ 		MFR_FLAGS(USE_CLSR)
+ 		.fixups = &s25fs_s_nor_fixups, },
++	{ "s25fs512s1", INFO(0x010220, 0x4d0181, 64 * 1024, 1024)
++		NO_SFDP_FLAGS(SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ)
++		MFR_FLAGS(USE_CLSR)
++		.fixups = &s25fs_s_nor_fixups, },
+ 	{ "s25sl12800", INFO(0x012018, 0x0300, 256 * 1024,  64) },
+ 	{ "s25sl12801", INFO(0x012018, 0x0301,  64 * 1024, 256) },
+ 	{ "s25fl129p0", INFO(0x012018, 0x4d00, 256 * 1024,  64)
