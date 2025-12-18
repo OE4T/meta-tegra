@@ -12,6 +12,8 @@ SRC_URI:append:tegra = " \
     file://0007-fbdev-simplefb-Add-support-for-generic-power-domains.patch \
     file://0008-UBUNTU-SAUCE-PCI-endpoint-Add-core_deinit-callback-s.patch \
     file://0009-NVIDIA-SAUCE-soc-tegra-pmc-Add-sysfs-nodes-to-select.patch \
+    file://0010-UBUNTU-SAUCE-mtd-spi-nor-support-for-spansion-and-ma.patch \
+    file://0011-NVIDIA-SAUCE-enable-handling-of-macronix-block-prote.patch \
     file://tegra.cfg \
     file://tegra-drm.cfg \
     file://tegra-governors.cfg \

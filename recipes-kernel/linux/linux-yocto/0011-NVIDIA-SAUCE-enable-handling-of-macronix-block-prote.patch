@@ -1,0 +1,57 @@
+From 76a3408f4d886805371d06107d9ee4f2700f0f98 Mon Sep 17 00:00:00 2001
+From: Brad Griffis <bgriffis@nvidia.com>
+Date: Wed, 10 Apr 2024 18:02:21 +0000
+Subject: [PATCH] NVIDIA: SAUCE: enable handling of macronix block protection
+
+BugLink: https://bugs.launchpad.net/bugs/2061900
+
+Orin NX/Nano modules have been shipping with block protection enabled.
+That is changing and the modules will ship with the block protection
+disabled.
+
+Note that the QSPI driver is only used during initrd flashing (rcm
+boot). On regular cold boot the QSPI node is disabled by UEFI to
+prevent access.
+
+This patch is not expected to be applied to future kernels since by
+that time there will no longer be units with block protection enabled.
+
+Adjust the driver configuration to handle block protection. Set the
+following flags for mx25u51279g:
+
+* SPI_NOR_HAS_LOCK
+    The macronix driver doesn't define a locking_ops structure so
+    there is no code specified to actually perform the lock/unlock
+    operations. SPI_NOR_HAS_LOCK causes the function
+    spi_nor_init_default_locking_ops() to be run which assigns
+    functions to perform lock/unlock operations.
+
+* SPI_NOR_SWP_IS_VOLATILE
+    Setting this flag causes the function spi_nor_try_unlock_all()
+    to be run, which clears the block protect bits.
+
+Upstream-Status: Backport [5.15.148-1012.12]
+
+Signed-off-by: Brad Griffis <bgriffis@nvidia.com>
+Reviewed-by: Hiteshkumar Patel <hiteshkumarg@nvidia.com>
+Reviewed-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-by: Dipen Patel <dipenp@nvidia.com>
+Acked-by: Noah Wager <noah.wager@canonical.com>
+Acked-by: Jacob Martin <jacob.martin@canonical.com>
+Signed-off-by: Noah Wager <noah.wager@canonical.com>
+---
+ drivers/mtd/spi-nor/macronix.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/mtd/spi-nor/macronix.c b/drivers/mtd/spi-nor/macronix.c
+index 688ea179674e..e3ba4b5642cd 100644
+--- a/drivers/mtd/spi-nor/macronix.c
++++ b/drivers/mtd/spi-nor/macronix.c
+@@ -83,6 +83,7 @@ static const struct flash_info macronix_nor_parts[] = {
+ 		NO_SFDP_FLAGS(SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ)
+ 		FIXUP_FLAGS(SPI_NOR_4B_OPCODES) },
+ 	{ "mx25u51279g", INFO(0xc2953a, 0, 64 * 1024, 1024)
++		FLAGS(SPI_NOR_HAS_LOCK | SPI_NOR_SWP_IS_VOLATILE)
+ 		NO_SFDP_FLAGS(SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ)
+ 		FIXUP_FLAGS(SPI_NOR_4B_OPCODES) },
+ 	{ "mx25uw51245g", INFOB(0xc2813a, 0, 0, 0, 4)
