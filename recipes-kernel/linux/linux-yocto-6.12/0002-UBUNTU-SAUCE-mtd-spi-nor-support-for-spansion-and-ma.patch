@@ -1,0 +1,66 @@
+From 079697c3bd71134af9debb41974632e23da29434 Mon Sep 17 00:00:00 2001
+From: Vishwaroop A <va@nvidia.com>
+Date: Mon, 27 Mar 2023 04:44:56 +0000
+Subject: [PATCH 1/2] UBUNTU: SAUCE: mtd: spi-nor: support for spansion and
+ macronix
+
+BugLink: https://bugs.launchpad.net/bugs/2015755
+
+Add flash info for spansion and macronix flash
+devices.
+
+Upstream-Status: Backport [5.15.148-1012.12]
+
+Signed-off-by: Vishwaroop A <va@nvidia.com>
+Reviewed-by: Laxman Dewangan <ldewangan@nvidia.com>
+Signed-off-by: Abhilash G <abhilashg@nvidia.com>
+Tested-by: Laxman Dewangan <ldewangan@nvidia.com>
+Signed-off-by: Abhilash G <abhilashg@nvidia.com>
+Acked-by: Brad Figg <bfigg@nvidia.com>
+Acked-by: Ian May <ian.may@canonical.com>
+Acked-by: Jacob Martin <jacob.martin@canonical.com>
+Signed-off-by: Brad Figg <bfigg@nvidia.com>
+---
+ drivers/mtd/spi-nor/macronix.c | 6 ++++++
+ drivers/mtd/spi-nor/spansion.c | 8 ++++++++
+ 2 files changed, 14 insertions(+)
+
+diff --git a/drivers/mtd/spi-nor/macronix.c b/drivers/mtd/spi-nor/macronix.c
+index ea6be95e75a52..f2b0a72721985 100644
+--- a/drivers/mtd/spi-nor/macronix.c
++++ b/drivers/mtd/spi-nor/macronix.c
+@@ -177,6 +177,12 @@ static const struct flash_info macronix_nor_parts[] = {
+ 		.name = "mx25uw51245g",
+ 		.n_banks = 4,
+ 		.flags = SPI_NOR_RWW,
++	}, {
++		.id = SNOR_ID(0xc2, 0x95, 0x3a),
++		.name = "mx25u51279g",
++		.size = SZ_64M,
++		.no_sfdp_flags = SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ,
++		.fixup_flags = SPI_NOR_4B_OPCODES,
+ 	}, {
+ 		.id = SNOR_ID(0xc2, 0x9e, 0x16),
+ 		.name = "mx25l3255e",
+diff --git a/drivers/mtd/spi-nor/spansion.c b/drivers/mtd/spi-nor/spansion.c
+index 5a88a6096ca8c..92b89169415bd 100644
+--- a/drivers/mtd/spi-nor/spansion.c
++++ b/drivers/mtd/spi-nor/spansion.c
+@@ -831,6 +831,14 @@ static const struct flash_info spansion_nor_parts[] = {
+ 		.no_sfdp_flags = SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ,
+ 		.mfr_flags = USE_CLSR,
+ 		.fixups = &s25fs_s_nor_fixups,
++	}, {
++		.id = SNOR_ID(0x01, 0x02, 0x20, 0x4d, 0x01, 0x80),
++		.name = "s25fs512s1",
++		.size = SZ_64M,
++		.sector_size = SZ_1M,
++		.no_sfdp_flags = SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ,
++		.mfr_flags = USE_CLSR,
++		.fixups = &s25fs_s_nor_fixups,
+ 	}, {
+ 		.id = SNOR_ID(0x01, 0x20, 0x18, 0x03, 0x00),
+ 		.name = "s25sl12800",
+-- 
+2.34.1
+
