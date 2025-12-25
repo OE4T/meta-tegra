@@ -2,3 +2,4 @@
 title = "OE4T Meta Tegra"
 authors = ["Matt Madison", "Dan Walkes"]
 language = "en"
+src = "docs"
