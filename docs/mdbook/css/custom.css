@@ -1,0 +1,12 @@
+nav.book-header select {
+    margin-left: 1rem;
+    background-color: #0b3954;
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+nav.book-header select:hover {
+    background-color: #095074;
+}
+

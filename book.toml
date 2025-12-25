@@ -3,3 +3,7 @@ title = "OE4T Meta Tegra"
 authors = ["Matt Madison", "Dan Walkes"]
 language = "en"
 src = "docs"
+
+[output.html]
+additional-css = ["docs/mdbook/css/custom.css"]
+additional-js = ["docs/mdbook/js/version-dropdown.js"]
