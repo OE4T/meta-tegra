@@ -19,9 +19,8 @@ jobs:
 
       # Build mdBook using Docker
       - name: Build mdBook
-        working-directory: docs/mdbook
         run: |
-          mdbook build --dest-dir "./${{ github.ref_name }}"
+          mdbook build --dest-dir "./mdbook-output/${{ github.ref_name }}"
 
       # Upload book artifact for deploy job
       - name: Upload book artifact
@@ -29,7 +28,7 @@ jobs:
         with:
           name: book
           path: |
-            docs/mdbook/${{ github.ref_name }}
+            mdbook-output/${{ github.ref_name }}
 
   deploy:
     needs: build
