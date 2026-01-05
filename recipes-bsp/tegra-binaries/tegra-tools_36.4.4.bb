@@ -11,12 +11,17 @@ do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${S}/usr/bin/tegrastats ${D}${bindir}/
     install -m 0755 ${S}/usr/bin/jetson_clocks ${D}${bindir}/
+    install -m 0755 -D -t ${D}${sbindir} ${S}/usr/sbin/nv_get_dram_info ${S}/usr/sbin/nv_fuse_read.sh
 }
 
-PACKAGES = "${PN}-tegrastats ${PN}-jetson-clocks ${PN}"
+PACKAGES = "${PN}-tegrastats ${PN}-jetson-clocks ${PN}-fuse-read ${PN}-dram-info ${PN}"
 ALLOW_EMPTY:${PN} = "1"
-RDEPENDS:${PN} = "${PN}-tegrastats ${PN}-jetson-clocks"
+RDEPENDS:${PN} = "${PN}-tegrastats ${PN}-jetson-clocks ${PN}-fuse-read ${PN}-dram-info"
 FILES:${PN}-tegrastats = "${bindir}/tegrastats"
 INSANE_SKIP:${PN}-tegrastats = "ldflags"
 FILES:${PN}-jetson-clocks = "${bindir}/jetson_clocks"
 RDEPENDS:${PN}-jetson-clocks = "bash"
+FILES:${PN}-fuse-read = "${sbindir}/nv_fuse_read.sh"
+RDEPENDS:${PN}-fuse-read = "bash xxd coreutils"
+FILES:${PN}-dram-info = "${sbindir}/nv_get_dram_info"
+INSANE_SKIP:${PN}-dram-info = "ldflags"
