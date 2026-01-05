@@ -1,23 +1,20 @@
 import sys
 import os
+import argparse
 from kconfiglib import Kconfig
 
 # Adapted from edk2-nvidia/Silicon/NVIDIA/edk2nv/stuart/builder.py BuildConfigFile method
-def build_config_file(kconf_path, defconfig_file, config_out):
+def build_config_file(kconf_path, configs, config_out):
     kconf = Kconfig(kconf_path, warn_to_stderr=False,
                     suppress_traceback=True)
     kconf.warn_assign_undef = True
     kconf.warn_assign_override = False
     kconf.warn_assign_redun = False
 
-    configs = [defconfig_file]
     print(kconf.load_config(configs[0]))
     for config in configs[1:]:
         # replace=False creates a merged configuration
         print(kconf.load_config(config, replace=False))
-
-    if os.path.exists(config_out):
-        print(kconf.load_config(config_out, replace=False))
 
     kconf.write_config(os.devnull)
 
@@ -38,8 +35,29 @@ def build_config_file(kconf_path, defconfig_file, config_out):
     print(kconf.write_config(config_out))
     return 0
 
-build_config_file(sys.argv[1], sys.argv[2], sys.argv[3])
+def main():
+    parser = argparse.ArgumentParser(description="Configuration merge tool for NVIDIA UEFI/EDK2 builds")
+    parser.add_argument("--kconfig-path", help="path to base Kconfig file", required=True)
+    parser.add_argument("--output-directory", help="directory for writing .config and config.dsc.inc files")
+    parser.add_argument("config_files", nargs="+")
+    args = parser.parse_args()
+    if args.output_directory:
+        output_file = os.path.join(args.output_directory, ".config")
+        output_dsc = os.path.join(args.output_directory, "config.dsc.inc")
+    else:
+        output_file = ".config"
+        output_dsc = "config.dsc.inc"
+    build_config_file(args.kconfig_path, args.config_files, output_file)
+    with open(output_file, "r") as f, open(output_dsc, "w") as fo:
+        for line in f:
+            fo.write(line.replace('"', '').replace("'", ""))
+    return 0
 
-with open(sys.argv[3], "r") as f, open(sys.argv[4], "w") as fo:
-    for line in f:
-        fo.write(line.replace('"', '').replace("'", ""))
+if __name__ == '__main__':
+    try:
+        ret = main()
+    except Exception:
+        ret = 1
+        import traceback
+        traceback.print_exc()
+    sys.exit(ret)
