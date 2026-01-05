@@ -14,7 +14,7 @@ EDK2_BIN_NAME = "uefi_jetson_minimal.bin"
 SRC_URI += "file://nvbuildconfig.py"
 
 do_configure:append() {
-    ${PYTHON} ${WORKDIR}/nvbuildconfig.py ${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig ${S_EDK2_NVIDIA}/Platform/NVIDIA/${EDK2_PLATFORM}/Jetson.defconfig ${B}/nvidia-config/Jetson/.config ${B}/nvidia-config/Jetson/config.dsc.inc
+    ${PYTHON} ${WORKDIR}/nvbuildconfig.py --kconfig-path=${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig --output-dir=${B}/nvidia-config/Jetson ${S_EDK2_NVIDIA}/Platform/NVIDIA/${EDK2_PLATFORM}/Jetson.defconfig ${@config_fragments(d)}
 }
 
 do_compile:append() {
