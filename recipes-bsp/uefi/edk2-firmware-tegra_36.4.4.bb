@@ -17,7 +17,7 @@ EDK2_BIN_NAME = "uefi_jetson.bin"
 SRC_URI += "file://nvbuildconfig.py"
 
 do_configure:append() {
-    ${PYTHON} ${UNPACKDIR}/nvbuildconfig.py ${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig ${S_EDK2_NVIDIA}/Platform/NVIDIA/${EDK2_PLATFORM}/Jetson.defconfig ${B}/nvidia-config/Jetson/.config ${B}/nvidia-config/Jetson/config.dsc.inc
+    ${PYTHON} ${UNPACKDIR}/nvbuildconfig.py --kconfig-path=${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig --output-dir=${B}/nvidia-config/Jetson ${S_EDK2_NVIDIA}/Platform/NVIDIA/${EDK2_PLATFORM}/Jetson.defconfig ${@config_fragments(d)}
 }
 
 def fmp_lowest_version(d):
