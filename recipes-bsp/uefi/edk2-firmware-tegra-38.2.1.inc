@@ -88,3 +88,7 @@ TEGRA_BUILD_GUID = '-D "BUILD_GUID=$(cat ${B}/nvidia-config/Tegra/${EDK2_PLATFOR
 def format_build_date(d):
     import datetime
     return datetime.datetime.fromtimestamp(int(d.getVar("SOURCE_DATE_EPOCH")), datetime.timezone.utc).replace(microsecond=0).isoformat()
+
+def config_fragments(d):
+    import oe.patch
+    return ' '.join([frag_file for frag_file in oe.patch.src_patches(d, all=True, expand=True) if os.path.splitext(frag_file)[1] == ".cfg"])

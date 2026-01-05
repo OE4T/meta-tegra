@@ -21,8 +21,7 @@ EDK2_BIN_NAME = "uefi_${EDK2_PLATFORM}.bin"
 SRC_URI += "file://nvbuildconfig.py"
 
 do_configure:append() {
-    mkdir -p ${B}/nvidia-config/Tegra/${EDK2_PLATFORM}
-    ${PYTHON} ${UNPACKDIR}/nvbuildconfig.py ${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig ${S_EDK2_NVIDIA}/Platform/NVIDIA/Tegra/DefConfigs/${EDK2_PLATFORM}.defconfig ${B}/nvidia-config/Tegra/${EDK2_PLATFORM}
+    ${PYTHON} ${UNPACKDIR}/nvbuildconfig.py --kconfig-path=${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig --output-dir=${B}/nvidia-config/Tegra/${EDK2_PLATFORM} ${S_EDK2_NVIDIA}/Platform/NVIDIA/Tegra/DefConfigs/${EDK2_PLATFORM}.defconfig ${@config_fragments(d)}
 }
 
 def fmp_lowest_version(d):
