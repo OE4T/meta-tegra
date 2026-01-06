@@ -12,6 +12,10 @@ TEGRA_SOCNAME_SHORT = "${@d.getVar('SOC_FAMILY')[0:1] + d.getVar('SOC_FAMILY')[-
 BACKSLASH_X_01 = "${@'\\' + 'x01'}"
 BADPAGE_SIZE = "8192"
 
+TEGRA_MB1_LOG_LEVEL ??= "4"
+TEGRA_MB1_MISC_CONFIG_SECTION ?= "misc"
+TEGRA_BPMP_SERIAL_LOGGING ??= "1"
+
 do_compile() {
     prepare_badpage_mapfile
 }
@@ -63,6 +67,18 @@ install_other_boot_firmware_files() {
 	    ;;
     esac
     install -m 0644 ${B}/badpage.bin ${D}${datadir}/tegraflash/
+    cat >> ${D}${datadir}/tegraflash/${TEGRA_FLASHVAR_MISC_CONFIG} <<EOF
+/ {
+        ${TEGRA_MB1_MISC_CONFIG_SECTION} {
+                debug {
+                        log_level = <${TEGRA_MB1_LOG_LEVEL}>;
+                };
+        };
+};
+EOF
+    if ${@'false' if bb.utils.to_boolean(d.getVar('TEGRA_BPMP_SERIAL_LOGGING')) else 'true'}; then
+        fdtput -r ${D}${datadir}/tegraflash/${TEGRA_FLASHVAR_BPFDTB_FILE} /serial
+    fi
 }
 
 PACKAGES = "${PN}-dev"
