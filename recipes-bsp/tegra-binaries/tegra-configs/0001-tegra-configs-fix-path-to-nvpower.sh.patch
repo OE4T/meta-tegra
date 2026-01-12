@@ -1,0 +1,46 @@
+From 04c16aafbf7ca78f6ce2068390b78b505940a949 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 12 Jan 2026 12:23:11 -0800
+Subject: [PATCH] tegra-configs: fix path to nvpower.sh
+
+The script 'nvpower.sh' is installed in path '/usr/libexec'
+bu tegra-nvpower recipe. The default path for Jetson Linux
+is '/etc/systemd' and this has to be adjusted in the
+udev rules.
+
+Upstream-Status: Inappropriate [OE-Specific]
+
+Signed-off-by: Peter Bergin <peter@berginkonsult.se>
+Signed-off-by: Peter Bergin <peter.bergin@1x.tech>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ etc/udev/rules.d/99-tegra-devices.rules | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
+
+diff --git a/etc/udev/rules.d/99-tegra-devices.rules b/etc/udev/rules.d/99-tegra-devices.rules
+index ece1aa9..f3ae3eb 100644
+--- a/etc/udev/rules.d/99-tegra-devices.rules
++++ b/etc/udev/rules.d/99-tegra-devices.rules
+@@ -87,12 +87,12 @@ KERNEL=="cdi_tsc" OWNER="root" GROUP="video" MODE="0660"
+ KERNEL=="coe-chan-*" OWNER="root" GROUP="video" MODE="0660"
+ 
+ # Power policies
+-SUBSYSTEM=="pci", DEVPATH=="/devices/platform/bus@0/d0b0000000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0", ACTION=="bind", RUN+="/bin/bash /etc/systemd/nvpower.sh --gpu"
+-SUBSYSTEM=="platform", DEVPATH=="/devices/platform/bus@0/17000000.gpu", ACTION=="bind|change", RUN+="/bin/bash /etc/systemd/nvpower.sh --gpu"
+-SUBSYSTEM=="platform", DEVPATH=="/devices/platform/bus@0/*/8188050000.vic", ACTION=="bind|change", RUN+="/bin/bash /etc/systemd/nvpower.sh --vic"
+-SUBSYSTEM=="platform", DEVPATH=="/devices/platform/bus@0/*/15340000.vic", ACTION=="bind|change", RUN+="/bin/bash /etc/systemd/nvpower.sh --vic"
+-SUBSYSTEM=="platform", DEVPATH=="/devices/platform/bus@0/*/15480000.nvdec", ACTION=="bind|change", RUN+="/bin/bash /etc/systemd/nvpower.sh --nvdec"
+-SUBSYSTEM=="platform", DEVPATH=="/devices/platform/bus@0/*/154c0000.nvenc", ACTION=="bind|change", RUN+="/bin/bash /etc/systemd/nvpower.sh --nvenc"
+-SUBSYSTEM=="hwmon", DEVPATH=="/devices/platform/bus@0/c600000.i2c/i2c-2/2-0044/hwmon/*", ACTION=="bind|change", RUN+="/bin/bash /etc/systemd/nvpower.sh --ina238"
++SUBSYSTEM=="pci", DEVPATH=="/devices/platform/bus@0/d0b0000000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0", ACTION=="bind", RUN+="/bin/bash /usr/libexec/nvpower.sh --gpu"
++SUBSYSTEM=="platform", DEVPATH=="/devices/platform/bus@0/17000000.gpu", ACTION=="bind|change", RUN+="/bin/bash /usr/libexec/nvpower.sh --gpu"
++SUBSYSTEM=="platform", DEVPATH=="/devices/platform/bus@0/*/8188050000.vic", ACTION=="bind|change", RUN+="/bin/bash /usr/libexec/nvpower.sh --vic"
++SUBSYSTEM=="platform", DEVPATH=="/devices/platform/bus@0/*/15340000.vic", ACTION=="bind|change", RUN+="/bin/bash /usr/libexec/nvpower.sh --vic"
++SUBSYSTEM=="platform", DEVPATH=="/devices/platform/bus@0/*/15480000.nvdec", ACTION=="bind|change", RUN+="/bin/bash /usr/libexec/nvpower.sh --nvdec"
++SUBSYSTEM=="platform", DEVPATH=="/devices/platform/bus@0/*/154c0000.nvenc", ACTION=="bind|change", RUN+="/bin/bash /usr/libexec/nvpower.sh --nvenc"
++SUBSYSTEM=="hwmon", DEVPATH=="/devices/platform/bus@0/c600000.i2c/i2c-2/2-0044/hwmon/*", ACTION=="bind|change", RUN+="/bin/bash /usr/libexec/nvpower.sh --ina238"
+ 
+ LABEL="nvidia_end"
+-- 
+2.34.1
+

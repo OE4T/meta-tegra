@@ -1,6 +1,6 @@
 HOMEPAGE = "https://developer.nvidia.com/embedded/jetson-linux"
 L4T_BSP_NAME ??= "release"
-L4T_SRCS_NAME ??= "sources"
+L4T_SRCS_NAME ??= "source"
 L4T_BSP_PREFIX ??= "Jetson"
 
 inherit l4t_version
@@ -8,7 +8,7 @@ L4T_LIB_VERSION ?= "580.00"
 
 # Version (date-time stamp) suffixes for nvidia-l4t-* packages
 # in the package feeds.
-L4T_BSP_DEB_DEFAULT_VERSION = "20250925153837"
+L4T_BSP_DEB_DEFAULT_VERSION = "20251230160601"
 L4T_BSP_DEB_VERSION ?= "${L4T_BSP_DEB_DEFAULT_VERSION}"
 L4T_BSP_DEB_ORIG_VERSION = ""
 L4T_BSP_DEB_PACKAGES_USING_ORIG_VERSION = ""
@@ -26,7 +26,7 @@ def l4t_release_dir(d):
     verparts = d.getVar('L4T_VERSION').split('.')
     return "r%s_Release_v%s.%s" % (verparts[0], verparts[1], verparts[2])
 
-L4T_URI_BASE ?= "https://developer.download.nvidia.com/embedded/L4T/${@l4t_release_dir(d)}/${L4T_BSP_NAME}"
-L4T_OVERLAY_URI_BASE ?= "https://developer.download.nvidia.com/embedded/L4T/${@l4t_release_dir(d)}"
+L4T_URI_BASE ?= "https://developer.nvidia.com/downloads/embedded/L4T/${@l4t_release_dir(d)}/${L4T_BSP_NAME}"
+L4T_OVERLAY_URI_BASE ?= "https://developer.nvidia.com/downloads/embedded/L4T/${@l4t_release_dir(d)}"
 
 L4T_BSP_SHARED_SOURCE_DIR = "${TMPDIR}/work-shared/L4T-${L4T_BSP_ARCH}-${PV}-${PR}/sources/Linux_for_Tegra"
