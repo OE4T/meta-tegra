@@ -14,15 +14,19 @@ LINUX_VERSION ?= "6.8.12"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
-LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}-1009.9"
+LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}"
 SCMVERSION ??= "y"
 
-SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "d1dee2ab0b39854eaef89976dd15c0da861c45d3"
-KBRANCH = "${SRCBRANCH}"
-SRC_REPO = "github.com/OE4T/linux-noble-nvidia-tegra.git;protocol=https"
-KERNEL_REPO = "${SRC_REPO}"
-SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
+TEGRA_SRC_SUBARCHIVE = "\
+    Linux_for_Tegra/source/kernel_src.tbz2 \
+"
+TEGRA_SRC_SUBARCHIVE_OPTS = "-C ${UNPACKDIR}/${BPN}"
+require recipes-bsp/tegra-sources/tegra-sources-38.4.0.inc
+
+do_unpack[depends] += "tegra-binaries:do_preconfigure"
+do_unpack[dirs] += "${UNPACKDIR}/${BPN}"
+
+SRC_URI += " \
     ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
     ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
@@ -32,6 +36,12 @@ SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
 KBUILD_DEFCONFIG = "defconfig"
 KCONFIG_MODE = "--alldefconfig"
 
+# Copy the Linux kernel sources to the right location
+prepare_source() {
+    cp -r ${UNPACKDIR}/${BPN}/kernel/kernel-noble/* ${S}/
+}
+do_unpack[postfuncs] += "prepare_source"
+
 set_scmversion() {
     if [ "${SCMVERSION}" = "y" -a -d "${S}/.git" ]; then
         head=$(git --git-dir=${S}/.git rev-parse --verify --short HEAD 2>/dev/null || true)
@@ -39,3 +49,5 @@ set_scmversion() {
     fi
 }
 do_kernel_checkout[postfuncs] += "set_scmversion"
+
+INSANE_SKIP:${PN}-src = "buildpaths"
