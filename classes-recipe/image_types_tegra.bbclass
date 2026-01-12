@@ -100,7 +100,6 @@ TEGRA_EXT4_OPTIONS ?= ""
 EXTRA_IMAGECMD:append:ext4 = " ${TEGRA_EXT4_OPTIONS}"
 
 TEGRA_STAGED_BOOT_FIRMWARE = "${TEGRA_BOOT_FIRMWARE_FILES} eks.img badpage.bin"
-TEGRA_STAGED_BOOT_FIRMWARE:tegra264 = "${TEGRA_BOOT_FIRMWARE_FILES} eks.img"
 
 def tegra_initrd_image(d):
     if d.getVar('IMAGE_UBOOT'):
@@ -219,7 +218,7 @@ tegraflash_create_flash_config() {
         -e"s,TOSFILE,${TOSIMGFILENAME}," \
         -e"s,EKSFILE,eks.img," \
         -e"s,RECNAME,recovery," -e"s,RECSIZE,${TEGRA_RECOVERY_KERNEL_PART_SIZE}," -e"s,RECDTB-NAME,recovery-dtb," \
-        -e"/RECFILE/d" -e"/RECDTB-FILE/d" -e"/BOOTCTRL-FILE/d" \
+        -e"/RECFILE/d" -e"/RECDTB_FILE/d" -e"/REC_ALT_FILE/d" -e"/RECDTB_ALT_FILE/d" -e"/ESP_ALT_FILE/d" \
         -e"/IST_UCODE/d" -e"/IST_BPMPFW/d" -e"/IST_ICTBIN/d" -e"/IST_TESTIMG/d" -e"/IST_RTINFO/d" -e"/IST_RTID/d" \
         -e"s,APPSIZE,${ROOTFSPART_SIZE}," \
         -e"s,RECROOTFSSIZE,${RECROOTFSSIZE}," \

@@ -1,19 +1,21 @@
-From c23b095fb29b4eaa49e95c2e96ed1ae4712859cb Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Fri, 26 Sep 2025 06:14:24 -0700
+From c0e042b78eeb2a8a8f35ffaf5307852defd8fa92 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 19 Dec 2025 15:35:23 -0800
 Subject: [PATCH] Remove symlink creation functions
 
 Upstream-Status: Pending
+
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- etc/systemd/nvpower.sh | 211 +----------------------------------------
- 1 file changed, 4 insertions(+), 207 deletions(-)
+ etc/systemd/nvpower.sh | 205 +----------------------------------------
+ 1 file changed, 4 insertions(+), 201 deletions(-)
 
 diff --git a/etc/systemd/nvpower.sh b/etc/systemd/nvpower.sh
-index 3911340..1c3bc84 100755
+index 788dd47..c30105d 100755
 --- a/etc/systemd/nvpower.sh
 +++ b/etc/systemd/nvpower.sh
-@@ -174,210 +174,6 @@ function set_power_state_perm()
+@@ -174,204 +174,6 @@ function set_power_state_perm()
  	fi
  }
  
@@ -124,12 +126,10 @@ index 3911340..1c3bc84 100755
 -			else
 -				conf_file="/etc/nvpmodel/nvpmodel_p3701_0000.conf"
 -			fi
--		elif [ "${SOCFAMILY}" = "tegra239" ]; then
--			if [ "${machine}" = "e2423" ]; then
--				conf_file="/etc/nvpmodel/nvpmodel_e2423.conf"
--			fi
 -		elif [ "${SOCFAMILY}" = "tegra264" ]; then
--			if [ "${machine}" = "p3834-0005" ]; then
+-			if [ "${machine}" = "p3834-0000" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3834_0000.conf"
+-			elif [ "${machine}" = "p3834-0005" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3834_0005.conf"
 -			elif [ "${machine}" = "p3834-0008-safety" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_igx_thor_safety.conf"
@@ -180,15 +180,11 @@ index 3911340..1c3bc84 100755
 -			fi
 -		fi
 -
--		if [ "${SOCFAMILY}" = "tegra239" ]; then
--			if [ "${machine}" = "e2423" ]; then
--				conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_e2423.conf"
--			fi
--		fi
--
 -		if [ "${SOCFAMILY}" = "tegra264" ]; then
 -			if [[ "${cvb}" =~ "p4071" ]]; then
--				if [[ "${machine}" =~ "p3834-0008" ]]; then
+-				if [[ "${machine}" =~ "p3834-0000" ]]; then
+-					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3834_0000_p4071_0000.conf"
+-				elif [[ "${machine}" =~ "p3834-0008" ]]; then
 -					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3834_0008_p4071_0000.conf"
 -				else
 -					conf_file="/etc/nvpower/nvfancontrol/nvfancontrol_p3834_0008_p4071_0000.conf"
@@ -224,19 +220,19 @@ index 3911340..1c3bc84 100755
  # CPU hotplug helper function that turns on/off the CPU cores in the specified range
  # * Parameters:
  # * ${1}: desired online status (0 for offline, 1 for online)
-@@ -429,7 +225,10 @@ function set_cpufreq_governor()
+@@ -423,7 +225,10 @@ function set_cpufreq_governor()
  		governor="schedutil"
  	fi
  
 -	tee /sys/devices/system/cpu/cpufreq/policy*/scaling_governor 1>/dev/null 2>&1 <<< $governor
-+	for pd in /sys/devices/system/cpu/cpufreq/policy*; do
-+	    [ -d "$pd" ] || continue
-+	    echo "$governor" > "$pd/scaling_governor"
++    for pd in /sys/devices/system/cpu/cpufreq/policy*; do
++        [ -d "$pd" ] || continue
++        echo "$governor" > "$pd/scaling_governor"
 +	done
  
  	if [[ "$governor" = "schedutil" ]] && [[ -e "/sys/devices/system/cpu/cpufreq/schedutil/rate_limit_us" ]]; then
  		echo 2000 > /sys/devices/system/cpu/cpufreq/schedutil/rate_limit_us
-@@ -846,8 +645,6 @@ function udev_ina238_handler()
+@@ -893,8 +698,6 @@ function udev_ina238_handler()
  # This path is triggered once when systemd start the nvpower.service in one-shot manner
  if [[ "$#" -eq 0 ]]; then
  	set_power_state_perm
@@ -245,3 +241,6 @@ index 3911340..1c3bc84 100755
  	cpu_hotplug
  	set_cpufreq_governor
  	set_cpu_floor_freq
+-- 
+2.34.1
+
