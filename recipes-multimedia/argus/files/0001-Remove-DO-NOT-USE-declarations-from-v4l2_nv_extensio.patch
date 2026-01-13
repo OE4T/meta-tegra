@@ -1,6 +1,6 @@
-From 53121a5c722a35024758e722ff744234bafa82d4 Mon Sep 17 00:00:00 2001
+From e6070dd9d8c4f1f1340e16b7edc5e704697f75bf Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Thu, 14 Aug 2025 20:20:57 +0100
+Date: Mon, 22 Dec 2025 08:54:40 -0800
 Subject: [PATCH] Remove DO NOT USE declarations from v4l2_nv_extensions.h
 
 as they are now present in v4l2-controls.h and conflict
@@ -14,7 +14,7 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  1 file changed, 206 deletions(-)
 
 diff --git a/include/v4l2_nv_extensions.h b/include/v4l2_nv_extensions.h
-index 1f8d9da..57036e8 100644
+index 7874106..23bb1df 100644
 --- a/include/v4l2_nv_extensions.h
 +++ b/include/v4l2_nv_extensions.h
 @@ -140,22 +140,6 @@
@@ -224,8 +224,8 @@ index 1f8d9da..57036e8 100644
 -
 -    /** Holds the v4l2_buffer index of the last reference frame. */
 -    __u32 last_frame;
--    /** Holds the v4l2_buffer index of the golden reference frame. */
--    __u32 golden_frame;
+-     /** Holds the v4l2_buffer index of the golden reference frame. */
+-   __u32 golden_frame;
 -    /** Holds the v4l2_buffer index of the alt reference frame. */
 -    __u32 alt_frame;
 -
