@@ -3,7 +3,7 @@ DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-nvsci virtu
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "4968389a42b2a9b099d6cc9708d230c80a479fcd9823cd505e9d562eb0fb04ba"
+MAINSUM = "2725cd6665934f34fb3a0f0c0f4c21d9fd9d95bf43b6471171f6a1eb6dabe454"
 
 inherit features_check
 

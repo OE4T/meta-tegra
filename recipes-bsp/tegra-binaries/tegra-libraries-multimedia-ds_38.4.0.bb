@@ -7,7 +7,7 @@ require tegra-debian-libraries-common.inc
 
 LICENSE += "& MIT & BSD-3-Clause"
 
-MAINSUM = "5eae48eb66eb18833011a2c26adaafbead0116e795a7d103258958ff552e0287"
+MAINSUM = "4314c6f44b8dbe707dc2634030d2153d8f07efabe520483f6d00309f524a7262"
 
 inherit features_check
 
