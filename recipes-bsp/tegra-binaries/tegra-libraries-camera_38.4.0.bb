@@ -12,9 +12,9 @@ LIC_FILES_CHKSUM += "\
 SRC_COMMON_DEBS += "${@l4t_deb_pkgname(d, 'gstreamer')};subdir=${BP};name=gstreamer"
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'core')};subdir=${BP};name=core"
 
-MAINSUM = "151ce46814f4e84c98bdc503aee5af4951773c363ae4a30989ed3329c1af9912"
-GSTSUM = "eee75f47c0dea0f731876b7810a7d9a1aa993ad29df82816a0d272690026b86a"
-CORESUM = "6b48bb8c41d5de2114fd7d7f4bfa997ac4404c76e3bbbe958ab324d4417c42b7"
+MAINSUM = "85e51596d428196415bf248340aabf53a00d5abf92c3bd3def070b452aeda346"
+GSTSUM = "ccd25a20c89d115af04ae0fab5b7fb427fcea33e19649f62ef15dbbc8897f52f"
+CORESUM = "5fe480d1937754498299b138cf86b5e5b78d50f4b52c0b3b7f900c50c6de6ad4"
 SRC_URI[gstreamer.sha256sum] = "${GSTSUM}"
 SRC_URI[core.sha256sum] = "${CORESUM}"
 
@@ -39,6 +39,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnveglstreamproducer.so \
     nvidia/libnvfusacapinterface.so \
     nvidia/libnvfusacap.so \
+    nvidia/libnvfusacapext.so \
     nvidia/libnvisp.so \
     nvidia/libnvisppg.so \
     nvidia/libnvmedia_isp_ext.so \
