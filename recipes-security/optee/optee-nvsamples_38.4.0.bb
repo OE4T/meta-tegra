@@ -33,12 +33,19 @@ do_install() {
     install -D -m 0755 ${B}/early_ta/luks-srv/b83d14a8-7128-49df-9624-35f14f65ca6c.stripped.elf -t ${D}${includedir}/optee/early_ta/luks-srv
     install -D -m 0755 ${B}/early_ta/cpubl-payload-dec/0e35e2c9-b329-4ad9-a2f5-8ca9bbbd7713.stripped.elf -t ${D}${includedir}/optee/early_ta/cpubl-payload-dec
     oe_runmake -C ${S}/luks-srv/host install DESTDIR="${D}"
+
+    install -D -m 0755 ${B}/early_ta/ftpm-helper/a6a3a74a-77cb-433a-990c-1dfb8a3fbc4c.stripped.elf -t ${D}${includedir}/optee/early_ta/ftpm-helper
+    oe_runmake -C ${S}/ftpm-helper/host install DESTDIR="${D}"
+
+    oe_runmake -C ${S}/pkcs11-sample/host install DESTDIR="${D}"
 }
 
-PACKAGES =+ "${PN}-luks-srv ${PN}-hwkey-agent"
+PACKAGES =+ "${PN}-luks-srv ${PN}-hwkey-agent ${PN}-ftpm-helper ${PN}-pkcs11-sample"
 FILES:${PN}-hwkey-agent = "${nonarch_base_libdir}/optee_armtz/82154947-c1bc-4bdf-b89d-04f93c0ea97c.ta ${sbindir}/nvhwkey-app"
 FILES:${PN}-luks-srv = "${sbindir}/nvluks-srv-app"
+FILES:${PN}-ftpm-helper = "${sbindir}/nvftpm-helper-app"
+FILES:${PN}-pkcs11-sample = "${sbindir}/nvpkcs11-sample-app"
 ALLOW_EMPTY:${PN} = "1"
-RDEPENDS:${PN} = "${PN}-luks-srv ${PN}-hwkey-agent"
+RDEPENDS:${PN} = "${PN}-luks-srv ${PN}-hwkey-agent ${PN}-ftpm-helper ${PN}-pkcs11-sample"
 INHIBIT_SYSROOT_STRIP = "1"
 INSANE_SKIP:${PN} = "already-stripped"
