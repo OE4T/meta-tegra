@@ -1,11 +1,11 @@
-From a96f5ccf52879d9ad045bf749d2a0a32508ec9ee Mon Sep 17 00:00:00 2001
+From e62bec43807eacb5c66ba6fda4f5f33327d7c853 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Sun, 6 Oct 2024 20:17:01 +0100
+Date: Wed, 14 Jan 2026 12:22:56 -0800
 Subject: [PATCH] Update makefiles for OE builds
 
 - Remove the OPTEE_CLIENT_EXPORT references
 - Use install instead of cp to install host programs
-- Add LDFLAGS to nvhwkey-app build
+- Add LDFLAGS to nvhwkey-app, nvpkcs11-sample-app and nvftpm-helper-app build
 
 Upstream-Status: Inappropriate [OE-Specific]
 
@@ -15,14 +15,14 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  Makefile                    |  4 ----
  cpubl-payload-dec/Makefile  |  2 --
  ftpm-helper/Makefile        |  4 ----
- ftpm-helper/host/Makefile   | 13 +++++--------
+ ftpm-helper/host/Makefile   | 15 ++++++---------
  hwkey-agent/Makefile        |  4 ----
  hwkey-agent/host/Makefile   | 15 ++++++---------
  luks-srv/Makefile           |  4 ----
  luks-srv/host/Makefile      | 14 +++++---------
  pkcs11-sample/Makefile      |  4 ----
- pkcs11-sample/host/Makefile | 11 +++++------
- 10 files changed, 21 insertions(+), 54 deletions(-)
+ pkcs11-sample/host/Makefile | 13 ++++++-------
+ 10 files changed, 23 insertions(+), 56 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index da3f40b..7671e2d 100644
@@ -96,10 +96,10 @@ index 1069464..62cb216 100644
  		clean
  	rm -rf $(O)/ca/$(TARGET_DIR)
 diff --git a/ftpm-helper/host/Makefile b/ftpm-helper/host/Makefile
-index 33ca6da..ac63623 100644
+index 33ca6da..feb4041 100644
 --- a/ftpm-helper/host/Makefile
 +++ b/ftpm-helper/host/Makefile
-@@ -3,24 +3,21 @@
+@@ -3,27 +3,24 @@
  
  # Input variables
  # CROSS_COMPILE: The cross compiler.
@@ -125,7 +125,11 @@ index 33ca6da..ac63623 100644
 +all: $(BINARY)
  
  $(BINARY): $(OBJS)
- 	$(CC) -o $(O)/$@ $< $(LDADD)
+-	$(CC) -o $(O)/$@ $< $(LDADD)
++	$(CC) $(LDFLAGS) -o $(O)/$@ $< $(LDADD)
+ 	$(STRIP) $(O)/$@
+ 
+ $(O)/%.o: %.c
 @@ -31,9 +28,9 @@ $(O)/%.o: %.c
  	$(CC) $(CFLAGS) -c $< -o $@
  
@@ -322,10 +326,10 @@ index e58838c..82b7216 100644
  		clean
  	rm -rf $(O)/ca/$(TARGET_DIR)
 diff --git a/pkcs11-sample/host/Makefile b/pkcs11-sample/host/Makefile
-index 6212e02..a8285b4 100644
+index 6212e02..69d2aca 100644
 --- a/pkcs11-sample/host/Makefile
 +++ b/pkcs11-sample/host/Makefile
-@@ -10,16 +10,15 @@
+@@ -10,28 +10,27 @@
  CC ?= $(CROSS_COMPILE)gcc
  
  CFLAGS += -Wall -I./include
@@ -343,8 +347,11 @@ index 6212e02..a8285b4 100644
 +all: $(BINARY)
  
  $(BINARY): $(OBJS)
- 	$(CC) -o $(O)/$@ $< $(LDADD)
-@@ -29,9 +28,9 @@ $(O)/%.o: %.c
+-	$(CC) -o $(O)/$@ $< $(LDADD)
++	$(CC) $(LDFLAGS) -o $(O)/$@ $< $(LDADD)
+ 
+ $(O)/%.o: %.c
+ 	mkdir -p $(O)
  	$(CC) $(CFLAGS) -c $< -o $@
  
  install: $(BINARY)
