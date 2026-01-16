@@ -8,7 +8,7 @@ LIC_FILES_CHKSUM = " \
     file://opt/nvidia/vpi4/doc/LICENSE.kissfft;md5=dfcf4ada1ee274b299ddfa3184102419 \
     file://opt/nvidia/vpi4/doc/LICENSE.libSGM;md5=3b83ef96387f14655fc854ddc3c6bd57 \
     file://opt/nvidia/vpi4/doc/LICENSE.newlib;md5=a3eb2bde2affa6734922f83bce5993b3 \
-    file://opt/nvidia/vpi4/doc/LICENSE.OpenCV;md5=637c2c054871a67de67d5a619c610cad \
+    file://opt/nvidia/vpi4/doc/LICENSE.OpenCV;md5=53f5028e157919e3649269b83e49714b \
     file://opt/nvidia/vpi4/doc/LICENSE.pybind11;md5=774f65abd8a7fe3124be2cdf766cd06f \
     file://opt/nvidia/vpi4/doc/LICENSE.softfloat;md5=407449d347fc06e16ed733726186c794 \
     file://opt/nvidia/vpi4/doc/VPI_EULA.txt;md5=a8a314954f2495dabebb8a9ccc2247ae \
@@ -21,8 +21,8 @@ SRC_COMMON_DEBS = "\
     vpi4-dev_${PV}_arm64.deb;name=dev;subdir=vpi4 \
 "
 L4T_DEB_GROUP[dev] = "vpi4-dev"
-SRC_URI[lib.sha256sum] = "0d5cd45f6eb8527ceb70f0b98fe4480014898da63493f6fcae177c7b6af22027"
-SRC_URI[dev.sha256sum] = "83707b1bff8b321fcadd9c1cac115b0a68a44d623dd1f088ef9b0c33d2a6548c"
+SRC_URI[lib.sha256sum] = "5d2878cb967c41716c0e809bda871ba177f69641c3ba69f5fdaa6dfa8a0e11c9"
+SRC_URI[dev.sha256sum] = "103534332aefe8045e6844116dd71d012331e9b1a48c47bc24c5478d3caacf4f"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
