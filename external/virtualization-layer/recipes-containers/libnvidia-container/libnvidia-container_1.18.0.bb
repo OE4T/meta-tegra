@@ -44,8 +44,8 @@ SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=l
            file://0001-OE-cross-build-fixups.patch \
 "
 
-# tag: v1.18.0-rc.1
-SRCREV_libnvidia = "9d6a23b99689663e245b802c3eeedcddd658abdd"
+# tag: v1.18.0
+SRCREV_libnvidia = "889a3bb5408c195ed7897ba2cb8341c7d249672f"
 # Nvidia modprobe version 550.54.14
 SRCREV_modprobe = "149440ca0654d928f27df5ebff485a122bfe43b1"
 SRCREV_FORMAT = "libnvidia_modprobe"
