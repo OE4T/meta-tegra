@@ -1,6 +1,6 @@
-From 59a35fe7532d257641cc7f0b5ab2789a2687f3cb Mon Sep 17 00:00:00 2001
+From 2ca1fb9eea2e0e154bb29682a2029a0e2003d9bd Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Thu, 25 Sep 2025 19:47:06 +0100
+Date: Thu, 15 Jan 2026 17:58:16 -0800
 Subject: [PATCH] Add support for 'alternate' roots for tegra CSV handling
 
 So the host OS can provide one or more trees of libraries that
@@ -11,7 +11,7 @@ Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- cmd/nvidia-ctk/cdi/generate/generate.go     |  7 +++
+ cmd/nvidia-ctk/cdi/generate/generate.go     |  8 +++
  internal/config/runtime.go                  |  3 +-
  internal/config/toml_test.go                |  1 +
  internal/modifier/csv.go                    |  1 +
@@ -21,40 +21,41 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  pkg/nvcdi/lib-csv.go                        |  1 +
  pkg/nvcdi/lib.go                            |  1 +
  pkg/nvcdi/options.go                        |  8 +++
- 10 files changed, 117 insertions(+), 36 deletions(-)
+ 10 files changed, 118 insertions(+), 36 deletions(-)
 
 diff --git a/cmd/nvidia-ctk/cdi/generate/generate.go b/cmd/nvidia-ctk/cdi/generate/generate.go
-index ceb84bb6..186a1953 100644
+index 4b5f6c95..631d623f 100644
 --- a/cmd/nvidia-ctk/cdi/generate/generate.go
 +++ b/cmd/nvidia-ctk/cdi/generate/generate.go
-@@ -57,6 +57,7 @@ type options struct {
+@@ -63,6 +63,7 @@ type options struct {
  
- 	configSearchPaths  cli.StringSlice
- 	librarySearchPaths cli.StringSlice
-+	altRoots           cli.StringSlice
- 	disabledHooks      cli.StringSlice
+ 	configSearchPaths  []string
+ 	librarySearchPaths []string
++	altRoots           []string
+ 	disabledHooks      []string
+ 	enabledHooks       []string
  
- 	csv struct {
-@@ -147,6 +148,11 @@ func (m command) build() *cli.Command {
- 			Destination: &opts.librarySearchPaths,
- 			EnvVars:     []string{"NVIDIA_CTK_CDI_GENERATE_LIBRARY_SEARCH_PATHS"},
- 		},
-+		&cli.StringSliceFlag{
-+			Name:        "alt-roots",
-+			Usage:       "Specify alternate passthrough root to search for files when discovering the entities that should be included in the CDI specification.\n\tNote: This option only applies to CSV mode.",
-+			Destination: &opts.altRoots,
-+		},
- 		&cli.StringFlag{
- 			Name:    "nvidia-cdi-hook-path",
- 			Aliases: []string{"nvidia-ctk-path"},
-@@ -297,6 +303,7 @@ func (m command) generateSpec(opts *options) (spec.Interface, error) {
+@@ -163,6 +164,12 @@ func (m command) build() *cli.Command {
+ 				Destination: &opts.librarySearchPaths,
+ 				Sources:     cli.EnvVars("NVIDIA_CTK_CDI_GENERATE_LIBRARY_SEARCH_PATHS"),
+ 			},
++			&cli.StringSliceFlag{
++				Name:        "alt-roots",
++				Usage:       "Specify alternate passthrough root to search for files when discovering the entities that should be included in the CDI specification.\n\tNote: This option only applies to CSV mode.",
++				Destination: &opts.altRoots,
++				Sources:     cli.EnvVars("NVIDIA_CTK_PASSTHROUGH_ROOT"),
++			},
+ 			&cli.StringFlag{
+ 				Name:    "nvidia-cdi-hook-path",
+ 				Aliases: []string{"nvidia-ctk-path"},
+@@ -360,6 +367,7 @@ func (m command) generateSpecs(opts *options) ([]generatedSpecs, error) {
  		nvcdi.WithMode(opts.mode),
- 		nvcdi.WithConfigSearchPaths(opts.configSearchPaths.Value()),
- 		nvcdi.WithLibrarySearchPaths(opts.librarySearchPaths.Value()),
-+		nvcdi.WithAltRoots(opts.altRoots.Value()),
- 		nvcdi.WithCSVFiles(opts.csv.files.Value()),
- 		nvcdi.WithCSVIgnorePatterns(opts.csv.ignorePatterns.Value()),
- 		// We set the following to allow for dependency injection:
+ 		nvcdi.WithConfigSearchPaths(opts.configSearchPaths),
+ 		nvcdi.WithLibrarySearchPaths(opts.librarySearchPaths),
++		nvcdi.WithAltRoots(opts.altRoots),
+ 		nvcdi.WithCSVFiles(opts.csv.files),
+ 		nvcdi.WithCSVIgnorePatterns(opts.csv.ignorePatterns),
+ 		nvcdi.WithDisabledHooks(opts.disabledHooks...),
 diff --git a/internal/config/runtime.go b/internal/config/runtime.go
 index 315f23ba..8514598a 100644
 --- a/internal/config/runtime.go
@@ -94,7 +95,7 @@ index 1f8a12f8..dddfe036 100644
  	if err != nil {
  		return nil, fmt.Errorf("failed to construct CDI library: %v", err)
 diff --git a/internal/platform-support/tegra/csv.go b/internal/platform-support/tegra/csv.go
-index ca760ec5..49bdd70a 100644
+index edb7fdc4..aabeaefb 100644
 --- a/internal/platform-support/tegra/csv.go
 +++ b/internal/platform-support/tegra/csv.go
 @@ -42,16 +42,50 @@ func (o tegraOptions) newDiscovererFromCSVFiles() (discover.Discover, error) {
@@ -148,10 +149,10 @@ index ca760ec5..49bdd70a 100644
  	// symlinks for the driver.
 -	libraries := discover.WithDriverDotSoSymlinks(
 +	librariesInDriverRoot := discover.WithDriverDotSoSymlinks(
+ 		o.logger,
  		discover.NewMounts(
  			o.logger,
- 			o.symlinkLocator,
-@@ -63,23 +97,25 @@ func (o tegraOptions) newDiscovererFromCSVFiles() (discover.Discover, error) {
+@@ -64,23 +98,25 @@ func (o tegraOptions) newDiscovererFromCSVFiles() (discover.Discover, error) {
  	)
  
  	// We process the explicitly requested symlinks.
@@ -178,7 +179,7 @@ index ca760ec5..49bdd70a 100644
 +	symlinkHooks = append(symlinkHooks, o.createCSVSymlinkHooks(symlinkTargets,
 +		librariesInDriverRoot,
 +		o.driverRoot))
-+	 
++
 +	var allDiscoverers []discover.Discover
 +	allDiscoverers = append(allDiscoverers, devices)
 +	allDiscoverers = append(allDiscoverers, directories...)
@@ -335,10 +336,10 @@ index 6ad774b4..3249e0b1 100644
  func WithCSVFiles(csvFiles []string) Option {
  	return func(o *tegraOptions) {
 diff --git a/pkg/nvcdi/lib-csv.go b/pkg/nvcdi/lib-csv.go
-index 4414f54f..2b48a949 100644
+index 6380d79d..a5191186 100644
 --- a/pkg/nvcdi/lib-csv.go
 +++ b/pkg/nvcdi/lib-csv.go
-@@ -46,6 +46,7 @@ func (l *csvlib) GetAllDeviceSpecs() ([]specs.Device, error) {
+@@ -52,6 +52,7 @@ func (l *csvlib) GetDeviceSpecs() ([]specs.Device, error) {
  		tegra.WithDevRoot(l.devRoot),
  		tegra.WithHookCreator(l.hookCreator),
  		tegra.WithLdconfigPath(l.ldconfigPath),
@@ -347,7 +348,7 @@ index 4414f54f..2b48a949 100644
  		tegra.WithLibrarySearchPaths(l.librarySearchPaths...),
  		tegra.WithIngorePatterns(l.csvIgnorePatterns...),
 diff --git a/pkg/nvcdi/lib.go b/pkg/nvcdi/lib.go
-index 8d7177fc..b4ac252b 100644
+index 4369a721..fa568204 100644
 --- a/pkg/nvcdi/lib.go
 +++ b/pkg/nvcdi/lib.go
 @@ -43,6 +43,7 @@ type nvcdilib struct {
@@ -359,12 +360,12 @@ index 8d7177fc..b4ac252b 100644
  
  	csvFiles          []string
 diff --git a/pkg/nvcdi/options.go b/pkg/nvcdi/options.go
-index 25494ebf..f0b3f277 100644
+index 550b18ba..b0401eea 100644
 --- a/pkg/nvcdi/options.go
 +++ b/pkg/nvcdi/options.go
-@@ -175,3 +175,11 @@ func WithFeatureFlag(featureFlag FeatureFlag) Option {
- 		o.featureFlags[featureFlag] = true
- 	}
+@@ -203,3 +203,11 @@ func WithDisabledHook[T string | HookName](hook T) Option {
+ func WithFeatureFlag[T string | FeatureFlag](featureFlag T) Option {
+ 	return WithFeatureFlags(featureFlag)
  }
 +
 +// WithAltRoots sets the alternate pass-through roots.
