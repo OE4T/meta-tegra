@@ -1,7 +1,7 @@
-From 0bd470e96c00d69d2530706eb8fbd5b66941b3f9 Mon Sep 17 00:00:00 2001
+From c0fd33a195288fe8bc709f219af1fea892b1c155 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Mon, 11 Aug 2025 16:45:52 +0100
-Subject: [PATCH 1/6] Makefile: update for OE builds
+Date: Thu, 15 Jan 2026 14:46:40 -0800
+Subject: [PATCH] Makefile: update for OE builds
 
 * Pass needed make variables through from caller
   for the compiler, linker, etc.
@@ -14,13 +14,16 @@ Subject: [PATCH 1/6] Makefile: update for OE builds
   to prevent some compilation failures due gcc warning-to-error
   changes in later versions of the compiler
 
+* Fix build warning on rtl8852ce driver
+
 Upstream-Status: Pending
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- Makefile | 78 ++++++++++++++++++++++++++++++++------------------------
- 1 file changed, 45 insertions(+), 33 deletions(-)
+ Makefile                                      | 78 +++++++++++--------
+ .../phy/rf/halrf_8852c/halrf_ops_rtl8852c.h   |  8 +-
+ 2 files changed, 49 insertions(+), 37 deletions(-)
 
 diff --git a/Makefile b/Makefile
 index 24ee6c5..b915c67 100644
@@ -185,6 +188,28 @@ index 24ee6c5..b915c67 100644
  	$(MAKE) -f $(NVIDIA_DTS_BUILD_SCRIPTS)/scripts/Makefile.build \
  		obj=$(NVIDIA_DTS_BUILD_SCRIPTS)/generic-dts \
  		dtbs
+diff --git a/nvidia-oot/drivers/net/wireless/realtek/rtl8852ce/phl/hal_g6/phy/rf/halrf_8852c/halrf_ops_rtl8852c.h b/nvidia-oot/drivers/net/wireless/realtek/rtl8852ce/phl/hal_g6/phy/rf/halrf_8852c/halrf_ops_rtl8852c.h
+index 7966290..b4b92ad 100644
+--- a/nvidia-oot/drivers/net/wireless/realtek/rtl8852ce/phl/hal_g6/phy/rf/halrf_8852c/halrf_ops_rtl8852c.h
++++ b/nvidia-oot/drivers/net/wireless/realtek/rtl8852ce/phl/hal_g6/phy/rf/halrf_8852c/halrf_ops_rtl8852c.h
+@@ -22,13 +22,13 @@
+  * Larry Finger <Larry.Finger@lwfinger.net>
+  *
+  *****************************************************************************/
+-#ifndef __HALRF_OPS_RTL8852C_H__
+-#define __HALRF_OPS_RTL8852C__
++#ifndef HALRF_OPS_RTL8852C_H
++#define HALRF_OPS_RTL8852C_H
+ #ifdef RF_8852C_SUPPORT
+ 
+ 
+ void rf_set_ops_8852c(struct rf_info *rf) ;
+ 
+ 
+-#endif
+-#endif /*  __HALRF_OPS_RTL8852C_H__ */
++#endif /* RF_8852C_SUPPORT */
++#endif /* HALRF_OPS_RTL8852C_H */
 -- 
 2.34.1
 
