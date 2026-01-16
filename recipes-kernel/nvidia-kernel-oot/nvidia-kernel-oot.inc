@@ -278,6 +278,8 @@ TEGRA_OOT_BASE_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tsecriscv \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-ufs-tegra \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-watchdog-tegra-t18x \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nv-gpu-static-pg \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-bpmp-bwmgr \
     ${TEGRA_OOT_EXTRA_BASE_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_BASE_DRIVERS}"
@@ -335,6 +337,8 @@ TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra-controls \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-adsp \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-comm \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-max96712-tpg \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-max96726-tpg \
     ${TEGRA_OOT_EXTRA_OTHER_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_OTHER_DRIVERS}"

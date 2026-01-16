@@ -1,6 +1,6 @@
-From 5e4df8fdd206222ec2c58d389154ab2ecd51b688 Mon Sep 17 00:00:00 2001
+From 885fe8d6600f9ed8075fac1c86065da578d69e3d Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Mon, 11 Aug 2025 16:46:40 +0100
+Date: Thu, 15 Jan 2026 12:45:54 -0800
 Subject: [PATCH 2/6] Fix nvdisplay modules builds
 
 Update the makefiles, Kbuild, and conftest.sh script so
@@ -103,7 +103,7 @@ index 1b98d33..fe0b40d 100644
    KBUILD_PARAMS += INSTALL_MOD_DIR="$(INSTALL_MOD_DIR)"
    KBUILD_PARAMS += NV_SPECTRE_V2=$(SPECTRE_V2_RETPOLINE)
 diff --git a/nvdisplay/kernel-open/conftest.sh b/nvdisplay/kernel-open/conftest.sh
-index fdec0d6..3f42ff2 100755
+index c4171a0..9c34e18 100755
 --- a/nvdisplay/kernel-open/conftest.sh
 +++ b/nvdisplay/kernel-open/conftest.sh
 @@ -11,6 +11,8 @@ ARCH=$2
@@ -142,7 +142,7 @@ index fdec0d6..3f42ff2 100755
          echo "#define NV_IS_EXPORT_SYMBOL_GPL_$SYMBOL 1" |
              append_conftest "symbols"
      else
-@@ -5067,13 +5071,13 @@ compile_test() {
+@@ -5083,13 +5087,13 @@ compile_test() {
      esac
  }
  
@@ -158,7 +158,7 @@ index fdec0d6..3f42ff2 100755
  
          echo "int cc_sanity_check(void) {
              return 0;
-@@ -5140,7 +5144,7 @@ case "$5" in
+@@ -5156,7 +5160,7 @@ case "$5" in
          #  In order to extract GCC version correctly for version strings
          #  like the last one above, we first check for x.y.z and if that
          #  fails, we fallback to x.y format.
@@ -167,7 +167,7 @@ index fdec0d6..3f42ff2 100755
  
          kernel_compile_h=$OUTPUT/include/generated/compile.h
  
-@@ -5219,7 +5223,7 @@ case "$5" in
+@@ -5235,7 +5239,7 @@ case "$5" in
          # Check if the target kernel is a Xen kernel. If so, exit, since
          # the RM doesn't currently support Xen.
          #
@@ -176,7 +176,7 @@ index fdec0d6..3f42ff2 100755
  
          if [ -n "$IGNORE_XEN_PRESENCE" -o -n "$VGX_BUILD" ]; then
              exit 0
-@@ -5251,7 +5255,7 @@ case "$5" in
+@@ -5267,7 +5271,7 @@ case "$5" in
          # Check if the target kernel has the PREEMPT_RT patch set applied. If
          # so, exit, since the RM doesn't support this configuration.
          #
@@ -185,7 +185,7 @@ index fdec0d6..3f42ff2 100755
  
          if [ -n "$IGNORE_PREEMPT_RT_PRESENCE" ]; then
              exit 0
-@@ -5314,7 +5318,7 @@ case "$5" in
+@@ -5330,7 +5334,7 @@ case "$5" in
          # Run a series of compile tests to determine the set of interfaces
          # and features available in the target kernel.
          #
@@ -194,7 +194,7 @@ index fdec0d6..3f42ff2 100755
  
          CFLAGS=$1
          shift
-@@ -5328,7 +5332,7 @@ case "$5" in
+@@ -5344,7 +5348,7 @@ case "$5" in
          #
          # Determine whether running in DOM0.
          #
@@ -203,7 +203,7 @@ index fdec0d6..3f42ff2 100755
  
          if [ -n "$VGX_BUILD" ]; then
              if [ -f /proc/xen/capabilities ]; then
-@@ -5350,7 +5354,7 @@ case "$5" in
+@@ -5366,7 +5370,7 @@ case "$5" in
          #
          # Determine whether we are running a vGPU on KVM host.
          #
@@ -212,7 +212,7 @@ index fdec0d6..3f42ff2 100755
          iommu=CONFIG_VFIO_IOMMU_TYPE1
          iommufd_vfio_container=CONFIG_IOMMUFD_VFIO_CONTAINER
          mdev=CONFIG_VFIO_MDEV
-@@ -5420,7 +5424,7 @@ case "$5" in
+@@ -5436,7 +5440,7 @@ case "$5" in
          #
          # Check to see if the given config option is set.
          #
@@ -221,7 +221,7 @@ index fdec0d6..3f42ff2 100755
  
          test_configuration_option $OPTION
          exit $?
-@@ -5430,7 +5434,7 @@ case "$5" in
+@@ -5446,7 +5450,7 @@ case "$5" in
          #
          # Get the value of the given config option.
          #
@@ -230,7 +230,7 @@ index fdec0d6..3f42ff2 100755
  
          get_configuration_option $OPTION
          exit $?
-@@ -5465,9 +5469,9 @@ case "$5" in
+@@ -5481,9 +5485,9 @@ case "$5" in
          # Check for the availability of the given kernel header
          #
  
