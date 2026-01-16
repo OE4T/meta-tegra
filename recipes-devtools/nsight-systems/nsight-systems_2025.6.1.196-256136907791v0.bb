@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM = "file://opt/nvidia/nsight-systems/${BASE_VERSION}/EULA.txt;md
 inherit l4t_deb_pkgfeed
 
 SRC_COMMON_DEBS = "nsight-systems-${BASE_VERSION}_${PV}_arm64.deb;subdir=${BPN}"
-SRC_URI[sha256sum] = "ddc6acec32074696b8e974749ad9fa59837d2d19bedb8c4eaae0a2f6461c90aa"
+SRC_URI[sha256sum] = "0e4bc67a481a376c4a7315ee1344f055b15efe34d5950b600fddca5e294317ab"
 
 S = "${UNPACKDIR}/${BPN}"
 B = "${S}"
