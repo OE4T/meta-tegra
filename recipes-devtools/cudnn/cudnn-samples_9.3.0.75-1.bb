@@ -12,6 +12,7 @@ DEPENDS = "cudnn"
 SRC_COMMON_DEBS = "\
     libcudnn9-samples_${PV}_all.deb;name=samples;subdir=cudnn \
 "
+SRC_URI += " file://0001-mnistCUDNN-CMakeLists.txt-Fix-FreeImage.patch;patchdir=${WORKDIR}/cudnn"
 SRC_URI[samples.sha256sum] = "d823a34d283bc12416e1a3606be83f50ee75d6ad59ae206a4ed037f60c79e215"
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
@@ -37,5 +38,13 @@ INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
-RDEPENDS:${PN} = "libcublas libcublas-dev cuda-cudart"
+RDEPENDS:${PN} = " \
+    libcublas libcublas-dev \
+    cuda-cudart cuda-cudart-dev \
+    cudnn-dev \
+    freeimage-dev \
+    cuda-nvcc cmake \
+    gcc gcc-symlinks \
+    g++ g++-symlinks \
+"
 INSANE_SKIP:${PN} = "build-deps dev-deps ldflags staticdev"
