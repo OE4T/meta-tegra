@@ -16,11 +16,9 @@ inherit deploy ${TEGRA_UEFI_SIGNING_CLASS}
 do_compile(){
     cp ${S}/bootloader/BOOTAA64.efi ${B}
     if [ "${SOC_FAMILY}" = "tegra234" ]; then
-        cp ${S}/bootloader/uefi_bins/uefi_t23x_general.bin ${B}
-        cp ${S}/bootloader/uefi_bins/uefi_t23x_minimal.bin ${B}
+        cp ${S}/bootloader/uefi_bins/uefi_t23x_*.bin ${B}
     elif [ "${SOC_FAMILY}" = "tegra264" ]; then
-        cp ${S}/bootloader/uefi_bins/uefi_t26x_general.bin ${B}
-        cp ${S}/bootloader/uefi_bins/uefi_t26x_minimal.bin ${B}
+        cp ${S}/bootloader/uefi_bins/uefi_t26x_*.bin ${B}
     fi
 }
 
@@ -45,9 +43,9 @@ do_install() {
 do_deploy() {
     install -d ${DEPLOYDIR}
     if [ "${SOC_FAMILY}" = "tegra234" ]; then
-        install -m 0644 ${B}/uefi_t23x_general.bin ${B}/uefi_t23x_minimal.bin ${DEPLOYDIR}/
+        install -m 0644 ${B}/uefi_t23x_*.bin ${DEPLOYDIR}/
     elif [ "${SOC_FAMILY}" = "tegra264" ]; then
-        install -m 0644 ${B}/uefi_t26x_general.bin ${B}/uefi_t26x_minimal.bin ${DEPLOYDIR}/
+        install -m 0644 ${B}/uefi_t26x_*.bin ${DEPLOYDIR}/
     fi
     for dtbo in ${TEGRA_BOOTCONTROL_OVERLAYS}; do
 	[ -e ${S}/kernel/dtb/$dtbo ] || continue
