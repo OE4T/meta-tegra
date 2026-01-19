@@ -58,7 +58,7 @@ copy_in_flash_layout() {
                 -e"s,WB0FILE,sc7_t264_prod.bin," \
                 -e"s,PSCRF_IMAGE,psc_rf_t264_prod.bin," \
                 -e"s,MB2RF_IMAGE,mb2rf_t264.bin," \
-                -e"s,TBCDTB-FILE,uefi_t26x_general.bin," \
+                -e"s,TBCDTB-FILE,$TBCDTB_FILE," \
                 -e"s,DCE,display-t264-dce.bin," \
                 -e"s,PVA_FILE,nvpva_030.fw," \
                 -e"s,RCE1FW,nv-rce1-t264.bin," \
@@ -80,7 +80,7 @@ copy_in_flash_layout() {
 }
 
 do_compile() {
-    copy_in_flash_layout ${PARTITION_FILE} internal-flash.xml.orig
+    TBCDTB_FILE="${TEGRA_FLASHVAR_UEFI_IMAGE}.bin" copy_in_flash_layout ${PARTITION_FILE} internal-flash.xml.orig
     if [ "${TEGRAFLASH_NO_INTERNAL_STORAGE}" = "1" ]; then
         # For modules with *only* SPI flash (or other boot device) and no
         # internal storage for rootfs, use a full copy for BUP (see note above)
@@ -96,7 +96,7 @@ do_compile() {
         copy_in_flash_layout ${PARTITION_FILE_EXTERNAL} external-flash.xml
     fi
     if [ -n "${PARTITION_LAYOUT_RCMBOOT}" ]; then
-        copy_in_flash_layout ${PARTITION_FILE_RCMBOOT} ${PARTITION_LAYOUT_RCMBOOT}
+        TBCDTB_FILE="${TEGRA_FLASHVAR_RCM_UEFI_IMAGE}.bin" copy_in_flash_layout ${PARTITION_FILE_RCMBOOT} ${PARTITION_LAYOUT_RCMBOOT}
         # XXX -
         # Might be better to adapt nvflashxmlparse to rewrite this for us
         # - XXX
