@@ -717,8 +717,6 @@ if [ "$CHIPID" = "0x26" ]; then
 --rcmboot_bct_cfg rcmboot_bct_cfg.xml \
 --bldtb $TBCDTB_FILE \
 --concat_cpubl_bldtb \
---cpubl uefi_t26x_general.bin \
---cpubl_rcm uefi_t26x_general.bin \
 "
     binsargs_params="mb2_bootloader mb2_t264.bin; \
 xusb_fw xusb_t264_prod.bin; \
@@ -762,8 +760,7 @@ eks eks.img"
          --mb2bct_cfg $MB2BCT_CFG \
          --bldtb $TBCDTB_FILE \
          --concat_cpubl_bldtb \
-         --cpubl uefi_t23x_general.bin \
-         --cpubl_rcm uefi_t23x_general.bin"
+         --cpubl $UEFI_IMAGE"
 fi
 
 if [ $rcm_boot -ne 0 -a $to_sign -eq 0 ]; then
@@ -821,13 +818,13 @@ if [ $want_signing -eq 1 ]; then
     gen_read_ramcode=0
     debug_mode=0
     if [ "$CHIPID" = "0x23" ]; then
-        flashername="uefi_t23x_general_with_dtb.bin"
-        RCM_UEFIBL="uefi_t23x_general_with_dtb.bin"
-        UEFIBL="uefi_t23x_general_with_dtb.bin"
+        flashername="${RCM_UEFI_IMAGE}_with_dtb.bin"
+        RCM_UEFIBL="${RCM_UEFI_IMAGE}_with_dtb.bin"
+        UEFIBL="${UEFI_IMAGE}_with_dtb.bin"
         mb1filename="mb1_t234_prod.bin"
         pscbl1filename="psc_bl1_t234_prod.bin"
-        tbcfilename="uefi_t23x_general.bin"
-        rcm_tbcfile="uefi_t23x_general.bin"
+        tbcfilename="${UEFI_IMAGE}.bin"
+        rcm_tbcfile="${RCM_UEFI_IMAGE}.bin"
         custinfofilename="$custinfo_out"
         SOSARGS="--applet mb1_t234_prod.bin "
         NV_ARGS=" "
@@ -840,17 +837,21 @@ if [ $want_signing -eq 1 ]; then
           --boot_chain A \
           $odmdata_arg $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
     elif [ "$CHIPID" = "0x26" ]; then
-        flashername="uefi_t26x_general_with_dtb.bin"
-        RCM_UEFIBL="uefi_t26x_general_with_dtb.bin"
-        UEFIBL="uefi_t26x_general_with_dtb.bin"
+        flashername="${RCM_UEFI_IMAGE}_with_dtb.bin"
+        if [ $rcm_boot -ne 0 ]; then
+            UEFIBL="${RCM_UEFI_IMAGE}_with_dtb.bin"
+            bctargs="$bctargs --cpubl ${RCM_UEFI_IMAGE}.bin"
+        else
+            UEFIBL="${UEFI_IMAGE}_with_dtb.bin"
+            bctargs="$bctargs --cpubl ${UEFI_IMAGE}.bin"
+        fi
         mb1filename="mb1_t264_prod.bin"
         pscbl1filename="psc_bl1_t264_prod.bin"
-        tbcfilename="uefi_t26x_general.bin"
         rcm_tbcfile=
         custinfofilename="$custinfo_out"
         SOSARGS="--applet applet_t264.bin "
         NV_ARGS=" "
-        FLASHARGS="--chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
+        FLASHARGS="--chip 0x26 $hsm_arg --bl $UEFIBL \
           --applet applet_t264.bin \
           --cmd \"$tfcmd\" $skipuid \
           --coldboot_pt_layout flash.xml \
@@ -896,7 +897,7 @@ $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparsearg
     flashcmd="python3 $flashappname ${inst_args} $FLASHARGS"
 else
     if [ "$CHIPID" = "0x23" ]; then
-        flashcmd="python3 $flashappname ${inst_args} --chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
+        flashcmd="python3 $flashappname ${inst_args} --chip 0x23 $hsm_arg --bl ${UEFI_IMAGE}_with_dtb.bin \
 --sdram_config $BCTFILE \
 --applet mb1_t234_prod.bin \
 --cmd \"$tfcmd\" $skipuid \
@@ -907,24 +908,24 @@ $odmdata_arg $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $
 --bins \"$binsargs_params\""
     elif [ "$CHIPID" = "0x26" ]; then
         if [ $rcm_boot -ne 0 ]; then
-            flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
+            flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl ${RCM_UEFI_IMAGE}_with_dtb.bin \
 --applet mb1_t264.bin \
 --cmd \"$tfcmd\" $skipuid \
 --rcmboot_pt_layout flash.xml \
 --bct_backup \
 --boot_chain A \
 --no_pva 0 \
-$odmdata_arg $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
+$odmdata_arg $bctargs --cpubl ${RCM_UEFI_IMAGE}.bin $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --bins \"$binsargs_params\""
         else
-            flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl uefi_t26x_general_with_dtb.bin \
+            flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl ${UEFI_IMAGE}_with_dtb.bin \
 --applet mb1_t264.bin \
 --cmd \"$tfcmd\" $skipuid \
 --coldboot_pt_layout flash.xml \
 --bct_backup \
 --boot_chain A \
 --no_pva 0 \
-$bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
+$bctargs --cpubl ${UEFI_IMAGE}.bin $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --bins \"$binsargs_params\""
         fi
     fi
