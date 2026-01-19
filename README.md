@@ -13,7 +13,7 @@ URI: git://git.openembedded.org/openembedded-core
 branch: master
 LAYERSERIES_COMPAT: whinlatter
 
-Please consult [this wiki page](https://github.com/OE4T/meta-tegra/wiki/JetPack-7.0-L4T-R38.2.x-Notes)
+Please consult [this wiki page](https://github.com/OE4T/meta-tegra/wiki/JetPack-7.1-L4T-R38.4.x-Notes)
 for information about support for this release.
 
 Getting Help
