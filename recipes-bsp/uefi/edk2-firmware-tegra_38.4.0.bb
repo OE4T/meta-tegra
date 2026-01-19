@@ -11,11 +11,10 @@ TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 inherit l4t_bsp deploy ${TEGRA_UEFI_SIGNING_CLASS}
 
 EDK2_PLATFORM_DSC = "Platform/NVIDIA/NVIDIA.common.dsc"
-TEGRA_EDK2_PLATFORM = "UNKNOWN"
-TEGRA_EDK2_PLATFORM:tegra234 = "t23x"
-TEGRA_EDK2_PLATFORM:tegra264 = "t26x"
-TEGRA_EDK2_CONFIGURATION ?= "general"
+TEGRA_EDK2_PLATFORM ??= "UNKNOWN"
+TEGRA_EDK2_CONFIGURATION ??= "general"
 EDK2_PLATFORM = "${TEGRA_EDK2_PLATFORM}_${TEGRA_EDK2_CONFIGURATION}"
+TEGRA_FLASHVAR_UEFI_IMAGE ??= "uefi_${EDK2_PLATFORM}"
 EDK2_BIN_NAME = "uefi_${EDK2_PLATFORM}.bin"
 
 SRC_URI += "file://nvbuildconfig.py"
@@ -97,7 +96,7 @@ INSANE_SKIP:l4t-launcher = "buildpaths"
 
 do_deploy() {
     install -d ${DEPLOYDIR}
-    install -m 0644 ${B}/images/${EDK2_BIN_NAME} ${DEPLOYDIR}/
+    install -m 0644 ${B}/images/${EDK2_BIN_NAME} ${DEPLOYDIR}/${TEGRA_FLASHVAR_UEFI_IMAGE}.bin
     for dtb in ${TEGRA_BOOTCONTROL_OVERLAYS} L4TConfiguration-rcmboot.dtbo; do
 	[ -e ${B}/images/$dtb ] || continue
 	install -m 0644 ${B}/images/$dtb ${DEPLOYDIR}/
