@@ -11,22 +11,20 @@ require tegra-kernel.inc
 KERNEL_DISABLE_FW_USER_HELPER ?= "y"
 
 LINUX_VERSION ?= "6.8.12"
-PV = "${LINUX_VERSION}+git${SRCPV}"
+PV = "${LINUX_VERSION}"
+
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
-LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}"
+LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}-1009.9"
 SCMVERSION ??= "y"
 
-TEGRA_SRC_SUBARCHIVE = "\
-    Linux_for_Tegra/source/kernel_src.tbz2 \
-"
-TEGRA_SRC_SUBARCHIVE_OPTS = "-C ${UNPACKDIR}/${BPN}"
-require recipes-bsp/tegra-sources/tegra-sources-38.4.0.inc
-
-do_unpack[depends] += "tegra-binaries:do_preconfigure"
-do_unpack[dirs] += "${UNPACKDIR}/${BPN}"
-
-SRC_URI += " \
+SRCBRANCH = "l4t/l4t-r38.4-Ubuntu-nvidia-tegra-pvw-6.8.0-1009.9"
+SRCREV = "ad9393b41b82eafd8fd39e5d3d160c754d4249e5"
+KBRANCH = "${SRCBRANCH}"
+SRC_REPO = "gitlab.com/nvidia/nv-tegra/3rdparty/canonical/linux-noble.git;protocol=https"
+KERNEL_REPO = "${SRC_REPO}"
+SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
+    file://0001-tty-vt-conmakehash-remove-non-portable-code-printing.patch \
     ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
     ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
@@ -36,12 +34,6 @@ SRC_URI += " \
 KBUILD_DEFCONFIG = "defconfig"
 KCONFIG_MODE = "--alldefconfig"
 
-# Copy the Linux kernel sources to the right location
-prepare_source() {
-    cp -r ${UNPACKDIR}/${BPN}/kernel/kernel-noble/* ${S}/
-}
-do_unpack[postfuncs] += "prepare_source"
-
 set_scmversion() {
     if [ "${SCMVERSION}" = "y" -a -d "${S}/.git" ]; then
         head=$(git --git-dir=${S}/.git rev-parse --verify --short HEAD 2>/dev/null || true)
@@ -49,5 +41,3 @@ set_scmversion() {
     fi
 }
 do_kernel_checkout[postfuncs] += "set_scmversion"
-
-INSANE_SKIP:${PN}-src = "buildpaths"
