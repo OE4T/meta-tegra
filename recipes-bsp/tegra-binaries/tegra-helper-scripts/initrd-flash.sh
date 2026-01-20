@@ -214,11 +214,7 @@ update_flash_cfg_for_partition() {
     local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
     eval "$storageline"
     if [ "$partname" = "$flash_idx_partname" -a -n "$partfile" ]; then
-        if [ "$partname" = "APP_b" -a "$partfile" != "${ROOTFS_IMAGE}" ]; then
-            cp "${ROOTFS_IMAGE}" "$dest/${ROOTFS_IMAGE}_b"
-        else
-            cp "$partfile" "$dest/"
-        fi
+        cp "$partfile" "$dest/"
         echo "${partname}_ext=$partfile" >> "$dest/flash.cfg"
         echo "INFO: staged $dest/$partfile for partition $partname"
     fi
