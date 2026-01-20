@@ -634,7 +634,7 @@ if [ $bup_blob -ne 0 -o $rcm_boot -ne 0 ]; then
     kernfile="${kernfile:-boot.img}"
     appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
 else
-    appfile_sed="-es,APPFILE,$appfile,"
+    appfile_sed="-es,APPFILE_b,$appfile, -es,APPFILE,$appfile,"
     if [ -e "$datafile" ]; then
         appfile_sed="$appfile_sed -es,DATAFILE,$datafile,"
     else
