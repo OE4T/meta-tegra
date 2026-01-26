@@ -11,17 +11,17 @@ Upstream-Status: Inappropriate [OE specific]
 
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- unifiedgpudisp/kernel-open/Kbuild      | 15 ++++++------
- unifiedgpudisp/kernel-open/Makefile    |  1 +
- unifiedgpudisp/kernel-open/conftest.sh | 32 +++++++++++++++-----------
+ kernel-open/Kbuild      | 15 ++++++------
+ kernel-open/Makefile    |  1 +
+ kernel-open/conftest.sh | 32 +++++++++++++++-----------
  3 files changed, 27 insertions(+), 21 deletions(-)
 
-diff --git a/unifiedgpudisp/kernel-open/Kbuild b/unifiedgpudisp/kernel-open/Kbuild
+diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
 index 710570f..9ade365 100644
---- a/unifiedgpudisp/kernel-open/Kbuild
-+++ b/unifiedgpudisp/kernel-open/Kbuild
+--- a/kernel-open/Kbuild
++++ b/kernel-open/Kbuild
 @@ -77,6 +77,7 @@ $(foreach _module, $(NV_KERNEL_MODULES), \
- 
+
  ccflags-y += -I$(src)/common/inc
  ccflags-y += -I$(src)
 +ccflags-y += -I$(NV_OOT_SOURCES)/include
@@ -76,11 +76,11 @@ index 710570f..9ade365 100644
 +	$(NV_CONFTEST_CMD) $@ full_output
  
  # Perform all sanity checks before generating the conftest headers
- 
-diff --git a/unifiedgpudisp/kernel-open/Makefile b/unifiedgpudisp/kernel-open/Makefile
+
+diff --git a/kernel-open/Makefile b/kernel-open/Makefile
 index 245d91b..ea53d57 100644
---- a/unifiedgpudisp/kernel-open/Makefile
-+++ b/unifiedgpudisp/kernel-open/Makefile
+--- a/kernel-open/Makefile
++++ b/kernel-open/Makefile
 @@ -129,6 +129,7 @@ else
    KBUILD_PARAMS += ARCH=$(ARCH)
    KBUILD_PARAMS += NV_KERNEL_SOURCES=$(KERNEL_SOURCES)
@@ -89,10 +89,10 @@ index 245d91b..ea53d57 100644
    KBUILD_PARAMS += NV_KERNEL_MODULES="$(NV_KERNEL_MODULES)"
    KBUILD_PARAMS += INSTALL_MOD_DIR="$(INSTALL_MOD_DIR)"
    KBUILD_PARAMS += NV_SPECTRE_V2=$(SPECTRE_V2_RETPOLINE)
-diff --git a/unifiedgpudisp/kernel-open/conftest.sh b/unifiedgpudisp/kernel-open/conftest.sh
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
 index c4171a0..9c34e18 100755
---- a/unifiedgpudisp/kernel-open/conftest.sh
-+++ b/unifiedgpudisp/kernel-open/conftest.sh
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
 @@ -11,6 +11,8 @@ ARCH=$2
  SOURCES=$3
  HEADERS=$SOURCES/include
