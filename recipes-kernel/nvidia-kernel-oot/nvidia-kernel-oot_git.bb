@@ -39,11 +39,13 @@ PV = "38.4.0+git"
 
 SRC_URI += " \
     file://0001-Makefile-update-for-OE-builds.patch \
-    file://0002-Fix-nvdisplay-modules-builds.patch \
-    file://0003-Fix-nvdisplay-conftest-gcc-14-compatibility-issues.patch \
-    file://0004-Fix-unifiedgpudisp-modules-builds.patch \
-    file://0005-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch \
-    file://0006-conftest-work-around-stringify-issue-with.patch \
+    file://0001-Fix-build-warning-on-rtl8852ce-driver.patch;patchdir=nvidia-oot \
+    file://0002-Makefile-Add-OOTSRC-for-nvdisplay-builds.patch \
+    file://0002-Fix-nvdisplay-modules-builds.patch;patchdir=nvdisplay \
+    file://0003-Fix-nvdisplay-conftest-gcc-14-compatibility-issues.patch;patchdir=nvdisplay \
+    file://0004-Fix-unifiedgpudisp-modules-builds.patch;patchdir=unifiedgpudisp \
+    file://0005-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch;patchdir=unifiedgpudisp \
+    file://0006-conftest-work-around-stringify-issue-with.patch;patchdir=nvidia-oot \
 "
 
 do_unpack[depends] += "tegra-binaries:do_preconfigure"

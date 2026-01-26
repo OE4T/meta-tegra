@@ -26,13 +26,13 @@ particular test.
 Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- nvidia-oot/scripts/conftest/conftest.sh | 1 +
+ scripts/conftest/conftest.sh | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/nvidia-oot/scripts/conftest/conftest.sh b/nvidia-oot/scripts/conftest/conftest.sh
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
 index 512b381..cd52a80 100755
---- a/nvidia-oot/scripts/conftest/conftest.sh
-+++ b/nvidia-oot/scripts/conftest/conftest.sh
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
 @@ -6478,6 +6478,7 @@ compile_test() {
          __assign_str_has_no_src_arg)
              #
