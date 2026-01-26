@@ -7,13 +7,13 @@ Upstream-Status: Inappropriate [OE specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- nvdisplay/kernel-open/conftest.sh | 4 ++--
+ kernel-open/conftest.sh | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/nvdisplay/kernel-open/conftest.sh b/nvdisplay/kernel-open/conftest.sh
-index 3f42ff2..12acf19 100755
---- a/nvdisplay/kernel-open/conftest.sh
-+++ b/nvdisplay/kernel-open/conftest.sh
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index 9c34e18..12acf19 100755
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
 @@ -106,8 +106,8 @@ build_cflags() {
      ISYSTEM=`$CC -print-file-name=include 2> /dev/null`
      BASE_CFLAGS="-O2 -D__KERNEL__ \
