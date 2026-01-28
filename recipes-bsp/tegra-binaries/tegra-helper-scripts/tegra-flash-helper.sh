@@ -606,6 +606,9 @@ elif [ "$CHIPID" = "0x26" ]; then
         E0)
             BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TE1090M-A1,")
             ;;
+        E2)
+            BPF_FILE=$(echo "$BPF_FILE" | sed -e"s,T.*-A1,TE1070M-A1,")
+            ;;
         *)
             echo "ERR: unrecognized chip SKU: $chip_sku" >&2
             exit 1
