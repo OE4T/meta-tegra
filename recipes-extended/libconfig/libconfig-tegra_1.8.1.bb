@@ -8,8 +8,8 @@ LICENSE = "LGPL-2.1-only"
 LIC_FILES_CHKSUM = "file://COPYING.LIB;md5=17c8e32f0f72580cc2906b409d46b5ac"
 
 SRC_URI = "https://hyperrealm.github.io/libconfig/dist/libconfig-${PV}.tar.gz"
-SRC_URI[md5sum] = "82563b674c793dee5175f5d52f202688"
-SRC_URI[sha256sum] = "87c6f382994b245f9213be34a2bf19c8ee7d033d7abaa51e88fbb7bad79e2dc6"
+SRC_URI[md5sum] = "400bda5fc247556536688a5370f6f664"
+SRC_URI[sha256sum] = "c73ee3d914ec68c99b61e864832931e9a7112eeabfb449dad217fd83e385cbdf"
 
 PROVIDES = "libconfig"
 
