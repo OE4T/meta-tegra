@@ -1,0 +1,36 @@
+From f18b0d86366d9c92db5ec970c8e2675709bbc450 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 7 Jun 2021 04:22:40 -0700
+Subject: [PATCH 6/6] Fix location of bsp_version file in l4t_bup_gen.func
+
+Upstream-Status: Inappropriate [OE specific]
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/l4t_bup_gen.func | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/bootloader/l4t_bup_gen.func b/bootloader/l4t_bup_gen.func
+index 43444be..c1e191c 100644
+--- a/bootloader/l4t_bup_gen.func
++++ b/bootloader/l4t_bup_gen.func
+@@ -625,13 +625,13 @@ function l4t_bup_gen()
+ 	export OUT=$(pwd);
+ 
+ 	# get the bsp version to fill the entry list version.
+-	if [ -f "${LDK_DIR}/nv_tegra/bsp_version" ]; then
+-		source "${LDK_DIR}/nv_tegra/bsp_version"
++	if [ -e "bsp_version" ]; then
++		source bsp_version
+ 		BSP_VER="${BSP_BRANCH}"
+ 		BSP_VER+="${BSP_MAJOR}"
+ 		BSP_VER+="${BSP_MINOR}"
+ 	else
+-		echo "# Unknow release"
++		echo "# Unknown release"
+ 		echo "bootloader update payload creation failed"
+ 		exit 1
+ 	fi
+-- 
+2.43.0
+
