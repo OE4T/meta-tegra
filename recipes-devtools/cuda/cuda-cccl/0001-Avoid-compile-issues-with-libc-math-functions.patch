@@ -1,0 +1,219 @@
+From 8882feb793cc24b08a8ef1517b9f9131876f70a5 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Thu, 5 Feb 2026 15:14:50 -0800
+Subject: [PATCH] Avoid compile issues with libc math functions
+
+error: '::isnan' has not been declared; did you mean 'std::isnan'? [-Wtemplate-body]
+   43 |     return ::isnan(__x);
+      |              ^~~~~
+      |              std::isnan
+
+Those libc functions might not be available or defined as macros.
+We can work around this issue by just dropping the global qualification `::`
+
+This will work for macros and functions alike.
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Michael Schellenberger Costa <miscco@nvidia.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ .../include/cccl/cuda/std/__cmath/fpclassify.h      |  6 +++---
+ .../include/cccl/cuda/std/__cmath/isfinite.h        |  6 +++---
+ .../include/cccl/cuda/std/__cmath/isinf.h           |  6 +++---
+ .../include/cccl/cuda/std/__cmath/isnan.h           |  2 +-
+ .../include/cccl/cuda/std/__cmath/signbit.h         |  6 +++---
+ .../include/cccl/cuda/std/__cmath/traits.h          | 13 ++++++-------
+ 6 files changed, 19 insertions(+), 20 deletions(-)
+
+diff --git a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/fpclassify.h b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/fpclassify.h
+index 327325e..324b0c8 100644
+--- a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/fpclassify.h
++++ b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/fpclassify.h
+@@ -101,7 +101,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI constexpr int fpclassify(float __x) no
+ #else // ^^^ _CCCL_BUILTIN_FPCLASSIFY ^^^ / vvv !_CCCL_BUILTIN_FPCLASSIFY vvv
+   if (!_CUDA_VSTD::__cccl_default_is_constant_evaluated())
+   {
+-    NV_IF_TARGET(NV_IS_HOST, (return ::fpclassify(__x);))
++    NV_IF_TARGET(NV_IS_HOST, (return fpclassify(__x);))
+   }
+   return _CUDA_VSTD::__fpclassify_impl(__x);
+ #endif // !_CCCL_BUILTIN_FPCLASSIFY
+@@ -114,7 +114,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI constexpr int fpclassify(double __x) n
+ #else // ^^^ _CCCL_BUILTIN_FPCLASSIFY ^^^ / vvv !_CCCL_BUILTIN_FPCLASSIFY vvv
+   if (!_CUDA_VSTD::__cccl_default_is_constant_evaluated())
+   {
+-    NV_IF_TARGET(NV_IS_HOST, (return ::fpclassify(__x);))
++    NV_IF_TARGET(NV_IS_HOST, (return fpclassify(__x);))
+   }
+   return _CUDA_VSTD::__fpclassify_impl(__x);
+ #endif // !_CCCL_BUILTIN_FPCLASSIFY
+@@ -128,7 +128,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI constexpr int fpclassify(long double _
+ #  else // ^^^ _CCCL_BUILTIN_SIGNBIT ^^^ / vvv !_CCCL_BUILTIN_SIGNBIT vvv
+   if (!_CUDA_VSTD::__cccl_default_is_constant_evaluated())
+   {
+-    NV_IF_TARGET(NV_IS_HOST, (return ::fpclassify(__x);))
++    NV_IF_TARGET(NV_IS_HOST, (return fpclassify(__x);))
+   }
+   return _CUDA_VSTD::__fpclassify_impl(__x);
+ #  endif // !_CCCL_BUILTIN_SIGNBIT
+diff --git a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isfinite.h b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isfinite.h
+index 8bd5bd9..834a546 100644
+--- a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isfinite.h
++++ b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isfinite.h
+@@ -41,7 +41,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI constexpr bool __isfinite_impl(_Tp __x
+   static_assert(_CCCL_TRAIT(is_floating_point, _Tp), "Only standard floating-point types are supported");
+   if (!_CUDA_VSTD::__cccl_default_is_constant_evaluated())
+   {
+-    return ::isfinite(__x);
++    return isfinite(__x);
+   }
+   return !_CUDA_VSTD::isnan(__x) && !_CUDA_VSTD::isinf(__x);
+ }
+@@ -53,7 +53,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI constexpr bool isfinite(float __x) noe
+ #else // ^^^ _CCCL_BUILTIN_ISFINITE ^^^ / vvv !_CCCL_BUILTIN_ISFINITE vvv
+   if (!_CUDA_VSTD::__cccl_default_is_constant_evaluated())
+   {
+-    return ::isfinite(__x);
++    return isfinite(__x);
+   }
+ #  if _LIBCUDACXX_HAS_CONSTEXPR_BIT_CAST()
+   return (_CUDA_VSTD::__fp_get_storage(__x) & __fp_exp_mask_v<float>) != __fp_exp_mask_v<float>;
+@@ -70,7 +70,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI constexpr bool isfinite(double __x) no
+ #else // ^^^ _CCCL_BUILTIN_ISFINITE ^^^ / vvv !_CCCL_BUILTIN_ISFINITE vvv
+   if (!_CUDA_VSTD::__cccl_default_is_constant_evaluated())
+   {
+-    return ::isfinite(__x);
++    return isfinite(__x);
+   }
+ #  if _LIBCUDACXX_HAS_CONSTEXPR_BIT_CAST()
+   return (_CUDA_VSTD::__fp_get_storage(__x) & __fp_exp_mask_v<double>) != __fp_exp_mask_v<double>;
+diff --git a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isinf.h b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isinf.h
+index a2a75ac..407f3fa 100644
+--- a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isinf.h
++++ b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isinf.h
+@@ -42,7 +42,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI constexpr bool __isinf_impl(_Tp __x) n
+   static_assert(_CCCL_TRAIT(is_floating_point, _Tp), "Only standard floating-point types are supported");
+   if (!_CUDA_VSTD::__cccl_default_is_constant_evaluated())
+   {
+-    return ::isinf(__x);
++    return isinf(__x);
+   }
+   if (_CUDA_VSTD::isnan(__x))
+   {
+@@ -65,7 +65,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI constexpr bool isinf(float __x) noexce
+ #elif _LIBCUDACXX_HAS_CONSTEXPR_BIT_CAST()
+   if (!_CUDA_VSTD::__cccl_default_is_constant_evaluated())
+   {
+-    return ::isinf(__x);
++    return isinf(__x);
+   }
+   return (_CUDA_VSTD::__fp_get_storage(__x) & __fp_exp_mant_mask_v<float>) == __fp_exp_mask_v<float>;
+ #else // ^^^ _LIBCUDACXX_HAS_CONSTEXPR_BIT_CAST() ^^^ / vvv !_LIBCUDACXX_HAS_CONSTEXPR_BIT_CAST() vvv
+@@ -87,7 +87,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI constexpr bool isinf(double __x) noexc
+ #elif _LIBCUDACXX_HAS_CONSTEXPR_BIT_CAST()
+   if (!_CUDA_VSTD::__cccl_default_is_constant_evaluated())
+   {
+-    return ::isinf(__x);
++    return isinf(__x);
+   }
+   return (_CUDA_VSTD::__fp_get_storage(__x) & __fp_exp_mant_mask_v<double>) == __fp_exp_mask_v<double>;
+ #else // ^^^ _LIBCUDACXX_HAS_CONSTEXPR_BIT_CAST() ^^^ / vvv !_LIBCUDACXX_HAS_CONSTEXPR_BIT_CAST() vvv
+diff --git a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isnan.h b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isnan.h
+index cd0cdf6..3f7d222 100644
+--- a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isnan.h
++++ b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/isnan.h
+@@ -40,7 +40,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI constexpr bool __isnan_impl(_Tp __x) n
+   static_assert(_CCCL_TRAIT(is_floating_point, _Tp), "Only standard floating-point types are supported");
+   if (!_CUDA_VSTD::__cccl_default_is_constant_evaluated())
+   {
+-    return ::isnan(__x);
++    return isnan(__x);
+   }
+   return __x != __x;
+ }
+diff --git a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/signbit.h b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/signbit.h
+index 8f93226..62fa108 100644
+--- a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/signbit.h
++++ b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/signbit.h
+@@ -38,7 +38,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI bool signbit(float __x) noexcept
+ #if defined(_CCCL_BUILTIN_SIGNBIT)
+   return _CCCL_BUILTIN_SIGNBIT(__x);
+ #else // ^^^ _CCCL_BUILTIN_SIGNBIT ^^^ / vvv !_CCCL_BUILTIN_SIGNBIT vvv
+-  return ::signbit(__x);
++  return signbit(__x);
+ #endif // !_CCCL_BUILTIN_SIGNBIT
+ }
+ 
+@@ -47,7 +47,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI bool signbit(double __x) noexcept
+ #if defined(_CCCL_BUILTIN_SIGNBIT)
+   return _CCCL_BUILTIN_SIGNBIT(__x);
+ #else // ^^^ _CCCL_BUILTIN_SIGNBIT ^^^ / vvv !_CCCL_BUILTIN_SIGNBIT vvv
+-  return ::signbit(__x);
++  return signbit(__x);
+ #endif // !_CCCL_BUILTIN_SIGNBIT
+ }
+ 
+@@ -57,7 +57,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI bool signbit(long double __x) noexcept
+ #  if defined(_CCCL_BUILTIN_SIGNBIT)
+   return _CCCL_BUILTIN_SIGNBIT(__x);
+ #  else // ^^^ _CCCL_BUILTIN_SIGNBIT ^^^ / vvv !_CCCL_BUILTIN_SIGNBIT vvv
+-  return ::signbit(__x);
++  return signbit(__x);
+ #  endif // !_CCCL_BUILTIN_SIGNBIT
+ }
+ #endif // _CCCL_HAS_LONG_DOUBLE()
+diff --git a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/traits.h b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/traits.h
+index f804387..4869846 100644
+--- a/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/traits.h
++++ b/usr/local/cuda-13.0/include/cccl/cuda/std/__cmath/traits.h
+@@ -54,7 +54,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI bool isgreater(_A1 __x, _A2 __y) noexc
+ {
+   using type = __promote_t<_A1, _A2>;
+   NV_IF_ELSE_TARGET(NV_IS_HOST,
+-                    (return ::isgreater((type) __x, (type) __y);),
++                    (return isgreater((type) __x, (type) __y);),
+                     (return _CUDA_VSTD::__device_isgreater((type) __x, (type) __y);))
+ }
+ 
+@@ -77,7 +77,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI bool isgreaterequal(_A1 __x, _A2 __y)
+ {
+   using type = __promote_t<_A1, _A2>;
+   NV_IF_ELSE_TARGET(NV_IS_HOST,
+-                    (return ::isgreaterequal((type) __x, (type) __y);),
++                    (return isgreaterequal((type) __x, (type) __y);),
+                     (return _CUDA_VSTD::__device_isgreaterequal((type) __x, (type) __y);))
+ }
+ 
+@@ -99,9 +99,8 @@ template <class _A1,
+ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI bool isless(_A1 __x, _A2 __y) noexcept
+ {
+   using type = __promote_t<_A1, _A2>;
+-  NV_IF_ELSE_TARGET(NV_IS_HOST,
+-                    (return ::isless((type) __x, (type) __y);),
+-                    (return _CUDA_VSTD::__device_isless((type) __x, (type) __y);))
++  NV_IF_ELSE_TARGET(
++    NV_IS_HOST, (return isless((type) __x, (type) __y);), (return _CUDA_VSTD::__device_isless((type) __x, (type) __y);))
+ }
+ 
+ // islessequal
+@@ -123,7 +122,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI bool islessequal(_A1 __x, _A2 __y) noe
+ {
+   using type = __promote_t<_A1, _A2>;
+   NV_IF_ELSE_TARGET(NV_IS_HOST,
+-                    (return ::islessequal((type) __x, (type) __y);),
++                    (return islessequal((type) __x, (type) __y);),
+                     (return _CUDA_VSTD::__device_islessequal((type) __x, (type) __y);))
+ }
+ 
+@@ -146,7 +145,7 @@ _CCCL_NODISCARD _LIBCUDACXX_HIDE_FROM_ABI bool islessgreater(_A1 __x, _A2 __y) n
+ {
+   using type = __promote_t<_A1, _A2>;
+   NV_IF_ELSE_TARGET(NV_IS_HOST,
+-                    (return ::islessgreater((type) __x, (type) __y);),
++                    (return islessgreater((type) __x, (type) __y);),
+                     (return _CUDA_VSTD::__device_islessgreater((type) __x, (type) __y);))
+ }
+ 
+-- 
+2.43.0
+

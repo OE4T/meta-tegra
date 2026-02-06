@@ -4,7 +4,7 @@ CUDA_INSTALL_ARCH:class-native = "${HOST_ARCH}"
 
 require cuda-shared-binaries.inc
 
-SRC_URI:append = " file://0001-Updates-for-OE-cross-builds.patch"
+SRC_URI:append = " file://0001-Avoid-compile-issues-with-libc-math-functions.patch"
 
 MAINSUM = "4ddff5a943bbce2d1793d28c3cde63fd2b011c9515cc5b008f8955005c2965b4"
 MAINSUM:x86-64 = "076ffa2a84ea3e15937136737bbfc174e03616ae29f5800bf5a3aa6552c088b4"
