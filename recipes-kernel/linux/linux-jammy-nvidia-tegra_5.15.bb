@@ -10,15 +10,15 @@ require tegra-kernel.inc
 
 KERNEL_DISABLE_FW_USER_HELPER ?= "y"
 
-LINUX_VERSION ?= "5.15.148"
+LINUX_VERSION ?= "5.15.185"
 PV = "${LINUX_VERSION}+git${SRCPV}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}-${@bb.parse.vars_from_file(d.getVar('FILE', False),d)[1]}:"
 
-LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}-1012.12"
+LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:2])}-1033.33"
 SCMVERSION ??= "y"
 
 SRCBRANCH = "oe4t-patches${LINUX_VERSION_EXTENSION}"
-SRCREV = "c8a82765359ec59e11b0e39f03cf3dfc7e039426"
+SRCREV = "9c6d5c8154dae5c6fbce37e44b68485e2aef201e"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "github.com/OE4T/linux-jammy-nvidia-tegra.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
