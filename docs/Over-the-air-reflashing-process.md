@@ -165,7 +165,7 @@ be ignored/skipped for testing the installation process.)
   image being installed, etc.), use of this process should be managed carefully.
 
 * Full BUP support in meta-tegra, covering multiple module revisions in a single payload,
-  was added with the update to [L4T R32.3.1](https://github.com/OE4T/meta-tegra/wiki/L4T-R32.3.1-Notes#bootloader-update-support).
+  was added with the update to [L4T R32.3.1](L4T-R32.3.1-Notes.md#bootloader-update-support).
   If you are currently running builds based off an older version of L4T, you may run into
   boot issues after installing the upgrader BUP payload on some TX2 modules.  Adjusting the
   TEGRA_FAB setting in your build configuration to match the actual FAB revision of the

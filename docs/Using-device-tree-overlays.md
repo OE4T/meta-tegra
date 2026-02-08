@@ -67,4 +67,4 @@ With https://github.com/OE4T/meta-tegra/pull/1968 support is available to apply 
 
 Only overlays which modify the kernel DTB are supported, since the overlay application happens late in the boot sequence.
 
-See [this section](https://github.com/OE4T/meta-tegra/wiki/extlinux.conf-support#uboot_extlinux_fdtoverlays) of the extlinux.conf wiki page for details about configuring `OVERLAYS` in extlinux.conf.
+See [this section](extlinux.conf-support.md#uboot_extlinux_fdtoverlays) of the extlinux.conf wiki page for details about configuring `OVERLAYS` in extlinux.conf.

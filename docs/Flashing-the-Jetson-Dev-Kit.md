@@ -3,16 +3,16 @@ here are for branches based off L4T R32.4.3 and later. (For earlier releases, cl
 earlier revision of the page.)
 
 # Initrd Flashing
-For branches based off L4T R35.1.0 and later (`master`, `kirkstone`, and `langdale`), and the `kirkstone-l4t-r32.7.x` branch, an alternative flashing process (called "initrd flashing") is available, which supports flashing to a rootfs (`APP` partition) on an external storage device.  See [this page](https://github.com/OE4T/meta-tegra/wiki/initrd-flashing-support) for more information.
+For branches based off L4T R35.1.0 and later (`master`, `kirkstone`, and `langdale`), and the `kirkstone-l4t-r32.7.x` branch, an alternative flashing process (called "initrd flashing") is available, which supports flashing to a rootfs (`APP` partition) on an external storage device.  See [this page](initrd-flashing-support.md) for more information.
 
 The table below helps outline the flashing mechanism(s) supported depending on target root filesystem storage for all recent branches (`kirkstone-l4t-r32.7.x` and later)
 
 | Target Rootfs Storage | Flashing method |
 | --------------------- | ------------- |
-| on-board eMMC  | `doflash.sh` or [initrd-flash](https://github.com/OE4T/meta-tegra/wiki/initrd-flashing-support)  |
-| SDCard | `doflash.sh` or [initrd-flash](https://github.com/OE4T/meta-tegra/wiki/initrd-flashing-support). `dosdcard.sh` may be used for subsequent programming after initial bootloader programming with `doflash.sh` or `initrd-flash`. |
-| NVMe | [initrd-flash](https://github.com/OE4T/meta-tegra/wiki/initrd-flashing-support)  |
-| M.2 drive or SATA drive | [initrd-flash](https://github.com/OE4T/meta-tegra/wiki/initrd-flashing-support) |
+| on-board eMMC  | `doflash.sh` or [initrd-flash](initrd-flashing-support.md)  |
+| SDCard | `doflash.sh` or [initrd-flash](initrd-flashing-support.md). `dosdcard.sh` may be used for subsequent programming after initial bootloader programming with `doflash.sh` or `initrd-flash`. |
+| NVMe | [initrd-flash](initrd-flashing-support.md)  |
+| M.2 drive or SATA drive | [initrd-flash](initrd-flashing-support.md) |
 
 ## Prerequisites
 
@@ -284,4 +284,4 @@ Things to try:
 
 # General Tegraflash Troubleshooting
 
-See https://github.com/OE4T/meta-tegra/wiki/Tegraflash-Troubleshooting
+See [Tegraflash-Troubleshooting](Tegraflash-Troubleshooting.md)
