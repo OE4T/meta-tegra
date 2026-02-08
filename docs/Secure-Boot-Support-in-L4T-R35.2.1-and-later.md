@@ -1,4 +1,4 @@
-Jetson secure boot support in L4T R35.2.1 implements a different chain of trust from what was present in the [L4T R32](https://github.com/OE4T/meta-tegra/wiki/Secure-Boot-Support) releases:
+Jetson secure boot support in L4T R35.2.1 implements a different chain of trust from what was present in the [L4T R32](Secure-Boot-Support.md) releases:
 
 * The Trusty secure OS has been replaced by OP-TEE, which allows for dynamic loading of trusted applications (TAs) from the non-secure world. TAs must be signed, and the public key used for checking the signature is compiled into the OP-TEE OS.
 * The cboot bootloader has been replaced by UEFI, which uses its own set of keys for validating signatures on binaries that it loads (Linux kernel, EFI applications, and EFI capsules).

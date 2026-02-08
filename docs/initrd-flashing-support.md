@@ -35,7 +35,7 @@ Your image needs to include a device-tree with `usb2-0` in `otg` mode - as [here
 
 Note: `sudo` access will be needed when writing the disks using `bmap-tools`. This method below will avoid sudo while mounting/unmounting the flaskpkg and related block devices.
 
-For running the `initrd-flash` script without `sudo`, the host changes mentioned in the "Avoiding sudo" section on the [Flashing the Jetson Dev Kit](https://github.com/OE4T/meta-tegra/wiki/Flashing-the-Jetson-Dev-Kit) wiki page still apply.
+For running the `initrd-flash` script without `sudo`, the host changes mentioned in the "Avoiding sudo" section on the [Flashing the Jetson Dev Kit](Flashing-the-Jetson-Dev-Kit.md) wiki page still apply.
 
 In addition, to avoid prompts for authentication at several points in the process you need to configure polkit appropriately.  On Ubuntu 22.04 this can be accomplished with the following script snippet run as sudo root:
 ```
@@ -109,7 +109,7 @@ The `initrd-flash` script has a `--skip-bootloader` option for skipping the prog
 * With OE builds, TNSPEC_BOOTDEV selection is performed at build time. Switching back and forth between external rootfs and internal storage should be done with different builds.
 * Stock L4T provides its initrd in prebuilt form, which requires disassembling and reassembling the initrd in the flashing scripts.  With OE, we can build the flashing initrd directly.
 * Stock L4T requires customizing the external drive's flash layout to specify the exact size of the storage device, in sectors.  That's not required with OE builds, which do not use NVIDIA's flashing tools to partition the external drive.
-* Stock L4T inserts udev rules on the host during flashing and does some network setup to talk to the device.  The process implemented for OE builds does not use any networking and does not require any udev rules changes during the flashing process.  You also don't have to be root to perform initrd-based flashing for OE builds, if you have followed the instructions [here](https://github.com/OE4T/meta-tegra/wiki/Flashing-the-Jetson-Dev-Kit#avoiding-sudo). (However, the `bmaptool copy` command used in the `make-sdcard` script does need root access for its setup, and the script will run it under `sudo` for you).
+* Stock L4T inserts udev rules on the host during flashing and does some network setup to talk to the device.  The process implemented for OE builds does not use any networking and does not require any udev rules changes during the flashing process.  You also don't have to be root to perform initrd-based flashing for OE builds, if you have followed the instructions [here](Flashing-the-Jetson-Dev-Kit.md#avoiding-sudo). (However, the `bmaptool copy` command used in the `make-sdcard` script does need root access for its setup, and the script will run it under `sudo` for you).
 
 # Limitations on using an external drive for the rootfs
 * On Jetson TX2 devices, the bootloaders do not have support for loading the kernel from an external drive.  The kernel, initrd, and device tree must reside on the eMMC (along with some of the boot partitions).
@@ -130,4 +130,4 @@ If you have an external device larger than 64GB and would like to use this for a
 
 # General Tegraflash Troubleshooting
 
-See https://github.com/OE4T/meta-tegra/wiki/Tegraflash-Troubleshooting
+See [Tegraflash-Troubleshooting](Tegraflash-Troubleshooting.md)

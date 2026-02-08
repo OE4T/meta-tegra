@@ -1,6 +1,6 @@
 Bootloader signing is supported for all Jetson targets for which secure boot is available (consult the L4T documentation). Support was added in the `zeus` branch for tegra186 (Jetson-TX2), and extended to the other SoC types in the `dunfell-l4t-r32.4.3` branch.
 
-**Note** that with L4T R35.2.1 and later, the secure boot sequence has changed.  See [this page](https://github.com/OE4T/meta-tegra/wiki/Secure-Boot-Support-in-L4T-R35.2.1-and-later) for more information.
+**Note** that with L4T R35.2.1 and later, the secure boot sequence has changed.  See [this page](Secure-Boot-Support-in-L4T-R35.2.1-and-later.md) for more information.
 
 ## Setting fuses for secure boot ##
 To enable secure boot on your device, follow the instructions in the [L4T BSP documentation](https://docs.nvidia.com/jetson/l4t/index.html) and the README included in the L4T Secure Boot package that can be downloaded [here](https://developer.nvidia.com/embedded/linux-tegra).
