@@ -27,7 +27,7 @@ To use, specify
 UBOOT_EXTLINUX_FDT = "${DTBFILE}"
 UBOOT_EXTLINUX_FDTOVERLAYS = "my-overlay.dtbo"
 ```
-Where `"my-overlay.dtbo"` is an overlay built using the mechanisms specific to your branch implementation (or potentially one provided by NVIDIA.  See https://github.com/OE4T/meta-tegra/wiki/Using-device-tree-overlays for more details.  Note that since the overlay only happens to the kernel DTB this mechanism cannot be used to make any changes to the UEFI DTB.
+Where `"my-overlay.dtbo"` is an overlay built using the mechanisms specific to your branch implementation (or potentially one provided by NVIDIA.  See [Using-device-tree-overlays](Using-device-tree-overlays.md) for more details.  Note that since the overlay only happens to the kernel DTB this mechanism cannot be used to make any changes to the UEFI DTB.
 
 ## Caveats
 

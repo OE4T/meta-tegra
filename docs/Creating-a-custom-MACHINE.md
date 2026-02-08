@@ -132,8 +132,8 @@ PACKAGE_EXTRA_ARCHS_append = " jetson-xavier-nx-devkit-emmc"
 
 # Custom Device Tree #
 
-In many cases it is desirable to avoid forking or patching the kernel sources. The devicetree bbclass can be used to create a custom dtb. There's an example in tegra-demo-distro documented at https://github.com/OE4T/meta-tegra/wiki/Using-device-tree-overlays#example-out-of-tree-devicetree-in-tegra-demo-distro which accomplishes this for recent branches.
+In many cases it is desirable to avoid forking or patching the kernel sources. The devicetree bbclass can be used to create a custom dtb. There's an example in tegra-demo-distro documented at [Using-device-tree-overlays](Using-device-tree-overlays.md#example-out-of-tree-devicetree-in-tegra-demo-distro) which accomplishes this for recent branches.
 
 # Custom Partitioning #
 
-See https://github.com/OE4T/meta-tegra/wiki/Redundant-Rootfs-A-B-Partition-Support for suggestions regarding defining partition layout files for your MACHINE.
+See [Redundant-Rootfs-A-B-Partition-Support](Redundant-Rootfs-A-B-Partition-Support.md) for suggestions regarding defining partition layout files for your MACHINE.
