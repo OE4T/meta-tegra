@@ -1,38 +1,20 @@
-From e65b339f7e1737982946f3a6827d4d990d396472 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Sun, 6 Oct 2024 18:28:21 +0100
-Subject: [PATCH] Fix nvdisplay modules builds
+From 6142d1cdc4af35a9fb11e095d0cb37afe55d345c Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 12 Jan 2025 06:55:25 -0800
+Subject: [PATCH 3/3] Update for OE builds
 
-Update the makefiles, Kbuild, and conftest.sh script so
-that headers and symbols from the out-of-tree drivers can
-be found when building the display driver modules.
-
-Upstream-Status: Inappropriate [OE specific]
-
+Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile                          |  1 +
- nvdisplay/kernel-open/Kbuild      | 15 ++++++++-------
- nvdisplay/kernel-open/Makefile    |  1 +
- nvdisplay/kernel-open/conftest.sh | 32 +++++++++++++++++--------------
- 4 files changed, 28 insertions(+), 21 deletions(-)
+ kernel-open/Kbuild      | 15 ++++++++-------
+ kernel-open/Makefile    |  1 +
+ kernel-open/conftest.sh | 32 ++++++++++++++++++--------------
+ 3 files changed, 27 insertions(+), 21 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index 64bec51..d7fe662 100644
---- a/Makefile
-+++ b/Makefile
-@@ -119,6 +119,7 @@ define display-cmd
- 		KERNELRELEASE="" \
- 		SYSSRC=$(KERNEL_SRC) \
- 		SYSOUT=$(KBUILD_OUTPUT) \
-+		OOTSRC=$(MAKEFILE_DIR)/nvidia-oot \
- 		KBUILD_EXTRA_SYMBOLS=$(MAKEFILE_DIR)/nvidia-oot/Module.symvers \
- 		SYSSRCHOST1X=$(MAKEFILE_DIR)/nvidia-oot/drivers/gpu/host1x/include \
- 		CC="$(CC)" \
-diff --git a/nvdisplay/kernel-open/Kbuild b/nvdisplay/kernel-open/Kbuild
-index fa906d3..b5c090b 100644
---- a/nvdisplay/kernel-open/Kbuild
-+++ b/nvdisplay/kernel-open/Kbuild
+diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
+index 64328f1..e633a3a 100644
+--- a/kernel-open/Kbuild
++++ b/kernel-open/Kbuild
 @@ -70,6 +70,7 @@ $(foreach _module, $(NV_KERNEL_MODULES), \
  
  EXTRA_CFLAGS += -I$(src)/common/inc
@@ -40,7 +22,7 @@ index fa906d3..b5c090b 100644
 +EXTRA_CFLAGS += -I$(NV_OOT_SOURCES)/include
  EXTRA_CFLAGS += -Wall $(DEFINES) $(INCLUDES) -Wno-cast-qual -Wno-error -Wno-format-extra-args
  EXTRA_CFLAGS += -D__KERNEL__ -DMODULE -DNVRM
- EXTRA_CFLAGS += -DNV_VERSION_STRING=\"540.4.0\"
+ EXTRA_CFLAGS += -DNV_VERSION_STRING=\"540.5.0\"
 @@ -143,7 +144,7 @@ NV_CONFTEST_SCRIPT := $(src)/conftest.sh
  NV_CONFTEST_HEADER := $(obj)/conftest/headers.h
  
@@ -61,7 +43,7 @@ index fa906d3..b5c090b 100644
  
  
  # Each of these headers is checked for presence with a test #include; a
-@@ -314,8 +315,8 @@ NV_HEADER_PRESENCE_PART = $(addprefix $(obj)/conftest/header_presence/,$(addsuff
+@@ -316,8 +317,8 @@ NV_HEADER_PRESENCE_PART = $(addprefix $(obj)/conftest/header_presence/,$(addsuff
  # Define a rule to check the header $(1).
  define NV_HEADER_PRESENCE_CHECK
   $$(call NV_HEADER_PRESENCE_PART,$(1)): $$(NV_CONFTEST_SCRIPT) $(obj)/conftest/uts_release
@@ -72,7 +54,7 @@ index fa906d3..b5c090b 100644
  endef
  
  # Evaluate the rule above for each header in the list.
-@@ -323,7 +324,7 @@ $(foreach header,$(NV_HEADER_PRESENCE_TESTS),$(eval $(call NV_HEADER_PRESENCE_CH
+@@ -325,7 +326,7 @@ $(foreach header,$(NV_HEADER_PRESENCE_TESTS),$(eval $(call NV_HEADER_PRESENCE_CH
  
  # Concatenate all of the parts into headers.h.
  $(obj)/conftest/headers.h: $(call NV_HEADER_PRESENCE_PART,$(NV_HEADER_PRESENCE_TESTS))
@@ -81,7 +63,7 @@ index fa906d3..b5c090b 100644
  
  clean-dirs := $(obj)/conftest
  
-@@ -345,7 +346,7 @@ BUILD_SANITY_CHECKS = \
+@@ -347,7 +348,7 @@ BUILD_SANITY_CHECKS = \
  .PHONY: $(BUILD_SANITY_CHECKS)
  
  $(BUILD_SANITY_CHECKS):
@@ -90,10 +72,10 @@ index fa906d3..b5c090b 100644
  
  # Perform all sanity checks before generating the conftest headers
  
-diff --git a/nvdisplay/kernel-open/Makefile b/nvdisplay/kernel-open/Makefile
+diff --git a/kernel-open/Makefile b/kernel-open/Makefile
 index d00c14b..0c416c9 100644
---- a/nvdisplay/kernel-open/Makefile
-+++ b/nvdisplay/kernel-open/Makefile
+--- a/kernel-open/Makefile
++++ b/kernel-open/Makefile
 @@ -73,6 +73,7 @@ else
    KBUILD_PARAMS += ARCH=$(ARCH)
    KBUILD_PARAMS += NV_KERNEL_SOURCES=$(KERNEL_SOURCES)
@@ -102,10 +84,10 @@ index d00c14b..0c416c9 100644
    KBUILD_PARAMS += NV_KERNEL_MODULES="$(NV_KERNEL_MODULES)"
    KBUILD_PARAMS += INSTALL_MOD_DIR=kernel/drivers/video
    KBUILD_PARAMS += NV_SPECTRE_V2=$(SPECTRE_V2_RETPOLINE)
-diff --git a/nvdisplay/kernel-open/conftest.sh b/nvdisplay/kernel-open/conftest.sh
-index 391374f..2ee8d8d 100644
---- a/nvdisplay/kernel-open/conftest.sh
-+++ b/nvdisplay/kernel-open/conftest.sh
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index 13c0b0c..e375c44 100644
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
 @@ -11,6 +11,8 @@ ARCH=$2
  SOURCES=$3
  HEADERS=$SOURCES/include
@@ -142,7 +124,7 @@ index 391374f..2ee8d8d 100644
          echo "#define NV_IS_EXPORT_SYMBOL_GPL_$SYMBOL 1" |
              append_conftest "symbols"
      else
-@@ -6590,13 +6594,13 @@ compile_test() {
+@@ -6700,13 +6704,13 @@ compile_test() {
      esac
  }
  
@@ -158,7 +140,7 @@ index 391374f..2ee8d8d 100644
  
          echo "int cc_sanity_check(void) {
              return 0;
-@@ -6663,7 +6667,7 @@ case "$5" in
+@@ -6773,7 +6777,7 @@ case "$5" in
          #  In order to extract GCC version correctly for version strings
          #  like the last one above, we first check for x.y.z and if that
          #  fails, we fallback to x.y format.
@@ -167,7 +149,7 @@ index 391374f..2ee8d8d 100644
  
          kernel_compile_h=$OUTPUT/include/generated/compile.h
  
-@@ -6742,7 +6746,7 @@ case "$5" in
+@@ -6852,7 +6856,7 @@ case "$5" in
          # Check if the target kernel is a Xen kernel. If so, exit, since
          # the RM doesn't currently support Xen.
          #
@@ -176,7 +158,7 @@ index 391374f..2ee8d8d 100644
  
          if [ -n "$IGNORE_XEN_PRESENCE" -o -n "$VGX_BUILD" ]; then
              exit 0
-@@ -6774,7 +6778,7 @@ case "$5" in
+@@ -6884,7 +6888,7 @@ case "$5" in
          # Check if the target kernel has the PREEMPT_RT patch set applied. If
          # so, exit, since the RM doesn't support this configuration.
          #
@@ -185,7 +167,7 @@ index 391374f..2ee8d8d 100644
  
          if [ -n "$IGNORE_PREEMPT_RT_PRESENCE" ]; then
              exit 0
-@@ -6837,7 +6841,7 @@ case "$5" in
+@@ -6947,7 +6951,7 @@ case "$5" in
          # Run a series of compile tests to determine the set of interfaces
          # and features available in the target kernel.
          #
@@ -194,7 +176,7 @@ index 391374f..2ee8d8d 100644
  
          CFLAGS=$1
          shift
-@@ -6851,7 +6855,7 @@ case "$5" in
+@@ -6961,7 +6965,7 @@ case "$5" in
          #
          # Determine whether running in DOM0.
          #
@@ -203,7 +185,7 @@ index 391374f..2ee8d8d 100644
  
          if [ -n "$VGX_BUILD" ]; then
              if [ -f /proc/xen/capabilities ]; then
-@@ -6873,7 +6877,7 @@ case "$5" in
+@@ -6983,7 +6987,7 @@ case "$5" in
          #
          # Determine whether we are running a vGPU on KVM host.
          #
@@ -212,7 +194,7 @@ index 391374f..2ee8d8d 100644
          iommu=CONFIG_VFIO_IOMMU_TYPE1
          mdev=CONFIG_VFIO_MDEV
          kvm=CONFIG_KVM_VFIO
-@@ -6950,7 +6954,7 @@ case "$5" in
+@@ -7060,7 +7064,7 @@ case "$5" in
          #
          # Check to see if the given config option is set.
          #
@@ -221,7 +203,7 @@ index 391374f..2ee8d8d 100644
  
          test_configuration_option $OPTION
          exit $?
-@@ -6960,7 +6964,7 @@ case "$5" in
+@@ -7070,7 +7074,7 @@ case "$5" in
          #
          # Get the value of the given config option.
          #
@@ -230,7 +212,7 @@ index 391374f..2ee8d8d 100644
  
          get_configuration_option $OPTION
          exit $?
-@@ -6995,9 +6999,9 @@ case "$5" in
+@@ -7105,9 +7109,9 @@ case "$5" in
          # Check for the availability of the given kernel header
          #
  
@@ -243,5 +225,5 @@ index 391374f..2ee8d8d 100644
          exit $?
      ;;
 -- 
-2.34.1
+2.43.0
 
