@@ -12,11 +12,11 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h   |  1 +
  2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
-index 44508d3..c755044 100644
---- a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
-+++ b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
-@@ -61,6 +61,7 @@ print_usage(void)
+Index: jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
+===================================================================
+--- jetson_multimedia_api.orig/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
++++ jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
+@@ -62,6 +62,7 @@ print_usage(void)
             "\t-f\t\tSet output pixel format of video device (supports only YUYV/YVYU/UYVY/VYUY/GREY/MJPEG)\n"
             "\t-r\t\tSet renderer frame rate (30 fps by default)\n"
             "\t-n\t\tSave the n-th frame before VIC processing\n"
@@ -24,7 +24,7 @@ index 44508d3..c755044 100644
             "\t-c\t\tEnable CUDA aglorithm (draw a black box in the upper left corner)\n"
             "\t-v\t\tEnable verbose message\n"
             "\t-h\t\tPrint this usage\n\n"
-@@ -78,7 +79,7 @@ parse_cmdline(context_t * ctx, int argc, char **argv)
+@@ -79,7 +80,7 @@ parse_cmdline(context_t * ctx, int argc,
          exit(EXIT_SUCCESS);
      }
  
@@ -33,7 +33,7 @@ index 44508d3..c755044 100644
      {
          switch (c)
          {
-@@ -122,6 +123,9 @@ parse_cmdline(context_t * ctx, int argc, char **argv)
+@@ -123,6 +124,9 @@ parse_cmdline(context_t * ctx, int argc,
              case 'c':
                  ctx->enable_cuda = true;
                  break;
@@ -43,15 +43,15 @@ index 44508d3..c755044 100644
              case 'v':
                  ctx->enable_verbose = true;
                  break;
-@@ -150,6 +154,7 @@ set_defaults(context_t * ctx)
+@@ -151,6 +155,7 @@ set_defaults(context_t * ctx)
      ctx->cam_h = 480;
      ctx->frame = 0;
      ctx->save_n_frame = 0;
 +    ctx->total_frames = 0;
  
      ctx->g_buff = NULL;
-     ctx->capture_dmabuf = true;
-@@ -644,6 +649,7 @@ start_capture(context_t * ctx)
+     ctx->renderer = NULL;
+@@ -687,6 +692,7 @@ start_capture(context_t * ctx)
                  /* Convert the decoded buffer to YUV420P */
                  if (NvBufSurf::NvTransform(&transform_params, fd, ctx->render_dmabuf_fd))
                      ERROR_RETURN("Failed to convert the buffer");
@@ -59,7 +59,7 @@ index 44508d3..c755044 100644
              } else {
                  NvBufSurface *pSurf = NULL;
                  if (-1 == NvBufSurfaceFromFd(ctx->g_buff[v4l2_buf.index].dmabuff_fd,
-@@ -678,6 +684,10 @@ start_capture(context_t * ctx)
+@@ -722,6 +728,10 @@ start_capture(context_t * ctx)
              if (ioctl(ctx->cam_fd, VIDIOC_QBUF, &v4l2_buf))
                  ERROR_RETURN("Failed to queue camera buffers: %s (%d)",
                          strerror(errno), errno);
@@ -70,11 +70,11 @@ index 44508d3..c755044 100644
          }
      }
  
-diff --git a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
-index 094e6db..d6149f6 100644
---- a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
-+++ b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
-@@ -73,6 +73,7 @@ typedef struct
+Index: jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
+===================================================================
+--- jetson_multimedia_api.orig/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
++++ jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
+@@ -74,6 +74,7 @@ typedef struct
      unsigned int cam_h;
      unsigned int frame;
      unsigned int save_n_frame;
@@ -82,6 +82,3 @@ index 094e6db..d6149f6 100644
  
      /* Global buffer ptr */
      nv_buffer * g_buff;
--- 
-2.34.1
-
