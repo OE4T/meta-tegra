@@ -14,7 +14,7 @@ Index: gst-nvv4l2camera/Makefile
 ===================================================================
 --- gst-nvv4l2camera.orig/Makefile
 +++ gst-nvv4l2camera/Makefile
-@@ -26,20 +26,16 @@
+@@ -27,9 +27,10 @@
  
  SO_NAME := libgstnvv4l2camerasrc.so
  
@@ -25,22 +25,57 @@ Index: gst-nvv4l2camera/Makefile
 -TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
 +GST_INSTALL_DIR ?= $(libdir)/gstreamer-1.0
  
+ ifdef CUDA_VER
+ CUDA_PATH := /usr/local/cuda-$(CUDA_VER)
+@@ -37,31 +38,13 @@ else
+ CUDA_PATH := /usr/local/cuda
+ endif
+ 
+-# Location of the target rootfs
+-ifeq ($(shell uname -m), aarch64)
+-TARGET_ROOTFS :=
+-else
+-ifeq ($(TARGET_ROOTFS),)
+-$(error Please specify the target rootfs path if you are cross-compiling)
+-endif
+-endif
+-
+ ALGO_CUDA_DIR=cuda
+ 
 -GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
 -LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
 -CFLAGS:=
- LIBS:= -lnvbufsurface -lnvbufsurftransform
- 
+-LIBS:= -lnvbufsurface -lnvbufsurftransform \
+-	-lcuda -lcudart \
+-	-L"$(TARGET_ROOTFS)/$(CUDA_PATH)/lib64" \
+-
++LIBS:= -lnvbufsurface -lnvbufsurftransform
  
  SRCS := $(wildcard *.cpp)
  
--INCLUDES += -I./ -I../
+-INCLUDES += -I./ -I../ -I./cuda \
+-	-I/usr/src/jetson_multimedia_api/include/ \
+-	-I$(CUDA_PATH)/include
 -
++INCLUDES += -I./cuda
+ 
  PKGS := gstreamer-1.0 \
  	gstreamer-base-1.0 \
- 	gstreamer-video-1.0 \
-@@ -49,29 +45,30 @@ PKGS := gstreamer-1.0 \
+@@ -69,37 +52,45 @@ PKGS := gstreamer-1.0 \
+ 	gstreamer-allocators-1.0 \
+ 	glib-2.0 \
+ 	libv4l2
++ifdef CUDA_VER
++PKGS += cuda-$(CUDA_VER) cudart-$(CUDA_VER)
++else
++CUDA_PATH := /usr/loca/cuda
++INCLUDES += -I$(CUDA_PATH)/include
++LIBS += -lcuda -lcudart
++endif
  
  OBJS := $(SRCS:.cpp=.o)
+ OBJS += $(ALGO_CUDA_DIR)/NvCudaProc.o
+ 
  
 -CFLAGS += -fPIC \
 +CXXFLAGS += -fPIC \
@@ -61,7 +96,11 @@ Index: gst-nvv4l2camera/Makefile
  
  %.o: %.cpp
 -	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
-+	$(CXX) $(CXXFLAGS) -c $< -o $@
++	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $<  -o $@
+ 
+ $(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cpp
+-	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
++	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
  
  $(SO_NAME): $(OBJS)
 -	$(CC) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)

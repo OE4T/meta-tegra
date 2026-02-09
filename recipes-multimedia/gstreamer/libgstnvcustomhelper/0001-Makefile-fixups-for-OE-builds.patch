@@ -9,10 +9,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  Makefile.public | 26 +++++++-------------------
  1 file changed, 7 insertions(+), 19 deletions(-)
 
-diff --git a/Makefile.public b/Makefile.public
-index c44d95e..b8c02ec 100644
---- a/Makefile.public
-+++ b/Makefile.public
+Index: gst-nvcustomhelper/Makefile.public
+===================================================================
+--- gst-nvcustomhelper.orig/Makefile.public
++++ gst-nvcustomhelper/Makefile.public
 @@ -21,8 +21,8 @@
  # DEALINGS IN THE SOFTWARE.
  ################################################################################ 
@@ -32,9 +32,9 @@ index c44d95e..b8c02ec 100644
 -  LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
 -  CFLAGS:=
 -else
--  NVDS_VERSION ?=7.1
+-  NVDS_VERSION ?=8.0
 -  LIB_INSTALL_DIR ?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/
--  CFLAGS:= -DDS_VERSION=\"7.1.0\"
+-  CFLAGS:= -DDS_VERSION=\"8.0.0\"
 -endif
 -
  CFLAGS+= -fPIC
