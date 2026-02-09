@@ -1,7 +1,7 @@
-From 41544d7f3baba32f092339653f2723ac16d070cf Mon Sep 17 00:00:00 2001
+From fb60464fac3b7efdb1f5420b4a66ef8c621cd7cc Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
 Date: Thu, 11 Jul 2024 14:10:19 -0700
-Subject: [PATCH] tegra-virt-alt: Remove leading / from include path from
+Subject: [PATCH 4/5] tegra-virt-alt: Remove leading / from include path from
  overlay
 
 When $(overlay) is empty this inserts an additional '/' in the
@@ -22,13 +22,13 @@ QA Issue: File /usr/lib/modules/5.15.136-l4 t-r36.3-1009.9+g46cdb595bebc/updates
 Upstream-Status: Pending
 Signed-off-by: Khem Raj <raj.khem@gmail.com>
 ---
- nvidia-oot/sound/soc/tegra-virt-alt/Makefile | 4 ++--
+ sound/soc/tegra-virt-alt/Makefile | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/nvidia-oot/sound/soc/tegra-virt-alt/Makefile b/nvidia-oot/sound/soc/tegra-virt-alt/Makefile
-index 77bad80..f9d526f 100644
---- a/nvidia-oot/sound/soc/tegra-virt-alt/Makefile
-+++ b/nvidia-oot/sound/soc/tegra-virt-alt/Makefile
+diff --git a/sound/soc/tegra-virt-alt/Makefile b/sound/soc/tegra-virt-alt/Makefile
+index 77bad808..f9d526fe 100644
+--- a/sound/soc/tegra-virt-alt/Makefile
++++ b/sound/soc/tegra-virt-alt/Makefile
 @@ -4,8 +4,8 @@
  GCOV_PROFILE := y
  
@@ -40,3 +40,6 @@ index 77bad80..f9d526f 100644
  ccflags-y += -I$(srctree.nvidia-oot)/sound/soc/tegra-virt-alt/nvaudio_ivc/
  
  # Tegra platform Support
+-- 
+2.43.0
+

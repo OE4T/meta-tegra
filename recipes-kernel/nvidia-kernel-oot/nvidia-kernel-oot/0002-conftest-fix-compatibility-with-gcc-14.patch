@@ -1,20 +1,19 @@
-From f2127d20e071799035c7c44b7a80e1965c1c6dd2 Mon Sep 17 00:00:00 2001
+From d170b69f9518a034c97b48001232993418c91f24 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Tue, 28 May 2024 13:04:00 -0700
-Subject: [PATCH] Fix nvdisplay conftest gcc 14 compatibility issues
+Date: Sun, 12 Jan 2025 06:57:55 -0800
+Subject: [PATCH 2/3] conftest: fix compatibility with gcc 14
 
-Upstream-Status: Inappropriate [OE specific]
-
+Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- nvdisplay/kernel-open/conftest.sh | 4 ++--
+ kernel-open/conftest.sh | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/nvdisplay/kernel-open/conftest.sh b/nvdisplay/kernel-open/conftest.sh
-index b4aa977..090f311 100755
---- a/nvdisplay/kernel-open/conftest.sh
-+++ b/nvdisplay/kernel-open/conftest.sh
-@@ -90,8 +90,8 @@ build_cflags() {
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index 61ac17d..13c0b0c 100644
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -88,8 +88,8 @@ build_cflags() {
      ISYSTEM=`$CC -print-file-name=include 2> /dev/null`
      BASE_CFLAGS="-O2 -D__KERNEL__ \
  -DKBUILD_BASENAME=\"#conftest$$\" -DKBUILD_MODNAME=\"#conftest$$\" \
@@ -25,3 +24,6 @@ index b4aa977..090f311 100755
  
      if [ "$OUTPUT" != "$SOURCES" ]; then
          OUTPUT_CFLAGS="-I$OUTPUT/include2 -I$OUTPUT/include"
+-- 
+2.43.0
+
