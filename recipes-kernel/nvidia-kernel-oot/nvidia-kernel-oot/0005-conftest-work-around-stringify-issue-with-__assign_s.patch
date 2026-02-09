@@ -1,0 +1,46 @@
+From a9904484898075a8cf62ff2c9d6c8cac48bfd5b0 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 11 Nov 2024 08:48:31 -0800
+Subject: [PATCH 5/5] conftest: work around stringify issue with
+ __assign_str_has_no_src_arg test
+
+The kernel trace headers using preprocessor stringification on the
+TRACE_INCLUDE_PATH and TRACE_INCLUDE_FILE macros to form the path
+name for the header.
+
+gcc pre-defines a macro called linux 'linux' as '1'.
+
+The conftest script uses ${PWD} in its definition of TRACE_INCLUDE_PATH
+as part of its __assign_str_has_no_src_arg test. So if your current
+working directory happens to have 'linux' in it, as ours typically do
+for Yocto builds (e.g., the <machine>-<distro>-linux directory under
+tmp/work), the path will get corrupted (e.g., "<machine>-<distro>-1"),
+so the test always fails.
+
+This causes OOT builds to fail for kernel 6.10+, since 6.10 introduced
+the change to the __assign_str macro that conftest is looking for.
+
+Work around this by un-defining 'linux' in the source for that
+particular test.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ scripts/conftest/conftest.sh | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 781ae90b..801535c0 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -6470,6 +6470,7 @@ compile_test() {
+         __assign_str_has_no_src_arg)
+             #
+             echo "
++            #undef linux
+             #define TRACE_INCLUDE_FILE conftest$$
+             #define TRACE_INCLUDE_PATH ${PWD}
+ 
+-- 
+2.43.0
+
