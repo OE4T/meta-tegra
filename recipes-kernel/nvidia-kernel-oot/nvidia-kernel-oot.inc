@@ -301,6 +301,7 @@ TEGRA_OOT_EXTRA_OTHER_DRIVERS ??= ""
 TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-f75308 \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-gpio-max77851 \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-i2c-tegra-slave-byte \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-ioctl-example \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-kfuse \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-lan743x \
@@ -321,6 +322,7 @@ TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-softdog-platform \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-spi-aurix-tegra \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-spi-tegra124-slave \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-cec \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-fsicom \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-vse-safety \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-pcie-edma \

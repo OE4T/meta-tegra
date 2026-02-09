@@ -12,11 +12,12 @@ unpack_makefile_from_bsp() {
 }
 do_unpack[postfuncs] += "unpack_makefile_from_bsp"
 
-SRC_URI += "file://0001-Makefile-update-for-OE-builds.patch \
-           file://0002-Fix-nvdisplay-modules-builds.patch \
-           file://0001-tegra-virt-alt-Remove-leading-from-include-path-from.patch \
-           file://0001-nvidia-kernel-oot-handle-of_property_for_each_u32-ap.patch \
-           "
+SRC_URI += "file://0001-Reapply-OE-patches-to-main-Makefile.patch \
+            file://0002-conftest-fix-compatibility-with-gcc-14.patch;patchdir=nvdisplay \
+            file://0003-Update-for-OE-builds.patch;patchdir=nvdisplay; \
+            file://0004-tegra-virt-alt-Remove-leading-from-include-path-from.patch;patchdir=nvidia-oot \
+            file://0005-conftest-work-around-stringify-issue-with-__assign_s.patch;patchdir=nvidia-oot \
+            "
 
 S = "${WORKDIR}/${BPN}"
 
