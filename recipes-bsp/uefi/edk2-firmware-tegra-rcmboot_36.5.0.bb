@@ -1,20 +1,22 @@
-require edk2-firmware-tegra-36.4.4.inc
+require edk2-firmware-tegra-36.5.0.inc
 
-DESCRIPTION = "UEFI EDK2 Minimal Firmware for Jetson platforms"
+DESCRIPTION = "UEFI EDK2 Minimal Firmware for flashing Jetson platforms"
 
 TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 
 inherit l4t_bsp deploy ${TEGRA_UEFI_SIGNING_CLASS}
 
-EDK2_PLATFORM = "JetsonMinimal"
-TEGRA_UEFI_MINIMAL = "1"
 EDK2_PLATFORM_DSC = "Platform/NVIDIA/NVIDIA.common.dsc"
-EDK2_BIN_NAME = "uefi_jetson_minimal.bin"
+TEGRA_EDK2_PLATFORM ??= "UNKNOWN"
+TEGRA_EDK2_CONFIGURATION = "embedded"
+EDK2_PLATFORM = "${TEGRA_EDK2_PLATFORM}_${TEGRA_EDK2_CONFIGURATION}"
+TEGRA_FLASHVAR_UEFI_IMAGE ??= "uefi_${EDK2_PLATFORM}"
+EDK2_BIN_NAME = "uefi_${EDK2_PLATFORM}.bin"
 
 SRC_URI += "file://nvbuildconfig.py"
 
 do_configure:append() {
-    ${PYTHON} ${WORKDIR}/nvbuildconfig.py --kconfig-path=${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig --output-dir=${B}/nvidia-config/Jetson ${S_EDK2_NVIDIA}/Platform/NVIDIA/${EDK2_PLATFORM}/Jetson.defconfig ${@config_fragments(d)}
+    ${PYTHON} ${WORKDIR}/nvbuildconfig.py --kconfig-path=${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig --output-dir=${B}/nvidia-config/Tegra/${EDK2_PLATFORM} ${S_EDK2_NVIDIA}/Platform/NVIDIA/Tegra/DefConfigs/${EDK2_PLATFORM}.defconfig ${@config_fragments(d)}
 }
 
 do_compile:append() {
@@ -32,7 +34,7 @@ do_install() {
 
 do_deploy() {
     install -d ${DEPLOYDIR}
-    install -m 0644 ${B}/images/${EDK2_BIN_NAME} ${DEPLOYDIR}/
+    install -m 0644 ${B}/images/${EDK2_BIN_NAME} ${DEPLOYDIR}/${TEGRA_FLASHVAR_RCM_UEFI_IMAGE}.bin
 }
 # Downstream consumers will need the dtb overlays created by the
 # normal build
