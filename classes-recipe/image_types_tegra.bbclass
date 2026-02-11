@@ -303,8 +303,8 @@ tegraflash_populate_package() {
         cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
         DATAARGS="--datafile ${DATAFILE}"
     fi
-    cp "${DEPLOY_DIR_IMAGE}/uefi_jetson.bin" ./uefi_jetson.bin
-    cp "${DEPLOY_DIR_IMAGE}/uefi_jetson_minimal.bin" ./uefi_jetson_minimal.bin
+    cp "${DEPLOY_DIR_IMAGE}/${TEGRA_FLASHVAR_UEFI_IMAGE}.bin" ./${TEGRA_FLASHVAR_UEFI_IMAGE}.bin
+    cp "${DEPLOY_DIR_IMAGE}/${TEGRA_FLASHVAR_RCM_UEFI_IMAGE}.bin" ./${TEGRA_FLASHVAR_RCM_UEFI_IMAGE}.bin
     cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
     for f in ${TEGRA_STAGED_BOOT_FIRMWARE}; do
         cp "${STAGING_DATADIR}/tegraflash/$f" .
@@ -462,6 +462,7 @@ do_image_tegraflash_tar[depends] += "dtc-native:do_populate_sysroot coreutils-na
                                  virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
                                  ${@'${TEGRA_ESP_IMAGE}:do_image_complete' if d.getVar('TEGRA_ESP_IMAGE') != '' else  ''} \
-                                 virtual/bootloader:do_deploy edk2-firmware-tegra-minimal:do_deploy virtual/secure-os:do_deploy ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS} \
+                                 virtual/bootloader:do_deploy virtual/secure-os:do_deploy \
+				 ${TEGRA_RCM_EDK2_DEPENDS} ${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS} \
                                  ${@'${TEGRAFLASH_INITRD_FLASH_IMAGE}:do_image_complete' if d.getVar('TEGRAFLASH_INITRD_FLASH_IMAGE') != '' else ''}"
 IMAGE_TYPEDEP:tegraflash.tar += "${IMAGE_TEGRAFLASH_FS_TYPE}"
