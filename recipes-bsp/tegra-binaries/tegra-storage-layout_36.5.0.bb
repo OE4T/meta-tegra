@@ -35,7 +35,7 @@ copy_in_flash_layout() {
                 -e"s,WB0FILE,sc7_t234_prod.bin," \
                 -e"s,PSCRF_IMAGE,psc_rf_t234_prod.bin," \
                 -e"s,MB2RF_IMAGE,mb2rf_t234.bin," \
-                -e"s,TBCDTB-FILE,uefi_jetson_with_dtb.bin," \
+                -e"s,TBCDTB-FILE,$TBCDTB_FILE," \
                 -e"s,DCE,display-t234-dce.bin," \
                 -e"s,PVA_FILE,nvpva_020.fw," \
                 "$dstfile"
@@ -47,7 +47,7 @@ copy_in_flash_layout() {
 }
 
 do_compile() {
-    copy_in_flash_layout ${PARTITION_FILE} internal-flash.xml.orig
+    TBCDTB_FILE="${TEGRA_FLASHVAR_UEFI_IMAGE}_with_dtb.bin" copy_in_flash_layout ${PARTITION_FILE} internal-flash.xml.orig
     if [ "${TEGRAFLASH_NO_INTERNAL_STORAGE}" = "1" ]; then
         # For modules with *only* SPI flash (or other boot device) and no
         # internal storage for rootfs, use a full copy for BUP (see note above)
