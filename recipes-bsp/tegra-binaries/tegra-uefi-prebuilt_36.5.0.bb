@@ -14,7 +14,7 @@ TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 inherit deploy ${TEGRA_UEFI_SIGNING_CLASS}
 
 do_compile() {
-    cp ${S}/bootloader/uefi_jetson.bin ${S}/bootloader/BOOTAA64.efi ${B}
+    cp ${S}/bootloader/uefi_jetson.bin ${S}/bootloader/BOOTAA64.efi ${B}/
     cp ${S}/bootloader/uefi_jetson_minimal.bin ${B}
 }
 
@@ -44,7 +44,8 @@ do_install() {
 
 do_deploy() {
     install -d ${DEPLOYDIR}
-    install -m 0644 ${B}/uefi_jetson.bin ${B}/uefi_jetson_minimal.bin ${DEPLOYDIR}/
+    install -m 0644 ${B}/uefi_jetson.bin ${DEPLOYDIR}/${TEGRA_FLASHVAR_UEFI_IMAGE}.bin
+    install -m 0644 ${B}/uefi_jetson_minimal.bin ${DEPLOYDIR}/${TEGRA_FLASHVAR_RCM_UEFI_IMAGE}.bin
     for dtbo in ${TEGRA_BOOTCONTROL_OVERLAYS}; do
 	[ -e ${S}/kernel/dtb/$dtbo ] || continue
 	install -m 0644 ${S}/kernel/dtb/$dtbo ${DEPLOYDIR}/
