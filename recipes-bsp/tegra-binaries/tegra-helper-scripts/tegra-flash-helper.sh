@@ -633,8 +633,8 @@ eks eks.img"
          --mb2bct_cfg $MB2BCT_CFG \
          --bldtb $TBCDTB_FILE \
          --concat_cpubl_bldtb \
-         --cpubl uefi_jetson.bin \
-         --cpubl_rcm uefi_jetson_minimal.bin"
+         --cpubl ${UEFI_IMAGE}.bin \
+         --cpubl_rcm ${RCM_UEFI_IMAGE}.bin"
 fi
 
 if [ $rcm_boot -ne 0 -a $to_sign -eq 0 ]; then
@@ -690,13 +690,13 @@ if [ $want_signing -eq 1 ]; then
     BCT="--sdram_config"
     boot_chain_select="A"
     if [ "$CHIPID" = "0x23" ]; then
-        flashername="uefi_jetson_minimal_with_dtb.bin"
-        RCM_UEFIBL="uefi_jetson_minimal_with_dtb.bin"
-        UEFIBL="uefi_jetson_with_dtb.bin"
+        flashername="${RCM_UEFI_IMAGE}_with_dtb.bin"
+        RCM_UEFIBL="${RCM_UEFI_IMAGE}_with_dtb.bin"
+        UEFIBL="${UEFI_IMAGE}_with_dtb.bin"
         mb1filename="mb1_t234_prod.bin"
         pscbl1filename="psc_bl1_t234_prod.bin"
-        tbcfilename="uefi_jetson.bin"
-        rcm_tbcfile="uefi_jetson_minimal.bin"
+        tbcfilename="${UEFI_IMAGE}.bin"
+        rcm_tbcfile="${RCM_UEFI_IMAGE}.bin"
         custinfofilename="$custinfo_out"
         SOSARGS="--applet mb1_t234_prod.bin "
         NV_ARGS=" "
@@ -709,7 +709,7 @@ if [ $want_signing -eq 1 ]; then
     rootfs_ab=0
     gen_read_ramcode=0
     debug_mode=0
-    FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_jetson_minimal_with_dtb.bin \
+    FLASHARGS="--chip 0x23 $hsm_arg --bl ${RCM_UEFI_IMAGE}_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
@@ -734,7 +734,7 @@ if [ $want_signing -eq 1 ]; then
 	BCTARGS="$bctargs $rcm_overlay_dtb_arg $custinfo_args --bct_backup"
 	L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
 	BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
-	FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_jetson_minimal_with_dtb.bin \
+	FLASHARGS="--chip 0x23 $hsm_arg --bl ${RCM_UEFI_IMAGE}_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
@@ -760,7 +760,7 @@ if [ $want_signing -eq 1 ]; then
     fi
     flashcmd="python3 $flashappname ${inst_args} $FLASHARGS"
 else
-    flashcmd="python3 $flashappname ${inst_args} --chip 0x23 $hsm_arg --bl uefi_jetson_minimal_with_dtb.bin \
+    flashcmd="python3 $flashappname ${inst_args} --chip 0x23 $hsm_arg --bl ${RCM_UEFI_IMAGE}_with_dtb.bin \
           --sdram_config $sdramcfg_files \
           --odmdata $odmdata \
           --applet mb1_t234_prod.bin \
