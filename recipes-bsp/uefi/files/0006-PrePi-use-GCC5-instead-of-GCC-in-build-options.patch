@@ -1,0 +1,25 @@
+From 189ec021a7a83c295eeb9d028ac6ead4698e0f31 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 10 Feb 2026 12:48:07 -0800
+Subject: [PATCH 6/6] PrePi: use GCC5 instead of GCC in build options
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ Silicon/NVIDIA/PrePi/PrePi.inf | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/Silicon/NVIDIA/PrePi/PrePi.inf b/Silicon/NVIDIA/PrePi/PrePi.inf
+index be4d373a..10fc33b6 100644
+--- a/Silicon/NVIDIA/PrePi/PrePi.inf
++++ b/Silicon/NVIDIA/PrePi/PrePi.inf
+@@ -93,5 +93,5 @@
+   gNVIDIATokenSpaceGuid.PcdTegraCombinedUartRxMailbox
+ 
+ [BuildOptions]
+-  *_GCC_*_DLINK_FLAGS = -pie -Wl,-T,$(MODULE_DIR)/Scripts/PrePi-PIE.lds
++  *_GCC5_*_DLINK_FLAGS = -pie -Wl,-T,$(MODULE_DIR)/Scripts/PrePi-PIE.lds
+   *_CLANGDWARF_*_DLINK_FLAGS = -pie -Wl,-T,$(MODULE_DIR)/Scripts/PrePi-PIE-clang.lds
+-- 
+2.43.0
+
