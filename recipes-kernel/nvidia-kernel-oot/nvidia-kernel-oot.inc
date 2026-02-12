@@ -13,6 +13,23 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 B = "${S}"
 
+COMMON_PATCHES = "file://0001-Reapply-OE-patches-to-main-Makefile.patch \
+            file://0002-conftest-fix-compatibility-with-gcc-14.patch;patchdir=nvdisplay \
+            file://0003-Update-for-OE-builds.patch;patchdir=nvdisplay; \
+            file://0004-tegra-virt-alt-Remove-leading-from-include-path-from.patch;patchdir=nvidia-oot \
+            file://0005-conftest-work-around-stringify-issue-with-__assign_s.patch;patchdir=nvidia-oot \
+            "
+EXTRA_PATCHES ??= ""
+
+SRC_URI += "${COMMON_PATCHES} ${EXTRA_PATCHES}"
+
+do_unpack[depends] += "tegra-kernel-makefile:do_populate_sysroot"
+
+unpack_makefile_from_bsp() {
+    [ -e ${S}/Makefile ] || cp ${STAGING_DATADIR}/nvidia-kernel/Makefile ${S}/
+}
+do_unpack[postfuncs] += "unpack_makefile_from_bsp"
+
 KERNEL_MODULE_PACKAGE_PREFIX = "nv-"
 
 # Out-of-tree drivers that are named identically to, and
