@@ -13,6 +13,29 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 B = "${S}"
 
+COMMON_PATCHES = "\
+    file://0001-Makefile-update-for-OE-builds.patch \
+    file://0001-Fix-build-warning-on-rtl8852ce-driver.patch;patchdir=nvidia-oot \
+    file://0002-Makefile-Add-OOTSRC-for-nvdisplay-builds.patch \
+    file://0002-Fix-nvdisplay-modules-builds.patch;patchdir=nvdisplay \
+    file://0003-Fix-nvdisplay-conftest-gcc-14-compatibility-issues.patch;patchdir=nvdisplay \
+    file://0004-Fix-unifiedgpudisp-modules-builds.patch;patchdir=unifiedgpudisp \
+    file://0005-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch;patchdir=unifiedgpudisp \
+    file://0006-conftest-work-around-stringify-issue-with.patch;patchdir=nvidia-oot \
+    file://0007-tegra264-ufs-provision-update-for-build-reproducibil.patch;patchdir=hardware/nvidia/t264/nv-public \
+"
+
+EXTRA_PATCHES ??= ""
+
+SRC_URI += "${COMMON_PATCHES} ${EXTRA_PATCHES}"
+
+do_unpack[depends] += "tegra-kernel-makefile:do_populate_sysroot"
+
+unpack_makefile_from_bsp() {
+    [ -e ${S}/Makefile ] || cp ${STAGING_DATADIR}/nvidia-kernel/Makefile ${S}/
+}
+do_unpack[postfuncs] += "unpack_makefile_from_bsp"
+
 KERNEL_MODULE_PACKAGE_PREFIX = "nv-"
 
 # Out-of-tree drivers that are named identically to, and

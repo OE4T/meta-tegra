@@ -1,0 +1,32 @@
+From 8907c8aa9ba65bd7c94faf466e0396eaac9ec92e Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 2 Nov 2025 06:21:55 -0800
+Subject: [PATCH] tegra264-ufs-provision: update for build reproducibility
+
+This one still had file path and date stamp info
+embedded in it. That info is unnecessary and causes
+reproductibility errors to be reported, so drop those
+lines.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ nv-platform/tegra264-ufs-provision.dts | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/nv-platform/tegra264-ufs-provision.dts b/nv-platform/tegra264-ufs-provision.dts
+index 9ec5af5..d225837 100644
+--- a/nv-platform/tegra264-ufs-provision.dts
++++ b/nv-platform/tegra264-ufs-provision.dts
+@@ -6,8 +6,6 @@
+ / {
+ 	overlay-name = "Tegra264 UFS Provisioning overlay";
+ 	compatible = "nvidia,tegra264";
+-        nvidia,dtsfilename = __FILE__;
+-        nvidia,dtbbuildtime = __DATE__, __TIME__;
+ 
+ 	/* Enable UFS provisioning */
+ 	fragment@0 {
+-- 
+2.43.0
+
