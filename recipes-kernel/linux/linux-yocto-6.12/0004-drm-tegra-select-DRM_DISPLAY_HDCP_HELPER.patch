@@ -1,0 +1,30 @@
+From 121a4377cdc37fe37b13242335e10ae2a3792bd3 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 9 Feb 2026 06:43:57 -0800
+Subject: [PATCH] drm/tegra: select DRM_DISPLAY_HDCP_HELPER
+
+The OOT drivers need the HDCP code included in the
+display helper module, so make sure it's selected
+for the tegra DRM driver.
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/gpu/drm/tegra/Kconfig b/drivers/gpu/drm/tegra/Kconfig
+index e688d8104652..7a44f715de41 100644
+--- a/drivers/gpu/drm/tegra/Kconfig
++++ b/drivers/gpu/drm/tegra/Kconfig
+@@ -6,6 +6,7 @@ config DRM_TEGRA
+ 	depends on DRM
+ 	depends on OF
+ 	select DRM_DISPLAY_DP_HELPER
++	select DRM_DISPLAY_HDCP_HELPER
+ 	select DRM_DISPLAY_HDMI_HELPER
+ 	select DRM_DISPLAY_HELPER
+ 	select DRM_BRIDGE_CONNECTOR
+-- 
+2.43.0
+

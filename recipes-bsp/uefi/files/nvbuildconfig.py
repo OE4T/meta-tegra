@@ -4,7 +4,7 @@ import argparse
 from kconfiglib import Kconfig
 
 # Adapted from edk2-nvidia/Silicon/NVIDIA/edk2nv/stuart/builder.py BuildConfigFile method
-def build_config_file(kconf_path, configs, config_out):
+def build_config_file(kconf_path, configs, config_out_dir, config_out):
     kconf = Kconfig(kconf_path, warn_to_stderr=False,
                     suppress_traceback=True)
     kconf.warn_assign_undef = True
@@ -33,6 +33,16 @@ def build_config_file(kconf_path, configs, config_out):
 
     # Write the merged configuration
     print(kconf.write_config(config_out))
+    # Write the platform/build GUID
+    if config_out_dir:
+        guid_out = os.path.join(config_out_dir, "PLATFORM_GUID")
+    else:
+        guid_out = "PLATFORM_GUID"
+    if "PLATFORM_GUID" in kconf.syms:
+        with open(guid_out, "w") as f:
+            print(kconf.syms["PLATFORM_GUID"].str_value, file=f)
+    elif os.path.exists(guid_out):
+        os.unlink(guid_out)
     return 0
 
 def main():
@@ -47,10 +57,13 @@ def main():
     else:
         output_file = ".config"
         output_dsc = "config.dsc.inc"
-    build_config_file(args.kconfig_path, args.config_files, output_file)
+    build_config_file(args.kconfig_path, args.config_files, args.output_directory, output_file)
     with open(output_file, "r") as f, open(output_dsc, "w") as fo:
         for line in f:
-            fo.write(line.replace('"', '').replace("'", ""))
+            line = line.rstrip().replace('"', '').replace("'", "")
+            if line.startswith("CONFIG_") and line.endswith("="):
+                line = "# " + line[:-1] + " is not set"
+            print(line, file=fo)
     return 0
 
 if __name__ == '__main__':

@@ -1,0 +1,98 @@
+From a0d582601cbaa01b9cda81dfd51166da15c7c730 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 6 Feb 2026 11:28:39 -0800
+Subject: [PATCH 1/6] Convert BUP_generator.py to Python3
+
+Ran it through 2to3 for the conversion, then
+made some additional fixes not caught by the tool.
+
+Upstream-Status: Inappropriate [OE specific]
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ bootloader/BUP_generator.py | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/bootloader/BUP_generator.py b/bootloader/BUP_generator.py
+index 1eddd74..c5bbc54 100755
+--- a/bootloader/BUP_generator.py
++++ b/bootloader/BUP_generator.py
+@@ -53,7 +53,7 @@ Appendix:
+                   (extract all partition bins for "ota.blob" to "OUT/*.raw.bin" without displaying blob info)
+ """
+ 
+-from __future__ import print_function
++
+ 
+ import copy
+ import sys
+@@ -452,7 +452,7 @@ class inspect_update_payload(update_payload):
+         self.raw_extract_bin_list = arg.inspect_extract_bin_list
+ 
+         self.blob_header_tuple = struct.unpack(self.header_packing, self.blob_file.read(struct.calcsize(self.header_packing)))
+-        self.blob_header_dict = dict(zip(self.header_name_tuple, self.blob_header_tuple))
++        self.blob_header_dict = dict(list(zip(self.header_name_tuple, self.blob_header_tuple)))
+ 
+         # # Detect if optional accessory field (8 bytes) is present
+         if self.blob_header_dict['header_size'] > struct.calcsize(self.header_packing):
+@@ -495,7 +495,7 @@ class inspect_update_payload(update_payload):
+         for idx, blob_entry in enumerate(self.blob_entry_list):
+             try:
+                 blob_entry_tuple = struct.unpack(self.entry_packing, self.blob_file.read(struct.calcsize(self.entry_packing)))
+-                blob_entry_dict = dict(zip(self.entry_name_tuple, blob_entry_tuple))
++                blob_entry_dict = dict(list(zip(self.entry_name_tuple, blob_entry_tuple)))
+                 self.blob_entry_list[idx] = blob_entry_dict
+ 
+                 for n in range(len(self.blob_entry_max_width_list)):
+@@ -580,8 +580,8 @@ class inspect_update_payload(update_payload):
+         part_name_list = list()
+         spec_info_list = list()
+         for blob_entry in self.blob_entry_list:
+-            part_name = str(blob_entry['part_name']).strip(' \t\n\0')
+-            tnspec = str(blob_entry['tnspec']).strip(' \t\n\0')
++            part_name = str(blob_entry['part_name'].decode('utf-8')).strip(' \t\n\0')
++            tnspec = str(blob_entry['tnspec'].decode('utf-8')).strip(' \t\n\0')
+ 
+             if tnspec == "":
+                 continue
+@@ -611,16 +611,16 @@ class inspect_update_payload(update_payload):
+         # Verify every entry in spec_info_list must have an entry in part_name_list
+         valid = True
+         for part in part_name_list:
+-            blob_entry = filter(lambda entry: (str(entry['part_name']).strip(' \t\n\0') == part), self.blob_entry_list)
++            blob_entry = [entry for entry in self.blob_entry_list if (str(entry['part_name'].decode('utf-8')).strip(' \t\n\0') == part)]
+             blob_entry = copy.deepcopy(blob_entry)
+ 
+             for spec in spec_info_list:
+                 found = False
+                 for idx, entry in enumerate(blob_entry):
+-                    e_spec = str(entry['tnspec']).strip(' \t\n\0')
++                    e_spec = str(entry['tnspec'].decode('utf-8')).strip(' \t\n\0')
+                     if spec == e_spec:
+                         found = True
+-                        blob_entry.remove(blob_entry[idx])
++                        del blob_entry[idx]
+                         break
+                 if (found == False):
+                     valid = False
+@@ -641,7 +641,7 @@ class inspect_update_payload(update_payload):
+ 
+         print ("Saving partitions to \"" + out_path + "\"")
+         print ("File names are of format \"<part_name>[" + out_delim + "<op_str>][" + out_delim + "<tnspec>]" + out_ext + "\"")
+-        print
++        print()
+ 
+         for blob_entry in self.blob_entry_list:
+             part_name = str(blob_entry['part_name'].decode('utf-8')).strip(' \t\n\0')
+@@ -662,7 +662,7 @@ class inspect_update_payload(update_payload):
+ 
+             if (part_name in extract_bin_set) or ("all" in extract_bin_set):
+                 # Binary will be saved to <OUT>/<part_name>[_<op_str>][_<tnspec>].raw.bin
+-                binary_name = out_delim.join(filter(None, [part_name, op_str, tnspec])) + out_ext
++                binary_name = out_delim.join([_f for _f in [part_name, op_str, tnspec] if _f]) + out_ext
+                 binary_path = os.path.join(out_path, binary_name)
+ 
+                 try:
+-- 
+2.43.0
+
