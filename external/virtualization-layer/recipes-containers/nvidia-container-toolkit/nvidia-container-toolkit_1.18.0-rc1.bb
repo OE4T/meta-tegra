@@ -71,7 +71,6 @@ do_install(){
 SYSTEMD_SERVICE:${PN} = "nvidia-container-setup.service"
 RDEPENDS:${PN} = "\
     libnvidia-container-tools \
-    docker \
     nv-tegra-release \
     tegra-configs-container-csv \
     tegra-libraries-nvml \
