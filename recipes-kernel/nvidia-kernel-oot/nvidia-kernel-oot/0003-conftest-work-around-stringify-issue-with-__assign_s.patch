@@ -1,7 +1,7 @@
-From f09ac530dbb6cd435c5086de1eedee20eaf78604 Mon Sep 17 00:00:00 2001
+From 4bd1ab85d916ac00a62eda97d1ab8411b2885c84 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Mon, 7 Jul 2025 12:52:12 +0100
-Subject: [PATCH 6/6] conftest: work around stringify issue with 
+Subject: [PATCH 3/7] conftest: work around stringify issue with
  __assign_str_has_no_src_arg test
 
 The kernel trace headers using preprocessor stringification on the
@@ -30,7 +30,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  1 file changed, 1 insertion(+)
 
 diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
-index 512b381..cd52a80 100755
+index fbe14b47..4f96e281 100755
 --- a/scripts/conftest/conftest.sh
 +++ b/scripts/conftest/conftest.sh
 @@ -6478,6 +6478,7 @@ compile_test() {
@@ -42,5 +42,5 @@ index 512b381..cd52a80 100755
              #define TRACE_INCLUDE_PATH ${PWD}
  
 -- 
-2.34.1
+2.43.0
 

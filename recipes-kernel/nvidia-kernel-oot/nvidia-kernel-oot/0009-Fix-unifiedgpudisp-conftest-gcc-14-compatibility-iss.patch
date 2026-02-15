@@ -1,7 +1,7 @@
-From aff20e7425f18828efd4a1bc3f7b53da08d77025 Mon Sep 17 00:00:00 2001
+From 714200ba16cba8ceef60fd0c7dcb8ab72112c6e3 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Mon, 11 Aug 2025 16:47:59 +0100
-Subject: [PATCH 5/6] Fix unifiedgpudisp conftest gcc 14 compatibility issues
+Subject: [PATCH 09/11] Fix unifiedgpudisp conftest gcc 14 compatibility issues
 
 Upstream-Status: Inappropriate [OE specific]
 
@@ -11,7 +11,7 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
-index 9c34e18..12acf19 100755
+index 9c34e18..e369be8 100755
 --- a/kernel-open/conftest.sh
 +++ b/kernel-open/conftest.sh
 @@ -106,8 +106,8 @@ build_cflags() {
@@ -26,5 +26,5 @@ index 9c34e18..12acf19 100755
      if [ "$OUTPUT" != "$SOURCES" ]; then
          OUTPUT_CFLAGS="-I$OUTPUT/include2 -I$OUTPUT/include"
 -- 
-2.34.1
+2.43.0
 
