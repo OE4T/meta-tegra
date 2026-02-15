@@ -1,7 +1,7 @@
-From c0fd33a195288fe8bc709f219af1fea892b1c155 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Thu, 15 Jan 2026 14:46:40 -0800
-Subject: [PATCH] Makefile: update for OE builds
+From 10e7bfbb1b27d1f64bf3398d858ddc17e4c47a40 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 15 Feb 2026 10:00:30 -0800
+Subject: [PATCH 1/2] Makefile: update for OE builds
 
 * Pass needed make variables through from caller
   for the compiler, linker, etc.
@@ -19,11 +19,11 @@ Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- Makefile | 78 +++++++++++++++++++++++++++++---------------------------
- 1 file changed, 41 insertions(+), 37 deletions(-)
+ Makefile | 79 +++++++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 46 insertions(+), 33 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 24ee6c5..b915c67 100644
+index 24ee6c5..9979b43 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -2,11 +2,20 @@
@@ -130,7 +130,7 @@ index 24ee6c5..b915c67 100644
  		CONFIG_TEGRA_OOT_MODULE=m \
  		srctree.nvidia=$(MAKEFILE_DIR)/nvidia-oot \
  		srctree.nvidia-oot=$(MAKEFILE_DIR)/nvidia-oot \
-@@ -117,19 +127,19 @@ nvgpu: conftest nvidia-oot
+@@ -117,19 +127,20 @@ nvgpu: conftest nvidia-oot
  endif
  
  define display-cmd
@@ -151,6 +151,7 @@ index 24ee6c5..b915c67 100644
 -		OBJCOPY=$(CROSS_COMPILE)objcopy
 +		SYSSRC=$(KERNEL_SRC) \
 +		SYSOUT=$(KBUILD_OUTPUT) \
++		OOTSRC=$(MAKEFILE_DIR)/nvidia-oot \
 +		KBUILD_EXTRA_SYMBOLS=$(MAKEFILE_DIR)/nvidia-oot/Module.symvers \
 +		CC="$(CC)" \
 +		LD="$(LD)" \
@@ -160,7 +161,7 @@ index 24ee6c5..b915c67 100644
  endef
  
  
-@@ -151,7 +161,9 @@ nvidia-display-install:
+@@ -151,7 +162,9 @@ nvidia-display-install:
  	@echo   "================================================================================"
  	@echo   "make $(MAKECMDGOALS) - nvidia-display ..."
  	@echo   "================================================================================"
@@ -171,7 +172,7 @@ index 24ee6c5..b915c67 100644
  		M=$(MAKEFILE_DIR)/$(NVIDIA_DISPLAY_DIR)/kernel-open modules_install
  
  nvidia-display-clean:
-@@ -169,10 +181,10 @@ nvidia-dtbs:
+@@ -169,10 +182,10 @@ nvidia-dtbs:
  	@echo   "make nvidia-dtbs ..."
  	@echo   "================================================================================"
  	TEGRA_TOP=$(MAKEFILE_DIR) \
@@ -185,6 +186,6 @@ index 24ee6c5..b915c67 100644
  	$(MAKE) -f $(NVIDIA_DTS_BUILD_SCRIPTS)/scripts/Makefile.build \
  		obj=$(NVIDIA_DTS_BUILD_SCRIPTS)/generic-dts \
  		dtbs
---
-2.34.1
+-- 
+2.43.0
 

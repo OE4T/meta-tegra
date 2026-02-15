@@ -1,0 +1,94 @@
+From 462dbe1385959dabd7f143871047b37da945dce9 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 13 Feb 2026 13:40:36 -0800
+Subject: [PATCH 6/7] ASoC: Fix compression build failures with Linux v6.18
+
+The compress_offload subsystem switched to 64-bit timestamps
+in v6.18. Add a conftest to handle.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ scripts/conftest/Makefile                     |  1 +
+ scripts/conftest/conftest.sh                  | 19 +++++++++++++++++++
+ .../tegra-virt-alt/tegra210_adsp_virt_alt.c   |  4 ++++
+ sound/soc/tegra/tegra210_adsp.c               |  4 ++++
+ 4 files changed, 28 insertions(+)
+
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 8a002602..aa30a537 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -220,6 +220,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += register_shrinker_has_fmt_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += shrinker_alloc
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += slab_mem_spread
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_card_jack_new_has_no_snd_soc_jack_pins
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_cdai_ops_pointer_has_tstamp64
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_component_driver_struct_has_non_legacy_dai_naming
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_dai_link_struct_has_c2c_params_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_dai_ops_struct_has_probe
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 6580d586..927f3b8d 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -8640,6 +8640,25 @@ compile_test() {
+                     "NV_SND_SOC_CARD_JACK_NEW_HAS_NO_SND_SOC_JACK_PINS" "" "types"
+         ;;
+ 
++        snd_soc_cdai_ops_pointer_has_tstamp64)
++            #
++            # Determine if 'struct snd_soc_cdai_ops' uses 64-bit time stamp.
++            #
++            # In Linux v6.18, commit 2c92e2fbe (ALSA: compress_offload:
++            # Add 64-bit safe timestamp infrastructure") switched to a 64-bit
++            # timestamp in the call signature of the 'pointer' function pointer.
++            #
++            CODE="
++            #include <sound/soc.h>
++            int conftest_snd_soc_cdai_ops_pointer_has_tstamp64(struct snd_compr_ops *ops) {
++	        struct snd_compr_stream *stream;
++                struct snd_compr_tstamp64 *tstamp;
++                return ops->pointer(stream, tstamp);
++            }"
++
++            compile_check_conftest "$CODE" "NV_SND_SOC_CDAI_OPS_POINTER_HAS_TSTAMP64" "" "types"
++        ;;
++
+         snd_soc_component_driver_struct_has_non_legacy_dai_naming)
+             #
+             # Determine if 'struct snd_soc_component_driver' has the
+diff --git a/sound/soc/tegra-virt-alt/tegra210_adsp_virt_alt.c b/sound/soc/tegra-virt-alt/tegra210_adsp_virt_alt.c
+index 83f255da..aa22f3d4 100644
+--- a/sound/soc/tegra-virt-alt/tegra210_adsp_virt_alt.c
++++ b/sound/soc/tegra-virt-alt/tegra210_adsp_virt_alt.c
+@@ -1746,7 +1746,11 @@ static int tegra210_adsp_compr_copy(struct snd_soc_component *component,
+ 
+ static int tegra210_adsp_compr_pointer(struct snd_soc_component *component,
+ 				       struct snd_compr_stream *cstream,
++#if defined(NV_SND_SOC_CDAI_OPS_POINTER_HAS_TSTAMP64) /* Linux v6.18 */
++				       struct snd_compr_tstamp64 *tstamp)
++#else
+ 				       struct snd_compr_tstamp *tstamp)
++#endif
+ {
+ 	struct tegra210_adsp_compr_rtd *prtd = cstream->runtime->private_data;
+ 	struct tegra210_adsp_app *app = prtd->fe_apm;
+diff --git a/sound/soc/tegra/tegra210_adsp.c b/sound/soc/tegra/tegra210_adsp.c
+index ec91f92a..e48553af 100644
+--- a/sound/soc/tegra/tegra210_adsp.c
++++ b/sound/soc/tegra/tegra210_adsp.c
+@@ -1670,7 +1670,11 @@ static int tegra210_adsp_compr_copy(struct snd_soc_component *component,
+ 
+ static int tegra210_adsp_compr_pointer(struct snd_soc_component *component,
+ 				       struct snd_compr_stream *cstream,
++#if defined(NV_SND_SOC_CDAI_OPS_POINTER_HAS_TSTAMP64) /* Linux v6.18 */
++				       struct snd_compr_tstamp64 *tstamp)
++#else
+ 				       struct snd_compr_tstamp *tstamp)
++#endif
+ {
+ 	struct tegra210_adsp_compr_rtd *prtd = cstream->runtime->private_data;
+ 	struct tegra210_adsp_app *app = prtd->fe_apm;
+-- 
+2.43.0
+

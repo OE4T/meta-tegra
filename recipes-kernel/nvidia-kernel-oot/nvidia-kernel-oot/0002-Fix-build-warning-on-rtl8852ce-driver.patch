@@ -1,18 +1,18 @@
-From c0fd33a195288fe8bc709f219af1fea892b1c156 Mon Sep 17 00:00:00 2001
+From 64119819546914cf57b60fb85072181b575ba772 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Thu, 15 Jan 2026 14:46:40 -0800
-Subject: [PATCH] Fix build warning on rtl8852ce driver
+Subject: [PATCH 2/7] Fix build warning on rtl8852ce driver
 
 Upstream-Status: Pending
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- .../phy/rf/halrf_8852c/halrf_ops_rtl8852c.h   | 8 ++++----
+ .../phl/hal_g6/phy/rf/halrf_8852c/halrf_ops_rtl8852c.h    | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/net/wireless/realtek/rtl8852ce/phl/hal_g6/phy/rf/halrf_8852c/halrf_ops_rtl8852c.h b/drivers/net/wireless/realtek/rtl8852ce/phl/hal_g6/phy/rf/halrf_8852c/halrf_ops_rtl8852c.h
-index 7966290..b4b92ad 100644
+index 7966290a..b4b92ad2 100644
 --- a/drivers/net/wireless/realtek/rtl8852ce/phl/hal_g6/phy/rf/halrf_8852c/halrf_ops_rtl8852c.h
 +++ b/drivers/net/wireless/realtek/rtl8852ce/phl/hal_g6/phy/rf/halrf_8852c/halrf_ops_rtl8852c.h
 @@ -22,13 +22,13 @@
@@ -24,15 +24,15 @@ index 7966290..b4b92ad 100644
 +#ifndef HALRF_OPS_RTL8852C_H
 +#define HALRF_OPS_RTL8852C_H
  #ifdef RF_8852C_SUPPORT
-
-
+ 
+ 
  void rf_set_ops_8852c(struct rf_info *rf) ;
-
-
+ 
+ 
 -#endif
 -#endif /*  __HALRF_OPS_RTL8852C_H__ */
 +#endif /* RF_8852C_SUPPORT */
 +#endif /* HALRF_OPS_RTL8852C_H */
---
-2.34.1
+-- 
+2.43.0
 

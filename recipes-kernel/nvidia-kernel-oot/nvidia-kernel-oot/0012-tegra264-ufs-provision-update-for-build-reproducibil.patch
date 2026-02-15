@@ -1,4 +1,4 @@
-From 8907c8aa9ba65bd7c94faf466e0396eaac9ec92e Mon Sep 17 00:00:00 2001
+From 5c3a23b8fb5dd87489cb39d5cb95c96f18e81814 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Sun, 2 Nov 2025 06:21:55 -0800
 Subject: [PATCH] tegra264-ufs-provision: update for build reproducibility

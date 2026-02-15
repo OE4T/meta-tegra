@@ -15,14 +15,17 @@ B = "${S}"
 
 COMMON_PATCHES = "\
     file://0001-Makefile-update-for-OE-builds.patch \
-    file://0001-Fix-build-warning-on-rtl8852ce-driver.patch;patchdir=nvidia-oot \
-    file://0002-Makefile-Add-OOTSRC-for-nvdisplay-builds.patch \
-    file://0002-Fix-nvdisplay-modules-builds.patch;patchdir=nvdisplay \
-    file://0003-Fix-nvdisplay-conftest-gcc-14-compatibility-issues.patch;patchdir=nvdisplay \
-    file://0004-Fix-unifiedgpudisp-modules-builds.patch;patchdir=unifiedgpudisp \
-    file://0005-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch;patchdir=unifiedgpudisp \
-    file://0006-conftest-work-around-stringify-issue-with.patch;patchdir=nvidia-oot \
-    file://0007-tegra264-ufs-provision-update-for-build-reproducibil.patch;patchdir=hardware/nvidia/t264/nv-public \
+    file://0002-Fix-build-warning-on-rtl8852ce-driver.patch;patchdir=nvidia-oot \
+    file://0003-conftest-work-around-stringify-issue-with-__assign_s.patch;patchdir=nvidia-oot \
+    file://0004-tegra_virt_storage-fix-build-error-for-Linux-v6.18.patch;patchdir=nvidia-oot \
+    file://0005-ASoC-tegra-virt-alt-fix-build-error-with-Linux-v6.18.patch;patchdir=nvidia-oot \
+    file://0006-ASoC-Fix-compression-build-failures-with-Linux-v6.18.patch;patchdir=nvidia-oot \
+    file://0007-bluetooth-fix-build-issues-with-Linux-v6.18.patch;patchdir=nvidia-oot \
+    file://0008-Fix-unifiedgpudisp-modules-builds.patch;patchdir=unifiedgpudisp \
+    file://0009-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch;patchdir=unifiedgpudisp \
+    file://0010-Fix-pfn_t-references-for-Linux-6.17-compatibility.patch;patchdir=unifiedgpudisp \
+    file://0011-Fix-drm-fb-builds-for-Linux-6.17.patch;patchdir=unifiedgpudisp \
+    file://0012-tegra264-ufs-provision-update-for-build-reproducibil.patch;patchdir=hardware/nvidia/t264/nv-public \
 "
 
 EXTRA_PATCHES ??= ""
@@ -64,7 +67,7 @@ TEGRA_OOT_REPLACEMENT_DRIVERS = "\
 EXTRA_OEMAKE += '\
     IGNORE_PREEMPT_RT_PRESENCE=1 KERNEL_PATH="${STAGING_KERNEL_BUILDDIR}" \
     CC="${KERNEL_CC} -std=gnu17 -Wno-error=header-guard" CXX="${KERNEL_CC} -x c++" LD="${KERNEL_LD}" AR="${KERNEL_AR}" \
-    OBJCOPY="${KERNEL_OBJCOPY}" OPENRM=1 kernel_name="noble" \
+    OBJCOPY="${KERNEL_OBJCOPY}" OPENRM=1 kernel_name="oot" \
 '
 
 do_compile() {
