@@ -1,0 +1,31 @@
+From 4b0cb5cdd9a27e943f4b33831d7eecd703cf9561 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Sun, 6 Oct 2024 15:18:08 +0100
+Subject: [PATCH 4/6] Remove xxd dependency from l4t_sign_image.sh
+
+since it's not necessarily available in the build environment.
+
+Upstream-Status: Inappropriate [OE specific]
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ l4t_sign_image.sh | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/l4t_sign_image.sh b/l4t_sign_image.sh
+index 9a732bc..cff2872 100755
+--- a/l4t_sign_image.sh
++++ b/l4t_sign_image.sh
+@@ -115,8 +115,7 @@ function write_size_to_sig
+ 	echo "${SCRIPT_NAME}: chip ${chip}: add $(printf "0x%x" "${size}") to offset "\
+ 		"$(printf "0x%x" "${offset}") in sig file" >&5
+ 	# Convert size to bytes in little endian
+-	printf "%16x" "${size}" | tr '[:blank:]' '0' | fold -w2 | tac | tr -d "\n" \
+-		| xxd -p -r > "${tempfile}"
++	python3 -c "f = open(\"${tempfile}\",'wb'); f.write(int(${size}).to_bytes(8,'little')); f.close()"
+ 	# write to header at position 0x8
+ 	dd conv=notrunc if="${tempfile}" of="${sig_file}" bs=1 seek="${offset}" > /dev/null 2>&1;
+ 	rm "${tempfile}"
+-- 
+2.43.0
+

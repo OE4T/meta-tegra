@@ -9,29 +9,47 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  Makefile | 13 ++++++-------
  1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index efc1953..0589827 100644
---- a/Makefile
-+++ b/Makefile
-@@ -11,13 +11,12 @@
- #
- ###############################################################################
+Index: gst-nvunixfd/Makefile
+===================================================================
+--- gst-nvunixfd.orig/Makefile
++++ gst-nvunixfd/Makefile
+@@ -17,25 +17,11 @@ endif
  
--SO_NAME := libgstnvunixfd.so
-+prefix ?= /usr
-+exec_prefix ?= $(prefix)
-+libdir ?= $(exec_prefix)/lib
+ SO_NAME := libgstnvunixfd.so
  
 -CC := gcc
-+SO_NAME := libgstnvunixfd.so
- 
--GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
--LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
+-
+-TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
+-ifeq ($(TARGET_DEVICE),aarch64)
+-	GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
+-	LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib/
+-else
+-	GST_INSTALL_DIR?=/usr/lib/x86_64-linux-gnu/gstreamer-1.0/
+-	LIB_INSTALL_DIR?=/opt/nvidia/deepstream/deepstream/lib/
+-endif
+-
+-CUDA_HOME:= /usr/local/cuda-$(CUDA_VER)
 -CFLAGS:=
  LIBS:= -lnvbufsurface -lnvbufsurftransform -lpthread
  
  SRCS := $(wildcard *.c)
-@@ -41,7 +40,7 @@ CFLAGS += -fPIC \
+ 
+ INCLUDES += -I./ -I../
+-INCLUDES += -I$(CUDA_HOME)/include
+ 
+ PKGS := gstreamer-1.0 \
+ 	gstreamer-base-1.0 \
+@@ -43,7 +29,8 @@ PKGS := gstreamer-1.0 \
+ 	gstreamer-allocators-1.0 \
+ 	glib-2.0 \
+ 	gio-2.0 \
+-	gio-unix-2.0
++	gio-unix-2.0 \
++	cuda-$(CUDA_VER) cudart-$(CUDA_VER)
+ 
+ OBJS := $(SRCS:.c=.o)
+ 
+@@ -54,12 +41,10 @@ CFLAGS += -fPIC \
  
  CFLAGS += `pkg-config --cflags $(PKGS)`
  
@@ -40,7 +58,12 @@ index efc1953..0589827 100644
  
  LIBS += `pkg-config --libs $(PKGS)`
  
-@@ -56,7 +55,7 @@ $(SO_NAME): $(OBJS)
+-LIBS += -L$(CUDA_HOME)/lib64 -lcuda -lcudart
+-
+ all: $(SO_NAME)
+ 
+ %.o: %.c
+@@ -71,7 +56,7 @@ $(SO_NAME): $(OBJS)
  
  .PHONY: install
  install: $(SO_NAME)

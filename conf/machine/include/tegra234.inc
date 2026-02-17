@@ -57,3 +57,5 @@ TEGRA_BOOT_FIRMWARE_FILES = "\
     nvpva_020.fw \
     tsec_t234.bin \
 "
+
+TEGRA_EDK2_PLATFORM = "t23x"
