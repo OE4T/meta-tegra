@@ -2,7 +2,7 @@
 
 require conf/machine/include/tegra234.inc
 
-KERNEL_ARGS ?= "mminit_loglevel=4 console=tty0 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 nospectre_bhb console=tty0"
+KERNEL_ARGS ?= "mminit_loglevel=4 console=tty0 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 video=efifb:off console=tty0 efi=runtime nvme.use_threaded_interrupts=1 pci=pcie_bus_perf"
 
 EMMC_SIZE ?= "31276924928"
 EMMC_DEVSECT_SIZE ?= "512"
