@@ -3,11 +3,11 @@ L4T_BSP_NAME ??= "release"
 L4T_SRCS_NAME ??= "sources"
 L4T_BSP_PREFIX ??= "Jetson"
 
-L4T_VERSION ?= "35.6.2"
+L4T_VERSION ?= "35.6.4"
 
 # Version (date-time stamp) suffixes for nvidia-l4t-* packages
 # in the package feeds.
-L4T_BSP_DEB_DEFAULT_VERSION = "20250515185434"
+L4T_BSP_DEB_DEFAULT_VERSION = "20260126234748"
 L4T_BSP_DEB_VERSION ?= "${L4T_BSP_DEB_DEFAULT_VERSION}"
 L4T_BSP_DEB_ORIG_VERSION = ""
 L4T_BSP_DEB_PACKAGES_USING_ORIG_VERSION = ""
