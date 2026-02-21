@@ -40,8 +40,8 @@ additional-js = ["docs/mdbook/js/version-dropdown.js"]
 ## Multi-Version Support
 
 Each tracked branch gets its own independent copy of the documentation on GitHub
-Pages. For the list of branches tracked, refer to the versions.json file in
-the `gh-pages` branch of this repository.
+Pages. The list of published versions is controlled by a `versions.json` file
+in the GitHub Pages content repository ([OE4T/oe4t.github.io](https://github.com/OE4T/oe4t.github.io)).
 
 ## Adding Pages
 
@@ -80,14 +80,15 @@ on pushes to tracked branches:
 
 1. **Build** — runs `mdbook build` inside a `peaceiris/mdbook` container,
    producing output in a per-branch directory.
-2. **Deploy** — pushes the built HTML to a subdirectory on the `gh-pages`
-   branch using `peaceiris/actions-gh-pages`.
+2. **Deploy** — pushes the built HTML to a subdirectory in the `main` branch of
+   the external GitHub Pages content repository ([OE4T/oe4t.github.io](https://github.com/OE4T/oe4t.github.io)) using
+   `peaceiris/actions-gh-pages`.
 
-Each branch deploys to its own directory, resulting in this structure on the
-`gh-pages` branch:
+Each branch deploys to its own directory, resulting in a structure like this in
+[OE4T/oe4t.github.io](https://github.com/OE4T/oe4t.github.io):
 
 ```
-gh-pages/
+<repo-root>/
 ├── index.html          # redirects to ./master/
 ├── versions.json       # lists available versions for the dropdown
 ├── master/             # docs built from the master branch
@@ -97,6 +98,14 @@ gh-pages/
 The workflow can also be triggered manually via `workflow_dispatch` from the
 GitHub Actions UI.
 
+#### Deployment credentials
+The deploy step requires an SSH deploy key stored as a repository secret:
+- `OE4T_GITHUB_DEPLOY_KEY`
+
+If the secret is missing (common in forks), the workflow will emit a warning:
+"The repository secret must contain the OE4T_GITHUB_DEPLOY_KEY to run this step."
+Then it will skip the deploy step without failing the workflow.
+
 ### Version Dropdown
 
 A custom JavaScript file (`docs/mdbook/js/version-dropdown.js`) adds a version
@@ -104,9 +113,9 @@ selector dropdown to the mdBook navigation bar. It fetches `versions.json` from
 the site root to populate the list, and when a different version is selected it
 navigates to the same page path under the new version's directory.
 
-The `versions.json` file is maintained manually on the `gh-pages` branch (not
-auto-generated), giving explicit control over which versions appear in the
-dropdown.
+The `versions.json` file is maintained manually in the GitHub Pages content
+repository ([OE4T/oe4t.github.io](https://github.com/OE4T/oe4t.github.io), `main` branch) (not auto-generated), giving
+explicit control over which versions appear in the dropdown.
 
 ### Adding a New Version
 
@@ -115,6 +124,6 @@ To add documentation for a new branch (e.g., `kirkstone`):
 1. Add the branch name to the `on.push.branches` list in
    `.github/workflows/mdbook-versioned.yml`.
 2. Push content to that branch. The workflow will automatically build and deploy
-   to a new directory on `gh-pages`.
-3. Update `versions.json` on the `gh-pages` branch to include the new entry so
-   it appears in the version dropdown.
+   to a new directory in [OE4T/oe4t.github.io](https://github.com/OE4T/oe4t.github.io).
+3. Update `versions.json` in [OE4T/oe4t.github.io](https://github.com/OE4T/oe4t.github.io) (on the `main` branch) to
+   include the new entry so it appears in the version dropdown.

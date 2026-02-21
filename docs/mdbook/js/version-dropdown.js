@@ -5,7 +5,7 @@
         // Fetch versions.json
         let versions = [];
         try {
-            const res = await fetch('/meta-tegra/versions.json');
+            const res = await fetch('../versions.json');
             if (res.ok) {
                 versions = await res.json();
             } else {
@@ -76,12 +76,11 @@
         // Current URL path: /meta-tegra/master/pagename
         const parts = window.location.pathname.split('/');
 
-        // Assume: parts[1] = repo name (meta-tegra), parts[2] = current branch
-        const repo = parts[1] || '';
-        const pagePath = parts.slice(3).join('/'); // everything after branch
+        // Assume: parts[1] = current branch
+        const pagePath = parts.slice(2).join('/'); // everything after branch
 
         // Construct new URL
-        const newUrl = `/${repo}/${selectedBranch}/${pagePath}`;
+        const newUrl = `/${selectedBranch}/${pagePath}`;
         window.location.href = newUrl;
     });
 
