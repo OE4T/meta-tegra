@@ -1,0 +1,87 @@
+From 80eb54c8fd68b68ff6aed70d3287833ae3e7df76 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:31 -0800
+Subject: [PATCH 50/59] drm/tegra: Update to Linux v6.13
+
+Update the Tegra DRM driver to align with Linux v6.13. A function
+pointer 'fbdev_probe' was added to the drm_driver structure in Linux
+v6.13 and so use conftest to detect this and make the necessary changes
+to the Tegra DRM driver.
+
+JIRA LINQPJ14-47
+
+Upstream-Status: Backport
+Change-Id: I0120fe9f13bc39446ce4e0a8827eb5d8b42a082c
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3333836
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+(cherry picked from commit 540737a228e8f465e09e238be5f003a458f174fb)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.c  |  3 +++
+ scripts/conftest/Makefile    |  1 +
+ scripts/conftest/conftest.sh | 19 +++++++++++++++++++
+ 3 files changed, 23 insertions(+)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index e8a83234..9a9cb843 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -28,6 +28,9 @@
+ #endif
+ #include <drm/drm_atomic.h>
+ #include <drm/drm_atomic_helper.h>
++#if defined(NV_DRM_DRM_CLIENT_SETUP_H_PRESENT) /* Linux v6.13 */
++#include <drm/drm_client_setup.h>
++#endif
+ #include <drm/drm_debugfs.h>
+ #include <drm/drm_drv.h>
+ #include <drm/drm_fourcc.h>
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 9f54ef2b..7bd70c08 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -124,6 +124,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_debugfs_remove_files_has_root_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_has_fbdev_probe
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_date
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_display_info_struct_has_source_physical_address
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_has_fbdev_probe
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_irq_enabled_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_edid_connector_add_modes
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_alloc_info
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 9f8f55a1..2f8914e5 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7139,6 +7139,25 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DISPLAY_INFO_STRUCT_HAS_SOURCE_PHYSICAL_ADDRESS" "" "types"
+         ;;
+ 
++        drm_driver_has_fbdev_probe)
++            #
++            # Determine if the 'drm_driver' structure has an 'fbdev_probe'
++            # function pointer.
++            #
++            # In Linux v6.13, commit 5d08c44e47b9 ("drm/fbdev: Add
++            # memory-agnostic fbdev client") added an 'fbdev_probe' callback
++            # to the drm_driver structure.
++            #
++            CODE="
++            #include <drm/drm_drv.h>
++
++            int conftest_drm_driver_has_fbdev_probe(void) {
++                return offsetof(struct drm_driver, fbdev_probe);
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_DRIVER_HAS_FBDEV_PROBE" "" "types"
++        ;;
++
+         drm_connector_helper_funcs_struct_mode_valid_has_const_arg)
+             #
+             # Determine if the 'mode_valid' function pointer of the
+-- 
+2.43.0
+

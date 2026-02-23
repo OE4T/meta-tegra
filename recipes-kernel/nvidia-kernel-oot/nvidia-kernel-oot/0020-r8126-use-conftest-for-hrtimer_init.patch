@@ -1,0 +1,56 @@
+From 01c4ecbd0a9ae4c78b784235c08af66949d65b37 Mon Sep 17 00:00:00 2001
+From: Brad Griffis <bgriffis@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:16 -0800
+Subject: [PATCH 20/59] r8126: use conftest for hrtimer_init
+
+A function called hrtimer_setup() was added in Linux v6.13 with the
+intent that it would eventually replace hrtimer_init(). In Linux v6.15
+the hrtimer_init() function was removed.
+
+Use conftest to call the appropriate API based on what is defined
+in the kernel.
+
+Bug 5466808
+
+Upstream-Status: Backport [commit a370917376]
+Change-Id: I1c1c4e81c840a058d8c4c0b1616c87cb8a8a8beb
+Signed-off-by: Brad Griffis <bgriffis@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3436079
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Revanth Kumar Uppala <ruppala@nvidia.com>
+(cherry picked from commit a3709173763845c9012c1c661936182278f946a9)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/net/ethernet/realtek/r8126/r8126_ptp.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/net/ethernet/realtek/r8126/r8126_ptp.c b/drivers/net/ethernet/realtek/r8126/r8126_ptp.c
+index 627b4666..d3bb3d5a 100644
+--- a/drivers/net/ethernet/realtek/r8126/r8126_ptp.c
++++ b/drivers/net/ethernet/realtek/r8126/r8126_ptp.c
+@@ -32,6 +32,8 @@
+  *  US6,570,884, US6,115,776, and US6,327,625.
+  ***********************************************************************************/
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/module.h>
+ #include <linux/version.h>
+ #include <linux/pci.h>
+@@ -735,8 +737,13 @@ void rtl8126_ptp_init(struct rtl8126_private *tp)
+ 
+         /* init a hrtimer for pps */
+         tp->pps_enable = 0;
++#if defined(NV_HRTIMER_SETUP_PRESENT) /* Linux v6.13 */
++        hrtimer_setup(&tp->pps_timer, rtl8126_hrtimer_for_pps, CLOCK_MONOTONIC,
++                      HRTIMER_MODE_REL);
++#else
+         hrtimer_init(&tp->pps_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+         tp->pps_timer.function = rtl8126_hrtimer_for_pps;
++#endif
+ 
+         /* reset the PTP related hardware bits */
+         rtl8126_ptp_reset(tp);
+-- 
+2.43.0
+

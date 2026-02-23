@@ -1,0 +1,43 @@
+From e9b084218a6094588c7805d52ec45c2b699c6fca Mon Sep 17 00:00:00 2001
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Date: Fri, 20 Feb 2026 08:22:22 -0800
+Subject: [PATCH 37/59] crypto: tegra - Remove an incorrect iommu_fwspec_free()
+ call in tegra_se_remove()
+
+Upstream commit 8d7c52cb4184d3dc26dde62b4f5acd48de0768ae
+
+The only iommu function call in this driver is a
+tegra_dev_iommu_get_stream_id() which does not allocate anything and does
+not take any reference.
+
+So there is no point in calling iommu_fwspec_free() in the remove function.
+
+Remove this incorrect function call.
+
+Upstream-Status: Backport [commit 6b5633fb9]
+Fixes: 0880bb3b00c8 ("crypto: tegra - Add Tegra Security Engine driver")
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Tested-by: Akhil R <akhilrajeev@nvidia.com>
+Acked-by: Akhil R <akhilrajeev@nvidia.com>
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/crypto/tegra/tegra-se-main.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/crypto/tegra/tegra-se-main.c b/drivers/crypto/tegra/tegra-se-main.c
+index 09162419..d77e5862 100644
+--- a/drivers/crypto/tegra/tegra-se-main.c
++++ b/drivers/crypto/tegra/tegra-se-main.c
+@@ -336,7 +336,6 @@ static int tegra_se_remove(struct platform_device *pdev)
+ 
+ 	crypto_engine_stop(se->engine);
+ 	crypto_engine_exit(se->engine);
+-	iommu_fwspec_free(se->dev);
+ 	host1x_client_unregister(&se->client);
+ 
+ 	return 0;
+-- 
+2.43.0
+

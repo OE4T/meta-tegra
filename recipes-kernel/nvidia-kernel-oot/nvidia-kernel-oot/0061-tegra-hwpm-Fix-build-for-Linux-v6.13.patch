@@ -1,0 +1,110 @@
+From 4d8a6998760d85f98637dbf61597bfbb88158206 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Mon, 23 Feb 2026 06:16:18 -0800
+Subject: [PATCH] tegra: hwpm: Fix build for Linux v6.13
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The HWPM driver fails to be with Linux v6.13 because of the following
+two issues:
+
+1. In Linux v6.13, commit cdd30ebb1b9f ("module: Convert symbol
+   namespace to string literal") updated the MODULE_IMPORT_NS macro to
+   take a string literal as an argument in Linux v6.13. Use conftest to
+   detect if MODULE_IMPORT_NS takes a string literal as an argument and
+   update the HWPM driver accordingly.
+
+2. The following build error is observed:
+
+   In file included from os/linux/clk_rst_utils.c:17:
+    include/linux/reset.h:30:49:
+    error: implicit declaration of function ‘BIT’
+    [-Werror=implicit-function-declaration]
+   30 | #define RESET_CONTROL_FLAGS_BIT_ACQUIRED        BIT(2)
+      |                                                 ^~~
+
+   Fix the above by including the 'bits.h' header file.
+
+Bug 4991705
+
+Upstream-Status: Backport [commit d61c003]
+Change-Id: I26cba920a0b0af251fd2f623ab9326ecafef5a5f
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-hwpm/+/3261738
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Besar Wicaksono <bwicaksono@nvidia.com>
+Reviewed-by: Vasuki Shankar <vasukis@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/tegra/hwpm/os/linux/clk_rst_utils.c  | 16 ++-------------
+ drivers/tegra/hwpm/os/linux/mem_mgmt_utils.c | 21 +++++++-------------
+ 2 files changed, 9 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/tegra/hwpm/os/linux/clk_rst_utils.c b/drivers/tegra/hwpm/os/linux/clk_rst_utils.c
+index 3a37d1a..c082e52 100644
+--- a/drivers/tegra/hwpm/os/linux/clk_rst_utils.c
++++ b/drivers/tegra/hwpm/os/linux/clk_rst_utils.c
+@@ -1,19 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- * You should have received a copy of the GNU General Public License
+- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
++#include <linux/bits.h>
+ #include <linux/reset.h>
+ #include <linux/clk.h>
+ 
+diff --git a/drivers/tegra/hwpm/os/linux/mem_mgmt_utils.c b/drivers/tegra/hwpm/os/linux/mem_mgmt_utils.c
+index 9ebf056..d11132e 100644
+--- a/drivers/tegra/hwpm/os/linux/mem_mgmt_utils.c
++++ b/drivers/tegra/hwpm/os/linux/mem_mgmt_utils.c
+@@ -1,18 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (c) 2021-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- * You should have received a copy of the GNU General Public License
+- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/mm.h>
+ #include <linux/vmalloc.h>
+@@ -36,7 +25,11 @@
+ 
+ #include <os/linux/driver.h>
+ 
++#if defined(NV_MODULE_IMPORT_NS_CALLS_STRINGIFY)
+ MODULE_IMPORT_NS(DMA_BUF);
++#else
++MODULE_IMPORT_NS("DMA_BUF");
++#endif
+ 
+ static int tegra_hwpm_dma_map_stream_buffer(struct tegra_soc_hwpm *hwpm,
+ 	struct tegra_soc_hwpm_alloc_pma_stream *alloc_pma_stream)
+-- 
+2.43.0
+

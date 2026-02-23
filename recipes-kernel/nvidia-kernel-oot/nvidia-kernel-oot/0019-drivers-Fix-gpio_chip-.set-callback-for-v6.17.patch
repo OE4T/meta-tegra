@@ -1,0 +1,214 @@
+From 4e455c31e3682d24aff5bf5c577c1b1fea852770 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:15 -0800
+Subject: [PATCH 19/59] drivers: Fix gpio_chip '.set' callback for v6.17
+
+In Linux v6.17, the gpio_chip structure's '.set' callback function was
+updated to return an integer. Add a test to conftest to detect this and
+update the necessary drivers accordingly.
+
+Bug 5483854
+
+Upstream-Status: Backport
+
+Change-Id: Ie48a50775885a06c8aa23ddb72fdbc73361ab92b
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3440815
+(cherry picked from commit 5dc88266853f0c5fbc7dd925187f63c2b6560a4b)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3461855
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpio/gpio-max77851.c                | 15 +++++++++++----
+ drivers/media/platform/tegra/cdi/cdi_gpio.c | 16 ++++++++++++++++
+ drivers/media/platform/tegra/isc/isc_gpio.c | 16 ++++++++++++++++
+ scripts/conftest/Makefile                   |  1 +
+ scripts/conftest/conftest.sh                | 18 ++++++++++++++++++
+ 5 files changed, 62 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpio/gpio-max77851.c b/drivers/gpio/gpio-max77851.c
+index 60f7b453..c0d98b90 100644
+--- a/drivers/gpio/gpio-max77851.c
++++ b/drivers/gpio/gpio-max77851.c
+@@ -1,5 +1,5 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ /*
+  * Maxim MAX77851 GPIO driver
+  */
+@@ -199,8 +199,11 @@ static int max77851_gpio_set_debounce(struct max77851_gpio *mgpio,
+ 	return ret;
+ }
+ 
+-static void max77851_gpio_set(struct gpio_chip *gc, unsigned int offset,
+-			      int value)
++#if defined(NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT) /* Linux v6.17 */
++static int max77851_gpio_set(struct gpio_chip *gc, unsigned int offset, int value)
++#else
++static void max77851_gpio_set(struct gpio_chip *gc, unsigned int offset, int value)
++#endif
+ {
+ 	struct max77851_gpio *mgpio = gpiochip_get_data(gc);
+ 	u8 val;
+@@ -212,6 +215,10 @@ static void max77851_gpio_set(struct gpio_chip *gc, unsigned int offset,
+ 				GPIO_CFG1_OUTPUT, val);
+ 	if (ret < 0)
+ 		dev_err(mgpio->dev, "CNFG_GPIO_OUT update failed: %d\n", ret);
++
++#if defined(NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT) /* Linux v6.17 */
++	return ret;
++#endif
+ }
+ 
+ static int max77851_gpio_set_config(struct gpio_chip *gc, unsigned int offset,
+diff --git a/drivers/media/platform/tegra/cdi/cdi_gpio.c b/drivers/media/platform/tegra/cdi/cdi_gpio.c
+index 2871e047..96c17ba6 100644
+--- a/drivers/media/platform/tegra/cdi/cdi_gpio.c
++++ b/drivers/media/platform/tegra/cdi/cdi_gpio.c
+@@ -194,7 +194,11 @@ static int cdi_gpio_get_value(struct gpio_chip *gc, unsigned int off)
+ 	return gpio_val;
+ }
+ 
++#if defined(NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT) /* Linux v6.17 */
++static int cdi_gpio_set_value(struct gpio_chip *gc, unsigned int off, int val)
++#else
+ static void cdi_gpio_set_value(struct gpio_chip *gc, unsigned int off, int val)
++#endif
+ {
+ 	int idx;
+ 	struct gpio_chip *tgc = NULL;
+@@ -204,7 +208,11 @@ static void cdi_gpio_set_value(struct gpio_chip *gc, unsigned int off, int val)
+ 
+ 	cdi_gpio = gpiochip_get_data(gc);
+ 	if (!cdi_gpio)
++#if defined(NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT) /* Linux v6.17 */
++		return -EINVAL;
++#else
+ 		return;
++#endif
+ 
+ 	mutex_lock(&cdi_gpio->mutex);
+ 
+@@ -214,7 +222,11 @@ static void cdi_gpio_set_value(struct gpio_chip *gc, unsigned int off, int val)
+ 	idx = cdi_gpio_get_index(dev, cdi_gpio, off);
+ 	if (idx < 0) {
+ 		mutex_unlock(&cdi_gpio->mutex);
++#if defined(NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT) /* Linux v6.17 */
++		return idx;
++#else
+ 		return;
++#endif
+ 	}
+ 	idx = array_index_nospec(idx, cdi_gpio->pdata.max_gpio);
+ 
+@@ -243,6 +255,10 @@ static void cdi_gpio_set_value(struct gpio_chip *gc, unsigned int off, int val)
+ 	}
+ 
+ 	mutex_unlock(&cdi_gpio->mutex);
++
++#if defined(NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT) /* Linux v6.17 */
++	return 0;
++#endif
+ }
+ 
+ static int cdi_gpio_probe(struct platform_device *pdev)
+diff --git a/drivers/media/platform/tegra/isc/isc_gpio.c b/drivers/media/platform/tegra/isc/isc_gpio.c
+index d8b557a7..17d49e78 100644
+--- a/drivers/media/platform/tegra/isc/isc_gpio.c
++++ b/drivers/media/platform/tegra/isc/isc_gpio.c
+@@ -194,7 +194,11 @@ static int isc_gpio_get_value(struct gpio_chip *gc, unsigned int off)
+ 	return gpio_val;
+ }
+ 
++#if defined(NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT) /* Linux v6.17 */
++static int isc_gpio_set_value(struct gpio_chip *gc, unsigned int off, int val)
++#else
+ static void isc_gpio_set_value(struct gpio_chip *gc, unsigned int off, int val)
++#endif
+ {
+ 	int idx;
+ 	struct gpio_chip *tgc = NULL;
+@@ -204,7 +208,11 @@ static void isc_gpio_set_value(struct gpio_chip *gc, unsigned int off, int val)
+ 
+ 	isc_gpio = gpiochip_get_data(gc);
+ 	if (!isc_gpio)
++#if defined(NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT) /* Linux v6.17 */
++		return -EINVAL;
++#else
+ 		return;
++#endif
+ 
+ 	mutex_lock(&isc_gpio->mutex);
+ 
+@@ -214,7 +222,11 @@ static void isc_gpio_set_value(struct gpio_chip *gc, unsigned int off, int val)
+ 	idx = isc_gpio_get_index(dev, isc_gpio, off);
+ 	if (idx < 0) {
+ 		mutex_unlock(&isc_gpio->mutex);
++#if defined(NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT) /* Linux v6.17 */
++		return idx;
++#else
+ 		return;
++#endif
+ 	}
+ 	idx = array_index_nospec(idx, isc_gpio->pdata.max_gpio);
+ 
+@@ -243,6 +255,10 @@ static void isc_gpio_set_value(struct gpio_chip *gc, unsigned int off, int val)
+ 	}
+ 
+ 	mutex_unlock(&isc_gpio->mutex);
++
++#if defined(NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT) /* Linux v6.17 */
++	return 0;
++#endif
+ }
+ 
+ static int isc_gpio_probe(struct platform_device *pdev)
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index cf5090d0..76a0d0f3 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -163,6 +163,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += netif_napi_add_weight
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += no_llseek
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += of_get_named_gpio_flags
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += gpio_chip_struct_has_of_node_present
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += gpio_chip_struct_set_returns_int
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += gpio_device_find
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += gpio_device_get_chip
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += of_property_for_each_u32_removed_internal_args
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 801535c0..350426f7 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7509,6 +7509,24 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_GENDPD_XLATE_T_HAS_CONST_OF_PHANDLE_ARGS" "" "types"
+         ;;
+ 
++        gpio_chip_struct_set_returns_int)
++            #
++            # Determine if the 'gpio_chip' structure's 'set' callback function
++            # return an integer value.
++            #
++            # Commit d9d87d90cc0b ("treewide: rename GPIO set callbacks back to
++            # their original names") made this change in Linux v6.17.
++            #
++            CODE="
++            #include <linux/gpio/driver.h>
++            #include <uapi/linux/ethtool.h>
++            void conftest_gpio_chip_struct_set_returns_int(struct gpio_chip *gc) {
++                int (*fn)(struct gpio_chip *, unsigned int offset, int value) = gc->set;
++            }"
++
++            compile_check_conftest "$CODE" "NV_GPIO_CHIP_STRUCT_SET_RETURNS_INT" "" "types"
++        ;;
++
+         gpio_device_find)
+             #
+             # Determine if function gpio_device_find() present and if it is
+-- 
+2.43.0
+

@@ -1,0 +1,54 @@
+From 7ad094ddd616fee2df6c28042d1ff19d23eed2fd Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 05:56:42 -0800
+Subject: [PATCH 11/15] nvdisplay: nvidia: check importer operations directly
+
+Based on kernel upstream commit de68b17d5d07("dma-buf: dma-buf:
+stop mapping sg_tables on attach v2"), maybe checking importer
+operations directly is a reasonable solution.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/conftest.sh        | 2 ++
+ kernel-open/nvidia/nv-dmabuf.c | 7 +++++--
+ 2 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index 8f50fc7..a42a2d1 100644
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -3939,6 +3939,8 @@ compile_test() {
+             #
+             # Added by commit: 15fd552d186c
+             # ("dma-buf: change DMA-buf locking convention v3") in v5.5 (2018-07-03)
++            # Removed by commit: de68b17d5d0
++            # ("dma-buf: dma-buf: stop mapping sg_tables on attach v2") in v6.16
+             #
+             CODE="
+             #include <linux/dma-buf.h>
+diff --git a/kernel-open/nvidia/nv-dmabuf.c b/kernel-open/nvidia/nv-dmabuf.c
+index 1f09324..ca59de5 100644
+--- a/kernel-open/nvidia/nv-dmabuf.c
++++ b/kernel-open/nvidia/nv-dmabuf.c
+@@ -780,10 +780,13 @@ nv_dma_buf_map(
+     // On non-coherent platforms, importers must be able to handle peer
+     // MMIO resources not backed by struct page.
+     //
+-#if defined(NV_DMA_BUF_HAS_DYNAMIC_ATTACHMENT) && \
+-    defined(NV_DMA_BUF_ATTACHMENT_HAS_PEER2PEER)
++#if defined(NV_DMA_BUF_ATTACHMENT_HAS_PEER2PEER)
+     if (!priv->nv->coherent &&
++#if defined(NV_DMA_BUF_HAS_DYNAMIC_ATTACHMENT)
+         dma_buf_attachment_is_dynamic(attachment) &&
++#else
++        attachment->importer_ops != NULL &&
++#endif
+         !attachment->peer2peer)
+     {
+         nv_printf(NV_DBG_ERRORS,
+-- 
+2.43.0
+

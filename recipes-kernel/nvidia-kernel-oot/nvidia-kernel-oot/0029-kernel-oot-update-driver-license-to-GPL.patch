@@ -1,0 +1,61 @@
+From df3f91e972260576ad23b883f955fa8cdab3e6b5 Mon Sep 17 00:00:00 2001
+From: Manish Bhardwaj <mbhardwaj@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:19 -0800
+Subject: [PATCH 29/59] kernel-oot: update driver license to GPL
+
+Bug 5065840
+
+Upstream-Status: Backport [commit 9f909306a]
+Change-Id: If5f1783d8168af51c8964ff5605e8a04993973d6
+Signed-off-by: Manish Bhardwaj <mbhardwaj@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3289957
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Jon Hunter <jonathanh@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/virt/tegra/hvc_sysfs.c    | 18 ++----------------
+ include/soc/tegra/virt/syscalls.h |  4 +---
+ 2 files changed, 3 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/virt/tegra/hvc_sysfs.c b/drivers/virt/tegra/hvc_sysfs.c
+index 67ed37f5..0be1d2f6 100644
+--- a/drivers/virt/tegra/hvc_sysfs.c
++++ b/drivers/virt/tegra/hvc_sysfs.c
+@@ -1,19 +1,5 @@
+-/*
+- * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- * SPDX-License-Identifier: GPL-2.0-only
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+- * more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+- */
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+diff --git a/include/soc/tegra/virt/syscalls.h b/include/soc/tegra/virt/syscalls.h
+index a942a27b..578d3cdf 100644
+--- a/include/soc/tegra/virt/syscalls.h
++++ b/include/soc/tegra/virt/syscalls.h
+@@ -1,7 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- */
++/* SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved. */
+ 
+ #ifndef __TEGRA_SYSCALLS_H__
+ #define __TEGRA_SYSCALLS_H__
+-- 
+2.43.0
+

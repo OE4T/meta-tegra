@@ -1,0 +1,67 @@
+From 1136cd07e1d87762e254a318cef4e535ac0faab2 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 08:22:22 -0800
+Subject: [PATCH 38/59] sound: soc: use reasonable SND_SOC_DAIFMT_CBx_CFx
+
+Based on kernel upstream commit 0f68f56ab7be("ASoC: soc-dai: remove
+SND_SOC_DAIFMT_CB{MS}_CF{MS}"), In SND_SOC_DAIFMT_CBx_CFx, M/S are no
+longer used. So, use P/C instead of them when the new macros are
+defined.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ sound/soc/tegra/tegra210_i2s.c       | 8 ++++++++
+ sound/soc/tegra/tegra_asoc_machine.c | 7 +++++++
+ 2 files changed, 15 insertions(+)
+
+diff --git a/sound/soc/tegra/tegra210_i2s.c b/sound/soc/tegra/tegra210_i2s.c
+index 334755d9..b343582e 100644
+--- a/sound/soc/tegra/tegra210_i2s.c
++++ b/sound/soc/tegra/tegra210_i2s.c
+@@ -226,10 +226,18 @@ static int tegra210_i2s_set_fmt(struct snd_soc_dai *dai,
+ 
+ 	mask = I2S_CTRL_MASTER_EN_MASK;
+ 	switch (fmt & SND_SOC_DAIFMT_MASTER_MASK) {
++#ifdef SND_SOC_DAIFMT_CBC_CFC
++	case SND_SOC_DAIFMT_CBC_CFC:
++#else
+ 	case SND_SOC_DAIFMT_CBS_CFS:
++#endif
+ 		val = 0;
+ 		break;
++#ifdef SND_SOC_DAIFMT_CBP_CFP
++	case SND_SOC_DAIFMT_CBP_CFP:
++#else
+ 	case SND_SOC_DAIFMT_CBM_CFM:
++#endif
+ 		val = I2S_CTRL_MASTER_EN;
+ 		break;
+ 	default:
+diff --git a/sound/soc/tegra/tegra_asoc_machine.c b/sound/soc/tegra/tegra_asoc_machine.c
+index edc34c66..94daf793 100644
+--- a/sound/soc/tegra/tegra_asoc_machine.c
++++ b/sound/soc/tegra/tegra_asoc_machine.c
+@@ -674,10 +674,17 @@ static int tegra_machine_codec_set_dai_fmt(struct snd_soc_pcm_runtime *rtd,
+ 		fmt &= ~SND_SOC_DAIFMT_MASTER_MASK;
+ 		master_mode <<= ffs(SND_SOC_DAIFMT_MASTER_MASK) - 1;
+ 
++#ifdef SND_SOC_DAIFMT_CBP_CFP
++		if (master_mode == SND_SOC_DAIFMT_CBP_CFP)
++			fmt |= SND_SOC_DAIFMT_CBP_CFP;
++		else
++			fmt |= SND_SOC_DAIFMT_CBC_CFC;
++#else
+ 		if (master_mode == SND_SOC_DAIFMT_CBM_CFM)
+ 			fmt |= SND_SOC_DAIFMT_CBM_CFM;
+ 		else
+ 			fmt |= SND_SOC_DAIFMT_CBS_CFS;
++#endif
+ 	}
+ 
+ 	return snd_soc_runtime_set_dai_fmt(rtd, fmt);
+-- 
+2.43.0
+

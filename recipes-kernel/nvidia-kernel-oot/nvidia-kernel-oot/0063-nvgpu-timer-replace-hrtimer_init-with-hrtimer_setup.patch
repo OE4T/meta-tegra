@@ -1,0 +1,50 @@
+From d530a48d64f9ad3020d9f3307f53e8dde8e3fba1 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 08:29:59 -0800
+Subject: [PATCH 63/63] nvgpu: timer: replace hrtimer_init() with
+ hrtimer_setup()
+
+Based on kernel upstream commit 244132c4e577("tracing/timers:
+Rename the hrtimer_init event to hrtimer_setup"), it needs to replace
+hrtimer_init() with hrtimer_setup() for Linux 6.15 and later.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/nvgpu/os/linux/periodic_timer.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/drivers/gpu/nvgpu/os/linux/periodic_timer.c b/drivers/gpu/nvgpu/os/linux/periodic_timer.c
+index 8bcb8421a..4bd53d697 100644
+--- a/drivers/gpu/nvgpu/os/linux/periodic_timer.c
++++ b/drivers/gpu/nvgpu/os/linux/periodic_timer.c
+@@ -14,6 +14,10 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#if defined(CONFIG_NVIDIA_CONFTEST)
++#include <nvidia/conftest.h>
++#endif
++
+ #include <nvgpu/bug.h>
+ #include <nvgpu/periodic_timer.h>
+ #include <linux/async.h>
+@@ -42,8 +46,13 @@ static enum hrtimer_restart timer_callback(struct hrtimer *os_timer)
+ int nvgpu_periodic_timer_init(struct nvgpu_periodic_timer *timer,
+ 			void (*fn)(void *arg), void *arg)
+ {
++#if defined(NV_HRTIMER_SETUP_PRESENT)
++	hrtimer_setup(&timer->timer, timer_callback,
++                                CLOCK_MONOTONIC, HRTIMER_MODE_REL);
++#else
+ 	hrtimer_init(&timer->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 	timer->timer.function = timer_callback;
++#endif
+ 	timer->fn = fn;
+ 	timer->arg = arg;
+ 	timer->interval = ktime_set(0, 0);
+-- 
+2.43.0
+

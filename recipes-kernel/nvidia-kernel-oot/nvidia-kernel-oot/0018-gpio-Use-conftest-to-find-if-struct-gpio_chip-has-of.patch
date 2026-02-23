@@ -1,0 +1,58 @@
+From 3c544719df343b3be9995115136174a3c1021179 Mon Sep 17 00:00:00 2001
+From: Laxman Dewangan <ldewangan@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:15 -0800
+Subject: [PATCH 18/59] gpio: Use conftest to find if struct gpio_chip has
+ of_node
+
+Use conftest to determine if struct gpio_chip has
+the of_node member or not.
+
+The of_node from struct gpio_chip is removed from commit 70d0fc4288da
+("gpiolib: Get rid of not used of_node member") in Linux 6.2
+
+Bug 4425688
+
+Upstream-Status: Backport
+Change-Id: Ie69000a1677b9af3ccfdf6c43140a75dad33d8cc
+Signed-off-by: Laxman Dewangan <ldewangan@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3037037
+Reviewed-by: Shardar Mohammed <smohammed@nvidia.com>
+Reviewed-by: Bitan Biswas <bbiswas@nvidia.com>
+GVS: Gerrit_Virtual_Submit <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpio/gpio-max77851.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpio/gpio-max77851.c b/drivers/gpio/gpio-max77851.c
+index aa584433..60f7b453 100644
+--- a/drivers/gpio/gpio-max77851.c
++++ b/drivers/gpio/gpio-max77851.c
+@@ -4,13 +4,14 @@
+  * Maxim MAX77851 GPIO driver
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/gpio/driver.h>
+ #include <linux/interrupt.h>
+ #include <linux/mfd/max77851.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+ #include <linux/regmap.h>
+-#include <linux/version.h>
+ 
+ #define GPIO_CNFG_OFFSET (5)
+ #define GPIO_CNFG0_REG_ADDR(offset) (GPIO0_CFG0_REG + (offset * GPIO_CNFG_OFFSET))
+@@ -277,7 +278,7 @@ static int max77851_gpio_probe(struct platform_device *pdev)
+ 	mgpio->gpio_chip.can_sleep = 1;
+ 	mgpio->gpio_chip.base = -1;
+ #ifdef CONFIG_OF_GPIO
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0)
++#if defined(NV_GPIO_CHIP_STRUCT_HAS_OF_NODE_PRESENT) /* Linux 6.2 */
+ 	mgpio->gpio_chip.of_node = pdev->dev.parent->of_node;
+ #endif
+ #endif
+-- 
+2.43.0
+

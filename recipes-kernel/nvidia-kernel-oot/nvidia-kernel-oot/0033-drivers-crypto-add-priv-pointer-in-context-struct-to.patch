@@ -1,0 +1,153 @@
+From c1740dcc351a7b100eee178c5a884e1918b3d415 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 08:22:20 -0800
+Subject: [PATCH 33/59] drivers: crypto: add priv pointer in context struct to
+ save request
+
+Based on kernel upstream commit 075db21426b1("crypto: ahash - Only
+save callback and data in ahash_save_req"), priv field of struct
+ahash_request is removed. In order to save the cmac/gmac request
+data, add add priv pointer in cmac/gmac context struct to save them
+separately.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/crypto/tegra-hv-vse-safety.c   |  8 ++++----
+ drivers/crypto/tegra-hv-vse.h          |  4 ++++
+ drivers/crypto/tegra-nvvse-cryptodev.c | 14 +++++++++-----
+ 3 files changed, 17 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/crypto/tegra-hv-vse-safety.c b/drivers/crypto/tegra-hv-vse-safety.c
+index 07e5836c..5f8b3cf2 100644
+--- a/drivers/crypto/tegra-hv-vse-safety.c
++++ b/drivers/crypto/tegra-hv-vse-safety.c
+@@ -2452,7 +2452,7 @@ static int tegra_hv_vse_safety_tsec_sv_op(struct ahash_request *req)
+ 		return -ENOMEM;
+ 	}
+ 
+-	cmac_req_data = (struct tegra_vse_cmac_req_data *) req->priv;
++	cmac_req_data = (struct tegra_vse_cmac_req_data *) cmac_ctx->priv;
+ 
+ 	ivc_tx = &ivc_req_msg->tx[0];
+ 	ivc_hdr = &ivc_req_msg->ivc_hdr;
+@@ -2608,7 +2608,7 @@ static int tegra_hv_vse_safety_cmac_sv_op(struct ahash_request *req, bool is_las
+ 		return -ENOMEM;
+ 	}
+ 
+-	cmac_req_data = (struct tegra_vse_cmac_req_data *) req->priv;
++	cmac_req_data = (struct tegra_vse_cmac_req_data *) cmac_ctx->priv;
+ 
+ 	ivc_tx = &ivc_req_msg->tx[0];
+ 	ivc_hdr = &ivc_req_msg->ivc_hdr;
+@@ -3840,7 +3840,7 @@ static int tegra_hv_vse_aes_gmac_sv_init(struct ahash_request *req)
+ 		goto exit;
+ 	}
+ 
+-	gmac_req_data = (struct tegra_vse_gmac_req_data *) req->priv;
++	gmac_req_data = (struct tegra_vse_gmac_req_data *) gmac_ctx->priv;
+ 
+ 	if ((gmac_req_data->request_type == GMAC_VERIFY)
+ 			|| (gmac_req_data->request_type == GMAC_SIGN)) {
+@@ -3982,7 +3982,7 @@ static int tegra_hv_vse_aes_gmac_sv_op(struct ahash_request *req, bool is_last)
+ 
+ 	se_dev = g_virtual_se_dev[g_crypto_to_ivc_map[gmac_ctx->node_id].se_engine];
+ 	pivck = g_crypto_to_ivc_map[gmac_ctx->node_id].ivck;
+-	gmac_req_data = (struct tegra_vse_gmac_req_data *) req->priv;
++	gmac_req_data = (struct tegra_vse_gmac_req_data *) gmac_ctx->priv;
+ 
+ 	err = tegra_vse_aes_gmac_sv_check_params(req);
+ 	if (err != 0)
+diff --git a/drivers/crypto/tegra-hv-vse.h b/drivers/crypto/tegra-hv-vse.h
+index d1e01621..2a07d0c6 100644
+--- a/drivers/crypto/tegra-hv-vse.h
++++ b/drivers/crypto/tegra-hv-vse.h
+@@ -112,6 +112,8 @@ struct tegra_virtual_se_aes_cmac_context {
+ 	bool is_key_slot_allocated;
+ 	/*Crypto dev instance*/
+ 	uint32_t node_id;
++	/* Used to CMAC request data */
++	void *priv;
+ };
+ 
+ /* Security Engine AES GMAC context */
+@@ -126,6 +128,8 @@ struct tegra_virtual_se_aes_gmac_context {
+ 	bool is_key_slot_allocated;
+ 	/*Crypto dev instance*/
+ 	uint32_t node_id;
++	/* Used to GMAC request data */
++	void *priv;
+ };
+ 
+ /* Security Engine SHA context */
+diff --git a/drivers/crypto/tegra-nvvse-cryptodev.c b/drivers/crypto/tegra-nvvse-cryptodev.c
+index 4d29adbe..cad914b3 100644
+--- a/drivers/crypto/tegra-nvvse-cryptodev.c
++++ b/drivers/crypto/tegra-nvvse-cryptodev.c
+@@ -661,7 +661,7 @@ static int tnvvtsec_crypto_aes_cmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
+ 	ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES ");
+ 	memcpy(key_as_keyslot + KEYSLOT_OFFSET_BYTES, aes_cmac_ctl->key_slot, KEYSLOT_SIZE_BYTES);
+ 
+-	req->priv = &priv_data;
++	cmac_ctx->priv = &priv_data;
+ 	priv_data.result = 0;
+ 	ret = crypto_ahash_setkey(tfm, key_as_keyslot, aes_cmac_ctl->key_length);
+ 	if (ret) {
+@@ -811,7 +811,7 @@ static int tnvvse_crypto_aes_cmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
+ 	ret = snprintf(key_as_keyslot, AES_KEYSLOT_NAME_SIZE, "NVSEAES ");
+ 	memcpy(key_as_keyslot + KEYSLOT_OFFSET_BYTES, aes_cmac_ctl->key_slot, KEYSLOT_SIZE_BYTES);
+ 
+-	req->priv = &priv_data;
++	cmac_ctx->priv = &priv_data;
+ 	priv_data.result = 0;
+ 	ret = crypto_ahash_setkey(tfm, key_as_keyslot, aes_cmac_ctl->key_length);
+ 	if (ret) {
+@@ -931,7 +931,7 @@ static int tnvvse_crypto_aes_gmac_init(struct tnvvse_crypto_ctx *ctx,
+ 	memset(iv, 0, TEGRA_NVVSE_AES_GCM_IV_LEN);
+ 	priv_data.request_type = GMAC_INIT;
+ 	priv_data.iv = iv;
+-	req->priv = &priv_data;
++	gmac_ctx->priv = &priv_data;
+ 
+ 	ret = wait_async_op(&sha_state->sha_complete, crypto_ahash_init(req));
+ 	if (ret) {
+@@ -1013,7 +1013,7 @@ static int tnvvse_crypto_aes_gmac_sign_verify_init(struct tnvvse_crypto_ctx *ctx
+ 		priv_data.request_type = GMAC_SIGN;
+ 	else
+ 		priv_data.request_type = GMAC_VERIFY;
+-	req->priv = &priv_data;
++	gmac_ctx->priv = &priv_data;
+ 
+ 	ret = wait_async_op(&sha_state->sha_complete, crypto_ahash_init(req));
+ 	if (ret) {
+@@ -1048,6 +1048,8 @@ static int tnvvse_crypto_aes_gmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
+ 	char *result_buff;
+ 	uint8_t iv[TEGRA_NVVSE_AES_GCM_IV_LEN];
+ 	struct ahash_request *req;
++	struct tegra_virtual_se_aes_gmac_context *gmac_ctx;
++	struct crypto_ahash *tfm;
+ 	char *src_buffer = gmac_sign_verify_ctl->src_buffer;
+ 	struct tnvvse_gmac_req_data priv_data;
+ 	int ret = -EINVAL;
+@@ -1073,6 +1075,8 @@ static int tnvvse_crypto_aes_gmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
+ 
+ 	result_buff = sha_state->result_buff;
+ 	req = sha_state->req;
++	tfm = sha_state->tfm;
++	gmac_ctx = crypto_ahash_ctx(tfm);
+ 
+ 	if (gmac_sign_verify_ctl->gmac_type == TEGRA_NVVSE_AES_GMAC_SIGN)
+ 		priv_data.request_type = GMAC_SIGN;
+@@ -1080,7 +1084,7 @@ static int tnvvse_crypto_aes_gmac_sign_verify(struct tnvvse_crypto_ctx *ctx,
+ 		priv_data.request_type = GMAC_VERIFY;
+ 	priv_data.iv = NULL;
+ 	priv_data.is_first = gmac_sign_verify_ctl->is_first;
+-	req->priv = &priv_data;
++	gmac_ctx->priv = &priv_data;
+ 
+ 	/* copy input buffer */
+ 	ret = tnvvse_crypt_copy_user_buf(gmac_sign_verify_ctl->data_length, sha_state->in_buf,
+-- 
+2.43.0
+

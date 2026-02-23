@@ -1,0 +1,381 @@
+From 4505ed22ef5b41937a1119a160e2d0a0ffcdecfe Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:33 -0800
+Subject: [PATCH 52/59] drm/tegra: Update to Linux v6.16-rc1
+
+Update the Tegra DRM driver to Linux v6.16-rc1. In Linux v6.16-rc1, the
+drm_dp_link_power_up/down functions were moved from the Tegra DRM driver
+into the main DRM code. Conftest is used to detect this change and the
+appropriate updates are made to the Tegra DRM driver.
+
+JIRA LINQPJ14-60
+
+Upstream-Status: Backport
+Change-Id: Id5449b22e8eda5ee70eb6aed09ce627e63e7722e
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3375214
+(cherry picked from commit f8adc0c950eb4905d397b6e1d8e524b856945f0e)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3461883
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+(cherry picked from commit e004561637b606021d4beb743229d6eb4140af48)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/dc.c     | 17 ++++++++++++-----
+ drivers/gpu/drm/tegra/dp.c     |  2 ++
+ drivers/gpu/drm/tegra/dp.h     |  2 ++
+ drivers/gpu/drm/tegra/dpaux.c  | 11 +++--------
+ drivers/gpu/drm/tegra/dsi.c    |  4 +---
+ drivers/gpu/drm/tegra/falcon.c | 20 +++++++++++++++++++-
+ drivers/gpu/drm/tegra/falcon.h |  1 +
+ drivers/gpu/drm/tegra/gem.c    |  1 -
+ drivers/gpu/drm/tegra/hub.c    |  4 ++--
+ drivers/gpu/drm/tegra/hub.h    |  3 ++-
+ drivers/gpu/drm/tegra/rgb.c    | 14 +++++++++++++-
+ drivers/gpu/drm/tegra/sor.c    |  8 ++++++++
+ scripts/conftest/Makefile      |  1 +
+ scripts/conftest/conftest.sh   | 19 +++++++++++++++++++
+ 14 files changed, 85 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/dc.c b/drivers/gpu/drm/tegra/dc.c
+index f2ac65a2..b70271f5 100644
+--- a/drivers/gpu/drm/tegra/dc.c
++++ b/drivers/gpu/drm/tegra/dc.c
+@@ -1329,10 +1329,16 @@ static struct drm_plane *tegra_dc_add_shared_planes(struct drm_device *drm,
+ 		if (wgrp->dc == dc->pipe) {
+ 			for (j = 0; j < wgrp->num_windows; j++) {
+ 				unsigned int index = wgrp->windows[j];
++				enum drm_plane_type type;
++
++				if (primary)
++					type = DRM_PLANE_TYPE_OVERLAY;
++				else
++					type = DRM_PLANE_TYPE_PRIMARY;
+ 
+ 				plane = tegra_shared_plane_create(drm, dc,
+ 								  wgrp->index,
+-								  index);
++								  index, type);
+ 				if (IS_ERR(plane))
+ 					return plane;
+ 
+@@ -1340,10 +1346,8 @@ static struct drm_plane *tegra_dc_add_shared_planes(struct drm_device *drm,
+ 				 * Choose the first shared plane owned by this
+ 				 * head as the primary plane.
+ 				 */
+-				if (!primary) {
+-					plane->type = DRM_PLANE_TYPE_PRIMARY;
++				if (!primary)
+ 					primary = plane;
+-				}
+ 			}
+ 		}
+ 	}
+@@ -1397,7 +1401,10 @@ static void tegra_crtc_reset(struct drm_crtc *crtc)
+ 	if (crtc->state)
+ 		tegra_crtc_atomic_destroy_state(crtc, crtc->state);
+ 
+-	__drm_atomic_helper_crtc_reset(crtc, &state->base);
++	if (state)
++		__drm_atomic_helper_crtc_reset(crtc, &state->base);
++	else
++		__drm_atomic_helper_crtc_reset(crtc, NULL);
+ }
+ 
+ static struct drm_crtc_state *
+diff --git a/drivers/gpu/drm/tegra/dp.c b/drivers/gpu/drm/tegra/dp.c
+index bc6d9a2c..d6661137 100644
+--- a/drivers/gpu/drm/tegra/dp.c
++++ b/drivers/gpu/drm/tegra/dp.c
+@@ -263,6 +263,7 @@ int drm_dp_link_probe(struct drm_dp_aux *aux, struct drm_dp_link *link)
+ 	return 0;
+ }
+ 
++#if !defined(NV_DRM_DP_LINK_POWER_UP_PRESENT) /* Linux v6.16 */
+ /**
+  * drm_dp_link_power_up() - power up a DisplayPort link
+  * @aux: DisplayPort AUX channel
+@@ -329,6 +330,7 @@ int drm_dp_link_power_down(struct drm_dp_aux *aux, struct drm_dp_link *link)
+ 
+ 	return 0;
+ }
++#endif /* NV_DRM_DP_LINK_POWER_UP_PRESENT */
+ 
+ /**
+  * drm_dp_link_configure() - configure a DisplayPort link
+diff --git a/drivers/gpu/drm/tegra/dp.h b/drivers/gpu/drm/tegra/dp.h
+index cb12ed0c..f0a48b67 100644
+--- a/drivers/gpu/drm/tegra/dp.h
++++ b/drivers/gpu/drm/tegra/dp.h
+@@ -164,8 +164,10 @@ int drm_dp_link_remove_rate(struct drm_dp_link *link, unsigned long rate);
+ void drm_dp_link_update_rates(struct drm_dp_link *link);
+ 
+ int drm_dp_link_probe(struct drm_dp_aux *aux, struct drm_dp_link *link);
++#if !defined(NV_DRM_DP_LINK_POWER_UP_PRESENT) /* Linux v6.16 */
+ int drm_dp_link_power_up(struct drm_dp_aux *aux, struct drm_dp_link *link);
+ int drm_dp_link_power_down(struct drm_dp_aux *aux, struct drm_dp_link *link);
++#endif
+ int drm_dp_link_configure(struct drm_dp_aux *aux, struct drm_dp_link *link);
+ int drm_dp_link_choose(struct drm_dp_link *link,
+ 		       const struct drm_display_mode *mode,
+diff --git a/drivers/gpu/drm/tegra/dpaux.c b/drivers/gpu/drm/tegra/dpaux.c
+index 4d74e322..e2fdabf1 100644
+--- a/drivers/gpu/drm/tegra/dpaux.c
++++ b/drivers/gpu/drm/tegra/dpaux.c
+@@ -517,14 +517,9 @@ static int tegra_dpaux_probe(struct platform_device *pdev)
+ 
+ 	dpaux->vdd = devm_regulator_get_optional(&pdev->dev, "vdd");
+ 	if (IS_ERR(dpaux->vdd)) {
+-		if (PTR_ERR(dpaux->vdd) != -ENODEV) {
+-			if (PTR_ERR(dpaux->vdd) != -EPROBE_DEFER)
+-				dev_err(&pdev->dev,
+-					"failed to get VDD supply: %ld\n",
+-					PTR_ERR(dpaux->vdd));
+-
+-			return PTR_ERR(dpaux->vdd);
+-		}
++		if (PTR_ERR(dpaux->vdd) != -ENODEV)
++			return dev_err_probe(&pdev->dev, PTR_ERR(dpaux->vdd),
++					     "failed to get VDD supply\n");
+ 
+ 		dpaux->vdd = NULL;
+ 	}
+diff --git a/drivers/gpu/drm/tegra/dsi.c b/drivers/gpu/drm/tegra/dsi.c
+index 7f605ac7..e2e9d86e 100644
+--- a/drivers/gpu/drm/tegra/dsi.c
++++ b/drivers/gpu/drm/tegra/dsi.c
+@@ -1576,7 +1576,6 @@ static int tegra_dsi_ganged_probe(struct tegra_dsi *dsi)
+ static int tegra_dsi_probe(struct platform_device *pdev)
+ {
+ 	struct tegra_dsi *dsi;
+-	struct resource *regs;
+ 	int err;
+ 
+ 	dsi = devm_kzalloc(&pdev->dev, sizeof(*dsi), GFP_KERNEL);
+@@ -1648,8 +1647,7 @@ static int tegra_dsi_probe(struct platform_device *pdev)
+ 		goto remove;
+ 	}
+ 
+-	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	dsi->regs = devm_ioremap_resource(&pdev->dev, regs);
++	dsi->regs = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(dsi->regs)) {
+ 		err = PTR_ERR(dsi->regs);
+ 		goto remove;
+diff --git a/drivers/gpu/drm/tegra/falcon.c b/drivers/gpu/drm/tegra/falcon.c
+index c0d85463..17f616bb 100644
+--- a/drivers/gpu/drm/tegra/falcon.c
++++ b/drivers/gpu/drm/tegra/falcon.c
+@@ -30,6 +30,14 @@ int falcon_wait_idle(struct falcon *falcon)
+ 				  (value == 0), 10, 100000);
+ }
+ 
++static int falcon_dma_wait_not_full(struct falcon *falcon)
++{
++	u32 value;
++
++	return readl_poll_timeout(falcon->regs + FALCON_DMATRFCMD, value,
++				  !(value & FALCON_DMATRFCMD_FULL), 10, 100000);
++}
++
+ static int falcon_dma_wait_idle(struct falcon *falcon)
+ {
+ 	u32 value;
+@@ -44,6 +52,7 @@ static int falcon_copy_chunk(struct falcon *falcon,
+ 			     enum falcon_memory target)
+ {
+ 	u32 cmd = FALCON_DMATRFCMD_SIZE_256B;
++	int err;
+ 
+ 	if (target == FALCON_MEMORY_IMEM)
+ 		cmd |= FALCON_DMATRFCMD_IMEM;
+@@ -56,11 +65,15 @@ static int falcon_copy_chunk(struct falcon *falcon,
+ 	 */
+ 	cmd |= FALCON_DMATRFCMD_DMACTX(1);
+ 
++	err = falcon_dma_wait_not_full(falcon);
++	if (err < 0)
++		return err;
++
+ 	falcon_writel(falcon, offset, FALCON_DMATRFMOFFS);
+ 	falcon_writel(falcon, base, FALCON_DMATRFFBOFFS);
+ 	falcon_writel(falcon, cmd, FALCON_DMATRFCMD);
+ 
+-	return falcon_dma_wait_idle(falcon);
++	return 0;
+ }
+ 
+ static void falcon_copy_firmware_image(struct falcon *falcon,
+@@ -191,6 +204,11 @@ int falcon_boot(struct falcon *falcon)
+ 		falcon_copy_chunk(falcon, falcon->firmware.code.offset + offset,
+ 				  offset, FALCON_MEMORY_IMEM);
+ 
++	/* wait for DMA to complete */
++	err = falcon_dma_wait_idle(falcon);
++	if (err < 0)
++		return err;
++
+ 	/* setup falcon interrupts */
+ 	falcon_writel(falcon, FALCON_IRQMSET_EXT(0xff) |
+ 			      FALCON_IRQMSET_SWGEN1 |
+diff --git a/drivers/gpu/drm/tegra/falcon.h b/drivers/gpu/drm/tegra/falcon.h
+index f7e78e16..8348e5c8 100644
+--- a/drivers/gpu/drm/tegra/falcon.h
++++ b/drivers/gpu/drm/tegra/falcon.h
+@@ -47,6 +47,7 @@
+ #define FALCON_DMATRFMOFFS			0x00001114
+ 
+ #define FALCON_DMATRFCMD			0x00001118
++#define FALCON_DMATRFCMD_FULL			(1 << 0)
+ #define FALCON_DMATRFCMD_IDLE			(1 << 1)
+ #define FALCON_DMATRFCMD_IMEM			(1 << 4)
+ #define FALCON_DMATRFCMD_SIZE_256B		(6 << 8)
+diff --git a/drivers/gpu/drm/tegra/gem.c b/drivers/gpu/drm/tegra/gem.c
+index ef3a237a..fb25b837 100644
+--- a/drivers/gpu/drm/tegra/gem.c
++++ b/drivers/gpu/drm/tegra/gem.c
+@@ -19,7 +19,6 @@
+ 
+ #include <drm/drm_drv.h>
+ #include <drm/drm_prime.h>
+-#include <drm/tegra_drm.h>
+ 
+ #include "drm.h"
+ #include "gem.h"
+diff --git a/drivers/gpu/drm/tegra/hub.c b/drivers/gpu/drm/tegra/hub.c
+index b73a1f69..a4ea3d64 100644
+--- a/drivers/gpu/drm/tegra/hub.c
++++ b/drivers/gpu/drm/tegra/hub.c
+@@ -757,9 +757,9 @@ static const struct drm_plane_helper_funcs tegra_shared_plane_helper_funcs = {
+ struct drm_plane *tegra_shared_plane_create(struct drm_device *drm,
+ 					    struct tegra_dc *dc,
+ 					    unsigned int wgrp,
+-					    unsigned int index)
++					    unsigned int index,
++					    enum drm_plane_type type)
+ {
+-	enum drm_plane_type type = DRM_PLANE_TYPE_OVERLAY;
+ 	struct tegra_drm *tegra = drm->dev_private;
+ 	struct tegra_display_hub *hub = tegra->hub;
+ 	struct tegra_shared_plane *plane;
+diff --git a/drivers/gpu/drm/tegra/hub.h b/drivers/gpu/drm/tegra/hub.h
+index 23c4b211..a66f18c4 100644
+--- a/drivers/gpu/drm/tegra/hub.h
++++ b/drivers/gpu/drm/tegra/hub.h
+@@ -80,7 +80,8 @@ void tegra_display_hub_cleanup(struct tegra_display_hub *hub);
+ struct drm_plane *tegra_shared_plane_create(struct drm_device *drm,
+ 					    struct tegra_dc *dc,
+ 					    unsigned int wgrp,
+-					    unsigned int index);
++					    unsigned int index,
++					    enum drm_plane_type type);
+ 
+ int tegra_display_hub_atomic_check(struct drm_device *drm,
+ 				   struct drm_atomic_state *state);
+diff --git a/drivers/gpu/drm/tegra/rgb.c b/drivers/gpu/drm/tegra/rgb.c
+index 1e8ec50b..ff5a7497 100644
+--- a/drivers/gpu/drm/tegra/rgb.c
++++ b/drivers/gpu/drm/tegra/rgb.c
+@@ -200,6 +200,11 @@ static const struct drm_encoder_helper_funcs tegra_rgb_encoder_helper_funcs = {
+ 	.atomic_check = tegra_rgb_encoder_atomic_check,
+ };
+ 
++static void tegra_dc_of_node_put(void *data)
++{
++	of_node_put(data);
++}
++
+ int tegra_dc_rgb_probe(struct tegra_dc *dc)
+ {
+ 	struct device_node *np;
+@@ -207,7 +212,14 @@ int tegra_dc_rgb_probe(struct tegra_dc *dc)
+ 	int err;
+ 
+ 	np = of_get_child_by_name(dc->dev->of_node, "rgb");
+-	if (!np || !of_device_is_available(np))
++	if (!np)
++		return -ENODEV;
++
++	err = devm_add_action_or_reset(dc->dev, tegra_dc_of_node_put, np);
++	if (err < 0)
++		return err;
++
++	if (!of_device_is_available(np))
+ 		return -ENODEV;
+ 
+ 	rgb = devm_kzalloc(dc->dev, sizeof(*rgb), GFP_KERNEL);
+diff --git a/drivers/gpu/drm/tegra/sor.c b/drivers/gpu/drm/tegra/sor.c
+index 7a1f1662..844a2fa7 100644
+--- a/drivers/gpu/drm/tegra/sor.c
++++ b/drivers/gpu/drm/tegra/sor.c
+@@ -2712,7 +2712,11 @@ static void tegra_sor_dp_disable(struct drm_encoder *encoder)
+ 	 * the AUX transactions would just be timing out.
+ 	 */
+ 	if (output->connector.status != connector_status_disconnected) {
++#if defined(NV_DRM_DP_LINK_POWER_UP_PRESENT) /* Linux v6.16 */
++		err = drm_dp_link_power_down(sor->aux, sor->link.revision);
++#else
+ 		err = drm_dp_link_power_down(sor->aux, &sor->link);
++#endif
+ 		if (err < 0)
+ 			dev_err(sor->dev, "failed to power down link: %d\n",
+ 				err);
+@@ -2928,7 +2932,11 @@ static void tegra_sor_dp_enable(struct drm_encoder *encoder)
+ 	else
+ 		dev_dbg(sor->dev, "link training succeeded\n");
+ 
++#if defined(NV_DRM_DP_LINK_POWER_UP_PRESENT) /* Linux v6.16 */
++	err = drm_dp_link_power_up(sor->aux, sor->link.revision);
++#else
+ 	err = drm_dp_link_power_up(sor->aux, &sor->link);
++#endif
+ 	if (err < 0)
+ 		dev_err(sor->dev, "failed to power up DP link: %d\n", err);
+ 
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 7bd70c08..78398167 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -124,6 +124,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_debugfs_remove_files_has_root_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_has_fbdev_probe
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_date
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_display_info_struct_has_source_physical_address
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_dp_link_power_up
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_has_fbdev_probe
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_irq_enabled_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_edid_connector_add_modes
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 2f8914e5..c7196df4 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7139,6 +7139,25 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DISPLAY_INFO_STRUCT_HAS_SOURCE_PHYSICAL_ADDRESS" "" "types"
+         ;;
+ 
++        drm_dp_link_power_up)
++            #
++            # Determine if the function drm_dp_link_power_up is present
++            #
++            # This change was made in Linux v6.16 by commit 09cdda7a60f4 ("drm/dp: Pull
++            # drm_dp_link_power_up/down from Tegra to common drm_dp_helper").
++            #
++            CODE="
++            #undef CONFIG_ACPI
++            #ifdef NV_DRM_DISPLAY_DRM_DP_HELPER_H_PRESENT
++            #include <drm/display/drm_dp_helper.h>
++            #endif
++            int conftest_drm_dp_link_power_up(void) {
++                drm_dp_link_power_up();
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_DP_LINK_POWER_UP_PRESENT" "" "functions"
++        ;;
++
+         drm_driver_has_fbdev_probe)
+             #
+             # Determine if the 'drm_driver' structure has an 'fbdev_probe'
+-- 
+2.43.0
+

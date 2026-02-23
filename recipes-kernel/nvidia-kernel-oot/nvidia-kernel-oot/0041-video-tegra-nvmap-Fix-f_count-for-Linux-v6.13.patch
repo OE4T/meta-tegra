@@ -1,0 +1,176 @@
+From a6ab34fb3e67f901bcc3aed72c258eef18c4ceea Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:25 -0800
+Subject: [PATCH 41/59] video: tegra: nvmap: Fix f_count for Linux v6.13
+
+In Linux v6.13, 'f_count' has been replaced by 'f_ref' in the 'file'
+structure. Use conftest to detect if 'f_ref' is present and update the
+NVMAP driver accordingly.
+
+Please note that in most cases we can simply use the 'file_count' macro
+for getting the count and this has been supported since Linux v2.6.
+
+Bug 4991705
+
+Upstream-Status: Backport
+Change-Id: I3ccaf88bd6c3dca5b364205cf03a577945f62092
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3260939
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Ketan Patil <ketanp@nvidia.com>
+Reviewed-by: svcacv <svcacv@nvidia.com>
+(cherry picked from commit b34e2f9554c31e2e49899979cfbdd4ea1ee906b0)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/video/tegra/nvmap/nvmap_alloc.c   |  2 +-
+ drivers/video/tegra/nvmap/nvmap_handle.c  |  4 ++++
+ drivers/video/tegra/nvmap/nvmap_ioctl.c   | 12 ++++++------
+ drivers/video/tegra/nvmap/nvmap_sci_ipc.c |  2 +-
+ scripts/conftest/Makefile                 |  1 +
+ scripts/conftest/conftest.sh              | 16 ++++++++++++++++
+ 6 files changed, 29 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/video/tegra/nvmap/nvmap_alloc.c b/drivers/video/tegra/nvmap/nvmap_alloc.c
+index 29852820..faa8f639 100644
+--- a/drivers/video/tegra/nvmap/nvmap_alloc.c
++++ b/drivers/video/tegra/nvmap/nvmap_alloc.c
+@@ -1280,7 +1280,7 @@ void nvmap_free_handle_from_fd(struct nvmap_client *client,
+ 	if (handle) {
+ 		dmabuf = is_ro ? handle->dmabuf_ro : handle->dmabuf;
+ 		handle_ref = atomic_read(&handle->ref);
+-		dmabuf_ref = dmabuf ? atomic_long_read(&dmabuf->file->f_count) : 0;
++		dmabuf_ref = dmabuf ? file_count(dmabuf->file) : 0;
+ 	}
+ 
+ 	trace_refcount_free_handle(handle, dmabuf, handle_ref, dmabuf_ref,
+diff --git a/drivers/video/tegra/nvmap/nvmap_handle.c b/drivers/video/tegra/nvmap/nvmap_handle.c
+index a873c5d2..899cccab 100644
+--- a/drivers/video/tegra/nvmap/nvmap_handle.c
++++ b/drivers/video/tegra/nvmap/nvmap_handle.c
+@@ -346,7 +346,11 @@ found:
+ 		goto fail;
+ 	BUG_ON(!h->dmabuf->file);
+ 	/* This is same as get_dma_buf() if file->f_count was non-zero */
++#if defined(NV_FILE_STRUCT_HAS_F_REF) /* Linux v6.13 */
++	if (file_ref_get(&h->dmabuf->file->f_ref) == 0)
++#else
+ 	if (atomic_long_inc_not_zero(&h->dmabuf->file->f_count) == 0)
++#endif
+ 		goto fail;
+ 	mutex_unlock(&h->lock);
+ 
+diff --git a/drivers/video/tegra/nvmap/nvmap_ioctl.c b/drivers/video/tegra/nvmap/nvmap_ioctl.c
+index f29b4273..fafe038e 100644
+--- a/drivers/video/tegra/nvmap/nvmap_ioctl.c
++++ b/drivers/video/tegra/nvmap/nvmap_ioctl.c
+@@ -177,7 +177,7 @@ int nvmap_ioctl_getfd(struct file *filp, void __user *arg)
+ 	if (!ret && !IS_ERR_OR_NULL(handle)) {
+ 		mutex_lock(&handle->lock);
+ 		if (dmabuf && dmabuf->file) {
+-			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++			dmabuf_ref = file_count(dmabuf->file);
+ 		} else {
+ 			dmabuf_ref = 0;
+ 		}
+@@ -256,7 +256,7 @@ int nvmap_ioctl_alloc(struct file *filp, void __user *arg)
+ 		mutex_lock(&handle->lock);
+ 		dmabuf = is_ro ? handle->dmabuf_ro : handle->dmabuf;
+ 		if (dmabuf && dmabuf->file) {
+-			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++			dmabuf_ref = file_count(dmabuf->file);
+ 		} else {
+ 			dmabuf_ref = 0;
+ 		}
+@@ -405,7 +405,7 @@ out:
+ 	if (!ret && !IS_ERR_OR_NULL(handle)) {
+ 		mutex_lock(&handle->lock);
+ 		if (dmabuf && dmabuf->file) {
+-			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++			dmabuf_ref = file_count(dmabuf->file);
+ 		} else {
+ 			dmabuf_ref = 0;
+ 		}
+@@ -503,7 +503,7 @@ out:
+ 	if (!err) {
+ 		mutex_lock(&handle->lock);
+ 		if (dmabuf && dmabuf->file) {
+-			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++			dmabuf_ref = file_count(dmabuf->file);
+ 		} else {
+ 			dmabuf_ref = 0;
+ 		}
+@@ -1308,7 +1308,7 @@ exit:
+ 		mutex_lock(&handle->lock);
+ 		dmabuf = is_ro ? handle->dmabuf_ro : handle->dmabuf;
+ 		if (dmabuf && dmabuf->file) {
+-			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++			dmabuf_ref = file_count(dmabuf->file);
+ 		} else {
+ 			dmabuf_ref = 0;
+ 		}
+@@ -1569,7 +1569,7 @@ out:
+ 	if (!ret && !IS_ERR_OR_NULL(handle))
+ 		trace_refcount_dup_handle(handle, dmabuf,
+ 				atomic_read(&handle->ref),
+-				atomic_long_read(&dmabuf->file->f_count),
++				file_count(dmabuf->file),
+ 				is_ro ? "RO" : "RW");
+ 
+ 	if (!IS_ERR(ref))
+diff --git a/drivers/video/tegra/nvmap/nvmap_sci_ipc.c b/drivers/video/tegra/nvmap/nvmap_sci_ipc.c
+index 7c75c24c..5bada63f 100644
+--- a/drivers/video/tegra/nvmap/nvmap_sci_ipc.c
++++ b/drivers/video/tegra/nvmap/nvmap_sci_ipc.c
+@@ -349,7 +349,7 @@ unlock:
+ 	if (!ret) {
+ 		mutex_lock(&h->lock);
+ 		if (dmabuf && dmabuf->file) {
+-			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++			dmabuf_ref = file_count(dmabuf->file);
+ 		} else {
+ 			dmabuf_ref = 0;
+ 		}
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 3b06c38d..31c71c96 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -138,6 +138,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ethtool_ops_get_set_ringparam_has_ringpara
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ethtool_ops_get_set_rxfh_has_rxfh_param_args
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += fd_empty
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += fd_file
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += file_struct_has_f_ref
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += folio_entire_mapcount
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += fop_unsigned_offset
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += genpd_xlate_t_has_const_of_phandle_args
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index cb93ed86..8b3b6349 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7473,6 +7473,22 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_FD_FILE_PRESENT" "" "functions"
+         ;;
+ 
++        file_struct_has_f_ref)
++            #
++            # Determine if 'struct file' has the 'f_ref' member.
++            #
++            # Commit 90ee6ed776c0 ("fs: port files to file_ref") replaced the
++            # 'f_count' member of 'struct file' with 'f_ref' in Linux v6.13.
++            #
++            CODE="
++            #include <linux/fs.h>
++            int conftest_file_struct_has_f_ref(void) {
++                return offsetof(struct file, f_ref);
++            }"
++
++            compile_check_conftest "$CODE" "NV_FILE_STRUCT_HAS_F_REF" "" "types"
++        ;;
++
+         folio_entire_mapcount)
+             #
+             # Determine if function folio_entire_mapcount() is present.
+-- 
+2.43.0
+
