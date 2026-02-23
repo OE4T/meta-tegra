@@ -1,0 +1,84 @@
+From d6a87ba19330f40ceb449cf86a1e056f327a8cc5 Mon Sep 17 00:00:00 2001
+From: Bruce Xu <brucex@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:17 -0800
+Subject: [PATCH 24/59] misc: bluedroid: remove duplicate timer declaration
+
+There are 2 timer defined. One statically and one in the
+bluedroid_pm_data struct. Both timers call the same function on expiration. In the case of the statically defined timer this is a problem because it assumes that the timer is part of the bluedroid_pm_data and so calling timer_container_of() or from_timer() results in an invalid pointer and hence kernel panic. Fix this by
+removing the statically defined timer.
+
+Bug 4958861
+
+Upstream-Status: Backport
+Change-Id: I08f9dc3a032f84ca3350fbec5fb97062da8d6795
+Signed-off-by: Bruce Xu <brucex@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3400991
+(cherry picked from commit 61490c6a2a65e24068cd33a92d8730260ad83f95)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3405517
+Tested-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-by: Jon Hunter <jonathanh@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+(cherry picked from commit 74cc0f56f273dc1be38fc72897bc1f45cdc522ab)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/misc/bluedroid_pm.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/misc/bluedroid_pm.c b/drivers/misc/bluedroid_pm.c
+index 80c9609a..bf3fcbf7 100644
+--- a/drivers/misc/bluedroid_pm.c
++++ b/drivers/misc/bluedroid_pm.c
+@@ -79,7 +79,6 @@ EXPORT_SYMBOL(bt_wlan_unlock);
+ /** bluedroid_m busy timer */
+ 
+ static void bluedroid_pm_timer_expire(struct timer_list *timer);
+-static DEFINE_TIMER(bluedroid_pm_timer, bluedroid_pm_timer_expire);
+ 
+ static void bluedroid_work(struct work_struct *data)
+ {
+@@ -157,7 +156,7 @@ static void bluedroid_pm_timer_expire(struct timer_list *timer)
+ 	} else {
+ 		/* BT Rx is busy, Reset Timer */
+ 		BDP_DBG("Rx is busy, restarting the timer");
+-		mod_timer(&bluedroid_pm_timer,
++		mod_timer(&bluedroid_pm->bluedroid_pm_timer,
+ 					jiffies + (TX_TIMER_INTERVAL * HZ));
+ 	}
+ }
+@@ -259,7 +258,7 @@ static ssize_t lpm_write_proc(struct file *file, const char __user *buffer,
+ 				} else {
+ 					/* Reset Timer */
+ 					BDP_DBG("Rx is busy, restarting the timer");
+-					mod_timer(&bluedroid_pm_timer,
++					mod_timer(&bluedroid_pm->bluedroid_pm_timer,
+ 						jiffies + (TX_TIMER_INTERVAL * HZ));
+ 				}
+ 			clear_bit(BT_WAKE, &bluedroid_pm->flags);
+@@ -269,9 +268,9 @@ static ssize_t lpm_write_proc(struct file *file, const char __user *buffer,
+ 				bluedroid_pm->ext_wake, 1);
+ 			__pm_stay_awake(bluedroid_pm->wake_lock);
+ #if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
+-			timer_delete(&bluedroid_pm_timer);
++			timer_delete(&bluedroid_pm->bluedroid_pm_timer);
+ #else
+-			del_timer(&bluedroid_pm_timer);
++			del_timer(&bluedroid_pm->bluedroid_pm_timer);
+ #endif
+ 			set_bit(BT_WAKE, &bluedroid_pm->flags);
+ 		} else {
+@@ -514,9 +513,9 @@ static int bluedroid_pm_remove(struct platform_device *pdev)
+ 		wakeup_source_unregister(bluedroid_pm->wake_lock);
+ 		remove_bt_proc_interface();
+ #if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
+-		timer_delete(&bluedroid_pm_timer);
++		timer_delete(&bluedroid_pm->bluedroid_pm_timer);
+ #else
+-		del_timer(&bluedroid_pm_timer);
++		del_timer(&bluedroid_pm->bluedroid_pm_timer);
+ #endif
+ 	}
+ 	if (((bluedroid_pm->gpio_reset)) ||
+-- 
+2.43.0
+

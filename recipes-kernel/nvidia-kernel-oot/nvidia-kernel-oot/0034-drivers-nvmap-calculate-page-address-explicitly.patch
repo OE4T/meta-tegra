@@ -1,0 +1,97 @@
+From df9375901cabdc14459a640c68d84c60575f63c4 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 08:22:21 -0800
+Subject: [PATCH 34/59] drivers: nvmap: calculate page address explicitly
+
+Based on kernel upstream commit 84efbefa26df("mm: remove nth_page()"),
+so, calculate page address explicitly.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/video/tegra/nvmap/nvmap_alloc.c | 8 ++++----
+ drivers/video/tegra/nvmap/nvmap_core.c  | 2 +-
+ drivers/video/tegra/nvmap/nvmap_pp.c    | 6 +++---
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/video/tegra/nvmap/nvmap_alloc.c b/drivers/video/tegra/nvmap/nvmap_alloc.c
+index 280fcd21..29852820 100644
+--- a/drivers/video/tegra/nvmap/nvmap_alloc.c
++++ b/drivers/video/tegra/nvmap/nvmap_alloc.c
+@@ -77,8 +77,8 @@ static struct page *nvmap_alloc_pages_exact(gfp_t gfp, size_t size, bool use_num
+ 		return NULL;
+ 
+ 	split_page(page, order);
+-	e = nth_page(page, (1 << order));
+-	for (p = nth_page(page, (size >> PAGE_SHIFT)); p < e; p++)
++	e = page + (1 << order);
++	for (p = page + (size >> PAGE_SHIFT); p < e; p++)
+ 		__free_page(p);
+ 
+ 	return page;
+@@ -540,7 +540,7 @@ static int handle_page_alloc(struct nvmap_client *client,
+ 			goto fail;
+ 
+ 		for (i = 0; i < nr_page; i++)
+-			pages[i] = nth_page(page, i);
++			pages[i] = page + i;
+ 
+ 	} else {
+ #ifdef CONFIG_ARM64_4K_PAGES
+@@ -568,7 +568,7 @@ static int handle_page_alloc(struct nvmap_client *client,
+ 				break;
+ 
+ 			for (idx = 0; idx < pages_per_big_pg; idx++)
+-				pages[i + idx] = nth_page(page, idx);
++				pages[i + idx] = page + idx;
+ 			nvmap_clean_cache(&pages[i], pages_per_big_pg);
+ 		}
+ 		nvmap_big_page_allocs += page_index;
+diff --git a/drivers/video/tegra/nvmap/nvmap_core.c b/drivers/video/tegra/nvmap/nvmap_core.c
+index 8433e3b7..5c6fd101 100644
+--- a/drivers/video/tegra/nvmap/nvmap_core.c
++++ b/drivers/video/tegra/nvmap/nvmap_core.c
+@@ -196,7 +196,7 @@ void *__nvmap_mmap(struct nvmap_handle *h)
+ 			goto out;
+ 
+ 		for (i = 0; i < nr_pages; i++)
+-			pages[i] = nth_page(page, i);
++			pages[i] = page + i;
+ 
+ 		vaddr = vmap(pages, nr_pages, VM_MAP, prot);
+ 	} else {
+diff --git a/drivers/video/tegra/nvmap/nvmap_pp.c b/drivers/video/tegra/nvmap/nvmap_pp.c
+index 15b3f307..a184561e 100644
+--- a/drivers/video/tegra/nvmap/nvmap_pp.c
++++ b/drivers/video/tegra/nvmap/nvmap_pp.c
+@@ -282,7 +282,7 @@ static ulong nvmap_page_pool_free_pages_locked(struct nvmap_page_pool *pool,
+ #ifdef CONFIG_ARM64_4K_PAGES
+ 		if (use_page_list_bp) {
+ 			for (i = 0; i < pool->pages_per_big_pg; i++)
+-				__free_page(nth_page(page, i));
++				__free_page(page + i);
+ 			pr_debug("released %d pages\n", pool->pages_per_big_pg);
+ 			if (nr_pages > pool->pages_per_big_pg)
+ 				nr_pages -= pool->pages_per_big_pg;
+@@ -379,7 +379,7 @@ int nvmap_page_pool_alloc_lots_bp(struct nvmap_page_pool *pool,
+ 			break;
+ 
+ 		for (i = 0; i < pool->pages_per_big_pg; i++)
+-			pages[ind + i] = nth_page(page, i);
++			pages[ind + i] = page + i;
+ 
+ 		ind += pool->pages_per_big_pg;
+ 	}
+@@ -406,7 +406,7 @@ static bool nvmap_is_big_page(struct nvmap_page_pool *pool,
+ 		return false;
+ 
+ 	for (i = 1; i < pool->pages_per_big_pg; i++)
+-		if (pages[idx + i] != nth_page(page, i))
++		if (pages[idx + i] != (page + i))
+ 			break;
+ 
+ 	return i == pool->pages_per_big_pg ? true: false;
+-- 
+2.43.0
+

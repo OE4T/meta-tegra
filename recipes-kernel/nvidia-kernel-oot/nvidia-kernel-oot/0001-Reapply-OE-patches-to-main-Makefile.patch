@@ -1,4 +1,4 @@
-From 5c7dfa4c9e34ce0f47f7c0792f199176982dd777 Mon Sep 17 00:00:00 2001
+From 53a09db8532fc589cbafed6c7136c0ae7ba65b36 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Mon, 9 Feb 2026 03:55:41 -0800
 Subject: [PATCH] Reapply OE patches to main Makefile

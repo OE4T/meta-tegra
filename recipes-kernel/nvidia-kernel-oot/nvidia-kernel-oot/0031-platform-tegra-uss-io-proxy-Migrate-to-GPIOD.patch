@@ -1,0 +1,237 @@
+From e05d7720816f575c6527adc6468c2d10e9b7048f Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:20 -0800
+Subject: [PATCH 31/59] platform: tegra: uss-io-proxy: Migrate to GPIOD
+
+Upstream commit a55893133830 ("gpiolib: Remove unused
+devm_gpio_request()") removed the devm_gpio_request() function and this
+breaks the Tegra USS IO Proxy driver. The devm_gpiod_get() function has
+been supported in the Linux kernel since v4.3 and now that the legacy
+GPIO functions are being removed, migrate the Tegra USS IO Proxy driver
+over to using GPIO descriptors.
+
+Bug 4387902
+Bug 5420210
+
+Upstream-Status: Backport [commit 74171df1]
+Change-Id: I0c62977dc4ec829e14f105babdd08bbd64113fa2
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3423827
+(cherry picked from commit e4572a5ff434f778178b1dfb39b4c1cf7923db6d)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3462463
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/platform/tegra/tegra-uss-io-proxy.c | 104 ++++++++++----------
+ 1 file changed, 53 insertions(+), 51 deletions(-)
+
+diff --git a/drivers/platform/tegra/tegra-uss-io-proxy.c b/drivers/platform/tegra/tegra-uss-io-proxy.c
+index c4d4f343..e330de3b 100644
+--- a/drivers/platform/tegra/tegra-uss-io-proxy.c
++++ b/drivers/platform/tegra/tegra-uss-io-proxy.c
+@@ -32,10 +32,10 @@ struct tegra_uss_io_proxy {
+ 	struct clk *uss_clk;
+ 
+ 	unsigned int hss_version;
+-	int uss_reset_gpio;
+-	int vsup_dia_gpio;
+-	unsigned int vsup_fault_gpio;
+-	unsigned int vsup_latch_gpio;
++	struct gpio_desc *uss_reset_gpio;
++	struct gpio_desc *vsup_dia_gpio;
++	struct gpio_desc *vsup_fault_gpio;
++	struct gpio_desc *vsup_latch_gpio;
+ 	struct gpio_descs *g1_gpiods;
+ 	struct gpio_descs *g2_gpiods;
+ 	unsigned long g1_bitmap;
+@@ -113,9 +113,9 @@ static ssize_t uss_reset_store(struct device *dev,
+ 		return -EINVAL;
+ 
+ 	if (val == 0)
+-		gpio_set_value(proxy->uss_reset_gpio, 1);
++		gpiod_set_raw_value(proxy->uss_reset_gpio, 1);
+ 	else
+-		gpio_set_value(proxy->uss_reset_gpio, 0);
++		gpiod_set_raw_value(proxy->uss_reset_gpio, 0);
+ 
+ 	return count;
+ }
+@@ -125,7 +125,7 @@ static ssize_t uss_reset_show(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct tegra_uss_io_proxy *proxy = dev_get_drvdata(dev);
+ 
+-	return sprintf(buf, "%d\n", !gpio_get_value(proxy->uss_reset_gpio));
++	return sprintf(buf, "%d\n", !gpiod_get_raw_value(proxy->uss_reset_gpio));
+ }
+ 
+ static DEVICE_ATTR_RW(uss_reset);
+@@ -140,9 +140,9 @@ static ssize_t vsup_dia_store(struct device *dev, struct device_attribute *attr,
+ 		return -EINVAL;
+ 
+ 	if (val == 0)
+-		gpio_set_value(proxy->vsup_dia_gpio, 0);
++		gpiod_set_raw_value(proxy->vsup_dia_gpio, 0);
+ 	else
+-		gpio_set_value(proxy->vsup_dia_gpio, 1);
++		gpiod_set_raw_value(proxy->vsup_dia_gpio, 1);
+ 
+ 	return count;
+ }
+@@ -152,7 +152,7 @@ static ssize_t vsup_dia_show(struct device *dev, struct device_attribute *attr,
+ {
+ 	struct tegra_uss_io_proxy *proxy = dev_get_drvdata(dev);
+ 
+-	return sprintf(buf, "%d\n", gpio_get_value(proxy->vsup_dia_gpio));
++	return sprintf(buf, "%d\n", gpiod_get_raw_value(proxy->vsup_dia_gpio));
+ }
+ 
+ static DEVICE_ATTR_RW(vsup_dia);
+@@ -168,9 +168,9 @@ static ssize_t vsup_latch_store(struct device *dev,
+ 		return -EINVAL;
+ 
+ 	if (val == 0)
+-		gpio_set_value(proxy->vsup_latch_gpio, 0);
++		gpiod_set_raw_value(proxy->vsup_latch_gpio, 0);
+ 	else
+-		gpio_set_value(proxy->vsup_latch_gpio, 1);
++		gpiod_set_raw_value(proxy->vsup_latch_gpio, 1);
+ 
+ 	return count;
+ }
+@@ -180,7 +180,7 @@ static ssize_t vsup_latch_show(struct device *dev,
+ {
+ 	struct tegra_uss_io_proxy *proxy = dev_get_drvdata(dev);
+ 
+-	return sprintf(buf, "%d\n", gpio_get_value(proxy->vsup_latch_gpio));
++	return sprintf(buf, "%d\n", gpiod_get_raw_value(proxy->vsup_latch_gpio));
+ }
+ 
+ static DEVICE_ATTR_RW(vsup_latch);
+@@ -190,7 +190,7 @@ static ssize_t vsup_fault_show(struct device *dev,
+ {
+ 	struct tegra_uss_io_proxy *proxy = dev_get_drvdata(dev);
+ 
+-	return sprintf(buf, "%d\n", gpio_get_value(proxy->vsup_fault_gpio));
++	return sprintf(buf, "%d\n", gpiod_get_raw_value(proxy->vsup_fault_gpio));
+ }
+ 
+ static DEVICE_ATTR_ADMIN_RO(vsup_fault);
+@@ -339,33 +339,31 @@ static void tegra_uss_remove_dev_attrs(struct platform_device *pdev)
+ 	device_remove_file(&pdev->dev, &dev_attr_sensor_gpios);
+ }
+ 
+-static int tegra_uss_request_gpio(struct platform_device *pdev, const char *name)
++static struct gpio_desc *tegra_uss_request_gpio(struct platform_device *pdev, const char *name,
++						bool is_output)
+ {
+-	struct device_node *np = pdev->dev.of_node;
+-	int gpio, rc;
+-
+-	gpio = of_get_named_gpio(np, name, 0);
+-	if (gpio == -EPROBE_DEFER)
+-		return gpio;
++	struct gpio_desc *gpiod;
++	int rc;
+ 
+-	if (!gpio_is_valid(gpio)) {
+-		dev_err(&pdev->dev, "%s is invalid\n", name);
+-		return -EINVAL;
++	gpiod = devm_gpiod_get(&pdev->dev, name, GPIOD_ASIS);
++	if (IS_ERR(gpiod)) {
++		dev_err(&pdev->dev, "could not request %s %ld\n", name,
++			PTR_ERR(gpiod));
++		return gpiod;
+ 	}
+ 
+-	rc = devm_gpio_request(&pdev->dev, gpio, name);
+-	if (rc) {
+-		dev_err(&pdev->dev, "could not request %s %d\n", name, rc);
+-		return rc;
+-	}
++	if (is_output)
++		rc = gpiod_direction_output_raw(gpiod, 0);
++	else
++		rc = gpiod_direction_input(gpiod);
+ 
+-	rc = gpio_direction_output(gpio, 0);
+ 	if (rc) {
+-		dev_err(&pdev->dev, "could not set %s output %d\n", name, rc);
+-		return rc;
++		dev_err(&pdev->dev, "could not set direction for %s %d\n",
++			name, rc);
++		return ERR_PTR(rc);
+ 	}
+ 
+-	return gpio;
++	return gpiod;
+ }
+ 
+ static int tegra_uss_io_proxy_probe(struct platform_device *pdev)
+@@ -408,33 +406,37 @@ static int tegra_uss_io_proxy_probe(struct platform_device *pdev)
+ 				     "uss_hss_version is not valid.");
+ 	}
+ 
+-	proxy->uss_reset_gpio = tegra_uss_request_gpio(pdev, "uss-nres");
+-	if (proxy->uss_reset_gpio < 0) {
+-		return dev_err_probe(&pdev->dev, proxy->uss_reset_gpio,
++	proxy->uss_reset_gpio = tegra_uss_request_gpio(pdev, "uss-nres", true);
++	if (IS_ERR(proxy->uss_reset_gpio)) {
++		return dev_err_probe(&pdev->dev, PTR_ERR(proxy->uss_reset_gpio),
+ 				     "failed to get uss-nres GPIO\n");
+ 	}
+ 
+-	proxy->vsup_dia_gpio = tegra_uss_request_gpio(pdev, "uss-vsup-dia");
+-	if (proxy->vsup_dia_gpio < 0) {
+-		return dev_err_probe(&pdev->dev, proxy->vsup_dia_gpio,
++	proxy->vsup_dia_gpio = tegra_uss_request_gpio(pdev, "uss-vsup-dia",
++						      true);
++	if (IS_ERR(proxy->vsup_dia_gpio)) {
++		return dev_err_probe(&pdev->dev, PTR_ERR(proxy->vsup_dia_gpio),
+ 				     "failed to get vsup-dia GPIO\n");
+ 	}
+ 
+ 	if (proxy->hss_version == 1) {
+-		rc = tegra_uss_request_gpio(pdev, "uss-vsup-latch");
+-		if (rc < 0)
+-			return dev_err_probe(&pdev->dev, rc, "failed to get vsup-latch GPIO\n");
+-
+-		proxy->vsup_fault_gpio = rc;
++		proxy->vsup_fault_gpio = tegra_uss_request_gpio(pdev,
++								"uss-vsup-latch",
++								true);
++		if (IS_ERR(proxy->vsup_fault_gpio))
++			return dev_err_probe(&pdev->dev,
++					     PTR_ERR(proxy->vsup_fault_gpio),
++					     "failed to get vsup-latch GPIO\n");
+ 	}
+ 
+ 	if (proxy->hss_version == 2) {
+-		rc = tegra_uss_request_gpio(pdev, "uss-vsup-fault");
+-		if (rc < 0)
+-			return dev_err_probe(&pdev->dev, rc, "failed to get vsup-fault GPIO\n");
+-
+-		proxy->vsup_fault_gpio = rc;
+-		gpio_direction_input(proxy->vsup_fault_gpio);
++		proxy->vsup_fault_gpio = tegra_uss_request_gpio(pdev,
++								"uss-vsup-fault",
++								false);
++		if (IS_ERR(proxy->vsup_fault_gpio))
++			return dev_err_probe(&pdev->dev,
++					     PTR_ERR(proxy->vsup_fault_gpio),
++					     "failed to get vsup-fault GPIO\n");
+ 	}
+ 
+ 	proxy->g1_gpiods = devm_gpiod_get_array(&pdev->dev, "sensor-group-1",
+@@ -463,7 +465,7 @@ static void tegra_uss_reset(struct platform_device *pdev)
+ 	unsigned long bitmap = 0;
+ 	int rc;
+ 
+-	gpio_set_value(proxy->uss_reset_gpio, 0);
++	gpiod_set_raw_value(proxy->uss_reset_gpio, 0);
+ 
+ 	rc = reset_control_assert(proxy->i2s8_reset);
+ 	if (rc)
+-- 
+2.43.0
+

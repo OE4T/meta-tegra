@@ -1,0 +1,281 @@
+From 4a9cf444faceaaa4d10730db94b0d16704d6ff26 Mon Sep 17 00:00:00 2001
+From: Santosh BS <santoshb@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:29 -0800
+Subject: [PATCH 45/59] drm/tegra: move disply related code under
+ CONFIG_DRM_TEGRA_HAVE_DISPLAY
+
+As Tegra DRM driver display support is not needed for recent chips,
+move the related codes under CONFIG_DRM_TEGRA_HAVE_DISPLAY and enable
+that flag based on legacy chip configs accordingly.
+
+Jira HOSTX-5833
+
+Upstream-Status: Backport
+Change-Id: Iddf884f5abdfe2500e7195778bc77f9423acc2d3
+Signed-off-by: Santosh BS <santoshb@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3292246
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+(cherry picked from commit 91751dfb742dfd488301fa8cc00bc6c604684e12)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/Makefile           | 16 +++++++++++++++-
+ drivers/gpu/drm/tegra/Makefile | 14 ++++++++++----
+ drivers/gpu/drm/tegra/dc.c     |  2 ++
+ drivers/gpu/drm/tegra/drm.c    | 21 ++++++++++++++++++++-
+ drivers/gpu/drm/tegra/drm.h    | 12 +++++++++++-
+ 5 files changed, 58 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/gpu/Makefile b/drivers/gpu/Makefile
+index 6bafaa25..ed305e6e 100644
+--- a/drivers/gpu/Makefile
++++ b/drivers/gpu/Makefile
+@@ -1,5 +1,19 @@
+ # SPDX-License-Identifier: GPL-2.0
+-# Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
++# Copyright (c) 2022-2025, NVIDIA CORPORATION.  All rights reserved.
++
++ifneq ($(filter y, $(CONFIG_ARCH_TEGRA_2x_SOC) $(CONFIG_ARCH_TEGRA_3x_SOC) \
++	$(CONFIG_ARCH_TEGRA_114_SOC) $(CONFIG_ARCH_TEGRA_124_SOC) $(CONFIG_ARCH_TEGRA_132_SOC) \
++	$(CONFIG_ARCH_TEGRA_210_SOC) $(CONFIG_ARCH_TEGRA_186_SOC)),)
++export CONFIG_HOST1X_HAVE_SYNCPT_BASE=y
++subdir-ccflags-y += -DCONFIG_HOST1X_HAVE_SYNCPT_BASE
++endif
++
++ifneq ($(filter y, $(CONFIG_ARCH_TEGRA_2x_SOC) $(CONFIG_ARCH_TEGRA_3x_SOC) \
++	$(CONFIG_ARCH_TEGRA_114_SOC) $(CONFIG_ARCH_TEGRA_124_SOC) $(CONFIG_ARCH_TEGRA_132_SOC) \
++	$(CONFIG_ARCH_TEGRA_210_SOC) $(CONFIG_ARCH_TEGRA_186_SOC) $(CONFIG_ARCH_TEGRA_194_SOC)),)
++export CONFIG_DRM_TEGRA_HAVE_DISPLAY=y
++subdir-ccflags-y += -DCONFIG_DRM_TEGRA_HAVE_DISPLAY
++endif
+ 
+ obj-m += drm/tegra/
+ obj-m += host1x/
+diff --git a/drivers/gpu/drm/tegra/Makefile b/drivers/gpu/drm/tegra/Makefile
+index 976ee440..836c9606 100644
+--- a/drivers/gpu/drm/tegra/Makefile
++++ b/drivers/gpu/drm/tegra/Makefile
+@@ -1,5 +1,5 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+-# Copyright (c) 2022-2024, NVIDIA CORPORATION.  All rights reserved.
++# Copyright (c) 2022-2025, NVIDIA CORPORATION.  All rights reserved.
+ 
+ ccflags-$(CONFIG_DRM_TEGRA_DEBUG) += -DDEBUG
+ ccflags-y += -I$(srctree.nvidia-oot)/drivers/gpu/drm/tegra/include
+@@ -12,6 +12,10 @@ tegra-drm-y := \
+ 	firewall.o \
+ 	gem.o \
+ 	fb.o \
++	virt.o
++
++ifeq ($(CONFIG_DRM_TEGRA_HAVE_DISPLAY),y)
++tegra-drm-y += \
+ 	dp.o \
+ 	hub.o \
+ 	plane.o \
+@@ -25,7 +29,10 @@ tegra-drm-y := \
+ 	sor.o \
+ 	dpaux.o \
+ 	gr2d.o \
+-	gr3d.o \
++	gr3d.o
++endif
++
++tegra-drm-y += \
+ 	falcon.o \
+ 	hwpm.o \
+ 	vic.o \
+@@ -34,8 +41,7 @@ tegra-drm-y := \
+ 	nvjpg.o \
+ 	riscv.o \
+ 	util.o \
+-	ofa.o \
+-	virt.o
++	ofa.o
+ 
+ tegra-drm-y += trace.o
+ 
+diff --git a/drivers/gpu/drm/tegra/dc.c b/drivers/gpu/drm/tegra/dc.c
+index e2f2e9b8..e192ba19 100644
+--- a/drivers/gpu/drm/tegra/dc.c
++++ b/drivers/gpu/drm/tegra/dc.c
+@@ -2629,7 +2629,9 @@ static int tegra_dc_init(struct host1x_client *client)
+ 	 * DC has been reset by now, so VBLANK syncpoint can be released
+ 	 * for general use.
+ 	 */
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ 	host1x_syncpt_release_vblank_reservation(client, 26 + dc->pipe);
++#endif
+ 
+ 	/*
+ 	 * XXX do not register DCs with no window groups because we cannot
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 8962c2c3..8f8b2426 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -65,7 +65,11 @@ static int tegra_atomic_check(struct drm_device *drm,
+ 	if (err < 0)
+ 		return err;
+ 
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ 	return tegra_display_hub_atomic_check(drm, state);
++#else
++	return 0;
++#endif
+ }
+ 
+ static const struct drm_mode_config_funcs tegra_drm_mode_config_funcs = {
+@@ -74,6 +78,7 @@ static const struct drm_mode_config_funcs tegra_drm_mode_config_funcs = {
+ 	.atomic_commit = drm_atomic_helper_commit,
+ };
+ 
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ static void tegra_atomic_post_commit(struct drm_device *drm,
+ 				     struct drm_atomic_state *old_state)
+ {
+@@ -112,7 +117,13 @@ static const struct drm_mode_config_helper_funcs
+ tegra_drm_mode_config_helpers = {
+ 	.atomic_commit_tail = tegra_atomic_commit_tail,
+ };
+-
++#else
++static const struct drm_mode_config_helper_funcs
++tegra_drm_mode_config_helpers = {
++	.atomic_commit_tail = drm_atomic_helper_commit_tail_rpm,
++};
++#endif
++	
+ static int tegra_drm_open(struct drm_device *drm, struct drm_file *filp)
+ {
+ 	struct tegra_drm_file *fpriv;
+@@ -1302,11 +1313,13 @@ static int host1x_drm_probe(struct host1x_device *dev)
+ 		iova_cache_put();
+ 	}
+ 
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ 	if (tegra->hub) {
+ 		err = tegra_display_hub_prepare(tegra->hub);
+ 		if (err < 0)
+ 			goto device;
+ 	}
++#endif
+ 
+ #if defined(NV_DRM_DRIVER_STRUCT_HAS_IRQ_ENABLED_ARG) /* Linux v5.15 */
+ 	/*
+@@ -1353,9 +1366,11 @@ static int host1x_drm_probe(struct host1x_device *dev)
+ 	return 0;
+ 
+ hub:
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ 	if (tegra->hub)
+ 		tegra_display_hub_cleanup(tegra->hub);
+ device:
++#endif
+ 	if (tegra->domain) {
+ 		mutex_destroy(&tegra->mm_lock);
+ 		drm_mm_takedown(&tegra->mm);
+@@ -1389,8 +1404,10 @@ static int host1x_drm_remove(struct host1x_device *dev)
+ 	drm_atomic_helper_shutdown(drm);
+ 	drm_mode_config_cleanup(drm);
+ 
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ 	if (tegra->hub)
+ 		tegra_display_hub_cleanup(tegra->hub);
++#endif
+ 
+ 	err = host1x_device_exit(dev);
+ 	if (err < 0)
+@@ -1492,6 +1509,7 @@ static struct host1x_driver host1x_drm_driver = {
+ };
+ 
+ static struct platform_driver * const drivers[] = {
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ 	&tegra_display_hub_driver,
+ 	&tegra_dc_driver,
+ 	&tegra_hdmi_driver,
+@@ -1500,6 +1518,7 @@ static struct platform_driver * const drivers[] = {
+ 	&tegra_sor_driver,
+ 	&tegra_gr2d_driver,
+ 	&tegra_gr3d_driver,
++#endif
+ 	&tegra_vic_driver,
+ 	&tegra_nvdec_driver,
+ 	&tegra_nvenc_driver,
+diff --git a/drivers/gpu/drm/tegra/drm.h b/drivers/gpu/drm/tegra/drm.h
+index 4e31e5b8..cb2ce07c 100644
+--- a/drivers/gpu/drm/tegra/drm.h
++++ b/drivers/gpu/drm/tegra/drm.h
+@@ -1,7 +1,7 @@
+ /* SPDX-License-Identifier: GPL-2.0-only */
+ /*
+  * Copyright (C) 2012 Avionic Design GmbH
+- * Copyright (C) 2012-2013 NVIDIA CORPORATION.  All rights reserved.
++ * Copyright (C) 2012-2025 NVIDIA CORPORATION.  All rights reserved.
+  */
+ 
+ #ifndef HOST1X_DRM_H
+@@ -12,15 +12,19 @@
+ #include <linux/gpio/consumer.h>
+ 
+ #include <drm/drm_atomic.h>
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ #include <drm/drm_bridge.h>
+ #include <drm/drm_edid.h>
+ #include <drm/drm_encoder.h>
++#endif
+ #include <drm/drm_fixed.h>
+ #include <drm/drm_probe_helper.h>
+ #include <uapi/drm/tegra_drm_next.h>
+ 
+ #include "gem.h"
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ #include "hub.h"
++#endif
+ #include <trace/events/trace.h>
+ 
+ /* XXX move to include/uapi/drm/drm_fourcc.h? */
+@@ -52,7 +56,9 @@ struct tegra_drm {
+ 	unsigned int pitch_align;
+ 	unsigned int num_crtcs;
+ 
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ 	struct tegra_display_hub *hub;
++#endif
+ };
+ 
+ static inline struct host1x *tegra_drm_to_host1x(struct tegra_drm *tegra)
+@@ -140,6 +146,7 @@ void *tegra_drm_alloc(struct tegra_drm *tegra, size_t size, dma_addr_t *iova);
+ void tegra_drm_free(struct tegra_drm *tegra, size_t size, void *virt,
+ 		    dma_addr_t iova);
+ 
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ struct cec_notifier;
+ 
+ struct tegra_output {
+@@ -190,6 +197,7 @@ int drm_dp_aux_attach(struct drm_dp_aux *aux, struct tegra_output *output);
+ int drm_dp_aux_detach(struct drm_dp_aux *aux);
+ int drm_dp_aux_enable(struct drm_dp_aux *aux);
+ int drm_dp_aux_disable(struct drm_dp_aux *aux);
++#endif
+ 
+ /* from fb.c */
+ struct tegra_bo *tegra_fb_get_plane(struct drm_framebuffer *framebuffer,
+@@ -224,6 +232,7 @@ static inline void tegra_fbdev_setup(struct drm_device *drm)
+ #endif
+ #endif /* NV_DRM_DRIVER_HAS_FBDEV_PROBE */
+ 
++#ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ extern struct platform_driver tegra_display_hub_driver;
+ extern struct platform_driver tegra_dc_driver;
+ extern struct platform_driver tegra_hdmi_driver;
+@@ -232,6 +241,7 @@ extern struct platform_driver tegra_dpaux_driver;
+ extern struct platform_driver tegra_sor_driver;
+ extern struct platform_driver tegra_gr2d_driver;
+ extern struct platform_driver tegra_gr3d_driver;
++#endif
+ extern struct platform_driver tegra_vic_driver;
+ extern struct platform_driver tegra_nvdec_driver;
+ extern struct platform_driver tegra_nvenc_driver;
+-- 
+2.43.0
+

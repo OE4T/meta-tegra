@@ -1,0 +1,60 @@
+From e7a6e9c3b46d8470e2afcc71b8e6708e7c1f40d4 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 08:22:25 -0800
+Subject: [PATCH 42/59] drivers: realtek: bt: replace set_bit() with
+ hci_set_quirk()
+
+Based on kernel upstream commit 6851a0c228fc("Bluetooth: hci_dev:
+replace 'quirks' integer by 'quirk_flags' bitmap"), it needs to
+replace set_bit() with hci_set_quirk(). Linux 6.16 and later.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/bluetooth/realtek/rtk_bt.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/bluetooth/realtek/rtk_bt.c b/drivers/bluetooth/realtek/rtk_bt.c
+index 7a778a96..4d30edc8 100644
+--- a/drivers/bluetooth/realtek/rtk_bt.c
++++ b/drivers/bluetooth/realtek/rtk_bt.c
+@@ -51,6 +51,10 @@ static DEFINE_SEMAPHORE(switch_sem);
+ static bool reset = true;
+ #endif
+ 
++#if HCI_VERSION_CODE < KERNEL_VERSION(6, 16, 0)
++#define hci_set_quirk(hdev, nr) set_bit((nr), &(hdev)->quirks)
++#endif
++
+ static struct usb_driver btusb_driver;
+ #if HCI_VERSION_CODE >= KERNEL_VERSION(5, 6, 0)
+ static u16 iso_min_conn_handle = 0x1b;
+@@ -2037,12 +2041,12 @@ static int btusb_probe(struct usb_interface *intf,
+ 
+ #if HCI_VERSION_CODE >= KERNEL_VERSION(5, 8, 0)
+ 	set_bit(BTUSB_USE_ALT3_FOR_WBS, &data->flags);
+-	set_bit(HCI_QUIRK_WIDEBAND_SPEECH_SUPPORTED, &hdev->quirks);
++	hci_set_quirk(hdev, HCI_QUIRK_WIDEBAND_SPEECH_SUPPORTED);
+ #endif
+ 
+ #if HCI_VERSION_CODE >= KERNEL_VERSION(3, 7, 1)
+ 	if (!reset)
+-		set_bit(HCI_QUIRK_RESET_ON_CLOSE, &hdev->quirks);
++		hci_set_quirk(hdev, HCI_QUIRK_RESET_ON_CLOSE);
+ #endif
+ 
+ 	/* Interface numbers are hardcoded in the specification */
+@@ -2059,7 +2063,7 @@ static int btusb_probe(struct usb_interface *intf,
+ 	}
+ 
+ #if HCI_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
+-	set_bit(HCI_QUIRK_SIMULTANEOUS_DISCOVERY, &hdev->quirks);
++	hci_set_quirk(hdev, HCI_QUIRK_SIMULTANEOUS_DISCOVERY);
+ #endif
+ 
+ 	err = hci_register_dev(hdev);
+-- 
+2.43.0
+

@@ -1,0 +1,114 @@
+From 20465477bcc0feef82a160373019ee16f31120bc Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:21 -0800
+Subject: [PATCH 35/59] ASoC: tegra: Fix build for Linux v6.15
+
+In Linux v6.15, the SOC_SINGLE_VALUE macro was updated and an 'xmin'
+parameter was added. Add a conftest test to check for this and update
+the Tegra ARAD driver accordingly.
+
+JIRA LINQPJ14-47
+
+Upstream-Status: Backport [commit cf368bfa2b]
+Change-Id: I597104327dac9108a7ab106f0c3fec575947626d
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3328425
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: svcacv <svcacv@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: Sameer Pujar <spujar@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ scripts/conftest/Makefile       |  1 +
+ scripts/conftest/conftest.sh    | 19 +++++++++++++++++++
+ sound/soc/tegra/tegra186_arad.c | 18 ++++++++++++------
+ 3 files changed, 32 insertions(+), 6 deletions(-)
+
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 49684af8..1607f586 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -193,6 +193,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_dai_ops_struct_set_channel_map_has
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_of_get_dai_name_has_index_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_rtd_to_codec
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += simple_util_dai_init
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += soc_single_value_has_xmin_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += spi_get_chipselect
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tc_taprio_qopt_offload_struct_has_cmd
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tegra264_chip_id
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 4fc3a8ca..c121573f 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -8309,6 +8309,25 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_ASOC_SIMPLE_RENAMED_SIMPLE" "" "functions"
+         ;;
+ 
++        soc_single_value_has_xmin_arg)
++            #
++            # Determine if SOC_SINGLE_VALUE macro has xmin arg
++            #
++            # Commit 6db630902727 ("ASoC: Tidy up SOC_DOUBLE_* and SOC_SINGLE_*
++            # helpers") added an 'xmin' argument to the SOC_SINGLE_VALUE macro
++            # in Linux v6.15.
++            #
++            CODE="
++            #include <sound/soc.h>
++            void conftest_soc_single_value_has_xmin_arg(void)
++            {
++                int value = SOC_SINGLE_VALUE(0, 0, 0, 0, 0, 0);
++            }
++            "
++
++            compile_check_conftest "$CODE" "NV_SOC_SINGLE_VALUE_HAS_XMIN_ARG" "" "types"
++        ;;
++
+         spi_get_chipselect)
+             #
+             # Determine if the function 'spi_get_chip_select()' is present.
+diff --git a/sound/soc/tegra/tegra186_arad.c b/sound/soc/tegra/tegra186_arad.c
+index 4b7078a0..63099f14 100644
+--- a/sound/soc/tegra/tegra186_arad.c
++++ b/sound/soc/tegra/tegra186_arad.c
+@@ -430,15 +430,21 @@ static ARAD_MUX_ENUM_CTRL_DECL(denominator6,
+ 		0, 0xffff, 0, tegra186_arad_get_prescalar, \
+ 		tegra186_arad_put_prescalar)
+ 
++#if defined(NV_SOC_SINGLE_VALUE_HAS_XMIN_ARG) /* Linux v6.15 */
++#define ARAD_SINGLE_VALUE(xreg, xmax) SOC_SINGLE_VALUE(xreg, 0, 0, xmax, 0, 0)
++#else
++#define ARAD_SINGLE_VALUE(xreg, xmax) SOC_SINGLE_VALUE(xreg, 0, xmax, 0, 0)
++#endif
++
+ #define ARAD_LINE_RATIO_INT(id) { \
+ 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER, \
+ 	.name = "Lane"#id" Ratio Int", \
+ 	.access = SNDRV_CTL_ELEM_ACCESS_READ | SNDRV_CTL_ELEM_ACCESS_VOLATILE, \
+ 	.info = tegra186_arad_get_info, \
+ 	.get = tegra186_arad_get_ratio_int, \
+-	.private_value = SOC_SINGLE_VALUE( \
+-		TEGRA186_ARAD_LANE##id##_RATIO_INTEGER_PART, 0, \
+-		TEGRA186_ARAD_LANE_RATIO_INTEGER_PART_MASK, 0, 0) }
++	.private_value = ARAD_SINGLE_VALUE( \
++		TEGRA186_ARAD_LANE##id##_RATIO_INTEGER_PART, \
++		TEGRA186_ARAD_LANE_RATIO_INTEGER_PART_MASK) }
+ 
+ #define ARAD_LINE_RATIO_FRAC(id) { \
+ 	.iface = SNDRV_CTL_ELEM_IFACE_MIXER,\
+@@ -446,9 +452,9 @@ static ARAD_MUX_ENUM_CTRL_DECL(denominator6,
+ 	.access = SNDRV_CTL_ELEM_ACCESS_READ | SNDRV_CTL_ELEM_ACCESS_VOLATILE,\
+ 	.info = tegra186_arad_get_info, \
+ 	.get = tegra186_arad_get_ratio_frac,\
+-	.private_value = SOC_SINGLE_VALUE(\
+-		TEGRA186_ARAD_LANE##id##_RATIO_FRACTIONAL_PART, 0, \
+-		TEGRA186_ARAD_LANE_RATIO_FRAC_PART_MASK, 0, 0) }
++	.private_value = ARAD_SINGLE_VALUE(\
++		TEGRA186_ARAD_LANE##id##_RATIO_FRACTIONAL_PART, \
++		TEGRA186_ARAD_LANE_RATIO_FRAC_PART_MASK) }
+ 
+ static const struct snd_kcontrol_new tegra186_arad_controls[] = {
+ 	SOC_SINGLE_EXT("Lane1 enable", TEGRA186_ARAD_LANE_ENABLE, 0, 1, 0,
+-- 
+2.43.0
+

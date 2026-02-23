@@ -1,0 +1,102 @@
+From ddb5dc86141723e039b99a6be7489e0124a9edbe Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:17 -0800
+Subject: [PATCH 23/59] misc: bluedroid_pm: Use
+ wakeup_source_register/unregister
+
+In Linux v6.16, commit 142ba31d8b4a ("PM: wakeup: Do not expose 4 device
+wakeup source APIs") made the wakeup_source_add/destroy internal
+functions. Instead of using wakeup_source_add/destroy, use
+wakeup_source_register/unregister which internally call
+wakeup_source_add/destroy and have been supported since Linux v2.6.x
+kernels.
+
+JIRA LINQPJ14-60
+
+Upstream-Status: Backport
+Change-Id: I6c471677876192e8985c8c336f95184564618c8a
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3375073
+(cherry picked from commit 8118ce4f4df7513d26ca3d0150cfa2104e969d35)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3461877
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+(cherry picked from commit 66ab02d7b928f4ce7a1adce8dfb5de8679e9ce3e)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/misc/bluedroid_pm.c | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/misc/bluedroid_pm.c b/drivers/misc/bluedroid_pm.c
+index 38d16b42..80c9609a 100644
+--- a/drivers/misc/bluedroid_pm.c
++++ b/drivers/misc/bluedroid_pm.c
+@@ -50,7 +50,7 @@ struct bluedroid_pm_data {
+ 	struct regulator *vdd_3v3;
+ 	struct regulator *vdd_1v8;
+ 	struct rfkill *rfkill;
+-	struct wakeup_source wake_lock;
++	struct wakeup_source *wake_lock;
+ 	struct pm_qos_request resume_cpu_freq_req;
+ 	bool resumed;
+ 	struct work_struct work;
+@@ -153,7 +153,7 @@ static void bluedroid_pm_timer_expire(struct timer_list *timer)
+ 		/* BT can sleep */
+ 		BDP_DBG("Tx and Rx are idle, BT sleeping");
+ 		bluedroid_pm_gpio_set_value(bluedroid_pm->ext_wake, 0);
+-		__pm_relax(&bluedroid_pm->wake_lock);
++		__pm_relax(bluedroid_pm->wake_lock);
+ 	} else {
+ 		/* BT Rx is busy, Reset Timer */
+ 		BDP_DBG("Rx is busy, restarting the timer");
+@@ -180,7 +180,7 @@ static int bluedroid_pm_rfkill_set_power(void *data, bool blocked)
+ 		if (bluedroid_pm->vdd_1v8)
+ 			ret |= regulator_disable(bluedroid_pm->vdd_1v8);
+ 		if (bluedroid_pm->ext_wake)
+-			__pm_relax(&bluedroid_pm->wake_lock);
++			__pm_relax(bluedroid_pm->wake_lock);
+ 		if (bluedroid_pm->resume_min_frequency)
+ 			cpu_latency_qos_remove_request(&bluedroid_pm->resume_cpu_freq_req);
+ 	} else {
+@@ -255,7 +255,7 @@ static ssize_t lpm_write_proc(struct file *file, const char __user *buffer,
+ 				BDP_DBG("Tx and Rx are idle, BT sleeping");
+ 					bluedroid_pm_gpio_set_value(
+ 						bluedroid_pm->ext_wake, 0);
+-					__pm_relax(&bluedroid_pm->wake_lock);
++					__pm_relax(bluedroid_pm->wake_lock);
+ 				} else {
+ 					/* Reset Timer */
+ 					BDP_DBG("Rx is busy, restarting the timer");
+@@ -267,7 +267,7 @@ static ssize_t lpm_write_proc(struct file *file, const char __user *buffer,
+ 			BDP_DBG("Tx is busy, wake_lock taken, delete timer");
+ 			bluedroid_pm_gpio_set_value(
+ 				bluedroid_pm->ext_wake, 1);
+-			__pm_stay_awake(&bluedroid_pm->wake_lock);
++			__pm_stay_awake(bluedroid_pm->wake_lock);
+ #if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
+ 			timer_delete(&bluedroid_pm_timer);
+ #else
+@@ -466,7 +466,8 @@ static int bluedroid_pm_probe(struct platform_device *pdev)
+ 			goto free_ext_wake;
+ 		}
+ 		/* initialize wake lock */
+-		wakeup_source_add(&bluedroid_pm->wake_lock);
++		bluedroid_pm->wake_lock = wakeup_source_register(&pdev->dev,
++							dev_name(&pdev->dev));
+ 		/* Initialize timer */
+ 		timer_setup(&bluedroid_pm->bluedroid_pm_timer,
+ 				bluedroid_pm_timer_expire, 0);
+@@ -510,7 +511,7 @@ static int bluedroid_pm_remove(struct platform_device *pdev)
+ 	if (bluedroid_pm->host_wake_irq > -1)
+ 		free_irq(bluedroid_pm->host_wake_irq, bluedroid_pm);
+ 	if ((bluedroid_pm->ext_wake)) {
+-		wakeup_source_destroy(&bluedroid_pm->wake_lock);
++		wakeup_source_unregister(bluedroid_pm->wake_lock);
+ 		remove_bt_proc_interface();
+ #if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
+ 		timer_delete(&bluedroid_pm_timer);
+-- 
+2.43.0
+

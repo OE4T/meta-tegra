@@ -1,0 +1,256 @@
+From a5f72b5dcad0797b6e48e1adb9ba65f1d5fe325b Mon Sep 17 00:00:00 2001
+From: Ketan Patil <ketanp@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:24 -0800
+Subject: [PATCH 40/59] video: tegra: nvmap: Take lock before reading dmabuf's
+ refcount
+
+As mentioned in previous gerrit patch 3021442, it is necessary to take a
+lock before reading dmabuf's refcount and also check for both dmabuf and
+dmabuf->file. This was not done in trace related code, update the code
+to take care of this.
+Also, add a function remove_handle_ref for removing the handle ref from
+client's handle_ref rb tree.
+
+Bug 4404709
+
+Upstream-Status: Backport [commit d5207547eb]
+Change-Id: Ic93536015f17a265c3dccbea8ce45c6b45af2fc2
+Signed-off-by: Ketan Patil <ketanp@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3046839
+Reviewed-by: Ashish Mhetre <amhetre@nvidia.com>
+Reviewed-by: Sachin Nikam <snikam@nvidia.com>
+GVS: Gerrit_Virtual_Submit <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/video/tegra/nvmap/nvmap_handle.c  | 14 ++++++
+ drivers/video/tegra/nvmap/nvmap_ioctl.c   | 59 ++++++++++++++++++++---
+ drivers/video/tegra/nvmap/nvmap_sci_ipc.c | 13 ++++-
+ 3 files changed, 76 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/video/tegra/nvmap/nvmap_handle.c b/drivers/video/tegra/nvmap/nvmap_handle.c
+index 32cd0a9a..a873c5d2 100644
+--- a/drivers/video/tegra/nvmap/nvmap_handle.c
++++ b/drivers/video/tegra/nvmap/nvmap_handle.c
+@@ -163,6 +163,19 @@ static void add_handle_ref(struct nvmap_client *client,
+ 	nvmap_ref_unlock(client);
+ }
+ 
++/*
++ * Remove handle ref from client's handle_ref rb tree.
++ */
++static void remove_handle_ref(struct nvmap_client *client,
++			   struct nvmap_handle_ref *ref)
++{
++	nvmap_ref_lock(client);
++	atomic_dec(&ref->handle->share_count);
++	client->handle_count--;
++	rb_erase(&ref->node, &client->handle_refs);
++	nvmap_ref_unlock(client);
++}
++
+ struct nvmap_handle_ref *nvmap_create_handle_from_va(struct nvmap_client *client,
+ 						     ulong vaddr, size_t size,
+ 						     u32 flags)
+@@ -443,6 +456,7 @@ exit_mm:
+ 	}
+ 
+ exit:
++	remove_handle_ref(client, ref);
+ 	pr_err("dmabuf is NULL\n");
+ 	kfree(ref);
+ 	return ERR_PTR(-EINVAL);
+diff --git a/drivers/video/tegra/nvmap/nvmap_ioctl.c b/drivers/video/tegra/nvmap/nvmap_ioctl.c
+index 0bd10bed..f29b4273 100644
+--- a/drivers/video/tegra/nvmap/nvmap_ioctl.c
++++ b/drivers/video/tegra/nvmap/nvmap_ioctl.c
+@@ -144,6 +144,7 @@ int nvmap_ioctl_getfd(struct file *filp, void __user *arg)
+ 	struct dma_buf *dmabuf;
+ 	int ret = 0;
+ 	bool is_ro = false;
++	long dmabuf_ref = 0;
+ 
+ 	if (copy_from_user(&op, arg, sizeof(op)))
+ 		return -EFAULT;
+@@ -173,11 +174,19 @@ int nvmap_ioctl_getfd(struct file *filp, void __user *arg)
+ 	ret = nvmap_install_fd(client, handle,
+ 				op.fd, arg, &op, sizeof(op), 0, dmabuf);
+ 
+-	if (!ret && !IS_ERR_OR_NULL(handle))
++	if (!ret && !IS_ERR_OR_NULL(handle)) {
++		mutex_lock(&handle->lock);
++		if (dmabuf && dmabuf->file) {
++			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++		} else {
++			dmabuf_ref = 0;
++		}
++		mutex_unlock(&handle->lock);
+ 		trace_refcount_getfd(handle, dmabuf,
+ 				atomic_read(&handle->ref),
+-				atomic_long_read(&dmabuf->file->f_count),
++				dmabuf_ref,
+ 				is_ro ? "RO" : "RW");
++	}
+ 
+ fail:
+ 	if (!IS_ERR_OR_NULL(handle))
+@@ -195,6 +204,7 @@ int nvmap_ioctl_alloc(struct file *filp, void __user *arg)
+ 	bool is_ro = false;
+ 	int err, i;
+ 	unsigned int page_sz = PAGE_SIZE;
++	long dmabuf_ref = 0;
+ 
+ 	if (copy_from_user(&op, arg, sizeof(op)))
+ 		return -EFAULT;
+@@ -243,10 +253,17 @@ int nvmap_ioctl_alloc(struct file *filp, void __user *arg)
+ 				  NVMAP_IVM_INVALID_PEER);
+ 
+ 	if (!err && !is_nvmap_id_ro(client, op.handle, &is_ro)) {
++		mutex_lock(&handle->lock);
+ 		dmabuf = is_ro ? handle->dmabuf_ro : handle->dmabuf;
++		if (dmabuf && dmabuf->file) {
++			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++		} else {
++			dmabuf_ref = 0;
++		}
++		mutex_unlock(&handle->lock);
+ 		trace_refcount_alloc(handle, dmabuf,
+ 				atomic_read(&handle->ref),
+-				atomic_long_read(&dmabuf->file->f_count),
++				dmabuf_ref,
+ 				is_ro ? "RO" : "RW");
+ 	}
+ 	nvmap_handle_put(handle);
+@@ -305,6 +322,7 @@ int nvmap_ioctl_create(struct file *filp, unsigned int cmd, void __user *arg)
+ 	int fd = -1, ret = 0;
+ 	u32 id = 0;
+ 	bool is_ro = false;
++	long dmabuf_ref = 0;
+ 
+ 	if (copy_from_user(&op, arg, sizeof(op)))
+ 		return -EFAULT;
+@@ -385,15 +403,23 @@ int nvmap_ioctl_create(struct file *filp, unsigned int cmd, void __user *arg)
+ 
+ out:
+ 	if (!ret && !IS_ERR_OR_NULL(handle)) {
++		mutex_lock(&handle->lock);
++		if (dmabuf && dmabuf->file) {
++			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++		} else {
++			dmabuf_ref = 0;
++		}
++		mutex_unlock(&handle->lock);
++
+ 		if (cmd == NVMAP_IOC_FROM_FD)
+ 			trace_refcount_create_handle_from_fd(handle, dmabuf,
+ 				atomic_read(&handle->ref),
+-				atomic_long_read(&dmabuf->file->f_count),
++				dmabuf_ref,
+ 				is_ro ? "RO" : "RW");
+ 		else
+ 			trace_refcount_create_handle(handle, dmabuf,
+ 				atomic_read(&handle->ref),
+-				atomic_long_read(&dmabuf->file->f_count),
++				dmabuf_ref,
+ 				is_ro ? "RO" : "RW");
+ 	}
+ 
+@@ -413,6 +439,7 @@ int nvmap_ioctl_create_from_va(struct file *filp, void __user *arg)
+ 	struct dma_buf *dmabuf = NULL;
+ 	struct nvmap_handle *handle = NULL;
+ 	bool is_ro = false;
++	long dmabuf_ref = 0;
+ 
+ 	if (copy_from_user(&op, arg, sizeof(op)))
+ 		return -EFAULT;
+@@ -473,11 +500,19 @@ int nvmap_ioctl_create_from_va(struct file *filp, void __user *arg)
+ 				arg, &op, sizeof(op), 1, dmabuf);
+ 
+ out:
+-	if (!err)
++	if (!err) {
++		mutex_lock(&handle->lock);
++		if (dmabuf && dmabuf->file) {
++			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++		} else {
++			dmabuf_ref = 0;
++		}
++		mutex_unlock(&handle->lock);
+ 		trace_refcount_create_handle_from_va(handle, dmabuf,
+ 				atomic_read(&handle->ref),
+-				atomic_long_read(&dmabuf->file->f_count),
++				dmabuf_ref,
+ 				is_ro ? "RO" : "RW");
++	}
+ 	atomic_dec(&ref->dupes);
+ 	return err;
+ }
+@@ -1232,6 +1267,7 @@ int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
+ 	struct dma_buf *dmabuf = NULL;
+ 	bool is_ro = false;
+ 	int ret = 0;
++	long dmabuf_ref = 0;
+ 
+ 	if (copy_from_user(&op, arg, sizeof(op)))
+ 		return -EFAULT;
+@@ -1269,10 +1305,17 @@ int nvmap_ioctl_get_sci_ipc_id(struct file *filp, void __user *arg)
+ 
+ exit:
+ 	if (!ret) {
++		mutex_lock(&handle->lock);
+ 		dmabuf = is_ro ? handle->dmabuf_ro : handle->dmabuf;
++		if (dmabuf && dmabuf->file) {
++			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++		} else {
++			dmabuf_ref = 0;
++		}
++		mutex_unlock(&handle->lock);
+ 		trace_refcount_get_sci_ipc_id(handle, dmabuf,
+ 				atomic_read(&handle->ref),
+-				atomic_long_read(&dmabuf->file->f_count),
++				dmabuf_ref,
+ 				is_ro ? "RO" : "RW");
+ 	}
+ 
+diff --git a/drivers/video/tegra/nvmap/nvmap_sci_ipc.c b/drivers/video/tegra/nvmap/nvmap_sci_ipc.c
+index a8ca565a..7c75c24c 100644
+--- a/drivers/video/tegra/nvmap/nvmap_sci_ipc.c
++++ b/drivers/video/tegra/nvmap/nvmap_sci_ipc.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (c) 2019-2023, NVIDIA CORPORATION. All rights reserved.
++ * Copyright (c) 2019-2024, NVIDIA CORPORATION. All rights reserved.
+  *
+  * mapping between nvmap_hnadle and sci_ipc entery
+  */
+@@ -222,6 +222,7 @@ int nvmap_get_handle_from_sci_ipc_id(struct nvmap_client *client, u32 flags,
+ 	long remain;
+ 	int ret = 0;
+ 	int fd;
++	long dmabuf_ref = 0;
+ 
+ 	mutex_lock(&nvmapsciipc->mlock);
+ 
+@@ -346,10 +347,18 @@ unlock:
+ 	mutex_unlock(&nvmapsciipc->mlock);
+ 
+ 	if (!ret) {
++		mutex_lock(&h->lock);
++		if (dmabuf && dmabuf->file) {
++			dmabuf_ref = atomic_long_read(&dmabuf->file->f_count);
++		} else {
++			dmabuf_ref = 0;
++		}
++		mutex_unlock(&h->lock);
++
+ 		if (!client->ida)
+ 			trace_refcount_create_handle_from_sci_ipc_id(h, dmabuf,
+ 				atomic_read(&h->ref),
+-				atomic_long_read(&dmabuf->file->f_count),
++				dmabuf_ref,
+ 				is_ro ? "RO" : "RW");
+ 		else
+ 			trace_refcount_get_handle_from_sci_ipc_id(h, dmabuf,
+-- 
+2.43.0
+

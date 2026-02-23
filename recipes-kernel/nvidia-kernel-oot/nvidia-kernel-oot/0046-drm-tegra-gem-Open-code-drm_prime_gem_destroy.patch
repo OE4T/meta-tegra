@@ -1,0 +1,40 @@
+From f0993d707e77064e79571f3c6eec13400fb73b19 Mon Sep 17 00:00:00 2001
+From: Mikko Perttunen <mperttunen@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:30 -0800
+Subject: [PATCH 46/59] drm/tegra: gem: Open code drm_prime_gem_destroy
+
+Since we aren't using drm_gem_prime_import(_dev), for clarity don't
+use the corresponding destroy function either.
+
+Upstream-Status: Backport [commit a050b8203b79]
+Signed-off-by: Mikko Perttunen <mperttunen@nvidia.com>
+Change-Id: I024a78a6378d0fa6f0134958904122b8d201d99c
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3090412
+GVS: Gerrit_Virtual_Submit <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Santosh BS <santoshb@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/gem.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/tegra/gem.c b/drivers/gpu/drm/tegra/gem.c
+index fffdaa0f..72f9a291 100644
+--- a/drivers/gpu/drm/tegra/gem.c
++++ b/drivers/gpu/drm/tegra/gem.c
+@@ -523,9 +523,12 @@ void tegra_bo_free_object(struct drm_gem_object *gem)
+ 		tegra_bo_iommu_unmap(tegra, bo);
+ 
+ 	if (gem->import_attach) {
++		struct dma_buf *dmabuf = gem->import_attach->dmabuf;
++
+ 		dma_buf_unmap_attachment(gem->import_attach, bo->sgt,
+ 					 DMA_TO_DEVICE);
+-		drm_prime_gem_destroy(gem, NULL);
++		dma_buf_detach(dmabuf, gem->import_attach);
++		dma_buf_put(dmabuf);
+ 	} else {
+ 		tegra_bo_free(gem->dev, bo);
+ 	}
+-- 
+2.43.0
+

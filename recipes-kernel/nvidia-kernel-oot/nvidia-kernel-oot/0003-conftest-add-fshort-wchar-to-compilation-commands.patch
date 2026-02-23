@@ -1,29 +1,31 @@
-From d170b69f9518a034c97b48001232993418c91f24 Mon Sep 17 00:00:00 2001
+From fd5b5aa4a1af278a74187deee7b2b18a2eae4972 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Sun, 12 Jan 2025 06:57:55 -0800
-Subject: [PATCH 2/3] conftest: fix compatibility with gcc 14
+Date: Fri, 20 Feb 2026 05:56:39 -0800
+Subject: [PATCH 03/15] conftest: add -fshort-wchar to compilation commands
+
+to match what is passed to the compiler in kernel builds,
+avoiding build failures due to use of 'L"..."' string constants
+in kernel headers.
 
 Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- kernel-open/conftest.sh | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel-open/conftest.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
-index 61ac17d..13c0b0c 100644
+index a685944..8463bad 100644
 --- a/kernel-open/conftest.sh
 +++ b/kernel-open/conftest.sh
-@@ -88,8 +88,8 @@ build_cflags() {
+@@ -90,7 +90,7 @@ build_cflags() {
      ISYSTEM=`$CC -print-file-name=include 2> /dev/null`
      BASE_CFLAGS="-O2 -D__KERNEL__ \
  -DKBUILD_BASENAME=\"#conftest$$\" -DKBUILD_MODNAME=\"#conftest$$\" \
 --nostdinc -isystem $ISYSTEM \
---Wno-implicit-function-declaration -Wno-strict-prototypes"
 +-nostdinc -isystem $ISYSTEM -fshort-wchar \
-+-Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-error=incompatible-pointer-types"
+ -Wno-implicit-function-declaration -Wno-strict-prototypes"
  
      if [ "$OUTPUT" != "$SOURCES" ]; then
-         OUTPUT_CFLAGS="-I$OUTPUT/include2 -I$OUTPUT/include"
 -- 
 2.43.0
 

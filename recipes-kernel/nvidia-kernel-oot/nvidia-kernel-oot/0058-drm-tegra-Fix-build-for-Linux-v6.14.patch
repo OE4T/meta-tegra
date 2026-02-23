@@ -1,0 +1,39 @@
+From 7d13e09939888c9f35bcdd7dfa6d73699a40b06e Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:24:12 -0800
+Subject: [PATCH 58/59] drm/tegra: Fix build for Linux v6.14
+
+In Linux v6.14, the 'date' field was removed from the 'drm_driver'
+structure. Add a test to conftest to detect this and update the Tegra
+DRM driver accordingly.
+
+Jira LINQPJ14-6
+
+Upstream-Status: Backport
+Change-Id: Ia3024321f12f8448d382deba996407f9d3232567
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3297069
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ scripts/conftest/Makefile | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 5810aad6..f573dd2e 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -129,6 +129,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_date
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_display_info_struct_has_source_physical_address
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_dp_link_power_up
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_has_fbdev_probe
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_date
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_irq_enabled_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_edid_connector_add_modes
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_alloc_info
+-- 
+2.43.0
+

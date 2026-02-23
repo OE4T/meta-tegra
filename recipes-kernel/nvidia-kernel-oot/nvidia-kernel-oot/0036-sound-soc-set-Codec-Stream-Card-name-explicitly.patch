@@ -1,0 +1,57 @@
+From 7f9e87d987a2a71ec823738be12d21cc74fdea8b Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 08:22:21 -0800
+Subject: [PATCH 36/59] sound: soc: set Codec/Stream/Card name explicitly
+
+Based on kernel upstream commit 2d7395b23dbf("ASoC: simple-card-utils:
+use snd_soc_ret()"), the first parameter of simple_util_set_dailink_name() has
+been changed into struct simple_util_priv instance. But in current NVIDIA audio
+driver, struct simple_util_priv is not used. So simple_util_set_dailink_name()
+is not able to be used, and it needs to set Codec/Stream/Card name explicitly
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ sound/soc/tegra/tegra_asoc_machine.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
+
+diff --git a/sound/soc/tegra/tegra_asoc_machine.c b/sound/soc/tegra/tegra_asoc_machine.c
+index 8dbd1573..edc34c66 100644
+--- a/sound/soc/tegra/tegra_asoc_machine.c
++++ b/sound/soc/tegra/tegra_asoc_machine.c
+@@ -499,9 +499,14 @@ static int parse_dt_dai_links(struct snd_soc_card *card,
+ 					    "link-name",
+ 					    &dai_link->name)) {
+ #if defined(NV_ASOC_SIMPLE_RENAMED_SIMPLE) /* Linux 6.7 */
+-			ret = simple_util_set_dailink_name(
+-				&pdev->dev, dai_link, "%s-%d",
+-				"tegra-dlink", link_count);
++			dai_link->name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "%s-%d",
++			                                "tegra-dlink", link_count);
++			if (!dai_link->name) {
++			    ret = -ENOMEM;
++			} else {
++				dai_link->stream_name = dai_link->name;
++				ret = 0;
++			}
+ #else
+ 			ret = asoc_simple_set_dailink_name(
+ 				&pdev->dev, dai_link, "%s-%d",
+@@ -597,7 +602,12 @@ int parse_card_info(struct snd_soc_card *card, struct snd_soc_ops *pcm_ops,
+ 	int ret;
+ 
+ #if defined(NV_ASOC_SIMPLE_RENAMED_SIMPLE) /* Linux 6.7 */
+-	ret = simple_util_parse_card_name(card, PREFIX);
++	ret = snd_soc_of_parse_card_name(card, "label");
++	if (ret < 0) {
++	    char prop[128];
++	    snprintf(prop, sizeof(prop), "%sname", PREFIX);
++	    ret = snd_soc_of_parse_card_name(card, prop);
++	}
+ #else
+ 	ret = asoc_simple_parse_card_name(card, PREFIX);
+ #endif
+-- 
+2.43.0
+
