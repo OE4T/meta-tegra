@@ -1,0 +1,138 @@
+From bbb88391ca3123db1a6ce0b7c3745f16b096aa56 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:16 -0800
+Subject: [PATCH 21/59] drivers: Fix from_timer() for Linux v6.16
+
+In Linux v6.16, commit 41cb08555c41 ("treewide, timers: Rename
+from_timer() to timer_container_of()") renamed 'from_timer()' to
+'timer_container_of()'. Given that this is a macro we can simplfy see if
+the macro 'timer_container_of' is defined and if so use this otherwise
+fall back to 'from_timer()'. Update the necessary drivers to fix the
+build for Linux v6.16.
+
+JIRA LINQPJ14-60
+
+Upstream-Status: Backport
+Change-Id: I7f622b5d046a92da2ade755e6a697c1810f61275
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3383387
+(cherry picked from commit 320ec84efd492c0c2711c69104fabc30b4f15ecb)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3461850
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+(cherry picked from commit 96cae7f9dead812a1a8f342499278d3721636182)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/block/tegra_virt_storage/tegra_hv_vblk.c |  4 ++++
+ drivers/misc/bluedroid_pm.c                      | 11 +++++++----
+ drivers/nvpps/nvpps_main.c                       | 14 ++++++++++++--
+ drivers/tty/serial/wch_35x/wch_serial.c          |  5 +++++
+ drivers/watchdog/softdog-platform.c              |  4 ++++
+ 5 files changed, 32 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/block/tegra_virt_storage/tegra_hv_vblk.c b/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
+index fada9d55..e2a1f90e 100644
+--- a/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
++++ b/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
+@@ -1345,7 +1345,11 @@ static irqreturn_t ivc_irq_handler(int irq, void *data)
+ 
+ static void bio_request_timeout_callback(struct timer_list *timer)
+ {
++#if defined(timer_container_of) /* Linux v6.16 */
++	struct vsc_request *req = timer_container_of(req, timer, timer);
++#else
+ 	struct vsc_request *req = from_timer(req, timer, timer);
++#endif
+ 
+ 	dev_err(req->vblkdev->device, "Request id %d timed out. curr ctr: %llu sched ctr: %llu\n",
+ 						req->id, _arch_counter_get_cntvct(), req->time);
+diff --git a/drivers/misc/bluedroid_pm.c b/drivers/misc/bluedroid_pm.c
+index 41af3943..22409139 100644
+--- a/drivers/misc/bluedroid_pm.c
++++ b/drivers/misc/bluedroid_pm.c
+@@ -134,10 +134,13 @@ static void bluedroid_pm_gpio_set_value(unsigned int gpio, int value)
+  */
+ static void bluedroid_pm_timer_expire(struct timer_list *timer)
+ {
+-
+-	struct bluedroid_pm_data *bluedroid_pm =
+-				from_timer(bluedroid_pm, timer,
+-						bluedroid_pm_timer);
++#if defined(timer_container_of) /* Linux v6.16 */
++	struct bluedroid_pm_data *bluedroid_pm = timer_container_of(bluedroid_pm,
++						timer, bluedroid_pm_timer);
++#else
++	struct bluedroid_pm_data *bluedroid_pm = from_timer(bluedroid_pm,
++						timer, bluedroid_pm_timer);
++#endif
+ 
+ 	/*
+ 	 * if bluedroid_pm data is NULL or timer is deleted with TX busy.
+diff --git a/drivers/nvpps/nvpps_main.c b/drivers/nvpps/nvpps_main.c
+index a695a38f..be07a7cb 100644
+--- a/drivers/nvpps/nvpps_main.c
++++ b/drivers/nvpps/nvpps_main.c
+@@ -360,7 +360,12 @@ static void tsc_timer_callback(unsigned long data)
+ #else /* LINUX_VERSION_CODE >= KERNEL_VERSION(4,15,0) */
+ static void tsc_timer_callback(struct timer_list *t)
+ {
+-	struct nvpps_device_data *pdev_data = (struct nvpps_device_data *)from_timer(pdev_data, t, tsc_timer);
++	struct nvpps_device_data *pdev_data =
++#if defined(timer_container_of) /* Linux v6.16 */
++		timer_container_of(pdev_data, t, tsc_timer);
++#else
++		from_timer(pdev_data, t, tsc_timer);
++#endif
+ #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0) */
+ 	uint32_t tsc_lock_status;
+ 	tsc_lock_status = readl(pdev_data->tsc_reg_map_base + TSC_LOCKING_STATUS_OFFSET);
+@@ -394,7 +399,12 @@ static void nvpps_timer_callback(unsigned long data)
+ #else /* LINUX_VERSION_CODE >= KERNEL_VERSION(4,15,0) */
+ static void nvpps_timer_callback(struct timer_list *t)
+ {
+-        struct nvpps_device_data        *pdev_data = (struct nvpps_device_data *)from_timer(pdev_data, t, timer);
++	struct nvpps_device_data *pdev_data =
++#if defined(timer_container_of) /* Linux v6.16 */
++		timer_container_of(pdev_data, t, timer);
++#else
++		from_timer(pdev_data, t, timer);
++#endif
+ #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(4,15,0) */
+ 	/* get timestamps for this event */
+ 	nvpps_get_ts(pdev_data, 0);
+diff --git a/drivers/tty/serial/wch_35x/wch_serial.c b/drivers/tty/serial/wch_35x/wch_serial.c
+index b01b0de7..3747256d 100644
+--- a/drivers/tty/serial/wch_35x/wch_serial.c
++++ b/drivers/tty/serial/wch_35x/wch_serial.c
+@@ -2119,7 +2119,12 @@ static void wch_ser_set_termios(struct ser_port *port, struct WCHTERMIOS *termio
+ 
+ static void wch_ser_timeout(struct timer_list *t)
+ {
++#if defined(timer_container_of) /* Linux v6.16 */
++    struct wch_ser_port *sp = timer_container_of(sp, t, timer);
++#else
+     struct wch_ser_port *sp = from_timer(sp, t, timer);
++#endif
++
+     unsigned int timeout;
+     unsigned int iir;
+     iir = READ_UART_IIR(sp);
+diff --git a/drivers/watchdog/softdog-platform.c b/drivers/watchdog/softdog-platform.c
+index 22f5191b..f7234c36 100644
+--- a/drivers/watchdog/softdog-platform.c
++++ b/drivers/watchdog/softdog-platform.c
+@@ -37,7 +37,11 @@ struct softdog_platform_wdt {
+ /* If the timer expires..  */
+ static void softdog_platform_watchdog_fire(struct timer_list *t)
+ {
++#if defined(timer_container_of) /* Linux v6.16 */
++	struct softdog_platform_wdt *swdt = timer_container_of(swdt, t, watchdog_ticktock);
++#else
+ 	struct softdog_platform_wdt *swdt = from_timer(swdt, t, watchdog_ticktock);
++#endif
+ 
+ 	if (swdt->is_stopped)
+ 		return;
+-- 
+2.43.0
+

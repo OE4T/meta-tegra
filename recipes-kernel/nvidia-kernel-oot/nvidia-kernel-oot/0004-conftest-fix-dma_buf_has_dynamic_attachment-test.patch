@@ -1,0 +1,50 @@
+From b2705a1f42fe2a73ee1badea1451f321b195786f Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 20 Feb 2026 05:56:39 -0800
+Subject: [PATCH 04/15] conftest: fix dma_buf_has_dynamic_attachment test
+
+which pre-dates the common function in the script for
+running compilation tests, and had the logic inverted.
+Switch to using the common function.
+
+Upstream-Status: Pending
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/conftest.sh | 16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
+
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index 8463bad..b0563f0 100644
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -3940,23 +3940,13 @@ compile_test() {
+             # Added by commit: 15fd552d186c
+             # ("dma-buf: change DMA-buf locking convention v3") in v5.5 (2018-07-03)
+             #
+-            echo "$CONFTEST_PREAMBLE
++            CODE="
+             #include <linux/dma-buf.h>
+             bool conftest_dma_buf_attachment_is_dynamic(void) {
+                 return dma_buf_attachment_is_dynamic(NULL);
+-            }" > conftest$$.c
+-
+-            $CC $CFLAGS -c conftest$$.c > /dev/null 2>&1
+-            rm -f conftest$$.c
++            }"
+ 
+-            if [ -f conftest$$.o ]; then
+-                echo "#define NV_DMA_BUF_HAS_DYNAMIC_ATTACHMENT" | append_conftest "functions"
+-                rm -f conftest$$.o
+-                return
+-            else
+-                echo "#undef NV_DMA_BUF_HAS_DYNAMIC_ATTACHMENT" | append_conftest "functions"
+-                return
+-            fi
++	    compile_check_conftest "$CODE" "NV_DMA_BUF_HAS_DYNAMIC_ATTACHMENT" "" "functions"
+         ;;
+ 
+         dma_buf_attachment_has_peer2peer)
+-- 
+2.43.0
+

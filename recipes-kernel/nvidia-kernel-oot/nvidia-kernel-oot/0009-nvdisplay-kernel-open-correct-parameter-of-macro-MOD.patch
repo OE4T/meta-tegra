@@ -1,0 +1,76 @@
+From 7d764566d839a80a5e9941209627dec38b960953 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 05:56:41 -0800
+Subject: [PATCH 09/15] nvdisplay: kernel-open: correct parameter of macro
+ MODULE_IMPORT_NS
+
+Based on kernel upstream commit cdd30ebb1b9f("module: Convert
+symbol namespace to string literal"), it needs to pass a string as
+parameter for macro MODULE_IMPORT_NS.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/conftest.sh          | 17 +++++++++++++++++
+ kernel-open/nvidia/nv-frontend.c |  4 ++++
+ kernel-open/nvidia/nvidia.Kbuild |  1 +
+ 3 files changed, 22 insertions(+)
+
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index f8096b1..8f50fc7 100644
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -6685,6 +6685,23 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_MODE_CREATE_DP_COLORSPACE_PROPERTY_HAS_SUPPORTED_COLORSPACES_ARG" "" "types"
+         ;;
+ 
++        module_import_ns_takes_constant)
++            #
++            # Determine if the MODULE_IMPORT_NS macro takes a string literal
++            # or constant.
++            #
++            # Commit cdd30ebb1b9f ("module: Convert symbol namespace to
++            # string literal") changed MODULE_IMPORT_NS to take a string
++            # literal in Linux kernel v6.13.
++            #
++            CODE="
++            #include <linux/module.h>
++
++            MODULE_IMPORT_NS(DMA_BUF);"
++
++            compile_check_conftest "$CODE" "NV_MODULE_IMPORT_NS_TAKES_CONSTANT" "" "generic"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/kernel-open/nvidia/nv-frontend.c b/kernel-open/nvidia/nv-frontend.c
+index f5b871e..770b65f 100644
+--- a/kernel-open/nvidia/nv-frontend.c
++++ b/kernel-open/nvidia/nv-frontend.c
+@@ -42,7 +42,11 @@ MODULE_ALIAS_CHARDEV_MAJOR(NV_MAJOR_DEVICE_NUMBER);
+  * DMA_BUF namespace is added by commit id 16b0314aa746
+  * ("dma-buf: move dma-buf symbols into the DMA_BUF module namespace") in 5.16
+  */
++#if defined(NV_MODULE_IMPORT_NS_TAKES_CONSTANT)
+ MODULE_IMPORT_NS(DMA_BUF);
++#else
++MODULE_IMPORT_NS("DMA_BUF");
++#endif  // defined(NV_MODULE_IMPORT_NS_TAKES_CONSTANT)
+ 
+ #endif
+ 
+diff --git a/kernel-open/nvidia/nvidia.Kbuild b/kernel-open/nvidia/nvidia.Kbuild
+index 4f021c4..eeed85a 100644
+--- a/kernel-open/nvidia/nvidia.Kbuild
++++ b/kernel-open/nvidia/nvidia.Kbuild
+@@ -269,3 +269,4 @@ NV_CONFTEST_GENERIC_COMPILE_TESTS += mdev_available
+ NV_CONFTEST_GENERIC_COMPILE_TESTS += cmd_uphy_display_port_init
+ NV_CONFTEST_GENERIC_COMPILE_TESTS += cmd_uphy_display_port_off
+ NV_CONFTEST_GENERIC_COMPILE_TESTS += memory_failure_mf_sw_simulated_defined
++NV_CONFTEST_GENERIC_COMPILE_TESTS += module_import_ns_takes_constant
+-- 
+2.43.0
+

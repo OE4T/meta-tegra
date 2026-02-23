@@ -1,0 +1,36 @@
+From 6926c97165a18ace44d49b15e61c95d9156357ed Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 08:29:38 -0800
+Subject: [PATCH 62/63] gpu: nvgpu: correct parameter of macro MODULE_IMPORT_NS
+
+Based on kernel upstream commit cdd30ebb1b9f("module: Convert
+symbol namespace to string literal"), it needs to pass a string as
+parameter for macro MODULE_IMPORT_NS with Linux 6.13 and later.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/nvgpu/os/linux/module.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/gpu/nvgpu/os/linux/module.c b/drivers/gpu/nvgpu/os/linux/module.c
+index b132884bc..ae083a06c 100644
+--- a/drivers/gpu/nvgpu/os/linux/module.c
++++ b/drivers/gpu/nvgpu/os/linux/module.c
+@@ -2128,7 +2128,11 @@ static void __exit gk20a_exit(void)
+ }
+ 
+ #ifdef MODULE_IMPORT_NS
++#if defined(NV_MODULE_IMPORT_NS_CALLS_STRINGIFY)
+ MODULE_IMPORT_NS(DMA_BUF);
++#else
++MODULE_IMPORT_NS("DMA_BUF");
++#endif
+ #endif
+ #ifdef CONFIG_GK20A_DEVFREQ
+ MODULE_SOFTDEP("pre: governor_pod_scaling");
+-- 
+2.43.0
+

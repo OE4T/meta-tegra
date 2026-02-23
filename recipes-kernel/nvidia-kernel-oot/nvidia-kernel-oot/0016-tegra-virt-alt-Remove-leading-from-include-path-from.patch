@@ -1,7 +1,7 @@
-From fb60464fac3b7efdb1f5420b4a66ef8c621cd7cc Mon Sep 17 00:00:00 2001
+From e5b51891a22056368103884d471c3dc44c07af70 Mon Sep 17 00:00:00 2001
 From: Khem Raj <raj.khem@gmail.com>
-Date: Thu, 11 Jul 2024 14:10:19 -0700
-Subject: [PATCH 4/5] tegra-virt-alt: Remove leading / from include path from
+Date: Fri, 20 Feb 2026 08:22:10 -0800
+Subject: [PATCH 16/59] tegra-virt-alt: Remove leading / from include path from
  overlay
 
 When $(overlay) is empty this inserts an additional '/' in the

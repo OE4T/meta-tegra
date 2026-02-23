@@ -1,0 +1,66 @@
+From 714b0501bc563e1f232be024eb74fb4d9191be9c Mon Sep 17 00:00:00 2001
+From: Santosh BS <santoshb@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:29 -0800
+Subject: [PATCH 44/59] drm/tegra: syncpoint base support for chips <= t186
+
+As syncpoint base feature is not supported from T194 onwards,
+moving the related ioctl handling under CONFIG_HOST1X_HAVE_SYNCPT_BASE
+accordingly.
+
+Jira HOSTX-5833
+
+Upstream-Status: Backport
+Change-Id: Idb5188039ef22e8d27e0a5ddf06a1c447fb323d3
+Signed-off-by: Santosh BS <santoshb@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3292251
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+(cherry picked from commit b5acbd1bfcd8cb932bbc4cc267de9b4dc58599cb)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 23d387d9..8962c2c3 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * Copyright (C) 2012 Avionic Design GmbH
+- * Copyright (C) 2012-2023 NVIDIA CORPORATION.  All rights reserved.
++ * Copyright (C) 2012-2025 NVIDIA CORPORATION.  All rights reserved.
+  */
+ 
+ #include <nvidia/conftest.h>
+@@ -577,6 +577,7 @@ unlock:
+ 	return err;
+ }
+ 
++#ifdef CONFIG_HOST1X_HAVE_SYNCPT_BASE
+ static int tegra_get_syncpt_base(struct drm_device *drm, void *data,
+ 				 struct drm_file *file)
+ {
+@@ -614,6 +615,7 @@ unlock:
+ 	mutex_unlock(&fpriv->lock);
+ 	return err;
+ }
++#endif
+ 
+ static int tegra_gem_set_tiling(struct drm_device *drm, void *data,
+ 				struct drm_file *file)
+@@ -789,8 +791,10 @@ static const struct drm_ioctl_desc tegra_drm_ioctls[] = {
+ 			  DRM_RENDER_ALLOW),
+ 	DRM_IOCTL_DEF_DRV(TEGRA_SUBMIT, tegra_submit,
+ 			  DRM_RENDER_ALLOW),
++#ifdef CONFIG_HOST1X_HAVE_SYNCPT_BASE
+ 	DRM_IOCTL_DEF_DRV(TEGRA_GET_SYNCPT_BASE, tegra_get_syncpt_base,
+ 			  DRM_RENDER_ALLOW),
++#endif
+ 	DRM_IOCTL_DEF_DRV(TEGRA_GEM_SET_TILING, tegra_gem_set_tiling,
+ 			  DRM_RENDER_ALLOW),
+ 	DRM_IOCTL_DEF_DRV(TEGRA_GEM_GET_TILING, tegra_gem_get_tiling,
+-- 
+2.43.0
+

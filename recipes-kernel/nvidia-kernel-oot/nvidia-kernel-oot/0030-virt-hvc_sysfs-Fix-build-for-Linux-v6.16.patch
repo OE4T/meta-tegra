@@ -1,0 +1,116 @@
+From d90dd4671365a50cb9e8ffe46bc61eaa76852c29 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:19 -0800
+Subject: [PATCH 30/59] virt: hvc_sysfs: Fix build for Linux v6.16
+
+In Linux v6.16, the 'bin_attribute' argument to the 'read' and 'write'
+function pointers of the 'bin_attribute' structure was made const. Add a
+test to conftest to detect this and update the Tegra HVC SYSFS driver
+accordingly.
+
+JIRA LINQPJ14-60
+
+Upstream-Status: Backport
+Change-Id: I74b88bc0d1ed55eca1565386b38d16ff65626132
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3375213
+(cherry picked from commit fef581cb0bac2d1468a710927771be9fa027f6e0)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3461880
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+(cherry picked from commit da9c8f46c4941af1f9f1a284c4969dbfa67f7b5f)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/virt/tegra/hvc_sysfs.c | 15 ++++++++++++---
+ scripts/conftest/Makefile      |  1 +
+ scripts/conftest/conftest.sh   | 20 ++++++++++++++++++++
+ 3 files changed, 33 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/virt/tegra/hvc_sysfs.c b/drivers/virt/tegra/hvc_sysfs.c
+index 0be1d2f6..f0df6610 100644
+--- a/drivers/virt/tegra/hvc_sysfs.c
++++ b/drivers/virt/tegra/hvc_sysfs.c
+@@ -37,7 +37,6 @@ struct hyp_shared_memory_info {
+ static struct hyp_shared_memory_info hyp_shared_memory_attrs[HYP_SHM_ID_NUM];
+ 
+ 
+-
+ /* Map the HV trace buffer to the calling user process */
+ static int hvc_sysfs_mmap(struct file *fp, struct kobject *ko,
+ #if defined(NV_BIN_ATTRIBUTE_STRUCT_MMAP_HAS_CONST_BIN_ATTRIBUTE_ARG) /* Linux v6.13 */
+@@ -84,7 +83,12 @@ static int hvc_create_sysfs(
+ }
+ 
+ static ssize_t log_mask_read(struct file *fp, struct kobject *ko,
+-	struct bin_attribute *attr, char *buf, loff_t pos, size_t size)
++#if defined(NV_BIN_ATTRIBUTE_STRUCT_READWRITE_HAS_CONST_BIN_ATTRIBUTE_ARG)
++	const struct bin_attribute *attr,
++#else
++	struct bin_attribute *attr,
++#endif
++	char *buf, loff_t pos, size_t size)
+ {
+ 	if (size == sizeof(uint64_t))
+ 		hyp_trace_get_mask((uint64_t *)buf);
+@@ -92,7 +96,12 @@ static ssize_t log_mask_read(struct file *fp, struct kobject *ko,
+ }
+ 
+ static ssize_t log_mask_write(struct file *fp, struct kobject *ko,
+-	struct bin_attribute *attr, char *buf, loff_t pos, size_t size)
++#if defined(NV_BIN_ATTRIBUTE_STRUCT_READWRITE_HAS_CONST_BIN_ATTRIBUTE_ARG)
++	const struct bin_attribute *attr,
++#else
++	struct bin_attribute *attr,
++#endif
++	char *buf, loff_t pos, size_t size)
+ {
+ 	if (size == sizeof(uint64_t))
+ 		hyp_trace_set_mask(*(uint64_t *)buf);
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 76a0d0f3..2c40acac 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -93,6 +93,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += __alloc_pages_bulk_has_no_page_list_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += __assign_str_has_no_src_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += aperture_remove_all_conflicting_devices
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += bin_attribute_struct_mmap_has_const_bin_attribute_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += bin_attribute_struct_readwrite_has_const_bin_attribute_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += blk_execute_rq_has_no_gendisk_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += blk_mq_alloc_disk_for_queue
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += blk_mq_alloc_queue
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 350426f7..23ebb942 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -6581,6 +6581,26 @@ compile_test() {
+                     "NV_BIN_ATTRIBUTE_STRUCT_MMAP_HAS_CONST_BIN_ATTRIBUTE_ARG" "" "types"
+         ;;
+ 
++        bin_attribute_struct_readwrite_has_const_bin_attribute_arg)
++            #
++            # Determine if the 'bin_attribute' structure 'read' and 'write'
++            # function pointers have a const 'struct bin_attribute' argument.
++            #
++            # This change was made in Linux v6.16 by commit 97d06802d10a
++            # ("sysfs: constify bin_attribute argument of bin_attribute::read/write()").
++            #
++            CODE="
++            #include <linux/sysfs.h>
++            void conftest(struct bin_attribute *attr) {
++                    ssize_t (*fn)(struct file *, struct kobject *,
++                                  const struct bin_attribute *,
++                                  char *, loff_t, size_t) = attr->read;
++            }"
++
++            compile_check_conftest "$CODE" \
++                    "NV_BIN_ATTRIBUTE_STRUCT_READWRITE_HAS_CONST_BIN_ATTRIBUTE_ARG" "" "types"
++        ;;
++
+         blk_execute_rq_has_no_gendisk_arg)
+             #
+             # Determine if the function blk_execute_rq() has an argument of
+-- 
+2.43.0
+

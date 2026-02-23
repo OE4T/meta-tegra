@@ -1,0 +1,46 @@
+From 94489918348aae99b6a21d8a7cfe1bfc0aa5bd1b Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 20 Feb 2026 05:56:40 -0800
+Subject: [PATCH 07/15] Kbuild: fix symlink commands
+
+Fix the cmd_symlink definitions in the Kbuild files to
+ensure the target directory exists, and to use --relative,
+as is done in the kernel makefiles. The existing definitions
+could cause build failures.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/nvidia-modeset/nvidia-modeset.Kbuild | 2 +-
+ kernel-open/nvidia/nvidia.Kbuild                 | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/kernel-open/nvidia-modeset/nvidia-modeset.Kbuild b/kernel-open/nvidia-modeset/nvidia-modeset.Kbuild
+index 4fbb1f3..628bfb3 100644
+--- a/kernel-open/nvidia-modeset/nvidia-modeset.Kbuild
++++ b/kernel-open/nvidia-modeset/nvidia-modeset.Kbuild
+@@ -41,7 +41,7 @@ NVIDIA_MODESET_BINARY_OBJECT := $(src)/nvidia-modeset/nv-modeset-kernel.o_binary
+ NVIDIA_MODESET_BINARY_OBJECT_O := nvidia-modeset/nv-modeset-kernel.o
+ 
+ quiet_cmd_symlink = SYMLINK $@
+-cmd_symlink = ln -sf $< $@
++cmd_symlink = mkdir -p $(dir $@); ln -sf --relative $< $@
+ 
+ targets += $(NVIDIA_MODESET_BINARY_OBJECT_O)
+ 
+diff --git a/kernel-open/nvidia/nvidia.Kbuild b/kernel-open/nvidia/nvidia.Kbuild
+index 740c867..4f021c4 100644
+--- a/kernel-open/nvidia/nvidia.Kbuild
++++ b/kernel-open/nvidia/nvidia.Kbuild
+@@ -41,7 +41,7 @@ NVIDIA_BINARY_OBJECT := $(src)/nvidia/nv-kernel.o_binary
+ NVIDIA_BINARY_OBJECT_O := nvidia/nv-kernel.o
+ 
+ quiet_cmd_symlink = SYMLINK $@
+- cmd_symlink = ln -sf $< $@
++ cmd_symlink = mkdir -p $(dir $@); ln -sf --relative $< $@
+ 
+ targets += $(NVIDIA_BINARY_OBJECT_O)
+ 
+-- 
+2.43.0
+

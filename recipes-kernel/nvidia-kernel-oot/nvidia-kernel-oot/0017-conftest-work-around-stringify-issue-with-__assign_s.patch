@@ -1,7 +1,7 @@
-From a9904484898075a8cf62ff2c9d6c8cac48bfd5b0 Mon Sep 17 00:00:00 2001
+From 68a3cb773aae35bda24fe49c2f20a1aced82ad0d Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Mon, 11 Nov 2024 08:48:31 -0800
-Subject: [PATCH 5/5] conftest: work around stringify issue with
+Date: Fri, 20 Feb 2026 08:22:10 -0800
+Subject: [PATCH 17/59] conftest: work around stringify issue with
  __assign_str_has_no_src_arg test
 
 The kernel trace headers using preprocessor stringification on the

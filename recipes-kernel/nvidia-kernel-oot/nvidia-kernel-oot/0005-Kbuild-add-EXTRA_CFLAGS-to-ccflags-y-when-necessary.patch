@@ -1,0 +1,34 @@
+From 016f5c6eff83e2ac75a94cf54d0020482f22a548 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 20 Feb 2026 05:56:39 -0800
+Subject: [PATCH 05/15] Kbuild: add EXTRA_CFLAGS to ccflags-y when necessary
+
+Commit e966ad0e ("kbuild: remove EXTRA_*FLAGS support")
+in Linux 6.15 finally removed the automatic addition of
+EXTRA_CFLAGS to ccflags-y from the kernel build. Work around
+that in the kernel-open Kbuild file by adding it ourselves
+if we don't see a mention of EXTRA_CFLAGS in scripts/Makefile.lib.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/Kbuild | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
+index e633a3a..3613245 100644
+--- a/kernel-open/Kbuild
++++ b/kernel-open/Kbuild
+@@ -123,6 +123,9 @@ ifneq ($(wildcard /proc/sgi_uv),)
+  EXTRA_CFLAGS += -DNV_CONFIG_X86_UV
+ endif
+ 
++# EXTRA_CFLAGS compatibility was dropped in 6.18, so add to
++# ccflags-y ourselves if Kbuild doesn't do it for us
++ccflags-y += $(call try-run,grep EXTRA_CFLAGS $(NV_KERNEL_SOURCES)/scripts/Makefile.lib,,$(EXTRA_CFLAGS))
+ 
+ #
+ # The conftest.sh script tests various aspects of the target kernel.
+-- 
+2.43.0
+

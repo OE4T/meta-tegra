@@ -1,0 +1,32 @@
+From ccf7646c57462776fe1093af6643c54653f59861 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 23 Feb 2026 06:23:29 -0800
+Subject: [PATCH] bluetooth: fix build issues with Linux v6.18
+
+Typo corrected in an event structure name.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/bluetooth/realtek/rtk_coex.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/drivers/bluetooth/realtek/rtk_coex.c b/drivers/bluetooth/realtek/rtk_coex.c
+index 08155ee2..1d15a687 100644
+--- a/drivers/bluetooth/realtek/rtk_coex.c
++++ b/drivers/bluetooth/realtek/rtk_coex.c
+@@ -2430,7 +2430,11 @@ static void rtk_handle_le_terminate_big_complete_evt(u8 * p)
+ 
+ static void rtk_handle_le_big_sync_established_evt(void * p)
+ {
++#if HCI_VERSION_CODE >= KERNEL_VERSION(6, 18, 0)
++	struct hci_evt_le_big_sync_established *ev = p;
++#else
+ 	struct hci_evt_le_big_sync_estabilished *ev = p;
++#endif
+ 	u8 status;
+ 	u16 big_handle;
+ 	u16 bis_handle;
+-- 
+2.43.0
+
