@@ -1,0 +1,131 @@
+From e563bd62139c9ee818d796a6c416c7cdddf8a327 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 05:56:43 -0800
+Subject: [PATCH 13/15] nvdisplay: nvidia-drm: fb: add format info parameter to
+ tegra fb API
+
+Based on kernel upstream commit 81112eaac559("drm: Pass the format
+info to .fb_create()"), it needs to add format info parameter to
+tegra fb API. Linux v6.17+.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/conftest.sh                  | 21 +++++++++++++++++++++
+ kernel-open/nvidia-drm/nvidia-drm-drv.c  |  6 ++++++
+ kernel-open/nvidia-drm/nvidia-drm-fb.c   |  6 ++++++
+ kernel-open/nvidia-drm/nvidia-drm-fb.h   |  3 +++
+ kernel-open/nvidia-drm/nvidia-drm.Kbuild |  1 +
+ 5 files changed, 37 insertions(+)
+
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index a42a2d1..f7a1614 100644
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -5837,6 +5837,27 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_MODE_CONFIG_HAS_ALLOW_FB_MODIFIERS" "" "types"
+         ;;
+ 
++        drm_mode_config_fb_create_has_drm_format_info)
++            #
++            # Determine if the 'fb_create' function pointer in the
++            # 'drm_mode_config_funcs' structure takes a pointer to
++            # the 'drm_format_info' structure.
++            #
++            # The parameter was added by commit 81112eaac ("drm: Pass the format info
++            # to .fb_create()") in v6.17.
++            #
++            CODE="$CONFTEST_PREAMBLE
++            #include <drm/drm_mode_config.h>
++            struct drm_framebuffer *conftest_drm_mode_config_fb_create_has_drm_format_info(
++               struct drm_mode_config_funcs *funcs,
++               struct drm_device *dev, struct drm_file *file_priv,
++               struct drm_format_info *info, struct drm_mode_fb_cmd2 *mode_cmd) {
++                return funcs->fb_create(dev, file_priv, info, mode_cmd);
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_MODE_CONFIG_FB_CREATE_HAS_DRM_FORMAT_INFO" "" "types"
++            ;;
++
+         dma_set_mask_and_coherent)
+             #
+             # Determine if dma_set_mask_and_coherent function is present.
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-drv.c b/kernel-open/nvidia-drm/nvidia-drm-drv.c
+index 87a4acd..bb1340e 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-drv.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-drv.c
+@@ -216,6 +216,9 @@ static void nv_drm_output_poll_changed(struct drm_device *dev)
+ static struct drm_framebuffer *nv_drm_framebuffer_create(
+     struct drm_device *dev,
+     struct drm_file *file,
++    #if defined(NV_DRM_MODE_CONFIG_FB_CREATE_HAS_DRM_FORMAT_INFO)
++    const struct drm_format_info *info,
++    #endif
+     #if defined(NV_DRM_HELPER_MODE_FILL_FB_STRUCT_HAS_CONST_MODE_CMD_ARG)
+     const struct drm_mode_fb_cmd2 *cmd
+     #else
+@@ -231,6 +234,9 @@ static struct drm_framebuffer *nv_drm_framebuffer_create(
+     fb = nv_drm_internal_framebuffer_create(
+             dev,
+             file,
++            #if defined(NV_DRM_MODE_CONFIG_FB_CREATE_HAS_DRM_FORMAT_INFO)
++            info,
++            #endif
+             &local_cmd);
+ 
+     #if !defined(NV_DRM_HELPER_MODE_FILL_FB_STRUCT_HAS_CONST_MODE_CMD_ARG)
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-fb.c b/kernel-open/nvidia-drm/nvidia-drm-fb.c
+index 2747123..e558f56 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-fb.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-fb.c
+@@ -206,6 +206,9 @@ fail:
+ struct drm_framebuffer *nv_drm_internal_framebuffer_create(
+     struct drm_device *dev,
+     struct drm_file *file,
++#if defined(NV_DRM_MODE_CONFIG_FB_CREATE_HAS_DRM_FORMAT_INFO)
++    const struct drm_format_info *info,
++#endif
+     struct drm_mode_fb_cmd2 *cmd)
+ {
+     struct nv_drm_device *nv_dev = to_nv_device(dev);
+@@ -259,6 +262,9 @@ struct drm_framebuffer *nv_drm_internal_framebuffer_create(
+         dev,
+         #endif
+         &nv_fb->base,
++#if defined(NV_DRM_MODE_CONFIG_FB_CREATE_HAS_DRM_FORMAT_INFO)
++        info,
++#endif
+         cmd);
+ 
+     /*
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-fb.h b/kernel-open/nvidia-drm/nvidia-drm-fb.h
+index cf477cc..1afeeed 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-fb.h
++++ b/kernel-open/nvidia-drm/nvidia-drm-fb.h
+@@ -59,6 +59,9 @@ static inline struct nv_drm_framebuffer *to_nv_framebuffer(
+ struct drm_framebuffer *nv_drm_internal_framebuffer_create(
+     struct drm_device *dev,
+     struct drm_file *file,
++#if defined(NV_DRM_MODE_CONFIG_FB_CREATE_HAS_DRM_FORMAT_INFO)
++    const struct drm_format_info *info,
++#endif
+     struct drm_mode_fb_cmd2 *cmd);
+ 
+ #endif /* NV_DRM_ATOMIC_MODESET_AVAILABLE */
+diff --git a/kernel-open/nvidia-drm/nvidia-drm.Kbuild b/kernel-open/nvidia-drm/nvidia-drm.Kbuild
+index f239dc3..bea3ace 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm.Kbuild
++++ b/kernel-open/nvidia-drm/nvidia-drm.Kbuild
+@@ -131,6 +131,7 @@ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_gem_object_vmap_has_map_arg
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_plane_atomic_check_has_atomic_state_arg
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_device_has_pdev
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_mode_config_has_allow_fb_modifiers
++NV_CONFTEST_TYPE_COMPILE_TESTS += drm_mode_config_fb_create_has_drm_format_info
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_has_hdr_output_metadata
+ NV_CONFTEST_TYPE_COMPILE_TESTS += dma_resv_add_fence
+ NV_CONFTEST_TYPE_COMPILE_TESTS += dma_resv_reserve_fences
+-- 
+2.43.0
+

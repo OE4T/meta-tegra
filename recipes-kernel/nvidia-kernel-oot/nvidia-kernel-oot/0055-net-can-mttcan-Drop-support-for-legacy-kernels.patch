@@ -1,0 +1,131 @@
+From d242e53b982947224bf50bad9b0484550fc7d93b Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:24:05 -0800
+Subject: [PATCH 55/59] net: can: mttcan: Drop support for legacy kernels
+
+Drop support for Linux kernel prior to v5.15 because these are no longer
+supported.
+
+Bug 5420210
+
+Upstream-Status: Backport
+Change-Id: I659c71f11d4c8996a35c952e0c6b27d7b7dcf239
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3423848
+(cherry picked from commit f236f1fbd9d5d7b1886fc3abfa83719da1996772)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3462467
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+(cherry picked from commit 9976ac10200b1ef931d2dcef7d6bd2fc28f21383)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/net/can/mttcan/hal/m_ttcan.c          |  6 +-----
+ drivers/net/can/mttcan/include/m_ttcan.h      |  8 +-------
+ drivers/net/can/mttcan/native/m_ttcan_linux.c | 16 ----------------
+ 3 files changed, 2 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/net/can/mttcan/hal/m_ttcan.c b/drivers/net/can/mttcan/hal/m_ttcan.c
+index 9114c27f..bc2f998f 100644
+--- a/drivers/net/can/mttcan/hal/m_ttcan.c
++++ b/drivers/net/can/mttcan/hal/m_ttcan.c
+@@ -1,6 +1,6 @@
+ /* SPDX-License-Identifier: GPL-2.0-only */
+ /*
+- * Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
+ #include "../include/m_ttcan.h"
+@@ -1076,11 +1076,7 @@ int ttcan_controller_init(struct ttcan_controller *ttcan, u32 irq_flag,
+ 	return 0;
+ }
+ 
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
+-cycle_t ttcan_read_ts_cntr(const struct cyclecounter *ccnt)
+-#else
+ u64 ttcan_read_ts_cntr(const struct cyclecounter *ccnt)
+-#endif
+ {
+ 	struct mttcan_priv *priv = container_of(ccnt, struct mttcan_priv, cc);
+ 
+diff --git a/drivers/net/can/mttcan/include/m_ttcan.h b/drivers/net/can/mttcan/include/m_ttcan.h
+index 6f55f49f..90be8127 100644
+--- a/drivers/net/can/mttcan/include/m_ttcan.h
++++ b/drivers/net/can/mttcan/include/m_ttcan.h
+@@ -1,13 +1,11 @@
+ /* SPDX-License-Identifier: GPL-2.0-only */
+ /*
+- * Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
+ #ifndef __M_TTCAN_DEF
+ #define __M_TTCAN_DEF
+ 
+-#include <linux/version.h>
+-
+ #include "m_ttcan_regdef.h"
+ #include "m_ttcan_linux.h"
+ 
+@@ -563,9 +561,5 @@ int add_msg_controller_list(struct ttcan_controller *ttcan,
+ int add_event_controller_list(struct ttcan_controller *ttcan,
+ 				struct mttcan_tx_evt_element *txevt,
+ 				struct list_head *evt_q);
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0)
+ u64 ttcan_read_ts_cntr(const struct cyclecounter *ccnt);
+-#else
+-cycle_t ttcan_read_ts_cntr(const struct cyclecounter *ccnt);
+-#endif
+ #endif
+diff --git a/drivers/net/can/mttcan/native/m_ttcan_linux.c b/drivers/net/can/mttcan/native/m_ttcan_linux.c
+index 53b1696c..d881f78b 100644
+--- a/drivers/net/can/mttcan/native/m_ttcan_linux.c
++++ b/drivers/net/can/mttcan/native/m_ttcan_linux.c
+@@ -1063,20 +1063,12 @@ static void mttcan_controller_config(struct net_device *dev)
+ }
+ 
+ /* Adjust the timer by resetting the timecounter structure periodically */
+-#if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
+ static void mttcan_timer_cb(struct timer_list *timer)
+-#else
+-static void mttcan_timer_cb(unsigned long data)
+-#endif
+ {
+ 	unsigned long flags;
+ 	u64 tref;
+ 	int ret = 0;
+-#if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
+ 	struct mttcan_priv *priv = container_of(timer, struct mttcan_priv, timer);
+-#else
+-	struct mttcan_priv *priv = (struct mttcan_priv *)data;
+-#endif
+ 
+ 	raw_spin_lock_irqsave(&priv->tc_lock, flags);
+ 	ret = nvpps_get_ptp_ts(&tref);
+@@ -1572,11 +1564,7 @@ static const struct net_device_ops mttcan_netdev_ops = {
+ 	.ndo_stop = mttcan_close,
+ 	.ndo_start_xmit = mttcan_start_xmit,
+ 	.ndo_change_mtu = mttcan_change_mtu,
+-#if KERNEL_VERSION(5, 15, 0) <= LINUX_VERSION_CODE
+ 	.ndo_eth_ioctl = mttcan_ioctl,
+-#else
+-	.ndo_do_ioctl = mttcan_ioctl,
+-#endif
+ };
+ 
+ static int register_mttcan_dev(struct net_device *dev)
+@@ -1906,11 +1894,7 @@ static int mttcan_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		goto exit_unreg_candev;
+ 
+-#if LINUX_VERSION_CODE > KERNEL_VERSION(4,15,0)
+ 	timer_setup(&priv->timer, mttcan_timer_cb, 0);
+-#else
+-	setup_timer(&priv->timer, mttcan_timer_cb, (unsigned long)priv);
+-#endif
+ 
+ 	dev_info(&dev->dev, "%s device registered (regs=%p, irq=%d)\n",
+ 		 KBUILD_MODNAME, priv->ttcan->base, dev->irq);
+-- 
+2.43.0
+

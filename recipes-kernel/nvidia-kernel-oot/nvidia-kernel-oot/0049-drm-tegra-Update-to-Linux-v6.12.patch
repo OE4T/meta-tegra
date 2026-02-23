@@ -1,0 +1,672 @@
+From 968c14e0c9462695bfac6a0c880a0ae977ffcc1d Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:31 -0800
+Subject: [PATCH 49/59] drm/tegra: Update to Linux v6.12
+
+Update Tegra DRM to align with Linux v6.12. The output.c driver was
+updated to use the 'drm_edid_connector_add_modes()' function that was
+first added in Linux v6.3. Use conftest to detect the presence of the
+drm_edid_connector_add_modes() function and make the necessary changes
+to the driver.
+
+JIRA LINQPJ14-47
+
+Upstream-Status: Backport
+Change-Id: I0ff45ef0ada2f2c2353c1ba579c06ae06122727c
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3333835
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+(cherry picked from commit 6be033ba851ee97944701d5f44448536c68ab777)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/dpaux.c  | 14 +++++---
+ drivers/gpu/drm/tegra/drm.c    | 10 ++++--
+ drivers/gpu/drm/tegra/drm.h    | 13 +++++++-
+ drivers/gpu/drm/tegra/dsi.c    | 59 ++++++++++++++++++++++------------
+ drivers/gpu/drm/tegra/fb.c     |  1 +
+ drivers/gpu/drm/tegra/hdmi.c   | 21 ++++++++----
+ drivers/gpu/drm/tegra/hub.c    |  7 ++--
+ drivers/gpu/drm/tegra/output.c | 55 ++++++++++++++++++++++++++++---
+ drivers/gpu/drm/tegra/rgb.c    | 18 ++++++++---
+ drivers/gpu/drm/tegra/sor.c    |  1 +
+ scripts/conftest/Makefile      |  2 ++
+ scripts/conftest/conftest.sh   | 35 ++++++++++++++++++++
+ 12 files changed, 189 insertions(+), 47 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/dpaux.c b/drivers/gpu/drm/tegra/dpaux.c
+index 83058852..4d74e322 100644
+--- a/drivers/gpu/drm/tegra/dpaux.c
++++ b/drivers/gpu/drm/tegra/dpaux.c
+@@ -538,7 +538,7 @@ static int tegra_dpaux_probe(struct platform_device *pdev)
+ 	if (err < 0) {
+ 		dev_err(dpaux->dev, "failed to request IRQ#%u: %d\n",
+ 			dpaux->irq, err);
+-		return err;
++		goto err_pm_disable;
+ 	}
+ 
+ 	disable_irq(dpaux->irq);
+@@ -558,7 +558,7 @@ static int tegra_dpaux_probe(struct platform_device *pdev)
+ 	 */
+ 	err = tegra_dpaux_pad_config(dpaux, DPAUX_PADCTL_FUNC_I2C);
+ 	if (err < 0)
+-		return err;
++		goto err_pm_disable;
+ 
+ #ifdef CONFIG_GENERIC_PINCONF
+ 	dpaux->desc.name = dev_name(&pdev->dev);
+@@ -571,7 +571,8 @@ static int tegra_dpaux_probe(struct platform_device *pdev)
+ 	dpaux->pinctrl = devm_pinctrl_register(&pdev->dev, &dpaux->desc, dpaux);
+ 	if (IS_ERR(dpaux->pinctrl)) {
+ 		dev_err(&pdev->dev, "failed to register pincontrol\n");
+-		return PTR_ERR(dpaux->pinctrl);
++		err = PTR_ERR(dpaux->pinctrl);
++		goto err_pm_disable;
+ 	}
+ #endif
+ 	/* enable and clear all interrupts */
+@@ -588,11 +589,16 @@ static int tegra_dpaux_probe(struct platform_device *pdev)
+ 	err = devm_of_dp_aux_populate_ep_devices(&dpaux->aux);
+ 	if (err < 0) {
+ 		dev_err(dpaux->dev, "failed to populate AUX bus: %d\n", err);
+-		return err;
++		goto err_pm_disable;
+ 	}
+ #endif
+ 
+ 	return 0;
++
++err_pm_disable:
++	pm_runtime_put_sync(&pdev->dev);
++	pm_runtime_disable(&pdev->dev);
++	return err;
+ }
+ 
+ static int tegra_dpaux_remove(struct platform_device *pdev)
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 28dbb724..e8a83234 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -1241,8 +1241,8 @@ static int host1x_drm_probe(struct host1x_device *dev)
+ 	if (host1x_drm_wants_iommu(dev) && iommu_present(&platform_bus_type)) {
+ 		tegra->domain = iommu_domain_alloc(&platform_bus_type);
+ #endif
+-		if (!tegra->domain) {
+-			err = -ENOMEM;
++		if (IS_ERR(tegra->domain)) {
++			err = PTR_ERR(tegra->domain);
+ 			goto free;
+ 		}
+ 
+@@ -1447,6 +1447,11 @@ static int host1x_drm_remove(struct host1x_device *dev)
+ 	return 0;
+ }
+ 
++static void host1x_drm_shutdown(struct host1x_device *dev)
++{
++	drm_atomic_helper_shutdown(dev_get_drvdata(&dev->dev));
++}
++
+ #ifdef CONFIG_PM_SLEEP
+ static int host1x_drm_suspend(struct device *dev)
+ {
+@@ -1525,6 +1530,7 @@ static struct host1x_driver host1x_drm_driver = {
+ 	},
+ 	.probe = host1x_drm_probe,
+ 	.remove = host1x_drm_remove,
++	.shutdown = host1x_drm_shutdown,
+ 	.subdevs = host1x_drm_subdevs,
+ };
+ 
+diff --git a/drivers/gpu/drm/tegra/drm.h b/drivers/gpu/drm/tegra/drm.h
+index 5f2a8569..73f1f12f 100644
+--- a/drivers/gpu/drm/tegra/drm.h
++++ b/drivers/gpu/drm/tegra/drm.h
+@@ -7,6 +7,8 @@
+ #ifndef HOST1X_DRM_H
+ #define HOST1X_DRM_H 1
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/host1x-next.h>
+ #include <linux/iova.h>
+ #include <linux/gpio/consumer.h>
+@@ -14,7 +16,6 @@
+ #include <drm/drm_atomic.h>
+ #ifdef CONFIG_DRM_TEGRA_HAVE_DISPLAY
+ #include <drm/drm_bridge.h>
+-#include <drm/drm_edid.h>
+ #include <drm/drm_encoder.h>
+ #endif
+ #include <drm/drm_fixed.h>
+@@ -27,12 +28,18 @@
+ #endif
+ #include <trace/events/trace.h>
+ 
++#if defined(NV_DRM_EDID_CONNECTOR_ADD_MODES_PRESENT) && /* Linux v6.3 */ \
++    defined(NV_DRM_DISPLAY_INFO_STRUCT_HAS_SOURCE_PHYSICAL_ADDRESS) /* Linux v6.7 */
++#define NV_USE_DRM_EDID
++#endif
++
+ /* XXX move to include/uapi/drm/drm_fourcc.h? */
+ #define DRM_FORMAT_MOD_NVIDIA_SECTOR_LAYOUT BIT_ULL(22)
+ 
+ struct drm_fb_helper;
+ struct drm_fb_helper_surface_size;
+ 
++struct edid;
+ struct reset_control;
+ 
+ struct tegra_drm {
+@@ -153,7 +160,11 @@ struct tegra_output {
+ 	struct drm_bridge *bridge;
+ 	struct drm_panel *panel;
+ 	struct i2c_adapter *ddc;
++#if defined(NV_USE_DRM_EDID)
++	const struct drm_edid *drm_edid;
++#else
+ 	const struct edid *edid;
++#endif
+ 	struct cec_notifier *cec;
+ 	unsigned int hpd_irq;
+ 	struct gpio_desc *hpd_gpio;
+diff --git a/drivers/gpu/drm/tegra/dsi.c b/drivers/gpu/drm/tegra/dsi.c
+index 5b173f0e..7f605ac7 100644
+--- a/drivers/gpu/drm/tegra/dsi.c
++++ b/drivers/gpu/drm/tegra/dsi.c
+@@ -1556,9 +1556,11 @@ static int tegra_dsi_ganged_probe(struct tegra_dsi *dsi)
+ 	np = of_parse_phandle(dsi->dev->of_node, "nvidia,ganged-mode", 0);
+ 	if (np) {
+ 		struct platform_device *gangster = of_find_device_by_node(np);
++		of_node_put(np);
++		if (!gangster)
++			return -EPROBE_DEFER;
+ 
+ 		dsi->slave = platform_get_drvdata(gangster);
+-		of_node_put(np);
+ 
+ 		if (!dsi->slave) {
+ 			put_device(&gangster->dev);
+@@ -1606,44 +1608,58 @@ static int tegra_dsi_probe(struct platform_device *pdev)
+ 
+ 	if (!pdev->dev.pm_domain) {
+ 		dsi->rst = devm_reset_control_get(&pdev->dev, "dsi");
+-		if (IS_ERR(dsi->rst))
+-			return PTR_ERR(dsi->rst);
++		if (IS_ERR(dsi->rst)) {
++			err = PTR_ERR(dsi->rst);
++			goto remove;
++		}
+ 	}
+ 
+ 	dsi->clk = devm_clk_get(&pdev->dev, NULL);
+-	if (IS_ERR(dsi->clk))
+-		return dev_err_probe(&pdev->dev, PTR_ERR(dsi->clk),
+-				     "cannot get DSI clock\n");
++	if (IS_ERR(dsi->clk)) {
++		err = dev_err_probe(&pdev->dev, PTR_ERR(dsi->clk),
++				    "cannot get DSI clock\n");
++		goto remove;
++	}
+ 
+ 	dsi->clk_lp = devm_clk_get(&pdev->dev, "lp");
+-	if (IS_ERR(dsi->clk_lp))
+-		return dev_err_probe(&pdev->dev, PTR_ERR(dsi->clk_lp),
+-				     "cannot get low-power clock\n");
++	if (IS_ERR(dsi->clk_lp)) {
++		err = dev_err_probe(&pdev->dev, PTR_ERR(dsi->clk_lp),
++				    "cannot get low-power clock\n");
++		goto remove;
++	}
+ 
+ 	dsi->clk_parent = devm_clk_get(&pdev->dev, "parent");
+-	if (IS_ERR(dsi->clk_parent))
+-		return dev_err_probe(&pdev->dev, PTR_ERR(dsi->clk_parent),
+-				     "cannot get parent clock\n");
++	if (IS_ERR(dsi->clk_parent)) {
++		err = dev_err_probe(&pdev->dev, PTR_ERR(dsi->clk_parent),
++				    "cannot get parent clock\n");
++		goto remove;
++	}
+ 
+ 	dsi->vdd = devm_regulator_get(&pdev->dev, "avdd-dsi-csi");
+-	if (IS_ERR(dsi->vdd))
+-		return dev_err_probe(&pdev->dev, PTR_ERR(dsi->vdd),
+-				     "cannot get VDD supply\n");
++	if (IS_ERR(dsi->vdd)) {
++		err = dev_err_probe(&pdev->dev, PTR_ERR(dsi->vdd),
++				    "cannot get VDD supply\n");
++		goto remove;
++	}
+ 
+ 	err = tegra_dsi_setup_clocks(dsi);
+ 	if (err < 0) {
+ 		dev_err(&pdev->dev, "cannot setup clocks\n");
+-		return err;
++		goto remove;
+ 	}
+ 
+ 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	dsi->regs = devm_ioremap_resource(&pdev->dev, regs);
+-	if (IS_ERR(dsi->regs))
+-		return PTR_ERR(dsi->regs);
++	if (IS_ERR(dsi->regs)) {
++		err = PTR_ERR(dsi->regs);
++		goto remove;
++	}
+ 
+ 	dsi->mipi = tegra_mipi_request(&pdev->dev, pdev->dev.of_node);
+-	if (IS_ERR(dsi->mipi))
+-		return PTR_ERR(dsi->mipi);
++	if (IS_ERR(dsi->mipi)) {
++		err = PTR_ERR(dsi->mipi);
++		goto remove;
++	}
+ 
+ 	dsi->host.ops = &tegra_dsi_host_ops;
+ 	dsi->host.dev = &pdev->dev;
+@@ -1671,9 +1687,12 @@ static int tegra_dsi_probe(struct platform_device *pdev)
+ 	return 0;
+ 
+ unregister:
++	pm_runtime_disable(&pdev->dev);
+ 	mipi_dsi_host_unregister(&dsi->host);
+ mipi_free:
+ 	tegra_mipi_free(dsi->mipi);
++remove:
++	tegra_output_remove(&dsi->output);
+ 	return err;
+ }
+ 
+diff --git a/drivers/gpu/drm/tegra/fb.c b/drivers/gpu/drm/tegra/fb.c
+index a5c1381e..cad5cbfb 100644
+--- a/drivers/gpu/drm/tegra/fb.c
++++ b/drivers/gpu/drm/tegra/fb.c
+@@ -164,6 +164,7 @@ struct drm_framebuffer *tegra_fb_create(struct drm_device *drm,
+ 
+ 		if (gem->size < size) {
+ 			err = -EINVAL;
++			drm_gem_object_put(gem);
+ 			goto unreference;
+ 		}
+ 
+diff --git a/drivers/gpu/drm/tegra/hdmi.c b/drivers/gpu/drm/tegra/hdmi.c
+index c98f5f89..3c46f24b 100644
+--- a/drivers/gpu/drm/tegra/hdmi.c
++++ b/drivers/gpu/drm/tegra/hdmi.c
+@@ -28,6 +28,7 @@
+ #include <drm/drm_atomic_helper.h>
+ #include <drm/drm_crtc.h>
+ #include <drm/drm_debugfs.h>
++#include <drm/drm_edid.h>
+ #if defined(NV_DRM_DRM_ELD_H_PRESENT)
+ #include <drm/drm_eld.h>
+ #endif
+@@ -1875,12 +1876,14 @@ static int tegra_hdmi_probe(struct platform_device *pdev)
+ 		return err;
+ 
+ 	hdmi->regs = devm_platform_ioremap_resource(pdev, 0);
+-	if (IS_ERR(hdmi->regs))
+-		return PTR_ERR(hdmi->regs);
++	if (IS_ERR(hdmi->regs)) {
++		err = PTR_ERR(hdmi->regs);
++		goto remove;
++	}
+ 
+ 	err = platform_get_irq(pdev, 0);
+ 	if (err < 0)
+-		return err;
++		goto remove;
+ 
+ 	hdmi->irq = err;
+ 
+@@ -1889,19 +1892,19 @@ static int tegra_hdmi_probe(struct platform_device *pdev)
+ 	if (err < 0) {
+ 		dev_err(&pdev->dev, "failed to request IRQ#%u: %d\n",
+ 			hdmi->irq, err);
+-		return err;
++		goto remove;
+ 	}
+ 
+ 	platform_set_drvdata(pdev, hdmi);
+ 
+ 	err = devm_pm_runtime_enable(&pdev->dev);
+ 	if (err)
+-		return err;
++		goto remove;
+ 
+ #if defined(NV_DEVM_TEGRA_CORE_DEV_INIT_OPP_TABLE_COMMON_PRESENT) /* Linux v5.17 */
+ 	err = devm_tegra_core_dev_init_opp_table_common(&pdev->dev);
+ 	if (err)
+-		return err;
++		goto remove;
+ #endif
+ 
+ 	INIT_LIST_HEAD(&hdmi->client.list);
+@@ -1912,10 +1915,14 @@ static int tegra_hdmi_probe(struct platform_device *pdev)
+ 	if (err < 0) {
+ 		dev_err(&pdev->dev, "failed to register host1x client: %d\n",
+ 			err);
+-		return err;
++		goto remove;
+ 	}
+ 
+ 	return 0;
++
++remove:
++	tegra_output_remove(&hdmi->output);
++	return err;
+ }
+ 
+ static int tegra_hdmi_remove(struct platform_device *pdev)
+diff --git a/drivers/gpu/drm/tegra/hub.c b/drivers/gpu/drm/tegra/hub.c
+index de018fd0..b73a1f69 100644
+--- a/drivers/gpu/drm/tegra/hub.c
++++ b/drivers/gpu/drm/tegra/hub.c
+@@ -523,12 +523,11 @@ static void tegra_shared_plane_atomic_disable(struct drm_plane *plane,
+ 
+ static inline u32 compute_phase_incr(fixed20_12 in, unsigned int out)
+ {
+-	u64 tmp, tmp1, tmp2;
++	u64 tmp, tmp1;
+ 
+ 	tmp = (u64)dfixed_trunc(in);
+-	tmp2 = (u64)out;
+-	tmp1 = (tmp << NFB) + (tmp2 >> 1);
+-	do_div(tmp1, tmp2);
++	tmp1 = (tmp << NFB) + ((u64)out >> 1);
++	do_div(tmp1, out);
+ 
+ 	return lower_32_bits(tmp1);
+ }
+diff --git a/drivers/gpu/drm/tegra/output.c b/drivers/gpu/drm/tegra/output.c
+index dc2dcb5c..c5db559f 100644
+--- a/drivers/gpu/drm/tegra/output.c
++++ b/drivers/gpu/drm/tegra/output.c
+@@ -4,10 +4,13 @@
+  * Copyright (C) 2012 NVIDIA CORPORATION.  All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/i2c.h>
+ #include <linux/of.h>
+ 
+ #include <drm/drm_atomic_helper.h>
++#include <drm/drm_edid.h>
+ #include <drm/drm_of.h>
+ #include <drm/drm_panel.h>
+ #include <drm/drm_simple_kms_helper.h>
+@@ -20,7 +23,11 @@
+ int tegra_output_connector_get_modes(struct drm_connector *connector)
+ {
+ 	struct tegra_output *output = connector_to_output(connector);
++#if defined(NV_USE_DRM_EDID)
++	const struct drm_edid *drm_edid = NULL;
++#else
+ 	struct edid *edid = NULL;
++#endif
+ 	int err = 0;
+ 
+ 	/*
+@@ -33,6 +40,19 @@ int tegra_output_connector_get_modes(struct drm_connector *connector)
+ 			return err;
+ 	}
+ 
++#if defined(NV_USE_DRM_EDID)
++	if (output->drm_edid)
++		drm_edid = drm_edid_dup(output->drm_edid);
++	else if (output->ddc)
++		drm_edid = drm_edid_read_ddc(connector, output->ddc);
++
++	drm_edid_connector_update(connector, drm_edid);
++	cec_notifier_set_phys_addr(output->cec,
++				   connector->display_info.source_physical_address);
++
++	err = drm_edid_connector_add_modes(connector);
++	drm_edid_free(drm_edid);
++#else
+ 	if (output->edid)
+ 		edid = kmemdup(output->edid, sizeof(*edid), GFP_KERNEL);
+ 	else if (output->ddc)
+@@ -45,6 +65,7 @@ int tegra_output_connector_get_modes(struct drm_connector *connector)
+ 		err = drm_add_edid_modes(connector, edid);
+ 		kfree(edid);
+ 	}
++#endif
+ 
+ 	return err;
+ }
+@@ -97,6 +118,9 @@ static irqreturn_t hpd_irq(int irq, void *data)
+ int tegra_output_probe(struct tegra_output *output)
+ {
+ 	struct device_node *ddc, *panel;
++#if defined(NV_USE_DRM_EDID)
++	const void *edid;
++#endif
+ 	unsigned long flags;
+ 	int err, size;
+ 
+@@ -123,7 +147,9 @@ int tegra_output_probe(struct tegra_output *output)
+ 			return PTR_ERR(output->panel);
+ 	}
+ 
++#if !defined(NV_USE_DRM_EDID)
+ 	output->edid = of_get_property(output->of_node, "nvidia,edid", &size);
++#endif
+ 
+ 	ddc = of_parse_phandle(output->of_node, "nvidia,ddc-i2c-bus", 0);
+ 	if (ddc) {
+@@ -136,14 +162,21 @@ int tegra_output_probe(struct tegra_output *output)
+ 		}
+ 	}
+ 
++#if defined(NV_USE_DRM_EDID)
++	edid = of_get_property(output->of_node, "nvidia,edid", &size);
++	output->drm_edid = drm_edid_alloc(edid, size);
++#endif
++
+ 	output->hpd_gpio = devm_fwnode_gpiod_get(output->dev,
+ 					of_fwnode_handle(output->of_node),
+ 					"nvidia,hpd",
+ 					GPIOD_IN,
+ 					"HDMI hotplug detect");
+ 	if (IS_ERR(output->hpd_gpio)) {
+-		if (PTR_ERR(output->hpd_gpio) != -ENOENT)
+-			return PTR_ERR(output->hpd_gpio);
++		if (PTR_ERR(output->hpd_gpio) != -ENOENT) {
++			err = PTR_ERR(output->hpd_gpio);
++			goto put_i2c;
++		}
+ 
+ 		output->hpd_gpio = NULL;
+ 	}
+@@ -152,7 +185,7 @@ int tegra_output_probe(struct tegra_output *output)
+ 		err = gpiod_to_irq(output->hpd_gpio);
+ 		if (err < 0) {
+ 			dev_err(output->dev, "gpiod_to_irq(): %d\n", err);
+-			return err;
++			goto put_i2c;
+ 		}
+ 
+ 		output->hpd_irq = err;
+@@ -165,7 +198,7 @@ int tegra_output_probe(struct tegra_output *output)
+ 		if (err < 0) {
+ 			dev_err(output->dev, "failed to request IRQ#%u: %d\n",
+ 				output->hpd_irq, err);
+-			return err;
++			goto put_i2c;
+ 		}
+ 
+ 		output->connector.polled = DRM_CONNECTOR_POLL_HPD;
+@@ -179,6 +212,16 @@ int tegra_output_probe(struct tegra_output *output)
+ 	}
+ 
+ 	return 0;
++
++put_i2c:
++	if (output->ddc)
++		i2c_put_adapter(output->ddc);
++
++#if defined(NV_USE_DRM_EDID)
++	drm_edid_free(output->drm_edid);
++#endif
++
++	return err;
+ }
+ 
+ void tegra_output_remove(struct tegra_output *output)
+@@ -188,6 +231,10 @@ void tegra_output_remove(struct tegra_output *output)
+ 
+ 	if (output->ddc)
+ 		i2c_put_adapter(output->ddc);
++
++#if defined(NV_USE_DRM_EDID)
++	drm_edid_free(output->drm_edid);
++#endif
+ }
+ 
+ int tegra_output_init(struct drm_device *drm, struct tegra_output *output)
+diff --git a/drivers/gpu/drm/tegra/rgb.c b/drivers/gpu/drm/tegra/rgb.c
+index fc66bbd9..1e8ec50b 100644
+--- a/drivers/gpu/drm/tegra/rgb.c
++++ b/drivers/gpu/drm/tegra/rgb.c
+@@ -225,26 +225,28 @@ int tegra_dc_rgb_probe(struct tegra_dc *dc)
+ 	rgb->clk = devm_clk_get(dc->dev, NULL);
+ 	if (IS_ERR(rgb->clk)) {
+ 		dev_err(dc->dev, "failed to get clock\n");
+-		return PTR_ERR(rgb->clk);
++		err = PTR_ERR(rgb->clk);
++		goto remove;
+ 	}
+ 
+ 	rgb->clk_parent = devm_clk_get(dc->dev, "parent");
+ 	if (IS_ERR(rgb->clk_parent)) {
+ 		dev_err(dc->dev, "failed to get parent clock\n");
+-		return PTR_ERR(rgb->clk_parent);
++		err = PTR_ERR(rgb->clk_parent);
++		goto remove;
+ 	}
+ 
+ 	err = clk_set_parent(rgb->clk, rgb->clk_parent);
+ 	if (err < 0) {
+ 		dev_err(dc->dev, "failed to set parent clock: %d\n", err);
+-		return err;
++		goto remove;
+ 	}
+ 
+ 	rgb->pll_d_out0 = clk_get_sys(NULL, "pll_d_out0");
+ 	if (IS_ERR(rgb->pll_d_out0)) {
+ 		err = PTR_ERR(rgb->pll_d_out0);
+ 		dev_err(dc->dev, "failed to get pll_d_out0: %d\n", err);
+-		return err;
++		goto remove;
+ 	}
+ 
+ 	if (dc->soc->has_pll_d2_out0) {
+@@ -252,13 +254,19 @@ int tegra_dc_rgb_probe(struct tegra_dc *dc)
+ 		if (IS_ERR(rgb->pll_d2_out0)) {
+ 			err = PTR_ERR(rgb->pll_d2_out0);
+ 			dev_err(dc->dev, "failed to get pll_d2_out0: %d\n", err);
+-			return err;
++			goto put_pll;
+ 		}
+ 	}
+ 
+ 	dc->rgb = &rgb->output;
+ 
+ 	return 0;
++
++put_pll:
++	clk_put(rgb->pll_d_out0);
++remove:
++	tegra_output_remove(&rgb->output);
++	return err;
+ }
+ 
+ void tegra_dc_rgb_remove(struct tegra_dc *dc)
+diff --git a/drivers/gpu/drm/tegra/sor.c b/drivers/gpu/drm/tegra/sor.c
+index 7c87bf56..7a1f1662 100644
+--- a/drivers/gpu/drm/tegra/sor.c
++++ b/drivers/gpu/drm/tegra/sor.c
+@@ -33,6 +33,7 @@
+ #endif
+ #include <drm/drm_atomic_helper.h>
+ #include <drm/drm_debugfs.h>
++#include <drm/drm_edid.h>
+ #if defined(NV_DRM_DRM_ELD_H_PRESENT)
+ #include <drm/drm_eld.h>
+ #endif
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 01d689af..9f54ef2b 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -123,7 +123,9 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_connector_helper_funcs_struct_mode_val
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_debugfs_remove_files_has_root_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_has_fbdev_probe
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_date
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_display_info_struct_has_source_physical_address
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_irq_enabled_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_edid_connector_add_modes
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_alloc_info
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_prepare_has_preferred_bpp_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_unregister_info
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 2bcd9241..9f8f55a1 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7123,6 +7123,22 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DRIVER_HAS_FBDEV_PROBE" "" "types"
+         ;;
+ 
++        drm_display_info_struct_has_source_physical_address)
++            #
++            # Determine if the 'drm_display_info' structure has a 'source_physical_address' field.
++            #
++            # This change was made by commit 82b599ece3b8 ("drm/edid: parse source physical
++            # address") in Linux v6.7.
++            #
++            CODE="
++            #include <drm/drm_connector.h>
++            int conftest_drm_display_info_struct_has_source_physical_address(void) {
++                return offsetof(struct drm_display_info, source_physical_address);
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_DISPLAY_INFO_STRUCT_HAS_SOURCE_PHYSICAL_ADDRESS" "" "types"
++        ;;
++
+         drm_connector_helper_funcs_struct_mode_valid_has_const_arg)
+             #
+             # Determine if the 'mode_valid' function pointer of the
+@@ -7178,6 +7194,25 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DRIVER_STRUCT_HAS_IRQ_ENABLED_ARG" "" "types"
+         ;;
+ 
++        drm_edid_connector_add_modes)
++            #
++            # Determine if the function 'drm_edid_connector_add_modes' is present.
++            #
++            # In Linux v6.3, commit c533b5167c7e ("drm/edid: add separate
++            # drm_edid_connector_add_modes()") added the function
++            # drm_edid_connector_add_modes().
++            #
++            CODE="
++            #undef CONFIG_ACPI
++            #include <drm/drm_edid.h>
++            void conftest_drm_edid_connector_add_modes(void)
++            {
++                    drm_edid_connector_add_modes();
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_EDID_CONNECTOR_ADD_MODES_PRESENT" "" "functions"
++        ;;
++
+         drm_fb_helper_alloc_info)
+             #
+             # Determine if the function 'drm_fb_helper_alloc_info' is present.
+-- 
+2.43.0
+

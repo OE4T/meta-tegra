@@ -1,0 +1,36 @@
+From 4f7729bdb3924a60c6ba2a9a8dd9a2343dd41594 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 20 Feb 2026 05:56:40 -0800
+Subject: [PATCH 08/15] conftest: fix drm_gem_object_vmap_has_map_arg check
+
+The dma_buf_map struct was renamed to iosys_map with
+kernel commit 7938f421 in Linux v5.18, and was also
+back-ported to the Ubuntu 5.15 kernel.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/conftest.sh | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index b0563f0..f8096b1 100644
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -5060,7 +5060,12 @@ compile_test() {
+             CODE="
+             #include <drm/drm_gem.h>
+             int conftest_drm_gem_object_vmap_has_map_arg(
+-                    struct drm_gem_object *obj, struct dma_buf_map *map) {
++                    struct drm_gem_object *obj,
++            #ifdef NV_LINUX_IOSYS_MAP_H_PRESENT
++                    struct iosys_map *map) {
++            #else
++                    struct dma_buf_map *map) {
++            #endif
+                 return obj->funcs->vmap(obj, map);
+             }"
+ 
+-- 
+2.43.0
+

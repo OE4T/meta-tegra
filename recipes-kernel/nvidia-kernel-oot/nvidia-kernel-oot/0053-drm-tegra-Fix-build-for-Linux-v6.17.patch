@@ -1,0 +1,198 @@
+From 3363acdfac46b66bb78a5e2a8798ad2c8ebf3f57 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:33 -0800
+Subject: [PATCH 53/59] drm/tegra: Fix build for Linux v6.17
+
+The arguments to the function drm_helper_mode_fill_fb_struct() and
+function pointer fb_create() have been updated in the Linux v6.17. Add
+the necessary conftest tests to check for the new variants of these
+functions and update the Tegra DRM driver accordingly.
+
+Bug 5420210
+
+Upstream-Status: Backport
+Change-Id: Ie1470df199d154d3f94f5f7773dcc1ba138e23da
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3423828
+(cherry picked from commit dde42d012e4187e798d5d7c3cfa974f49059d0a1)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3462462
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+(cherry picked from commit d814c113bb75ee876124c62ced5d5b75dee946bc)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.h   |  6 ++++++
+ drivers/gpu/drm/tegra/fb.c    | 16 ++++++++++++++
+ drivers/gpu/drm/tegra/fbdev.c |  6 +++++-
+ scripts/conftest/Makefile     |  2 ++
+ scripts/conftest/conftest.sh  | 39 +++++++++++++++++++++++++++++++++++
+ 5 files changed, 68 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/tegra/drm.h b/drivers/gpu/drm/tegra/drm.h
+index 73f1f12f..147ce751 100644
+--- a/drivers/gpu/drm/tegra/drm.h
++++ b/drivers/gpu/drm/tegra/drm.h
+@@ -214,11 +214,17 @@ bool tegra_fb_is_bottom_up(struct drm_framebuffer *framebuffer);
+ int tegra_fb_get_tiling(struct drm_framebuffer *framebuffer,
+ 			struct tegra_bo_tiling *tiling);
+ struct drm_framebuffer *tegra_fb_alloc(struct drm_device *drm,
++#if defined(NV_DRM_HELPER_MODE_FILL_FB_STRUCT_HAS_INFO_ARG) /* Linux v6.17 */
++					const struct drm_format_info *info,
++#endif
+ 				       const struct drm_mode_fb_cmd2 *mode_cmd,
+ 				       struct tegra_bo **planes,
+ 				       unsigned int num_planes);
+ struct drm_framebuffer *tegra_fb_create(struct drm_device *drm,
+ 					struct drm_file *file,
++#if defined(NV_DRM_MODE_CONFIG_FUNCS_STRUCT_FB_CREATE_HAS_INFO_ARG) /* Linux v6.17 */
++					const struct drm_format_info *info,
++#endif
+ 					const struct drm_mode_fb_cmd2 *cmd);
+ 
+ #if defined(NV_DRM_DRIVER_HAS_FBDEV_PROBE) /* Linux v6.13 */
+diff --git a/drivers/gpu/drm/tegra/fb.c b/drivers/gpu/drm/tegra/fb.c
+index cad5cbfb..6ce2cfa1 100644
+--- a/drivers/gpu/drm/tegra/fb.c
++++ b/drivers/gpu/drm/tegra/fb.c
+@@ -107,6 +107,9 @@ static const struct drm_framebuffer_funcs tegra_fb_funcs = {
+ };
+ 
+ struct drm_framebuffer *tegra_fb_alloc(struct drm_device *drm,
++#if defined(NV_DRM_HELPER_MODE_FILL_FB_STRUCT_HAS_INFO_ARG) /* Linux v6.17 */
++				       const struct drm_format_info *info,
++#endif
+ 				       const struct drm_mode_fb_cmd2 *mode_cmd,
+ 				       struct tegra_bo **planes,
+ 				       unsigned int num_planes)
+@@ -119,7 +122,11 @@ struct drm_framebuffer *tegra_fb_alloc(struct drm_device *drm,
+ 	if (!fb)
+ 		return ERR_PTR(-ENOMEM);
+ 
++#if defined(NV_DRM_HELPER_MODE_FILL_FB_STRUCT_HAS_INFO_ARG) /* Linux v6.17 */
++	drm_helper_mode_fill_fb_struct(drm, fb, info, mode_cmd);
++#else
+ 	drm_helper_mode_fill_fb_struct(drm, fb, mode_cmd);
++#endif
+ 
+ 	for (i = 0; i < fb->format->num_planes; i++)
+ 		fb->obj[i] = &planes[i]->gem;
+@@ -137,9 +144,14 @@ struct drm_framebuffer *tegra_fb_alloc(struct drm_device *drm,
+ 
+ struct drm_framebuffer *tegra_fb_create(struct drm_device *drm,
+ 					struct drm_file *file,
++#if defined(NV_DRM_MODE_CONFIG_FUNCS_STRUCT_FB_CREATE_HAS_INFO_ARG) /* Linux v6.17 */
++					const struct drm_format_info *info,
++#endif
+ 					const struct drm_mode_fb_cmd2 *cmd)
+ {
++#if !defined(NV_DRM_MODE_CONFIG_FUNCS_STRUCT_FB_CREATE_HAS_INFO_ARG) /* Linux v6.17 */
+ 	const struct drm_format_info *info = drm_get_format_info(drm, cmd);
++#endif
+ 	struct tegra_bo *planes[4];
+ 	struct drm_gem_object *gem;
+ 	struct drm_framebuffer *fb;
+@@ -171,7 +183,11 @@ struct drm_framebuffer *tegra_fb_create(struct drm_device *drm,
+ 		planes[i] = to_tegra_bo(gem);
+ 	}
+ 
++#if defined(NV_DRM_HELPER_MODE_FILL_FB_STRUCT_HAS_INFO_ARG) /* Linux v6.17 */
++	fb = tegra_fb_alloc(drm, info, cmd, planes, i);
++#else
+ 	fb = tegra_fb_alloc(drm, cmd, planes, i);
++#endif
+ 	if (IS_ERR(fb)) {
+ 		err = PTR_ERR(fb);
+ 		goto unreference;
+diff --git a/drivers/gpu/drm/tegra/fbdev.c b/drivers/gpu/drm/tegra/fbdev.c
+index 87cffafc..f7865dd5 100644
+--- a/drivers/gpu/drm/tegra/fbdev.c
++++ b/drivers/gpu/drm/tegra/fbdev.c
+@@ -134,7 +134,11 @@ static int tegra_fbdev_probe(struct drm_fb_helper *helper,
+ 		return PTR_ERR(info);
+ 	}
+ 
+-	fb = tegra_fb_alloc(drm, &cmd, &bo, 1);
++	fb = tegra_fb_alloc(drm,
++#if defined(NV_DRM_HELPER_MODE_FILL_FB_STRUCT_HAS_INFO_ARG) /* Linux v6.17 */
++			    drm_get_format_info(drm, cmd.pixel_format, cmd.modifier[0]),
++#endif
++			    &cmd, &bo, 1);
+ 	if (IS_ERR(fb)) {
+ 		err = PTR_ERR(fb);
+ 		dev_err(drm->dev, "failed to allocate DRM framebuffer: %d\n",
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 78398167..3565fb5a 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -132,7 +132,9 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_alloc_info
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_prepare_has_preferred_bpp_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_unregister_info
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_struct_has_info_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_helper_mode_fill_fb_struct_has_info_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_mode_config_struct_has_fb_base_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_mode_config_funcs_struct_fb_create_has_info_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_plane_helper_funcs_struct_atomic_async_check_has_bool_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_scdc_get_set_has_struct_drm_connector_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ethtool_keee_struct_present
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index c7196df4..42926786 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7350,6 +7350,27 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_FB_HELPER_UNREGISTER_INFO_PRESENT" "" "functions"
+         ;;
+ 
++        drm_helper_mode_fill_fb_struct_has_info_arg)
++            #
++            # Determine if the function 'drm_helper_mode_fill_fb_struct' has the
++            # argument 'info'.
++            #
++            # Commit a34cc7bf1034 ("drm: Allow the caller to pass in the format
++            # info to drm_helper_mode_fill_fb_struct()") made this change in
++            # Linux v6.17.
++            #
++            CODE="
++            #undef CONFIG_ACPI
++            #include <drm/drm_modeset_helper.h>
++            void conftest(struct drm_device *dev, struct drm_framebuffer *fb,
++                          const struct drm_format_info *info,
++                          const struct drm_mode_fb_cmd2 *mode_cmd) {
++                    drm_helper_mode_fill_fb_struct(dev, fb, info, mode_cmd);
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_HELPER_MODE_FILL_FB_STRUCT_HAS_INFO_ARG" "" "types"
++        ;;
++
+         drm_mode_config_struct_has_fb_base_arg)
+             #
+             # Determine if the 'drm_mode_config' structure has the 'fb_base' argument.
+@@ -7366,6 +7387,24 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_MODE_CONFIG_STRUCT_HAS_FB_BASE_ARG" "" "types"
+         ;;
+ 
++        drm_mode_config_funcs_struct_fb_create_has_info_arg)
++            #
++            # Determine if the 'fb_create' function pointer has an 'info' argument.
++            #
++            # Commit 81112eaac559 ("drm: Pass the format info to .fb_create()")
++            # made this change in Linux v6.17.
++            #
++            CODE="
++            #include <drm/drm_mode_config.h>
++            void conftest(struct drm_mode_config_funcs *f) {
++                    struct drm_framebuffer *(*fn)(struct drm_device *, struct drm_file *,
++                                                  const struct drm_format_info *,
++                                                  const struct drm_mode_fb_cmd2 *) = f->fb_create;
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_MODE_CONFIG_FUNCS_STRUCT_FB_CREATE_HAS_INFO_ARG" "" "types"
++        ;;
++
+         drm_plane_helper_funcs_struct_atomic_async_check_has_bool_arg)
+             #
+             # Determine if the 'atomic_async_check' function pointer has a bool argument.
+-- 
+2.43.0
+

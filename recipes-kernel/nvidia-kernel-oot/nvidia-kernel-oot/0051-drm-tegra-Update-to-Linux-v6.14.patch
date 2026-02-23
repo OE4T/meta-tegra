@@ -1,0 +1,42 @@
+From 4b8e28007fc9352dec64b0e330603661e9593861 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:32 -0800
+Subject: [PATCH 51/59] drm/tegra: Update to Linux v6.14
+
+Update Tegra DRM to align with Linux v6.14. The 'drm_client_setup.h' was
+moved from the directory 'include/drm/' to 'include/drm/clients' and use
+conftest to detect where it is located.
+
+JIRA LINQPJ14-47
+
+Upstream-Status: Backport
+Change-Id: I1f1df6da4400e74d2f97926710ac0ddd5e6413e6
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3333837
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+(cherry picked from commit 3ad90175d178f6637afa0c88802a144dabd07d96)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 9a9cb843..e8a83234 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -28,9 +28,6 @@
+ #endif
+ #include <drm/drm_atomic.h>
+ #include <drm/drm_atomic_helper.h>
+-#if defined(NV_DRM_DRM_CLIENT_SETUP_H_PRESENT) /* Linux v6.13 */
+-#include <drm/drm_client_setup.h>
+-#endif
+ #include <drm/drm_debugfs.h>
+ #include <drm/drm_drv.h>
+ #include <drm/drm_fourcc.h>
+-- 
+2.43.0
+

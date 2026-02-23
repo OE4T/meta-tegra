@@ -1,0 +1,48 @@
+From 1c1f605a27d1905520095951abb7d4eb33b15eff Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 20 Feb 2026 05:56:39 -0800
+Subject: [PATCH 06/15] Kbuild: Fix quoting on NV_VERSION_STRING
+
+Passing a string constant via a command-line definition
+in a makefile is dangerous, since you never know how
+careful the build system will be about preserving
+the correct quoting. Something changed in the kernel
+build after 5.15 that has caused a problem.
+
+Adjust how the NV_VERSION_STRING definition is passed
+through to compilations to be compatible with both the
+5.15 and 6.18 kernels, adding the definition directly
+to ccflags-y in both cases, and ensuring the interior
+quotation marks are escaped.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/Kbuild | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
+index 3613245..21302f4 100644
+--- a/kernel-open/Kbuild
++++ b/kernel-open/Kbuild
+@@ -73,7 +73,7 @@ EXTRA_CFLAGS += -I$(src)
+ EXTRA_CFLAGS += -I$(NV_OOT_SOURCES)/include
+ EXTRA_CFLAGS += -Wall $(DEFINES) $(INCLUDES) -Wno-cast-qual -Wno-error -Wno-format-extra-args
+ EXTRA_CFLAGS += -D__KERNEL__ -DMODULE -DNVRM
+-EXTRA_CFLAGS += -DNV_VERSION_STRING=\"540.5.0\"
++NV_VERSION_DEFINE = -DNV_VERSION_STRING='\"540.5.0\"'
+ 
+ ifneq ($(SYSSRCHOST1X),)
+  EXTRA_CFLAGS += -I$(SYSSRCHOST1X)
+@@ -125,7 +125,7 @@ endif
+ 
+ # EXTRA_CFLAGS compatibility was dropped in 6.18, so add to
+ # ccflags-y ourselves if Kbuild doesn't do it for us
+-ccflags-y += $(call try-run,grep EXTRA_CFLAGS $(NV_KERNEL_SOURCES)/scripts/Makefile.lib,,$(EXTRA_CFLAGS))
++ccflags-y += $(call try-run,grep EXTRA_CFLAGS $(NV_KERNEL_SOURCES)/scripts/Makefile.lib,$(NV_VERSION_DEFINE),$(EXTRA_CFLAGS) $(NV_VERSION_DEFINE))
+ 
+ #
+ # The conftest.sh script tests various aspects of the target kernel.
+-- 
+2.43.0
+

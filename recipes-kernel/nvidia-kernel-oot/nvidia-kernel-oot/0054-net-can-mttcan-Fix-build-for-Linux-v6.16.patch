@@ -1,0 +1,101 @@
+From 2532be861a7d16b4fc316f85094f95abef795596 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:24:02 -0800
+Subject: [PATCH 54/59] net: can: mttcan: Fix build for Linux v6.16
+
+In Linux v6.16, the structure 'data_bittiming_params' was added to the
+'can_priv' structure and all the related data bittiming parameters were
+moved under this new structure. Add a test to conftest to determine if
+this new structure is present and update the Tegra MTTCAN driver
+accordingly.
+
+JIRA LINQPJ14-60
+
+Upstream-Status: Backport
+Change-Id: Ibd8f6bd81a903b15a55d837023dada835a1e72ca
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3374645
+(cherry picked from commit 86396ec47b78a7716a5faa8d492d74efc7f23dce)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3461874
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+(cherry picked from commit 594c03645c06e7ffdf75bb88423d26ca8e72289a)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/net/can/mttcan/native/m_ttcan_linux.c |  8 ++++++++
+ scripts/conftest/Makefile                     |  1 +
+ scripts/conftest/conftest.sh                  | 18 ++++++++++++++++++
+ 3 files changed, 27 insertions(+)
+
+diff --git a/drivers/net/can/mttcan/native/m_ttcan_linux.c b/drivers/net/can/mttcan/native/m_ttcan_linux.c
+index f7c2ded0..53b1696c 100644
+--- a/drivers/net/can/mttcan/native/m_ttcan_linux.c
++++ b/drivers/net/can/mttcan/native/m_ttcan_linux.c
+@@ -996,7 +996,11 @@ static int mttcan_do_set_bittiming(struct net_device *dev)
+ 	int err = 0;
+ 	struct mttcan_priv *priv = netdev_priv(dev);
+ 	const struct can_bittiming *bt = &priv->can.bittiming;
++#if defined(NV_CAN_PRIV_STRUCT_HAS_STRUCT_DATA_BITTIMING_PARAMS) /* Linux v6.16 */
++	const struct can_bittiming *dbt = &priv->can.fd.data_bittiming;
++#else
+ 	const struct can_bittiming *dbt = &priv->can.data_bittiming;
++#endif
+ 
+ 	memcpy(&priv->ttcan->bt_config.nominal, bt,
+ 		sizeof(struct can_bittiming));
+@@ -1205,7 +1209,11 @@ static struct net_device *alloc_mttcan_dev(void)
+ 
+ 	priv->dev = dev;
+ 	priv->can.bittiming_const = &mttcan_normal_bittiming_const;
++#if defined(NV_CAN_PRIV_STRUCT_HAS_STRUCT_DATA_BITTIMING_PARAMS) /* Linux v6.16 */
++	priv->can.fd.data_bittiming_const = &mttcan_data_bittiming_const;
++#else
+ 	priv->can.data_bittiming_const = &mttcan_data_bittiming_const;
++#endif
+ 	priv->can.do_set_bittiming = mttcan_do_set_bittiming;
+ 	priv->can.do_set_mode = mttcan_set_mode;
+ 	priv->can.do_get_berr_counter = mttcan_get_berr_counter;
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 3565fb5a..3131989a 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -105,6 +105,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += block_device_operations_release_has_no_mod
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += bus_type_struct_match_has_const_drv_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += bus_type_struct_remove_has_int_return_type
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += bus_type_struct_uevent_has_const_dev_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += can_priv_struct_has_struct_data_bittiming_params
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += class_attribute_struct_has_const_struct_class_attribute
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += class_create_has_no_owner_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += class_struct_devnode_has_const_dev_arg
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 42926786..9bddb615 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -6807,6 +6807,24 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_BUS_TYPE_STRUCT_UEVENT_HAS_CONST_DEV_ARG" "" "types"
+         ;;
+ 
++        can_priv_struct_has_struct_data_bittiming_params)
++            #
++            # Determine if the 'can_priv' structure has a member of type
++            # 'structure data_bittiming_params'.
++            #
++            # In Linux v6.16, commit b803c4a4f788 ("can: dev: add struct
++            # data_bittiming_params to group FD parameters") added the
++            # 'data_bittiming_params' structure to the 'can_priv' structure.
++            #
++            CODE="
++            #include <linux/can/dev.h>
++            int conftest_can_priv_struct_has_struct_data_bittiming_params(void) {
++                return offsetof(struct can_priv, fd);
++            }"
++
++            compile_check_conftest "$CODE" "NV_CAN_PRIV_STRUCT_HAS_STRUCT_DATA_BITTIMING_PARAMS" "" "types"
++        ;;
++
+         class_attribute_struct_has_const_struct_class_attribute)
+             #
+             # Determine if struct class_attribute function has const type "struct class_attribute"
+-- 
+2.43.0
+

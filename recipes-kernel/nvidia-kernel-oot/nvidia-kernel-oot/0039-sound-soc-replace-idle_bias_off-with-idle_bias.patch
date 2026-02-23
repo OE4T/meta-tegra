@@ -1,0 +1,96 @@
+From 1f7084c12f9fccb7c24a05f00b0dd22688f1b283 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 08:22:23 -0800
+Subject: [PATCH 39/59] sound: soc: replace idle_bias_off with idle_bias
+
+Based on kernel upstream commit 889dd56f8c03("ASoC: soc-dapm:
+tidyup idle_bias handling - step1"), it needs to replace idle_bias_off
+with idle_bias. For Linux v6.18 and later.
+
+Upstream-Status: Pending
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ scripts/conftest/Makefile                     |  1 +
+ scripts/conftest/conftest.sh                  | 18 ++++++++++++++++++
+ sound/soc/tegra-virt-alt/tegra_pcm_virt_alt.c |  4 ++++
+ sound/soc/tegra/tegra_machine_driver.c        |  6 +++++-
+ 4 files changed, 28 insertions(+), 1 deletion(-)
+
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 1607f586..3b06c38d 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -192,6 +192,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_dai_ops_struct_has_probe
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_dai_ops_struct_set_channel_map_has_const_slot_args
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_of_get_dai_name_has_index_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_rtd_to_codec
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += snd_soc_dapm_context_has_idle_bias
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += simple_util_dai_init
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += soc_single_value_has_xmin_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += spi_get_chipselect
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index c121573f..cb93ed86 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -8290,6 +8290,24 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_SND_SOC_RTD_TO_CODEC_PRESENT" "" "functions"
+         ;;
+ 
++        snd_soc_dapm_context_has_idle_bias)
++            #
++            # Determine if the snd_soc_dapm_context struct changed from having
++	    # the idle_bias_off bitfield to the idle_bias boolean.
++            #
++            # In Linux v6.18, commit 889dd56f8c ("ASoC: soc-dapm: tidyup
++            # idle_bias handling - step1") changed the idle_bias_off
++	    # member to idle_bias, and switch to boolean type.f
++            #
++            CODE="
++            #include <sound/soc.h>
++            bool snd_soc_dapm_context_has_idle_bias(struct snd_soc_dapm_context *dapm) {
++	        return dapm->idle_bias;
++            }"
++
++            compile_check_conftest "$CODE" "NV_SND_SOC_DAPM_CONTEXT_HAS_IDLE_BIAS" "" "types"
++        ;;
++
+         simple_util_dai_init)
+             #
+             # Determine if the simple_util_dai_init() is present. This will help on finding
+diff --git a/sound/soc/tegra-virt-alt/tegra_pcm_virt_alt.c b/sound/soc/tegra-virt-alt/tegra_pcm_virt_alt.c
+index b057e401..4b9050bc 100644
+--- a/sound/soc/tegra-virt-alt/tegra_pcm_virt_alt.c
++++ b/sound/soc/tegra-virt-alt/tegra_pcm_virt_alt.c
+@@ -329,7 +329,11 @@ static int tegra_alt_pcm_ioctl(struct snd_soc_component *component,
+ static int tegra_alt_pcm_probe(struct snd_soc_component *component)
+ {
+ 	struct snd_soc_dapm_context *dapm = snd_soc_component_get_dapm(component);
++#if defined(NV_SND_SOC_DAPM_CONTEXT_HAS_IDLE_BIAS)
++	dapm->idle_bias = false;
++#else
+ 	dapm->idle_bias_off = 1;
++#endif
+ 	return 0;
+ }
+ 
+diff --git a/sound/soc/tegra/tegra_machine_driver.c b/sound/soc/tegra/tegra_machine_driver.c
+index 0e707c4a..805a8390 100644
+--- a/sound/soc/tegra/tegra_machine_driver.c
++++ b/sound/soc/tegra/tegra_machine_driver.c
+@@ -353,7 +353,11 @@ static int tegra_machine_driver_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, card);
+ 	snd_soc_card_set_drvdata(card, machine);
+ 
+-	card->dapm.idle_bias_off = true;
++#if defined(NV_SND_SOC_DAPM_CONTEXT_HAS_IDLE_BIAS)
++	card->dapm.idle_bias = false;
++#else
++	card->dapm.idle_bias_off = 1;
++#endif
+ 
+ 	memset(&machine->audio_clock, 0, sizeof(machine->audio_clock));
+ 	ret = tegra_asoc_utils_init(&machine->audio_clock, &pdev->dev);
+-- 
+2.43.0
+

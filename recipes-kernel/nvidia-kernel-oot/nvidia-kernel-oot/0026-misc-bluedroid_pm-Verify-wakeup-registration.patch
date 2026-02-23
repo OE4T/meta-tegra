@@ -1,0 +1,49 @@
+From 9a39e2b1b7950faea10eabf804622f7e323c9a62 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:18 -0800
+Subject: [PATCH 26/59] misc: bluedroid_pm: Verify wakeup registration
+
+The structure returned from the function wakeup_source_register() is not
+currently checked to see that a valid structure is returned. If
+wakeup_source_register fails to register the wake-up source, then this
+function will return a NULL pointer and this will lead to a crash when
+defereferencing this pointer. Therefore, check that a valid structure is
+returned from wakeup_source_register() and if not then return an error
+from the probe function.
+
+JIRA LINQPJ14-60
+Bug 4958861
+
+Upstream-Status: Backport
+Change-Id: I03356700ab03d6c25080b3806ea8b7da3983a302
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3394894
+(cherry picked from commit 14286052fb9dd496b243221fa1066f828451b294)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3405519
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+(cherry picked from commit 7c70fbf0cf467115c0b138db6dfe5d77f24cad76)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/misc/bluedroid_pm.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/misc/bluedroid_pm.c b/drivers/misc/bluedroid_pm.c
+index 7542f30e..9842685d 100644
+--- a/drivers/misc/bluedroid_pm.c
++++ b/drivers/misc/bluedroid_pm.c
+@@ -470,6 +470,11 @@ static int bluedroid_pm_probe(struct platform_device *pdev)
+ 		/* initialize wake lock */
+ 		bluedroid_pm->wake_lock = wakeup_source_register(&pdev->dev,
+ 							dev_name(&pdev->dev));
++		if (!bluedroid_pm->wake_lock) {
++			BDP_ERR("Failed to register wakeup source");
++			goto free_ext_wake;
++		}
++
+ 		/* Initialize timer */
+ 		timer_setup(&bluedroid_pm->bluedroid_pm_timer,
+ 				bluedroid_pm_timer_expire, 0);
+-- 
+2.43.0
+

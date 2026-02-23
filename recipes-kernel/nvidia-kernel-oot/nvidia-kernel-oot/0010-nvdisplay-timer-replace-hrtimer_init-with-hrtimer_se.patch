@@ -1,0 +1,52 @@
+From 48ae34199c476c4b93a7e56bcb4de97a302cbc86 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 05:56:41 -0800
+Subject: [PATCH 10/15] nvdisplay: timer: replace hrtimer_init() with
+ hrtimer_setup()
+
+Based on kernel upstream commit 244132c4e577("tracing/timers:
+Rename the hrtimer_init event to hrtimer_setup"), it needs to replace
+hrtimer_init() with hrtimer_setup().
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/nvidia/nv-nano-timer.c | 5 +++++
+ kernel-open/nvidia/nvidia.Kbuild   | 1 +
+ 2 files changed, 6 insertions(+)
+
+diff --git a/kernel-open/nvidia/nv-nano-timer.c b/kernel-open/nvidia/nv-nano-timer.c
+index 35220b4..82dad27 100644
+--- a/kernel-open/nvidia/nv-nano-timer.c
++++ b/kernel-open/nvidia/nv-nano-timer.c
+@@ -154,8 +154,13 @@ void NV_API_CALL nv_create_nano_timer(
+     nv_nstimer->nv_nano_timer_callback = nvidia_nano_timer_callback;
+ 
+ #if NV_NANO_TIMER_USE_HRTIMER
++#if NV_IS_EXPORT_SYMBOL_PRESENT_hrtimer_setup
++    hrtimer_setup(&nv_nstimer->hr_timer, &nv_nano_timer_callback_typed_data,
++                  CLOCK_MONOTONIC, HRTIMER_MODE_REL);
++#else
+     hrtimer_init(&nv_nstimer->hr_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+     nv_nstimer->hr_timer.function = nv_nano_timer_callback_typed_data;
++#endif // NV_IS_EXPORT_SYMBOL_PRESENT_hrtimer_setup
+ #else
+ #if defined(NV_TIMER_SETUP_PRESENT)
+     timer_setup(&nv_nstimer->jiffy_timer, nv_jiffy_timer_callback_typed_data, 0);
+diff --git a/kernel-open/nvidia/nvidia.Kbuild b/kernel-open/nvidia/nvidia.Kbuild
+index eeed85a..aceaca5 100644
+--- a/kernel-open/nvidia/nvidia.Kbuild
++++ b/kernel-open/nvidia/nvidia.Kbuild
+@@ -227,6 +227,7 @@ NV_CONFTEST_SYMBOL_COMPILE_TESTS += is_export_symbol_present_tsec_comms_alloc_me
+ NV_CONFTEST_SYMBOL_COMPILE_TESTS += is_export_symbol_present_tsec_comms_free_gscco_mem
+ NV_CONFTEST_SYMBOL_COMPILE_TESTS += crypto
+ NV_CONFTEST_SYMBOL_COMPILE_TESTS += is_export_symbol_present_follow_pte
++NV_CONFTEST_SYMBOL_COMPILE_TESTS += is_export_symbol_present_hrtimer_setup
+ 
+ NV_CONFTEST_TYPE_COMPILE_TESTS += dma_ops
+ NV_CONFTEST_TYPE_COMPILE_TESTS += swiotlb_dma_ops
+-- 
+2.43.0
+

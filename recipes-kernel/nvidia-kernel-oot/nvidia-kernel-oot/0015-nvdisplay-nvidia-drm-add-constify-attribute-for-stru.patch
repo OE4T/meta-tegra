@@ -1,0 +1,85 @@
+From 5bee27a18300e9cee8e45d6200b3141ae5fe0c43 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 05:56:44 -0800
+Subject: [PATCH 15/15] nvdisplay: nvidia-drm: add constify attribute for
+ struct drm_display_mode instance
+
+Based on kernel upstream commit 26d6fd81916e("drm/connector: make
+mode_valid take a const struct drm_display_mode "), it needs to add
+constify attribute for struct drm_display_mode instance.
+Linux 6.15 and later.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/conftest.sh                       | 25 +++++++++++++++++++
+ kernel-open/nvidia-drm/nvidia-drm-connector.c |  4 +++
+ kernel-open/nvidia-drm/nvidia-drm.Kbuild      |  1 +
+ 3 files changed, 30 insertions(+)
+
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index c876e41..26a737e 100644
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -6747,6 +6747,31 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DRIVER_HAS_DATE" "" "types"
+         ;;
+ 
++        drm_connector_helper_funcs_mode_valid_has_const_mode_arg)
++            #
++            # Determine if the 'mode' pointer argument is const in
++            # drm_connector_helper_funcs::mode_valid.
++            #
++            # The 'mode' pointer argument in
++            # drm_connector_helper_funcs::mode_valid was made const by commit
++            # 26d6fd81916e ("drm/connector: make mode_valid take a const struct
++            # drm_display_mode") in linux-next, expected in v6.15.
++            #
++            CODE="
++            #include <drm/drm_atomic_helper.h>
++
++            static int conftest_drm_connector_mode_valid(struct drm_connector *connector,
++                                                         const struct drm_display_mode *mode) {
++                return 0;
++            }
++
++            const struct drm_connector_helper_funcs conftest_drm_connector_helper_funcs = {
++                .mode_valid = conftest_drm_connector_mode_valid,
++            };"
++
++            compile_check_conftest "$CODE" "NV_DRM_CONNECTOR_HELPER_FUNCS_MODE_VALID_HAS_CONST_MODE_ARG" "" "types"
++        ;;
++
+         # When adding a new conftest entry, please use the correct format for
+         # specifying the relevant upstream Linux kernel commit.
+         #
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-connector.c b/kernel-open/nvidia-drm/nvidia-drm-connector.c
+index 095563b..7b339b7 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-connector.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-connector.c
+@@ -417,7 +417,11 @@ static int nv_drm_connector_get_modes(struct drm_connector *connector)
+ }
+ 
+ static int nv_drm_connector_mode_valid(struct drm_connector    *connector,
++#if defined(NV_DRM_CONNECTOR_HELPER_FUNCS_MODE_VALID_HAS_CONST_MODE_ARG)
++                                       const struct drm_display_mode *mode)
++#else
+                                        struct drm_display_mode *mode)
++#endif
+ {
+     struct drm_device *dev = connector->dev;
+     struct nv_drm_device *nv_dev = to_nv_device(dev);
+diff --git a/kernel-open/nvidia-drm/nvidia-drm.Kbuild b/kernel-open/nvidia-drm/nvidia-drm.Kbuild
+index b61c544..5d2c759 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm.Kbuild
++++ b/kernel-open/nvidia-drm/nvidia-drm.Kbuild
+@@ -151,3 +151,4 @@ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_aperture_remove_conflicting_framebuffers_h
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_aperture_remove_conflicting_pci_framebuffers_has_driver_arg
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_mode_create_dp_colorspace_property_has_supported_colorspaces_arg
+ NV_CONFTEST_TYPE_COMPILE_TESTS += drm_driver_has_date
++NV_CONFTEST_TYPE_COMPILE_TESTS += drm_connector_helper_funcs_mode_valid_has_const_mode_arg
+-- 
+2.43.0
+

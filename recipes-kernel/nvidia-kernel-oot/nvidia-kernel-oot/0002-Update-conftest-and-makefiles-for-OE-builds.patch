@@ -1,9 +1,13 @@
-From 6142d1cdc4af35a9fb11e095d0cb37afe55d345c Mon Sep 17 00:00:00 2001
+From fb16e0ff79775dc92b1f4efe2c4a603905b331f6 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Sun, 12 Jan 2025 06:55:25 -0800
-Subject: [PATCH 3/3] Update for OE builds
+Date: Fri, 20 Feb 2026 05:56:38 -0800
+Subject: [PATCH 02/15] Update conftest and makefiles for OE builds
 
-Upstream-Status: Pending
+For OE builds, the OOT drivers are built in a separate
+tree from the kernel. Update the makefiles and conftest
+script to account for that.
+
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
  kernel-open/Kbuild      | 15 ++++++++-------
@@ -85,7 +89,7 @@ index d00c14b..0c416c9 100644
    KBUILD_PARAMS += INSTALL_MOD_DIR=kernel/drivers/video
    KBUILD_PARAMS += NV_SPECTRE_V2=$(SPECTRE_V2_RETPOLINE)
 diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
-index 13c0b0c..e375c44 100644
+index 61ac17d..a685944 100644
 --- a/kernel-open/conftest.sh
 +++ b/kernel-open/conftest.sh
 @@ -11,6 +11,8 @@ ARCH=$2

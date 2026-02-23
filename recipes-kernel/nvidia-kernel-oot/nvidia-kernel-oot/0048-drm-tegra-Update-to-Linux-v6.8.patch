@@ -1,0 +1,823 @@
+From cb8e33e65ef23fd5021f956889f9aefdc5ae4384 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:30 -0800
+Subject: [PATCH 48/59] drm/tegra: Update to Linux v6.8
+
+Update the Tegra DRM driver to align with the upstream Linux v6.8 kernel
+preserving all the downstream changes that still need to be upstreamed.
+
+JIRA LINQPJ14-47
+
+Upstream-Status: Backport
+Change-Id: If0a9149bcfa2fd6276ac8100933abc3d532a5ddc
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3333320
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+(cherry picked from commit 13834d4e1326b7131ac90e87c583c42b57a9fa63)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/dc.c     |  3 +-
+ drivers/gpu/drm/tegra/dpaux.c  | 12 +++----
+ drivers/gpu/drm/tegra/drm.c    | 22 ++++++++++++-
+ drivers/gpu/drm/tegra/drm.h    |  3 --
+ drivers/gpu/drm/tegra/dsi.c    | 37 ++++++++++++---------
+ drivers/gpu/drm/tegra/fb.c     |  2 +-
+ drivers/gpu/drm/tegra/fbdev.c  |  4 ++-
+ drivers/gpu/drm/tegra/gem.c    | 32 +++++++++++-------
+ drivers/gpu/drm/tegra/gr2d.c   |  1 -
+ drivers/gpu/drm/tegra/gr3d.c   |  2 +-
+ drivers/gpu/drm/tegra/hdmi.c   | 59 +++++++++++++++++++++-------------
+ drivers/gpu/drm/tegra/hub.c    |  3 +-
+ drivers/gpu/drm/tegra/nvdec.c  |  4 +--
+ drivers/gpu/drm/tegra/output.c |  8 ++---
+ drivers/gpu/drm/tegra/plane.c  | 16 ++++-----
+ drivers/gpu/drm/tegra/rgb.c    | 16 +++++++--
+ drivers/gpu/drm/tegra/sor.c    | 35 +++++++++-----------
+ drivers/gpu/drm/tegra/submit.c | 24 +++++++-------
+ drivers/gpu/drm/tegra/vic.c    |  1 -
+ drivers/gpu/host1x/dev.c       |  4 +++
+ 20 files changed, 167 insertions(+), 121 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/dc.c b/drivers/gpu/drm/tegra/dc.c
+index e192ba19..f2ac65a2 100644
+--- a/drivers/gpu/drm/tegra/dc.c
++++ b/drivers/gpu/drm/tegra/dc.c
+@@ -13,6 +13,7 @@
+ #include <linux/iommu.h>
+ #include <linux/interconnect.h>
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_domain.h>
+@@ -2402,7 +2403,6 @@ static int tegra_crtc_calculate_memory_bandwidth(struct drm_crtc *crtc,
+ 	const struct tegra_plane_state *tegra_state;
+ 	const struct drm_plane_state *plane_state;
+ 	struct tegra_dc *dc = to_tegra_dc(crtc);
+-	const struct drm_crtc_state *old_state;
+ 	struct drm_crtc_state *new_state;
+ 	struct tegra_plane *tegra;
+ 	struct drm_plane *plane;
+@@ -2417,7 +2417,6 @@ static int tegra_crtc_calculate_memory_bandwidth(struct drm_crtc *crtc,
+ 		return 0;
+ 
+ 	new_state = drm_atomic_get_new_crtc_state(state, crtc);
+-	old_state = drm_atomic_get_old_crtc_state(state, crtc);
+ 
+ 	/*
+ 	 * For overlapping planes pixel's data is fetched for each plane at
+diff --git a/drivers/gpu/drm/tegra/dpaux.c b/drivers/gpu/drm/tegra/dpaux.c
+index 5250fefa..83058852 100644
+--- a/drivers/gpu/drm/tegra/dpaux.c
++++ b/drivers/gpu/drm/tegra/dpaux.c
+@@ -10,8 +10,8 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/of_device.h>
+-#include <linux/platform_device.h>
+ #include <linux/pinctrl/pinconf-generic.h>
+ #include <linux/pinctrl/pinctrl.h>
+ #include <linux/pinctrl/pinmux.h>
+@@ -463,7 +463,6 @@ static const struct pinmux_ops tegra_dpaux_pinmux_ops = {
+ static int tegra_dpaux_probe(struct platform_device *pdev)
+ {
+ 	struct tegra_dpaux *dpaux;
+-	struct resource *regs;
+ 	u32 value;
+ 	int err;
+ 
+@@ -477,14 +476,13 @@ static int tegra_dpaux_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&dpaux->list);
+ 	dpaux->dev = &pdev->dev;
+ 
+-	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	dpaux->regs = devm_ioremap_resource(&pdev->dev, regs);
++	dpaux->regs = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(dpaux->regs))
+ 		return PTR_ERR(dpaux->regs);
+ 
+ 	dpaux->irq = platform_get_irq(pdev, 0);
+ 	if (dpaux->irq < 0)
+-		return -ENXIO;
++		return dpaux->irq;
+ 
+ 	if (!pdev->dev.pm_domain) {
+ 		dpaux->rst = devm_reset_control_get(&pdev->dev, "dpaux");
+@@ -616,7 +614,6 @@ static int tegra_dpaux_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_PM
+ static int tegra_dpaux_suspend(struct device *dev)
+ {
+ 	struct tegra_dpaux *dpaux = dev_get_drvdata(dev);
+@@ -675,7 +672,6 @@ disable_clk:
+ 	clk_disable_unprepare(dpaux->clk);
+ 	return err;
+ }
+-#endif
+ 
+ static const struct dev_pm_ops tegra_dpaux_pm_ops = {
+ 	SET_RUNTIME_PM_OPS(tegra_dpaux_suspend, tegra_dpaux_resume, NULL)
+@@ -724,7 +720,7 @@ struct platform_driver tegra_dpaux_driver = {
+ 	.driver = {
+ 		.name = "tegra-dpaux",
+ 		.of_match_table = tegra_dpaux_of_match,
+-		.pm = &tegra_dpaux_pm_ops,
++		.pm = pm_ptr(&tegra_dpaux_pm_ops),
+ 	},
+ 	.probe = tegra_dpaux_probe,
+ 	.remove = tegra_dpaux_remove_wrapper,
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 8f8b2426..28dbb724 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -1000,7 +1000,8 @@ int host1x_client_iommu_attach(struct host1x_client *client)
+ 	 * not the shared IOMMU domain, don't try to attach it to a different
+ 	 * domain. This allows using the IOMMU-backed DMA API.
+ 	 */
+-	if (domain && domain != tegra->domain)
++	if (domain && domain->type != IOMMU_DOMAIN_IDENTITY &&
++	    domain != tegra->domain)
+ 		return 0;
+ 
+ 	if (tegra->domain) {
+@@ -1169,6 +1170,10 @@ static bool host1x_drm_wants_iommu(struct host1x_device *dev)
+ 	struct host1x *host1x = dev_get_drvdata(dev->dev.parent);
+ 	struct iommu_domain *domain;
+ 
++	/* Our IOMMU usage policy doesn't currently play well with GART */
++	if (of_machine_is_compatible("nvidia,tegra20"))
++		return false;
++
+ 	/*
+ 	 * If the Tegra DRM clients are backed by an IOMMU, push buffers are
+ 	 * likely to be allocated beyond the 32-bit boundary if sufficient
+@@ -1339,6 +1344,15 @@ static int host1x_drm_probe(struct host1x_device *dev)
+ 
+ 	drm_mode_config_reset(drm);
+ 
++	/*
++	 * Only take over from a potential firmware framebuffer if any CRTCs
++	 * have been registered. This must not be a fatal error because there
++	 * are other accelerators that are exposed via this driver.
++	 *
++	 * Another case where this happens is on Tegra234 where the display
++	 * hardware is no longer part of the host1x complex, so this driver
++	 * will not expose any modesetting features.
++	 */
+ 	if (drm->mode_config.num_crtc > 0) {
+ #if defined(NV_APERTURE_REMOVE_ALL_CONFLICTING_DEVICES_PRESENT) /* Linux v6.0 */
+ 		err = aperture_remove_all_conflicting_devices(tegra_drm_driver.name);
+@@ -1351,6 +1365,12 @@ static int host1x_drm_probe(struct host1x_device *dev)
+ #endif
+ 		if (err < 0)
+ 			goto hub;
++	} else {
++		/*
++		 * Indicate to userspace that this doesn't expose any display
++		 * capabilities.
++		 */
++		drm->driver_features &= ~(DRIVER_MODESET | DRIVER_ATOMIC);
+ 	}
+ 
+ 	err = drm_dev_register(drm, 0);
+diff --git a/drivers/gpu/drm/tegra/drm.h b/drivers/gpu/drm/tegra/drm.h
+index cb2ce07c..5f2a8569 100644
+--- a/drivers/gpu/drm/tegra/drm.h
++++ b/drivers/gpu/drm/tegra/drm.h
+@@ -139,9 +139,6 @@ int tegra_drm_unregister_client(struct tegra_drm *tegra,
+ int host1x_client_iommu_attach(struct host1x_client *client);
+ void host1x_client_iommu_detach(struct host1x_client *client);
+ 
+-int tegra_drm_init(struct tegra_drm *tegra, struct drm_device *drm);
+-int tegra_drm_exit(struct tegra_drm *tegra);
+-
+ void *tegra_drm_alloc(struct tegra_drm *tegra, size_t size, dma_addr_t *iova);
+ void tegra_drm_free(struct tegra_drm *tegra, size_t size, void *virt,
+ 		    dma_addr_t iova);
+diff --git a/drivers/gpu/drm/tegra/dsi.c b/drivers/gpu/drm/tegra/dsi.c
+index 66215cf9..5b173f0e 100644
+--- a/drivers/gpu/drm/tegra/dsi.c
++++ b/drivers/gpu/drm/tegra/dsi.c
+@@ -925,6 +925,15 @@ static void tegra_dsi_encoder_enable(struct drm_encoder *encoder)
+ 	u32 value;
+ 	int err;
+ 
++	/* If the bootloader enabled DSI it needs to be disabled
++	 * in order for the panel initialization commands to be
++	 * properly sent.
++	 */
++	value = tegra_dsi_readl(dsi, DSI_POWER_CONTROL);
++
++	if (value & DSI_POWER_CONTROL_ENABLE)
++		tegra_dsi_disable(dsi);
++
+ 	err = tegra_dsi_prepare(dsi);
+ 	if (err < 0) {
+ 		dev_err(dsi->dev, "failed to prepare: %d\n", err);
+@@ -1602,28 +1611,24 @@ static int tegra_dsi_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	dsi->clk = devm_clk_get(&pdev->dev, NULL);
+-	if (IS_ERR(dsi->clk)) {
+-		dev_err(&pdev->dev, "cannot get DSI clock\n");
+-		return PTR_ERR(dsi->clk);
+-	}
++	if (IS_ERR(dsi->clk))
++		return dev_err_probe(&pdev->dev, PTR_ERR(dsi->clk),
++				     "cannot get DSI clock\n");
+ 
+ 	dsi->clk_lp = devm_clk_get(&pdev->dev, "lp");
+-	if (IS_ERR(dsi->clk_lp)) {
+-		dev_err(&pdev->dev, "cannot get low-power clock\n");
+-		return PTR_ERR(dsi->clk_lp);
+-	}
++	if (IS_ERR(dsi->clk_lp))
++		return dev_err_probe(&pdev->dev, PTR_ERR(dsi->clk_lp),
++				     "cannot get low-power clock\n");
+ 
+ 	dsi->clk_parent = devm_clk_get(&pdev->dev, "parent");
+-	if (IS_ERR(dsi->clk_parent)) {
+-		dev_err(&pdev->dev, "cannot get parent clock\n");
+-		return PTR_ERR(dsi->clk_parent);
+-	}
++	if (IS_ERR(dsi->clk_parent))
++		return dev_err_probe(&pdev->dev, PTR_ERR(dsi->clk_parent),
++				     "cannot get parent clock\n");
+ 
+ 	dsi->vdd = devm_regulator_get(&pdev->dev, "avdd-dsi-csi");
+-	if (IS_ERR(dsi->vdd)) {
+-		dev_err(&pdev->dev, "cannot get VDD supply\n");
+-		return PTR_ERR(dsi->vdd);
+-	}
++	if (IS_ERR(dsi->vdd))
++		return dev_err_probe(&pdev->dev, PTR_ERR(dsi->vdd),
++				     "cannot get VDD supply\n");
+ 
+ 	err = tegra_dsi_setup_clocks(dsi);
+ 	if (err < 0) {
+diff --git a/drivers/gpu/drm/tegra/fb.c b/drivers/gpu/drm/tegra/fb.c
+index 02f04326..a5c1381e 100644
+--- a/drivers/gpu/drm/tegra/fb.c
++++ b/drivers/gpu/drm/tegra/fb.c
+@@ -3,7 +3,7 @@
+  * Copyright (C) 2012-2013 Avionic Design GmbH
+  * Copyright (C) 2012 NVIDIA CORPORATION.  All rights reserved.
+  *
+- * Based on the KMS/FB CMA helpers
++ * Based on the KMS/FB DMA helpers
+  *   Copyright (C) 2012 Analog Devices Inc.
+  */
+ 
+diff --git a/drivers/gpu/drm/tegra/fbdev.c b/drivers/gpu/drm/tegra/fbdev.c
+index c4269d94..87cffafc 100644
+--- a/drivers/gpu/drm/tegra/fbdev.c
++++ b/drivers/gpu/drm/tegra/fbdev.c
+@@ -10,6 +10,7 @@
+ #include <nvidia/conftest.h>
+ 
+ #include <linux/console.h>
++#include <linux/fb.h>
+ #include <linux/vmalloc.h>
+ 
+ #include <drm/drm_drv.h>
+@@ -172,7 +173,8 @@ static int tegra_fbdev_probe(struct drm_fb_helper *helper,
+ #if defined(NV_DRM_MODE_CONFIG_STRUCT_HAS_FB_BASE_ARG) /* Linux v6.2 */
+ 	drm->mode_config.fb_base = (resource_size_t)bo->iova;
+ #endif
+-	info->screen_base = (void __iomem *)bo->vaddr + offset;
++	info->flags |= FBINFO_VIRTFB;
++	info->screen_buffer = bo->vaddr + offset;
+ 	info->screen_size = size;
+ 	info->fix.smem_start = (unsigned long)(bo->iova + offset);
+ 	info->fix.smem_len = size;
+diff --git a/drivers/gpu/drm/tegra/gem.c b/drivers/gpu/drm/tegra/gem.c
+index 761490b5..ef3a237a 100644
+--- a/drivers/gpu/drm/tegra/gem.c
++++ b/drivers/gpu/drm/tegra/gem.c
+@@ -183,21 +183,30 @@ static void *tegra_bo_mmap(struct host1x_bo *bo)
+ {
+ 	struct tegra_bo *obj = host1x_to_tegra_bo(bo);
+ #if defined(NV_LINUX_IOSYS_MAP_H_PRESENT)
+-	struct iosys_map map = {0};
++	struct iosys_map map = { 0 };
+ #else
+-	struct dma_buf_map map = {0};
++	struct dma_buf_map map = { 0 };
+ #endif
++	void *vaddr;
+ 	int ret;
+ 
+-	if (obj->vaddr) {
++	if (obj->vaddr)
+ 		return obj->vaddr;
+-	} else if (obj->dma_buf) {
++
++	if (obj->dma_buf) {
+ 		ret = dma_buf_vmap(obj->dma_buf, &map);
+-		return ret ? NULL : map.vaddr;
+-	} else {
+-		return vmap(obj->pages, obj->num_pages, VM_MAP,
+-			    pgprot_writecombine(PAGE_KERNEL));
++		if (ret < 0)
++			return ERR_PTR(ret);
++
++		return map.vaddr;
+ 	}
++
++	vaddr = vmap(obj->pages, obj->num_pages, VM_MAP,
++		     pgprot_writecombine(PAGE_KERNEL));
++	if (!vaddr)
++		return ERR_PTR(-ENOMEM);
++
++	return vaddr;
+ }
+ 
+ static void tegra_bo_munmap(struct host1x_bo *bo, void *addr)
+@@ -211,10 +220,11 @@ static void tegra_bo_munmap(struct host1x_bo *bo, void *addr)
+ 
+ 	if (obj->vaddr)
+ 		return;
+-	else if (obj->dma_buf)
++
++	if (obj->dma_buf)
+ 		dma_buf_vunmap(obj->dma_buf, &map);
+-	else
+-		vunmap(addr);
++
++	vunmap(addr);
+ }
+ 
+ static struct host1x_bo *tegra_bo_get(struct host1x_bo *bo)
+diff --git a/drivers/gpu/drm/tegra/gr2d.c b/drivers/gpu/drm/tegra/gr2d.c
+index b21f75f3..af390026 100644
+--- a/drivers/gpu/drm/tegra/gr2d.c
++++ b/drivers/gpu/drm/tegra/gr2d.c
+@@ -298,7 +298,6 @@ static int gr2d_remove(struct platform_device *pdev)
+ 	struct gr2d *gr2d = platform_get_drvdata(pdev);
+ 
+ 	pm_runtime_disable(&pdev->dev);
+-
+ 	host1x_client_unregister(&gr2d->client.base);
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/tegra/gr3d.c b/drivers/gpu/drm/tegra/gr3d.c
+index fa8aa229..027d0aaf 100644
+--- a/drivers/gpu/drm/tegra/gr3d.c
++++ b/drivers/gpu/drm/tegra/gr3d.c
+@@ -11,6 +11,7 @@
+ #include <linux/host1x-next.h>
+ #include <linux/iommu.h>
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_domain.h>
+@@ -575,7 +576,6 @@ static int gr3d_remove(struct platform_device *pdev)
+ 	struct gr3d *gr3d = platform_get_drvdata(pdev);
+ 
+ 	pm_runtime_disable(&pdev->dev);
+-
+ 	host1x_client_unregister(&gr3d->client.base);
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/tegra/hdmi.c b/drivers/gpu/drm/tegra/hdmi.c
+index 94e436ae..c98f5f89 100644
+--- a/drivers/gpu/drm/tegra/hdmi.c
++++ b/drivers/gpu/drm/tegra/hdmi.c
+@@ -12,7 +12,9 @@
+ #include <linux/hdmi.h>
+ #include <linux/math64.h>
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/of_device.h>
++#include <linux/platform_device.h>
+ #include <linux/pm_opp.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/regulator/consumer.h>
+@@ -22,6 +24,7 @@
+ #include <soc/tegra/common.h>
+ #include <sound/hdmi-codec.h>
+ 
++#include <drm/drm_bridge_connector.h>
+ #include <drm/drm_atomic_helper.h>
+ #include <drm/drm_crtc.h>
+ #include <drm/drm_debugfs.h>
+@@ -873,14 +876,7 @@ static int tegra_hdmi_reconfigure_audio(struct tegra_hdmi *hdmi)
+ 
+ static bool tegra_output_is_hdmi(struct tegra_output *output)
+ {
+-	struct edid *edid;
+-
+-	if (!output->connector.edid_blob_ptr)
+-		return false;
+-
+-	edid = (struct edid *)output->connector.edid_blob_ptr->data;
+-
+-	return drm_detect_hdmi_monitor(edid);
++	return output->connector.display_info.is_hdmi;
+ }
+ 
+ static enum drm_connector_status
+@@ -1571,26 +1567,47 @@ static int tegra_hdmi_init(struct host1x_client *client)
+ {
+ 	struct tegra_hdmi *hdmi = host1x_client_to_hdmi(client);
+ 	struct drm_device *drm = dev_get_drvdata(client->host);
++	struct drm_connector *connector;
+ 	int err;
+ 
+ 	hdmi->output.dev = client->dev;
+ 
+-	drm_connector_init_with_ddc(drm, &hdmi->output.connector,
+-				    &tegra_hdmi_connector_funcs,
+-				    DRM_MODE_CONNECTOR_HDMIA,
+-				    hdmi->output.ddc);
+-	drm_connector_helper_add(&hdmi->output.connector,
+-				 &tegra_hdmi_connector_helper_funcs);
+-	hdmi->output.connector.dpms = DRM_MODE_DPMS_OFF;
+-
+ 	drm_simple_encoder_init(drm, &hdmi->output.encoder,
+ 				DRM_MODE_ENCODER_TMDS);
+ 	drm_encoder_helper_add(&hdmi->output.encoder,
+ 			       &tegra_hdmi_encoder_helper_funcs);
+ 
+-	drm_connector_attach_encoder(&hdmi->output.connector,
+-					  &hdmi->output.encoder);
+-	drm_connector_register(&hdmi->output.connector);
++	if (hdmi->output.bridge) {
++		err = drm_bridge_attach(&hdmi->output.encoder, hdmi->output.bridge,
++					NULL, DRM_BRIDGE_ATTACH_NO_CONNECTOR);
++		if (err) {
++			dev_err(client->dev, "failed to attach bridge: %d\n",
++				err);
++			return err;
++		}
++
++		connector = drm_bridge_connector_init(drm, &hdmi->output.encoder);
++		if (IS_ERR(connector)) {
++			dev_err(client->dev,
++				"failed to initialize bridge connector: %pe\n",
++				connector);
++			return PTR_ERR(connector);
++		}
++
++		drm_connector_attach_encoder(connector, &hdmi->output.encoder);
++	} else {
++		drm_connector_init_with_ddc(drm, &hdmi->output.connector,
++					    &tegra_hdmi_connector_funcs,
++					    DRM_MODE_CONNECTOR_HDMIA,
++					    hdmi->output.ddc);
++		drm_connector_helper_add(&hdmi->output.connector,
++					 &tegra_hdmi_connector_helper_funcs);
++		hdmi->output.connector.dpms = DRM_MODE_DPMS_OFF;
++
++		drm_connector_attach_encoder(&hdmi->output.connector,
++					     &hdmi->output.encoder);
++		drm_connector_register(&hdmi->output.connector);
++	}
+ 
+ 	err = tegra_output_init(drm, &hdmi->output);
+ 	if (err < 0) {
+@@ -1796,7 +1813,6 @@ static irqreturn_t tegra_hdmi_irq(int irq, void *data)
+ static int tegra_hdmi_probe(struct platform_device *pdev)
+ {
+ 	struct tegra_hdmi *hdmi;
+-	struct resource *regs;
+ 	int err;
+ 
+ 	hdmi = devm_kzalloc(&pdev->dev, sizeof(*hdmi), GFP_KERNEL);
+@@ -1858,8 +1874,7 @@ static int tegra_hdmi_probe(struct platform_device *pdev)
+ 	if (err < 0)
+ 		return err;
+ 
+-	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	hdmi->regs = devm_ioremap_resource(&pdev->dev, regs);
++	hdmi->regs = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(hdmi->regs))
+ 		return PTR_ERR(hdmi->regs);
+ 
+diff --git a/drivers/gpu/drm/tegra/hub.c b/drivers/gpu/drm/tegra/hub.c
+index 9cead329..de018fd0 100644
+--- a/drivers/gpu/drm/tegra/hub.c
++++ b/drivers/gpu/drm/tegra/hub.c
+@@ -11,7 +11,6 @@
+ #include <linux/host1x-next.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
+-#include <linux/of_device.h>
+ #include <linux/of_graph.h>
+ #include <linux/of_platform.h>
+ #include <linux/platform_device.h>
+@@ -1104,7 +1103,7 @@ static int tegra_display_hub_probe(struct platform_device *pdev)
+ 
+ 	for (i = 0; i < hub->soc->num_wgrps; i++) {
+ 		struct tegra_windowgroup *wgrp = &hub->wgrps[i];
+-		char id[8];
++		char id[16];
+ 
+ 		snprintf(id, sizeof(id), "wgrp%u", i);
+ 		mutex_init(&wgrp->lock);
+diff --git a/drivers/gpu/drm/tegra/nvdec.c b/drivers/gpu/drm/tegra/nvdec.c
+index 231f6cd8..a753e9aa 100644
+--- a/drivers/gpu/drm/tegra/nvdec.c
++++ b/drivers/gpu/drm/tegra/nvdec.c
+@@ -18,7 +18,6 @@
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+-#include <linux/of_platform.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_opp.h>
+ #include <linux/pm_runtime.h>
+@@ -502,6 +501,8 @@ static int nvdec_load_falcon_firmware(struct nvdec *nvdec)
+ 			return err;
+ 	} else {
+ 		virt = tegra_drm_alloc(tegra, size, &iova);
++		if (IS_ERR(virt))
++			return PTR_ERR(virt);
+ 	}
+ 
+ 	nvdec->falcon.firmware.virt = virt;
+@@ -954,7 +955,6 @@ static int nvdec_remove(struct platform_device *pdev)
+ 	host1x_actmon_unregister(&nvdec->client.base);
+ 
+ 	host1x_client_unregister(&nvdec->client.base);
+-
+ 	falcon_exit(&nvdec->falcon);
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/tegra/output.c b/drivers/gpu/drm/tegra/output.c
+index c83ab104..dc2dcb5c 100644
+--- a/drivers/gpu/drm/tegra/output.c
++++ b/drivers/gpu/drm/tegra/output.c
+@@ -137,10 +137,10 @@ int tegra_output_probe(struct tegra_output *output)
+ 	}
+ 
+ 	output->hpd_gpio = devm_fwnode_gpiod_get(output->dev,
+-						 of_fwnode_handle(output->of_node),
+-						 "nvidia,hpd",
+-						 GPIOD_IN,
+-						 "HDMI hotplug detect");
++					of_fwnode_handle(output->of_node),
++					"nvidia,hpd",
++					GPIOD_IN,
++					"HDMI hotplug detect");
+ 	if (IS_ERR(output->hpd_gpio)) {
+ 		if (PTR_ERR(output->hpd_gpio) != -ENOENT)
+ 			return PTR_ERR(output->hpd_gpio);
+diff --git a/drivers/gpu/drm/tegra/plane.c b/drivers/gpu/drm/tegra/plane.c
+index fc977275..9c4eabc1 100644
+--- a/drivers/gpu/drm/tegra/plane.c
++++ b/drivers/gpu/drm/tegra/plane.c
+@@ -783,21 +783,17 @@ int tegra_plane_interconnect_init(struct tegra_plane *plane)
+ 
+ 	plane->icc_mem = devm_of_icc_get(dev, icc_name);
+ 	err = PTR_ERR_OR_ZERO(plane->icc_mem);
+-	if (err) {
+-		dev_err_probe(dev, err, "failed to get %s interconnect\n",
+-			      icc_name);
+-		return err;
+-	}
++	if (err)
++		return dev_err_probe(dev, err, "failed to get %s interconnect\n",
++				     icc_name);
+ 
+ 	/* plane B on T20/30 has a dedicated memory client for a 6-tap vertical filter */
+ 	if (plane->index == 1 && dc->soc->has_win_b_vfilter_mem_client) {
+ 		plane->icc_mem_vfilter = devm_of_icc_get(dev, "winb-vfilter");
+ 		err = PTR_ERR_OR_ZERO(plane->icc_mem_vfilter);
+-		if (err) {
+-			dev_err_probe(dev, err, "failed to get %s interconnect\n",
+-				      "winb-vfilter");
+-			return err;
+-		}
++		if (err)
++			return dev_err_probe(dev, err, "failed to get %s interconnect\n",
++					     "winb-vfilter");
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/tegra/rgb.c b/drivers/gpu/drm/tegra/rgb.c
+index 79566c9e..fc66bbd9 100644
+--- a/drivers/gpu/drm/tegra/rgb.c
++++ b/drivers/gpu/drm/tegra/rgb.c
+@@ -99,6 +99,7 @@ static void tegra_rgb_encoder_disable(struct drm_encoder *encoder)
+ 
+ static void tegra_rgb_encoder_enable(struct drm_encoder *encoder)
+ {
++	struct drm_display_mode *mode = &encoder->crtc->state->adjusted_mode;
+ 	struct tegra_output *output = encoder_to_output(encoder);
+ 	struct tegra_rgb *rgb = to_rgb(output);
+ 	u32 value;
+@@ -108,10 +109,19 @@ static void tegra_rgb_encoder_enable(struct drm_encoder *encoder)
+ 	value = DE_SELECT_ACTIVE | DE_CONTROL_NORMAL;
+ 	tegra_dc_writel(rgb->dc, value, DC_DISP_DATA_ENABLE_OPTIONS);
+ 
+-	/* XXX: parameterize? */
++	/* configure H- and V-sync signal polarities */
+ 	value = tegra_dc_readl(rgb->dc, DC_COM_PIN_OUTPUT_POLARITY(1));
+-	value &= ~LVS_OUTPUT_POLARITY_LOW;
+-	value &= ~LHS_OUTPUT_POLARITY_LOW;
++
++	if (mode->flags & DRM_MODE_FLAG_NHSYNC)
++		value |= LHS_OUTPUT_POLARITY_LOW;
++	else
++		value &= ~LHS_OUTPUT_POLARITY_LOW;
++
++	if (mode->flags & DRM_MODE_FLAG_NVSYNC)
++		value |= LVS_OUTPUT_POLARITY_LOW;
++	else
++		value &= ~LVS_OUTPUT_POLARITY_LOW;
++
+ 	tegra_dc_writel(rgb->dc, value, DC_COM_PIN_OUTPUT_POLARITY(1));
+ 
+ 	/* XXX: parameterize? */
+diff --git a/drivers/gpu/drm/tegra/sor.c b/drivers/gpu/drm/tegra/sor.c
+index fd494a1b..7c87bf56 100644
+--- a/drivers/gpu/drm/tegra/sor.c
++++ b/drivers/gpu/drm/tegra/sor.c
+@@ -10,6 +10,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/io.h>
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -601,6 +602,9 @@ static u8 tegra_clk_sor_pad_get_parent(struct clk_hw *hw)
+ }
+ 
+ static const struct clk_ops tegra_clk_sor_pad_ops = {
++#if defined(NV_CLK_HW_DETERMINE_RATE_NO_REPARENT_PRESENT) /* Linux 6.4 */
++	.determine_rate = clk_hw_determine_rate_no_reparent,
++#endif
+ 	.set_parent = tegra_clk_sor_pad_set_parent,
+ 	.get_parent = tegra_clk_sor_pad_get_parent,
+ };
+@@ -1168,7 +1172,7 @@ static int tegra_sor_compute_config(struct tegra_sor *sor,
+ 				    struct drm_dp_link *link)
+ {
+ 	const u64 f = 100000, link_rate = link->rate * 1000;
+-	const u64 pclk = mode->clock * 1000;
++	const u64 pclk = (u64)mode->clock * 1000;
+ 	u64 input, output, watermark, num;
+ 	struct tegra_sor_params params;
+ 	u32 num_syms_per_line;
+@@ -1726,7 +1730,6 @@ static void tegra_sor_early_unregister(struct drm_connector *connector)
+ 				 connector->debugfs_entry,
+ 				 connector->dev->primary);
+ #else
+-
+ 	drm_debugfs_remove_files(sor->debugfs_files, count,
+ 				 connector->dev->primary);
+ #endif
+@@ -3005,11 +3008,9 @@ static int tegra_sor_hdmi_probe(struct tegra_sor *sor)
+ 	int err;
+ 
+ 	sor->avdd_io_supply = devm_regulator_get(sor->dev, "avdd-io-hdmi-dp");
+-	if (IS_ERR(sor->avdd_io_supply)) {
+-		dev_err(sor->dev, "cannot get AVDD I/O supply: %ld\n",
+-			PTR_ERR(sor->avdd_io_supply));
+-		return PTR_ERR(sor->avdd_io_supply);
+-	}
++	if (IS_ERR(sor->avdd_io_supply))
++		return dev_err_probe(sor->dev, PTR_ERR(sor->avdd_io_supply),
++				     "cannot get AVDD I/O supply\n");
+ 
+ 	err = tegra_sor_enable_regulator(sor, sor->avdd_io_supply);
+ 	if (err < 0) {
+@@ -3019,11 +3020,9 @@ static int tegra_sor_hdmi_probe(struct tegra_sor *sor)
+ 	}
+ 
+ 	sor->vdd_pll_supply = devm_regulator_get(sor->dev, "vdd-hdmi-dp-pll");
+-	if (IS_ERR(sor->vdd_pll_supply)) {
+-		dev_err(sor->dev, "cannot get VDD PLL supply: %ld\n",
+-			PTR_ERR(sor->vdd_pll_supply));
+-		return PTR_ERR(sor->vdd_pll_supply);
+-	}
++	if (IS_ERR(sor->vdd_pll_supply))
++		return dev_err_probe(sor->dev, PTR_ERR(sor->vdd_pll_supply),
++				     "cannot get VDD PLL supply\n");
+ 
+ 	err = tegra_sor_enable_regulator(sor, sor->vdd_pll_supply);
+ 	if (err < 0) {
+@@ -3033,11 +3032,9 @@ static int tegra_sor_hdmi_probe(struct tegra_sor *sor)
+ 	}
+ 
+ 	sor->hdmi_supply = devm_regulator_get(sor->dev, "hdmi");
+-	if (IS_ERR(sor->hdmi_supply)) {
+-		dev_err(sor->dev, "cannot get HDMI supply: %ld\n",
+-			PTR_ERR(sor->hdmi_supply));
+-		return PTR_ERR(sor->hdmi_supply);
+-	}
++	if (IS_ERR(sor->hdmi_supply))
++		return dev_err_probe(sor->dev, PTR_ERR(sor->hdmi_supply),
++				     "cannot get HDMI supply\n");
+ 
+ 	err = tegra_sor_enable_regulator(sor, sor->hdmi_supply);
+ 	if (err < 0) {
+@@ -3759,7 +3756,6 @@ static int tegra_sor_probe(struct platform_device *pdev)
+ {
+ 	struct device_node *np;
+ 	struct tegra_sor *sor;
+-	struct resource *regs;
+ 	int err;
+ 
+ 	sor = devm_kzalloc(&pdev->dev, sizeof(*sor), GFP_KERNEL);
+@@ -3832,8 +3828,7 @@ static int tegra_sor_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	sor->regs = devm_ioremap_resource(&pdev->dev, regs);
++	sor->regs = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(sor->regs)) {
+ 		err = PTR_ERR(sor->regs);
+ 		goto remove;
+diff --git a/drivers/gpu/drm/tegra/submit.c b/drivers/gpu/drm/tegra/submit.c
+index 9b687e65..079508b9 100644
+--- a/drivers/gpu/drm/tegra/submit.c
++++ b/drivers/gpu/drm/tegra/submit.c
+@@ -175,14 +175,9 @@ static void *alloc_copy_user_array(void __user *from, size_t count, size_t size)
+ 	if (copy_len > 0x4000)
+ 		return ERR_PTR(-E2BIG);
+ 
+-	data = kvmalloc(copy_len, GFP_KERNEL);
+-	if (!data)
+-		return ERR_PTR(-ENOMEM);
+-
+-	if (copy_from_user(data, from, copy_len)) {
+-		kvfree(data);
+-		return ERR_PTR(-EFAULT);
+-	}
++	data = vmemdup_user(from, copy_len);
++	if (IS_ERR(data))
++		return ERR_CAST(data);
+ 
+ 	return data;
+ }
+@@ -728,13 +723,17 @@ int tegra_drm_ioctl_channel_submit(struct drm_device *drm, void *data,
+ 			host1x_memory_context_get(job->memory_context);
+ 		}
+ 	} else if (context->client->ops->get_streamid_offset) {
+-#ifdef CONFIG_IOMMU_API
+-		struct iommu_fwspec *spec;
+-
+ 		/*
+ 		 * Job submission will need to temporarily change stream ID,
+ 		 * so need to tell it what to change it back to.
+ 		 */
++#if defined(NV_TEGRA_DEV_IOMMU_GET_STREAM_ID_PRESENT)
++		if (!tegra_dev_iommu_get_stream_id(context->client->base.dev,
++						   &job->engine_fallback_streamid))
++			job->engine_fallback_streamid = TEGRA_STREAM_ID_BYPASS;
++#else
++#ifdef CONFIG_IOMMU_API
++		struct iommu_fwspec *spec;
+ 		spec = dev_iommu_fwspec_get(context->client->base.dev);
+ 		if (spec && spec->num_ids > 0)
+ 			job->engine_fallback_streamid = spec->ids[0] & 0xffff;
+@@ -742,7 +741,8 @@ int tegra_drm_ioctl_channel_submit(struct drm_device *drm, void *data,
+ 			job->engine_fallback_streamid = 0x7f;
+ #else
+ 		job->engine_fallback_streamid = 0x7f;
+-#endif
++#endif /* CONFIG_IOMMU_API */
++#endif /* NV_TEGRA_DEV_IOMMU_GET_STREAM_ID_PRESENT */
+ 	}
+ 
+ 	/* Boot engine, if necessary. */
+diff --git a/drivers/gpu/drm/tegra/vic.c b/drivers/gpu/drm/tegra/vic.c
+index 746ac97c..93472c6a 100644
+--- a/drivers/gpu/drm/tegra/vic.c
++++ b/drivers/gpu/drm/tegra/vic.c
+@@ -17,7 +17,6 @@
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+-#include <linux/of_platform.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_opp.h>
+ #include <linux/pm_runtime.h>
+diff --git a/drivers/gpu/host1x/dev.c b/drivers/gpu/host1x/dev.c
+index 40338da6..b518df6f 100644
+--- a/drivers/gpu/host1x/dev.c
++++ b/drivers/gpu/host1x/dev.c
+@@ -550,6 +550,10 @@ static void host1x_setup_virtualization_tables(struct host1x *host)
+ 
+ static bool host1x_wants_iommu(struct host1x *host1x)
+ {
++	/* Our IOMMU usage policy doesn't currently play well with GART */
++	if (of_machine_is_compatible("nvidia,tegra20"))
++		return false;
++
+ 	/*
+ 	 * If we support addressing a maximum of 32 bits of physical memory
+ 	 * and if the host1x firewall is enabled, there's no need to enable
+-- 
+2.43.0
+
