@@ -26,6 +26,7 @@ do_install:append() {
 }
 
 ALLOW_EMPTY:${PN}-dev = "1"
+RPROVIDES:${PN} += "libusbgx-tegra"
 RRECOMMENDS:${PN} = "kernel-module-tegra-xudc"
 RCONFLICTS:${PN} = "libusbgx libusbgx-examples"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
