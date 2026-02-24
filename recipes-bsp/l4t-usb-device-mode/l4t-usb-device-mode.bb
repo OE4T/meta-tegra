@@ -29,5 +29,7 @@ do_install() {
     install -m 0644 ${S}/98-usb-gadget-tty.rules ${D}${sysconfdir}/udev/rules.d/
 }
 
-RDEPENDS:${PN} = "libusbgx"
+L4T_USBGX_DEPENDS ?= "libusbgx-tegra"
+
+RDEPENDS:${PN} = "${L4T_USBGX_DEPENDS}"
 RRECOMMENDS:${PN} = "kernel-module-ucsi-ccg"
