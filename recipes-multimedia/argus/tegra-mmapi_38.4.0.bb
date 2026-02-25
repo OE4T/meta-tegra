@@ -26,6 +26,8 @@ do_install() {
     install -d ${D}${includedir}/Argus/utils
     install -m 0644 ${S}/argus/samples/utils/Ordered.h ${D}${includedir}/Argus/utils/
     install -m 0644 ${S}/argus/samples/utils/Error.h ${D}${includedir}/Argus/utils/
+    # Needed by gstreamer1.0-plugins-gst-nvsiplcamerasrc
+    install -m 0644 ${S}/include/nvbufsurface_nvscibuf.h ${D}${includedir}/
 }
 
 PACKAGES = "${PN}-dev ${PN}"
