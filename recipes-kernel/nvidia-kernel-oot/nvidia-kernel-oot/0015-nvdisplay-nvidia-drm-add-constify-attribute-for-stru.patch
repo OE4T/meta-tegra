@@ -1,24 +1,44 @@
-From 5bee27a18300e9cee8e45d6200b3141ae5fe0c43 Mon Sep 17 00:00:00 2001
+From f48baa7a63e596a239e18be2dfae300aaf74d55b Mon Sep 17 00:00:00 2001
 From: Meng Li <Meng.Li@windriver.com>
 Date: Fri, 20 Feb 2026 05:56:44 -0800
-Subject: [PATCH 15/15] nvdisplay: nvidia-drm: add constify attribute for
- struct drm_display_mode instance
+Subject: [PATCH] nvdisplay: nvidia-drm: add constify attribute for struct
+ drm_display_mode instance
 
 Based on kernel upstream commit 26d6fd81916e("drm/connector: make
 mode_valid take a const struct drm_display_mode "), it needs to add
 constify attribute for struct drm_display_mode instance.
 Linux 6.15 and later.
 
+Make sure that the conftest check works properly with versions of
+gcc earlier than 14 by setting -Werror=incompatible-pointer-types
+in NV_CONFTEST_CFLAGS. That warning is just a warning in pre-14 gcc
+releases, and since EXTRA_CFLAGS unfortunately sets -Wno-error so
+warnings are not converted to errors, the check would fail.
+
 Upstream-Status: Pending
 
 Signed-off-by: Meng Li <Meng.Li@windriver.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
+ kernel-open/Kbuild                            |  2 +-
  kernel-open/conftest.sh                       | 25 +++++++++++++++++++
  kernel-open/nvidia-drm/nvidia-drm-connector.c |  4 +++
  kernel-open/nvidia-drm/nvidia-drm.Kbuild      |  1 +
- 3 files changed, 30 insertions(+)
+ 4 files changed, 31 insertions(+), 1 deletion(-)
 
+diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
+index 21302f4..ccef68c 100644
+--- a/kernel-open/Kbuild
++++ b/kernel-open/Kbuild
+@@ -151,7 +151,7 @@ NV_CONFTEST_CMD := /bin/sh $(NV_CONFTEST_SCRIPT) \
+ 
+ NV_CFLAGS_FROM_CONFTEST := $(shell $(NV_CONFTEST_CMD) build_cflags)
+ 
+-NV_CONFTEST_CFLAGS = $(NV_CFLAGS_FROM_CONFTEST) $(EXTRA_CFLAGS) -fno-pie
++NV_CONFTEST_CFLAGS = $(NV_CFLAGS_FROM_CONFTEST) $(EXTRA_CFLAGS) -fno-pie -Werror=incompatible-pointer-types
+ 
+ NV_CONFTEST_COMPILE_TEST_HEADERS := $(obj)/conftest/macros.h
+ NV_CONFTEST_COMPILE_TEST_HEADERS += $(obj)/conftest/functions.h
 diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
 index c876e41..26a737e 100644
 --- a/kernel-open/conftest.sh
