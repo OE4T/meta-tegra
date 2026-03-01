@@ -44,7 +44,7 @@ The specifics of the configuration files and variables required may vary from ve
 # Jetson AGX Xavier #
 Jetson AGX Xavier systems are similar to Jetson-TX2, but (as of this writing) have only two version-dependent boot-time files - the BPMP device tree and the PMIC configuration.  Consult the NVIDIA documentation for customization steps, and see the Jetson-TX2 section above for information on how to integrate your custom files into the build.
 
-Note that AGX Xavier targets handle UEFI variables differently than other platforms.  If you plan to use with Jetpack 5 branches, please read https://github.com/OE4T/meta-tegra/pull/1865 and note that you likely will want to define `TNSPEC_COMPAT_MACHINE`.
+Note that AGX Xavier targets handle UEFI variables differently than other platforms.  If you plan to use with Jetpack 5 branches, please read [https://github.com/OE4T/meta-tegra/pull/1865](https://github.com/OE4T/meta-tegra/pull/1865) and note that you likely will want to define `TNSPEC_COMPAT_MACHINE`.
 
 # Jetson Xavier NX
 Jetson Xavier NX systems are similar to Jetson AGX Xavier, but (as of this writing) have no version-dependent
