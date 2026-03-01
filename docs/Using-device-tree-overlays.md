@@ -39,6 +39,7 @@ KERNEL_DEVICETREE:jetson-orin-nano-devkit-nvme = "tegra234-p3768-0000+p3767-0005
 KERNEL_DEVICETREE:jetson-orin-nano-devkit = "tegra234-p3768-0000+p3767-0005-oe4t.dtb"
 ```
 Where `KERNEL_DEVICETREE` overrides the setting for your MACHINE, referencing the devicetree filename with `*.dtb` in the place of `*.dts`.
+
 5. Build, flash, and boot the board, and `cat /sys/firmware/devicetree/base/compatible` to see the compatible string printed as configured in the devicetree. You should see a string which starts with "oe4t", as shown here for the orin nano
 ```
 root@jetson-orin-nano-devkit-nvme:~# cat /sys/firmware/devicetree/base/compatible
