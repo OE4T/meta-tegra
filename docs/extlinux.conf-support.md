@@ -9,7 +9,7 @@ See the comments in [l4t-extlinux-config.bbclass](https://github.com/OE4T/meta-t
 
 ## UBOOT_EXTLINUX_FDT
 
-The `UBOOT_EXTLINUX_FDT` setting can be set to exactly `UBOOT_EXTLINUX_FDT = "/boot/${DTBFILE}"` before https://github.com/OE4T/meta-tegra/pull/1968 or to any dtb file without full path (like `UBOOT_EXTLINUX_FDT = "${DTBFILE}"`) after https://github.com/OE4T/meta-tegra/pull/1968 and backports.
+The `UBOOT_EXTLINUX_FDT` setting can be set to exactly `UBOOT_EXTLINUX_FDT = "/boot/${DTBFILE}"` before [https://github.com/OE4T/meta-tegra/pull/1968](https://github.com/OE4T/meta-tegra/pull/1968) or to any dtb file without full path (like `UBOOT_EXTLINUX_FDT = "${DTBFILE}"`) after [https://github.com/OE4T/meta-tegra/pull/1968](https://github.com/OE4T/meta-tegra/pull/1968) and backports.
 
 When set, this adds a devicetree entry in the extlinux.conf file.  This setting is useful for easy testing of devicetree changes in the kernel and to support devicetree transitions on slot switch without capsule update.  Note that when `UBOOT_EXTLINUX` or `UBOOT_EXTLINUX_FDT` is not set, the `kernel-dtb` partitions defined in the root filesystem are ignored and the devicetree for the kernel is taken from the devicetree which is appended to the uefi image, therefore only updated when the uefi image is changed via tegraflash or capsule update.
 
@@ -17,7 +17,7 @@ When set, this adds a devicetree entry in the extlinux.conf file.  This setting 
 
 ## UBOOT_EXTLINUX_FDTOVERLAYS
 
-The PR at https://github.com/OE4T/meta-tegra/pull/1968 adds support for specifying a list of overlays in your extlinux.conf file.  These overlays are also stored on the rootfs and applied to the kernel DTB at boot time after root slot selection.
+The PR at [https://github.com/OE4T/meta-tegra/pull/1968](https://github.com/OE4T/meta-tegra/pull/1968) adds support for specifying a list of overlays in your extlinux.conf file.  These overlays are also stored on the rootfs and applied to the kernel DTB at boot time after root slot selection.
 
 This feature is only supported when `UBOOT_EXTLINUX_FDT` is specified.
 

@@ -15,7 +15,7 @@ To enable PPS support, I added the following block immediately below the gpio@60
         };
 ```
 
-This only added PPS support to the device tree, however the 3.10 kernel doesn't support PPS GPIO clients on the device tree, so that support needed to be added by manually applying this patch to the source (I applied it in the tmp/work-shared kernel source git repo and created a patch I used in my linux-tegra bbappend):  https://github.com/beagleboard/meta-beagleboard/blob/master/common-bsp/recipes-kernel/linux/linux-mainline-3.8/pps/0003-pps-gpio-add-device-tree-binding-and-support.patch
+This only added PPS support to the device tree, however the 3.10 kernel doesn't support PPS GPIO clients on the device tree, so that support needed to be added by manually applying this patch to the source (I applied it in the tmp/work-shared kernel source git repo and created a patch I used in my linux-tegra bbappend):  [https://github.com/beagleboard/meta-beagleboard/blob/master/common-bsp/recipes-kernel/linux/linux-mainline-3.8/pps/0003-pps-gpio-add-device-tree-binding-and-support.patch](https://github.com/beagleboard/meta-beagleboard/blob/master/common-bsp/recipes-kernel/linux/linux-mainline-3.8/pps/0003-pps-gpio-add-device-tree-binding-and-support.patch)
 
 For later releases (it appears as early as R27.1), PPS GPIO support for device trees is present in the linux-tegra kernel, so the only requirement is adding the pps block to the DTS.
 

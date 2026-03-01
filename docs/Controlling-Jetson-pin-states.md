@@ -1,14 +1,14 @@
 # Instructions for r35
 
-See https://github.com/OE4T/tegra-demo-distro/discussions/310#discussioncomment-10534547
+See [https://github.com/OE4T/tegra-demo-distro/discussions/310#discussioncomment-10534547](https://github.com/OE4T/tegra-demo-distro/discussions/310#discussioncomment-10534547)
 
-1. Grab the pinmux spreadsheet and configure the pins the way you need then generate the new files https://developer.nvidia.com/downloads/jetson-orin-nx-and-orin-nano-series-pinmux-config-template. 
+1. Grab the pinmux spreadsheet and configure the pins the way you need then generate the new files [https://developer.nvidia.com/downloads/jetson-orin-nx-and-orin-nano-series-pinmux-config-template](https://developer.nvidia.com/downloads/jetson-orin-nx-and-orin-nano-series-pinmux-config-template). 
 2. This will give you three new dtsi files. You need to match up what these are with your machine and meld them to get the changes you need from the machine. The relevant recipe is `tegra-bootfiles`
 3. Build in these recipes `libgpiod libgpiod-tools libgpiod-dev`
 4. Back at the command line run `gpioinfo` and grep on your gpio you want. For my case I wanted `GGPIO3_PCC.00`
 5. Take the controller name (0 or 1 for me) and the line and you should now be able to `gpioset -c 1 12=1` to set. where the c is the controller number and 12 is the line number.
 
-Good reference https://docs.nvidia.com/jetson/archives/r35.3.1/DeveloperGuide/text/HR/JetsonModuleAdaptationAndBringUp/JetsonOrinNxNanoSeries.html#generating-the-pinmux-dtsi-files
+Good reference [https://docs.nvidia.com/jetson/archives/r35.3.1/DeveloperGuide/text/HR/JetsonModuleAdaptationAndBringUp/JetsonOrinNxNanoSeries.html#generating-the-pinmux-dtsi-files](https://docs.nvidia.com/jetson/archives/r35.3.1/DeveloperGuide/text/HR/JetsonModuleAdaptationAndBringUp/JetsonOrinNxNanoSeries.html#generating-the-pinmux-dtsi-files)
 
 # Jetpack 4 instructions for Controlling the pin states on the Jetson TX2 SoM
 
@@ -60,8 +60,8 @@ As an example, the following guide walks you through reconfiguring pin A9 from i
 You can control/read the pin value from the virtual /sys filesystem [but not the pull up/down state](https://forums.developer.nvidia.com/t/how-to-configure-gpio-to-input-pullup-from-userspace/191759/5).
 
 Software-wise, the GPIOs have other names than on the schematic. Nvidia doesn't make it easy to go from schematic name (like `A9`) to the /sys name (like `gpio488`). The following user contributed posts explain it better than anything Nvidia has come up with so far:
-* https://forums.developer.nvidia.com/t/gpio-doesnt-work/49203/14
-* https://forums.developer.nvidia.com/t/gpio-doesnt-work/49203/2
+* [https://forums.developer.nvidia.com/t/gpio-doesnt-work/49203/14](https://forums.developer.nvidia.com/t/gpio-doesnt-work/49203/14)
+* [https://forums.developer.nvidia.com/t/gpio-doesnt-work/49203/2](https://forums.developer.nvidia.com/t/gpio-doesnt-work/49203/2)
 * [This post](https://forums.developer.nvidia.com/t/what-is-the-gpio-number-is-g8-and-f7-pin-at-tx2/82220/3) contains the equations in the links above solved for all possible input values.
 
 Having found out the /sys name for your pin, you can take following snippets as an example:

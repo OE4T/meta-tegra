@@ -49,6 +49,8 @@
 - [L4T-R28.1-notes](L4T-R28.1-notes.md)
 
 # Developer Guides
+- [OE4T Contributor Guide](OE4T-Contributor-Guide.md)
+- [CONTRIBUTING](CONTRIBUTING.md)
 - [Controlling Jetson Pin States](Controlling-Jetson-pin-states.md)
 - [Creating a Custom MACHINE](Creating-a-custom-MACHINE.md)
 - [Disk Encryption for Jetson Devices](Disk-Encryption-for-Jetson-Devices.md)
@@ -72,7 +74,6 @@
 - [Using Linaro gcc7 for CUDA Support](Using-linaro-gcc7-for-CUDA-support.md)
 - [Wayland Weston Support on Jetson Platforms](Wayland-Weston-support-on-Jetson-platforms.md)
 - [Extlinux.conf Support](extlinux.conf-support.md)
-- [OE4T Contributor Guide](OE4T-Contributor-Guide.md)
 
 # Maintainer Guides
 - [Documentation Workflow](Documentation-Workflow.md)

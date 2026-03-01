@@ -1,4 +1,4 @@
-See the [CONTRIBUTING.md](https://github.com/OE4T/meta-tegra/blob/master/CONTRIBUTING.md) file for details.
+See the [CONTRIBUTING.md](CONTRIBUTING.md) file for details about contributing to this repository.
 
 In addition to code and documentation contributions we greatly appreciate help in the form of testing.
 

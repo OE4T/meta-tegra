@@ -64,7 +64,7 @@ For example, to configure the pins on the 40-pin expansion header of the Jetson 
 
 # Runtime application of overlays in the rootfs partition
 
-With https://github.com/OE4T/meta-tegra/pull/1968 support is available to apply overlays in the rootfs partition using the `OVERLAYS` extlinux.conf option.  This means you are able to link overlays to a rootfs slot and store/update there instead of in the SPI flash.
+With [https://github.com/OE4T/meta-tegra/pull/1968](https://github.com/OE4T/meta-tegra/pull/1968) support is available to apply overlays in the rootfs partition using the `OVERLAYS` extlinux.conf option.  This means you are able to link overlays to a rootfs slot and store/update there instead of in the SPI flash.
 
 Only overlays which modify the kernel DTB are supported, since the overlay application happens late in the boot sequence.
 
