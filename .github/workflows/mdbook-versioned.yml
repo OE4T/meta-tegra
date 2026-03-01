@@ -1,0 +1,70 @@
+name: Build & Deploy mdBook (versioned)
+
+on:
+  push:
+    branches:
+      - master
+      - scarthgap
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: peaceiris/mdbook
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # Build mdBook using Docker
+      - name: Build mdBook
+        run: |
+          mdbook build --dest-dir "./mdbook-output/${{ github.ref_name }}"
+
+      # Upload book artifact for deploy job
+      - name: Upload book artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: book
+          path: |
+            mdbook-output/${{ github.ref_name }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      contents: write
+      id-token: write
+
+    steps:
+      - name: Download book artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: book
+          path: book
+
+      - name: Check for deploy key
+        id: check_deploy_key
+        shell: bash
+        env:
+          DEPLOY_KEY: ${{ secrets.OE4T_GITHUB_DEPLOY_KEY }}
+        run: |
+          if [ -z "$DEPLOY_KEY" ]; then
+            echo "::warning::The repository secret must contain the OE4T_GITHUB_DEPLOY_KEY to run this step."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to gh-pages branch
+        if: steps.check_deploy_key.outputs.present == 'true'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          deploy_key: ${{ secrets.OE4T_GITHUB_DEPLOY_KEY }}
+          external_repository: OE4T/oe4t.github.io
+          publish_dir: book
+          publish_branch: main
+          destination_dir: ./${{ github.ref_name }}
+          keep_files: false

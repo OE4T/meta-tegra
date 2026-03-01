@@ -50,7 +50,9 @@ involved.
 Submitting Documentation Changes
 ------------
 
-Wikis are enabled on the [meta-tegra](https://github.com/OE4T/meta-tegra) and
-[tegra-demo-distro](https://github.com/OE4T/tegra-demo-distro) repositories.
-Please feel free to make appropriate changes to pages as needed, adding an edit
-message to describe your change.
+Documentation is served as an mdbook based on the content in the docs
+directory.  Please open a PR for documentation changes on the relevant
+branch.  Please target the master branch for docs changes
+unless your changes are specific to older branches.  Documentation content
+in older branches are based on a snapshot at branch time and may be out of
+date.
