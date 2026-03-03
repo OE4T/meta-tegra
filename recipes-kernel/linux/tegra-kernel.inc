@@ -76,21 +76,3 @@ do_deploy[depends] += "tegra-flashtools-native:do_populate_sysroot ${TEGRA_UEFI_
 do_deploy[file-checksums] += "${TEGRA_UEFI_SIGNING_FILECHECKSUMS}"
 
 RRECOMMENDS:${KERNEL_PACKAGE_NAME}-base = ""
-
-# kernel.bbclass automatically adds a dependency on the intramfs image
-# even if INITRAMFS_IMAGE_BUNDLE is disabled.  This creates a circular
-# dependency for tegra builds, where we need to combine initramfs (as an
-# initrd) and kernel artifacts into a bootable image, so break that
-# dependency here.
-python () {
-    image = d.getVar('INITRAMFS_IMAGE')
-    if image and not bb.utils.to_boolean(d.getVar('INITRAMFS_IMAGE_BUNDLE')):
-        flags = d.getVarFlag('do_bundle_initramfs', 'depends', False).split()
-        try:
-            i = flags.index('${INITRAMFS_IMAGE}:do_image_complete')
-            del flags[i]
-            d.setVarFlag('do_bundle_initramfs', 'depends', ' '.join(flags))
-        except ValueError:
-            bb.warn('did not find it in %s' % ','.join(flags))
-            pass
-}
