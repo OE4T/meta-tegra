@@ -6,7 +6,7 @@ EDK2_PLATFORM = "StandaloneMmOptee"
 EDK2_PLATFORM_DSC = "Platform/NVIDIA/StandaloneMmOptee/StandaloneMmOptee.dsc"
 EDK2_BIN_NAME = "standalone_mm_optee.bin"
 
-TEGRA_BUILD_GUID = '-D "BUILD_GUID=fb0e2152-1441-49e0-b376-5f8593d66678" -D "BUILD_NAME=$[EDK2_PLATFORM}"'
+TEGRA_BUILD_GUID = '-D "BUILD_GUID=fb0e2152-1441-49e0-b376-5f8593d66678" -D "BUILD_NAME=${EDK2_PLATFORM}"'
 
 do_compile:append() {
     rm -rf ${B}/images
