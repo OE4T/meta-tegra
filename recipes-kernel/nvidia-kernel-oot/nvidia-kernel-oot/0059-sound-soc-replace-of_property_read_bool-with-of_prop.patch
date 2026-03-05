@@ -1,4 +1,4 @@
-From ba9cd51ab422fe457bdac37c9797ae869c1893da Mon Sep 17 00:00:00 2001
+From a0d483cf95c2d39d1c4580fdd4edfe6d02df55f2 Mon Sep 17 00:00:00 2001
 From: Meng Li <Meng.Li@windriver.com>
 Date: Fri, 20 Feb 2026 08:24:13 -0800
 Subject: [PATCH 59/59] sound: soc: replace of_property_read_bool() with
@@ -15,11 +15,11 @@ Upstream-Status: Pending
 Signed-off-by: Meng Li <Meng.Li@windriver.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- sound/soc/tegra/tegra_asoc_machine.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ sound/soc/tegra/tegra_asoc_machine.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/sound/soc/tegra/tegra_asoc_machine.c b/sound/soc/tegra/tegra_asoc_machine.c
-index 94daf793..99772b08 100644
+index 94daf793..fcea85d8 100644
 --- a/sound/soc/tegra/tegra_asoc_machine.c
 +++ b/sound/soc/tegra/tegra_asoc_machine.c
 @@ -58,7 +58,7 @@ static bool of_dai_link_is_available(struct device_node *link_node)
@@ -40,6 +40,24 @@ index 94daf793..99772b08 100644
  			num++;
  
  	return num;
+@@ -212,7 +212,7 @@ static int get_num_codec_confs(struct platform_device *pdev, int *num_confs)
+ 			if (of_node_cmp(codec->name, "codec"))
+ 				continue;
+ 
+-			if (of_property_read_bool(codec, "prefix"))
++			if (of_property_present(codec, "prefix"))
+ 				conf_count++;
+ 		}
+ 
+@@ -303,7 +303,7 @@ static int parse_dt_codec_confs(struct snd_soc_card *card)
+ 			if (of_node_cmp(codec->name, "codec"))
+ 				continue;
+ 
+-			if (!of_property_read_bool(codec, "prefix"))
++			if (!of_property_present(codec, "prefix"))
+ 				continue;
+ 
+ 			err = of_parse_phandle_with_args(codec, DAI, CELL, 0,
 @@ -478,7 +478,7 @@ static int parse_dt_dai_links(struct snd_soc_card *card,
  			if (of_node_cmp(codec->name, "codec"))
  				continue;
