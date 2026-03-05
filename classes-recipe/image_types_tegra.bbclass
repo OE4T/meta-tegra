@@ -250,7 +250,7 @@ copy_dtbs() {
 copy_dtb_overlays() {
     local destination=$1
     local dtb dtbf extdtb
-    local extraoverlays="${TEGRA_DCE_OVERLAY} ${@d.getVar('OVERLAY_DTB_FILE').replace(',', ' ')}"
+    local extraoverlays="${TEGRA_FLASHVAR_DCE_OVERLAY} ${@d.getVar('OVERLAY_DTB_FILE').replace(',', ' ')}"
     shift
     if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         extraoverlays="$extraoverlays L4TConfiguration-rcmboot.dtbo"
