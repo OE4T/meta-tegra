@@ -1,0 +1,72 @@
+From eadbd45e16cb1ceb53e4533a1238310b9dd2df07 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:12 -0800
+Subject: [PATCH 25/98] video: tegra: dc: Correct GPIO definitions
+
+In Linux v6.12, commit 8c045ca534d0 ("gpiolib: legacy: Kill GPIOF_DIR_*
+definitions") removed the GPIOF_DIR_* definitions and updated drivers to
+use the equivalent GPIOF_* definitions instead. The GPIOF_* definitions
+were added in Linux v3.0 and so update the appropriate drivers to use
+these definitions.
+
+Note that when calling devm_gpio_request_one() with GPIOF_DIR_OUT for
+the flags, then because no explicit output level is specified, the GPIO
+driver core defaults to low. Hence, in this case we replace
+GPIOF_DIR_OUT with GPIOF_OUT_INIT_LOW.
+
+Bug 4593750
+
+Upstream-Status: Backport
+Change-Id: I05664fd4e0abf5755c9514dffe64b239266c92fa
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3217397
+(cherry picked from commit 0c4fc214d92f2a3c91e9c3b9d1245b4c1ee968f4)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3226680
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/video/tegra/dc/bridge/maxim_gmsl_dp_serializer.c   | 2 +-
+ drivers/video/tegra/dc/bridge/maxim_gmsl_hdmi_serializer.c | 6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/video/tegra/dc/bridge/maxim_gmsl_dp_serializer.c b/drivers/video/tegra/dc/bridge/maxim_gmsl_dp_serializer.c
+index 23eea26e..6487a82a 100644
+--- a/drivers/video/tegra/dc/bridge/maxim_gmsl_dp_serializer.c
++++ b/drivers/video/tegra/dc/bridge/maxim_gmsl_dp_serializer.c
+@@ -1287,7 +1287,7 @@ static int max_gmsl_dp_ser_probe(struct i2c_client *client)
+ 	priv->ser_errb = of_get_named_gpio(ser, "ser-errb", 0);
+ 
+ 	ret = devm_gpio_request_one(&client->dev, priv->ser_errb,
+-				    GPIOF_DIR_IN, "GPIO_MAXIM_SER");
++				    GPIOF_IN, "GPIO_MAXIM_SER");
+ 	if (ret < 0) {
+ 		dev_err(dev, "%s: GPIO request failed\n ret: %d",
+ 			__func__, ret);
+diff --git a/drivers/video/tegra/dc/bridge/maxim_gmsl_hdmi_serializer.c b/drivers/video/tegra/dc/bridge/maxim_gmsl_hdmi_serializer.c
+index f206330f..d005af8f 100644
+--- a/drivers/video/tegra/dc/bridge/maxim_gmsl_hdmi_serializer.c
++++ b/drivers/video/tegra/dc/bridge/maxim_gmsl_hdmi_serializer.c
+@@ -126,7 +126,7 @@ static int maxim_gmsl_hdmi_ser_init(struct device *dev)
+ 	priv = i2c_get_clientdata(client);
+ 
+ 	ret = devm_gpio_request_one(&client->dev, priv->ser_pwrdn,
+-				GPIOF_DIR_OUT, "GPIO_MAXIM_SER_PWRDN");
++				    GPIOF_OUT_INIT_LOW, "GPIO_MAXIM_SER_PWRDN");
+ 	if (ret < 0) {
+ 		dev_err(dev, "%s: GPIO request failed ret: %d\n", __func__, ret);
+ 		return ret;
+@@ -256,8 +256,8 @@ static int maxim_gmsl_hdmi_ser_probe(struct i2c_client *client)
+ 		return -EFAULT;
+ 	}
+ 
+-	ret = devm_gpio_request_one(&client->dev, priv->ser_errb,
+-					GPIOF_DIR_IN, "GPIO_MAXIM_SER");
++	ret = devm_gpio_request_one(&client->dev, priv->ser_errb, GPIOF_IN,
++				    "GPIO_MAXIM_SER");
+ 	if (ret < 0) {
+ 		dev_err(dev, "%s: GPIO request failed\n ret: %d",
+ 			__func__, ret);
+-- 
+2.43.0
+

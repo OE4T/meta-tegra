@@ -1,0 +1,43 @@
+From c352ed3c40bece738806656446e4caab43befda1 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:12 -0800
+Subject: [PATCH 26/98] video: tegra: nvmap: Fix build for Linux v6.12
+
+In Linux v6.12, commit ("4ffca5a96678 mm: support only one page_type per
+page") removed the definition PAGE_MAPCOUNT_RESERVE and this breaks the
+build for NVMAP. The function 'page_has_type()' was added in Linux v5.0
+and performs the necessary check and so use this instead to fix the
+build.
+
+Bug 4593750
+
+Upstream-Status: Backport
+Change-Id: Iaa7393ae11de9730b4ec876a971223e62a7f3f7d
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3217428
+(cherry picked from commit eb1d2c65ecfcaef3d184300b3987fb82cfe8c0e6)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3226683
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: svcacv <svcacv@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/video/tegra/nvmap/nvmap_dev.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/tegra/nvmap/nvmap_dev.c b/drivers/video/tegra/nvmap/nvmap_dev.c
+index b6ecbf19..213abbf2 100644
+--- a/drivers/video/tegra/nvmap/nvmap_dev.c
++++ b/drivers/video/tegra/nvmap/nvmap_dev.c
+@@ -776,7 +776,7 @@ static int nvmap_page_mapcount(struct page *page)
+ 	int mapcount = atomic_read(&page->_mapcount) + 1;
+ 
+ 	/* Handle page_has_type() pages */
+-	if (mapcount < PAGE_MAPCOUNT_RESERVE + 1)
++	if (page_has_type(page))
+ 		mapcount = 0;
+ 	if (unlikely(PageCompound(page)))
+ #if defined(NV_FOLIO_ENTIRE_MAPCOUNT_PRESENT) /* Linux v5.18 */
+-- 
+2.43.0
+

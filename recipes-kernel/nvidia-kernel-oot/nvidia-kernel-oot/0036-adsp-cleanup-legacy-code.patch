@@ -1,0 +1,4331 @@
+From d0c44e76b001cdeea58ab04ef2275079bdd203a4 Mon Sep 17 00:00:00 2001
+From: Dara Ramesh <dramesh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:14 -0800
+Subject: [PATCH 36/98] adsp: cleanup legacy code
+
+The legacy ADSP applications, such as file access and lpthread,
+as well as the actmon driver, are no longer supported on T26x/T23x.
+
+Bug 5174542
+
+Upstream-Status: Backport
+Change-Id: I3e70f11e0c09a7178f069c2423ad068dc765eea8
+Signed-off-by: Dara Ramesh <dramesh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3359415
+Reviewed-by: Viswanath L <viswanathl@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+(cherry picked from commit 97f7875469aec7f6d762bf6ce9d2844a5abbfbe3)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/platform/tegra/nvadsp/adsp_cpustat.c  | 330 ------
+ drivers/platform/tegra/nvadsp/adsp_dfs.c      | 877 ----------------
+ drivers/platform/tegra/nvadsp/adsp_lpthread.c | 255 -----
+ drivers/platform/tegra/nvadsp/adspff.c        | 716 -------------
+ drivers/platform/tegra/nvadsp/adspff.h        | 145 ---
+ drivers/platform/tegra/nvadsp/ape_actmon.c    | 984 ------------------
+ drivers/platform/tegra/nvadsp/ape_actmon.h    |  86 --
+ drivers/platform/tegra/nvadsp/dev-t21x.c      | 306 ------
+ drivers/platform/tegra/nvadsp/dev-t21x.h      |  22 -
+ drivers/platform/tegra/nvadsp/dev.c           |   4 +-
+ drivers/platform/tegra/nvadsp/emc_dfs.c       | 472 ---------
+ drivers/platform/tegra/nvadsp/os.c            |   1 -
+ 12 files changed, 1 insertion(+), 4197 deletions(-)
+ delete mode 100644 drivers/platform/tegra/nvadsp/adsp_cpustat.c
+ delete mode 100644 drivers/platform/tegra/nvadsp/adsp_dfs.c
+ delete mode 100644 drivers/platform/tegra/nvadsp/adsp_lpthread.c
+ delete mode 100644 drivers/platform/tegra/nvadsp/adspff.c
+ delete mode 100644 drivers/platform/tegra/nvadsp/adspff.h
+ delete mode 100644 drivers/platform/tegra/nvadsp/ape_actmon.c
+ delete mode 100644 drivers/platform/tegra/nvadsp/ape_actmon.h
+ delete mode 100644 drivers/platform/tegra/nvadsp/dev-t21x.c
+ delete mode 100644 drivers/platform/tegra/nvadsp/dev-t21x.h
+ delete mode 100644 drivers/platform/tegra/nvadsp/emc_dfs.c
+
+diff --git a/drivers/platform/tegra/nvadsp/adsp_cpustat.c b/drivers/platform/tegra/nvadsp/adsp_cpustat.c
+deleted file mode 100644
+index 033a8e50..00000000
+--- a/drivers/platform/tegra/nvadsp/adsp_cpustat.c
++++ /dev/null
+@@ -1,330 +0,0 @@
+-/*
+- * Copyright (C) 2015-2016, NVIDIA Corporation. All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; version 2 of the License.
+- *
+- * This program is distributed in the hope that it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/err.h>
+-#include <linux/io.h>
+-#include <linux/clk.h>
+-#include <linux/interrupt.h>
+-#include <linux/debugfs.h>
+-#include <linux/platform_device.h>
+-#include <linux/platform/tegra/clock.h>
+-#include <linux/irqchip/tegra-agic.h>
+-#include <linux/irq.h>
+-#include <linux/spinlock.h>
+-
+-#include "dev.h"
+-
+-#define ACTMON_DEV_CTRL				0x00
+-#define ACTMON_DEV_CTRL_ENB			(0x1 << 31)
+-#define ACTMON_DEV_CTRL_AT_END_ENB		(0x1 << 15)
+-#define ACTMON_DEV_CTRL_PERIODIC_ENB		(0x1 << 13)
+-#define ACTMON_DEV_CTRL_SAMPLE_PERIOD_VAL_SHIFT (0)
+-#define ACTMON_DEV_CTRL_SAMPLE_PERIOD_MASK	(0xff << 0)
+-
+-#define ACTMON_DEV_COUNT			0x18
+-
+-#define ACTMON_DEV_INTR_STATUS			0x20
+-#define ACTMON_DEV_INTR_AT_END			(0x1 << 27)
+-
+-#define ACTMON_DEV_COUNT_WEGHT			0x24
+-
+-#define ACTMON_DEV_SAMPLE_CTRL			0x28
+-#define ACTMON_DEV_SAMPLE_CTRL_TICK_65536	(0x1 << 2)
+-#define ACTMON_DEV_SAMPLE_CTRL_TICK_256		(0x0 << 1)
+-
+-#define AMISC_ACTMON_0			0x54
+-#define AMISC_ACTMON_CNT_TARGET_ENABLE	(0x1 << 31)
+-
+-#define ACTMON_REG_OFFSET			0x800
+-/* milli second divider as SAMPLE_TICK*/
+-#define SAMPLE_MS_DIVIDER			65536
+-
+-
+-struct adsp_cpustat {
+-	int irq;
+-	struct device *device;
+-	const char *dev_id;
+-	spinlock_t lock;
+-	struct clk *ape_clk;
+-	struct clk *adsp_clk;
+-	unsigned long ape_freq;
+-	unsigned long adsp_freq;
+-	u64 cur_usage;
+-	bool enable;
+-	u64 max_usage;
+-	void __iomem *base;
+-};
+-
+-static struct adsp_cpustat cpustat;
+-
+-static struct adsp_cpustat *cpumon;
+-
+-static inline u32 actmon_readl(u32 offset)
+-{
+-	return __raw_readl(cpumon->base + offset);
+-}
+-static inline void actmon_writel(u32 val, u32 offset)
+-{
+-	__raw_writel(val, cpumon->base + offset);
+-}
+-
+-static inline void actmon_wmb(void)
+-{
+-	wmb();
+-}
+-
+-static irqreturn_t adsp_cpustat_isr(int irq, void *dev_id)
+-{
+-	u32 val;
+-	unsigned long period, flags;
+-
+-	spin_lock_irqsave(&cpumon->lock, flags);
+-	val = actmon_readl(ACTMON_DEV_INTR_STATUS);
+-	actmon_writel(val, ACTMON_DEV_INTR_STATUS);
+-
+-	if (val & ACTMON_DEV_INTR_AT_END) {
+-		period = (255 * SAMPLE_MS_DIVIDER) / cpumon->ape_freq;
+-
+-		cpumon->cur_usage =
+-			((u64)actmon_readl(ACTMON_DEV_COUNT) * 100) / (period * cpumon->adsp_freq);
+-		if (cpumon->cur_usage > cpumon->max_usage)
+-			cpumon->max_usage = cpumon->cur_usage;
+-	}
+-	spin_unlock_irqrestore(&cpumon->lock, flags);
+-
+-	return IRQ_HANDLED;
+-}
+-
+-static void configure_actmon(void)
+-{
+-	u32 val;
+-
+-	/* Set countb weight to 256 */
+-	actmon_writel(0x100, ACTMON_DEV_COUNT_WEGHT);
+-
+-	/* Enable periodic sampling */
+-	val = actmon_readl(ACTMON_DEV_CTRL);
+-	val |= ACTMON_DEV_CTRL_PERIODIC_ENB;
+-
+-	/* Set sampling period to max i,e, 255 ape clks */
+-	val &= ~ACTMON_DEV_CTRL_SAMPLE_PERIOD_MASK;
+-	val |= (0xFF <<
+-			ACTMON_DEV_CTRL_SAMPLE_PERIOD_VAL_SHIFT)
+-			& ACTMON_DEV_CTRL_SAMPLE_PERIOD_MASK;
+-
+-	/* Enable the AT_END interrupt */
+-	val |= ACTMON_DEV_CTRL_AT_END_ENB;
+-	actmon_writel(val, ACTMON_DEV_CTRL);
+-
+-	actmon_writel(ACTMON_DEV_SAMPLE_CTRL_TICK_65536,
+-			ACTMON_DEV_SAMPLE_CTRL);
+-	actmon_wmb();
+-}
+-
+-static void adsp_cpustat_enable(void)
+-{
+-	u32 val;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&cpumon->lock, flags);
+-
+-	val = actmon_readl(ACTMON_DEV_CTRL);
+-	val |= ACTMON_DEV_CTRL_ENB;
+-	actmon_writel(val, ACTMON_DEV_CTRL);
+-	actmon_wmb();
+-
+-	enable_irq(cpumon->irq);
+-	spin_unlock_irqrestore(&cpumon->lock, flags);
+-}
+-
+-static void adsp_cpustat_disable(void)
+-{
+-	u32 val;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&cpumon->lock, flags);
+-	disable_irq(cpumon->irq);
+-
+-	val = actmon_readl(ACTMON_DEV_CTRL);
+-	val &= ~ACTMON_DEV_CTRL_ENB;
+-	actmon_writel(val, ACTMON_DEV_CTRL);
+-	actmon_writel(0xffffffff, ACTMON_DEV_INTR_STATUS);
+-	actmon_wmb();
+-
+-	spin_unlock_irqrestore(&cpumon->lock, flags);
+-}
+-
+-#define RW_MODE (S_IWUSR | S_IRUSR)
+-#define RO_MODE S_IRUSR
+-
+-static int cur_usage_get(void *data, u64 *val)
+-{
+-	*val = cpumon->cur_usage;
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(cur_usage_fops, cur_usage_get, NULL, "%llu\n");
+-
+-static int max_usage_get(void *data, u64 *val)
+-{
+-	*val = cpumon->max_usage;
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(max_usage_fops, max_usage_get, NULL, "%llu\n");
+-
+-static int enable_set(void *data, u64 val)
+-{
+-	if (cpumon->enable == (bool)val)
+-		return 0;
+-	cpumon->enable = (bool)val;
+-
+-	if (cpumon->enable)
+-		adsp_cpustat_enable();
+-	else
+-		adsp_cpustat_disable();
+-	return 0;
+-}
+-
+-static int enable_get(void *data, u64 *val)
+-{
+-	*val = cpumon->enable;
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(enable_fops, enable_get, enable_set, "%llu\n");
+-
+-static int cpustat_debugfs_init(struct nvadsp_drv_data *drv)
+-{
+-	int ret = -ENOMEM;
+-	struct dentry *d, *dir;
+-
+-	if (!drv->adsp_debugfs_root)
+-		return ret;
+-	dir = debugfs_create_dir("adsp_cpustat", drv->adsp_debugfs_root);
+-	if (!dir)
+-		return ret;
+-
+-	d = debugfs_create_file(
+-			"cur_usage", RO_MODE, dir, cpumon, &cur_usage_fops);
+-	if (!d)
+-		return ret;
+-
+-	d = debugfs_create_file(
+-			"max_usage", RO_MODE, dir, cpumon, &max_usage_fops);
+-	if (!d)
+-		return ret;
+-
+-	d = debugfs_create_file(
+-			"enable", RW_MODE, dir, cpumon, &enable_fops);
+-	if (!d)
+-		return ret;
+-
+-	return 0;
+-}
+-
+-int adsp_cpustat_init(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-	static void __iomem *amisc_base;
+-	u32 val;
+-	int ret = -EINVAL;
+-
+-	if (drv->cpustat_initialized)
+-		return 0;
+-
+-	cpumon = &cpustat;
+-	spin_lock_init(&cpumon->lock);
+-	cpumon->base = drv->base_regs[AMISC] + ACTMON_REG_OFFSET;
+-	amisc_base = drv->base_regs[AMISC];
+-
+-	cpumon->ape_clk = clk_get_sys(NULL, "adsp.ape");
+-	if (IS_ERR_OR_NULL(cpumon->ape_clk)) {
+-		dev_err(cpumon->device, "Failed to find adsp.ape clk\n");
+-		ret = -EINVAL;
+-		goto err_ape_clk;
+-	}
+-
+-	ret = clk_prepare_enable(cpumon->ape_clk);
+-	if (ret) {
+-		dev_err(cpumon->device, "Failed to enable ape clock\n");
+-		goto err_ape_enable;
+-	}
+-	cpumon->ape_freq = clk_get_rate(cpumon->ape_clk) / 1000;
+-
+-	cpumon->adsp_clk = clk_get_sys(NULL, "adsp_cpu");
+-	if (IS_ERR_OR_NULL(cpumon->adsp_clk)) {
+-		dev_err(cpumon->device, "Failed to find adsp cpu clock\n");
+-		ret = -EINVAL;
+-		goto err_adsp_clk;
+-	}
+-
+-	ret = clk_prepare_enable(cpumon->adsp_clk);
+-	if (ret) {
+-		dev_err(cpumon->device, "Failed to enable adsp cpu clock\n");
+-		goto err_adsp_enable;
+-	}
+-	cpumon->adsp_freq = clk_get_rate(cpumon->adsp_clk) / 1000;
+-
+-	/* Enable AMISC_ACTMON */
+-	val = __raw_readl(amisc_base + AMISC_ACTMON_0);
+-	val |= AMISC_ACTMON_CNT_TARGET_ENABLE;
+-	__raw_writel(val, amisc_base + AMISC_ACTMON_0);
+-
+-	/* Clear all interrupts */
+-	actmon_writel(0xffffffff, ACTMON_DEV_INTR_STATUS);
+-
+-	/* One time configuration of actmon regs */
+-	configure_actmon();
+-
+-	cpumon->irq = drv->agic_irqs[ACTMON_VIRQ];
+-	ret = request_irq(cpumon->irq, adsp_cpustat_isr,
+-			IRQ_TYPE_LEVEL_HIGH, "adsp_actmon", cpumon);
+-	if (ret) {
+-		dev_err(cpumon->device, "Failed irq %d request\n", cpumon->irq);
+-		goto err_irq;
+-	}
+-
+-	cpustat_debugfs_init(drv);
+-
+-	drv->cpustat_initialized = true;
+-
+-	return 0;
+-err_irq:
+-	clk_disable_unprepare(cpumon->adsp_clk);
+-err_adsp_enable:
+-	clk_put(cpumon->adsp_clk);
+-err_adsp_clk:
+-	clk_disable_unprepare(cpumon->ape_clk);
+-err_ape_enable:
+-	clk_put(cpumon->ape_clk);
+-err_ape_clk:
+-	return ret;
+-}
+-
+-int adsp_cpustat_exit(struct platform_device *pdev)
+-{
+-	status_t ret = 0;
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-	if (!drv->cpustat_initialized) {
+-		ret =  -EINVAL;
+-		goto end;
+-	}
+-
+-	free_irq(cpumon->irq, cpumon);
+-	clk_disable_unprepare(cpumon->adsp_clk);
+-	clk_put(cpumon->adsp_clk);
+-	clk_put(cpumon->ape_clk);
+-	drv->cpustat_initialized = false;
+-
+-end:
+-	return ret;
+-}
+diff --git a/drivers/platform/tegra/nvadsp/adsp_dfs.c b/drivers/platform/tegra/nvadsp/adsp_dfs.c
+deleted file mode 100644
+index 3f3dd243..00000000
+--- a/drivers/platform/tegra/nvadsp/adsp_dfs.c
++++ /dev/null
+@@ -1,877 +0,0 @@
+-/*
+- * adsp_dfs.c
+- *
+- * adsp dynamic frequency scaling
+- *
+- * Copyright (C) 2014-2020, NVIDIA Corporation. All rights reserved.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#include <linux/tegra_nvadsp.h>
+-#include <linux/platform_device.h>
+-#include <linux/debugfs.h>
+-#include <linux/clk/tegra.h>
+-#include <linux/seq_file.h>
+-#include <linux/version.h>
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)
+-#include <asm/cputime.h>
+-#else
+-#include <linux/sched/cputime.h>
+-#endif
+-#include <linux/slab.h>
+-
+-#include "dev.h"
+-#include "ape_actmon.h"
+-#include "os.h"
+-
+-#ifndef CONFIG_TEGRA_ADSP_ACTMON
+-void actmon_rate_change(unsigned long freq, bool override)
+-{
+-
+-}
+-#endif
+-
+-#define MBOX_TIMEOUT 5000 /* in ms */
+-#define HOST_ADSP_DFS_MBOX_ID 3
+-
+-enum adsp_dfs_reply {
+-	ACK,
+-	NACK,
+-};
+-
+-/*
+- * Freqency in Hz.The frequency always needs to be a multiple of 12.8 Mhz and
+- * should be extended with a slab 38.4 Mhz.
+- */
+-static unsigned long adsp_cpu_freq_table_t21x[] = {
+-	MIN_ADSP_FREQ,
+-	MIN_ADSP_FREQ * 2,
+-	MIN_ADSP_FREQ * 3,
+-	MIN_ADSP_FREQ * 4,
+-	MIN_ADSP_FREQ * 5,
+-	MIN_ADSP_FREQ * 6,
+-	MIN_ADSP_FREQ * 7,
+-	MIN_ADSP_FREQ * 8,
+-	MIN_ADSP_FREQ * 9,
+-	MIN_ADSP_FREQ * 10,
+-	MIN_ADSP_FREQ * 11,
+-	MIN_ADSP_FREQ * 12,
+-	MIN_ADSP_FREQ * 13,
+-	MIN_ADSP_FREQ * 14,
+-	MIN_ADSP_FREQ * 15,
+-	MIN_ADSP_FREQ * 16,
+-	MIN_ADSP_FREQ * 17,
+-	MIN_ADSP_FREQ * 18,
+-	MIN_ADSP_FREQ * 19,
+-	MIN_ADSP_FREQ * 20,
+-	MIN_ADSP_FREQ * 21,
+-};
+-
+-/*
+- * Frequency in Hz.
+- */
+-static unsigned long adsp_cpu_freq_table_t18x[] = {
+-	150000000lu,
+-	300000000lu,
+-	600000000lu,
+-};
+-
+-static unsigned long *adsp_cpu_freq_table;
+-static int adsp_cpu_freq_table_size;
+-
+-struct adsp_dfs_policy {
+-	bool enable;
+-/* update_freq_flag = TRUE, ADSP ACKed the new freq
+- *		= FALSE, ADSP NACKed the new freq
+- */
+-	bool update_freq_flag;
+-
+-	const char *clk_name;
+-	unsigned long min;    /* in kHz */
+-	unsigned long max;    /* in kHz */
+-	unsigned long cur;    /* in kHz */
+-	unsigned long cpu_min;    /* ADSP min freq(KHz). Remain unchanged */
+-	unsigned long cpu_max;    /* ADSP max freq(KHz). Remain unchanged */
+-
+-	struct clk *adsp_clk;
+-	struct clk *aclk_clk;
+-	struct clk *adsp_cpu_abus_clk;
+-	struct nvadsp_mbox mbox;
+-
+-#ifdef CONFIG_DEBUG_FS
+-	struct dentry *root;
+-#endif
+-	unsigned long ovr_freq;
+-};
+-
+-
+-
+-#define MAX_SIZE(x, y)		(x > y ? x : y)
+-#define TIME_IN_STATE_SIZE	MAX_SIZE(ARRAY_SIZE(adsp_cpu_freq_table_t21x), \
+-					 ARRAY_SIZE(adsp_cpu_freq_table_t18x))
+-struct adsp_freq_stats {
+-	struct device *dev;
+-	unsigned long long last_time;
+-	int last_index;
+-	u64 time_in_state[TIME_IN_STATE_SIZE];
+-
+-	int state_num;
+-};
+-
+-static struct adsp_dfs_policy *policy;
+-static struct adsp_freq_stats freq_stats;
+-static struct device *device;
+-
+-
+-static DEFINE_MUTEX(policy_mutex);
+-
+-static bool is_os_running(struct device *dev)
+-{
+-	struct platform_device *pdev;
+-	struct nvadsp_drv_data *drv_data;
+-
+-	if (!dev)
+-		return false;
+-
+-	pdev = to_platform_device(dev);
+-	drv_data = platform_get_drvdata(pdev);
+-
+-	if (!drv_data->adsp_os_running) {
+-		dev_dbg(&pdev->dev, "%s: adsp os is not loaded\n", __func__);
+-		return false;
+-	}
+-	return true;
+-}
+-
+-static int adsp_clk_get(struct adsp_dfs_policy *policy)
+-{
+-	struct device_node *node = device->of_node;
+-	int ret = 0;
+-
+-	policy->adsp_clk = devm_clk_get(device, "adsp");
+-	if (IS_ERR_OR_NULL(policy->adsp_clk)) {
+-		dev_err(device, "unable to find adsp clock\n");
+-		ret = PTR_ERR(policy->adsp_clk);
+-	}
+-
+-	if (!of_device_is_compatible(node, "nvidia,tegra210-adsp")) {
+-		policy->aclk_clk = devm_clk_get(device, "aclk");
+-
+-		if (IS_ERR_OR_NULL(policy->aclk_clk)) {
+-			dev_err(device, "unable to find aclk clock\n");
+-			ret = PTR_ERR(policy->aclk_clk);
+-		}
+-	} else {
+-		policy->adsp_cpu_abus_clk =
+-				devm_clk_get(device, "adsp_cpu_abus");
+-
+-		if (IS_ERR_OR_NULL(policy->adsp_cpu_abus_clk)) {
+-			dev_err(device, "unable to find adsp cpu abus clock\n");
+-			ret = PTR_ERR(policy->adsp_cpu_abus_clk);
+-		}
+-	}
+-
+-	return ret;
+-}
+-
+-static void adsp_clk_put(struct adsp_dfs_policy *policy)
+-{
+-	if (policy->adsp_cpu_abus_clk)
+-		devm_clk_put(device, policy->adsp_cpu_abus_clk);
+-
+-	if (policy->adsp_clk)
+-		devm_clk_put(device, policy->adsp_clk);
+-
+-	if (policy->aclk_clk)
+-		devm_clk_put(device, policy->aclk_clk);
+-}
+-
+-static int adsp_clk_set_rate(struct adsp_dfs_policy *policy,
+-			     unsigned long freq_hz)
+-{
+-	struct device_node *node = device->of_node;
+-	int ret;
+-
+-	if (of_device_is_compatible(node, "nvidia,tegra210-adsp"))
+-		ret = clk_set_rate(policy->adsp_cpu_abus_clk, freq_hz);
+-	else
+-		ret = clk_set_rate(policy->aclk_clk, freq_hz);
+-
+-	return ret;
+-}
+-
+-static unsigned long adsp_clk_get_rate(struct adsp_dfs_policy *policy)
+-{
+-	return clk_get_rate(policy->adsp_clk);
+-}
+-
+-static void adsp_cpu_freq_table_setup(struct platform_device *pdev)
+-{
+-	struct device *dev = &pdev->dev;
+-	struct device_node *node = dev->of_node;
+-
+-	if (adsp_cpu_freq_table)
+-		return;
+-
+-	if (of_device_is_compatible(node, "nvidia,tegra210-adsp")) {
+-		adsp_cpu_freq_table = adsp_cpu_freq_table_t21x;
+-		adsp_cpu_freq_table_size = ARRAY_SIZE(adsp_cpu_freq_table_t21x);
+-	} else {
+-		adsp_cpu_freq_table = adsp_cpu_freq_table_t18x;
+-		adsp_cpu_freq_table_size = ARRAY_SIZE(adsp_cpu_freq_table_t18x);
+-	}
+-}
+-
+-/* Expects and returns freq in Hz as table is formmed in terms of Hz */
+-static unsigned long adsp_get_target_freq(unsigned long tfreq, int *index)
+-{
+-	int i;
+-	int size = adsp_cpu_freq_table_size;
+-
+-	if (tfreq <= adsp_cpu_freq_table[0]) {
+-		*index = 0;
+-		return adsp_cpu_freq_table[0];
+-	}
+-
+-	if (tfreq >= adsp_cpu_freq_table[size - 1]) {
+-		*index = size - 1;
+-		return adsp_cpu_freq_table[size - 1];
+-	}
+-
+-	for (i = 1; i < size; i++) {
+-		if ((tfreq <= adsp_cpu_freq_table[i]) &&
+-				(tfreq > adsp_cpu_freq_table[i - 1])) {
+-			*index = i;
+-			return adsp_cpu_freq_table[i];
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+-static struct adsp_dfs_policy dfs_policy =  {
+-	.enable = 1,
+-	.clk_name = "adsp_cpu",
+-};
+-
+-static int adsp_update_freq_handshake(unsigned long tfreq_hz, int index)
+-{
+-	struct nvadsp_mbox *mbx = &policy->mbox;
+-	enum adsp_dfs_reply reply;
+-	int ret;
+-
+-	dev_dbg(device, "sending change in freq(hz):%lu\n", tfreq_hz);
+-	/*
+-	 * Ask adsp to do action upon change in freq. ADSP and Host need to
+-	 * maintain the same freq table.
+-	 */
+-	ret = nvadsp_mbox_send(mbx, index,
+-				NVADSP_MBOX_SMSG, true, 100);
+-	if (ret) {
+-		dev_err(device, "%s:host to adsp, mbox_send failure. ret:%d\n",
+-			__func__, ret);
+-		policy->update_freq_flag = false;
+-		goto err_out;
+-	}
+-
+-	ret = nvadsp_mbox_recv(&policy->mbox, &reply, true, MBOX_TIMEOUT);
+-	if (ret) {
+-		dev_err(device, "%s:host to adsp, mbox_receive failure. ret:%d\n",
+-			__func__, ret);
+-		policy->update_freq_flag = false;
+-		goto err_out;
+-	}
+-
+-	switch (reply) {
+-	case ACK:
+-		/* Set Update freq flag */
+-		dev_dbg(device, "adsp freq change status:ACK\n");
+-		policy->update_freq_flag = true;
+-		break;
+-	case NACK:
+-		/* Set Update freq flag */
+-		dev_dbg(device, "adsp freq change status:NACK\n");
+-		policy->update_freq_flag = false;
+-		break;
+-	default:
+-		dev_err(device, "Error: adsp freq change status\n");
+-	}
+-
+-	dev_dbg(device, "%s:status received from adsp: %s, tfreq(hz):%lu\n",
+-		__func__,
+-		policy->update_freq_flag == true ? "ACK" : "NACK",
+-		tfreq_hz);
+-err_out:
+-	return ret;
+-}
+-
+-/*
+- * update_freq - update adsp freq and ask adsp to change timer as
+- * change in adsp freq.
+- * freq_khz - target frequency in KHz
+- * return - final freq got set.
+- *		- 0, incase of error.
+- *
+- * Note - Policy->cur would be updated via rate
+- * change notifier, when freq is changed in hw
+- *
+- */
+-static unsigned long update_freq(unsigned long freq_khz)
+-{
+-	struct nvadsp_drv_data *drv = dev_get_drvdata(device);
+-	unsigned long tfreq_hz, old_freq_khz;
+-	u32 efreq;
+-	int index;
+-	int ret;
+-
+-	if (!is_os_running(device)) {
+-		dev_err(device, "adsp os is not running\n");
+-		return 0;
+-	}
+-
+-	tfreq_hz = adsp_get_target_freq(freq_khz * 1000, &index);
+-	if (!tfreq_hz) {
+-		dev_err(device, "unable get the target freq\n");
+-		return 0;
+-	}
+-
+-	old_freq_khz = policy->cur;
+-
+-	if ((tfreq_hz / 1000) == old_freq_khz) {
+-		dev_dbg(device, "old and new target_freq is same\n");
+-		return 0;
+-	}
+-
+-	ret = adsp_clk_set_rate(policy, tfreq_hz);
+-	if (ret) {
+-		dev_err(device, "failed to set adsp freq:%luhz err:%d\n",
+-			tfreq_hz, ret);
+-		policy->update_freq_flag = false;
+-		return 0;
+-	}
+-
+-	efreq = adsp_to_emc_freq(tfreq_hz / 1000);
+-
+-	ret = nvadsp_set_bw(drv, efreq);
+-	if (ret) {
+-		policy->update_freq_flag = false;
+-		goto err_out;
+-	}
+-
+-	/*
+-	 * On tegra > t210, as os_args->adsp_freq_hz is used to know adsp cpu
+-	 * clk rate and there is no need to set up timer prescalar. So skip
+-	 * communicating adsp cpu clk rate update to adspos using mbox
+-	 */
+-	if (!of_device_is_compatible(device->of_node, "nvidia,tegra210-adsp"))
+-		policy->update_freq_flag = true;
+-	else
+-		adsp_update_freq_handshake(tfreq_hz, index);
+-
+-	/*
+-	 * Use os_args->adsp_freq_hz to update adsp cpu clk rate
+-	 * for adspos firmware, which uses this shared variable
+-	 * to get the clk rate for EDF, etc.
+-	 */
+-	if (policy->update_freq_flag) {
+-		struct nvadsp_shared_mem *sm = drv->shared_adsp_os_data;
+-
+-		sm->os_args.adsp_freq_hz = tfreq_hz;
+-	}
+-
+-err_out:
+-	if (!policy->update_freq_flag) {
+-		ret = adsp_clk_set_rate(policy, old_freq_khz * 1000);
+-		if (ret) {
+-			dev_err(device, "failed to resume adsp freq(khz):%lu\n",
+-				old_freq_khz);
+-			policy->update_freq_flag = false;
+-		}
+-
+-		efreq = adsp_to_emc_freq(old_freq_khz);
+-
+-		ret = nvadsp_set_bw(drv, efreq);
+-		if (ret)
+-			policy->update_freq_flag = false;
+-
+-		tfreq_hz = old_freq_khz * 1000;
+-	}
+-	return tfreq_hz / 1000;
+-}
+-
+-/* Set adsp dfs policy min freq(Khz) */
+-static int policy_min_set(void *data, u64 val)
+-{
+-	int ret = -EINVAL;
+-	unsigned long min = (unsigned long)val;
+-
+-	if (!is_os_running(device))
+-		return ret;
+-
+-	mutex_lock(&policy_mutex);
+-	if (!policy->enable) {
+-		dev_err(device, "adsp dfs policy is not enabled\n");
+-		goto exit_out;
+-	}
+-
+-	if (min == policy->min)
+-		goto exit_out;
+-	else if (min < policy->cpu_min)
+-		min = policy->cpu_min;
+-	else if (min >= policy->cpu_max)
+-		min = policy->cpu_max;
+-
+-	if (min > policy->cur) {
+-		min = update_freq(min);
+-		if (min)
+-			policy->cur = min;
+-	}
+-
+-	if (min)
+-		policy->min = min;
+-
+-	ret = 0;
+-exit_out:
+-	mutex_unlock(&policy_mutex);
+-	return ret;
+-}
+-
+-#ifdef CONFIG_DEBUG_FS
+-
+-#define RW_MODE (S_IWUSR | S_IRUSR)
+-#define RO_MODE S_IRUSR
+-
+-/* Get adsp dfs staus: 0: disabled, 1: enabled */
+-static int dfs_enable_get(void *data, u64 *val)
+-{
+-	mutex_lock(&policy_mutex);
+-	*val = policy->enable;
+-	mutex_unlock(&policy_mutex);
+-
+-	return 0;
+-}
+-
+-/* Enable/disable adsp dfs */
+-static int dfs_enable_set(void *data, u64 val)
+-{
+-	mutex_lock(&policy_mutex);
+-	policy->enable = (bool) val;
+-	mutex_unlock(&policy_mutex);
+-
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(enable_fops, dfs_enable_get,
+-	dfs_enable_set, "%llu\n");
+-
+-/* Get adsp dfs policy min freq(KHz) */
+-static int policy_min_get(void *data, u64 *val)
+-{
+-	if (!is_os_running(device))
+-		return -EINVAL;
+-
+-	mutex_lock(&policy_mutex);
+-	*val = policy->min;
+-	mutex_unlock(&policy_mutex);
+-
+-	return 0;
+-}
+-
+-DEFINE_SIMPLE_ATTRIBUTE(min_fops, policy_min_get,
+-	policy_min_set, "%llu\n");
+-
+-/* Get adsp dfs policy max freq(KHz) */
+-static int policy_max_get(void *data, u64 *val)
+-{
+-	if (!is_os_running(device))
+-		return -EINVAL;
+-
+-	mutex_lock(&policy_mutex);
+-	*val = policy->max;
+-	mutex_unlock(&policy_mutex);
+-	return 0;
+-}
+-
+-/* Set adsp dfs policy max freq(KHz) */
+-static int policy_max_set(void *data, u64 val)
+-{
+-	int ret = -EINVAL;
+-	unsigned long max = (unsigned long)val;
+-
+-	if (!is_os_running(device))
+-		return ret;
+-
+-	mutex_lock(&policy_mutex);
+-	if (!policy->enable) {
+-		dev_err(device, "adsp dfs policy is not enabled\n");
+-		goto exit_out;
+-	}
+-
+-	if (!max || ((max > policy->cpu_max) || (max == policy->max)))
+-		goto exit_out;
+-
+-	else if (max <=  policy->cpu_min)
+-		max = policy->cpu_min;
+-
+-	if (max < policy->cur)
+-		max = update_freq(max);
+-
+-	if (max)
+-		policy->cur = policy->max = max;
+-	ret = 0;
+-exit_out:
+-	mutex_unlock(&policy_mutex);
+-	return ret;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(max_fops, policy_max_get,
+-	policy_max_set, "%llu\n");
+-
+-/* Get adsp dfs policy's current freq */
+-static int policy_cur_get(void *data, u64 *val)
+-{
+-	if (!is_os_running(device))
+-		return -EINVAL;
+-
+-	mutex_lock(&policy_mutex);
+-	*val = policy->cur;
+-	mutex_unlock(&policy_mutex);
+-
+-	return 0;
+-}
+-
+-/* Set adsp dfs policy cur freq(Khz) */
+-static int policy_cur_set(void *data, u64 val)
+-{
+-	int ret = -EINVAL;
+-	unsigned long cur = (unsigned long)val;
+-
+-	if (!is_os_running(device))
+-		return ret;
+-
+-	mutex_lock(&policy_mutex);
+-	if (policy->enable) {
+-		dev_err(device, "adsp dfs is enabled, should be disabled first\n");
+-		goto exit_out;
+-	}
+-
+-	if (!cur || cur == policy->cur)
+-		goto exit_out;
+-
+-	/* Check tfreq policy sanity */
+-	if (cur < policy->min)
+-		cur = policy->min;
+-	else if (cur > policy->max)
+-		cur = policy->max;
+-
+-	cur = update_freq(cur);
+-	if (cur)
+-		policy->cur = cur;
+-	ret = 0;
+-exit_out:
+-	mutex_unlock(&policy_mutex);
+-	return ret;
+-}
+-
+-DEFINE_SIMPLE_ATTRIBUTE(cur_fops, policy_cur_get,
+-	policy_cur_set, "%llu\n");
+-
+-static void adspfreq_stats_update(void)
+-{
+-	unsigned long long cur_time;
+-
+-	cur_time = get_jiffies_64();
+-	freq_stats.time_in_state[freq_stats.last_index] += cur_time -
+-		freq_stats.last_time;
+-	freq_stats.last_time = cur_time;
+-}
+-
+-/*
+- * Print residency in each freq levels
+- */
+-static void dump_stats_table(struct seq_file *s, struct adsp_freq_stats *fstats)
+-{
+-	int i;
+-
+-	mutex_lock(&policy_mutex);
+-	if (is_os_running(device))
+-		adspfreq_stats_update();
+-
+-	for (i = 0; i < fstats->state_num; i++) {
+-		u64 jiffies64 = nsecs_to_jiffies64(fstats->time_in_state[i]);
+-		seq_printf(s, "%lu %llu\n",
+-			(long unsigned int)(adsp_cpu_freq_table[i] / 1000),
+-			jiffies_64_to_clock_t(jiffies64));
+-	}
+-	mutex_unlock(&policy_mutex);
+-}
+-
+-static int show_time_in_state(struct seq_file *s, void *data)
+-{
+-	struct adsp_freq_stats *fstats =
+-		(struct adsp_freq_stats *) (s->private);
+-
+-	dump_stats_table(s, fstats);
+-	return 0;
+-}
+-
+-static int stats_open(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, show_time_in_state, inode->i_private);
+-}
+-
+-static const struct file_operations time_in_state_fops = {
+-	.open = stats_open,
+-	.read = seq_read,
+-	.llseek = seq_lseek,
+-	.release = single_release,
+-};
+-
+-static int adsp_dfs_debugfs_init(struct platform_device *pdev)
+-{
+-	int ret = -ENOMEM;
+-	struct dentry *d, *root;
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-
+-	if (!drv->adsp_debugfs_root)
+-		return ret;
+-
+-	root = debugfs_create_dir("adsp_dfs", drv->adsp_debugfs_root);
+-	if (!root)
+-		return ret;
+-
+-	policy->root = root;
+-
+-	d = debugfs_create_file("enable", RW_MODE, root, NULL,
+-		&enable_fops);
+-	if (!d)
+-		goto err_out;
+-
+-	d = debugfs_create_file("min_freq", RW_MODE, root, NULL,
+-		&min_fops);
+-	if (!d)
+-		goto err_out;
+-
+-	d = debugfs_create_file("max_freq", RW_MODE, root,
+-		NULL, &max_fops);
+-	if (!d)
+-		goto err_out;
+-
+-	d = debugfs_create_file("cur_freq", RW_MODE, root, NULL,
+-		&cur_fops);
+-	if (!d)
+-		goto err_out;
+-
+-	d = debugfs_create_file("time_in_state", RO_MODE,
+-					root, &freq_stats,
+-					&time_in_state_fops);
+-	if (!d)
+-		goto err_out;
+-
+-	return 0;
+-
+-err_out:
+-	debugfs_remove_recursive(root);
+-	policy->root = NULL;
+-	dev_err(&pdev->dev,
+-	"unable to create adsp logger debug fs file\n");
+-	return ret;
+-}
+-#endif
+-
+-/*
+- * Set target freq.
+- * @params:
+- * freq: adsp freq in KHz
+- */
+-void adsp_cpu_set_rate(unsigned long freq)
+-{
+-	mutex_lock(&policy_mutex);
+-
+-	if (!policy->enable) {
+-		dev_dbg(device, "adsp dfs policy is not enabled\n");
+-		goto exit_out;
+-	}
+-
+-	if (freq < policy->min)
+-		freq = policy->min;
+-	else if (freq > policy->max)
+-		freq = policy->max;
+-
+-	freq = update_freq(freq);
+-	if (freq)
+-		policy->cur = freq;
+-exit_out:
+-	mutex_unlock(&policy_mutex);
+-}
+-
+-/*
+- * Override adsp freq and reinit actmon counters
+- *
+- * @params:
+- * freq: adsp freq in KHz
+- * return - final freq set
+- *	  - 0 incase of error
+- *
+- */
+-unsigned long adsp_override_freq(unsigned long req_freq_khz)
+-{
+-	unsigned long ret_freq = 0, freq;
+-	int index;
+-
+-	if (!is_os_running(device)) {
+-		pr_err("%s: adsp os is not in running state.\n", __func__);
+-		return 0;
+-	}
+-
+-	mutex_lock(&policy_mutex);
+-
+-	freq = req_freq_khz;
+-
+-	if (freq < policy->min)
+-		freq = policy->min;
+-	else if (freq > policy->max)
+-		freq = policy->max;
+-
+-	freq = adsp_get_target_freq(freq * 1000, &index);
+-	if (!freq) {
+-		dev_warn(device,
+-			 "req freq:%lukhz. unable get the target freq.\n",
+-			 req_freq_khz);
+-		goto exit_out;
+-	}
+-	freq = freq / 1000; /* In KHz */
+-
+-	if (freq == policy->cur) {
+-		ret_freq = freq;
+-		goto exit_out;
+-	}
+-
+-	policy->ovr_freq = freq;
+-	ret_freq = update_freq(freq);
+-	if (ret_freq)
+-		policy->cur = ret_freq;
+-
+-	if (ret_freq != freq) {
+-		dev_warn(device,
+-			 "req freq:%lukhz. freq override to %lukhz rejected.\n",
+-			 req_freq_khz, freq);
+-		policy->ovr_freq = 0;
+-		goto exit_out;
+-	}
+-
+-exit_out:
+-	mutex_unlock(&policy_mutex);
+-	return ret_freq;
+-}
+-EXPORT_SYMBOL(adsp_override_freq);
+-
+-/*
+- * Set min ADSP freq.
+- *
+- * @params:
+- * freq: adsp freq in KHz
+- */
+-void adsp_update_dfs_min_rate(unsigned long freq)
+-{
+-	policy_min_set(NULL, freq);
+-}
+-EXPORT_SYMBOL(adsp_update_dfs_min_rate);
+-
+-/* Enable / disable dynamic freq scaling */
+-void adsp_update_dfs(bool val)
+-{
+-	mutex_lock(&policy_mutex);
+-	policy->enable = val;
+-	mutex_unlock(&policy_mutex);
+-}
+-
+-/* Should be called after ADSP os is loaded */
+-int adsp_dfs_core_init(struct platform_device *pdev)
+-{
+-	int size = adsp_cpu_freq_table_size;
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-	uint16_t mid = HOST_ADSP_DFS_MBOX_ID;
+-	int ret = 0;
+-	u32 efreq;
+-
+-	if (drv->dfs_initialized)
+-		return 0;
+-
+-	device = &pdev->dev;
+-	policy = &dfs_policy;
+-
+-	/* Set up adsp cpu freq table as per chip */
+-	if (!adsp_cpu_freq_table)
+-		adsp_cpu_freq_table_setup(pdev);
+-
+-	ret = adsp_clk_get(policy);
+-	if (ret)
+-		goto end;
+-
+-	policy->max = policy->cpu_max = drv->adsp_freq; /* adsp_freq in KHz */
+-
+-	policy->min = policy->cpu_min = adsp_cpu_freq_table[0] / 1000;
+-
+-	policy->cur = adsp_clk_get_rate(policy) / 1000;
+-
+-	efreq = adsp_to_emc_freq(policy->cur);
+-
+-	ret = nvadsp_set_bw(drv, efreq);
+-	if (ret)
+-		goto end;
+-
+-	adsp_get_target_freq(policy->cur * 1000, &freq_stats.last_index);
+-	freq_stats.last_time = get_jiffies_64();
+-	freq_stats.state_num = size;
+-	freq_stats.dev = &pdev->dev;
+-	memset(&freq_stats.time_in_state, 0, sizeof(freq_stats.time_in_state));
+-
+-	ret = nvadsp_mbox_open(&policy->mbox, &mid, "dfs_comm", NULL, NULL);
+-	if (ret) {
+-		dev_info(&pdev->dev, "unable to open mailbox. ret:%d\n", ret);
+-		goto end;
+-	}
+-
+-#ifdef CONFIG_DEBUG_FS
+-	adsp_dfs_debugfs_init(pdev);
+-#endif
+-	drv->dfs_initialized = true;
+-
+-	dev_dbg(&pdev->dev, "adsp dfs initialized ....\n");
+-	return ret;
+-end:
+-
+-	adsp_clk_put(policy);
+-
+-	return ret;
+-}
+-
+-int adsp_dfs_core_exit(struct platform_device *pdev)
+-{
+-	status_t ret = 0;
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-
+-	/* return if dfs is not initialized */
+-	if (!drv->dfs_initialized)
+-		return -ENODEV;
+-
+-	ret = nvadsp_mbox_close(&policy->mbox);
+-	if (ret)
+-		dev_info(&pdev->dev,
+-		"adsp dfs exit failed: mbox close error. ret:%d\n", ret);
+-
+-	adsp_clk_put(policy);
+-
+-	drv->dfs_initialized = false;
+-	dev_dbg(&pdev->dev, "adsp dfs has exited ....\n");
+-
+-	return ret;
+-}
+diff --git a/drivers/platform/tegra/nvadsp/adsp_lpthread.c b/drivers/platform/tegra/nvadsp/adsp_lpthread.c
+deleted file mode 100644
+index f71122ec..00000000
+--- a/drivers/platform/tegra/nvadsp/adsp_lpthread.c
++++ /dev/null
+@@ -1,255 +0,0 @@
+-/*
+- * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#include <linux/uaccess.h>
+-
+-#include <linux/fs.h>
+-#include <linux/slab.h>
+-#include <linux/workqueue.h>
+-#include <linux/debugfs.h>
+-#include <linux/platform_device.h>
+-#include <linux/tegra_nvadsp.h>
+-
+-#include "dev.h"
+-
+-#define RW_MODE (S_IWUSR | S_IRUGO)
+-
+-enum adsp_lpthread_state {
+-	ADSP_LPTHREAD_STOP,
+-	ADSP_LPTHREAD_START,
+-	ADSP_LPTHREAD_PAUSE,
+-};
+-
+-struct adsp_lpthread_shared_state_t {
+-	uint16_t mbox_id;
+-};
+-
+-enum adsp_lpthread_mbx_cmd {
+-	ADSP_LPTHREAD_CMD_RESUME = 0,
+-	ADSP_LPTHREAD_CMD_PAUSE,
+-	ADSP_LPTHREAD_CMD_CLOSE,
+-};
+-
+-struct adsp_lpthread {
+-	bool lpthread_initialized;
+-	bool adsp_os_suspended;
+-	bool lpthread_paused;
+-	bool lpthread_resumed;
+-	bool lpthread_closed;
+-	nvadsp_app_handle_t app_handle;
+-	nvadsp_app_info_t *app_info;
+-};
+-
+-static struct adsp_lpthread lpthread_obj;
+-static struct adsp_lpthread *lpthread;
+-
+-static struct nvadsp_mbox mbox;
+-static struct adsp_lpthread_shared_state_t *adsp_lpthread;
+-
+-/* Initialize adsp_lpthread app and mailbox */
+-int adsp_lpthread_init(bool is_adsp_suspended)
+-{
+-	nvadsp_app_handle_t handle;
+-	nvadsp_app_info_t *app_info;
+-	int ret;
+-
+-	handle = nvadsp_app_load("adsp_lpthread", "adsp_lpthread.elf");
+-	if (!handle)
+-		return -1;
+-
+-	app_info = nvadsp_app_init(handle, NULL);
+-	if (IS_ERR_OR_NULL(app_info)) {
+-		pr_err("unable to init app adsp_lpthread\n");
+-		return -1;
+-	}
+-
+-	ret = nvadsp_app_start(app_info);
+-	if (ret) {
+-		pr_err("unable to start app adsp_lpthread\n");
+-		return -1;
+-	}
+-
+-	lpthread->app_info = app_info;
+-	lpthread->app_handle = handle;
+-
+-	adsp_lpthread =
+-		(struct adsp_lpthread_shared_state_t *)app_info->mem.shared;
+-	ret = nvadsp_mbox_open(&mbox, &adsp_lpthread->mbox_id,
+-		"adsp_lpthread", NULL, NULL);
+-	if (ret) {
+-		pr_err("Failed to open mbox %d for adsp_lpthread app",
+-			adsp_lpthread->mbox_id);
+-		return -1;
+-	}
+-
+-	/* Start timer is adsp is not in suspended state */
+-	if (!is_adsp_suspended) {
+-		ret = adsp_lpthread_resume();
+-		return ret;
+-	}
+-
+-	return 0;
+-}
+-
+-int adsp_lpthread_resume(void)
+-{
+-	int ret;
+-
+-	ret = nvadsp_mbox_send(&mbox, ADSP_LPTHREAD_CMD_RESUME,
+-		NVADSP_MBOX_SMSG, 0, 0);
+-	if (ret)
+-		pr_err("%s: nvadsp_mbox_send() failed: %d, ret = %d\n",
+-			__func__, adsp_lpthread->mbox_id, ret);
+-
+-	return ret;
+-}
+-
+-int adsp_lpthread_pause(void)
+-{
+-	int ret;
+-
+-	ret = nvadsp_mbox_send(&mbox, ADSP_LPTHREAD_CMD_PAUSE,
+-		NVADSP_MBOX_SMSG, 0, 0);
+-	if (ret)
+-		pr_err("%s: nvadsp_mbox_send() failed: %d, ret = %d\n",
+-			__func__, adsp_lpthread->mbox_id, ret);
+-
+-	return ret;
+-}
+-
+-int adsp_lpthread_uninit(void)
+-{
+-	int ret;
+-
+-	ret = nvadsp_mbox_send(&mbox, ADSP_LPTHREAD_CMD_CLOSE,
+-		NVADSP_MBOX_SMSG, 0, 0);
+-	if (ret)
+-		pr_err("%s: nvadsp_mbox_send() failed: %d, ret = %d\n",
+-			__func__, adsp_lpthread->mbox_id, ret);
+-
+-	nvadsp_mbox_close(&mbox);
+-
+-	nvadsp_exit_app((nvadsp_app_info_t *)lpthread->app_info, false);
+-
+-	nvadsp_app_unload((const void *)lpthread->app_handle);
+-
+-	return ret;
+-}
+-
+-int adsp_usage_set(unsigned int  val)
+-{
+-	int ret = 0;
+-
+-	switch (val) {
+-
+-	case ADSP_LPTHREAD_START:
+-		if (lpthread->lpthread_initialized &&
+-				lpthread->lpthread_resumed) {
+-			pr_info("ADSP Usage App already running\n");
+-			break;
+-		}
+-
+-		if (!lpthread->lpthread_initialized) {
+-			ret = adsp_lpthread_init(lpthread->adsp_os_suspended);
+-			pr_info("Initializing lpthread\n");
+-			lpthread->lpthread_initialized = true;
+-		} else {
+-			ret = adsp_lpthread_resume();
+-			pr_info("Resuming lpthread\n");
+-		}
+-		lpthread->lpthread_resumed = true;
+-		lpthread->lpthread_paused = false;
+-		lpthread->lpthread_closed = false;
+-		break;
+-
+-	case ADSP_LPTHREAD_PAUSE:
+-		if (!lpthread->lpthread_initialized) {
+-			pr_info("ADSP Usage App not initialized\n");
+-			break;
+-		}
+-		pr_info("Pausing lpthread\n");
+-		ret = adsp_lpthread_pause();
+-		lpthread->lpthread_resumed = false;
+-		lpthread->lpthread_paused = true;
+-		lpthread->lpthread_closed = false;
+-		break;
+-
+-	case ADSP_LPTHREAD_STOP:
+-		if (!lpthread->lpthread_initialized) {
+-			pr_info("ADSP Usage App not initialized\n");
+-			break;
+-		}
+-		pr_info("Exiting lpthread\n");
+-		ret = adsp_lpthread_uninit();
+-		lpthread->lpthread_resumed = false;
+-		lpthread->lpthread_paused = false;
+-		lpthread->lpthread_closed = true;
+-		lpthread->lpthread_initialized = false;
+-		break;
+-
+-	default:
+-		pr_err("ADSP Usage App: Invalid input\n");
+-		ret = 0;
+-	}
+-	return ret;
+-}
+-EXPORT_SYMBOL(adsp_usage_set);
+-unsigned int adsp_usage_get(void)
+-{
+-	if (lpthread->lpthread_initialized && lpthread->lpthread_resumed)
+-		return ADSP_LPTHREAD_START;
+-
+-	if (lpthread->lpthread_initialized && lpthread->lpthread_paused)
+-		return ADSP_LPTHREAD_PAUSE;
+-
+-	return ADSP_LPTHREAD_STOP;
+-}
+-EXPORT_SYMBOL(adsp_usage_get);
+-
+-int adsp_lpthread_entry(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-
+-	lpthread = &lpthread_obj;
+-
+-	drv->lpthread_initialized = true;
+-	lpthread->adsp_os_suspended = false;
+-
+-	return 0;
+-}
+-
+-int adsp_lpthread_exit(struct platform_device *pdev)
+-{
+-	status_t ret = 0;
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-
+-	if (!drv->lpthread_initialized)
+-		ret =  -EINVAL;
+-	drv->lpthread_initialized = false;
+-
+-	return ret;
+-}
+-
+-int adsp_lpthread_set_suspend(bool is_suspended)
+-{
+-	lpthread->adsp_os_suspended = is_suspended;
+-	return 0;
+-}
+-
+-int adsp_lpthread_get_state(void)
+-{
+-	if (lpthread->lpthread_initialized && lpthread->lpthread_resumed)
+-		return 1;
+-	else
+-		return 0;
+-}
+diff --git a/drivers/platform/tegra/nvadsp/adspff.c b/drivers/platform/tegra/nvadsp/adspff.c
+deleted file mode 100644
+index acca6cf4..00000000
+--- a/drivers/platform/tegra/nvadsp/adspff.c
++++ /dev/null
+@@ -1,716 +0,0 @@
+-/*
+- * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#define pr_fmt(fmt) "adspff: " fmt
+-
+-#include <linux/fs.h>
+-#include <linux/uaccess.h>
+-#include <linux/errno.h>
+-
+-#include <linux/slab.h>
+-#include <linux/kthread.h>
+-#include <linux/sched.h>
+-#include <linux/sched/rt.h>
+-#include <linux/sched/task.h>
+-#include <linux/semaphore.h>
+-#include <linux/debugfs.h>
+-#include <linux/platform_device.h>
+-#include <linux/list.h>
+-
+-#include <linux/tegra_nvadsp.h>
+-#include <uapi/linux/sched/types.h>
+-
+-#include "adspff.h"
+-#include "dev.h"
+-
+-
+-#define ADSPFF_MAX_OPEN_FILES	(32)
+-
+-struct file_struct {
+-	struct file *fp;
+-	uint8_t file_name[ADSPFF_MAX_FILENAME_SIZE];
+-	unsigned int flags;
+-	unsigned long long wr_offset;
+-	unsigned long long rd_offset;
+-	struct list_head list;
+-};
+-
+-static struct list_head file_list;
+-static spinlock_t adspff_lock;
+-static int open_count;
+-
+-/******************************************************************************
+-* Kernel file functions
+-******************************************************************************/
+-
+-static struct file *file_open(const char *path, int flags, int rights)
+-{
+-	struct file *filp = NULL;
+-	mm_segment_t oldfs;
+-	int err = 0;
+-
+-	oldfs = get_fs();
+-	set_fs(KERNEL_DS);
+-	filp = filp_open(path, flags, rights);
+-	set_fs(oldfs);
+-	if (IS_ERR(filp)) {
+-		err = PTR_ERR(filp);
+-		return NULL;
+-	}
+-	return filp;
+-}
+-
+-static void file_close(struct file *file)
+-{
+-	filp_close(file, NULL);
+-}
+-
+-static int file_write(struct file *file, unsigned long long *offset,
+-				unsigned char *data, unsigned int size)
+-{
+-	mm_segment_t oldfs;
+-	int ret = 0;
+-
+-	oldfs = get_fs();
+-	set_fs(KERNEL_DS);
+-
+-	ret = vfs_write(file, (const char __user *)data, size, offset);
+-
+-	set_fs(oldfs);
+-	return ret;
+-}
+-
+-static uint32_t file_read(struct file *file, unsigned long long *offset,
+-				unsigned char *data, unsigned int size)
+-{
+-	mm_segment_t oldfs;
+-	uint32_t ret = 0;
+-
+-	oldfs = get_fs();
+-	set_fs(KERNEL_DS);
+-
+-	ret = vfs_read(file, (char __user *)data, size, offset);
+-
+-	set_fs(oldfs);
+-
+-	return ret;
+-}
+-
+-static uint32_t file_size(struct file *file)
+-{
+-	mm_segment_t oldfs;
+-	uint32_t size = 0;
+-
+-	oldfs = get_fs();
+-	set_fs(KERNEL_DS);
+-
+-	size = vfs_llseek(file, 0, SEEK_END);
+-
+-	vfs_llseek(file, 0, SEEK_SET);
+-
+-	set_fs(oldfs);
+-
+-	return size;
+-}
+-
+-/******************************************************************************
+-* ADSPFF file functions
+-******************************************************************************/
+-
+-static struct adspff_shared_state_t *adspff;
+-static struct nvadsp_mbox rx_mbox;
+-
+-/**																*
+- * w  - open for writing (file need not exist)					*
+- * a  - open for appending (file need not exist)				*
+- * r+ - open for reading and writing, start at beginning		*
+- * w+ - open for reading and writing (overwrite file)			*
+- * a+ - open for reading and writing (append if file exists)	*/
+-
+-static void set_flags(union adspff_message_t *m, unsigned int *flags)
+-{
+-	if (0 == strcmp(m->msg.payload.fopen_msg.modes, "r+"))
+-		*flags = O_RDWR;
+-
+-	else if (0 == strcmp(m->msg.payload.fopen_msg.modes, "w+"))
+-		*flags = O_CREAT | O_RDWR | O_TRUNC;
+-
+-	else if (0 == strcmp(m->msg.payload.fopen_msg.modes, "a+"))
+-		*flags = O_APPEND | O_RDWR;
+-
+-	else if (0 == strcmp(m->msg.payload.fopen_msg.modes, "r"))
+-		*flags = O_RDONLY;
+-
+-	else if (0 == strcmp(m->msg.payload.fopen_msg.modes, "w"))
+-		*flags = O_CREAT | O_WRONLY | O_TRUNC;
+-
+-	else if (0 == strcmp(m->msg.payload.fopen_msg.modes, "a"))
+-		*flags = O_CREAT | O_APPEND | O_WRONLY;
+-
+-	else
+-		*flags = O_CREAT | O_RDWR;
+-}
+-
+-/*
+- *	checks if file is already opened
+- *	if yes, then returns the struct file_struct for the file
+- *	if no, then allocates a file_struct and adds to the list
+- *	and returns the pointer to the newly allocated file_struct
+- *	if ADSPFF_MAX_OPEN_FILES already open, returns NULL
+- */
+-static struct file_struct *check_file_opened(const char *path)
+-{
+-	struct file_struct *file = NULL;
+-	struct list_head *pos;
+-
+-	/* assuming files opened by ADSP will
+-	 * never be actually closed in kernel
+-	 */
+-	list_for_each(pos, &file_list) {
+-		file = list_entry(pos, struct file_struct, list);
+-		if (!file->fp)
+-			break;
+-		if (!strncmp(path, file->file_name,
+-					ADSPFF_MAX_FILENAME_SIZE)) {
+-			break;
+-		}
+-		file = NULL;
+-	}
+-
+-	if (file != NULL)
+-		return file;
+-
+-	if (open_count == ADSPFF_MAX_OPEN_FILES) {
+-		pr_err("adspff: %d files already opened\n",
+-			ADSPFF_MAX_OPEN_FILES);
+-		file = NULL;
+-	} else {
+-		file = kzalloc(sizeof(*file), GFP_KERNEL);
+-		open_count++;
+-		list_add_tail(&file->list, &file_list);
+-	}
+-	return file;
+-}
+-
+-static void adspff_fopen(void)
+-{
+-	union adspff_message_t *message;
+-	union adspff_message_t *msg_recv;
+-	unsigned int flags = 0;
+-	int ret = 0;
+-	struct file_struct *file;
+-
+-
+-	message = kzalloc(sizeof(union adspff_message_t), GFP_KERNEL);
+-	if (!message)
+-		return;
+-
+-
+-	msg_recv = kzalloc(sizeof(union adspff_message_t), GFP_KERNEL);
+-	if (!msg_recv) {
+-		kfree(message);
+-		return;
+-	}
+-
+-	message->msgq_msg.size = MSGQ_MSG_SIZE(struct fopen_msg_t);
+-
+-	ret = msgq_dequeue_message(&adspff->msgq_send.msgq,
+-			(msgq_message_t *)message);
+-
+-	if (ret < 0) {
+-		pr_err("fopen Dequeue failed %d.", ret);
+-		kfree(message);
+-		kfree(msg_recv);
+-		return;
+-	}
+-
+-	file = check_file_opened(message->msg.payload.fopen_msg.fname);
+-	if (file && !file->fp) {
+-		/* open a new file */
+-		set_flags(message, &flags);
+-		pr_info("adspff: opening file %s\n",
+-			message->msg.payload.fopen_msg.fname);
+-
+-		file->fp = file_open(
+-			(const char *)message->msg.payload.fopen_msg.fname,
+-			flags, 0777); /* S_IRWXU | S_IRWXG | S_IRWXO */
+-
+-		file->wr_offset = 0;
+-		file->rd_offset = 0;
+-		memcpy(file->file_name,
+-				message->msg.payload.fopen_msg.fname,
+-				ADSPFF_MAX_FILENAME_SIZE);
+-		file->flags = flags;
+-	}
+-
+-	if (file && !file->fp) {
+-		file = NULL;
+-		pr_err("File not found - %s\n",
+-			(const char *) message->msg.payload.fopen_msg.fname);
+-	}
+-
+-	msg_recv->msgq_msg.size = MSGQ_MSG_SIZE(struct fopen_recv_msg_t);
+-	msg_recv->msg.payload.fopen_recv_msg.file = (int64_t)file;
+-
+-	ret = msgq_queue_message(&adspff->msgq_recv.msgq,
+-			(msgq_message_t *)msg_recv);
+-	if (ret < 0) {
+-		pr_err("fopen Enqueue failed %d.", ret);
+-
+-		if (file) {
+-			file_close(file->fp);
+-			file->fp = NULL;
+-		}
+-
+-		kfree(message);
+-		kfree(msg_recv);
+-		return;
+-	}
+-
+-	nvadsp_mbox_send(&rx_mbox, adspff_cmd_fopen_recv,
+-				NVADSP_MBOX_SMSG, 0, 0);
+-	kfree(message);
+-	kfree(msg_recv);
+-}
+-
+-static inline unsigned int is_read_file(struct file_struct *file)
+-{
+-	return ((!file->flags) || (file->flags & O_RDWR));
+-}
+-
+-static inline unsigned int is_write_file(struct file_struct *file)
+-{
+-	return file->flags & (O_WRONLY | O_RDWR);
+-}
+-
+-static void adspff_fclose(void)
+-{
+-	union adspff_message_t *message;
+-	struct file_struct *file = NULL;
+-	int32_t ret = 0;
+-
+-	message = kzalloc(sizeof(union adspff_message_t), GFP_KERNEL);
+-	if (!message)
+-		return;
+-
+-	message->msgq_msg.size = MSGQ_MSG_SIZE(struct fclose_msg_t);
+-
+-	ret = msgq_dequeue_message(&adspff->msgq_send.msgq,
+-				(msgq_message_t *)message);
+-
+-	if (ret < 0) {
+-		pr_err("fclose Dequeue failed %d.", ret);
+-		kfree(message);
+-		return;
+-	}
+-
+-	file = (struct file_struct *)message->msg.payload.fclose_msg.file;
+-	if (file) {
+-		if ((file->flags & O_APPEND) == 0) {
+-			if (is_read_file(file))
+-				file->rd_offset = 0;
+-			if (is_write_file(file))
+-				file->wr_offset = 0;
+-		}
+-	}
+-	kfree(message);
+-}
+-
+-static void adspff_fsize(void)
+-{
+-	union adspff_message_t *msg_recv;
+-	union adspff_message_t message;
+-	struct file_struct *file = NULL;
+-	int32_t ret = 0;
+-	uint32_t size = 0;
+-
+-	msg_recv = kzalloc(sizeof(union adspff_message_t), GFP_KERNEL);
+-	msg_recv->msgq_msg.size = MSGQ_MSG_SIZE(struct ack_msg_t);
+-
+-	message.msgq_msg.size = MSGQ_MSG_SIZE(struct fsize_msg_t);
+-	ret = msgq_dequeue_message(&adspff->msgq_send.msgq,
+-				(msgq_message_t *)&message);
+-
+-	if (ret < 0) {
+-		pr_err("fsize Dequeue failed %d.", ret);
+-		kfree(msg_recv);
+-		return;
+-	}
+-	file = (struct file_struct *)message.msg.payload.fsize_msg.file;
+-	if (file) {
+-		size = file_size(file->fp);
+-	}
+-
+-	/* send ack */
+-	msg_recv->msg.payload.ack_msg.size = size;
+-	ret = msgq_queue_message(&adspff->msgq_recv.msgq,
+-			(msgq_message_t *)msg_recv);
+-
+-	if (ret < 0) {
+-		pr_err("fsize Enqueue failed %d.", ret);
+-		kfree(msg_recv);
+-		return;
+-	}
+-	nvadsp_mbox_send(&rx_mbox, adspff_cmd_ack,
+-			NVADSP_MBOX_SMSG, 0, 0);
+-	kfree(msg_recv);
+-}
+-
+-static void adspff_fwrite(void)
+-{
+-	union adspff_message_t message;
+-	union adspff_message_t *msg_recv;
+-	struct file_struct *file = NULL;
+-	int ret = 0;
+-	uint32_t size = 0;
+-	uint32_t bytes_to_write = 0;
+-	uint32_t bytes_written = 0;
+-
+-	msg_recv = kzalloc(sizeof(union adspff_message_t), GFP_KERNEL);
+-	if (!msg_recv)
+-		return;
+-
+-	msg_recv->msgq_msg.size = MSGQ_MSG_SIZE(struct ack_msg_t);
+-
+-	message.msgq_msg.size = MSGQ_MSG_SIZE(struct fwrite_msg_t);
+-	ret = msgq_dequeue_message(&adspff->msgq_send.msgq,
+-				(msgq_message_t *)&message);
+-	if (ret < 0) {
+-		pr_err("fwrite Dequeue failed %d.", ret);
+-		kfree(msg_recv);
+-		return;
+-	}
+-
+-	file = (struct file_struct *)message.msg.payload.fwrite_msg.file;
+-	size = message.msg.payload.fwrite_msg.size;
+-
+-	bytes_to_write = ((adspff->write_buf.read_index + size) < ADSPFF_SHARED_BUFFER_SIZE) ?
+-		size : (ADSPFF_SHARED_BUFFER_SIZE - adspff->write_buf.read_index);
+-	ret = file_write(file->fp, &file->wr_offset,
+-			adspff->write_buf.data + adspff->write_buf.read_index, bytes_to_write);
+-	bytes_written += ret;
+-
+-	if ((size - bytes_to_write) > 0) {
+-		ret = file_write(file->fp, &file->wr_offset,
+-				adspff->write_buf.data, size - bytes_to_write);
+-		bytes_written += ret;
+-	}
+-
+-	adspff->write_buf.read_index =
+-		(adspff->write_buf.read_index + size) % ADSPFF_SHARED_BUFFER_SIZE;
+-
+-	/* send ack */
+-	msg_recv->msg.payload.ack_msg.size = bytes_written;
+-	ret = msgq_queue_message(&adspff->msgq_recv.msgq,
+-			(msgq_message_t *)msg_recv);
+-
+-	if (ret < 0) {
+-		pr_err("adspff: fwrite Enqueue failed %d.", ret);
+-		kfree(msg_recv);
+-		return;
+-	}
+-	nvadsp_mbox_send(&rx_mbox, adspff_cmd_ack,
+-			NVADSP_MBOX_SMSG, 0, 0);
+-	kfree(msg_recv);
+-}
+-
+-static void adspff_fread(void)
+-{
+-	union adspff_message_t *message;
+-	union adspff_message_t *msg_recv;
+-	struct file_struct *file = NULL;
+-	uint32_t bytes_free;
+-	uint32_t wi = adspff->read_buf.write_index;
+-	uint32_t ri = adspff->read_buf.read_index;
+-	uint8_t can_wrap = 0;
+-	uint32_t size = 0, size_read = 0;
+-	int32_t ret = 0;
+-
+-	if (ri <= wi) {
+-		bytes_free = ADSPFF_SHARED_BUFFER_SIZE - wi + ri - 1;
+-		can_wrap = 1;
+-	} else {
+-		bytes_free = ri - wi - 1;
+-		can_wrap = 0;
+-	}
+-	message = kzalloc(sizeof(union adspff_message_t), GFP_KERNEL);
+-	if (!message)
+-		return;
+-
+-	msg_recv = kzalloc(sizeof(union adspff_message_t), GFP_KERNEL);
+-	if (!msg_recv) {
+-		kfree(message);
+-		return;
+-	}
+-
+-	msg_recv->msgq_msg.size = MSGQ_MSG_SIZE(struct ack_msg_t);
+-	message->msgq_msg.size = MSGQ_MSG_SIZE(struct fread_msg_t);
+-
+-	ret = msgq_dequeue_message(&adspff->msgq_send.msgq,
+-				(msgq_message_t *)message);
+-
+-	if (ret < 0) {
+-		pr_err("fread Dequeue failed %d.", ret);
+-		kfree(message);
+-		kfree(msg_recv);
+-		return;
+-	}
+-
+-	file = (struct file_struct *)message->msg.payload.fread_msg.file;
+-	size = message->msg.payload.fread_msg.size;
+-	if (bytes_free < size) {
+-		size_read = 0;
+-		goto send_ack;
+-	}
+-
+-	if (can_wrap) {
+-		uint32_t bytes_to_read = (size < (ADSPFF_SHARED_BUFFER_SIZE - wi)) ?
+-			size : (ADSPFF_SHARED_BUFFER_SIZE - wi);
+-		ret = file_read(file->fp, &file->rd_offset,
+-				adspff->read_buf.data + wi, bytes_to_read);
+-		size_read = ret;
+-		if (ret < bytes_to_read)
+-			goto send_ack;
+-		if ((size - bytes_to_read) > 0) {
+-			ret = file_read(file->fp, &file->rd_offset,
+-					adspff->read_buf.data, size - bytes_to_read);
+-			size_read += ret;
+-			goto send_ack;
+-		}
+-	} else {
+-		ret = file_read(file->fp, &file->rd_offset,
+-				adspff->read_buf.data + wi, size);
+-		size_read = ret;
+-		goto send_ack;
+-	}
+-send_ack:
+-	msg_recv->msg.payload.ack_msg.size = size_read;
+-	ret = msgq_queue_message(&adspff->msgq_recv.msgq,
+-			(msgq_message_t *)msg_recv);
+-
+-	if (ret < 0) {
+-		pr_err("fread Enqueue failed %d.", ret);
+-		kfree(message);
+-		kfree(msg_recv);
+-		return;
+-	}
+-	adspff->read_buf.write_index =
+-		(adspff->read_buf.write_index + size_read) % ADSPFF_SHARED_BUFFER_SIZE;
+-
+-	nvadsp_mbox_send(&rx_mbox, adspff_cmd_ack,
+-			NVADSP_MBOX_SMSG, 0, 0);
+-	kfree(message);
+-	kfree(msg_recv);
+-}
+-
+-#if KERNEL_VERSION(5, 9, 0) > LINUX_VERSION_CODE
+-static const struct sched_param param = {
+-	.sched_priority = 1,
+-};
+-#endif
+-static struct task_struct *adspff_kthread;
+-static struct list_head adspff_kthread_msgq_head;
+-static wait_queue_head_t  wait_queue;
+-
+-struct adspff_kthread_msg {
+-	uint32_t msg_id;
+-	struct list_head list;
+-};
+-
+-
+-static int adspff_kthread_fn(void *data)
+-{
+-	int ret = 0;
+-	struct adspff_kthread_msg *kmsg;
+-	unsigned long flags;
+-
+-	while (1) {
+-
+-		ret = wait_event_interruptible(wait_queue, kthread_should_stop()
+-				 || !list_empty(&adspff_kthread_msgq_head));
+-
+-		if (kthread_should_stop())
+-			do_exit(0);
+-
+-		if (!list_empty(&adspff_kthread_msgq_head)) {
+-			kmsg = list_first_entry(&adspff_kthread_msgq_head,
+-					struct adspff_kthread_msg, list);
+-			switch (kmsg->msg_id) {
+-			case adspff_cmd_fopen:
+-				adspff_fopen();
+-				break;
+-			case adspff_cmd_fclose:
+-				adspff_fclose();
+-				break;
+-			case adspff_cmd_fwrite:
+-				adspff_fwrite();
+-				break;
+-			case adspff_cmd_fread:
+-				adspff_fread();
+-				break;
+-			case adspff_cmd_fsize:
+-				adspff_fsize();
+-				break;
+-			default:
+-				pr_warn("adspff: kthread unsupported msg %d\n",
+-					kmsg->msg_id);
+-			}
+-			spin_lock_irqsave(&adspff_lock, flags);
+-			list_del(&kmsg->list);
+-			spin_unlock_irqrestore(&adspff_lock, flags);
+-			kfree(kmsg);
+-		}
+-	}
+-
+-	do_exit(ret);
+-}
+-
+-/******************************************************************************
+-* ADSP mailbox message handler
+-******************************************************************************/
+-
+-
+-static int adspff_msg_handler(uint32_t msg, void *data)
+-{
+-	unsigned long flags;
+-	struct adspff_kthread_msg *kmsg;
+-
+-	spin_lock_irqsave(&adspff_lock, flags);
+-	kmsg = kzalloc(sizeof(*kmsg), GFP_ATOMIC);
+-	if (!kmsg) {
+-		spin_unlock_irqrestore(&adspff_lock, flags);
+-		return -ENOMEM;
+-	}
+-
+-	kmsg->msg_id = msg;
+-	list_add_tail(&kmsg->list, &adspff_kthread_msgq_head);
+-	wake_up(&wait_queue);
+-	spin_unlock_irqrestore(&adspff_lock, flags);
+-
+-	return 0;
+-}
+-
+-static int adspff_set(void *data, u64 val)
+-{
+-	struct file_struct *file;
+-	struct list_head *pos, *n;
+-
+-	if (val != 1)
+-		return 0;
+-	list_for_each_safe(pos, n, &file_list) {
+-		file = list_entry(pos, struct file_struct, list);
+-		list_del(pos);
+-		if (file->fp)
+-			file_close(file->fp);
+-		kfree(file);
+-	}
+-
+-	open_count = 0;
+-
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(adspff_fops, NULL, adspff_set, "%llu\n");
+-
+-#ifdef CONFIG_DEBUG_FS
+-static int adspff_debugfs_init(struct nvadsp_drv_data *drv)
+-{
+-	int ret = -ENOMEM;
+-	struct dentry *d, *dir;
+-
+-	if (!drv->adsp_debugfs_root)
+-		return ret;
+-	dir = debugfs_create_dir("adspff", drv->adsp_debugfs_root);
+-	if (!dir)
+-		return ret;
+-
+-	d = debugfs_create_file(
+-			"close_files", 0200, /* S_IWUSR */
+-			dir, NULL, &adspff_fops);
+-	if (!d)
+-		return ret;
+-
+-	return 0;
+-}
+-#endif
+-
+-int adspff_init(struct platform_device *pdev)
+-{
+-	int ret = 0;
+-	nvadsp_app_handle_t handle;
+-	nvadsp_app_info_t *app_info;
+-
+-#ifdef CONFIG_DEBUG_FS
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-#endif
+-
+-	handle = nvadsp_app_load("adspff", "adspff.elf");
+-	if (!handle)
+-		return -ENOENT;
+-
+-	app_info = nvadsp_app_init(handle, NULL);
+-	if (IS_ERR_OR_NULL(app_info)) {
+-		pr_err("unable to init app adspff\n");
+-		return -1;
+-	}
+-
+-	adspff_kthread = kthread_create(adspff_kthread_fn,
+-		NULL, "adspp_kthread");
+-	if ((adspff_kthread == ERR_PTR(-ENOMEM)) ||
+-			(adspff_kthread == ERR_PTR(-EINTR))) {
+-		pr_err("adspff kthread_create failed, error = %s\n",
+-			(adspff_kthread == ERR_PTR(-ENOMEM)) ?
+-					"-ENOMEM" : "-EINTR");
+-		return -1;
+-	}
+-
+-	adspff = ADSPFF_SHARED_STATE(app_info->mem.shared);
+-
+-	ret = nvadsp_mbox_open(&rx_mbox, &adspff->mbox_id,
+-			"adspff", adspff_msg_handler, NULL);
+-
+-	if (ret < 0) {
+-		pr_err("Failed to open mbox %d", adspff->mbox_id);
+-		return -1;
+-	}
+-
+-	spin_lock_init(&adspff_lock);
+-
+-#ifdef CONFIG_DEBUG_FS
+-	ret = adspff_debugfs_init(drv);
+-	if (ret)
+-		pr_warn("adspff: failed to create debugfs entry\n");
+-#endif
+-
+-	INIT_LIST_HEAD(&adspff_kthread_msgq_head);
+-	INIT_LIST_HEAD(&file_list);
+-
+-	init_waitqueue_head(&wait_queue);
+-
+-#if KERNEL_VERSION(5, 9, 0) > LINUX_VERSION_CODE
+-	sched_setscheduler(adspff_kthread, SCHED_FIFO, &param);
+-#else
+-	sched_set_fifo_low(adspff_kthread);
+-#endif
+-
+-	get_task_struct(adspff_kthread);
+-	wake_up_process(adspff_kthread);
+-
+-	return ret;
+-}
+-
+-void adspff_exit(void)
+-{
+-	nvadsp_mbox_close(&rx_mbox);
+-	kthread_stop(adspff_kthread);
+-	put_task_struct(adspff_kthread);
+-}
+diff --git a/drivers/platform/tegra/nvadsp/adspff.h b/drivers/platform/tegra/nvadsp/adspff.h
+deleted file mode 100644
+index 05cd40ee..00000000
+--- a/drivers/platform/tegra/nvadsp/adspff.h
++++ /dev/null
+@@ -1,145 +0,0 @@
+-/*
+-* tegra_adspff.h - Shared ADSPFF interface between Tegra ADSP File
+-*			System driver and ADSP side user space code.
+-* Copyright (c) 2016-2019 NVIDIA Corporation.  All rights reserved.
+-*
+-* NVIDIA Corporation and its licensors retain all intellectual property
+-* and proprietary rights in and to this software, related documentation
+-* and any modifications thereto.  Any use, reproduction, disclosure or
+-* distribution of this software and related documentation without an express
+-* license agreement from NVIDIA Corporation is strictly prohibited.
+-*/
+-
+-
+-#ifndef _TEGRA_ADSPFF_H_
+-#define _TEGRA_ADSPFF_H_
+-
+-#ifdef __cplusplus
+-extern "C" {
+-#endif
+-
+-/******************************************************************************
+-* Defines
+-******************************************************************************/
+-
+-
+-/* TODO: fine tuning */
+-#define ADSPFF_MSG_QUEUE_WSIZE		1024
+-#define ADSPFF_WRITE_DATA_SIZE		512
+-#define ADSPFF_READ_DATA_SIZE		1024
+-#define ADSPFF_SHARED_BUFFER_SIZE	(128 * 1024)
+-#define ADSPFF_MAX_FILENAME_SIZE	(250)
+-
+-/**
+- * adspff_mbx_cmd:  commands exchanged using mailbox.
+- *
+- * @adspff_cmd_fopen:           open file on host
+- * @adspff_cmd_fclose:		close file on host
+- * @adspff_cmd_fwrite:		write data in an open file on host
+- * @adspff_cmd_fread:		read data from an open file on host
+- */
+-
+-enum adspff_mbx_cmd {
+-	adspff_cmd_fopen = 0,
+-	adspff_cmd_fclose,
+-	adspff_cmd_fwrite,
+-	adspff_cmd_fread,
+-	adspff_cmd_fopen_recv,
+-	adspff_cmd_ack,
+-	adspff_cmd_fsize,
+-};
+-
+-
+-/******************************************************************************
+-* Types
+-******************************************************************************/
+-
+-/* supported message payloads */
+-struct fopen_msg_t {
+-	uint8_t fname[ADSPFF_MAX_FILENAME_SIZE];
+-	uint8_t modes[3];
+-};
+-
+-struct fwrite_msg_t {
+-	int64_t file;
+-	int32_t size;
+-};
+-
+-struct fread_msg_t {
+-	int64_t file;
+-	int32_t size;
+-};
+-
+-struct fclose_msg_t {
+-	int64_t file;
+-};
+-
+-struct fopen_recv_msg_t {
+-	int64_t file;
+-};
+-
+-struct fsize_msg_t {
+-	int64_t file;
+-};
+-
+-struct ack_msg_t {
+-	int32_t size;
+-};
+-
+-#pragma pack(4)
+-/* app message definition */
+-union adspff_message_t {
+-	msgq_message_t msgq_msg;
+-	struct {
+-		int32_t header[MSGQ_MESSAGE_HEADER_WSIZE];
+-		union {
+-			struct fopen_msg_t fopen_msg;
+-			struct fwrite_msg_t fwrite_msg;
+-			struct fread_msg_t	fread_msg;
+-			struct fclose_msg_t fclose_msg;
+-			struct fopen_recv_msg_t fopen_recv_msg;
+-			struct ack_msg_t ack_msg;
+-			struct fsize_msg_t fsize_msg;
+-		} payload;
+-	} msg;
+-};
+-
+-/* app queue definition */
+-union adspff_msgq_t {
+-	msgq_t msgq;
+-	struct {
+-		int32_t header[MSGQ_HEADER_WSIZE];
+-		int32_t queue[ADSPFF_MSG_QUEUE_WSIZE];
+-	} app_msgq;
+-};
+-#pragma pack()
+-
+-#define MSGQ_MSG_SIZE(x) \
+-(((sizeof(x) + sizeof(int32_t) - 1) & (~(sizeof(int32_t)-1))) >> 2)
+-
+-
+-/**
+- * ADSPFF state structure shared between ADSP & CPU
+- */
+-typedef struct {
+-	uint32_t write_index;
+-	uint32_t read_index;
+-	uint8_t data[ADSPFF_SHARED_BUFFER_SIZE];
+-} adspff_shared_buffer_t;
+-
+-struct adspff_shared_state_t {
+-	uint16_t mbox_id;
+-	union adspff_msgq_t msgq_recv;
+-	union adspff_msgq_t msgq_send;
+-	adspff_shared_buffer_t write_buf;
+-	adspff_shared_buffer_t read_buf;
+-};
+-
+-#define ADSPFF_SHARED_STATE(x) \
+-((struct adspff_shared_state_t *)x)
+-
+-#ifdef __cplusplus
+-}
+-#endif
+-
+-#endif  /* #ifndef TEGRA_ADSPFF_H_ */
+diff --git a/drivers/platform/tegra/nvadsp/ape_actmon.c b/drivers/platform/tegra/nvadsp/ape_actmon.c
+deleted file mode 100644
+index 3db82adb..00000000
+--- a/drivers/platform/tegra/nvadsp/ape_actmon.c
++++ /dev/null
+@@ -1,984 +0,0 @@
+-/*
+- * Copyright (C) 2014-2016, NVIDIA Corporation. All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; version 2 of the License.
+- *
+- * This program is distributed in the hope that it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#include <linux/kernel.h>
+-#include <linux/err.h>
+-#include <linux/io.h>
+-#include <linux/clk.h>
+-#include <linux/interrupt.h>
+-#include <linux/debugfs.h>
+-#include <linux/platform_device.h>
+-#include <linux/platform/tegra/clock.h>
+-#include <linux/irqchip/tegra-agic.h>
+-#include <linux/irq.h>
+-
+-#include "ape_actmon.h"
+-#include "dev.h"
+-
+-#define ACTMON_DEV_CTRL				0x00
+-#define ACTMON_DEV_CTRL_ENB			(0x1 << 31)
+-#define ACTMON_DEV_CTRL_UP_WMARK_NUM_SHIFT	26
+-#define ACTMON_DEV_CTRL_UP_WMARK_NUM_MASK	(0x7 << 26)
+-#define ACTMON_DEV_CTRL_DOWN_WMARK_NUM_SHIFT	21
+-#define ACTMON_DEV_CTRL_DOWN_WMARK_NUM_MASK	(0x7 << 21)
+-#define ACTMON_DEV_CTRL_UP_WMARK_ENB		(0x1 << 19)
+-#define ACTMON_DEV_CTRL_DOWN_WMARK_ENB		(0x1 << 18)
+-#define ACTMON_DEV_CTRL_AVG_UP_WMARK_ENB	(0x1 << 17)
+-#define ACTMON_DEV_CTRL_AVG_DOWN_WMARK_ENB	(0x1 << 16)
+-#define ACTMON_DEV_CTRL_AT_END_ENB		(0x1 << 15)
+-#define ACTMON_DEV_CTRL_PERIODIC_ENB		(0x1 << 13)
+-#define ACTMON_DEV_CTRL_K_VAL_SHIFT		10
+-#define ACTMON_DEV_CTRL_K_VAL_MASK		(0x7 << 10)
+-#define ACTMON_DEV_CTRL_SAMPLE_PERIOD_VAL_SHIFT	(0)
+-#define ACTMON_DEV_CTRL_SAMPLE_PERIOD_MASK	(0xff << 0)
+-
+-#define ACTMON_DEV_UP_WMARK			0x04
+-#define ACTMON_DEV_DOWN_WMARK			0x08
+-#define ACTMON_DEV_AVG_UP_WMARK			0x0c
+-#define ACTMON_DEV_AVG_DOWN_WMARK			0x10
+-#define ACTMON_DEV_INIT_AVG			0x14
+-
+-#define ACTMON_DEV_COUNT			0x18
+-#define ACTMON_DEV_AVG_COUNT			0x1c
+-
+-#define ACTMON_DEV_INTR_STATUS			0x20
+-#define ACTMON_DEV_INTR_UP_WMARK		(0x1 << 31)
+-#define ACTMON_DEV_INTR_DOWN_WMARK		(0x1 << 30)
+-#define ACTMON_DEV_INTR_AVG_DOWN_WMARK		(0x1 << 29)
+-#define ACTMON_DEV_INTR_AVG_UP_WMARK		(0x1 << 28)
+-
+-#define ACTMON_DEV_COUNT_WEGHT			0x24
+-
+-#define ACTMON_DEV_SAMPLE_CTRL			0x28
+-#define ACTMON_DEV_SAMPLE_CTRL_TICK_65536	(0x1 << 2)
+-#define ACTMON_DEV_SAMPLE_CTRL_TICK_256		(0x0 << 1)
+-
+-#define AMISC_ACTMON_0			0x54
+-#define AMISC_ACTMON_CNT_TARGET_ENABLE	(0x1 << 31)
+-#define ACTMON_DEFAULT_AVG_WINDOW_LOG2		7
+-/* 1/10 of % i.e 60 % of max freq */
+-#define ACTMON_DEFAULT_AVG_BAND		6
+-#define ACTMON_MAX_REG_OFFSET		0x2c
+-/* TBD: These would come via dts file */
+-#define ACTMON_REG_OFFSET			0x800
+-/* milli second divider as SAMPLE_TICK*/
+-#define SAMPLE_MS_DIVIDER			65536
+-/* Sample period in ms */
+-#define ACTMON_DEFAULT_SAMPLING_PERIOD	20
+-#define AVG_COUNT_THRESHOLD		100000
+-
+-static struct actmon ape_actmon;
+-static struct actmon *apemon;
+-
+-/* APE activity monitor: Samples ADSP activity */
+-static struct actmon_dev actmon_dev_adsp = {
+-	.reg = 0x000,
+-	.clk_name = "adsp_cpu",
+-
+-	/* ADSP suspend activity floor */
+-	.suspend_freq = 51200,
+-
+-	/* min step by which we want to boost in case of sudden boost request */
+-	.boost_freq_step = 51200,
+-
+-	/* % of boost freq for boosting up  */
+-	.boost_up_coef = 200,
+-
+-	/*
+-	 * % of boost freq for boosting down. Should be boosted down by
+-	 * exponential down
+-	 */
+-	.boost_down_coef = 80,
+-
+-	/*
+-	 * % of device freq collected in a sample period set as boost up
+-	 * threshold. boost interrupt is generated when actmon_count
+-	 * (absolute actmon count in a sample period)
+-	 * crosses this threshold consecutively by up_wmark_window.
+-	 */
+-	.boost_up_threshold = 95,
+-
+-	/*
+-	 * % of device freq collected in a sample period set as boost down
+-	 * threshold. boost interrupt is generated when actmon_count(raw_count)
+-	 * crosses this threshold consecutively by down_wmark_window.
+-	 */
+-	.boost_down_threshold = 80,
+-
+-	/*
+-	 * No of times raw counts hits the up_threshold to generate an
+-	 * interrupt
+-	 */
+-	.up_wmark_window = 4,
+-
+-	/*
+-	 * No of times raw counts hits the down_threshold to generate an
+-	 * interrupt.
+-	 */
+-	.down_wmark_window = 8,
+-
+-	/*
+-	 * No of samples = 2^ avg_window_log2 for calculating exponential moving
+-	 * average.
+-	 */
+-	.avg_window_log2 = ACTMON_DEFAULT_AVG_WINDOW_LOG2,
+-
+-	/*
+-	 * "weight" is used to scale the count to match the device freq
+-	 * When 256 adsp active cpu clock are generated, actmon count
+-	 * is increamented by 1. Making weight as 256 ensures that 1 adsp active
+-	 * clk increaments actmon_count by 1.
+-	 * This makes actmon_count exactly reflect active adsp cpu clk
+-	 * cycles.
+-	 */
+-	.count_weight = 0x100,
+-
+-	/*
+-	 * FREQ_SAMPLER: samples number of device(adsp) active cycles
+-	 * weighted by count_weight to reflect  * actmon_count within a
+-	 * sample period.
+-	 * LOAD_SAMPLER: samples actmon active cycles weighted by
+-	 * count_weight to reflect actmon_count within a sample period.
+-	 */
+-	.type = ACTMON_FREQ_SAMPLER,
+-	.state = ACTMON_UNINITIALIZED,
+-};
+-
+-static struct actmon_dev *actmon_devices[] = {
+-	&actmon_dev_adsp,
+-};
+-
+-static inline u32 actmon_readl(u32 offset)
+-{
+-	return __raw_readl(apemon->base + offset);
+-}
+-static inline void actmon_writel(u32 val, u32 offset)
+-{
+-	__raw_writel(val, apemon->base + offset);
+-}
+-static inline void actmon_wmb(void)
+-{
+-	wmb();
+-}
+-
+-#define offs(x)		(dev->reg + x)
+-
+-static inline unsigned long do_percent(unsigned long val, unsigned int pct)
+-{
+-	return val * pct / 100;
+-}
+-
+-static void actmon_update_sample_period(unsigned long period)
+-{
+-	u32 sample_period_in_clks;
+-	u32 val = 0;
+-
+-	apemon->sampling_period = period;
+-	/*
+-	 * sample_period_in_clks <1..255> = (actmon_clk_freq<1..40800> *
+-	 * actmon_sample_period <10ms..40ms>) / SAMPLE_MS_DIVIDER(65536)
+-	 */
+-	sample_period_in_clks = (apemon->freq * apemon->sampling_period) /
+-		SAMPLE_MS_DIVIDER;
+-
+-	val = actmon_readl(ACTMON_DEV_CTRL);
+-	val &= ~ACTMON_DEV_CTRL_SAMPLE_PERIOD_MASK;
+-	val |= (sample_period_in_clks <<
+-		ACTMON_DEV_CTRL_SAMPLE_PERIOD_VAL_SHIFT)
+-		& ACTMON_DEV_CTRL_SAMPLE_PERIOD_MASK;
+-	actmon_writel(val, ACTMON_DEV_CTRL);
+-}
+-
+-static inline void actmon_dev_up_wmark_set(struct actmon_dev *dev)
+-{
+-	u32 val;
+-	unsigned long freq = (dev->type == ACTMON_FREQ_SAMPLER) ?
+-					 dev->cur_freq : apemon->freq;
+-
+-	val = freq * apemon->sampling_period;
+-	actmon_writel(do_percent(val, dev->boost_up_threshold),
+-				  offs(ACTMON_DEV_UP_WMARK));
+-}
+-
+-static inline void actmon_dev_down_wmark_set(struct actmon_dev *dev)
+-{
+-	u32 val;
+-	unsigned long freq = (dev->type == ACTMON_FREQ_SAMPLER) ?
+-				 dev->cur_freq : apemon->freq;
+-
+-	val = freq * apemon->sampling_period;
+-	actmon_writel(do_percent(val, dev->boost_down_threshold),
+-				  offs(ACTMON_DEV_DOWN_WMARK));
+-}
+-
+-static inline void actmon_dev_wmark_set(struct actmon_dev *dev)
+-{
+-	u32 val;
+-	unsigned long freq = (dev->type == ACTMON_FREQ_SAMPLER) ?
+-				 dev->cur_freq : apemon->freq;
+-
+-	val = freq * apemon->sampling_period;
+-
+-	actmon_writel(do_percent(val, dev->boost_up_threshold),
+-					  offs(ACTMON_DEV_UP_WMARK));
+-	actmon_writel(do_percent(val, dev->boost_down_threshold),
+-					  offs(ACTMON_DEV_DOWN_WMARK));
+-}
+-
+-static inline void actmon_dev_avg_wmark_set(struct actmon_dev *dev)
+-{
+-	/*
+-	 * band: delta from current count to be set for avg upper
+-	 * and lower thresholds
+-	 */
+-	u32 band = dev->avg_band_freq * apemon->sampling_period;
+-	u32 avg = dev->avg_count;
+-
+-	actmon_writel(avg + band, offs(ACTMON_DEV_AVG_UP_WMARK));
+-	avg = max(avg, band);
+-	actmon_writel(avg - band, offs(ACTMON_DEV_AVG_DOWN_WMARK));
+-}
+-
+-static unsigned long actmon_dev_avg_freq_get(struct actmon_dev *dev)
+-{
+-	u64 val;
+-
+-	if (dev->type == ACTMON_FREQ_SAMPLER)
+-		return dev->avg_count / apemon->sampling_period;
+-
+-	val = (u64) dev->avg_count * dev->cur_freq;
+-	do_div(val , apemon->freq * apemon->sampling_period);
+-	return (u32)val;
+-}
+-
+-/* Activity monitor sampling operations */
+-static irqreturn_t ape_actmon_dev_isr(int irq, void *dev_id)
+-{
+-	u32 val, devval;
+-	unsigned long flags;
+-	struct actmon_dev *dev = (struct actmon_dev *)dev_id;
+-
+-	spin_lock_irqsave(&dev->lock, flags);
+-	val = actmon_readl(offs(ACTMON_DEV_INTR_STATUS));
+-	actmon_writel(val, offs(ACTMON_DEV_INTR_STATUS)); /* clr all */
+-	devval = actmon_readl(offs(ACTMON_DEV_CTRL));
+-
+-	if (val & ACTMON_DEV_INTR_AVG_UP_WMARK) {
+-		devval |= (ACTMON_DEV_CTRL_AVG_UP_WMARK_ENB |
+-			ACTMON_DEV_CTRL_AVG_DOWN_WMARK_ENB);
+-		dev->avg_count = actmon_readl(offs(ACTMON_DEV_AVG_COUNT));
+-		actmon_dev_avg_wmark_set(dev);
+-	} else if (val & ACTMON_DEV_INTR_AVG_DOWN_WMARK) {
+-		devval |= (ACTMON_DEV_CTRL_AVG_UP_WMARK_ENB |
+-			ACTMON_DEV_CTRL_AVG_DOWN_WMARK_ENB);
+-		dev->avg_count = actmon_readl(offs(ACTMON_DEV_AVG_COUNT));
+-		actmon_dev_avg_wmark_set(dev);
+-	}
+-
+-	if (val & ACTMON_DEV_INTR_UP_WMARK) {
+-		devval |= (ACTMON_DEV_CTRL_UP_WMARK_ENB |
+-			ACTMON_DEV_CTRL_DOWN_WMARK_ENB);
+-
+-		dev->boost_freq = dev->boost_freq_step +
+-			do_percent(dev->boost_freq, dev->boost_up_coef);
+-		if (dev->boost_freq >= dev->max_freq) {
+-			dev->boost_freq = dev->max_freq;
+-			devval &= ~ACTMON_DEV_CTRL_UP_WMARK_ENB;
+-		}
+-	} else if (val & ACTMON_DEV_INTR_DOWN_WMARK) {
+-		devval |= (ACTMON_DEV_CTRL_UP_WMARK_ENB |
+-			ACTMON_DEV_CTRL_DOWN_WMARK_ENB);
+-
+-		dev->boost_freq =
+-			do_percent(dev->boost_freq, dev->boost_down_coef);
+-		if (dev->boost_freq == 0) {
+-			devval &= ~ACTMON_DEV_CTRL_DOWN_WMARK_ENB;
+-		}
+-	}
+-
+-	actmon_writel(devval, offs(ACTMON_DEV_CTRL));
+-	actmon_wmb();
+-
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-	return IRQ_WAKE_THREAD;
+-}
+-
+-static irqreturn_t ape_actmon_dev_fn(int irq, void *dev_id)
+-{
+-	unsigned long flags, freq;
+-	struct actmon_dev *dev = (struct actmon_dev *)dev_id;
+-
+-	spin_lock_irqsave(&dev->lock, flags);
+-
+-	if (dev->state != ACTMON_ON) {
+-		spin_unlock_irqrestore(&dev->lock, flags);
+-		return IRQ_HANDLED;
+-	}
+-
+-	freq = actmon_dev_avg_freq_get(dev);
+-	dev->avg_actv_freq = freq; /* in kHz */
+-	freq = do_percent(freq, dev->avg_sustain_coef);
+-	freq += dev->boost_freq;
+-
+-	dev->target_freq = freq;
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-
+-	dev_dbg(dev->device, "%s(kHz): avg: %lu,  boost: %lu, target: %lu, current: %lu\n",
+-	dev->clk_name, dev->avg_actv_freq, dev->boost_freq, dev->target_freq,
+-	dev->cur_freq);
+-
+-#if defined(CONFIG_TEGRA_ADSP_DFS)
+-	adsp_cpu_set_rate(freq);
+-#endif
+-
+-	return IRQ_HANDLED;
+-}
+-
+-/* Activity monitor configuration and control */
+-static void actmon_dev_configure(struct actmon_dev *dev,
+-		unsigned long freq)
+-{
+-	u32 val;
+-
+-	dev->boost_freq = 0;
+-	dev->cur_freq = freq;
+-	dev->target_freq = freq;
+-	dev->avg_actv_freq = freq;
+-
+-	if (dev->type == ACTMON_FREQ_SAMPLER) {
+-		/*
+-		 * max actmon count  = (count_weight * adsp_freq (khz)
+-				* sample_period (ms)) / (PULSE_N_CLK+1)
+-		 * As Count_weight is set as 256(0x100) and
+-		 * (PULSE_N_CLK+1) = 256. both would be
+-		 * compensated while coming up max_actmon_count.
+-		 * in other word
+-		 * max actmon count  = ((count_weight * adsp_freq *
+-		 *			 sample_period_reg * SAMPLE_TICK)
+-		 *			 / (ape_freq * (PULSE_N_CLK+1)))
+-		 * where -
+-		 * sample_period_reg : <1..255> sample period in no of
+-		 *			actmon clocks per sample
+-		 * SAMPLE_TICK : Arbtrary value for ms - 65536, us - 256
+-		 * (PULSE_N_CLK + 1) : 256 - No of adsp "active" clocks to
+-		 *			increament raw_count/ actmon_count
+-		 *			 by one.
+-		 */
+-		dev->avg_count = dev->cur_freq * apemon->sampling_period;
+-		dev->avg_band_freq = dev->max_freq *
+-						 ACTMON_DEFAULT_AVG_BAND / 1000;
+-	} else {
+-		dev->avg_count = apemon->freq * apemon->sampling_period;
+-		dev->avg_band_freq = apemon->freq *
+-					 ACTMON_DEFAULT_AVG_BAND / 1000;
+-	}
+-	actmon_writel(dev->avg_count, offs(ACTMON_DEV_INIT_AVG));
+-
+-	BUG_ON(!dev->boost_up_threshold);
+-	dev->avg_sustain_coef = 100 * 100 / dev->boost_up_threshold;
+-	actmon_dev_avg_wmark_set(dev);
+-	actmon_dev_wmark_set(dev);
+-
+-	actmon_writel(dev->count_weight, offs(ACTMON_DEV_COUNT_WEGHT));
+-	val = actmon_readl(ACTMON_DEV_CTRL);
+-
+-	val |= (ACTMON_DEV_CTRL_PERIODIC_ENB |
+-		ACTMON_DEV_CTRL_AVG_UP_WMARK_ENB |
+-		ACTMON_DEV_CTRL_AVG_DOWN_WMARK_ENB);
+-	val |= ((dev->avg_window_log2 - 1) << ACTMON_DEV_CTRL_K_VAL_SHIFT) &
+-			ACTMON_DEV_CTRL_K_VAL_MASK;
+-	val |= ((dev->down_wmark_window - 1) <<
+-				ACTMON_DEV_CTRL_DOWN_WMARK_NUM_SHIFT) &
+-			   ACTMON_DEV_CTRL_DOWN_WMARK_NUM_MASK;
+-	val |=  ((dev->up_wmark_window - 1) <<
+-				 ACTMON_DEV_CTRL_UP_WMARK_NUM_SHIFT) &
+-				ACTMON_DEV_CTRL_UP_WMARK_NUM_MASK;
+-	val |= ACTMON_DEV_CTRL_DOWN_WMARK_ENB |
+-			ACTMON_DEV_CTRL_UP_WMARK_ENB;
+-
+-	actmon_writel(val, offs(ACTMON_DEV_CTRL));
+-	actmon_wmb();
+-}
+-
+-static void actmon_dev_enable(struct actmon_dev *dev)
+-{
+-	u32 val;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&dev->lock, flags);
+-
+-	if (dev->state == ACTMON_OFF) {
+-		dev->state = ACTMON_ON;
+-
+-		val = actmon_readl(offs(ACTMON_DEV_CTRL));
+-		val |= ACTMON_DEV_CTRL_ENB;
+-		actmon_writel(val, offs(ACTMON_DEV_CTRL));
+-		actmon_wmb();
+-	}
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-}
+-
+-static void actmon_dev_disable(struct actmon_dev *dev)
+-{
+-	u32 val;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&dev->lock, flags);
+-
+-	if (dev->state == ACTMON_ON) {
+-		dev->state = ACTMON_OFF;
+-
+-		val = actmon_readl(offs(ACTMON_DEV_CTRL));
+-		val &= ~ACTMON_DEV_CTRL_ENB;
+-			actmon_writel(val, offs(ACTMON_DEV_CTRL));
+-			actmon_writel(0xffffffff, offs(ACTMON_DEV_INTR_STATUS));
+-			actmon_wmb();
+-	}
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-}
+-static int actmon_dev_probe(struct actmon_dev *dev)
+-{
+-	struct nvadsp_drv_data *drv_data = dev_get_drvdata(dev->device);
+-	int ret;
+-
+-	dev->irq = drv_data->agic_irqs[ACTMON_VIRQ];
+-	ret = request_threaded_irq(dev->irq, ape_actmon_dev_isr,
+-			ape_actmon_dev_fn, IRQ_TYPE_LEVEL_HIGH,
+-			dev->clk_name, dev);
+-	if (ret) {
+-		dev_err(dev->device, "Failed irq %d request for %s\n", dev->irq,
+-			dev->clk_name);
+-		goto end;
+-	}
+-	disable_irq(dev->irq);
+-end:
+-	return ret;
+-}
+-
+-static int actmon_dev_init(struct actmon_dev *dev)
+-{
+-	int ret = -EINVAL;
+-	unsigned long freq;
+-
+-	spin_lock_init(&dev->lock);
+-
+-	dev->clk = clk_get_sys(NULL, dev->clk_name);
+-	if (IS_ERR_OR_NULL(dev->clk)) {
+-		dev_err(dev->device, "Failed to find %s clock\n",
+-			dev->clk_name);
+-		goto end;
+-	}
+-
+-	ret = clk_prepare_enable(dev->clk);
+-	if (ret) {
+-		dev_err(dev->device, "unable to enable %s clock\n",
+-			dev->clk_name);
+-		goto err_enable;
+-	}
+-
+-	dev->max_freq = freq = clk_get_rate(dev->clk) / 1000;
+-	actmon_dev_configure(dev, freq);
+-
+-	dev->state = ACTMON_OFF;
+-	actmon_dev_enable(dev);
+-	enable_irq(dev->irq);
+-	return 0;
+-
+-err_enable:
+-	clk_put(dev->clk);
+-end:
+-	return ret;
+-}
+-
+-#ifdef CONFIG_DEBUG_FS
+-
+-#define RW_MODE (S_IWUSR | S_IRUSR)
+-#define RO_MODE S_IRUSR
+-
+-static struct dentry *clk_debugfs_root;
+-
+-static int type_show(struct seq_file *s, void *data)
+-{
+-	struct actmon_dev *dev = s->private;
+-
+-	seq_printf(s, "%s\n", (dev->type == ACTMON_LOAD_SAMPLER) ?
+-			"Load Activity Monitor" : "Frequency Activity Monitor");
+-	return 0;
+-}
+-static int type_open(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, type_show, inode->i_private);
+-}
+-static const struct file_operations type_fops = {
+-	.open		= type_open,
+-	.read		= seq_read,
+-	.llseek		= seq_lseek,
+-	.release	= single_release,
+-};
+-
+-static int actv_get(void *data, u64 *val)
+-{
+-	unsigned long flags;
+-	struct actmon_dev *dev = data;
+-
+-	spin_lock_irqsave(&dev->lock, flags);
+-	*val = actmon_dev_avg_freq_get(dev);
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(actv_fops, actv_get, NULL, "%llu\n");
+-
+-static int step_get(void *data, u64 *val)
+-{
+-	struct actmon_dev *dev = data;
+-	*val = dev->boost_freq_step * 100 / dev->max_freq;
+-	return 0;
+-}
+-static int step_set(void *data, u64 val)
+-{
+-	unsigned long flags;
+-	struct actmon_dev *dev = data;
+-
+-	if (val > 100)
+-		val = 100;
+-
+-	spin_lock_irqsave(&dev->lock, flags);
+-	dev->boost_freq_step = do_percent(dev->max_freq, (unsigned int)val);
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(step_fops, step_get, step_set, "%llu\n");
+-
+-static int count_weight_get(void *data, u64 *val)
+-{
+-	struct actmon_dev *dev = data;
+-	*val = dev->count_weight;
+-	return 0;
+-}
+-static int count_weight_set(void *data, u64 val)
+-{
+-	unsigned long flags;
+-	struct actmon_dev *dev = data;
+-
+-	spin_lock_irqsave(&dev->lock, flags);
+-	dev->count_weight = (u32) val;
+-	actmon_writel(dev->count_weight, offs(ACTMON_DEV_COUNT_WEGHT));
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(cnt_wt_fops, count_weight_get,
+-		 count_weight_set, "%llu\n");
+-
+-static int up_threshold_get(void *data, u64 *val)
+-{
+-	struct actmon_dev *dev = data;
+-	*val = dev->boost_up_threshold;
+-	return 0;
+-}
+-static int up_threshold_set(void *data, u64 val)
+-{
+-	unsigned long flags;
+-	struct actmon_dev *dev = data;
+-	unsigned int up_threshold = (unsigned int)val;
+-
+-	if (up_threshold > 100)
+-		up_threshold = 100;
+-
+-	spin_lock_irqsave(&dev->lock, flags);
+-
+-	if (up_threshold <= dev->boost_down_threshold)
+-		up_threshold = dev->boost_down_threshold;
+-	if (up_threshold)
+-		dev->avg_sustain_coef = 100 * 100 / up_threshold;
+-	dev->boost_up_threshold = up_threshold;
+-
+-	actmon_dev_up_wmark_set(dev);
+-	actmon_wmb();
+-
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(up_threshold_fops, up_threshold_get,
+-						up_threshold_set, "%llu\n");
+-
+-static int down_threshold_get(void *data, u64 *val)
+-{
+-	struct actmon_dev *dev = data;
+-	*val = dev->boost_down_threshold;
+-	return 0;
+-}
+-static int down_threshold_set(void *data, u64 val)
+-{
+-	unsigned long flags;
+-	struct actmon_dev *dev = data;
+-	unsigned int down_threshold = (unsigned int)val;
+-
+-	spin_lock_irqsave(&dev->lock, flags);
+-
+-	if (down_threshold >= dev->boost_up_threshold)
+-		down_threshold = dev->boost_up_threshold;
+-	dev->boost_down_threshold = down_threshold;
+-
+-	actmon_dev_down_wmark_set(dev);
+-	actmon_wmb();
+-
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(down_threshold_fops, down_threshold_get,
+-					down_threshold_set, "%llu\n");
+-
+-static int state_get(void *data, u64 *val)
+-{
+-	struct actmon_dev *dev = data;
+-	*val = dev->state;
+-	return 0;
+-}
+-static int state_set(void *data, u64 val)
+-{
+-	struct actmon_dev *dev = data;
+-
+-	if (val)
+-		actmon_dev_enable(dev);
+-	else
+-		actmon_dev_disable(dev);
+-
+-	return 0;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(state_fops, state_get, state_set, "%llu\n");
+-
+-/* Get period in msec */
+-static int period_get(void *data, u64 *val)
+-{
+-	*val = apemon->sampling_period;
+-	return 0;
+-}
+-/* Set period in msec */
+-static int period_set(void *data, u64 val)
+-{
+-	int i;
+-	unsigned long flags;
+-	u8 period = (u8)val;
+-
+-	if (period) {
+-		actmon_update_sample_period(period);
+-
+-		for (i = 0; i < ARRAY_SIZE(actmon_devices); i++) {
+-			struct actmon_dev *dev = actmon_devices[i];
+-			spin_lock_irqsave(&dev->lock, flags);
+-			actmon_dev_wmark_set(dev);
+-			spin_unlock_irqrestore(&dev->lock, flags);
+-		}
+-		actmon_wmb();
+-		return 0;
+-	}
+-	return -EINVAL;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(period_fops, period_get, period_set, "%llu\n");
+-
+-
+-static int actmon_debugfs_create_dev(struct actmon_dev *dev)
+-{
+-	struct dentry *dir, *d;
+-
+-	if (dev->state == ACTMON_UNINITIALIZED)
+-		return 0;
+-
+-	dir = debugfs_create_dir(dev->clk_name, clk_debugfs_root);
+-	if (!dir)
+-		return -ENOMEM;
+-
+-	d = debugfs_create_file(
+-			"actv_type", RO_MODE, dir, dev, &type_fops);
+-	if (!d)
+-		return -ENOMEM;
+-
+-	d = debugfs_create_file(
+-			"avg_activity", RO_MODE, dir, dev, &actv_fops);
+-	if (!d)
+-		return -ENOMEM;
+-
+-	d = debugfs_create_file(
+-			"boost_step", RW_MODE, dir, dev, &step_fops);
+-	if (!d)
+-		return -ENOMEM;
+-
+-	d = debugfs_create_u32(
+-		"boost_rate_dec", RW_MODE, dir, (u32 *)&dev->boost_down_coef);
+-	if (!d)
+-		return -ENOMEM;
+-
+-	d = debugfs_create_u32(
+-		"boost_rate_inc", RW_MODE, dir, (u32 *)&dev->boost_up_coef);
+-	if (!d)
+-		return -ENOMEM;
+-
+-	d = debugfs_create_file(
+-		"boost_threshold_dn", RW_MODE, dir, dev, &down_threshold_fops);
+-	if (!d)
+-		return -ENOMEM;
+-
+-	d = debugfs_create_file(
+-		"boost_threshold_up", RW_MODE, dir, dev, &up_threshold_fops);
+-	if (!d)
+-		return -ENOMEM;
+-
+-	d = debugfs_create_file(
+-		"state", RW_MODE, dir, dev, &state_fops);
+-	if (!d)
+-		return -ENOMEM;
+-
+-	d = debugfs_create_file(
+-		"cnt_wt", RW_MODE, dir, dev, &cnt_wt_fops);
+-	if (!d)
+-		return -ENOMEM;
+-
+-	return 0;
+-}
+-
+-static int actmon_debugfs_init(struct nvadsp_drv_data *drv)
+-{
+-	int i;
+-	int ret = -ENOMEM;
+-	struct dentry *d;
+-
+-	if (!drv->adsp_debugfs_root)
+-		return ret;
+-	d = debugfs_create_dir("adsp_actmon", drv->adsp_debugfs_root);
+-	if (!d)
+-		return ret;
+-	clk_debugfs_root = d;
+-
+-	d = debugfs_create_file("period", RW_MODE, d, NULL, &period_fops);
+-	if (!d)
+-		goto err_out;
+-
+-	for (i = 0; i < ARRAY_SIZE(actmon_devices); i++) {
+-		ret = actmon_debugfs_create_dev(actmon_devices[i]);
+-		if (ret)
+-			goto err_out;
+-	}
+-	return 0;
+-
+-err_out:
+-	debugfs_remove_recursive(clk_debugfs_root);
+-	return ret;
+-}
+-
+-#endif
+-
+-/* freq in KHz */
+-void actmon_rate_change(unsigned long freq, bool override)
+-{
+-	struct actmon_dev *dev = &actmon_dev_adsp;
+-	unsigned long flags;
+-
+-	if (override) {
+-		actmon_dev_disable(dev);
+-		spin_lock_irqsave(&dev->lock, flags);
+-		dev->cur_freq = freq;
+-		dev->avg_count = freq * apemon->sampling_period;
+-		actmon_writel(dev->avg_count, offs(ACTMON_DEV_INIT_AVG));
+-		actmon_dev_avg_wmark_set(dev);
+-		actmon_dev_wmark_set(dev);
+-		actmon_wmb();
+-		spin_unlock_irqrestore(&dev->lock, flags);
+-		actmon_dev_enable(dev);
+-	} else {
+-		spin_lock_irqsave(&dev->lock, flags);
+-		dev->cur_freq = freq;
+-		if (dev->state == ACTMON_ON) {
+-			actmon_dev_wmark_set(dev);
+-			actmon_wmb();
+-		}
+-		spin_unlock_irqrestore(&dev->lock, flags);
+-	}
+-	/* change ape rate as half of adsp rate */
+-	clk_set_rate(apemon->clk, freq * 500);
+-};
+-
+-int ape_actmon_probe(struct platform_device *pdev)
+-{
+-	int ret = 0;
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(actmon_devices); i++) {
+-		actmon_devices[i]->device = &pdev->dev;
+-		ret = actmon_dev_probe(actmon_devices[i]);
+-		dev_dbg(&pdev->dev, "%s actmon: %s probe (%d)\n",
+-		actmon_devices[i]->clk_name, ret ? "Failed" : "Completed", ret);
+-	}
+-	return ret;
+-}
+-
+-static int ape_actmon_rc_cb(
+-	struct notifier_block *nb, unsigned long rate, void *v)
+-{
+-	struct actmon_dev *dev = &actmon_dev_adsp;
+-	unsigned long flags;
+-	u32 init_cnt;
+-
+-	if (dev->state != ACTMON_ON) {
+-		dev_dbg(dev->device, "adsp actmon is not ON\n");
+-		goto exit_out;
+-	}
+-
+-	actmon_dev_disable(dev);
+-
+-	spin_lock_irqsave(&dev->lock, flags);
+-	init_cnt = actmon_readl(offs(ACTMON_DEV_AVG_COUNT));
+-	/* update sample period to maintain number of clock */
+-	apemon->freq = rate / 1000; /* in KHz */
+-	actmon_update_sample_period(ACTMON_DEFAULT_SAMPLING_PERIOD);
+-	actmon_writel(init_cnt, offs(ACTMON_DEV_INIT_AVG));
+-	spin_unlock_irqrestore(&dev->lock, flags);
+-
+-	actmon_dev_enable(dev);
+-exit_out:
+-	return NOTIFY_OK;
+-}
+-int ape_actmon_init(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-	static void __iomem *amisc_base;
+-	u32 sample_period_in_clks;
+-	struct clk *p;
+-	u32 val = 0;
+-	int i, ret;
+-
+-	if (drv->actmon_initialized)
+-		return 0;
+-
+-	apemon = &ape_actmon;
+-	apemon->base = drv->base_regs[AMISC] + ACTMON_REG_OFFSET;
+-	amisc_base = drv->base_regs[AMISC];
+-
+-	apemon->clk = clk_get_sys(NULL, "adsp.ape");
+-	if (!apemon->clk) {
+-		dev_err(&pdev->dev, "Failed to find actmon clock\n");
+-		ret = -EINVAL;
+-		goto err_out;
+-	}
+-
+-	ret = clk_prepare_enable(apemon->clk);
+-	if (ret) {
+-		dev_err(&pdev->dev, "Failed to enable actmon clock\n");
+-		ret = -EINVAL;
+-		goto err_out;
+-	}
+-	apemon->clk_rc_nb.notifier_call = ape_actmon_rc_cb;
+-
+-	/*
+-	 * "adsp.ape" clk is shared bus user clock and "ape" is bus clock
+-	 * but rate change notification should come from bus clock itself.
+-	 */
+-	p = clk_get_parent(apemon->clk);
+-	if (!p) {
+-		dev_err(&pdev->dev, "Failed to find actmon parent clock\n");
+-		ret = -EINVAL;
+-		goto clk_err_out;
+-	}
+-
+-	ret = tegra_register_clk_rate_notifier(p, &apemon->clk_rc_nb);
+-	if (ret) {
+-		dev_err(&pdev->dev, "Registration fail: %s rate change notifier for %s\n",
+-			p->name, apemon->clk->name);
+-		goto clk_err_out;
+-	}
+-	apemon->freq = clk_get_rate(apemon->clk) / 1000; /* in KHz */
+-
+-	apemon->sampling_period = ACTMON_DEFAULT_SAMPLING_PERIOD;
+-
+-	/*
+-	 * sample period as no of actmon clocks
+-	 * Actmon is derived from APE clk.
+-	 * suppose APE clk is 204MHz = 204000 KHz and want to calculate
+-	 * clocks in 10ms sample
+-	 * in 1ms = 204000 cycles
+-	 * 10ms = 204000 * 10 APE cycles
+-	 * SAMPLE_MS_DIVIDER is an arbitrary number
+-	 */
+-	sample_period_in_clks = (apemon->freq * apemon->sampling_period)
+-		/ SAMPLE_MS_DIVIDER;
+-
+-	/* set ms mode */
+-	actmon_writel(ACTMON_DEV_SAMPLE_CTRL_TICK_65536,
+-		ACTMON_DEV_SAMPLE_CTRL);
+-	val = actmon_readl(ACTMON_DEV_CTRL);
+-	val &= ~ACTMON_DEV_CTRL_SAMPLE_PERIOD_MASK;
+-	val |= (sample_period_in_clks <<
+-		ACTMON_DEV_CTRL_SAMPLE_PERIOD_VAL_SHIFT)
+-		& ACTMON_DEV_CTRL_SAMPLE_PERIOD_MASK;
+-	actmon_writel(val, ACTMON_DEV_CTRL);
+-
+-	/* Enable AMISC_ACTMON */
+-	val = __raw_readl(amisc_base + AMISC_ACTMON_0);
+-	val |= AMISC_ACTMON_CNT_TARGET_ENABLE;
+-	__raw_writel(val, amisc_base + AMISC_ACTMON_0);
+-
+-	actmon_writel(0xffffffff, ACTMON_DEV_INTR_STATUS); /* clr all */
+-
+-	for (i = 0; i < ARRAY_SIZE(actmon_devices); i++) {
+-		ret = actmon_dev_init(actmon_devices[i]);
+-		dev_dbg(&pdev->dev, "%s actmon device: %s initialization (%d)\n",
+-		actmon_devices[i]->clk_name, ret ? "Failed" : "Completed", ret);
+-	}
+-
+-#ifdef CONFIG_DEBUG_FS
+-	actmon_debugfs_init(drv);
+-#endif
+-
+-	drv->actmon_initialized = true;
+-
+-	dev_dbg(&pdev->dev, "adsp actmon initialized ....\n");
+-	return 0;
+-clk_err_out:
+-	if (apemon->clk)
+-		clk_disable_unprepare(apemon->clk);
+-err_out:
+-	if (apemon->clk)
+-		clk_put(apemon->clk);
+-	return ret;
+-}
+-
+-int ape_actmon_exit(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-	struct actmon_dev *dev;
+-	status_t ret = 0;
+-	int i;
+-
+-	/* return if actmon is not initialized */
+-	if (!drv->actmon_initialized)
+-		return -ENODEV;
+-
+-	for (i = 0; i < ARRAY_SIZE(actmon_devices); i++) {
+-		dev = actmon_devices[i];
+-		actmon_dev_disable(dev);
+-		disable_irq(dev->irq);
+-		clk_disable_unprepare(dev->clk);
+-		clk_put(dev->clk);
+-	}
+-
+-	tegra_unregister_clk_rate_notifier(clk_get_parent(apemon->clk),
+-		&apemon->clk_rc_nb);
+-
+-	clk_disable_unprepare(apemon->clk);
+-	clk_put(apemon->clk);
+-
+-	drv->actmon_initialized = false;
+-
+-	dev_dbg(&pdev->dev, "adsp actmon has exited ....\n");
+-
+-	return ret;
+-}
+diff --git a/drivers/platform/tegra/nvadsp/ape_actmon.h b/drivers/platform/tegra/nvadsp/ape_actmon.h
+deleted file mode 100644
+index ae7d1723..00000000
+--- a/drivers/platform/tegra/nvadsp/ape_actmon.h
++++ /dev/null
+@@ -1,86 +0,0 @@
+-/*
+- * Copyright (c) 2014-2016, NVIDIA CORPORATION.  All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __APE_ACTMON_H
+-#define __APE_ACTMON_H
+-#include <linux/spinlock.h>
+-
+-enum actmon_type {
+-	ACTMON_LOAD_SAMPLER,
+-	ACTMON_FREQ_SAMPLER,
+-};
+-
+-enum actmon_state {
+-	ACTMON_UNINITIALIZED = -1,
+-	ACTMON_OFF = 0,
+-	ACTMON_ON  = 1,
+-	ACTMON_SUSPENDED = 2,
+-};
+-/* Units:
+- * - frequency in kHz
+- * - coefficients, and thresholds in %
+- * - sampling period in ms
+- * - window in sample periods (value = setting + 1)
+- */
+-struct actmon_dev {
+-	u32	reg;
+-	int	irq;
+-	struct device *device;
+-
+-	const char	*dev_id;
+-	const char	*con_id;
+-	const char *clk_name;
+-	struct clk	*clk;
+-
+-	unsigned long	max_freq;
+-	unsigned long	target_freq;
+-	unsigned long	cur_freq;
+-	unsigned long	suspend_freq;
+-
+-	unsigned long	avg_actv_freq;
+-	unsigned long	avg_band_freq;
+-	unsigned int	avg_sustain_coef;
+-	u32	avg_count;
+-
+-	unsigned long	boost_freq;
+-	unsigned long	boost_freq_step;
+-	unsigned int	boost_up_coef;
+-	unsigned int	boost_down_coef;
+-	unsigned int	boost_up_threshold;
+-	unsigned int	boost_down_threshold;
+-
+-	u8	up_wmark_window;
+-	u8	down_wmark_window;
+-	u8	avg_window_log2;
+-	u32	count_weight;
+-
+-	enum actmon_type	type;
+-	enum actmon_state	state;
+-	enum actmon_state	saved_state;
+-
+-	spinlock_t	lock;
+-
+-};
+-
+-struct actmon {
+-	struct clk *clk;
+-	unsigned long freq;
+-	unsigned long sampling_period;
+-	struct notifier_block clk_rc_nb;
+-	void __iomem *base;
+-};
+-
+-int ape_actmon_init(struct platform_device *pdev);
+-int ape_actmon_exit(struct platform_device *pdev);
+-void actmon_rate_change(unsigned long freq, bool override);
+-#endif
+diff --git a/drivers/platform/tegra/nvadsp/dev-t21x.c b/drivers/platform/tegra/nvadsp/dev-t21x.c
+deleted file mode 100644
+index 6ae797e2..00000000
+--- a/drivers/platform/tegra/nvadsp/dev-t21x.c
++++ /dev/null
+@@ -1,306 +0,0 @@
+-/*
+- * dev-t21x.c
+- *
+- * A device driver for ADSP and APE
+- *
+- * Copyright (C) 2014-2017, NVIDIA Corporation. All rights reserved.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#include <linux/platform_device.h>
+-#include <linux/pm.h>
+-#include <linux/tegra_nvadsp.h>
+-#include <linux/clk/tegra.h>
+-#include <linux/delay.h>
+-#include <linux/reset.h>
+-
+-#include "dev.h"
+-#include "amc.h"
+-#include "dev-t21x.h"
+-
+-#ifdef CONFIG_PM
+-static void nvadsp_clocks_disable(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
+-	struct device *dev = &pdev->dev;
+-
+-	if (drv_data->adsp_clk) {
+-		clk_disable_unprepare(drv_data->adsp_clk);
+-		dev_dbg(dev, "adsp clocks disabled\n");
+-		drv_data->adsp_clk = NULL;
+-	}
+-
+-	if (drv_data->adsp_cpu_abus_clk) {
+-		clk_disable_unprepare(drv_data->adsp_cpu_abus_clk);
+-		dev_dbg(dev, "adsp cpu abus clock disabled\n");
+-		drv_data->adsp_cpu_abus_clk = NULL;
+-	}
+-
+-	if (drv_data->adsp_neon_clk) {
+-		clk_disable_unprepare(drv_data->adsp_neon_clk);
+-		dev_dbg(dev, "adsp_neon clocks disabled\n");
+-		drv_data->adsp_neon_clk = NULL;
+-	}
+-
+-	if (drv_data->ape_clk) {
+-		clk_disable_unprepare(drv_data->ape_clk);
+-		dev_dbg(dev, "ape clock disabled\n");
+-		drv_data->ape_clk = NULL;
+-	}
+-
+-	if (drv_data->apb2ape_clk) {
+-		clk_disable_unprepare(drv_data->apb2ape_clk);
+-		dev_dbg(dev, "apb2ape clock disabled\n");
+-		drv_data->apb2ape_clk = NULL;
+-	}
+-}
+-
+-static int nvadsp_clocks_enable(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
+-	struct device *dev = &pdev->dev;
+-	int ret = 0;
+-
+-	drv_data->ape_clk = devm_clk_get(dev, "adsp.ape");
+-	if (IS_ERR_OR_NULL(drv_data->ape_clk)) {
+-		dev_err(dev, "unable to find adsp.ape clock\n");
+-		ret = PTR_ERR(drv_data->ape_clk);
+-		goto end;
+-	}
+-	ret = clk_prepare_enable(drv_data->ape_clk);
+-	if (ret) {
+-		dev_err(dev, "unable to enable adsp.ape clock\n");
+-		goto end;
+-	}
+-	dev_dbg(dev, "ape clock enabled\n");
+-
+-	drv_data->adsp_clk = devm_clk_get(dev, "adsp");
+-	if (IS_ERR_OR_NULL(drv_data->adsp_clk)) {
+-		dev_err(dev, "unable to find adsp clock\n");
+-		ret = PTR_ERR(drv_data->adsp_clk);
+-		goto end;
+-	}
+-	ret = clk_prepare_enable(drv_data->adsp_clk);
+-	if (ret) {
+-		dev_err(dev, "unable to enable adsp clock\n");
+-		goto end;
+-	}
+-
+-	drv_data->adsp_cpu_abus_clk = devm_clk_get(dev, "adsp_cpu_abus");
+-	if (IS_ERR_OR_NULL(drv_data->adsp_cpu_abus_clk)) {
+-		dev_err(dev, "unable to find adsp cpu abus clock\n");
+-		ret = PTR_ERR(drv_data->adsp_cpu_abus_clk);
+-		goto end;
+-	}
+-	ret = clk_prepare_enable(drv_data->adsp_cpu_abus_clk);
+-	if (ret) {
+-		dev_err(dev, "unable to enable adsp cpu abus clock\n");
+-		goto end;
+-	}
+-
+-	drv_data->adsp_neon_clk = devm_clk_get(dev, "adspneon");
+-	if (IS_ERR_OR_NULL(drv_data->adsp_neon_clk)) {
+-		dev_err(dev, "unable to find adsp neon clock\n");
+-		ret = PTR_ERR(drv_data->adsp_neon_clk);
+-		goto end;
+-	}
+-	ret = clk_prepare_enable(drv_data->adsp_neon_clk);
+-	if (ret) {
+-		dev_err(dev, "unable to enable adsp neon clock\n");
+-		goto end;
+-	}
+-	dev_dbg(dev, "adsp cpu clock enabled\n");
+-
+-	drv_data->apb2ape_clk = devm_clk_get(dev, "adsp.apb2ape");
+-	if (IS_ERR_OR_NULL(drv_data->apb2ape_clk)) {
+-		dev_err(dev, "unable to find adsp.apb2ape clk\n");
+-		ret = PTR_ERR(drv_data->apb2ape_clk);
+-		goto end;
+-	}
+-	ret = clk_prepare_enable(drv_data->apb2ape_clk);
+-	if (ret) {
+-		dev_err(dev, "unable to enable adsp.apb2ape clock\n");
+-		goto end;
+-	}
+-
+-	/* AHUB clock, UART clock  is not being enabled as UART by default is
+-	 * disabled on t210
+-	 */
+-	dev_dbg(dev, "all clocks enabled\n");
+-	return 0;
+- end:
+-	nvadsp_clocks_disable(pdev);
+-	return ret;
+-}
+-
+-static inline bool nvadsp_amsic_skip_reg(u32 offset)
+-{
+-	if (offset == AMISC_ADSP_L2_REGFILEBASE ||
+-	    offset == AMISC_SHRD_SMP_STA ||
+-	    (offset >= AMISC_SEM_REG_START && offset <= AMISC_SEM_REG_END) ||
+-	    offset == AMISC_TSC ||
+-	    offset == AMISC_ACTMON_AVG_CNT) {
+-		return true;
+-	} else {
+-		return false;
+-	}
+-}
+-
+-static int nvadsp_amisc_save(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *d = platform_get_drvdata(pdev);
+-	u32 val, offset;
+-	int i = 0;
+-
+-	offset = AMISC_REG_START_OFFSET;
+-	while (offset <= AMISC_REG_MBOX_OFFSET) {
+-		if (nvadsp_amsic_skip_reg(offset)) {
+-			offset += 4;
+-			continue;
+-		}
+-		val = readl(d->base_regs[AMISC] + offset);
+-		d->state.amisc_regs[i++] = val;
+-		offset += 4;
+-	}
+-
+-	offset = ADSP_ACTMON_REG_START_OFFSET;
+-	while (offset <= ADSP_ACTMON_REG_END_OFFSET) {
+-		if (nvadsp_amsic_skip_reg(offset)) {
+-			offset += 4;
+-			continue;
+-		}
+-		val = readl(d->base_regs[AMISC] + offset);
+-		d->state.amisc_regs[i++] = val;
+-		offset += 4;
+-	}
+-	return 0;
+-}
+-
+-static int nvadsp_amisc_restore(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *d = platform_get_drvdata(pdev);
+-	u32 val, offset;
+-	int i = 0;
+-
+-	offset = AMISC_REG_START_OFFSET;
+-	while (offset <= AMISC_REG_MBOX_OFFSET) {
+-		if (nvadsp_amsic_skip_reg(offset)) {
+-			offset += 4;
+-			continue;
+-		}
+-		val = d->state.amisc_regs[i++];
+-		writel(val, d->base_regs[AMISC] + offset);
+-		offset += 4;
+-	}
+-
+-	offset = ADSP_ACTMON_REG_START_OFFSET;
+-	while (offset <= ADSP_ACTMON_REG_END_OFFSET) {
+-		if (nvadsp_amsic_skip_reg(offset)) {
+-			offset += 4;
+-			continue;
+-		}
+-		val = d->state.amisc_regs[i++];
+-		writel(val, d->base_regs[AMISC] + offset);
+-		offset += 4;
+-	}
+-	return 0;
+-}
+-
+-static int __nvadsp_runtime_resume(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
+-	int ret = 0;
+-
+-	dev_dbg(dev, "restoring adsp base regs\n");
+-	drv_data->base_regs = drv_data->base_regs_saved;
+-
+-	dev_dbg(dev, "enabling clocks\n");
+-	ret = nvadsp_clocks_enable(pdev);
+-	if (ret) {
+-		dev_err(dev, "nvadsp_clocks_enable failed\n");
+-		goto skip;
+-	}
+-
+-	if (!drv_data->adsp_os_suspended) {
+-		dev_dbg(dev, "%s: adsp os is not suspended\n", __func__);
+-		goto skip;
+-	}
+-
+-	dev_dbg(dev, "restoring ape state\n");
+-	nvadsp_amc_restore(pdev);
+-	nvadsp_aram_restore(pdev);
+-	nvadsp_amisc_restore(pdev);
+- skip:
+-	return ret;
+-}
+-
+-static int __nvadsp_runtime_suspend(struct device *dev)
+-{
+-	struct platform_device *pdev = to_platform_device(dev);
+-	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
+-	int ret = 0;
+-
+-	if (!drv_data->adsp_os_suspended) {
+-		dev_dbg(dev, "%s: adsp os is not suspended\n", __func__);
+-		goto clocks;
+-	}
+-
+-	dev_dbg(dev, "saving amsic\n");
+-	nvadsp_amisc_save(pdev);
+-
+-	dev_dbg(dev, "saving aram\n");
+-	nvadsp_aram_save(pdev);
+-
+-	dev_dbg(dev, "saving amc\n");
+-	nvadsp_amc_save(pdev);
+- clocks:
+-	dev_dbg(dev, "disabling clocks\n");
+-	nvadsp_clocks_disable(pdev);
+-
+-	dev_dbg(dev, "locking out adsp base regs\n");
+-	drv_data->base_regs = NULL;
+-
+-	return ret;
+-}
+-
+-static int __nvadsp_runtime_idle(struct device *dev)
+-{
+-	return 0;
+-}
+-
+-int nvadsp_pm_t21x_init(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
+-
+-	drv_data->runtime_suspend = __nvadsp_runtime_suspend;
+-	drv_data->runtime_resume = __nvadsp_runtime_resume;
+-	drv_data->runtime_idle = __nvadsp_runtime_idle;
+-
+-	return 0;
+-}
+-#endif /* CONFIG_PM */
+-
+-int nvadsp_reset_t21x_init(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *drv_data = platform_get_drvdata(pdev);
+-	struct device *dev = &pdev->dev;
+-	int ret = 0;
+-
+-	drv_data->adspall_rst = devm_reset_control_get(dev, "adspall");
+-	if (IS_ERR_OR_NULL(drv_data->adspall_rst)) {
+-		ret = PTR_ERR(drv_data->adspall_rst);
+-		dev_err(dev, "unable to get adspall reset %d\n", ret);
+-	}
+-
+-	return ret;
+-}
+diff --git a/drivers/platform/tegra/nvadsp/dev-t21x.h b/drivers/platform/tegra/nvadsp/dev-t21x.h
+deleted file mode 100644
+index 1f4c2352..00000000
+--- a/drivers/platform/tegra/nvadsp/dev-t21x.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-/*
+- * Copyright (C) 2015-2017, NVIDIA Corporation. All rights reserved.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#ifndef __TEGRA_NVADSP_DEV_T21X_H
+-#define __TEGRA_NVADSP_DEV_T21X_H
+-
+-int nvadsp_reset_t21x_init(struct platform_device *pdev);
+-int nvadsp_os_t21x_init(struct platform_device *pdev);
+-int nvadsp_pm_t21x_init(struct platform_device *pdev);
+-
+-#endif /* __TEGRA_NVADSP_DEV_T21X_H */
+diff --git a/drivers/platform/tegra/nvadsp/dev.c b/drivers/platform/tegra/nvadsp/dev.c
+index 3c43e2ee..f3d57ebc 100644
+--- a/drivers/platform/tegra/nvadsp/dev.c
++++ b/drivers/platform/tegra/nvadsp/dev.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2014-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -24,8 +24,6 @@
+ 
+ #include "dev.h"
+ #include "os.h"
+-#include "amc.h"
+-#include "ape_actmon.h"
+ #include "aram_manager.h"
+ 
+ #include "dev-t18x.h"
+diff --git a/drivers/platform/tegra/nvadsp/emc_dfs.c b/drivers/platform/tegra/nvadsp/emc_dfs.c
+deleted file mode 100644
+index e0964e78..00000000
+--- a/drivers/platform/tegra/nvadsp/emc_dfs.c
++++ /dev/null
+@@ -1,472 +0,0 @@
+-/*
+- * emc_dfs.c
+- *
+- * Emc dynamic frequency scaling due to APE
+- *
+- * Copyright (C) 2014-2020, NVIDIA Corporation. All rights reserved.
+- *
+- * This software is licensed under the terms of the GNU General Public
+- * License version 2, as published by the Free Software Foundation, and
+- * may be copied, distributed, and modified under those terms.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- */
+-
+-#include <linux/tegra_nvadsp.h>
+-#include <linux/tick.h>
+-#include <linux/timer.h>
+-#include <linux/sched.h>
+-#include <linux/sched/rt.h>
+-#include <linux/kthread.h>
+-#include <linux/spinlock.h>
+-#include <linux/clk.h>
+-#include <linux/debugfs.h>
+-
+-#include "dev.h"
+-
+-/* Register offsets */
+-#define ABRIDGE_STATS_READ_0		0x04
+-#define ABRIDGE_STATS_WRITE_0		0x0c
+-#define ABRIDGE_STATS_CLEAR_0		0x1b
+-#define ABRIDGE_STATS_HI_0FFSET		0x04
+-
+-/* Sample Period in usecs */
+-#define DEFAULT_SAMPLE_PERIOD	500000
+-#define INT_SHIFT		32
+-#define make64(hi, low) ((((u64)hi) << INT_SHIFT) | (low))
+-#define SCALING_DIVIDER 2
+-#define BOOST_DOWN_COUNT 2
+-#define DEFAULT_BOOST_UP_THRESHOLD 2000000;
+-#define DEFAULT_BOOST_STEP 2
+-
+-struct emc_dfs_info {
+-	void __iomem *abridge_base;
+-	struct timer_list cnt_timer;
+-
+-	u64 rd_cnt;
+-	u64 wr_cnt;
+-	bool enable;
+-	u64 avg_cnt;
+-
+-	unsigned long timer_rate;
+-	ktime_t prev_time;
+-
+-	u32 dn_count;
+-	u32 boost_dn_count;
+-
+-	u64 boost_up_threshold;
+-	u8 boost_step;
+-
+-	struct work_struct clk_set_work;
+-	unsigned long cur_freq;
+-	bool speed_change_flag;
+-	unsigned long max_freq;
+-
+-	struct clk *emcclk;
+-};
+-
+-static struct emc_dfs_info global_emc_info;
+-static struct emc_dfs_info *einfo;
+-static struct task_struct *speedchange_task;
+-static spinlock_t speedchange_lock;
+-
+-static u64 read64(u32 offset)
+-{
+-	u32 low;
+-	u32 hi;
+-
+-	low = readl(einfo->abridge_base + offset);
+-	hi = readl(einfo->abridge_base + (offset + ABRIDGE_STATS_HI_0FFSET));
+-	return make64(hi, low);
+-}
+-static unsigned long count_to_emcfreq(void)
+-{
+-	unsigned long tfreq = 0;
+-
+-	if (!einfo->avg_cnt) {
+-		if (einfo->dn_count >= einfo->boost_dn_count) {
+-			tfreq = einfo->cur_freq / SCALING_DIVIDER;
+-			einfo->dn_count = 0;
+-		} else
+-			einfo->dn_count++;
+-	} else if (einfo->avg_cnt >= einfo->boost_up_threshold) {
+-		if (einfo->boost_step)
+-			tfreq = einfo->cur_freq * einfo->boost_step;
+-	}
+-
+-	pr_debug("%s:avg_cnt: %llu  current freq(kHz): %lu target freq(kHz): %lu\n",
+-		__func__, einfo->avg_cnt, einfo->cur_freq, tfreq);
+-
+-	return tfreq;
+-}
+-
+-static int clk_work(void *data)
+-{
+-	int ret;
+-
+-	if (einfo->emcclk && einfo->speed_change_flag && einfo->cur_freq) {
+-		ret = clk_set_rate(einfo->emcclk, einfo->cur_freq * 1000);
+-		if (ret) {
+-			pr_err("failed to set ape.emc freq:%d\n", ret);
+-			BUG_ON(ret);
+-		}
+-		einfo->cur_freq = clk_get_rate(einfo->emcclk) / 1000;
+-		pr_info("ape.emc: setting emc clk: %lu\n", einfo->cur_freq);
+-	}
+-
+-	mod_timer(&einfo->cnt_timer,
+-		  jiffies + usecs_to_jiffies(einfo->timer_rate));
+-	return 0;
+-}
+-static void emc_dfs_timer(unsigned long data)
+-{
+-	u64 cur_cnt;
+-	u64 delta_cnt;
+-	u64 prev_cnt;
+-	u64 delta_time;
+-	ktime_t now;
+-	unsigned long target_freq;
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&speedchange_lock, flags);
+-
+-	/* Return if emc dfs is disabled */
+-	if (!einfo->enable) {
+-		spin_unlock_irqrestore(&speedchange_lock, flags);
+-		return;
+-	}
+-
+-	prev_cnt = einfo->rd_cnt + einfo->wr_cnt;
+-
+-	einfo->rd_cnt = read64((u32)ABRIDGE_STATS_READ_0);
+-	einfo->wr_cnt = read64((u32)ABRIDGE_STATS_WRITE_0);
+-	pr_debug("einfo->rd_cnt: %llu einfo->wr_cnt: %llu\n",
+-		einfo->rd_cnt, einfo->wr_cnt);
+-
+-	cur_cnt = einfo->rd_cnt + einfo->wr_cnt;
+-	delta_cnt = cur_cnt - prev_cnt;
+-
+-	now = ktime_get();
+-
+-	delta_time = ktime_to_ns(ktime_sub(now, einfo->prev_time));
+-	if (!delta_time) {
+-		pr_err("%s: time interval to calculate emc scaling is zero\n",
+-		__func__);
+-		spin_unlock_irqrestore(&speedchange_lock, flags);
+-		goto exit;
+-	}
+-
+-	einfo->prev_time = now;
+-	einfo->avg_cnt = delta_cnt / delta_time;
+-
+-	/* if 0: no scaling is required */
+-	target_freq = count_to_emcfreq();
+-	if (!target_freq) {
+-		einfo->speed_change_flag = false;
+-	} else {
+-		einfo->cur_freq = target_freq;
+-		einfo->speed_change_flag = true;
+-	}
+-
+-	spin_unlock_irqrestore(&speedchange_lock, flags);
+-	pr_info("einfo->avg_cnt: %llu delta_cnt: %llu delta_time %llu emc_freq:%lu\n",
+-		einfo->avg_cnt, delta_cnt, delta_time, einfo->cur_freq);
+-
+-exit:
+-	wake_up_process(speedchange_task);
+-}
+-
+-static void emc_dfs_enable(void)
+-{
+-	einfo->rd_cnt = read64((u32)ABRIDGE_STATS_READ_0);
+-	einfo->wr_cnt = read64((u32)ABRIDGE_STATS_WRITE_0);
+-
+-	einfo->prev_time = ktime_get();
+-	mod_timer(&einfo->cnt_timer, jiffies + 2);
+-}
+-static void emc_dfs_disable(void)
+-{
+-	einfo->rd_cnt = read64((u32)ABRIDGE_STATS_READ_0);
+-	einfo->wr_cnt = read64((u32)ABRIDGE_STATS_WRITE_0);
+-
+-	del_timer_sync(&einfo->cnt_timer);
+-}
+-
+-#ifdef CONFIG_DEBUG_FS
+-static struct dentry *emc_dfs_root;
+-
+-#define RW_MODE (S_IWUSR | S_IRUSR)
+-#define RO_MODE S_IRUSR
+-
+-/* Get emc dfs staus: 0: disabled 1:enabled */
+-static int dfs_enable_get(void *data, u64 *val)
+-{
+-	*val = einfo->enable;
+-	return 0;
+-}
+-/* Enable/disable emc dfs */
+-static int dfs_enable_set(void *data, u64 val)
+-{
+-	einfo->enable = (bool) val;
+-		/*
+-		 * If enabling: activate a timer to execute in next 2 jiffies,
+-		 * so that emc scaled value takes effect immidiately.
+-		 */
+-	if (einfo->enable)
+-		emc_dfs_enable();
+-	else
+-		emc_dfs_disable();
+-
+-	return 0;
+-}
+-
+-DEFINE_SIMPLE_ATTRIBUTE(enable_fops, dfs_enable_get,
+-	dfs_enable_set, "%llu\n");
+-
+-/* Get emc dfs staus: 0: disabled 1:enabled */
+-static int boost_up_threshold_get(void *data, u64 *val)
+-{
+-	*val = einfo->boost_up_threshold;
+-	return 0;
+-}
+-/* Enable/disable emc dfs */
+-static int boost_up_threshold_set(void *data, u64 val)
+-{
+-	unsigned long flags;
+-	int ret = 0;
+-
+-	spin_lock_irqsave(&speedchange_lock, flags);
+-
+-	if (!einfo->enable) {
+-		pr_info("EMC dfs is not enabled\n");
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+-	if (val)
+-		einfo->boost_up_threshold = val;
+-
+-err:
+-	spin_unlock_irqrestore(&speedchange_lock, flags);
+-	return ret;
+-}
+-
+-DEFINE_SIMPLE_ATTRIBUTE(up_threshold_fops,
+-	boost_up_threshold_get,	boost_up_threshold_set, "%llu\n");
+-
+-/* scaling emc freq in multiple of boost factor */
+-static int boost_step_get(void *data, u64 *val)
+-{
+-	*val = einfo->boost_step;
+-	return 0;
+-}
+-/* Set period in usec */
+-static int boost_step_set(void *data, u64 val)
+-{
+-	unsigned long flags;
+-	int ret = 0;
+-
+-	spin_lock_irqsave(&speedchange_lock, flags);
+-
+-	if (!einfo->enable) {
+-		pr_info("EMC dfs is not enabled\n");
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+-	if (!val)
+-		einfo->boost_step = 1;
+-	else
+-		einfo->boost_step = (u8) val;
+-err:
+-	spin_unlock_irqrestore(&speedchange_lock, flags);
+-	return ret;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(boost_fops, boost_step_get,
+-	boost_step_set, "%llu\n");
+-
+-/* minimum time after that emc scaling down happens in usec */
+-static int boost_down_count_get(void *data, u64 *val)
+-{
+-	*val = einfo->boost_dn_count;
+-	return 0;
+-}
+-/* Set period in usec */
+-static int boost_down_count_set(void *data, u64 val)
+-{
+-	unsigned long flags;
+-	int ret = 0;
+-
+-	spin_lock_irqsave(&speedchange_lock, flags);
+-
+-	if (!einfo->enable) {
+-		pr_info("EMC dfs is not enabled\n");
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+-	if (val)
+-		einfo->boost_dn_count = (u32) val;
+-		ret = 0;
+-err:
+-	spin_unlock_irqrestore(&speedchange_lock, flags);
+-	return ret;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(down_cnt_fops, boost_down_count_get,
+-	boost_down_count_set, "%llu\n");
+-
+-static int period_get(void *data, u64 *val)
+-{
+-	*val = einfo->timer_rate;
+-	return 0;
+-}
+-
+-/* Set period in usec */
+-static int period_set(void *data, u64 val)
+-{
+-	unsigned long flags;
+-	int ret = 0;
+-
+-	spin_lock_irqsave(&speedchange_lock, flags);
+-
+-	if (!einfo->enable) {
+-		pr_info("EMC dfs is not enabled\n");
+-		ret = -EINVAL;
+-		goto err;
+-	}
+-
+-	if (val)
+-		einfo->timer_rate = (unsigned long)val;
+-
+-err:
+-	spin_unlock_irqrestore(&speedchange_lock, flags);
+-	return ret;
+-}
+-DEFINE_SIMPLE_ATTRIBUTE(period_fops, period_get, period_set, "%llu\n");
+-
+-
+-static int emc_dfs_debugfs_init(struct nvadsp_drv_data *drv)
+-{
+-	int ret = -ENOMEM;
+-	struct dentry *d;
+-
+-	if (!drv->adsp_debugfs_root)
+-		return ret;
+-
+-	emc_dfs_root  = debugfs_create_dir("emc_dfs", drv->adsp_debugfs_root);
+-	if (!emc_dfs_root)
+-		goto err_out;
+-
+-	d = debugfs_create_file("enable", RW_MODE, emc_dfs_root, NULL,
+-		&enable_fops);
+-	if (!d)
+-		goto err_root;
+-
+-	d = debugfs_create_file("boost_up_threshold", RW_MODE, emc_dfs_root,
+-		NULL, &up_threshold_fops);
+-	if (!d)
+-		goto err_root;
+-
+-	d = debugfs_create_file("boost_step", RW_MODE, emc_dfs_root, NULL,
+-		&boost_fops);
+-	if (!d)
+-		goto err_root;
+-
+-	d = debugfs_create_file("boost_down_count", RW_MODE, emc_dfs_root,
+-		NULL, &down_cnt_fops);
+-	if (!d)
+-		goto err_root;
+-
+-	d = debugfs_create_file("period", RW_MODE, emc_dfs_root, NULL,
+-		&period_fops);
+-	if (!d)
+-		goto err_root;
+-
+-	return 0;
+-
+-err_root:
+-	debugfs_remove_recursive(emc_dfs_root);
+-
+-err_out:
+-	return ret;
+-}
+-
+-#endif
+-
+-status_t __init emc_dfs_init(struct platform_device *pdev)
+-{
+-	struct nvadsp_drv_data *drv = platform_get_drvdata(pdev);
+-#if KERNEL_VERSION(5, 9, 0) > LINUX_VERSION_CODE
+-	struct sched_param param = { .sched_priority = MAX_RT_PRIO - 1 };
+-#endif
+-	int ret = 0;
+-
+-	einfo = &global_emc_info;
+-	einfo->abridge_base = drv->base_regs[ABRIDGE];
+-
+-	einfo->emcclk = clk_get_sys("ape", "emc");
+-	if (IS_ERR_OR_NULL(einfo->emcclk)) {
+-		dev_info(&pdev->dev, "unable to find ape.emc clock\n");
+-		return PTR_ERR(einfo->emcclk);
+-	}
+-
+-	einfo->timer_rate = DEFAULT_SAMPLE_PERIOD;
+-	einfo->boost_up_threshold = DEFAULT_BOOST_UP_THRESHOLD;
+-	einfo->boost_step = DEFAULT_BOOST_STEP;
+-	einfo->dn_count = 0;
+-	einfo->boost_dn_count = BOOST_DOWN_COUNT;
+-	einfo->enable = 1;
+-
+-	einfo->max_freq = clk_round_rate(einfo->emcclk, ULONG_MAX);
+-	ret = clk_set_rate(einfo->emcclk, einfo->max_freq);
+-	if (ret) {
+-		dev_info(&pdev->dev, "failed to set ape.emc freq:%d\n", ret);
+-		return PTR_ERR(einfo->emcclk);
+-	}
+-	einfo->max_freq /= 1000;
+-	einfo->cur_freq = clk_get_rate(einfo->emcclk) / 1000;
+-	if (!einfo->cur_freq) {
+-		dev_info(&pdev->dev, "ape.emc freq is NULL:\n");
+-		return PTR_ERR(einfo->emcclk);
+-	}
+-
+-	dev_info(&pdev->dev, "einfo->cur_freq %lu\n", einfo->cur_freq);
+-
+-	spin_lock_init(&speedchange_lock);
+-	init_timer(&einfo->cnt_timer);
+-	einfo->cnt_timer.function = emc_dfs_timer;
+-
+-	speedchange_task = kthread_create(clk_work, NULL, "emc_dfs");
+-	if (IS_ERR(speedchange_task))
+-		return PTR_ERR(speedchange_task);
+-
+-#if KERNEL_VERSION(5, 9, 0) > LINUX_VERSION_CODE
+-	sched_setscheduler_nocheck(speedchange_task, SCHED_FIFO, &param);
+-#else
+-	sched_set_fifo(speedchange_task);
+-#endif
+-
+-	get_task_struct(speedchange_task);
+-
+-	/* NB: wake up so the thread does not look hung to the freezer */
+-	wake_up_process(speedchange_task);
+-
+-	emc_dfs_enable();
+-
+-	dev_info(&pdev->dev, "APE EMC DFS is initialized\n");
+-
+-#ifdef CONFIG_DEBUG_FS
+-	emc_dfs_debugfs_init(drv);
+-#endif
+-
+-	return ret;
+-}
+-void __exit emc_dfs_exit(void)
+-{
+-	kthread_stop(speedchange_task);
+-	put_task_struct(speedchange_task);
+-}
+diff --git a/drivers/platform/tegra/nvadsp/os.c b/drivers/platform/tegra/nvadsp/os.c
+index 77657ce8..15579884 100644
+--- a/drivers/platform/tegra/nvadsp/os.c
++++ b/drivers/platform/tegra/nvadsp/os.c
+@@ -32,7 +32,6 @@
+ #include <linux/uaccess.h>
+ 
+ #include "amisc.h"
+-#include "ape_actmon.h"
+ #include "os.h"
+ #include "dev.h"
+ #include "dram_app_mem_manager.h"
+-- 
+2.43.0
+

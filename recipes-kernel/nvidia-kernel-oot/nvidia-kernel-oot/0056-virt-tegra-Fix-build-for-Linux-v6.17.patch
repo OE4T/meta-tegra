@@ -1,0 +1,131 @@
+From e380ba2367aa583e4ea4fba27f7da474d0363360 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:20 -0800
+Subject: [PATCH 56/98] virt: tegra: Fix build for Linux v6.17
+
+Upstream commit fc2898ea793a ("workqueue: Remove unused
+work_on_cpu_safe") removed the 'work_on_cpu_safe()' function for Linux
+v6.17. Fix this by open coding the 'work_on_cpu_safe()' in the Tegra HV
+CPU Yield driver.
+
+Bug 5420210
+
+Upstream-Status: Backport [commit a5bb4044]
+Change-Id: I3110554839853be9a906063d479539543394acbd
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3423830
+(cherry picked from commit 97075404a16dc4f9d66147ae4b15a04526978e0e)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3462466
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/virt/tegra/tegra_hv_vcpu_yield.c | 17 +++++++++++++++++
+ scripts/conftest/Makefile                |  2 ++
+ scripts/conftest/conftest.sh             | 17 +++++++++++++++++
+ 3 files changed, 36 insertions(+)
+
+diff --git a/drivers/virt/tegra/tegra_hv_vcpu_yield.c b/drivers/virt/tegra/tegra_hv_vcpu_yield.c
+index c5ee622f..44923c44 100644
+--- a/drivers/virt/tegra/tegra_hv_vcpu_yield.c
++++ b/drivers/virt/tegra/tegra_hv_vcpu_yield.c
+@@ -11,6 +11,11 @@
+ #include <linux/types.h>
+ #include <linux/fs.h>
+ #include <linux/cdev.h>
++#if defined(NV_LINUX_CPUHPLOCK_H_PRESENT)
++#include <linux/cpuhplock.h>
++#else
++#include <linux/cpu.h>
++#endif
+ #include <linux/slab.h>
+ #include <linux/hrtimer.h>
+ #include <linux/kthread.h>
+@@ -21,6 +26,7 @@
+ #include <linux/sched.h>
+ #include <uapi/linux/tegra_hv_vcpu_yield_ioctl.h>
+ #include <linux/interrupt.h>
++#include <linux/workqueue.h>
+ #include <soc/tegra/virt/hv-ivc.h>
+ 
+ 
+@@ -173,6 +179,9 @@ static long tegra_hv_vcpu_yield_ioctl(struct file *filp, unsigned int cmd,
+ 	struct vcpu_yield_dev *data =
+ 		(struct vcpu_yield_dev *)filp->private_data;
+ 	struct vcpu_yield_start_ctl yield_start_ctl_data;
++#if defined(NV_WORK_ON_CPU_KEY_PRESENT) /* Linux v6.7 */
++	static struct lock_class_key __key;
++#endif
+ 
+ 	switch (cmd) {
+ 	case VCPU_YIELD_START_IOCTL:
+@@ -201,8 +210,16 @@ static long tegra_hv_vcpu_yield_ioctl(struct file *filp, unsigned int cmd,
+ 			if (data->timeout_us > max_timeout_us)
+ 				data->timeout_us = max_timeout_us;
+ 
++#if defined(NV_WORK_ON_CPU_KEY_PRESENT) /* Linux v6.7 */
++			cpus_read_lock();
++			if (cpu_online(data->vcpu))
++				ret = work_on_cpu_key(data->vcpu, vcpu_yield_func,
++						(void *)data, &__key);
++			cpus_read_unlock();
++#else
+ 			ret = work_on_cpu_safe(data->vcpu, vcpu_yield_func,
+ 					(void *)data);
++#endif
+ 			if (ret)
+ 				pr_err("work_on_cpu_safe Failed :%d\n", ret);
+ 		}
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 1f52e378..fce1c47e 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -197,6 +197,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += __v4l2_async_nf_add_subdev
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += v4l2_subdev_pad_ops_struct_has_get_set_frame_interval
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += v4l2_subdev_pad_ops_struct_has_dv_timings
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += vm_area_struct_has_const_vm_flags
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += work_on_cpu_key
+ NV_CONFTEST_GENERIC_COMPILE_TESTS += is_export_symbol_present_drm_gem_prime_fd_to_handle
+ NV_CONFTEST_GENERIC_COMPILE_TESTS += is_export_symbol_present_drm_gem_prime_handle_to_fd
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += crypto_engine_ctx_struct_removed_test
+@@ -226,6 +227,7 @@ NV_HEADER_PRESENCE_TESTS = \
+   drm/drm_dp_aux_bus.h \
+   drm/drm_eld.h \
+   generated/autoconf.h \
++  linux/cpuhplock.h \
+   linux/kconfig.h \
+   linux/iosys-map.h \
+   net/gso.h \
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 00511e0a..fdad21b8 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -8353,6 +8353,23 @@ compile_test() {
+             compile_check_conftest "$CODE" \
+                     "NV_V4L2_SUBDEV_PAD_OPS_STRUCT_HAS_DV_TIMINGS" "" "types"
+         ;;
++
++        work_on_cpu_key)
++            #
++            # Determine if the function work_on_cpu_key() is present.
++            #
++            # In Linux v6. , commit 265f3ed07703 ("workqueue: Provide one lock class
++            # key per work_on_cpu() callsite") added the function work_on_cpu_key().
++            #
++            CODE="
++            #include <linux/workqueue.h>
++            void conftest_work_on_cpu_key(void) {
++                work_on_cpu_key();
++            }"
++
++            compile_check_conftest "$CODE" "NV_WORK_ON_CPU_KEY_PRESENT" "" "functions"
++        ;;
++
+         crypto_engine_ctx_struct_removed_test)
+             #
+             # Determine if struct 'crypto_engine_ctx' is removed in linux kernel.
+-- 
+2.43.0
+

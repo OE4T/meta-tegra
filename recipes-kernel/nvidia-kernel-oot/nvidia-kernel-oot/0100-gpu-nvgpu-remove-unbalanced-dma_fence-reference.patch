@@ -1,0 +1,48 @@
+From 8ece6e0eeaf321e8739eb10187a4eacb44d9bcae Mon Sep 17 00:00:00 2001
+From: Sagar Kamble <skamble@nvidia.com>
+Date: Fri, 20 Feb 2026 08:29:28 -0800
+Subject: [PATCH 100/103] gpu: nvgpu: remove unbalanced dma_fence reference
+
+job->post_fence dma_fence is created for a syncpoint by nvgpu during
+submission. This fence is not freed after job completion as extra
+dma_fence reference (dma_fence_get) is taken in
+nvgpu_nvhost_fence_install.
+
+sync_file_create called from this function already takes one ref
+which will be dropped when the sync file is closed. dma_fence_get
+called here from nvgpu_nvhost_fence_install is not paired with
+corresponding put.
+
+Remove this dma_fence_get call to fix the dma_fence memleak.
+
+Bug 4788227
+
+Upstream-Status: Backport
+Change-Id: I003756dc9e023751b28161d322740309e08dedb5
+Signed-off-by: Sagar Kamble <skamble@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nvgpu/+/3199426
+(cherry picked from commit a6818ea83516c8bd8961f03ad78421366d269572)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nvgpu/+/3211402
+Tested-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-by: Jon Hunter <jonathanh@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/nvgpu/os/linux/nvhost_host1x.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/gpu/nvgpu/os/linux/nvhost_host1x.c b/drivers/gpu/nvgpu/os/linux/nvhost_host1x.c
+index 177248d21..945fff790 100644
+--- a/drivers/gpu/nvgpu/os/linux/nvhost_host1x.c
++++ b/drivers/gpu/nvgpu/os/linux/nvhost_host1x.c
+@@ -359,7 +359,6 @@ int nvgpu_nvhost_fence_install(struct nvhost_fence *fence, int fd)
+ 	if (!file)
+ 		return -ENOMEM;
+ 
+-	dma_fence_get(f);
+ 	fd_install(fd, file->file);
+ 
+ 	return 0;
+-- 
+2.43.0
+

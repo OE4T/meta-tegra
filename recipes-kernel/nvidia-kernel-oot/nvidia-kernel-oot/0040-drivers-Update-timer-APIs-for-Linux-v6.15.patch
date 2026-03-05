@@ -1,0 +1,348 @@
+From b326f859bab0831dc66023e712c3669ce889844e Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:16 -0800
+Subject: [PATCH 40/98] drivers: Update timer APIs for Linux v6.15
+
+In Linux v6.15, the timer APIs hrtimer_init() and del_timer() have been
+removed. The hrtimer_setup() was added in Linux v6.13 to replace
+hrtimer_init() and hrtimer_init() have finally been removed. The
+functions del_timer()/del_timer_sync() were renamed to
+timer_delete()/timer_delete_sync() in Linux v6.15. Use conftest to
+detect these changes and update the drivers as necessary.
+
+JIRA LINQPJ14-47
+
+Upstream-Status: Backport [commit a59a10dfe]
+
+Change-Id: Id3994900384aad4b91155507cda91e04898ab12c
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3336168
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: svcacv <svcacv@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../block/tegra_virt_storage/tegra_hv_vblk.c  |  4 +++
+ drivers/media/platform/tegra/cdi/cdi_mgr.c    |  5 +++
+ drivers/misc/bluedroid_pm.c                   | 12 +++++--
+ drivers/net/can/mttcan/native/m_ttcan_linux.c |  6 +++-
+ .../ethernet/nvidia/nvethernet/ether_linux.c  | 10 ++++++
+ drivers/nvpps/nvpps_main.c                    | 12 +++++++
+ drivers/virt/tegra/tegra_hv_vcpu_yield.c      |  5 +++
+ drivers/watchdog/softdog-platform.c           | 15 +++++++--
+ scripts/conftest/Makefile                     |  2 ++
+ scripts/conftest/conftest.sh                  | 32 +++++++++++++++++++
+ 10 files changed, 97 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/block/tegra_virt_storage/tegra_hv_vblk.c b/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
+index aada66db..c16e91ae 100644
+--- a/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
++++ b/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
+@@ -145,7 +145,11 @@ static void vblk_put_req(struct vsc_request *req)
+ 			(vblkdev->queue_state == VBLK_QUEUE_SUSPENDED)) {
+ 			complete(&vblkdev->req_queue_empty);
+ 		}
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++		timer_delete(&req->timer);
++#else
+ 		del_timer(&req->timer);
++#endif
+ 	}
+ }
+ 
+diff --git a/drivers/media/platform/tegra/cdi/cdi_mgr.c b/drivers/media/platform/tegra/cdi/cdi_mgr.c
+index 198f3177..7dd26eaf 100644
+--- a/drivers/media/platform/tegra/cdi/cdi_mgr.c
++++ b/drivers/media/platform/tegra/cdi/cdi_mgr.c
+@@ -1776,9 +1776,14 @@ static int cdi_mgr_probe(struct platform_device *pdev)
+ 	for (i = 0; i < ARRAY_SIZE(cdi_mgr->gpios); i++) {
+ 		pin = &cdi_mgr->gpios[i];
+ 		pin->mgr = cdi_mgr;
++#if defined(NV_HRTIMER_SETUP_PRESENT) /* Linux v6.13 */
++		hrtimer_setup(&pin->timers.timer, &cdi_mgr_intr_timer,
++			      CLOCK_MONOTONIC, HRTIMER_MODE_ABS);
++#else
+ 		hrtimer_init(&pin->timers.timer, CLOCK_MONOTONIC,
+ 			HRTIMER_MODE_ABS);
+ 		pin->timers.timer.function = &cdi_mgr_intr_timer;
++#endif
+ 	}
+ 
+ 	if (pdev->dev.of_node) {
+diff --git a/drivers/misc/bluedroid_pm.c b/drivers/misc/bluedroid_pm.c
+index d2dc7893..afb86aa3 100644
+--- a/drivers/misc/bluedroid_pm.c
++++ b/drivers/misc/bluedroid_pm.c
+@@ -1,7 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// SPDX-FileCopyrightText: Copyright (c) 2019-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+-
+-#include <nvidia/conftest.h>
++// SPDX-FileCopyrightText: Copyright (c) 2019-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -267,7 +265,11 @@ static ssize_t lpm_write_proc(struct file *file, const char __user *buffer,
+ 			bluedroid_pm_gpio_set_value(
+ 				bluedroid_pm->ext_wake, 1);
+ 			__pm_stay_awake(&bluedroid_pm->wake_lock);
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++			timer_delete(&bluedroid_pm_timer);
++#else
+ 			del_timer(&bluedroid_pm_timer);
++#endif
+ 			set_bit(BT_WAKE, &bluedroid_pm->flags);
+ 		} else {
+ 			kfree(buf);
+@@ -539,7 +541,11 @@ static int bluedroid_pm_remove(struct platform_device *pdev)
+ 		wakeup_source_destroy(&bluedroid_pm->wake_lock);
+ 		gpio_free(bluedroid_pm->ext_wake);
+ 		remove_bt_proc_interface();
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++		timer_delete(&bluedroid_pm_timer);
++#else
+ 		del_timer(&bluedroid_pm_timer);
++#endif
+ 	}
+ 	if ((gpio_is_valid(bluedroid_pm->gpio_reset)) ||
+ 		(gpio_is_valid(bluedroid_pm->gpio_shutdown)) ||
+diff --git a/drivers/net/can/mttcan/native/m_ttcan_linux.c b/drivers/net/can/mttcan/native/m_ttcan_linux.c
+index f414f4b2..a89301e0 100644
+--- a/drivers/net/can/mttcan/native/m_ttcan_linux.c
++++ b/drivers/net/can/mttcan/native/m_ttcan_linux.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// SPDX-FileCopyrightText: Copyright (c) 2022-2024, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2022-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -1933,7 +1933,11 @@ static int mttcan_remove(struct platform_device *pdev)
+ 
+ 	dev_info(&dev->dev, "%s\n", __func__);
+ 
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++	timer_delete_sync(&priv->timer);
++#else
+ 	del_timer_sync(&priv->timer);
++#endif
+ 	mttcan_delete_sys_files(&dev->dev);
+ 	unregister_mttcan_dev(dev);
+ 	mttcan_unprepare_clock(priv);
+diff --git a/drivers/net/ethernet/nvidia/nvethernet/ether_linux.c b/drivers/net/ethernet/nvidia/nvethernet/ether_linux.c
+index 2048d2c8..019a7c9b 100644
+--- a/drivers/net/ethernet/nvidia/nvethernet/ether_linux.c
++++ b/drivers/net/ethernet/nvidia/nvethernet/ether_linux.c
+@@ -2949,7 +2949,11 @@ static int ether_close(struct net_device *ndev)
+ 	int i;
+ 
+ #ifdef ETHER_NVGRO
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++	timer_delete_sync(&pdata->nvgro_timer);
++#else
+ 	del_timer_sync(&pdata->nvgro_timer);
++#endif
+ 	/* TODO: purge the queues */
+ #endif
+ 
+@@ -6647,10 +6651,16 @@ static int ether_probe(struct platform_device *pdev)
+ 		chan = osi_dma->dma_chans[i];
+ 		atomic_set(&pdata->tx_napi[chan]->tx_usecs_timer_armed,
+ 			   OSI_DISABLE);
++#if defined(NV_HRTIMER_SETUP_PRESENT) /* Linux v6.13 */
++		hrtimer_setup(&pdata->tx_napi[chan]->tx_usecs_timer,
++			      ether_tx_usecs_hrtimer, CLOCK_MONOTONIC,
++			      HRTIMER_MODE_REL);
++#else
+ 		hrtimer_init(&pdata->tx_napi[chan]->tx_usecs_timer,
+ 			     CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 		pdata->tx_napi[chan]->tx_usecs_timer.function =
+ 			ether_tx_usecs_hrtimer;
++#endif
+ 	}
+ 
+ 	ret = register_netdev(ndev);
+diff --git a/drivers/nvpps/nvpps_main.c b/drivers/nvpps/nvpps_main.c
+index 6addb464..6cd8ff3e 100644
+--- a/drivers/nvpps/nvpps_main.c
++++ b/drivers/nvpps/nvpps_main.c
+@@ -449,7 +449,11 @@ static int set_mode(struct nvpps_device_data *pdev_data, u32 mode)
+ 				if (!pdev_data->only_timer_mode) {
+ 					if (pdev_data->timer_inited) {
+ 						pdev_data->timer_inited = false;
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++						timer_delete_sync(&pdev_data->timer);
++#else
+ 						del_timer_sync(&pdev_data->timer);
++#endif
+ 					}
+ 					if (!pdev_data->irq_registered) {
+ 						/* register IRQ handler */
+@@ -1130,7 +1134,11 @@ static int nvpps_remove(struct platform_device *pdev)
+ 	if (pdev_data) {
+ 		if (pdev_data->timer_inited) {
+ 			pdev_data->timer_inited = false;
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++			timer_delete_sync(&pdev_data->timer);
++#else
+ 			del_timer_sync(&pdev_data->timer);
++#endif
+ 		}
+ 		if (pdev_data->mac_base_addr) {
+ 			devm_iounmap(&pdev->dev, pdev_data->mac_base_addr);
+@@ -1138,7 +1146,11 @@ static int nvpps_remove(struct platform_device *pdev)
+ 				pdev_data->mac_base_addr);
+ 		}
+ 		if (pdev_data->support_tsc) {
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++			timer_delete_sync(&pdev_data->tsc_timer);
++#else
+ 			del_timer_sync(&pdev_data->tsc_timer);
++#endif
+ 			iounmap(pdev_data->tsc_reg_map_base);
+ 		}
+ 		device_destroy(s_nvpps_class, pdev_data->dev->devt);
+diff --git a/drivers/virt/tegra/tegra_hv_vcpu_yield.c b/drivers/virt/tegra/tegra_hv_vcpu_yield.c
+index c423fa6d..c5ee622f 100644
+--- a/drivers/virt/tegra/tegra_hv_vcpu_yield.c
++++ b/drivers/virt/tegra/tegra_hv_vcpu_yield.c
+@@ -139,9 +139,14 @@ static int tegra_hv_vcpu_yield_open(struct inode *inode, struct file *filp)
+ 
+ 	mutex_unlock(&data->mutex_lock);
+ 
++#if defined(NV_HRTIMER_SETUP_PRESENT) /* Linux v6.13 */
++	hrtimer_setup(&data->yield_timer, &timer_callback_func,
++		      CLOCK_MONOTONIC, HRTIMER_MODE_REL_PINNED);
++#else
+ 	hrtimer_init(&data->yield_timer, CLOCK_MONOTONIC,
+ 		HRTIMER_MODE_REL_PINNED);
+ 	data->yield_timer.function = &timer_callback_func;
++#endif
+ 
+ out:
+ 	return ret;
+diff --git a/drivers/watchdog/softdog-platform.c b/drivers/watchdog/softdog-platform.c
+index 154ebdb3..68c38da4 100644
+--- a/drivers/watchdog/softdog-platform.c
++++ b/drivers/watchdog/softdog-platform.c
+@@ -1,8 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2014-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ /*
+  * A platform based Software Watchdog Device
+- *
+- * SPDX-FileCopyrightText: Copyright (c) 2014-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
+ #include <nvidia/conftest.h>
+@@ -186,7 +185,11 @@ static int softdog_platform_probe(struct platform_device *pdev)
+ reboot_unreg:
+ 	unregister_reboot_notifier(&swdt->nb);
+ timer_del:
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++	timer_delete_sync(&swdt->watchdog_ticktock);
++#else
+ 	del_timer_sync(&swdt->watchdog_ticktock);
++#endif
+ 	return ret;
+ }
+ 
+@@ -194,7 +197,11 @@ static int softdog_platform_remove(struct platform_device *pdev)
+ {
+ 	struct softdog_platform_wdt *swdt = platform_get_drvdata(pdev);
+ 
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++	timer_delete_sync(&swdt->watchdog_ticktock);
++#else
+ 	del_timer_sync(&swdt->watchdog_ticktock);
++#endif
+ 	watchdog_unregister_device(&swdt->wdt_dev);
+ 	unregister_reboot_notifier(&swdt->nb);
+ 	return 0;
+@@ -204,7 +211,11 @@ static void softdog_platform_shutdown(struct platform_device *pdev)
+ {
+ 	struct softdog_platform_wdt *swdt = platform_get_drvdata(pdev);
+ 
++#if defined(NV_TIMER_DELETE_PRESENT) /* Linux v6.15 */
++	timer_delete_sync(&swdt->watchdog_ticktock);
++#else
+ 	del_timer_sync(&swdt->watchdog_ticktock);
++#endif
+ }
+ 
+ #ifdef CONFIG_PM_SLEEP
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index e0aec1c6..49d3d80b 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -129,6 +129,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += folio_entire_mapcount
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += genpd_xlate_t_has_const_of_phandle_args
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += get_file_rcu_has_double_ptr_file_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += get_user_pages
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += hrtimer_setup
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += i2c_driver_struct_probe_without_i2c_device_id_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += i2c_driver_struct_has_probe_new
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += i2c_driver_struct_remove_return_type_int
+@@ -177,6 +178,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tegra264_chip_id
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tegra_dev_iommu_get_stream_id
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tegra_ivc_struct_has_iosys_map
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += thermal_zone_device_priv
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += timer_delete
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tty_operations_struct_send_xchar_has_u8_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tty_operations_struct_write_has_u8_ptr_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tty_operations_struct_set_termios_has_const_ktermios_arg
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index ead2fcff..f1556e51 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7320,6 +7320,22 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_GPIO_DEVICE_GET_CHIP_PRESENT" "" "functions"
+         ;;
+ 
++        hrtimer_setup)
++            #
++            # Determine if the function hrtimer_setup() is present.
++            #
++            # This change was made in Linux v6.13 by commit 908a1d775422
++            # ("hrtimers: Introduce hrtimer_setup() to replace hrtimer_init()").
++            #
++            CODE="
++            #include <linux/hrtimer.h>
++            bool conftest_hrtimer_setup(void) {
++                return hrtimer_setup();
++            }"
++
++            compile_check_conftest "$CODE" "NV_HRTIMER_SETUP_PRESENT" "" "functions"
++        ;;
++
+         netif_set_tso_max_size)
+             #
+             # Determine if netif_set_tso_max_size() function is present
+@@ -8003,6 +8019,22 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_TEGRA_DEV_IOMMU_GET_STREAM_ID_PRESENT" "" "functions"
+         ;;
+ 
++        timer_delete)
++            #
++            # Determine if the function timer_delete() is present.
++            #
++            # This change was made in Linux v6.15 by commit 8fa7292fee5c
++            # ("treewide: Switch/rename to timer_delete[_sync]()").
++            #
++            CODE="
++            #include <linux/timer.h>
++            bool conftest_timer_delete(void) {
++                return timer_delete();
++            }"
++
++            compile_check_conftest "$CODE" "NV_TIMER_DELETE_PRESENT" "" "functions"
++        ;;
++
+         tty_operations_struct_send_xchar_has_u8_arg)
+             #
+             # Determine if the struct tty_operations::send_xchar argument is of type u8.
+-- 
+2.43.0
+

@@ -1,0 +1,183 @@
+From 74b20321c721af36fee81d4573eddba200795322 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:24 -0800
+Subject: [PATCH 69/98] drm/tegra: Update to Linux v6.15-rc3
+
+Update the Tegra DRM to align with Linux v6.15-rc3. In Linux v6.15-rc3,
+the arguments of the 'mode_valid' function pointer of the
+drm_connector_helper_funcs structure and the 'atomic_async_check'
+function pointer of the drm_plane_helper_funcs structure were updated.
+Add conftest tests to detect these updates and make the necessary
+changes to the Tegra DRM driver.
+
+JIRA LINQPJ14-47
+
+Upstream-Status: Backport [commit 22336de8]
+Change-Id: Id1c8db95390f02258952da78af3dd6ff5acfa631
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3333838
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/dc.c   |  5 +++++
+ drivers/gpu/drm/tegra/dsi.c  |  5 +++++
+ drivers/gpu/drm/tegra/hdmi.c |  5 +++++
+ drivers/gpu/drm/tegra/sor.c  |  5 +++++
+ scripts/conftest/Makefile    |  2 ++
+ scripts/conftest/conftest.sh | 39 ++++++++++++++++++++++++++++++++++++
+ 6 files changed, 61 insertions(+)
+
+diff --git a/drivers/gpu/drm/tegra/dc.c b/drivers/gpu/drm/tegra/dc.c
+index dd00dab8..8ee65332 100644
+--- a/drivers/gpu/drm/tegra/dc.c
++++ b/drivers/gpu/drm/tegra/dc.c
+@@ -1028,7 +1028,12 @@ static void tegra_cursor_atomic_disable(struct drm_plane *plane,
+ 	tegra_dc_writel(dc, value, DC_DISP_DISP_WIN_OPTIONS);
+ }
+ 
++#if defined(NV_DRM_PLANE_HELPER_FUNCS_STRUCT_ATOMIC_ASYNC_CHECK_HAS_BOOL_ARG) /* Linux v6.15 */
++static int tegra_cursor_atomic_async_check(struct drm_plane *plane, struct drm_atomic_state *state,
++					   bool flip)
++#else
+ static int tegra_cursor_atomic_async_check(struct drm_plane *plane, struct drm_atomic_state *state)
++#endif
+ {
+ 	struct drm_plane_state *new_state = drm_atomic_get_new_plane_state(state, plane);
+ 	struct drm_crtc_state *crtc_state;
+diff --git a/drivers/gpu/drm/tegra/dsi.c b/drivers/gpu/drm/tegra/dsi.c
+index e836ca59..0d048a5d 100644
+--- a/drivers/gpu/drm/tegra/dsi.c
++++ b/drivers/gpu/drm/tegra/dsi.c
+@@ -818,8 +818,13 @@ static const struct drm_connector_funcs tegra_dsi_connector_funcs = {
+ };
+ 
+ static enum drm_mode_status
++#if defined(NV_DRM_CONNECTOR_HELPER_FUNCS_STRUCT_MODE_VALID_HAS_CONST_ARG) /* Linux v6.15 */
++tegra_dsi_connector_mode_valid(struct drm_connector *connector,
++			       const struct drm_display_mode *mode)
++#else
+ tegra_dsi_connector_mode_valid(struct drm_connector *connector,
+ 			       struct drm_display_mode *mode)
++#endif
+ {
+ 	return MODE_OK;
+ }
+diff --git a/drivers/gpu/drm/tegra/hdmi.c b/drivers/gpu/drm/tegra/hdmi.c
+index df27bc86..274851e0 100644
+--- a/drivers/gpu/drm/tegra/hdmi.c
++++ b/drivers/gpu/drm/tegra/hdmi.c
+@@ -1149,8 +1149,13 @@ static const struct drm_connector_funcs tegra_hdmi_connector_funcs = {
+ };
+ 
+ static enum drm_mode_status
++#if defined(NV_DRM_CONNECTOR_HELPER_FUNCS_STRUCT_MODE_VALID_HAS_CONST_ARG) /* Linux v6.15 */
++tegra_hdmi_connector_mode_valid(struct drm_connector *connector,
++				const struct drm_display_mode *mode)
++#else
+ tegra_hdmi_connector_mode_valid(struct drm_connector *connector,
+ 				struct drm_display_mode *mode)
++#endif
+ {
+ 	struct tegra_output *output = connector_to_output(connector);
+ 	struct tegra_hdmi *hdmi = to_hdmi(output);
+diff --git a/drivers/gpu/drm/tegra/sor.c b/drivers/gpu/drm/tegra/sor.c
+index 90a6c6ec..68940bf6 100644
+--- a/drivers/gpu/drm/tegra/sor.c
++++ b/drivers/gpu/drm/tegra/sor.c
+@@ -1806,8 +1806,13 @@ static int tegra_sor_connector_get_modes(struct drm_connector *connector)
+ }
+ 
+ static enum drm_mode_status
++#if defined(NV_DRM_CONNECTOR_HELPER_FUNCS_STRUCT_MODE_VALID_HAS_CONST_ARG) /* Linux v6.15 */
++tegra_sor_connector_mode_valid(struct drm_connector *connector,
++			       const struct drm_display_mode *mode)
++#else
+ tegra_sor_connector_mode_valid(struct drm_connector *connector,
+ 			       struct drm_display_mode *mode)
++#endif
+ {
+ 	return MODE_OK;
+ }
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index a79ea1fb..4ec1ae8a 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -113,6 +113,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += devm_thermal_of_zone_register
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += disk_check_media_change
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += dma_slave_config_struct_has_slave_id
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_aperture_remove_framebuffers
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_connector_helper_funcs_struct_mode_valid_has_const_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_debugfs_remove_files_has_root_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_irq_enabled_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_alloc_info
+@@ -120,6 +121,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_prepare_has_preferred_bpp_ar
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_unregister_info
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_struct_has_info_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_mode_config_struct_has_fb_base_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_plane_helper_funcs_struct_atomic_async_check_has_bool_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_scdc_get_set_has_struct_drm_connector_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ethtool_keee_struct_present
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ethtool_kernel_ethtool_ts_info_struct_present
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 1575bb40..3e081a20 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -6982,6 +6982,26 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_DEBUGFS_REMOVE_FILES_HAS_ROOT_ARG" "" "types"
+         ;;
+ 
++        drm_connector_helper_funcs_struct_mode_valid_has_const_arg)
++            #
++            # Determine if the 'mode_valid' function pointer of the
++            # drm_connector_helper_funcs structure has a const mode argument.
++            #
++            # In Linux v6.15, commit 26d6fd81916e ("drm/connector: make
++            # mode_valid take a const struct drm_display_mode") updated the
++            # 'mode_valid' function pointer of the drm_connector_helper_funcs
++            # structure to make the mode argument const.
++            #
++            CODE="
++            #include <drm/drm_modeset_helper_vtables.h>
++            void conftest(struct drm_connector_helper_funcs *f) {
++                    enum drm_mode_status (*fn)(struct drm_connector *connector,
++                                               const struct drm_display_mode *mode) = f->mode_valid;
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_CONNECTOR_HELPER_FUNCS_STRUCT_MODE_VALID_HAS_CONST_ARG" "" "types"
++        ;;
++
+         drm_driver_struct_has_irq_enabled_arg)
+             #
+             # Determine if the 'drm_driver' structure
+@@ -7096,6 +7116,25 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_MODE_CONFIG_STRUCT_HAS_FB_BASE_ARG" "" "types"
+         ;;
+ 
++        drm_plane_helper_funcs_struct_atomic_async_check_has_bool_arg)
++            #
++            # Determine if the 'atomic_async_check' function pointer has a bool argument.
++            #
++            # In Linux v6.15, commit fd40a63c63a1 ("drm/atomic: Let drivers decide
++            # which planes to async flip") updated the 'atomic_async_check' function
++            # pointer of the drm_plane_helper_funcs structure adding a boolean
++            # argument.
++            #
++            CODE="
++            #include <drm/drm_modeset_helper_vtables.h>
++            void conftest(struct drm_plane_helper_funcs *f) {
++                    int (*fn)(struct drm_plane *plane,
++                              struct drm_atomic_state *state, bool flip) = f->atomic_async_check;
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_PLANE_HELPER_FUNCS_STRUCT_ATOMIC_ASYNC_CHECK_HAS_BOOL_ARG" "" "types"
++        ;;
++
+         drm_scdc_get_set_has_struct_drm_connector_arg)
+             #
+             # Determine if the functions drm_scdc_get_scrambling_status(),
+-- 
+2.43.0
+

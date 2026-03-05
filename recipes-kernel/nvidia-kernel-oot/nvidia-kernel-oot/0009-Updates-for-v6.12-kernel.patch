@@ -1,0 +1,77 @@
+From ff57667317a55666b730d6fc7ffc559ee3eb20fd Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 20 Feb 2026 05:56:40 -0800
+Subject: [PATCH 09/18] Updates for v6.12 kernel
+
+* The remove function pointer in the platform_driver struct
+  switched from int to void return type.
+* The output_poll_changed function pointer was removed from
+  the drm_mode_config struct.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/nvidia-drm/nvidia-drm-drv.c | 3 +++
+ kernel-open/nvidia/nv-platform.c        | 8 +++++++-
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-drv.c b/kernel-open/nvidia-drm/nvidia-drm-drv.c
+index 61842e8..33b7cc5 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-drv.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-drv.c
+@@ -71,6 +71,7 @@
+ 
+ #include <linux/pci.h>
+ #include <linux/workqueue.h>
++#include <linux/version.h>
+ 
+ /*
+  * Commit fcd70cd36b9b ("drm: Split out drm_probe_helper.h")
+@@ -200,7 +201,9 @@ static const struct drm_mode_config_funcs nv_mode_config_funcs = {
+     .atomic_check  = nv_drm_atomic_check,
+     .atomic_commit = nv_drm_atomic_commit,
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0)
+     .output_poll_changed = nv_drm_output_poll_changed,
++#endif
+ };
+ 
+ static void nv_drm_event_callback(const struct NvKmsKapiEvent *event)
+diff --git a/kernel-open/nvidia/nv-platform.c b/kernel-open/nvidia/nv-platform.c
+index 8c403bc..16c1afb 100644
+--- a/kernel-open/nvidia/nv-platform.c
++++ b/kernel-open/nvidia/nv-platform.c
+@@ -24,6 +24,7 @@
+ #include <linux/of.h>
+ #include <linux/of_platform.h>
+ #include <linux/platform_device.h>
++#include <linux/version.h>
+ 
+ #include "nv-platform.h"
+ #include "nv-frontend.h"
+@@ -1189,7 +1190,11 @@ static int nv_platform_device_probe(struct platform_device *plat_dev)
+     return rc;
+ }
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0)
+ static int nv_platform_device_remove(struct platform_device *plat_dev)
++#else
++static void nv_platform_device_remove(struct platform_device *plat_dev)
++#endif
+ {
+     int rc = 0;
+ 
+@@ -1203,8 +1208,9 @@ static int nv_platform_device_remove(struct platform_device *plat_dev)
+     {
+         rc = nv_platform_device_display_remove(plat_dev);
+     }
+-
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0)
+     return rc;
++#endif
+ }
+ 
+ const struct of_device_id nv_platform_device_table[] =
+-- 
+2.43.0
+

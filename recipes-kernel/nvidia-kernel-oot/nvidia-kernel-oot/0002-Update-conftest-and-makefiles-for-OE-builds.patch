@@ -1,38 +1,24 @@
-From e65b339f7e1737982946f3a6827d4d990d396472 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Sun, 6 Oct 2024 18:28:21 +0100
-Subject: [PATCH] Fix nvdisplay modules builds
+From cbccd5fcf9cc8be254a199832fea8f741b8c7110 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 20 Feb 2026 05:56:38 -0800
+Subject: [PATCH 02/18] Update conftest and makefiles for OE builds
 
-Update the makefiles, Kbuild, and conftest.sh script so
-that headers and symbols from the out-of-tree drivers can
-be found when building the display driver modules.
+For OE builds, the OOT drivers are built in a separate
+tree from the kernel. Update the makefiles and conftest
+script to account for that.
 
-Upstream-Status: Inappropriate [OE specific]
-
+Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile                          |  1 +
- nvdisplay/kernel-open/Kbuild      | 15 ++++++++-------
- nvdisplay/kernel-open/Makefile    |  1 +
- nvdisplay/kernel-open/conftest.sh | 32 +++++++++++++++++--------------
- 4 files changed, 28 insertions(+), 21 deletions(-)
+ kernel-open/Kbuild      | 15 ++++++++-------
+ kernel-open/Makefile    |  1 +
+ kernel-open/conftest.sh | 32 ++++++++++++++++++--------------
+ 3 files changed, 27 insertions(+), 21 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index 64bec51..d7fe662 100644
---- a/Makefile
-+++ b/Makefile
-@@ -119,6 +119,7 @@ define display-cmd
- 		KERNELRELEASE="" \
- 		SYSSRC=$(KERNEL_SRC) \
- 		SYSOUT=$(KBUILD_OUTPUT) \
-+		OOTSRC=$(MAKEFILE_DIR)/nvidia-oot \
- 		KBUILD_EXTRA_SYMBOLS=$(MAKEFILE_DIR)/nvidia-oot/Module.symvers \
- 		SYSSRCHOST1X=$(MAKEFILE_DIR)/nvidia-oot/drivers/gpu/host1x/include \
- 		CC="$(CC)" \
-diff --git a/nvdisplay/kernel-open/Kbuild b/nvdisplay/kernel-open/Kbuild
+diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
 index fa906d3..b5c090b 100644
---- a/nvdisplay/kernel-open/Kbuild
-+++ b/nvdisplay/kernel-open/Kbuild
+--- a/kernel-open/Kbuild
++++ b/kernel-open/Kbuild
 @@ -70,6 +70,7 @@ $(foreach _module, $(NV_KERNEL_MODULES), \
  
  EXTRA_CFLAGS += -I$(src)/common/inc
@@ -90,10 +76,10 @@ index fa906d3..b5c090b 100644
  
  # Perform all sanity checks before generating the conftest headers
  
-diff --git a/nvdisplay/kernel-open/Makefile b/nvdisplay/kernel-open/Makefile
+diff --git a/kernel-open/Makefile b/kernel-open/Makefile
 index d00c14b..0c416c9 100644
---- a/nvdisplay/kernel-open/Makefile
-+++ b/nvdisplay/kernel-open/Makefile
+--- a/kernel-open/Makefile
++++ b/kernel-open/Makefile
 @@ -73,6 +73,7 @@ else
    KBUILD_PARAMS += ARCH=$(ARCH)
    KBUILD_PARAMS += NV_KERNEL_SOURCES=$(KERNEL_SOURCES)
@@ -102,10 +88,10 @@ index d00c14b..0c416c9 100644
    KBUILD_PARAMS += NV_KERNEL_MODULES="$(NV_KERNEL_MODULES)"
    KBUILD_PARAMS += INSTALL_MOD_DIR=kernel/drivers/video
    KBUILD_PARAMS += NV_SPECTRE_V2=$(SPECTRE_V2_RETPOLINE)
-diff --git a/nvdisplay/kernel-open/conftest.sh b/nvdisplay/kernel-open/conftest.sh
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
 index 391374f..2ee8d8d 100644
---- a/nvdisplay/kernel-open/conftest.sh
-+++ b/nvdisplay/kernel-open/conftest.sh
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
 @@ -11,6 +11,8 @@ ARCH=$2
  SOURCES=$3
  HEADERS=$SOURCES/include
@@ -243,5 +229,5 @@ index 391374f..2ee8d8d 100644
          exit $?
      ;;
 -- 
-2.34.1
+2.43.0
 

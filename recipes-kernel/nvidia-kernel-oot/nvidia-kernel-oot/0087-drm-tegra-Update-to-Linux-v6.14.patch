@@ -1,0 +1,62 @@
+From 2dbdda49f4d95f2704aadb74048bbc374a8a93bc Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:32 -0800
+Subject: [PATCH 87/98] drm/tegra: Update to Linux v6.14
+
+Update Tegra DRM to align with Linux v6.14. The 'drm_client_setup.h' was
+moved from the directory 'include/drm/' to 'include/drm/clients' and use
+conftest to detect where it is located.
+
+JIRA LINQPJ14-47
+
+Upstream-Status: Backport
+Change-Id: I1f1df6da4400e74d2f97926710ac0ddd5e6413e6
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3333837
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+(cherry picked from commit 3ad90175d178f6637afa0c88802a144dabd07d96)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.c | 8 +++++---
+ scripts/conftest/Makefile   | 1 +
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 37e78a20..d7a44ac0 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -21,11 +21,13 @@
+ #else
+ #include <drm/drm_aperture.h>
+ #endif
+-#include <drm/drm_atomic.h>
+-#include <drm/drm_atomic_helper.h>
+-#if defined(NV_DRM_DRM_CLIENT_SETUP_H_PRESENT) /* Linux v6.13 */
++#if defined(NV_DRM_CLIENTS_DRM_CLIENT_SETUP_H_PRESENT) /* Linux v6.14 */
++#include <drm/clients/drm_client_setup.h>
++#elif defined(NV_DRM_DRM_CLIENT_SETUP_H_PRESENT) /* Linux v6.13 */
+ #include <drm/drm_client_setup.h>
+ #endif
++#include <drm/drm_atomic.h>
++#include <drm/drm_atomic_helper.h>
+ #include <drm/drm_debugfs.h>
+ #include <drm/drm_drv.h>
+ #include <drm/drm_fourcc.h>
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index fb27ac37..11219106 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -235,6 +235,7 @@ $(obj)/conftest/patches.h: $(NV_CONFTEST_SCRIPT)
+ # Each of these headers is checked for presence with a test #include; a
+ # corresponding #define will be generated in conftest/headers.h.
+ NV_HEADER_PRESENCE_TESTS = \
++  drm/clients/drm_client_setup.h \
+   drm/display/drm_dp_aux_bus.h \
+   drm/display/drm_dp_helper.h \
+   drm/display/drm_scdc_helper.h \
+-- 
+2.43.0
+

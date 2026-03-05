@@ -1,0 +1,47 @@
+From e8d2b58b9c16e48224340741f9d362df5526678e Mon Sep 17 00:00:00 2001
+From: Thierry Reding <treding@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:14 -0800
+Subject: [PATCH 35/98] gpu: host1x: Set up device DMA parameters
+
+In order to store device DMA parameters, the DMA framework depends on
+the device's dma_parms field to point at a valid memory location. Add
+backing storage for this in struct host1x_memory_context and point to
+it.
+
+Upstream-Status: Backport [commit 1cd89f46931b]
+Reported-by: Jonathan Hunter <jonathanh@nvidia.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/host1x/context.c | 1 +
+ drivers/gpu/host1x/context.h | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/gpu/host1x/context.c b/drivers/gpu/host1x/context.c
+index aaef0bd6..bec02e0e 100644
+--- a/drivers/gpu/host1x/context.c
++++ b/drivers/gpu/host1x/context.c
+@@ -57,6 +57,7 @@ int host1x_memory_context_list_init(struct host1x *host1x)
+ 		ctx->dev.bus = &host1x_context_device_bus_type;
+ 		ctx->dev.parent = host1x->dev;
+ 
++		ctx->dev.dma_parms = &ctx->dma_parms;
+ 		dma_set_max_seg_size(&ctx->dev, UINT_MAX);
+ 
+ 		err = device_add(&ctx->dev);
+diff --git a/drivers/gpu/host1x/context.h b/drivers/gpu/host1x/context.h
+index e2114cb4..618cb052 100644
+--- a/drivers/gpu/host1x/context.h
++++ b/drivers/gpu/host1x/context.h
+@@ -28,6 +28,7 @@ struct host1x_hw_memory_context {
+ 	refcount_t ref;
+ 	struct pid *owner;
+ 
++	struct device_dma_parameters dma_parms;
+ 	struct device dev;
+ 	u64 dma_mask;
+ 	u32 stream_id;
+-- 
+2.43.0
+

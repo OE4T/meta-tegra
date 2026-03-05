@@ -1,0 +1,111 @@
+From 4023987a30d48f8e15b6b17351ea1577c54d2b25 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:11 -0800
+Subject: [PATCH 24/98] pwm: tegra-tachometer: Fix build for Linux v6.12
+
+In Linux v6.12, commit f9ecc2febf6f ("pwm: Don't export pwm_capture()")
+made pwm_capture an internal function and this broke the build for the
+Tegra Tachometer driver. The pwm_capture() function simply calls the
+drivers '.capture' callback and so fix this by directly calling the
+function pwm_tegra_tacho_capture() instead. Note that the rpm_show()
+function is also moved to after the declaration of the
+pwm_tegra_tacho_capture() function.
+
+Bug 4876974
+
+Upstream-Status: Backport
+Change-Id: Idf7fbc16382a9077c651755d9907ded7652610cc
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3217391
+(cherry picked from commit 1f752196cab197f708d75bf7a319e23716a685e0)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3226679
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/pwm/pwm-tegra-tachometer.c | 62 +++++++++++++++---------------
+ 1 file changed, 31 insertions(+), 31 deletions(-)
+
+diff --git a/drivers/pwm/pwm-tegra-tachometer.c b/drivers/pwm/pwm-tegra-tachometer.c
+index b3760335..83b6902e 100644
+--- a/drivers/pwm/pwm-tegra-tachometer.c
++++ b/drivers/pwm/pwm-tegra-tachometer.c
+@@ -108,37 +108,6 @@ static struct pwm_tegra_tach *to_tegra_pwm_chip(struct pwm_chip *chip)
+ #endif
+ }
+ 
+-static ssize_t rpm_show(struct device *dev, struct device_attribute *attr,
+-			char *buf)
+-{
+-	struct pwm_chip *chip = dev_get_drvdata(dev);
+-	struct pwm_device *pwm = &chip->pwms[0];
+-	struct pwm_capture result;
+-	unsigned int rpm = 0;
+-	int ret;
+-
+-	ret = pwm_capture(pwm, &result, 0);
+-	if (ret < 0) {
+-		dev_err(dev, "Failed to capture PWM: %d\n", ret);
+-		return ret;
+-	}
+-
+-	if (result.period)
+-		rpm = DIV_ROUND_CLOSEST_ULL(60ULL * NSEC_PER_SEC,
+-					    result.period);
+-
+-	return sprintf(buf, "%u\n", rpm);
+-}
+-
+-static DEVICE_ATTR_RO(rpm);
+-
+-static struct attribute *pwm_tach_attrs[] = {
+-	&dev_attr_rpm.attr,
+-	NULL,
+-};
+-
+-ATTRIBUTE_GROUPS(pwm_tach);
+-
+ static u32 tachometer_readl(struct pwm_tegra_tach *ptt, unsigned long reg)
+ {
+ 	return readl(ptt->regs + reg);
+@@ -315,6 +284,37 @@ static irqreturn_t tegra_pwm_tach_irq(int irq, void *dev)
+ 	return IRQ_HANDLED;
+ }
+ 
++static ssize_t rpm_show(struct device *dev, struct device_attribute *attr,
++			char *buf)
++{
++	struct pwm_chip *chip = dev_get_drvdata(dev);
++	struct pwm_device *pwm = &chip->pwms[0];
++	struct pwm_capture result;
++	unsigned int rpm = 0;
++	int ret;
++
++	ret = pwm_tegra_tacho_capture(chip, pwm, &result, 0);
++	if (ret < 0) {
++		dev_err(dev, "Failed to capture PWM: %d\n", ret);
++		return ret;
++	}
++
++	if (result.period)
++		rpm = DIV_ROUND_CLOSEST_ULL(60ULL * NSEC_PER_SEC,
++					    result.period);
++
++	return sprintf(buf, "%u\n", rpm);
++}
++
++static DEVICE_ATTR_RO(rpm);
++
++static struct attribute *pwm_tach_attrs[] = {
++	&dev_attr_rpm.attr,
++	NULL,
++};
++
++ATTRIBUTE_GROUPS(pwm_tach);
++
+ static const struct pwm_ops pwm_tegra_tach_ops = {
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0))
+ 	.config = tegra_pwm_config,
+-- 
+2.43.0
+

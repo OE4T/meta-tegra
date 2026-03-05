@@ -1,0 +1,54 @@
+From 2f5bd4882b8affdb6a10b2ea74e0d2684ed76a37 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 20 Feb 2026 08:22:25 -0800
+Subject: [PATCH 74/98] drivers: realtek: bt: replace set_bit() with
+ hci_set_quirk()
+
+Based on kernel upstream commit 6851a0c228fc("Bluetooth: hci_dev:
+replace 'quirks' integer by 'quirk_flags' bitmap"), it needs to
+replace set_bit() with hci_set_quirk(). Linux 6.16 and later.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/bluetooth/realtek/rtk_bt.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/bluetooth/realtek/rtk_bt.c b/drivers/bluetooth/realtek/rtk_bt.c
+index cb1aba59..7540e33e 100644
+--- a/drivers/bluetooth/realtek/rtk_bt.c
++++ b/drivers/bluetooth/realtek/rtk_bt.c
+@@ -43,6 +43,10 @@ static DEFINE_SEMAPHORE(switch_sem);
+ static bool reset = 0;
+ #endif
+ 
++#if HCI_VERSION_CODE < KERNEL_VERSION(6, 16, 0)
++#define hci_set_quirk(hdev, nr) set_bit((nr), &(hdev)->quirks)
++#endif
++
+ static struct usb_driver btusb_driver;
+ static struct usb_device_id btusb_table[] = {
+ 	{
+@@ -1652,7 +1656,7 @@ static int btusb_probe(struct usb_interface *intf,
+ 
+ #if HCI_VERSION_CODE >= KERNEL_VERSION(3, 7, 1)
+ 	if (!reset)
+-		set_bit(HCI_QUIRK_RESET_ON_CLOSE, &hdev->quirks);
++		hci_set_quirk(hdev, HCI_QUIRK_RESET_ON_CLOSE);
+ 	RTKBT_DBG("set_bit(HCI_QUIRK_RESET_ON_CLOSE, &hdev->quirks);");
+ #endif
+ 
+@@ -1670,7 +1674,7 @@ static int btusb_probe(struct usb_interface *intf,
+ 	}
+ 
+ #if HCI_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
+-	set_bit(HCI_QUIRK_SIMULTANEOUS_DISCOVERY, &hdev->quirks);
++	hci_set_quirk(hdev, HCI_QUIRK_SIMULTANEOUS_DISCOVERY);
+ #endif
+ 
+ 	err = hci_register_dev(hdev);
+-- 
+2.43.0
+

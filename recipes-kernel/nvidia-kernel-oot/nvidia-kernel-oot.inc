@@ -13,6 +13,120 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 B = "${S}"
 
+COMMON_PATCHES = "\
+    file://0001-Makefile-update-for-OE-builds.patch \
+    file://0002-Update-conftest-and-makefiles-for-OE-builds.patch;patchdir=nvdisplay \
+    file://0003-conftest-add-fshort-wchar-to-compilation-commands.patch;patchdir=nvdisplay \
+    file://0004-conftest-fix-dma_buf_has_dynamic_attachment-test.patch;patchdir=nvdisplay \
+    file://0005-Kbuild-add-EXTRA_CFLAGS-to-ccflags-y-when-necessary.patch;patchdir=nvdisplay \
+    file://0006-Kbuild-Fix-quoting-on-NV_VERSION_STRING.patch;patchdir=nvdisplay \
+    file://0007-Kbuild-fix-symlink-commands.patch;patchdir=nvdisplay \
+    file://0008-conftest-fix-drm_gem_object_vmap_has_map_arg-check.patch;patchdir=nvdisplay \
+    file://0009-Updates-for-v6.12-kernel.patch;patchdir=nvdisplay \
+    file://0010-kernel-open-update-of_property_for_each_u32-referenc.patch;patchdir=nvdisplay \
+    file://0011-nvidia-drm-Set-FOP_UNSIGNED_OFFSET-for-nv_drm_fops.f.patch;patchdir=nvdisplay \
+    file://0012-nvdisplay-kernel-open-correct-parameter-of-macro-MOD.patch;patchdir=nvdisplay \
+    file://0013-nvdisplay-timer-replace-hrtimer_init-with-hrtimer_se.patch;patchdir=nvdisplay \
+    file://0014-nvdisplay-nvidia-check-importer-operations-directly.patch;patchdir=nvdisplay \
+    file://0015-nvdisplay-timer-replace-del_timer_sync-with-timer_de.patch;patchdir=nvdisplay \
+    file://0016-nvdisplay-nvidia-drm-fb-add-format-info-parameter-to.patch;patchdir=nvdisplay \
+    file://0017-nvdisplay-nvidia-drm-remove-unused-date-member.patch;patchdir=nvdisplay \
+    file://0018-nvdisplay-nvidia-drm-add-constify-attribute-for-stru.patch;patchdir=nvdisplay \
+    file://0019-tegra-virt-alt-Remove-leading-from-include-path-from.patch;patchdir=nvidia-oot \
+    file://0020-conftest-work-around-stringify-issue-with-__assign_s.patch;patchdir=nvidia-oot \
+    file://0022-scripts-Add-scripts-for-platform_driver-remove.patch;patchdir=nvidia-oot \
+    file://0023-drivers-Fix-platform_driver-remove-for-Linux-v6.11.patch;patchdir=nvidia-oot \
+    file://0024-pwm-tegra-tachometer-Fix-build-for-Linux-v6.12.patch;patchdir=nvidia-oot \
+    file://0025-video-tegra-dc-Correct-GPIO-definitions.patch;patchdir=nvidia-oot \
+    file://0026-video-tegra-nvmap-Fix-build-for-Linux-v6.12.patch;patchdir=nvidia-oot \
+    file://0027-misc-nvsciipc-Fix-build-for-Linux-v6.12.patch;patchdir=nvidia-oot \
+    file://0028-tegra-drm-conditionalize-out-obsolete-struct-fields.patch;patchdir=nvidia-oot \
+    file://0029-drivers-remove-obsolete-no_llseek-references.patch;patchdir=nvidia-oot \
+    file://0030-pci-endpoint-Update-drivers-for-Linux-v6.11.patch;patchdir=nvidia-oot \
+    file://0031-drivers-conditionalize-unaligned.h-location-on-kerne.patch;patchdir=nvidia-oot \
+    file://0032-gpu-drm-tegra-Fix-support-for-Linux-v6.12.patch;patchdir=nvidia-oot \
+    file://0033-gpu-host1x-Memory-context-stealing.patch;patchdir=nvidia-oot \
+    file://0034-gpu-host1x-When-out-of-memory-contexts-wait-for-free.patch;patchdir=nvidia-oot \
+    file://0035-gpu-host1x-Set-up-device-DMA-parameters.patch;patchdir=nvidia-oot \
+    file://0036-adsp-cleanup-legacy-code.patch;patchdir=nvidia-oot \
+    file://0037-cpuidle-Fix-build-for-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0038-gpio-Use-conftest-to-find-if-struct-gpio_chip-has-of.patch;patchdir=nvidia-oot \
+    file://0039-drivers-Fix-gpio_chip-.set-callback-for-v6.17.patch;patchdir=nvidia-oot \
+    file://0040-drivers-Update-timer-APIs-for-Linux-v6.15.patch;patchdir=nvidia-oot \
+    file://0041-r8126-use-conftest-for-hrtimer_init.patch;patchdir=nvidia-oot \
+    file://0042-drivers-Fix-MODULE_IMPORT_NS-for-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0043-drivers-Fix-from_timer-for-Linux-v6.16.patch;patchdir=nvidia-oot \
+    file://0044-BT-deprecate-support-for-of_gpio-calls.patch;patchdir=nvidia-oot \
+    file://0045-misc-bluedroid_pm-Use-wakeup_source_register-unregis.patch;patchdir=nvidia-oot \
+    file://0046-misc-bluedroid-remove-duplicate-timer-declaration.patch;patchdir=nvidia-oot \
+    file://0047-misc-bluedroid_pm-Fix-optional-GPIOs.patch;patchdir=nvidia-oot \
+    file://0048-misc-bluedroid_pm-Verify-wakeup-registration.patch;patchdir=nvidia-oot \
+    file://0049-misc-bluedroid_pm-Free-proc-on-failure.patch;patchdir=nvidia-oot \
+    file://0050-misc-bluedroid_pm-Ensure-host_wake-is-configured.patch;patchdir=nvidia-oot \
+    file://0051-net-nvethernet-Fix-build-for-Linux-v6.15.patch;patchdir=nvidia-oot \
+    file://0052-virt-hvc_sysfs-Fix-build-for-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0053-kernel-oot-update-driver-license-to-GPL.patch;patchdir=nvidia-oot \
+    file://0054-virt-hvc_sysfs-Fix-build-for-Linux-v6.16.patch;patchdir=nvidia-oot \
+    file://0055-platform-tegra-uss-io-proxy-Migrate-to-GPIOD.patch;patchdir=nvidia-oot \
+    file://0056-virt-tegra-Fix-build-for-Linux-v6.17.patch;patchdir=nvidia-oot \
+    file://0057-nvmap-Fix-build-for-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0058-drivers-crypto-add-priv-pointer-in-context-struct-to.patch;patchdir=nvidia-oot \
+    file://0059-drivers-nvmap-calculate-page-address-explicitly.patch;patchdir=nvidia-oot \
+    file://0060-ASoC-tegra-Fix-build-for-Linux-v6.15.patch;patchdir=nvidia-oot \
+    file://0061-sound-soc-set-Codec-Stream-Card-name-explicitly.patch;patchdir=nvidia-oot \
+    file://0062-crypto-tegra-Remove-an-incorrect-iommu_fwspec_free-c.patch;patchdir=nvidia-oot \
+    file://0063-spi-Fix-build-for-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0064-sound-soc-use-reasonable-SND_SOC_DAIFMT_CBx_CFx.patch;patchdir=nvidia-oot \
+    file://0065-ufs-Fix-Tegra-UFS-for-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0066-ufs-Fix-Tegra-UFS-for-Linux-v6.15.patch;patchdir=nvidia-oot \
+    file://0067-drivers-gpu-Fix-IOMMU-support-for-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0068-sound-soc-replace-idle_bias_off-with-idle_bias.patch;patchdir=nvidia-oot \
+    file://0069-drm-tegra-Update-to-Linux-v6.15-rc3.patch;patchdir=nvidia-oot \
+    file://0070-drm-tegra-Fix-aperture-support-for-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0071-video-tegra-nvmap-Remove-use-of-iommu_present-API.patch;patchdir=nvidia-oot \
+    file://0072-video-tegra-nvmap-Take-lock-before-reading-dmabuf-s-.patch;patchdir=nvidia-oot \
+    file://0073-video-tegra-nvmap-Fix-f_count-for-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0074-drivers-realtek-bt-replace-set_bit-with-hci_set_quir.patch;patchdir=nvidia-oot \
+    file://0075-net-marvell-oak-Fix-build-for-Linux-v6.16.patch;patchdir=nvidia-oot \
+    file://0076-video-tegra-nvmap-Fix-build-for-Linux-v6.15.patch;patchdir=nvidia-oot \
+    file://0077-drm-tegra-Fix-build-for-Linux-v6.12.patch;patchdir=nvidia-oot \
+    file://0078-drm-tegra-Backport-fbdev-updates.patch;patchdir=nvidia-oot \
+    file://0079-gpu-drm-tegra-Fix-support-for-Linux-v6.12.patch;patchdir=nvidia-oot \
+    file://0080-drm-tegra-syncpoint-base-support-for-chips-t186.patch;patchdir=nvidia-oot \
+    file://0081-drm-tegra-move-disply-related-code-under-CONFIG_DRM_.patch;patchdir=nvidia-oot \
+    file://0082-drm-tegra-gem-Open-code-drm_prime_gem_destroy.patch;patchdir=nvidia-oot \
+    file://0083-drm-tegra-gem-Don-t-attach-dma-bufs-when-not-needed.patch;patchdir=nvidia-oot \
+    file://0084-drm-tegra-Update-to-Linux-v6.8.patch;patchdir=nvidia-oot \
+    file://0085-drm-tegra-Update-to-Linux-v6.12.patch;patchdir=nvidia-oot \
+    file://0086-drm-tegra-Update-to-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0087-drm-tegra-Update-to-Linux-v6.14.patch;patchdir=nvidia-oot \
+    file://0088-drm-tegra-Update-to-Linux-v6.16-rc1.patch;patchdir=nvidia-oot \
+    file://0089-drm-tegra-Fix-build-for-Linux-v6.17.patch;patchdir=nvidia-oot \
+    file://0091-net-can-mttcan-Fix-build-for-Linux-v6.16.patch;patchdir=nvidia-oot \
+    file://0092-net-can-mttcan-Drop-support-for-legacy-kernels.patch;patchdir=nvidia-oot \
+    file://0093-net-can-mttcan-Fix-build-for-Linux-v6.17.patch;patchdir=nvidia-oot \
+    file://0094-nvmap-Fix-build-for-Linux-v6.14.patch;patchdir=nvidia-oot \
+    file://0095-drm-tegra-Fix-genpd-support-for-Linux-v6.13.patch;patchdir=nvidia-oot \
+    file://0096-nvmap-Remove-dma_buf_ops-flag-cache_sgt_mapping.patch;patchdir=nvidia-oot \
+    file://0097-drm-tegra-Fix-build-for-Linux-v6.14.patch;patchdir=nvidia-oot \
+    file://0098-sound-soc-replace-of_property_read_bool-with-of_prop.patch;patchdir=nvidia-oot \
+    file://0099-tegra-hwpm-Fix-build-for-Linux-v6.13.patch;patchdir=hwpm \
+    file://0100-gpu-nvgpu-remove-unbalanced-dma_fence-reference.patch;patchdir=nvgpu \
+    file://0101-gpu-nvgpu-Fix-build-for-Linux-v6.12.patch;patchdir=nvgpu \
+    file://0102-gpu-nvgpu-correct-parameter-of-macro-MODULE_IMPORT_N.patch;patchdir=nvgpu \
+    file://0103-nvgpu-timer-replace-hrtimer_init-with-hrtimer_setup.patch;patchdir=nvgpu \
+"
+EXTRA_PATCHES ??= ""
+
+SRC_URI += "${COMMON_PATCHES} ${EXTRA_PATCHES}"
+
+do_unpack[depends] += "tegra-kernel-makefile:do_populate_sysroot"
+
+unpack_makefile_from_bsp() {
+    [ -e ${S}/Makefile ] || cp ${STAGING_DATADIR}/nvidia-kernel/Makefile ${S}/
+}
+do_unpack[postfuncs] += "unpack_makefile_from_bsp"
+
 KERNEL_MODULE_PACKAGE_PREFIX = "nv-"
 
 # Out-of-tree drivers that are named identically to, and

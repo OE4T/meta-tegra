@@ -1,0 +1,114 @@
+From 785761af814cd078e8546d08b4d5a09b55d98edc Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:12 -0800
+Subject: [PATCH 27/98] misc: nvsciipc: Fix build for Linux v6.12
+
+In Linux v6.12, commit 88a2f6468d01 ("struct fd: representation change")
+removed the 'struct file' pointer from 'struct fd'. This breaks building
+the NVSCIIPC driver that tries to directly access the 'file' pointer
+from the 'fd' structure. Fix this by using the helper macros 'fd_empty'
+and 'fd_file' as necessary to fix the build.
+
+Bug 4593750
+
+Upstream-Status: Backport
+Change-Id: I0f84736b408f533a732476175a8745091bc8542f
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3217429
+(cherry picked from commit 0f21c4134eb08dfcafad832d97308f2d98601f1d)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3226681
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/misc/nvsciipc/nvsciipc.c |  9 +++++++++
+ scripts/conftest/Makefile        |  2 ++
+ scripts/conftest/conftest.sh     | 34 ++++++++++++++++++++++++++++++++
+ 3 files changed, 45 insertions(+)
+
+diff --git a/drivers/misc/nvsciipc/nvsciipc.c b/drivers/misc/nvsciipc/nvsciipc.c
+index cae11e02..7ad5de41 100644
+--- a/drivers/misc/nvsciipc/nvsciipc.c
++++ b/drivers/misc/nvsciipc/nvsciipc.c
+@@ -82,11 +82,20 @@ NvSciError NvSciIpcEndpointValidateAuthTokenLinuxCurrent(
+ 	}
+ 
+ 	f = fdget((int)authToken);
++#if defined(NV_FD_EMPTY_PRESENT) /* Linux v6.12 */
++	if (fd_empty(f)) {
++#else
+ 	if (!f.file) {
++#endif
+ 		ERR("invalid auth token\n");
+ 		return NvSciError_BadParameter;
+ 	}
++
++#if defined(NV_FD_FILE_PRESENT) /* Linux v6.12 */
++	filp = fd_file(f);
++#else
+ 	filp = f.file;
++#endif
+ 
+ 	devlen = strlen(filp->f_path.dentry->d_name.name);
+ #if DEBUG_VALIDATE_TOKEN
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index c21ec23c..75a557db 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -123,6 +123,8 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ethtool_kernel_ethtool_ts_info_struct_pres
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ethtool_ops_get_set_coalesce_has_coal_and_extack_args
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ethtool_ops_get_set_ringparam_has_ringparam_and_extack_args
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ethtool_ops_get_set_rxfh_has_rxfh_param_args
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += fd_empty
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += fd_file
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += folio_entire_mapcount
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += genpd_xlate_t_has_const_of_phandle_args
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += get_file_rcu_has_double_ptr_file_arg
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 0fa7084b..d50c67e8 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7165,6 +7165,40 @@ compile_test() {
+                     "NV_ETHTOOL_OPS_GET_SET_RXFH_HAS_RXFH_PARAM_ARGS" "" "types"
+         ;;
+ 
++        fd_empty)
++            #
++            # Determine if macro fd_empty() is present.
++            #
++            # Added by commit 88a2f6468d01 ("struct fd: representation change")
++            # in Linux v6.12.
++            #
++            CODE="
++            #include <linux/file.h>
++            void conftest(void)
++            {
++                fd_empty();
++            }"
++
++            compile_check_conftest "$CODE" "NV_FD_EMPTY_PRESENT" "" "functions"
++        ;;
++
++        fd_file)
++            #
++            # Determine if macro fd_file() is present.
++            #
++            # Added by commit 88a2f6468d01 ("struct fd: representation change")
++            # in Linux v6.12.
++            #
++            CODE="
++            #include <linux/file.h>
++            void conftest(void)
++            {
++                fd_file();
++            }"
++
++            compile_check_conftest "$CODE" "NV_FD_FILE_PRESENT" "" "functions"
++        ;;
++
+         folio_entire_mapcount)
+             #
+             # Determine if function folio_entire_mapcount() is present.
+-- 
+2.43.0
+

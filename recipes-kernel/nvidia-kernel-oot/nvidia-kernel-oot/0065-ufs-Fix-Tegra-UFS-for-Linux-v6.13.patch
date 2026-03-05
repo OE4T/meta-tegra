@@ -1,0 +1,152 @@
+From 14b7c671484a84e5d518372d563cc4a659bdf76c Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:22 -0800
+Subject: [PATCH 65/98] ufs: Fix Tegra UFS for Linux v6.13
+
+In Linux v6.13, the quirk definition 'UFSHCD_QUIRK_BROKEN_64BIT_ADDRESS'
+was removed and replaced with a function pointer than can be used to set
+the DMA mask as needed for a given device. Update the Tegra UFS driver
+to fix support for Linux v6.13. Note that prior to Linux v6.13, the flag
+'UFSHCD_QUIRK_BROKEN_64BIT_ADDRESS' would set the DMA mask to 32-bits
+and so this change is equivalent to the configuration of prior kernels.
+
+Bug 4991705
+
+Upstream-Status: Backport [commit ee357025ee]
+Change-Id: I859331e9eea918d2438d68b871642fee5e4148e0
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3283447
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: svcacv <svcacv@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/scsi/ufs/ufs-tegra-common.c | 20 +++++++++++++++++++-
+ scripts/conftest/Makefile           |  3 ++-
+ scripts/conftest/conftest.sh        | 20 +++++++++++++++++++-
+ 3 files changed, 40 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/scsi/ufs/ufs-tegra-common.c b/drivers/scsi/ufs/ufs-tegra-common.c
+index e6350fa6..00c811e1 100644
+--- a/drivers/scsi/ufs/ufs-tegra-common.c
++++ b/drivers/scsi/ufs/ufs-tegra-common.c
+@@ -1,10 +1,11 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// SPDX-FileCopyrightText: Copyright (c) 2015-2024 NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2015-2025 NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+ #include <linux/clk.h>
+ #include <linux/delay.h>
++#include <linux/dma-mapping.h>
+ #include <linux/time.h>
+ #include <linux/of.h>
+ #include <linux/platform_device.h>
+@@ -1428,6 +1429,7 @@ static int ufs_tegra_config_soc_data(struct ufs_tegra_host *ufs_tegra)
+ 	ufs_tegra->enable_scramble =
+ 		of_property_read_bool(np, "nvidia,enable-scramble");
+ 
++#if !defined(NV_UFS_HBA_VARIANT_OPS_HAS_SET_DMA_MASK) /* Linux v6.13 */
+ 	if (ufs_tegra->soc->chip_id >= TEGRA234) {
+ #if defined(NV_UFSHCD_QUIRKS_ENUM_HAS_UFSHCD_QUIRK_BROKEN_64BIT_ADDRESS) /* Linux 6.0 */
+ 		ufs_tegra->hba->quirks |= UFSHCD_QUIRK_BROKEN_64BIT_ADDRESS;
+@@ -1436,6 +1438,7 @@ static int ufs_tegra_config_soc_data(struct ufs_tegra_host *ufs_tegra)
+ 		return -ENOTSUPP;
+ #endif
+ 	}
++#endif
+ 
+ 	return 0;
+ }
+@@ -1872,6 +1875,18 @@ static void ufs_tegra_exit(struct ufs_hba *hba)
+ #endif
+ }
+ 
++#if defined(NV_UFS_HBA_VARIANT_OPS_HAS_SET_DMA_MASK) /* Linux v6.13 */
++static int ufs_tegra_set_dma_mask(struct ufs_hba *hba)
++{
++	struct ufs_tegra_host *ufs_tegra = hba->priv;
++
++	if (ufs_tegra->soc->chip_id >= TEGRA234)
++		return dma_set_mask_and_coherent(hba->dev, DMA_BIT_MASK(32));
++
++	return 0;
++}
++#endif
++
+ /**
+  * struct ufs_hba_tegra_vops - UFS TEGRA specific variant operations
+  *
+@@ -1887,6 +1902,9 @@ struct ufs_hba_variant_ops ufs_hba_tegra_vops = {
+ 	.hce_enable_notify      = ufs_tegra_hce_enable_notify,
+ 	.link_startup_notify	= ufs_tegra_link_startup_notify,
+ 	.pwr_change_notify      = ufs_tegra_pwr_change_notify,
++#if defined(NV_UFS_HBA_VARIANT_OPS_HAS_SET_DMA_MASK) /* Linux v6.13 */
++	.set_dma_mask		= ufs_tegra_set_dma_mask,
++#endif
+ };
+ 
+ static int ufs_tegra_probe(struct platform_device *pdev)
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index b822c6da..1c6be60e 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -1,6 +1,6 @@
+ ###########################################################################
+ # SPDX-License-Identifier: MIT
+-# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ #
+ # Makefile file for NVIDIA Linux conftest
+ ###########################################################################
+@@ -188,6 +188,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += timer_delete
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tty_operations_struct_send_xchar_has_u8_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tty_operations_struct_write_has_u8_ptr_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tty_operations_struct_set_termios_has_const_ktermios_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += ufs_hba_variant_ops_has_set_dma_mask
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ufs_hba_variant_ops_suspend_has_status_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += ufshcd_quirks_enum_has_ufshcd_quirk_broken_64bit_address
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += v4l2_async_connection_struct_present
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 8719c8f3..8049dcb2 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ # SPDX-License-Identifier: MIT
+-# SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++# SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ PATH="${PATH}:/bin:/sbin:/usr/bin"
+ 
+@@ -8206,6 +8206,24 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_TTY_OPERATIONS_STRUCT_SET_TERMIOS_HAS_CONST_KTERMIOS_ARG" "" "types"
+         ;;
+ 
++        ufs_hba_variant_ops_has_set_dma_mask)
++            #
++            # Determine if the 'struct ufs_hba_variant_ops' has a 'set_dma_mask'
++            # function pointer.
++            #
++            # In Linux v6.13, commit 78bc671bd150 ("scsi: ufs: core: Make DMA
++            # mask configuration more flexible)" add a 'set_dma_mask' function
++            # pointer to the 'ufs_hba_variant_ops' structure.
++            #
++            CODE="
++            #include <ufs/ufshcd.h>
++	    int conftest_ufs_hba_variant_ops_has_set_dma_mask(void) {
++                return offsetof(struct ufs_hba_variant_ops, set_dma_mask);
++            }"
++
++            compile_check_conftest "$CODE" "NV_UFS_HBA_VARIANT_OPS_HAS_SET_DMA_MASK" "" "types"
++        ;;
++
+         ufs_hba_variant_ops_suspend_has_status_arg)
+             #
+             # Determine if the 'suspend' function for the
+-- 
+2.43.0
+

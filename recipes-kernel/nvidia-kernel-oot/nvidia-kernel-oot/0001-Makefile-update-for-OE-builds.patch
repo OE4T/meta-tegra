@@ -1,4 +1,4 @@
-From aa9a718c22ce1041876230c245d83ce4b72f329f Mon Sep 17 00:00:00 2001
+From 5d4afb2873d17e1210b2b8d099ccdbcc43069bca Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Sun, 6 Oct 2024 17:33:08 +0100
 Subject: [PATCH] Makefile: update for OE builds
@@ -18,11 +18,11 @@ Upstream-Status: Pending
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- Makefile | 96 ++++++++++++++++++++++++++------------------------------
- 1 file changed, 44 insertions(+), 52 deletions(-)
+ Makefile | 97 ++++++++++++++++++++++++++------------------------------
+ 1 file changed, 45 insertions(+), 52 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index ad7dc07..64bec51 100644
+index ad7dc07..a41f7b3 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -5,19 +5,21 @@ KERNEL_HEADERS ?= /lib/modules/$(shell uname -r)/build
@@ -123,7 +123,7 @@ index ad7dc07..64bec51 100644
  		CONFIG_TEGRA_OOT_MODULE=m \
  		srctree.nvidia=$(MAKEFILE_DIR)/nvidia-oot \
  		srctree.nvidia-oot=$(MAKEFILE_DIR)/nvidia-oot \
-@@ -105,37 +113,23 @@ nvgpu: conftest nvidia-oot
+@@ -105,37 +113,24 @@ nvgpu: conftest nvidia-oot
  
  
  define display-cmd
@@ -138,6 +138,7 @@ index ad7dc07..64bec51 100644
 -		SYSOUT=$(NVIDIA_HEADERS) \
 +		SYSSRC=$(KERNEL_SRC) \
 +		SYSOUT=$(KBUILD_OUTPUT) \
++		OOTSRC=$(MAKEFILE_DIR)/nvidia-oot \
 +		KBUILD_EXTRA_SYMBOLS=$(MAKEFILE_DIR)/nvidia-oot/Module.symvers \
  		SYSSRCHOST1X=$(MAKEFILE_DIR)/nvidia-oot/drivers/gpu/host1x/include \
 -		CC=$(CROSS_COMPILE)gcc \
@@ -172,7 +173,7 @@ index ad7dc07..64bec51 100644
  	@if [ ! -d "$(MAKEFILE_DIR)/nvdisplay" ] ; then \
  		echo "Directory nvdisplay is not found, exiting.."; \
  		false; \
-@@ -153,17 +147,15 @@ nvidia-display-install:
+@@ -153,17 +148,15 @@ nvidia-display-install:
  	@echo   "================================================================================"
  	@echo   "make $(MAKECMDGOALS) - nvidia-display ..."
  	@echo   "================================================================================"
@@ -193,7 +194,7 @@ index ad7dc07..64bec51 100644
  
  nvidia-dtbs:
  	@if [ ! -d "$(MAKEFILE_DIR)/kernel-devicetree" ] ; then \
-@@ -174,10 +166,10 @@ nvidia-dtbs:
+@@ -174,10 +167,10 @@ nvidia-dtbs:
  	@echo   "make nvidia-dtbs ..."
  	@echo   "================================================================================"
  	TEGRA_TOP=$(MAKEFILE_DIR) \
@@ -208,5 +209,5 @@ index ad7dc07..64bec51 100644
  		obj=$(MAKEFILE_DIR)/kernel-devicetree/generic-dts \
  		dtbs
 -- 
-2.34.1
+2.43.0
 

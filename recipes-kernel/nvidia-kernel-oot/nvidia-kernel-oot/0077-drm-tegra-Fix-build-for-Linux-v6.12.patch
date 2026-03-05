@@ -1,0 +1,125 @@
+From 4902faf4293e893a264d104b2e9de58ee700cf76 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:27 -0800
+Subject: [PATCH 77/98] drm/tegra: Fix build for Linux v6.12
+
+In Linux v6.12, commit 446d0f4849b1 ("drm: Remove struct
+drm_mode_config_funcs.output_poll_changed") removes
+'output_poll_changed' function pointer from 'drm_mode_config_funcs'
+structure and commit b5757a5be2fa ("drm: Remove struct
+drm_driver.lastclose") removes 'lastclose' from the 'drm_driver'
+structure. This is breaking build the Tegra DRM out-of-tree driver for
+Linux v6.12.
+
+Fix this by partially back-porting commit 71ec16f45ef8 ("drm/tegra:
+Implement fbdev emulation as in-kernel client") from Linux v6.4 which
+removed the use of the 'output_poll_changed' and 'lastclose' function
+pointers from the Tegra DRM driver. Note that it is safe to partially
+back-port this for now because we don't use the frame-buffer support in
+the Tegra DRM driver for Tegra234+ devices.
+
+To keep the Tegra DRM out-of-tree driver aligned with upstream, the
+remaining parts of commit '71ec16f45ef8' will be back-ported in another
+change that will be part of a bigger change to align the frame-buffer
+support with the upstream driver. For now just fix the build for Linux
+v6.12.
+
+Bug 4876974
+
+Upstream-Status: Backport [6f788dbe13cb]
+Change-Id: Idc9b1c198c067ccb59f1337866154c9a8f0a5623
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3267797
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.c | 27 +++------------------------
+ 1 file changed, 3 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 68f16f2b..737fff8a 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -65,11 +65,6 @@ static int tegra_atomic_check(struct drm_device *drm,
+ 
+ static const struct drm_mode_config_funcs tegra_drm_mode_config_funcs = {
+ 	.fb_create = tegra_fb_create,
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0)
+-#ifdef CONFIG_DRM_FBDEV_EMULATION
+-	.output_poll_changed = drm_fb_helper_output_poll_changed,
+-#endif
+-#endif
+ 	.atomic_check = tegra_atomic_check,
+ 	.atomic_commit = drm_atomic_helper_commit,
+ };
+@@ -895,9 +890,6 @@ static const struct drm_driver tegra_drm_driver = {
+ 			   DRIVER_ATOMIC | DRIVER_RENDER | DRIVER_SYNCOBJ,
+ 	.open = tegra_drm_open,
+ 	.postclose = tegra_drm_postclose,
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0)
+-	.lastclose = drm_fb_helper_lastclose,
+-#endif
+ 
+ #if defined(CONFIG_DEBUG_FS)
+ 	.debugfs_init = tegra_debugfs_init,
+@@ -1247,15 +1239,11 @@ static int host1x_drm_probe(struct host1x_device *dev)
+ 	drm->mode_config.funcs = &tegra_drm_mode_config_funcs;
+ 	drm->mode_config.helper_private = &tegra_drm_mode_config_helpers;
+ 
+-	err = tegra_drm_fb_prepare(drm);
+-	if (err < 0)
+-		goto config;
+-
+ 	drm_kms_helper_poll_init(drm);
+ 
+ 	err = host1x_device_init(dev);
+ 	if (err < 0)
+-		goto fbdev;
++		goto poll;
+ 
+ 	/*
+ 	 * Now that all display controller have been initialized, the maximum
+@@ -1337,18 +1325,12 @@ static int host1x_drm_probe(struct host1x_device *dev)
+ 			goto hub;
+ 	}
+ 
+-	err = tegra_drm_fb_init(drm);
+-	if (err < 0)
+-		goto hub;
+-
+ 	err = drm_dev_register(drm, 0);
+ 	if (err < 0)
+-		goto fb;
++		goto hub;
+ 
+ 	return 0;
+ 
+-fb:
+-	tegra_drm_fb_exit(drm);
+ hub:
+ 	if (tegra->hub)
+ 		tegra_display_hub_cleanup(tegra->hub);
+@@ -1361,10 +1343,8 @@ device:
+ 	}
+ 
+ 	host1x_device_exit(dev);
+-fbdev:
++poll:
+ 	drm_kms_helper_poll_fini(drm);
+-	tegra_drm_fb_free(drm);
+-config:
+ 	drm_mode_config_cleanup(drm);
+ domain:
+ 	if (tegra->domain)
+@@ -1385,7 +1365,6 @@ static int host1x_drm_remove(struct host1x_device *dev)
+ 	drm_dev_unregister(drm);
+ 
+ 	drm_kms_helper_poll_fini(drm);
+-	tegra_drm_fb_exit(drm);
+ 	drm_atomic_helper_shutdown(drm);
+ 	drm_mode_config_cleanup(drm);
+ 
+-- 
+2.43.0
+

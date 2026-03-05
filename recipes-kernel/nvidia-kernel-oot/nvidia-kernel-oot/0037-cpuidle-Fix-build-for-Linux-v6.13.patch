@@ -1,0 +1,125 @@
+From 40be6871c1ee70e3b5ab93d4bb5fd969d4d8a1bb Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:14 -0800
+Subject: [PATCH 37/98] cpuidle: Fix build for Linux v6.13
+
+Commit ef4c675dc296 ("genirq: Unexport nr_irqs") unexported 'nr_irqs' in
+Linux v6.13 and this breaks the build for the cpuidle-debugfs driver.
+For Linux v6.13 the number of IRQs can be queried by using the function
+irq_get_nr_irqs() instead. Fix the build by using conftest to detect if
+the function irq_get_nr_irqs() and use this function if it is present.
+
+Bug 4991705
+
+Upstream-Status: Backport
+Change-Id: I98d477896fcf9e8d2e1afa21e2f7ba4d071ab442
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3261690
+Reviewed-by: Ishan Shah <ishah@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Preetham Chandru R <pchandru@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/cpuidle/cpuidle-debugfs.c | 24 +++++++++++++++++++-----
+ scripts/conftest/Makefile         |  1 +
+ scripts/conftest/conftest.sh      | 16 ++++++++++++++++
+ 3 files changed, 36 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/cpuidle/cpuidle-debugfs.c b/drivers/cpuidle/cpuidle-debugfs.c
+index 31c8edf9..1039b18a 100644
+--- a/drivers/cpuidle/cpuidle-debugfs.c
++++ b/drivers/cpuidle/cpuidle-debugfs.c
+@@ -1,10 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ /*
+- * Copyright (c) 2023, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved.
+- *
+  * Module to force cpuidle states through debugfs files.
+- *
+  */
++#include <nvidia/conftest.h>
++
+ #include <linux/module.h>
+ #include <linux/irq.h>
+ #include <linux/irqdesc.h>
+@@ -26,9 +26,16 @@ static void suspend_all_device_irqs(void)
+ {
+ 	struct irq_data *data;
+ 	struct irq_desc *desc;
++	unsigned int nirqs;
+ 	int irq;
+ 
+-	for (irq = 0, data = irq_get_irq_data(irq); irq < nr_irqs;
++#if defined(NV_IRQ_GET_NR_IRQS_PRESENT) /* Linux v6.13 */
++	nirqs = irq_get_nr_irqs();
++#else
++	nirqs = nr_irqs;
++#endif
++
++	for (irq = 0, data = irq_get_irq_data(irq); irq < nirqs;
+ 			irq++, data = irq_get_irq_data(irq)) {
+ 		if (!data)
+ 			continue;
+@@ -44,9 +51,16 @@ static void resume_all_device_irqs(void)
+ {
+ 	struct irq_data *data;
+ 	struct irq_desc *desc;
++	unsigned int nirqs;
+ 	int irq;
+ 
+-	for (irq = 0, data = irq_get_irq_data(irq); irq < nr_irqs;
++#if defined(NV_IRQ_GET_NR_IRQS_PRESENT)
++	nirqs = irq_get_nr_irqs();
++#else
++	nirqs = nr_irqs;
++#endif
++
++	for (irq = 0, data = irq_get_irq_data(irq); irq < nirqs;
+ 			irq++, data = irq_get_irq_data(irq)) {
+ 		if (!data)
+ 			continue;
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index f58f2ef7..23f1434a 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -135,6 +135,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += i2c_driver_struct_remove_return_type_int
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += i2c_mux_add_adapter_has_no_class_argument
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += iio_dev_opaque_has_mlock
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += iommu_map_has_gfp_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += irq_get_nr_irqs
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += kthread_complete_and_exit
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += mii_bus_struct_has_read_c45
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += mii_bus_struct_has_write_c45
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 54340a86..4bdd1e7b 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7378,6 +7378,22 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_IIO_DEV_OPAQUE_HAS_LOCK" "" "types"
+         ;;
+ 
++        irq_get_nr_irqs)
++            #
++            # Determine if the function irq_get_nr_irqs() is present.
++            #
++            # Commit 5280a14a6079 ("genirq: Introduce irq_get_nr_irqs() and
++            # irq_set_nr_irqs()") added irq_get_nr_irqs() in Linux v6.13.
++            #
++            CODE="
++            #include <linux/irqnr.h>
++            void conftest_irq_get_nr_irqs(void) {
++                irq_get_nr_irqs();
++            }"
++
++            compile_check_conftest "$CODE" "NV_IRQ_GET_NR_IRQS_PRESENT" "" "functions"
++        ;;
++
+         kthread_complete_and_exit)
+             #
+             # Determine if function kthread_complete_and_exit() is present.
+-- 
+2.43.0
+

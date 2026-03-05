@@ -1,0 +1,224 @@
+From e51b496e1b7445dc8ff9210e867a69b15bfd6f3f Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 20 Feb 2026 08:22:12 -0800
+Subject: [PATCH 29/98] drivers: remove obsolete no_llseek references
+
+no_llseek was made equivalent to NULL in 6.0, and with
+6.12 has finally been removed altogether from the code
+base.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../platform/tegra/camera/fusa-capture/capture-isp-channel.c   | 3 +++
+ .../platform/tegra/camera/fusa-capture/capture-vi-channel.c    | 3 +++
+ drivers/misc/nvsciipc/nvsciipc.c                               | 3 +++
+ drivers/platform/tegra/rtcpu/camchar.c                         | 3 +++
+ drivers/video/tegra/host/nvcsi/nvcsi-t194.c                    | 3 +++
+ drivers/video/tegra/host/nvcsi/nvcsi.c                         | 3 +++
+ drivers/video/tegra/host/nvdla/nvdla_ioctl.c                   | 3 +++
+ drivers/video/tegra/host/pva/pva_ioctl.c                       | 3 +++
+ drivers/virt/tegra/tegra_hv_pm_ctl.c                           | 3 +++
+ 9 files changed, 27 insertions(+)
+
+diff --git a/drivers/media/platform/tegra/camera/fusa-capture/capture-isp-channel.c b/drivers/media/platform/tegra/camera/fusa-capture/capture-isp-channel.c
+index b6ef7b53..1c69337c 100644
+--- a/drivers/media/platform/tegra/camera/fusa-capture/capture-isp-channel.c
++++ b/drivers/media/platform/tegra/camera/fusa-capture/capture-isp-channel.c
+@@ -20,6 +20,7 @@
+ #include <linux/slab.h>
+ #include <linux/stddef.h>
+ #include <linux/uaccess.h>
++#include <linux/version.h>
+ #include <media/fusa-capture/capture-isp.h>
+ #include <media/fusa-capture/capture-isp-channel.h>
+ 
+@@ -523,7 +524,9 @@ static long isp_channel_ioctl(
+ 
+ static const struct file_operations isp_channel_fops = {
+ 	.owner = THIS_MODULE,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
+ 	.llseek = no_llseek,
++#endif
+ 	.unlocked_ioctl = isp_channel_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = isp_channel_ioctl,
+diff --git a/drivers/media/platform/tegra/camera/fusa-capture/capture-vi-channel.c b/drivers/media/platform/tegra/camera/fusa-capture/capture-vi-channel.c
+index 0ab7be1d..e790d606 100644
+--- a/drivers/media/platform/tegra/camera/fusa-capture/capture-vi-channel.c
++++ b/drivers/media/platform/tegra/camera/fusa-capture/capture-vi-channel.c
+@@ -19,6 +19,7 @@
+ #include <linux/sched.h>
+ #include <linux/vmalloc.h>
+ #include <linux/uaccess.h>
++#include <linux/version.h>
+ #include <linux/dma-buf.h>
+ #include <linux/dma-mapping.h>
+ #include <media/fusa-capture/capture-vi.h>
+@@ -616,7 +617,9 @@ static long vi_channel_ioctl(
+ 
+ static const struct file_operations vi_channel_fops = {
+ 	.owner = THIS_MODULE,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
+ 	.llseek = no_llseek,
++#endif
+ 	.unlocked_ioctl = vi_channel_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = vi_channel_ioctl,
+diff --git a/drivers/misc/nvsciipc/nvsciipc.c b/drivers/misc/nvsciipc/nvsciipc.c
+index 7ad5de41..94707624 100644
+--- a/drivers/misc/nvsciipc/nvsciipc.c
++++ b/drivers/misc/nvsciipc/nvsciipc.c
+@@ -22,6 +22,7 @@
+ #include <linux/cred.h>
+ #include <linux/of.h>
+ #include <linux/fs.h>
++#include <linux/version.h>
+ 
+ #ifdef CONFIG_TEGRA_VIRTUALIZATION
+ #include <soc/tegra/virt/syscalls.h>
+@@ -685,7 +686,9 @@ static const struct file_operations nvsciipc_fops = {
+ 	.open		= nvsciipc_dev_open,
+ 	.release		= nvsciipc_dev_release,
+ 	.unlocked_ioctl	= nvsciipc_dev_ioctl,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
+ 	.llseek		= no_llseek,
++#endif
+ 	.read		= nvsciipc_dbg_read,
+ };
+ 
+diff --git a/drivers/platform/tegra/rtcpu/camchar.c b/drivers/platform/tegra/rtcpu/camchar.c
+index c271f19d..3d4d36ba 100644
+--- a/drivers/platform/tegra/rtcpu/camchar.c
++++ b/drivers/platform/tegra/rtcpu/camchar.c
+@@ -18,6 +18,7 @@
+ #include <linux/sched/signal.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
++#include <linux/version.h>
+ #include <soc/tegra/ivc_ext.h>
+ #include <linux/tegra-ivc-bus.h>
+ #include <soc/tegra/ivc-priv.h>
+@@ -226,7 +227,9 @@ static const struct file_operations tegra_camchar_fops = {
+ 	.release = tegra_camchar_release,
+ 	.unlocked_ioctl = tegra_camchar_ioctl,
+ 	.compat_ioctl = tegra_camchar_ioctl,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
+ 	.llseek = no_llseek,
++#endif
+ };
+ 
+ static int __init tegra_camchar_init(struct tegra_ivc_driver *drv)
+diff --git a/drivers/video/tegra/host/nvcsi/nvcsi-t194.c b/drivers/video/tegra/host/nvcsi/nvcsi-t194.c
+index 75f6dc05..95dc5157 100644
+--- a/drivers/video/tegra/host/nvcsi/nvcsi-t194.c
++++ b/drivers/video/tegra/host/nvcsi/nvcsi-t194.c
+@@ -22,6 +22,7 @@
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
++#include <linux/version.h>
+ #include <linux/kthread.h>
+ #include <linux/nvhost.h>
+ 
+@@ -110,7 +111,9 @@ static int t194_nvcsi_release(struct inode *inode, struct file *file)
+ 
+ const struct file_operations tegra194_nvcsi_ctrl_ops = {
+ 	.owner = THIS_MODULE,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
+ 	.llseek = no_llseek,
++#endif
+ 	.unlocked_ioctl = t194_nvcsi_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = t194_nvcsi_ioctl,
+diff --git a/drivers/video/tegra/host/nvcsi/nvcsi.c b/drivers/video/tegra/host/nvcsi/nvcsi.c
+index 2cc96809..5295651e 100644
+--- a/drivers/video/tegra/host/nvcsi/nvcsi.c
++++ b/drivers/video/tegra/host/nvcsi/nvcsi.c
+@@ -16,6 +16,7 @@
+ #include <linux/platform_device.h>
+ #include <uapi/linux/nvhost_nvcsi_ioctl.h>
+ #include <linux/uaccess.h>
++#include <linux/version.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/nvhost.h>
+@@ -129,7 +130,9 @@ static int nvcsi_release(struct inode *inode, struct file *file)
+ 
+ const struct file_operations tegra_nvcsi_ctrl_ops = {
+ 	.owner = THIS_MODULE,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
+ 	.llseek = no_llseek,
++#endif
+ 	.unlocked_ioctl = nvcsi_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = nvcsi_ioctl,
+diff --git a/drivers/video/tegra/host/nvdla/nvdla_ioctl.c b/drivers/video/tegra/host/nvdla/nvdla_ioctl.c
+index 1ab08669..0006dc41 100644
+--- a/drivers/video/tegra/host/nvdla/nvdla_ioctl.c
++++ b/drivers/video/tegra/host/nvdla/nvdla_ioctl.c
+@@ -11,6 +11,7 @@
+ #include <linux/slab.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/uaccess.h>
++#include <linux/version.h>
+ 
+ #include "nvdla.h"
+ #include "dla_queue.h"
+@@ -1329,7 +1330,9 @@ static int nvdla_release(struct inode *inode, struct file *file)
+ 
+ const struct file_operations tegra_nvdla_ctrl_ops = {
+ 	.owner = THIS_MODULE,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
+ 	.llseek = no_llseek,
++#endif
+ 	.unlocked_ioctl = nvdla_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = nvdla_ioctl,
+diff --git a/drivers/video/tegra/host/pva/pva_ioctl.c b/drivers/video/tegra/host/pva/pva_ioctl.c
+index 62f1f75c..255eacfa 100644
+--- a/drivers/video/tegra/host/pva/pva_ioctl.c
++++ b/drivers/video/tegra/host/pva/pva_ioctl.c
+@@ -12,6 +12,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/fs.h>
+ #include <linux/uaccess.h>
++#include <linux/version.h>
+ #include <linux/slab.h>
+ #include <linux/circ_buf.h>
+ #include <linux/nospec.h>
+@@ -1134,7 +1135,9 @@ static ssize_t pva_read_vpu_print_buffer(struct file *file,
+ 
+ const struct file_operations tegra_pva_ctrl_ops = {
+ 	.owner = THIS_MODULE,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
+ 	.llseek = no_llseek,
++#endif
+ 	.unlocked_ioctl = pva_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = pva_ioctl,
+diff --git a/drivers/virt/tegra/tegra_hv_pm_ctl.c b/drivers/virt/tegra/tegra_hv_pm_ctl.c
+index 6e493c12..654ea88f 100644
+--- a/drivers/virt/tegra/tegra_hv_pm_ctl.c
++++ b/drivers/virt/tegra/tegra_hv_pm_ctl.c
+@@ -15,6 +15,7 @@
+ #include <linux/delay.h>
+ #include <linux/sched.h>
+ #include <linux/pid.h>
++#include <linux/version.h>
+ 
+ #ifdef CONFIG_PM_SLEEP
+ #include <linux/suspend.h>
+@@ -389,7 +390,9 @@ static int tegra_hv_pm_ctl_release(struct inode *inode, struct file *filp)
+ 
+ static const struct file_operations tegra_hv_pm_ctl_fops = {
+ 	.owner		= THIS_MODULE,
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)
+ 	.llseek		= no_llseek,
++#endif
+ 	.read		= tegra_hv_pm_ctl_read,
+ 	.write		= tegra_hv_pm_ctl_write,
+ 	.poll		= tegra_hv_pm_ctl_poll,
+-- 
+2.43.0
+

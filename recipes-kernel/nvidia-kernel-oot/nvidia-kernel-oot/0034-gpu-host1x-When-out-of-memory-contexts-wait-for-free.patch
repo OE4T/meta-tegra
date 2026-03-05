@@ -1,0 +1,171 @@
+From 152bee69cc20b52cdb3c554a80ff12ccab302d93 Mon Sep 17 00:00:00 2001
+From: Mikko Perttunen <mperttunen@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:14 -0800
+Subject: [PATCH 34/98] gpu: host1x: When out of memory contexts, wait for free
+ context
+
+Instead of immediately returning an error when trying to allocate
+a context device and none are free, log a warning and stall the
+submit until a usable context becomes available.
+
+Bug 4712458
+
+Upstream-Status: Backport [commit 18a165f104c47]
+Signed-off-by: Mikko Perttunen <mperttunen@nvidia.com>
+Change-Id: I964c906e94a8624ded04a5f3851f8c3dbbe76d8b
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3227750
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Tested-by: Dane Liu <danel@nvidia.com>
+Reviewed-by: Bibek Basu <bbasu@nvidia.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/host1x/context.c | 60 +++++++++++++++++++++++++++++++++---
+ drivers/gpu/host1x/context.h |  1 +
+ 2 files changed, 56 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/gpu/host1x/context.c b/drivers/gpu/host1x/context.c
+index 2ddbba81..aaef0bd6 100644
+--- a/drivers/gpu/host1x/context.c
++++ b/drivers/gpu/host1x/context.c
+@@ -3,8 +3,10 @@
+  * Copyright (c) 2021-2024, NVIDIA Corporation.
+  */
+ 
++#include <linux/completion.h>
+ #include <linux/device.h>
+ #include <linux/kref.h>
++#include <linux/list.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+ #include <linux/pid.h>
+@@ -24,6 +26,7 @@ int host1x_memory_context_list_init(struct host1x *host1x)
+ 	cdl->devs = NULL;
+ 	cdl->len = 0;
+ 	mutex_init(&cdl->lock);
++	INIT_LIST_HEAD(&cdl->waiters);
+ 
+ 	err = of_property_count_u32_elems(node, "iommu-map");
+ 	if (err < 0)
+@@ -103,6 +106,11 @@ void host1x_memory_context_list_free(struct host1x_memory_context_list *cdl)
+ 	cdl->len = 0;
+ }
+ 
++static bool hw_usable_for_dev(struct host1x_hw_memory_context *hw, struct device *dev)
++{
++	return hw->dev.iommu->iommu_dev == dev->iommu->iommu_dev;
++}
++
+ static struct host1x_hw_memory_context *host1x_memory_context_alloc_hw_locked(struct host1x *host1x,
+ 							  struct device *dev,
+ 							  struct pid *pid)
+@@ -118,7 +126,7 @@ static struct host1x_hw_memory_context *host1x_memory_context_alloc_hw_locked(st
+ 	for (i = 0; i < cdl->len; i++) {
+ 		struct host1x_hw_memory_context *cd = &cdl->devs[i];
+ 
+-		if (cd->dev.iommu->iommu_dev != dev->iommu->iommu_dev)
++		if (!hw_usable_for_dev(cd, dev))
+ 			continue;
+ 
+ 		if (cd->owner == pid) {
+@@ -136,10 +144,8 @@ static struct host1x_hw_memory_context *host1x_memory_context_alloc_hw_locked(st
+ 
+ 	/* Steal */
+ 
+-	if (!can_steal) {
+-		dev_warn(dev, "all context devices are busy\n");
++	if (!can_steal)
+ 		return ERR_PTR(-EBUSY);
+-	}
+ 
+ 	list_for_each_entry(ctx, &can_steal->owners, entry) {
+ 		struct host1x_context_mapping *mapping;
+@@ -197,17 +203,47 @@ struct host1x_memory_context *host1x_memory_context_alloc(
+ }
+ EXPORT_SYMBOL_GPL(host1x_memory_context_alloc);
+ 
++struct hw_alloc_waiter {
++	struct completion wait; /* Completion to wait for free hw context */
++	struct list_head entry;
++	struct device *dev;
++};
++
+ int host1x_memory_context_active(struct host1x_memory_context *ctx)
+ {
+ 	struct host1x_memory_context_list *cdl = &ctx->host->context_list;
+ 	struct host1x_context_mapping *mapping;
+ 	struct host1x_hw_memory_context *hw;
++	struct hw_alloc_waiter waiter;
++	bool retrying = false;
+ 	int err = 0;
+ 
+ 	mutex_lock(&cdl->lock);
+ 
++retry:
+ 	if (!ctx->hw) {
+ 		hw = host1x_memory_context_alloc_hw_locked(ctx->host, ctx->dev, ctx->pid);
++		if (PTR_ERR(hw) == -EBUSY) {
++			/* All contexts busy. Wait for free context. */
++			if (!retrying)
++				dev_warn(ctx->dev, "%s: all memory contexts are busy, waiting\n",
++					current->comm);
++
++			init_completion(&waiter.wait);
++			waiter.dev = ctx->dev;
++			list_add(&waiter.entry, &cdl->waiters);
++
++			mutex_unlock(&cdl->lock);
++			err = wait_for_completion_interruptible(&waiter.wait);
++			mutex_lock(&cdl->lock);
++
++			list_del(&waiter.entry);
++			if (err)
++				goto unlock;
++
++			retrying = true;
++			goto retry;
++		}
+ 		if (IS_ERR(hw)) {
+ 			err = PTR_ERR(hw);
+ 			goto unlock;
+@@ -306,10 +342,24 @@ EXPORT_SYMBOL_GPL(host1x_memory_context_unmap);
+ void host1x_memory_context_inactive(struct host1x_memory_context *ctx)
+ {
+ 	struct host1x_memory_context_list *cdl = &ctx->host->context_list;
++	struct hw_alloc_waiter *waiter;
+ 
+ 	mutex_lock(&cdl->lock);
+ 
+-	ctx->hw->active--;
++	if (--ctx->hw->active == 0) {
++		/* Hardware context becomes eligible for stealing */
++		list_for_each_entry(waiter, &cdl->waiters, entry) {
++			if (!hw_usable_for_dev(ctx->hw, waiter->dev))
++				continue;
++
++			complete(&waiter->wait);
++
++			/*
++			 * Need to wake up all waiters -- there could be multiple from
++			 * the same process that can use the same freed hardware context.
++			 */
++		}
++	}
+ 
+ 	mutex_unlock(&cdl->lock);
+ }
+diff --git a/drivers/gpu/host1x/context.h b/drivers/gpu/host1x/context.h
+index 2d10e64a..e2114cb4 100644
+--- a/drivers/gpu/host1x/context.h
++++ b/drivers/gpu/host1x/context.h
+@@ -19,6 +19,7 @@ struct host1x_memory_context_list {
+ 	struct mutex lock;
+ 	struct host1x_hw_memory_context *devs;
+ 	unsigned int len;
++	struct list_head waiters;
+ };
+ 
+ struct host1x_hw_memory_context {
+-- 
+2.43.0
+

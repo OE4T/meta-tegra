@@ -1,0 +1,132 @@
+From f2377f7e99e3985926eda96c372f9ef8aeb5bf79 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:24:11 -0800
+Subject: [PATCH 95/98] drm/tegra: Fix genpd support for Linux v6.13
+
+In Linux v6.13, commit d6caca30a548 ("OPP: Drop redundant
+*_opp_attach|detach_genpd()") removed devm_pm_opp_attach_genpd(). This
+has been replaced by devm_pm_domain_attach_list(). Use conftest to
+detect the presence of devm_pm_domain_attach_list() and update the Tegra
+DRM driver accordingly.
+
+Bug 4991705
+
+Upstream-Status: Backport
+Change-Id: I5a3bd258d3fce5b09fd4ba84adad166e4cf47cfb
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3261693
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/gr3d.c | 19 +++++++++++++++++++
+ scripts/conftest/Makefile    |  1 +
+ scripts/conftest/conftest.sh | 13 +++++++++++++
+ 3 files changed, 33 insertions(+)
+
+diff --git a/drivers/gpu/drm/tegra/gr3d.c b/drivers/gpu/drm/tegra/gr3d.c
+index fb5073b9..5d6f52f7 100644
+--- a/drivers/gpu/drm/tegra/gr3d.c
++++ b/drivers/gpu/drm/tegra/gr3d.c
+@@ -50,6 +50,9 @@ struct gr3d {
+ 	unsigned int nclocks;
+ 	struct reset_control_bulk_data resets[RST_GR3D_MAX];
+ 	unsigned int nresets;
++#if defined(NV_DEVM_PM_DOMAIN_ATTACH_LIST_PRESENT) /* Linux v6.13 */
++	struct dev_pm_domain_list *pd_list;
++#endif
+ 
+ 	DECLARE_BITMAP(addr_regs, GR3D_NUM_REGS);
+ };
+@@ -373,13 +376,21 @@ static int gr3d_power_up_legacy_domain(struct device *dev, const char *name,
+ 	return 0;
+ }
+ 
++#if !defined(NV_DEVM_PM_DOMAIN_ATTACH_LIST_PRESENT) /* Linux v6.13 */
+ static void gr3d_del_link(void *link)
+ {
+ 	device_link_del(link);
+ }
++#endif
+ 
+ static int gr3d_init_power(struct device *dev, struct gr3d *gr3d)
+ {
++#if defined(NV_DEVM_PM_DOMAIN_ATTACH_LIST_PRESENT) /* Linux v6.13 */
++	struct dev_pm_domain_attach_data pd_data = {
++		.pd_names = (const char *[]) { "3d0", "3d1" },
++		.num_pd_names = 2,
++	};
++#else
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 17, 0)
+ 	static const char * const opp_genpd_names[] = { "3d0", "3d1", NULL };
+ #else
+@@ -389,6 +400,8 @@ static int gr3d_init_power(struct device *dev, struct gr3d *gr3d)
+ 	struct device **opp_virt_devs, *pd_dev;
+ 	struct device_link *link;
+ 	unsigned int i;
++#endif
++
+ 	int err;
+ 
+ 	err = of_count_phandle_with_args(dev->of_node, "power-domains",
+@@ -422,6 +435,11 @@ static int gr3d_init_power(struct device *dev, struct gr3d *gr3d)
+ 	if (dev->pm_domain)
+ 		return 0;
+ 
++#if defined(NV_DEVM_PM_DOMAIN_ATTACH_LIST_PRESENT) /* Linux v6.13 */
++	err = devm_pm_domain_attach_list(dev, &pd_data, &gr3d->pd_list);
++	if (err < 0)
++		return err;
++#else
+ 	err = devm_pm_opp_attach_genpd(dev, opp_genpd_names, &opp_virt_devs);
+ 	if (err)
+ 		return err;
+@@ -444,6 +462,7 @@ static int gr3d_init_power(struct device *dev, struct gr3d *gr3d)
+ 		if (err)
+ 			return err;
+ 	}
++#endif
+ 
+ 	return 0;
+ }
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index c159adeb..f570da89 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -112,6 +112,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += cyclecounter_struct_read_has_const_cycleco
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += define_semaphore_has_number_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += device_add_disk_has_int_return_type
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += devm_spi_alloc_host
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += devm_pm_domain_attach_list
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += devm_tegra_core_dev_init_opp_table_common
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += devm_thermal_of_zone_register
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += disk_check_media_change
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index bcd32a53..a73c1c82 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -6938,6 +6938,19 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DEVM_SPI_ALLOC_HOST_PRESENT" "" "functions"
+         ;;
+ 
++        devm_pm_domain_attach_list)
++            #
++            # Determine whether devm_pm_domain_attach_list is present.
++            #
++            CODE="
++            #include <linux/pm_domain.h>
++            void conftest_devm_pm_domain_attach_list(void) {
++                devm_pm_domain_attach_list();
++            }"
++
++            compile_check_conftest "$CODE" "NV_DEVM_PM_DOMAIN_ATTACH_LIST_PRESENT" "" "functions"
++        ;;
++
+         devm_tegra_core_dev_init_opp_table_common)
+             #
+             # Determine whether devm_tegra_core_dev_init_opp_table_common is
+-- 
+2.43.0
+

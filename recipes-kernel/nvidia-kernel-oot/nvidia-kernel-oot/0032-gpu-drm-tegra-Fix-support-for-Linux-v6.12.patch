@@ -1,0 +1,43 @@
+From beb28a5103460948c69703f880bb46b8f68af596 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:13 -0800
+Subject: [PATCH 32/98] gpu/drm: tegra: Fix support for Linux v6.12
+
+In Linux v6.12, commit 641bb4394f40 ("fs: move FMODE_UNSIGNED_OFFSET to
+fop_flags") moves the setting of the FMODE_UNSIGNED_OFFSET into the
+various drivers and renames this flag. This change is causing various
+tests to fail because opening the DRM device is failing.
+
+Use the presence of the new FOP_UNSIGNED_OFFSET flag in the kernel to
+determine if we need to set this flag in the Tegra DRM driver.
+
+Bug 4876974
+
+Upstream-Status: Backport [commit 00ab7abbb67]
+Change-Id: Ie72a9340187b1c206f0cda6d7e3dab44d603a41c
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3269063
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 0e61c73b..72740399 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -807,6 +807,9 @@ static const struct file_operations tegra_drm_fops = {
+ 	.read = drm_read,
+ 	.compat_ioctl = drm_compat_ioctl,
+ 	.llseek = noop_llseek,
++#if defined(FOP_UNSIGNED_OFFSET)
++	.fop_flags = FOP_UNSIGNED_OFFSET,
++#endif
+ };
+ 
+ static int tegra_drm_context_cleanup(int id, void *p, void *data)
+-- 
+2.43.0
+

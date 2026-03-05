@@ -1,0 +1,232 @@
+From 62f3a4d32c387dffc985c756877ef2f2af80743c Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:13 -0800
+Subject: [PATCH 30/98] pci: endpoint: Update drivers for Linux v6.11
+
+For Linux v6.11, the 'pci_epc_event_ops' structure 'core_init' callback
+was renamed to 'epc_init' and a new 'epc_deinit' callback was added.
+
+Update the PCI endpoint drivers for Linux v6.11 by:
+
+ 1. Adding tests to conftest to detect the presence of 'epc_init' and
+    'epc_deinit'.
+ 2. Update the drivers as necessary to use the appropriate callback
+    depending upon what is present in the kernel.
+
+Bug 4749580
+
+Upstream-Status: Backport
+Change-Id: Ife7e2d5d18332bf84f22142c9727dc1ece913c49
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3186686
+(cherry picked from commit b0ff4f13589e050a5848fd76fa2c1cd574a23e96)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3219305
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/misc/nvscic2c-pcie/epf/module.c       | 21 ++++++++++--
+ .../pci/endpoint/functions/pci-epf-dma-test.c | 18 ++++++++--
+ .../endpoint/functions/pci-epf-tegra-vnet.c   | 18 ++++++++--
+ scripts/conftest/Makefile                     |  2 ++
+ scripts/conftest/conftest.sh                  | 33 +++++++++++++++++++
+ 5 files changed, 85 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/misc/nvscic2c-pcie/epf/module.c b/drivers/misc/nvscic2c-pcie/epf/module.c
+index afd0eecc..03148206 100644
+--- a/drivers/misc/nvscic2c-pcie/epf/module.c
++++ b/drivers/misc/nvscic2c-pcie/epf/module.c
+@@ -171,7 +171,8 @@ allocate_outbound_area(struct pci_epf *epf, size_t win_size,
+ 	return ret;
+ }
+ 
+-#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Nvidia Internal */
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT) || \
++    defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Linux v6.11 || Nvidia Internal */
+ static void
+ clear_inbound_translation(struct pci_epf *epf)
+ {
+@@ -494,7 +495,8 @@ deinit_work(struct work_struct *work)
+  * @DRV_MODE_EPC would have already gone then by the time
+  * struct pci_epc_event_ops.core_deinit is called.
+  */
+-#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Nvidia Internal */
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT) || \
++    defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Linux v6.11 || Nvidia Internal */
+ static int
+ nvscic2c_pcie_epf_core_deinit(struct pci_epf *epf)
+ {
+@@ -522,6 +524,13 @@ nvscic2c_pcie_epf_core_deinit(struct pci_epf *epf)
+ 
+ 	return 0;
+ }
++
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT)
++static void nvscic2c_pcie_epf_epc_deinit(struct pci_epf *epf)
++{
++	WARN_ON(nvscic2c_pcie_epf_core_deinit(epf));
++}
++#endif
+ #endif
+ 
+ /* Handle link message from @DRV_MODE_EPC. */
+@@ -734,8 +743,14 @@ get_driverdata(const struct pci_epf_device_id *id,
+ }
+ 
+ static const struct pci_epc_event_ops nvscic2c_event_ops = {
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_INIT) /* Linux v6.11 */
++	.epc_init = nvscic2c_pcie_epf_core_init,
++#else
+ 	.core_init = nvscic2c_pcie_epf_core_init,
+-#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Nvidia Internal */
++#endif
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT) /* Linux v6.11 */
++	.epc_deinit = nvscic2c_pcie_epf_epc_deinit,
++#elif defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Nvidia Internal */
+ 	.core_deinit = nvscic2c_pcie_epf_core_deinit,
+ #endif
+ };
+diff --git a/drivers/pci/endpoint/functions/pci-epf-dma-test.c b/drivers/pci/endpoint/functions/pci-epf-dma-test.c
+index ee0c8bdd..bbfd5cbd 100644
+--- a/drivers/pci/endpoint/functions/pci-epf-dma-test.c
++++ b/drivers/pci/endpoint/functions/pci-epf-dma-test.c
+@@ -170,7 +170,8 @@ static int pcie_dma_epf_core_init(struct pci_epf *epf)
+ 	return 0;
+ }
+ 
+-#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Nvidia Internal */
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT) || \
++    defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Linux v6.11 || Nvidia Internal */
+ static int pcie_dma_epf_core_deinit(struct pci_epf *epf)
+ {
+ 	struct pcie_epf_dma *epfnv = epf_get_drvdata(epf);
+@@ -186,6 +187,13 @@ static int pcie_dma_epf_core_deinit(struct pci_epf *epf)
+ 
+ 	return 0;
+ }
++
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT)
++static void pcie_dma_epf_epc_deinit(struct pci_epf *epf)
++{
++	pcie_dma_epf_core_deinit(epf);
++}
++#endif
+ #endif
+ 
+ static void pcie_dma_epf_unbind(struct pci_epf *epf)
+@@ -283,8 +291,14 @@ static const struct pci_epf_device_id pcie_dma_epf_ids[] = {
+ };
+ 
+ static const struct pci_epc_event_ops pci_epf_dma_test_event_ops = {
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_INIT) /* Linux v6.11 */
++	.epc_init = pcie_dma_epf_core_init,
++#else
+ 	.core_init = pcie_dma_epf_core_init,
+-#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Nvidia Internal */
++#endif
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT) /* Linux v6.11 */
++	.epc_deinit = pcie_dma_epf_epc_deinit,
++#elif defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Nvidia Internal */
+ 	.core_deinit = pcie_dma_epf_core_deinit,
+ #endif
+ };
+diff --git a/drivers/pci/endpoint/functions/pci-epf-tegra-vnet.c b/drivers/pci/endpoint/functions/pci-epf-tegra-vnet.c
+index 52119311..ceb12d85 100644
+--- a/drivers/pci/endpoint/functions/pci-epf-tegra-vnet.c
++++ b/drivers/pci/endpoint/functions/pci-epf-tegra-vnet.c
+@@ -1631,7 +1631,8 @@ static void tvnet_ep_pci_epf_linkup(struct pci_epf *epf)
+ #endif
+ 
+ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 14, 0))
+-#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT)
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT) || \
++    defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Linux v6.11 || Nvidia Internal */
+ static int tvnet_ep_pci_epf_core_deinit(struct pci_epf *epf)
+ {
+ 	struct pci_epf_bar *epf_bar = &epf->bar[BAR_0];
+@@ -1647,11 +1648,24 @@ static int tvnet_ep_pci_epf_core_deinit(struct pci_epf *epf)
+ 
+ 	return 0;
+ }
++
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT)
++static void tvnet_ep_pci_epf_epc_deinit(struct pci_epf *epf)
++{
++	WARN_ON(tvnet_ep_pci_epf_core_deinit(epf));
++}
++#endif
+ #endif
+ 
+ static const struct pci_epc_event_ops tvnet_event_ops = {
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_INIT) /* Linux v6.11 */
++	.epc_init = tvnet_ep_pci_epf_core_init,
++#else
+ 	.core_init = tvnet_ep_pci_epf_core_init,
+-#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT)
++#endif
++#if defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT) /* Linux v6.11 */
++	.epc_deinit = tvnet_ep_pci_epf_epc_deinit,
++#elif defined(NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT) /* Nvidia Internal */
+ 	.core_deinit = tvnet_ep_pci_epf_core_deinit,
+ #endif
+ 	.link_up = tvnet_ep_pci_epf_linkup,
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 75a557db..f58f2ef7 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -154,6 +154,8 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_enable_pcie_error_reporting
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epf_alloc_space_has_epc_features_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epf_driver_struct_probe_has_id_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epc_event_ops_struct_has_core_deinit
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epc_event_ops_struct_has_epc_deinit
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epc_event_ops_struct_has_epc_init
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epc_irq_type_enum_present
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += platform_driver_struct_remove_returns_void
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += register_shrinker_has_fmt_arg
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index d50c67e8..54340a86 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7589,6 +7589,39 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT" "" "types"
+         ;;
+ 
++        pci_epc_event_ops_struct_has_epc_deinit)
++            #
++            # Determine if the pci_epc_event_ops struct has the epc_deinit function.
++            #
++            # Commit 473b2cf9c4d1 ("PCI: endpoint: Introduce 'epc_deinit' event and
++            # notify the EPF drivers) added 'epc_deinit' callback in Linux v6.11.
++            #
++            CODE="
++            #include <linux/pci-epf.h>
++            int conftest_pci_epc_event_ops_struct_has_epc_deinit(void) {
++                return offsetof(struct pci_epc_event_ops, epc_deinit);
++            }"
++
++            compile_check_conftest "$CODE" "NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_DEINIT" "" "types"
++        ;;
++
++        pci_epc_event_ops_struct_has_epc_init)
++            #
++            # Determine if the pci_epc_event_ops struct has the epc_init function.
++            #
++            # Commit 4edd7dc82bd6 ("PCI: endpoint: Rename core_init() callback in
++            # 'struct pci_epc_event_ops' to epc_init()") renamed core_init()
++            # in Linux v6.11.
++            #
++            CODE="
++            #include <linux/pci-epf.h>
++            int conftest_pci_epc_event_ops_struct_has_epc_init(void) {
++                return offsetof(struct pci_epc_event_ops, epc_init);
++            }"
++
++            compile_check_conftest "$CODE" "NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_INIT" "" "types"
++        ;;
++
+         platform_driver_struct_remove_returns_void)
+             #
+             # Determine if the 'platform_driver' structure 'remove' function
+-- 
+2.43.0
+

@@ -1,0 +1,163 @@
+From 32e25a2e4c2c6f9f73396c03bfdb1a8f24c79d40 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:11 -0800
+Subject: [PATCH 22/98] scripts: Add scripts for platform_driver remove
+
+In Linux v6.11, the 'platform_driver' structure 'remove' callback was
+updated to return void instead of 'int'. This change impacts all OOT
+platform drivers and so instead of editing each manually, add a
+coccinelle script to handle updating all platform drivers. This script
+is ran by executing the following command ...
+
+ $ spatch --in-place \
+   --sp-file /path/to/scripts/coccinelle/platform_driver_remove.cocci
+   <driver-source-directory>
+
+Finally, add a test to the conftest script that is used to detect if the
+platform driver 'remove' callback returns 'void'.
+
+Bug 4749580
+
+Upstream-Status: Backport
+Change-Id: I53d25cc36cc3be97a6eeeb4ccbdf9b7dfda338a9
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3176834
+(cherry picked from commit 24826db83faa8a17ead7c111cbbcd827fc2d85aa)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3202689
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../coccinelle/platform_driver_remove.cocci   | 77 +++++++++++++++++++
+ scripts/conftest/Makefile                     |  1 +
+ scripts/conftest/conftest.sh                  | 18 +++++
+ 3 files changed, 96 insertions(+)
+ create mode 100644 scripts/coccinelle/platform_driver_remove.cocci
+
+diff --git a/scripts/coccinelle/platform_driver_remove.cocci b/scripts/coccinelle/platform_driver_remove.cocci
+new file mode 100644
+index 00000000..07e9884d
+--- /dev/null
++++ b/scripts/coccinelle/platform_driver_remove.cocci
+@@ -0,0 +1,77 @@
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// Options: --no-includes --include-headers --smpl-spacing
++
++@match1@
++identifier p, removefn;
++@@
++struct platform_driver p = {
++	.remove = removefn,
++};
++
++@match2@
++identifier p, removefn;
++@@
++struct platform_driver p = {
++	.remove = __exit_p(removefn),
++};
++
++@match3@
++@@
++#include <nvidia/conftest.h>
++
++@fix1 depends on match1@
++identifier match1.p;
++identifier match1.removefn;
++fresh identifier removefn_wrapper = removefn ## "_wrapper";
++@@
+++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
+++static inline void removefn_wrapper(struct platform_device *pdev)
+++{
+++	removefn(pdev);
+++}
+++#else
+++static inline int removefn_wrapper(struct platform_device *pdev)
+++{
+++	return removefn(pdev);
+++}
+++#endif
+++
++struct platform_driver p = {
++-	.remove = removefn,
+++	.remove = removefn_wrapper,
++};
++
++@fix2 depends on match2@
++identifier match2.p;
++identifier match2.removefn;
++fresh identifier removefn_wrapper = removefn ## "_wrapper";
++@@
+++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
+++static inline void removefn_wrapper(struct platform_device *pdev)
+++{
+++	removefn(pdev);
+++}
+++#else
+++static inline int removefn_wrapper(struct platform_device *pdev)
+++{
+++	return removefn(pdev);
+++}
+++#endif
+++
++struct platform_driver p = {
++-	.remove = __exit_p(removefn),
+++	.remove = __exit_p(removefn_wrapper),
++};
++
++@fix3 depends on (match1 || match2) && !match3@
++@@
+++#include <nvidia/conftest.h>
+++
++#include <...>
++
++@fix4 depends on (match1 || match2) && (!match3 && !fix3)@
++@@
+++#include <nvidia/conftest.h>
+++
++#include "..."
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 402c5f8c..c21ec23c 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -153,6 +153,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epf_alloc_space_has_epc_features_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epf_driver_struct_probe_has_id_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epc_event_ops_struct_has_core_deinit
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epc_irq_type_enum_present
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += platform_driver_struct_remove_returns_void
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += register_shrinker_has_fmt_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += shrinker_alloc
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += slab_mem_spread
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 3c5961bb..0fa7084b 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7555,6 +7555,24 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_CORE_DEINIT" "" "types"
+         ;;
+ 
++        platform_driver_struct_remove_returns_void)
++            #
++            # Determine if the 'platform_driver' structure 'remove' function
++            # pointer returns void.
++            #
++            # Commit 0edb555a65d1 ("platform: Make platform_driver::remove()
++            # return void") update the platform_driver structure 'remove'
++            # callback to return void instead of int.
++            #
++            CODE="
++            #include <linux/platform_device.h>
++            void conftest_platform_driver_struct_remove_returns_void(struct platform_driver *driver) {
++                void (*fn)(struct platform_device *) = driver->remove;
++            }"
++
++            compile_check_conftest "$CODE" "NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID" "" "types"
++        ;;
++
+         register_shrinker_has_fmt_arg)
+             #
+             # Determine if the 'register_shrinker' function
+-- 
+2.43.0
+

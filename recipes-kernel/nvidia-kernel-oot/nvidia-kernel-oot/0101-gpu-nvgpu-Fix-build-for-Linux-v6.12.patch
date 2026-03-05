@@ -1,0 +1,133 @@
+From 2d74bc5e89339c3f53f7e7559efe740b2203bbcc Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:29:35 -0800
+Subject: [PATCH 101/103] gpu: nvgpu: Fix build for Linux v6.12
+
+In Linux v6.12, commit 88a2f6468d01 ("struct fd: representation change")
+removed the 'struct file' pointer from 'struct fd'. This breaks building
+the NVGPU driver that tries to directly access the 'file' pointer
+from the 'fd' structure. Fix this by using the helper macros 'fd_empty'
+and 'fd_file' as necessary to fix the build.
+
+Bug 4593750
+
+Upstream-Status: Backport
+Change-Id: I4c66b8e59be9df196b851983a1b6dbf0dda905ee
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nvgpu/+/3217454
+(cherry picked from commit 9708dc5effde47d013240d898186416d9ed55fe0)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nvgpu/+/3226682
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Sagar Kamble <skamble@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/nvgpu/os/linux/ioctl_clk_arb.c | 55 ++++++++++++++--------
+ 1 file changed, 35 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/gpu/nvgpu/os/linux/ioctl_clk_arb.c b/drivers/gpu/nvgpu/os/linux/ioctl_clk_arb.c
+index c7cd73e17..e6e178b6e 100644
+--- a/drivers/gpu/nvgpu/os/linux/ioctl_clk_arb.c
++++ b/drivers/gpu/nvgpu/os/linux/ioctl_clk_arb.c
+@@ -1,18 +1,9 @@
+-/*
+- * Copyright (c) 2016-2022, NVIDIA CORPORATION.  All rights reserved.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+- * more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program. If not, see <http://www.gnu.org/licenses/>.
+- */
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2016-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#if defined(CONFIG_NVIDIA_CONFTEST)
++#include <nvidia/conftest.h>
++#endif
+ 
+ #include <linux/cdev.h>
+ #include <linux/file.h>
+@@ -418,21 +409,33 @@ int nvgpu_clk_arb_commit_request_fd(struct gk20a *g,
+ {
+ 	struct nvgpu_clk_arb *arb = g->clk_arb;
+ 	struct nvgpu_clk_dev *dev;
++	struct file *filp;
+ 	struct fd fd;
+ 	int err = 0;
+ 
+ 	clk_arb_dbg(g, " ");
+ 
+-	fd  = fdget(request_fd);
++	fd = fdget(request_fd);
++#if defined(NV_FD_EMPTY_PRESENT) /* Linux v6.12 */
++	if (fd_empty(fd))
++		return -EINVAL;
++#else
+ 	if (!fd.file)
+ 		return -EINVAL;
++#endif
+ 
+-	if (fd.file->f_op != &completion_dev_ops) {
++#if defined(NV_FD_FILE_PRESENT) /* Linux v6.12 */
++	filp = fd_file(fd);
++#else
++	filp = fd.file;
++#endif
++
++	if (filp->f_op != &completion_dev_ops) {
+ 		err = -EINVAL;
+ 		goto fdput_fd;
+ 	}
+ 
+-	dev = (struct nvgpu_clk_dev *) fd.file->private_data;
++	dev = (struct nvgpu_clk_dev *)filp->private_data;
+ 
+ 	if (!dev || dev->session != session) {
+ 		err = -EINVAL;
+@@ -458,6 +461,7 @@ int nvgpu_clk_arb_set_session_target_mhz(struct nvgpu_clk_session *session,
+ 		int request_fd, u32 api_domain, u16 target_mhz)
+ {
+ 	struct nvgpu_clk_dev *dev;
++	struct file *filp;
+ 	struct fd fd;
+ 	int err = 0;
+ 
+@@ -465,15 +469,26 @@ int nvgpu_clk_arb_set_session_target_mhz(struct nvgpu_clk_session *session,
+ 			"domain=0x%08x target_mhz=%u", api_domain, target_mhz);
+ 
+ 	fd = fdget(request_fd);
++
++#if defined(NV_FD_EMPTY_PRESENT) /* Linux v6.12 */
++	if (fd_empty(fd))
++		return -EINVAL;
++#else
+ 	if (!fd.file)
+ 		return -EINVAL;
++#endif
+ 
+-	if (fd.file->f_op != &completion_dev_ops) {
++#if defined(NV_FD_FILE_PRESENT) /* Linux v6.12 */
++	filp = fd_file(fd);
++#else
++	filp = fd.file;
++#endif
++	if (filp->f_op != &completion_dev_ops) {
+ 		err = -EINVAL;
+ 		goto fdput_fd;
+ 	}
+ 
+-	dev = fd.file->private_data;
++	dev = filp->private_data;
+ 	if (!dev || dev->session != session) {
+ 		err = -EINVAL;
+ 		goto fdput_fd;
+-- 
+2.43.0
+

@@ -1,0 +1,650 @@
+From e8289cdf4771dec1070b3eadb1d8e109a1e05c0a Mon Sep 17 00:00:00 2001
+From: Mikko Perttunen <mperttunen@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:13 -0800
+Subject: [PATCH 33/98] gpu: host1x: Memory context stealing
+
+Currently, each process holding an open TegraDRM channel reserves
+for itself one of the limited number of hardware memory contexts.
+Attempting to allocate a channel when all contexts are in use
+results in failure.
+
+While we cannot have more contexts than the hardware supports in
+active use, idle channels don't necessarily need to have a backing
+memory context. As such, in this patch, we add another layer
+to allow hardware memory contexts to be "stolen away" by channels
+that are in active use, from idle processes.
+
+The way this is implemented, is by keeping track of memory
+mappings on each abstracted memory context. If we need to
+steal that memory context's backing hardware context, we unmap
+everything from it and give it away. When that abstracted
+memory context is needed again (re-activated), we attempt
+to allocate or steal another hardware context and re-map
+the previously unmapped buffers.
+
+Unfortunately, this means additional overhead and unpredictability
+at submit time. Submit can fail if we cannot re-allocate a
+backing memory context. Future work includes a provision for
+un-stealable backing hardware memory contexts for processes
+requiring more determinism, as well as optimization and cosmetic
+improvements.
+
+Bug 4403250
+Bug 4399310
+
+Upstream-Status: Backport [commit e062e9d49ccfc]
+Signed-off-by: Mikko Perttunen <mperttunen@nvidia.com>
+Change-Id: I3d13e3476f1bff3c4757152254496cddaaafd76a
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3058905
+Reviewed-by: Santosh BS <santoshb@nvidia.com>
+GVS: Gerrit_Virtual_Submit <buildbot_gerritrpt@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3227749
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Tested-by: Dane Liu <danel@nvidia.com>
+Reviewed-by: Bibek Basu <bbasu@nvidia.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.h                   |   2 +-
+ drivers/gpu/drm/tegra/submit.c                |  32 ++-
+ drivers/gpu/drm/tegra/uapi.c                  |  44 ++--
+ drivers/gpu/drm/tegra/uapi.h                  |   3 +-
+ drivers/gpu/host1x/context.c                  | 215 ++++++++++++++++--
+ drivers/gpu/host1x/context.h                  |  16 +-
+ drivers/gpu/host1x/hw/channel_hw.c            |   3 +-
+ .../gpu/host1x/include/linux/host1x-next.h    |  46 +++-
+ 8 files changed, 317 insertions(+), 44 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/drm.h b/drivers/gpu/drm/tegra/drm.h
+index 3cd9795a..1858be32 100644
+--- a/drivers/gpu/drm/tegra/drm.h
++++ b/drivers/gpu/drm/tegra/drm.h
+@@ -130,7 +130,7 @@ static inline struct device *
+ tegra_drm_context_get_memory_device(struct tegra_drm_context *context)
+ {
+ 	if (context->memory_context)
+-		return &context->memory_context->dev;
++		return context->memory_context->context_dev;
+ 	else
+ 		return context->client->base.dev;
+ }
+diff --git a/drivers/gpu/drm/tegra/submit.c b/drivers/gpu/drm/tegra/submit.c
+index b489d8bd..9b687e65 100644
+--- a/drivers/gpu/drm/tegra/submit.c
++++ b/drivers/gpu/drm/tegra/submit.c
+@@ -240,9 +240,14 @@ static int submit_write_reloc(struct tegra_drm_context *context, struct gather_b
+ 			      struct drm_tegra_submit_buf *buf, struct tegra_drm_mapping *mapping)
+ {
+ 	/* TODO check that target_offset is within bounds */
+-	dma_addr_t iova = mapping->iova + buf->reloc.target_offset;
++	dma_addr_t iova = buf->reloc.target_offset;
+ 	u32 written_ptr;
+ 
++	if (mapping->bo_map)
++		iova += mapping->iova;
++	else
++		iova += mapping->ctx_map->mapping->phys;
++
+ #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
+ 	if (buf->flags & DRM_TEGRA_SUBMIT_RELOC_SECTOR_LAYOUT)
+ 		iova |= BIT_ULL(39);
+@@ -526,9 +531,6 @@ static void release_job(struct host1x_job *job)
+ 	struct tegra_drm_submit_data *job_data = job->user_data;
+ 	u32 i;
+ 
+-	if (job->memory_context)
+-		host1x_memory_context_put(job->memory_context);
+-
+ 	if (IS_ENABLED(CONFIG_TRACING) && job_data->timestamps.virt) {
+ 		u64 *timestamps = job_data->timestamps.virt;
+ 
+@@ -542,6 +544,11 @@ static void release_job(struct host1x_job *job)
+ 	for (i = 0; i < job_data->num_used_mappings; i++)
+ 		tegra_drm_mapping_put(job_data->used_mappings[i].mapping);
+ 
++	if (job->memory_context) {
++		host1x_memory_context_inactive(job->memory_context);
++		host1x_memory_context_put(job->memory_context);
++	}
++
+ 	kfree(job_data->used_mappings);
+ 	kfree(job_data);
+ 
+@@ -581,6 +588,7 @@ static int submit_init_profiling(struct tegra_drm_context *context,
+ int tegra_drm_ioctl_channel_submit(struct drm_device *drm, void *data,
+ 				   struct drm_file *file)
+ {
++	struct host1x_memory_context *active_memctx = NULL;
+ 	struct tegra_drm_file *fpriv = file->driver_priv;
+ 	struct drm_tegra_channel_submit *args = data;
+ 	static atomic_t next_job_id = ATOMIC_INIT(1);
+@@ -604,6 +612,17 @@ int tegra_drm_ioctl_channel_submit(struct drm_device *drm, void *data,
+ 		return -EINVAL;
+ 	}
+ 
++	if (context->memory_context) {
++		err = host1x_memory_context_active(context->memory_context);
++		if (err) {
++			mutex_unlock(&fpriv->lock);
++			SUBMIT_ERR(context, "failed to activate memory context");
++			return err;
++		}
++
++		active_memctx = context->memory_context;
++	}
++
+ 	if (args->flags & ~(DRM_TEGRA_SUBMIT_SECONDARY_SYNCPT)) {
+ 		SUBMIT_ERR(context, "invalid flags '%#x'", args->flags);
+ 		goto unlock;
+@@ -704,7 +723,8 @@ int tegra_drm_ioctl_channel_submit(struct drm_device *drm, void *data,
+ 		}
+ 
+ 		if (supported) {
+-			job->memory_context = context->memory_context;
++			job->memory_context = active_memctx;
++			active_memctx = NULL;
+ 			host1x_memory_context_get(job->memory_context);
+ 		}
+ 	} else if (context->client->ops->get_streamid_offset) {
+@@ -825,6 +845,8 @@ put_bo:
+ unlock:
+ 	if (syncobj)
+ 		drm_syncobj_put(syncobj);
++	if (active_memctx)
++		host1x_memory_context_inactive(active_memctx);
+ 
+ 	mutex_unlock(&fpriv->lock);
+ 	return err;
+diff --git a/drivers/gpu/drm/tegra/uapi.c b/drivers/gpu/drm/tegra/uapi.c
+index f5e89536..0f9342bc 100644
+--- a/drivers/gpu/drm/tegra/uapi.c
++++ b/drivers/gpu/drm/tegra/uapi.c
+@@ -17,7 +17,11 @@ static void tegra_drm_mapping_release(struct kref *ref)
+ 	struct tegra_drm_mapping *mapping =
+ 		container_of(ref, struct tegra_drm_mapping, ref);
+ 
+-	host1x_bo_unpin(mapping->map);
++	if (mapping->ctx_map)
++		host1x_memory_context_unmap(mapping->ctx_map);
++	else
++		host1x_bo_unpin(mapping->bo_map);
++
+ 	host1x_bo_put(mapping->bo);
+ 
+ 	kfree(mapping);
+@@ -33,12 +37,12 @@ static void tegra_drm_channel_context_close(struct tegra_drm_context *context)
+ 	struct tegra_drm_mapping *mapping;
+ 	unsigned long id;
+ 
+-	if (context->memory_context)
+-		host1x_memory_context_put(context->memory_context);
+-
+ 	xa_for_each(&context->mappings, id, mapping)
+ 		tegra_drm_mapping_put(mapping);
+ 
++	if (context->memory_context)
++		host1x_memory_context_put(context->memory_context);
++
+ 	xa_destroy(&context->mappings);
+ 
+ 	host1x_channel_put(context->channel);
+@@ -234,15 +238,26 @@ int tegra_drm_ioctl_channel_map(struct drm_device *drm, void *data, struct drm_f
+ 		goto put_gem;
+ 	}
+ 
+-	mapping->map = host1x_bo_pin(tegra_drm_context_get_memory_device(context),
+-				     mapping->bo, direction, NULL);
+-	if (IS_ERR(mapping->map)) {
+-		err = PTR_ERR(mapping->map);
+-		goto put_gem;
+-	}
++	if (context->memory_context) {
++		mapping->ctx_map = host1x_memory_context_map(
++			context->memory_context, mapping->bo, direction);
++
++		if (IS_ERR(mapping->ctx_map)) {
++			err = PTR_ERR(mapping->ctx_map);
++			goto put_gem;
++		}
++	} else {
++		mapping->bo_map = host1x_bo_pin(context->client->base.dev,
++				mapping->bo, direction, NULL);
+ 
+-	mapping->iova = mapping->map->phys;
+-	mapping->iova_end = mapping->iova + host1x_to_tegra_bo(mapping->bo)->gem.size;
++		if (IS_ERR(mapping->bo_map)) {
++			err = PTR_ERR(mapping->bo_map);
++			goto put_gem;
++		}
++
++		mapping->iova = mapping->bo_map->phys;
++		mapping->iova_end = mapping->iova + host1x_to_tegra_bo(mapping->bo)->gem.size;
++	}
+ 
+ 	err = xa_alloc(&context->mappings, &args->mapping, mapping, XA_LIMIT(1, U32_MAX),
+ 		       GFP_KERNEL);
+@@ -254,7 +269,10 @@ int tegra_drm_ioctl_channel_map(struct drm_device *drm, void *data, struct drm_f
+ 	return 0;
+ 
+ unpin:
+-	host1x_bo_unpin(mapping->map);
++	if (mapping->ctx_map)
++		host1x_memory_context_unmap(mapping->ctx_map);
++	else
++		host1x_bo_unpin(mapping->bo_map);
+ put_gem:
+ 	host1x_bo_put(mapping->bo);
+ free:
+diff --git a/drivers/gpu/drm/tegra/uapi.h b/drivers/gpu/drm/tegra/uapi.h
+index 92ff1e44..7703ebb3 100644
+--- a/drivers/gpu/drm/tegra/uapi.h
++++ b/drivers/gpu/drm/tegra/uapi.h
+@@ -27,7 +27,8 @@ struct tegra_drm_file {
+ struct tegra_drm_mapping {
+ 	struct kref ref;
+ 
+-	struct host1x_bo_mapping *map;
++	struct host1x_bo_mapping *bo_map;
++	struct host1x_context_mapping *ctx_map;
+ 	struct host1x_bo *bo;
+ 
+ 	dma_addr_t iova;
+diff --git a/drivers/gpu/host1x/context.c b/drivers/gpu/host1x/context.c
+index a3c9c489..2ddbba81 100644
+--- a/drivers/gpu/host1x/context.c
++++ b/drivers/gpu/host1x/context.c
+@@ -17,7 +17,7 @@ int host1x_memory_context_list_init(struct host1x *host1x)
+ {
+ 	struct host1x_memory_context_list *cdl = &host1x->context_list;
+ 	struct device_node *node = host1x->dev->of_node;
+-	struct host1x_memory_context *ctx;
++	struct host1x_hw_memory_context *ctx;
+ 	unsigned int i;
+ 	int err;
+ 
+@@ -103,62 +103,241 @@ void host1x_memory_context_list_free(struct host1x_memory_context_list *cdl)
+ 	cdl->len = 0;
+ }
+ 
+-struct host1x_memory_context *host1x_memory_context_alloc(struct host1x *host1x,
++static struct host1x_hw_memory_context *host1x_memory_context_alloc_hw_locked(struct host1x *host1x,
+ 							  struct device *dev,
+ 							  struct pid *pid)
+ {
+ 	struct host1x_memory_context_list *cdl = &host1x->context_list;
+-	struct host1x_memory_context *free = NULL;
++	struct host1x_hw_memory_context *free = NULL, *can_steal = NULL;
++	struct host1x_memory_context *ctx;
+ 	int i;
+ 
+ 	if (!cdl->len)
+ 		return ERR_PTR(-EOPNOTSUPP);
+ 
+-	mutex_lock(&cdl->lock);
+-
+ 	for (i = 0; i < cdl->len; i++) {
+-		struct host1x_memory_context *cd = &cdl->devs[i];
++		struct host1x_hw_memory_context *cd = &cdl->devs[i];
+ 
+ 		if (cd->dev.iommu->iommu_dev != dev->iommu->iommu_dev)
+ 			continue;
+ 
+ 		if (cd->owner == pid) {
+ 			refcount_inc(&cd->ref);
+-			mutex_unlock(&cdl->lock);
+ 			return cd;
+ 		} else if (!cd->owner && !free) {
+ 			free = cd;
++		} else if (!cd->active) {
++			can_steal = cd;
+ 		}
+ 	}
+ 
+-	if (!free) {
+-		mutex_unlock(&cdl->lock);
++	if (free)
++		goto found;
++
++	/* Steal */
++
++	if (!can_steal) {
++		dev_warn(dev, "all context devices are busy\n");
+ 		return ERR_PTR(-EBUSY);
+ 	}
+ 
++	list_for_each_entry(ctx, &can_steal->owners, entry) {
++		struct host1x_context_mapping *mapping;
++
++		ctx->hw = NULL;
++		ctx->context_dev = NULL;
++
++		list_for_each_entry(mapping, &ctx->mappings, entry) {
++			host1x_bo_unpin(mapping->mapping);
++			mapping->mapping = NULL;
++		}
++	}
++
++	put_pid(can_steal->owner);
++
++	free = can_steal;
++
++found:
+ 	refcount_set(&free->ref, 1);
+ 	free->owner = get_pid(pid);
+-
+-	mutex_unlock(&cdl->lock);
++	INIT_LIST_HEAD(&free->owners);
+ 
+ 	return free;
+ }
++
++static void host1x_memory_context_hw_put(struct host1x_hw_memory_context *cd)
++{
++	if (refcount_dec_and_test(&cd->ref)) {
++		put_pid(cd->owner);
++		cd->owner = NULL;
++	}
++}
++
++struct host1x_memory_context *host1x_memory_context_alloc(
++	struct host1x *host1x, struct device *dev, struct pid *pid)
++{
++	struct host1x_memory_context_list *cdl = &host1x->context_list;
++	struct host1x_memory_context *ctx;
++
++	if (!cdl->len)
++		return ERR_PTR(-EOPNOTSUPP);
++
++	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
++	if (!ctx)
++		return ERR_PTR(-ENOMEM);
++
++	ctx->host = host1x;
++	ctx->dev = dev;
++	ctx->pid = get_pid(pid);
++
++	refcount_set(&ctx->ref, 1);
++	INIT_LIST_HEAD(&ctx->mappings);
++
++	return ctx;
++}
+ EXPORT_SYMBOL_GPL(host1x_memory_context_alloc);
+ 
+-void host1x_memory_context_get(struct host1x_memory_context *cd)
++int host1x_memory_context_active(struct host1x_memory_context *ctx)
++{
++	struct host1x_memory_context_list *cdl = &ctx->host->context_list;
++	struct host1x_context_mapping *mapping;
++	struct host1x_hw_memory_context *hw;
++	int err = 0;
++
++	mutex_lock(&cdl->lock);
++
++	if (!ctx->hw) {
++		hw = host1x_memory_context_alloc_hw_locked(ctx->host, ctx->dev, ctx->pid);
++		if (IS_ERR(hw)) {
++			err = PTR_ERR(hw);
++			goto unlock;
++		}
++
++		ctx->hw = hw;
++		ctx->context_dev = &hw->dev;
++		list_add(&ctx->entry, &hw->owners);
++
++		list_for_each_entry(mapping, &ctx->mappings, entry) {
++			mapping->mapping = host1x_bo_pin(
++				&hw->dev, mapping->bo, mapping->direction, NULL);
++			if (IS_ERR(mapping->mapping)) {
++				err = PTR_ERR(mapping->mapping);
++				mapping->mapping = NULL;
++				goto unpin;
++			}
++		}
++	}
++
++	ctx->hw->active++;
++
++	mutex_unlock(&cdl->lock);
++
++	return 0;
++
++unpin:
++	list_for_each_entry(mapping, &ctx->mappings, entry) {
++		if (mapping->mapping)
++			host1x_bo_unpin(mapping->mapping);
++	}
++
++	host1x_memory_context_hw_put(ctx->hw);
++	list_del(&ctx->entry);
++	ctx->hw = NULL;
++unlock:
++	mutex_unlock(&cdl->lock);
++	return err;
++}
++EXPORT_SYMBOL_GPL(host1x_memory_context_active);
++
++struct host1x_context_mapping *host1x_memory_context_map(
++	struct host1x_memory_context *ctx, struct host1x_bo *bo, enum dma_data_direction direction)
++{
++	struct host1x_memory_context_list *cdl = &ctx->host->context_list;
++	struct host1x_context_mapping *m;
++	struct host1x_bo_mapping *bo_m;
++
++	m = kzalloc(sizeof(*m), GFP_KERNEL);
++	if (!m)
++		return ERR_PTR(-ENOMEM);
++
++	m->host = ctx->host;
++	m->bo = bo;
++	m->direction = direction;
++
++	mutex_lock(&cdl->lock);
++
++	if (ctx->hw) {
++		bo_m = host1x_bo_pin(&ctx->hw->dev, bo, direction, NULL);
++		if (IS_ERR(bo_m)) {
++			mutex_unlock(&cdl->lock);
++			kfree(m);
++
++			return ERR_CAST(bo_m);
++		}
++
++		m->mapping = bo_m;
++	}
++
++	list_add(&m->entry, &ctx->mappings);
++
++	mutex_unlock(&cdl->lock);
++
++	return m;
++}
++EXPORT_SYMBOL_GPL(host1x_memory_context_map);
++
++void host1x_memory_context_unmap(struct host1x_context_mapping *m)
+ {
+-	refcount_inc(&cd->ref);
++	struct host1x_memory_context_list *cdl = &m->host->context_list;
++
++	mutex_lock(&cdl->lock);
++
++	list_del(&m->entry);
++
++	mutex_unlock(&cdl->lock);
++
++	if (m->mapping)
++		host1x_bo_unpin(m->mapping);
++
++	kfree(m);
++}
++EXPORT_SYMBOL_GPL(host1x_memory_context_unmap);
++
++void host1x_memory_context_inactive(struct host1x_memory_context *ctx)
++{
++	struct host1x_memory_context_list *cdl = &ctx->host->context_list;
++
++	mutex_lock(&cdl->lock);
++
++	ctx->hw->active--;
++
++	mutex_unlock(&cdl->lock);
++}
++EXPORT_SYMBOL_GPL(host1x_memory_context_inactive);
++
++void host1x_memory_context_get(struct host1x_memory_context *ctx)
++{
++	refcount_inc(&ctx->ref);
+ }
+ EXPORT_SYMBOL_GPL(host1x_memory_context_get);
+ 
+-void host1x_memory_context_put(struct host1x_memory_context *cd)
++void host1x_memory_context_put(struct host1x_memory_context *ctx)
+ {
+-	struct host1x_memory_context_list *cdl = &cd->host->context_list;
++	struct host1x_memory_context_list *cdl = &ctx->host->context_list;
+ 
+-	if (refcount_dec_and_mutex_lock(&cd->ref, &cdl->lock)) {
+-		put_pid(cd->owner);
+-		cd->owner = NULL;
++	if (refcount_dec_and_mutex_lock(&ctx->ref, &cdl->lock)) {
++		if (ctx->hw) {
++			list_del(&ctx->entry);
++
++			host1x_memory_context_hw_put(ctx->hw);
++			ctx->hw = NULL;
++
++			WARN_ON(!list_empty(&ctx->mappings));
++		}
++
++		put_pid(ctx->pid);
+ 		mutex_unlock(&cdl->lock);
++		kfree(ctx);
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(host1x_memory_context_put);
+diff --git a/drivers/gpu/host1x/context.h b/drivers/gpu/host1x/context.h
+index 3e03bc1d..2d10e64a 100644
+--- a/drivers/gpu/host1x/context.h
++++ b/drivers/gpu/host1x/context.h
+@@ -17,10 +17,24 @@ extern struct bus_type host1x_context_device_bus_type;
+ 
+ struct host1x_memory_context_list {
+ 	struct mutex lock;
+-	struct host1x_memory_context *devs;
++	struct host1x_hw_memory_context *devs;
+ 	unsigned int len;
+ };
+ 
++struct host1x_hw_memory_context {
++	struct host1x *host;
++
++	refcount_t ref;
++	struct pid *owner;
++
++	struct device dev;
++	u64 dma_mask;
++	u32 stream_id;
++
++	struct list_head owners;
++	unsigned int active;
++};
++
+ #ifdef CONFIG_IOMMU_API
+ int host1x_memory_context_list_init(struct host1x *host1x);
+ void host1x_memory_context_list_free(struct host1x_memory_context_list *cdl);
+diff --git a/drivers/gpu/host1x/hw/channel_hw.c b/drivers/gpu/host1x/hw/channel_hw.c
+index 9265c6ba..cbad04b0 100644
+--- a/drivers/gpu/host1x/hw/channel_hw.c
++++ b/drivers/gpu/host1x/hw/channel_hw.c
+@@ -12,6 +12,7 @@
+ #include <trace/events/host1x.h>
+ 
+ #include "../channel.h"
++#include "../context.h"
+ #include "../dev.h"
+ #include "../intr.h"
+ #include "../job.h"
+@@ -89,7 +90,7 @@ static void submit_setclass(struct host1x_job *job, u32 next_class)
+ 	 * firmware stream ID.
+ 	 */
+ 	if (job->memory_context)
+-		stream_id = job->memory_context->stream_id;
++		stream_id = job->memory_context->hw->stream_id;
+ 	else
+ 		stream_id = job->engine_fallback_streamid;
+ 
+diff --git a/drivers/gpu/host1x/include/linux/host1x-next.h b/drivers/gpu/host1x/include/linux/host1x-next.h
+index f8e619cf..99f4fb7a 100644
+--- a/drivers/gpu/host1x/include/linux/host1x-next.h
++++ b/drivers/gpu/host1x/include/linux/host1x-next.h
+@@ -495,12 +495,26 @@ int tegra_mipi_finish_calibration(struct tegra_mipi_device *device);
+ struct host1x_memory_context {
+ 	struct host1x *host;
+ 
++	struct device *dev; /* Owning engine */
++	struct pid *pid;
++
+ 	refcount_t ref;
+-	struct pid *owner;
+ 
+-	struct device dev;
+-	u64 dma_mask;
+-	u32 stream_id;
++	struct host1x_hw_memory_context *hw;
++	struct device *context_dev; /* Context device */
++	struct list_head entry; /* Entry in hw_memory_context's list */
++	struct list_head mappings; /* List of mappings */
++};
++
++struct host1x_context_mapping {
++	struct host1x *host;
++
++	struct host1x_bo_mapping *mapping;
++
++	struct host1x_bo *bo;
++	enum dma_data_direction direction;
++
++	struct list_head entry;
+ };
+ 
+ #ifdef CONFIG_IOMMU_API
+@@ -509,6 +523,11 @@ struct host1x_memory_context *host1x_memory_context_alloc(struct host1x *host1x,
+ 							  struct pid *pid);
+ void host1x_memory_context_get(struct host1x_memory_context *cd);
+ void host1x_memory_context_put(struct host1x_memory_context *cd);
++int host1x_memory_context_active(struct host1x_memory_context *cd);
++void host1x_memory_context_inactive(struct host1x_memory_context *cd);
++struct host1x_context_mapping *host1x_memory_context_map(
++	struct host1x_memory_context *ctx, struct host1x_bo *bo, enum dma_data_direction direction);
++void host1x_memory_context_unmap(struct host1x_context_mapping *m);
+ #else
+ static inline struct host1x_memory_context *host1x_memory_context_alloc(struct host1x *host1x,
+ 									struct pid *pid)
+@@ -523,6 +542,25 @@ static inline void host1x_memory_context_get(struct host1x_memory_context *cd)
+ static inline void host1x_memory_context_put(struct host1x_memory_context *cd)
+ {
+ }
++
++static inline int host1x_memory_context_active(struct host1x_memory_context *cd)
++{
++	return -ENODEV;
++}
++
++static inline void host1x_memory_context_inactive(struct host1x_memory_context *cd)
++{
++}
++
++static inline struct host1x_context_mapping *host1x_memory_context_map(
++	struct host1x_memory_context *ctx, struct host1x_bo *bo, enum dma_data_direction direction)
++{
++	return ERR_PTR(-ENODEV);
++}
++
++static inline void host1x_memory_context_unmap(struct host1x_context_mapping *m)
++{
++}
+ #endif
+ 
+ int host1x_actmon_read_avg_count(struct host1x_client *client);
+-- 
+2.43.0
+

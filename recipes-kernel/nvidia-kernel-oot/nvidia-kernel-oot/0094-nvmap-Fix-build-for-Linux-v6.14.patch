@@ -1,0 +1,90 @@
+From 19caff54eb636f1538f9432f8dba638aba6aa924 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:24:10 -0800
+Subject: [PATCH 94/98] nvmap: Fix build for Linux v6.14
+
+In Linux v6.14, the 'page_list' argument was dropped from the
+__alloc_pages_bulk() function. Add a test to conftest to check for this
+and update the NVMAP driver accordlingly to fix the build.
+
+Jira LINQPJ14-6
+
+Upstream-Status: Backport [commit cc09c0267]
+Change-Id: Id3513890a9d948cb42abf7449d9fb3aa95edcf96
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3297065
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: Ketan Patil <ketanp@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: svcacv <svcacv@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/video/tegra/nvmap/nvmap_alloc.c |  5 +++++
+ scripts/conftest/Makefile               |  1 +
+ scripts/conftest/conftest.sh            | 19 +++++++++++++++++++
+ 3 files changed, 25 insertions(+)
+
+diff --git a/drivers/video/tegra/nvmap/nvmap_alloc.c b/drivers/video/tegra/nvmap/nvmap_alloc.c
+index 387f3c9f..b25bfe1a 100644
+--- a/drivers/video/tegra/nvmap/nvmap_alloc.c
++++ b/drivers/video/tegra/nvmap/nvmap_alloc.c
+@@ -563,8 +563,13 @@ static int handle_page_alloc(struct nvmap_client *client,
+ 			if (page_index < nr_page) {
+ 				int nid = h->numa_id == NUMA_NO_NODE ? numa_mem_id() : h->numa_id;
+ 
++#if defined(NV__ALLOC_PAGES_BULK_HAS_NO_PAGE_LIST_ARG)
++				allocated = __alloc_pages_bulk(gfp, nid, NULL,
++						nr_page, pages);
++#else
+ 				allocated = __alloc_pages_bulk(gfp, nid, NULL,
+ 						nr_page, NULL, pages);
++#endif
+ 			}
+ #endif
+ 			for (i = allocated; i < nr_page; i++) {
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 9fb19be4..c159adeb 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -89,6 +89,7 @@ endef
+ #
+ 
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += __alloc_disk_node_has_lkclass_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += __alloc_pages_bulk_has_no_page_list_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += __assign_str_has_no_src_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += bin_attribute_struct_mmap_has_const_bin_attribute_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += bin_attribute_struct_readwrite_has_const_bin_attribute_arg
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index c0721824..bcd32a53 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -6544,6 +6544,25 @@ compile_test() {
+                     "NV_BIN_ATTRIBUTE_STRUCT_READWRITE_HAS_CONST_BIN_ATTRIBUTE_ARG" "" "types"
+         ;;
+ 
++        __alloc_pages_bulk_has_no_page_list_arg)
++            #
++            # Determine if the function __alloc_pages_bulk() has an 'page_list'
++            # argument.
++            #
++            # In Linux v6.14, commit c8b979530f27 ("mm: alloc_pages_bulk_noprof:
++            # drop page_list argument") removes the 'page_list' argument from
++            # __alloc_pages_bulk().
++            #
++            CODE="
++            #include <linux/gfp.h>
++            unsigned long confest_alloc_pages_bulk(gfp_t gfp, int nid, int nr_pages,
++                                                   struct page **page_array) {
++                return __alloc_pages_bulk(gfp, nid, NULL, nr_pages, page_array);
++            }"
++
++            compile_check_conftest "$CODE" "NV__ALLOC_PAGES_BULK_HAS_NO_PAGE_LIST_ARG" "" "types" $1.log
++        ;;
++
+         aperture_remove_all_conflicting_devices)
+             #
+             # Determine if the function aperture_remove_all_conflicting_devices()
+-- 
+2.43.0
+

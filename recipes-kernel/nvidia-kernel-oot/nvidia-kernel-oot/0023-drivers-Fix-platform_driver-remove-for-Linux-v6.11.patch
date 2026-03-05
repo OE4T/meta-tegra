@@ -1,0 +1,4079 @@
+From f7ee756f8af95e75977f0d82cc2537d64d568e53 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:11 -0800
+Subject: [PATCH 23/98] drivers: Fix platform_driver remove for Linux v6.11
+
+In Linux v6.11, the 'platform_driver' structure 'remove' callback was
+updated to return void instead of 'int'. Update all the impacted drivers
+as necessary to fix this.
+
+Bug 4749580
+
+Upstream-Status: Backport
+Change-Id: I3bb5c549777f7ccad0e3f870373fdd25726ad7ed
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3182878
+(cherry picked from commit 951b2423a8cfe80a5d320a03a399ee0fcc89f82e)
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3210788
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../tegra_hv_vblk_oops.c                      | 18 +++++++++--
+ .../block/tegra_virt_storage/tegra_hv_vblk.c  | 14 ++++++++-
+ drivers/cpuidle/cpuidle-tegra-auto.c          | 20 +++++++++++--
+ drivers/crypto/tegra-hv-vse-safety.c          | 16 +++++++++-
+ drivers/crypto/tegra-se-nvrng.c               | 18 +++++++++--
+ drivers/crypto/tegra/tegra-se-main.c          | 16 +++++++++-
+ drivers/gpu/drm/tegra/dc.c                    | 16 ++++++++--
+ drivers/gpu/drm/tegra/dpaux.c                 | 16 ++++++++--
+ drivers/gpu/drm/tegra/dsi.c                   | 16 ++++++++--
+ drivers/gpu/drm/tegra/gr2d.c                  | 18 +++++++++--
+ drivers/gpu/drm/tegra/gr3d.c                  | 18 +++++++++--
+ drivers/gpu/drm/tegra/hdmi.c                  | 16 ++++++++--
+ drivers/gpu/drm/tegra/hub.c                   | 18 +++++++++--
+ drivers/gpu/drm/tegra/nvdec.c                 | 16 +++++++++-
+ drivers/gpu/drm/tegra/nvenc.c                 | 16 +++++++++-
+ drivers/gpu/drm/tegra/nvjpg.c                 | 16 +++++++++-
+ drivers/gpu/drm/tegra/ofa.c                   | 18 +++++++++--
+ drivers/gpu/drm/tegra/sor.c                   | 16 ++++++++--
+ drivers/gpu/drm/tegra/vic.c                   | 16 +++++++++-
+ drivers/gpu/drm/tegra/virt.c                  | 20 ++++++++++---
+ drivers/gpu/host1x/dev.c                      | 16 ++++++++--
+ drivers/gpu/host1x/mipi.c                     | 18 +++++++++--
+ .../platform/tegra/cam_fsync/cam_fsync.c      | 18 ++++++++---
+ .../tegra/camera/fusa-capture/capture-vi.c    | 30 ++++++++++---------
+ .../media/platform/tegra/cdi/cam_cdi_tsc.c    | 16 ++++++++--
+ drivers/media/platform/tegra/cdi/cdi_gpio.c   | 14 ++++++++-
+ drivers/media/platform/tegra/cdi/cdi_mgr.c    | 18 +++++++++--
+ drivers/media/platform/tegra/cdi/cdi_pwm.c    | 14 ++++++++-
+ drivers/media/platform/tegra/isc/isc_gpio.c   | 14 ++++++++-
+ drivers/media/platform/tegra/isc/isc_mgr.c    | 18 +++++++++--
+ drivers/media/platform/tegra/isc/isc_pwm.c    | 18 +++++++++--
+ drivers/misc/bluedroid_pm.c                   | 16 ++++++++--
+ drivers/misc/nvsciipc/nvsciipc.c              | 20 +++++++++----
+ drivers/mtd/devices/tegra_hv_mtd.c            | 20 ++++++++++---
+ drivers/net/can/mttcan/native/m_ttcan_linux.c | 20 +++++++++----
+ .../ethernet/nvidia/nvethernet/ether_linux.c  | 14 ++++++++-
+ .../rtl8822ce/os_dep/linux/rtw_android.c      | 30 +++++++++++++++++--
+ drivers/nvpmodel/nvpmodel-clk-cap.c           | 18 +++++++++--
+ drivers/nvpps/nvpps_main.c                    | 14 ++++++++-
+ drivers/pci/controller/pcie-tegra-vf.c        | 20 +++++++++++--
+ .../platform/tegra/aon/tegra-aon-ivc-echo.c   | 18 +++++++++--
+ drivers/platform/tegra/aon/tegra-aon-module.c | 22 ++++++++++----
+ drivers/platform/tegra/dce/dce-module.c       | 16 +++++++++-
+ drivers/platform/tegra/mc-hwpm.c              | 20 ++++++++++---
+ drivers/platform/tegra/mce/tegra23x-mce.c     | 22 +++++++++++---
+ drivers/platform/tegra/nvadsp/dev.c           | 20 ++++++++++---
+ .../platform/tegra/psc/tegra23x_psc_mailbox.c | 20 +++++++++++--
+ .../tegra/rtcpu/tegra-camera-rtcpu-base.c     | 20 +++++++++++--
+ drivers/platform/tegra/tegra-cactmon-mc-all.c | 20 ++++++++++---
+ drivers/platform/tegra/tegra-fsicom.c         | 18 +++++++++--
+ drivers/platform/tegra/tegra-uss-io-proxy.c   | 20 +++++++++++--
+ .../platform/tegra/tegra_bootloader_debug.c   | 20 +++++++++++--
+ .../tegra/uncore_pmu/tegra23x_perf_uncore.c   | 20 +++++++++++--
+ drivers/pwm/pwm-tegra-tachometer.c            | 14 ++++++++-
+ drivers/ras/arm64-ras.c                       | 20 +++++++++++--
+ drivers/rtc/nvvrs-pseq-rtc.c                  | 18 +++++++++--
+ drivers/rtc/rtc-max77851.c                    | 20 +++++++++++--
+ drivers/scsi/ufs/ufs-tegra-common.c           | 18 ++++++++---
+ drivers/soc/tegra/fuse/kfuse.c                | 18 +++++++++--
+ drivers/spi/spi-tegra124-slave.c              | 14 ++++++++-
+ drivers/spi/spi-tegra210-quad.c               | 14 ++++++++-
+ drivers/thermal/tegra234-oc-event.c           | 18 +++++++++--
+ drivers/thermal/thermal-trip-event.c          | 18 +++++++++--
+ .../tegra/camera/tegra_camera_platform.c      | 22 ++++++++++----
+ .../tegra/host/capture/capture-support.c      | 18 +++++++++--
+ drivers/video/tegra/host/isp/isp5.c           | 16 +++++++++-
+ drivers/video/tegra/host/nvcsi/nvcsi-t194.c   | 21 ++++++++++---
+ drivers/video/tegra/host/nvdla/nvdla.c        | 18 +++++++++--
+ drivers/video/tegra/host/pva/pva.c            | 20 ++++++++++---
+ .../tegra/host/pva/pva_iommu_context_dev.c    | 18 +++++++++--
+ drivers/video/tegra/host/vi/vi5.c             | 16 +++++++++-
+ drivers/video/tegra/nvmap/nvmap_init.c        | 20 ++++++++++---
+ drivers/video/tegra/tsec/tsec.c               | 16 +++++++++-
+ drivers/virt/tegra/tegra_hv.c                 | 20 +++++++++----
+ drivers/virt/tegra/tegra_hv_pm_ctl.c          | 20 +++++++++----
+ drivers/virt/tegra/tegra_hv_vcpu_yield.c      | 18 +++++++++--
+ drivers/watchdog/max77851_wdt.c               | 20 +++++++++++--
+ drivers/watchdog/softdog-platform.c           | 18 +++++++++--
+ drivers/watchdog/watchdog-tegra-t18x.c        | 18 +++++++++--
+ sound/soc/tegra-virt-alt/tegra_virt_ref_alt.c | 18 ++++++++---
+ sound/soc/tegra/tegra186_arad.c               | 23 ++++++++++----
+ sound/soc/tegra/tegra186_asrc.c               | 23 ++++++++++----
+ sound/soc/tegra/tegra186_dspk.c               | 23 ++++++++++----
+ sound/soc/tegra/tegra210_admaif.c             | 23 ++++++++++----
+ sound/soc/tegra/tegra210_adsp.c               | 20 +++++++++++--
+ sound/soc/tegra/tegra210_adx.c                | 23 ++++++++++----
+ sound/soc/tegra/tegra210_afc.c                | 23 ++++++++++----
+ sound/soc/tegra/tegra210_ahub.c               | 23 ++++++++++----
+ sound/soc/tegra/tegra210_amx.c                | 21 +++++++++----
+ sound/soc/tegra/tegra210_dmic.c               | 23 ++++++++++----
+ sound/soc/tegra/tegra210_i2s.c                | 23 ++++++++++----
+ sound/soc/tegra/tegra210_iqc.c                | 25 ++++++++++++----
+ sound/soc/tegra/tegra210_mixer.c              | 23 ++++++++++----
+ sound/soc/tegra/tegra210_mvc.c                | 23 ++++++++++----
+ sound/soc/tegra/tegra210_ope.c                | 23 ++++++++++----
+ sound/soc/tegra/tegra210_sfc.c                | 23 ++++++++++----
+ sound/soc/tegra/tegra_machine_driver.c        | 16 ++++++++--
+ sound/tegra-safety-audio/sound-card.c         | 18 ++++++++---
+ 98 files changed, 1554 insertions(+), 294 deletions(-)
+
+diff --git a/drivers/block/tegra_oops_virt_storage/tegra_hv_vblk_oops.c b/drivers/block/tegra_oops_virt_storage/tegra_hv_vblk_oops.c
+index cbc2549c..64ce54ab 100644
+--- a/drivers/block/tegra_oops_virt_storage/tegra_hv_vblk_oops.c
++++ b/drivers/block/tegra_oops_virt_storage/tegra_hv_vblk_oops.c
+@@ -1,8 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (c) 2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2023-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/version.h>
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+@@ -802,9 +804,21 @@ static const struct of_device_id tegra_hv_vblk_oops_match[] = {
+ MODULE_DEVICE_TABLE(of, tegra_hv_vblk_oops_match);
+ #endif /* CONFIG_OF */
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_hv_vblk_oops_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_hv_vblk_oops_remove(pdev);
++}
++#else
++static inline int tegra_hv_vblk_oops_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_hv_vblk_oops_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_hv_vblk_oops_driver = {
+ 	.probe	= tegra_hv_vblk_oops_probe,
+-	.remove	= tegra_hv_vblk_oops_remove,
++	.remove	= tegra_hv_vblk_oops_remove_wrapper,
+ 	.driver	= {
+ 		.name = OOPS_DRV_NAME,
+ 		.owner = THIS_MODULE,
+diff --git a/drivers/block/tegra_virt_storage/tegra_hv_vblk.c b/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
+index fc83a988..aada66db 100644
+--- a/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
++++ b/drivers/block/tegra_virt_storage/tegra_hv_vblk.c
+@@ -1563,9 +1563,21 @@ static struct of_device_id tegra_hv_vblk_match[] = {
+ MODULE_DEVICE_TABLE(of, tegra_hv_vblk_match);
+ #endif /* CONFIG_OF */
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_hv_vblk_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_hv_vblk_remove(pdev);
++}
++#else
++static inline int tegra_hv_vblk_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_hv_vblk_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_hv_vblk_driver = {
+ 	.probe	= tegra_hv_vblk_probe,
+-	.remove	= tegra_hv_vblk_remove,
++	.remove	= tegra_hv_vblk_remove_wrapper,
+ 	.driver	= {
+ 		.name = DRV_NAME,
+ 		.owner = THIS_MODULE,
+diff --git a/drivers/cpuidle/cpuidle-tegra-auto.c b/drivers/cpuidle/cpuidle-tegra-auto.c
+index 7571a97c..e0e93983 100644
+--- a/drivers/cpuidle/cpuidle-tegra-auto.c
++++ b/drivers/cpuidle/cpuidle-tegra-auto.c
+@@ -1,5 +1,7 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2022-2023, NVIDIA CORPORATION.  All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/cpu_cooling.h>
+ #include <linux/cpuidle.h>
+@@ -226,9 +228,21 @@ static const struct of_device_id tegra_auto_cpuidle_of[] = {
+ 	{ },
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_auto_cpuidle_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_auto_cpuidle_remove(pdev);
++}
++#else
++static inline int tegra_auto_cpuidle_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_auto_cpuidle_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_auto_cpuidle_driver __refdata = {
+ 	.probe	= tegra_auto_cpuidle_probe,
+-	.remove	= tegra_auto_cpuidle_remove,
++	.remove	= tegra_auto_cpuidle_remove_wrapper,
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "cpuidle_tegra_auto",
+diff --git a/drivers/crypto/tegra-hv-vse-safety.c b/drivers/crypto/tegra-hv-vse-safety.c
+index 3517b0d1..1d9a81cd 100644
+--- a/drivers/crypto/tegra-hv-vse-safety.c
++++ b/drivers/crypto/tegra-hv-vse-safety.c
+@@ -5,6 +5,8 @@
+  * Cryptographic API.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/errno.h>
+@@ -5209,9 +5211,21 @@ static const struct dev_pm_ops tegra_hv_pm_ops = {
+ };
+ #endif /* CONFIG_PM */
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_hv_vse_safety_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_hv_vse_safety_remove(pdev);
++}
++#else
++static inline int tegra_hv_vse_safety_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_hv_vse_safety_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_hv_vse_safety_driver = {
+ 	.probe = tegra_hv_vse_safety_probe,
+-	.remove = tegra_hv_vse_safety_remove,
++	.remove = tegra_hv_vse_safety_remove_wrapper,
+ 	.shutdown = tegra_hv_vse_safety_shutdown,
+ 	.driver = {
+ 		.name = "tegra_hv_vse_safety",
+diff --git a/drivers/crypto/tegra-se-nvrng.c b/drivers/crypto/tegra-se-nvrng.c
+index cf5f2508..15b34348 100644
+--- a/drivers/crypto/tegra-se-nvrng.c
++++ b/drivers/crypto/tegra-se-nvrng.c
+@@ -1,10 +1,12 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (c) 2020-2023, NVIDIA CORPORATION.  All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2020-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  *
+  * Support for Tegra NVRNG Engine Error Handling.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <asm/io.h>
+ #include <linux/acpi.h>
+ #include <linux/clk.h>
+@@ -357,9 +359,21 @@ static const struct of_device_id tegra_se_nvrng_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_se_nvrng_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_se_nvrng_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_se_nvrng_remove(pdev);
++}
++#else
++static inline int tegra_se_nvrng_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_se_nvrng_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_se_nvrng_driver = {
+ 	.probe = tegra_se_nvrng_probe,
+-	.remove = tegra_se_nvrng_remove,
++	.remove = tegra_se_nvrng_remove_wrapper,
+ 	.driver = {
+ 		.name = "tegra-se-nvrng",
+ 		.owner = THIS_MODULE,
+diff --git a/drivers/crypto/tegra/tegra-se-main.c b/drivers/crypto/tegra/tegra-se-main.c
+index 98da049c..ab4ce7ad 100644
+--- a/drivers/crypto/tegra/tegra-se-main.c
++++ b/drivers/crypto/tegra/tegra-se-main.c
+@@ -4,6 +4,8 @@
+  * Crypto driver for NVIDIA Security Engine in Tegra Chips
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/clk.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/module.h>
+@@ -392,13 +394,25 @@ static const struct of_device_id tegra_se_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_se_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_se_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_se_remove(pdev);
++}
++#else
++static inline int tegra_se_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_se_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_se_driver = {
+ 	.driver = {
+ 		.name	= "tegra-se",
+ 		.of_match_table = tegra_se_of_match,
+ 	},
+ 	.probe		= tegra_se_probe,
+-	.remove		= tegra_se_remove,
++	.remove		= tegra_se_remove_wrapper,
+ };
+ 
+ static int tegra_se_host1x_probe(struct host1x_device *dev)
+diff --git a/drivers/gpu/drm/tegra/dc.c b/drivers/gpu/drm/tegra/dc.c
+index 4d10dfe4..dd00dab8 100644
+--- a/drivers/gpu/drm/tegra/dc.c
++++ b/drivers/gpu/drm/tegra/dc.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * Copyright (C) 2012 Avionic Design GmbH
+- * Copyright (C) 2012 NVIDIA CORPORATION.  All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2012-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
+ #include <nvidia/conftest.h>
+@@ -3295,11 +3295,23 @@ static int tegra_dc_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_dc_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_dc_remove(pdev);
++}
++#else
++static inline int tegra_dc_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_dc_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_dc_driver = {
+ 	.driver = {
+ 		.name = "tegra-dc",
+ 		.of_match_table = tegra_dc_of_match,
+ 	},
+ 	.probe = tegra_dc_probe,
+-	.remove = tegra_dc_remove,
++	.remove = tegra_dc_remove_wrapper,
+ };
+diff --git a/drivers/gpu/drm/tegra/dpaux.c b/drivers/gpu/drm/tegra/dpaux.c
+index fb45477e..7b49cdde 100644
+--- a/drivers/gpu/drm/tegra/dpaux.c
++++ b/drivers/gpu/drm/tegra/dpaux.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (C) 2013 NVIDIA Corporation
++ * SPDX-FileCopyrightText: Copyright (c) 2013-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
+ #include <nvidia/conftest.h>
+@@ -708,6 +708,18 @@ static const struct of_device_id tegra_dpaux_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_dpaux_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_dpaux_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_dpaux_remove(pdev);
++}
++#else
++static inline int tegra_dpaux_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_dpaux_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_dpaux_driver = {
+ 	.driver = {
+ 		.name = "tegra-dpaux",
+@@ -715,7 +727,7 @@ struct platform_driver tegra_dpaux_driver = {
+ 		.pm = &tegra_dpaux_pm_ops,
+ 	},
+ 	.probe = tegra_dpaux_probe,
+-	.remove = tegra_dpaux_remove,
++	.remove = tegra_dpaux_remove_wrapper,
+ };
+ 
+ struct drm_dp_aux *drm_dp_aux_find_by_of_node(struct device_node *np)
+diff --git a/drivers/gpu/drm/tegra/dsi.c b/drivers/gpu/drm/tegra/dsi.c
+index 1e4f0920..e836ca59 100644
+--- a/drivers/gpu/drm/tegra/dsi.c
++++ b/drivers/gpu/drm/tegra/dsi.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (C) 2013 NVIDIA Corporation
++ * SPDX-FileCopyrightText: Copyright (c) 2013-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
+ #include <nvidia/conftest.h>
+@@ -1692,11 +1692,23 @@ static const struct of_device_id tegra_dsi_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_dsi_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_dsi_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_dsi_remove(pdev);
++}
++#else
++static inline int tegra_dsi_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_dsi_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_dsi_driver = {
+ 	.driver = {
+ 		.name = "tegra-dsi",
+ 		.of_match_table = tegra_dsi_of_match,
+ 	},
+ 	.probe = tegra_dsi_probe,
+-	.remove = tegra_dsi_remove,
++	.remove = tegra_dsi_remove_wrapper,
+ };
+diff --git a/drivers/gpu/drm/tegra/gr2d.c b/drivers/gpu/drm/tegra/gr2d.c
+index a5131eaf..517588fd 100644
+--- a/drivers/gpu/drm/tegra/gr2d.c
++++ b/drivers/gpu/drm/tegra/gr2d.c
+@@ -1,8 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (c) 2012-2013, NVIDIA Corporation.
++ * SPDX-FileCopyrightText: Copyright (c) 2012-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/iommu.h>
+@@ -392,6 +394,18 @@ static const struct dev_pm_ops tegra_gr2d_pm = {
+ 				pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void gr2d_remove_wrapper(struct platform_device *pdev)
++{
++	gr2d_remove(pdev);
++}
++#else
++static inline int gr2d_remove_wrapper(struct platform_device *pdev)
++{
++	return gr2d_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_gr2d_driver = {
+ 	.driver = {
+ 		.name = "tegra-gr2d",
+@@ -399,5 +413,5 @@ struct platform_driver tegra_gr2d_driver = {
+ 		.pm = &tegra_gr2d_pm,
+ 	},
+ 	.probe = gr2d_probe,
+-	.remove = gr2d_remove,
++	.remove = gr2d_remove_wrapper,
+ };
+diff --git a/drivers/gpu/drm/tegra/gr3d.c b/drivers/gpu/drm/tegra/gr3d.c
+index d55158b3..6b5e6b7e 100644
+--- a/drivers/gpu/drm/tegra/gr3d.c
++++ b/drivers/gpu/drm/tegra/gr3d.c
+@@ -1,9 +1,11 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * Copyright (C) 2013 Avionic Design GmbH
+- * Copyright (C) 2013 NVIDIA Corporation
++ * SPDX-FileCopyrightText: Copyright (c) 2013-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/host1x-next.h>
+@@ -631,6 +633,18 @@ static const struct dev_pm_ops tegra_gr3d_pm = {
+ 				pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void gr3d_remove_wrapper(struct platform_device *pdev)
++{
++	gr3d_remove(pdev);
++}
++#else
++static inline int gr3d_remove_wrapper(struct platform_device *pdev)
++{
++	return gr3d_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_gr3d_driver = {
+ 	.driver = {
+ 		.name = "tegra-gr3d",
+@@ -638,5 +652,5 @@ struct platform_driver tegra_gr3d_driver = {
+ 		.pm = &tegra_gr3d_pm,
+ 	},
+ 	.probe = gr3d_probe,
+-	.remove = gr3d_remove,
++	.remove = gr3d_remove_wrapper,
+ };
+diff --git a/drivers/gpu/drm/tegra/hdmi.c b/drivers/gpu/drm/tegra/hdmi.c
+index 71362ecc..df27bc86 100644
+--- a/drivers/gpu/drm/tegra/hdmi.c
++++ b/drivers/gpu/drm/tegra/hdmi.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * Copyright (C) 2012 Avionic Design GmbH
+- * Copyright (C) 2012 NVIDIA CORPORATION.  All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2012-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
+ #include <nvidia/conftest.h>
+@@ -1909,11 +1909,23 @@ static int tegra_hdmi_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_hdmi_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_hdmi_remove(pdev);
++}
++#else
++static inline int tegra_hdmi_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_hdmi_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_hdmi_driver = {
+ 	.driver = {
+ 		.name = "tegra-hdmi",
+ 		.of_match_table = tegra_hdmi_of_match,
+ 	},
+ 	.probe = tegra_hdmi_probe,
+-	.remove = tegra_hdmi_remove,
++	.remove = tegra_hdmi_remove_wrapper,
+ };
+diff --git a/drivers/gpu/drm/tegra/hub.c b/drivers/gpu/drm/tegra/hub.c
+index 9ba941a4..f1cc761b 100644
+--- a/drivers/gpu/drm/tegra/hub.c
++++ b/drivers/gpu/drm/tegra/hub.c
+@@ -1,8 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (C) 2017 NVIDIA CORPORATION.  All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2017-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/dma-mapping.h>
+@@ -1215,11 +1217,23 @@ static const struct of_device_id tegra_display_hub_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_display_hub_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_display_hub_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_display_hub_remove(pdev);
++}
++#else
++static inline int tegra_display_hub_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_display_hub_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_display_hub_driver = {
+ 	.driver = {
+ 		.name = "tegra-display-hub",
+ 		.of_match_table = tegra_display_hub_of_match,
+ 	},
+ 	.probe = tegra_display_hub_probe,
+-	.remove = tegra_display_hub_remove,
++	.remove = tegra_display_hub_remove_wrapper,
+ };
+diff --git a/drivers/gpu/drm/tegra/nvdec.c b/drivers/gpu/drm/tegra/nvdec.c
+index 15cd9e06..0369099a 100644
+--- a/drivers/gpu/drm/tegra/nvdec.c
++++ b/drivers/gpu/drm/tegra/nvdec.c
+@@ -3,6 +3,8 @@
+  * SPDX-FileCopyrightText: Copyright (c) 2015-2024, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/bitops.h>
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+@@ -964,6 +966,18 @@ static const struct dev_pm_ops nvdec_pm_ops = {
+ 				pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void nvdec_remove_wrapper(struct platform_device *pdev)
++{
++	nvdec_remove(pdev);
++}
++#else
++static inline int nvdec_remove_wrapper(struct platform_device *pdev)
++{
++	return nvdec_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_nvdec_driver = {
+ 	.driver = {
+ 		.name = "tegra-nvdec",
+@@ -971,7 +985,7 @@ struct platform_driver tegra_nvdec_driver = {
+ 		.pm = &nvdec_pm_ops
+ 	},
+ 	.probe = nvdec_probe,
+-	.remove = nvdec_remove,
++	.remove = nvdec_remove_wrapper,
+ };
+ 
+ #if IS_ENABLED(CONFIG_ARCH_TEGRA_210_SOC)
+diff --git a/drivers/gpu/drm/tegra/nvenc.c b/drivers/gpu/drm/tegra/nvenc.c
+index a5605a72..9747b90e 100644
+--- a/drivers/gpu/drm/tegra/nvenc.c
++++ b/drivers/gpu/drm/tegra/nvenc.c
+@@ -3,6 +3,8 @@
+  * SPDX-FileCopyrightText: Copyright (c) 2021-2024, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/bitops.h>
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+@@ -757,6 +759,18 @@ static const struct dev_pm_ops nvenc_pm_ops = {
+ 				pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void nvenc_remove_wrapper(struct platform_device *pdev)
++{
++	nvenc_remove(pdev);
++}
++#else
++static inline int nvenc_remove_wrapper(struct platform_device *pdev)
++{
++	return nvenc_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_nvenc_driver = {
+ 	.driver = {
+ 		.name = "tegra-nvenc",
+@@ -764,7 +778,7 @@ struct platform_driver tegra_nvenc_driver = {
+ 		.pm = &nvenc_pm_ops
+ 	},
+ 	.probe = nvenc_probe,
+-	.remove = nvenc_remove,
++	.remove = nvenc_remove_wrapper,
+ };
+ 
+ #if IS_ENABLED(CONFIG_ARCH_TEGRA_210_SOC)
+diff --git a/drivers/gpu/drm/tegra/nvjpg.c b/drivers/gpu/drm/tegra/nvjpg.c
+index 4e9528c5..05406c39 100644
+--- a/drivers/gpu/drm/tegra/nvjpg.c
++++ b/drivers/gpu/drm/tegra/nvjpg.c
+@@ -3,6 +3,8 @@
+  * SPDX-FileCopyrightText: Copyright (c) 2021-2024, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/bitops.h>
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+@@ -734,6 +736,18 @@ static const struct dev_pm_ops nvjpg_pm_ops = {
+ 				pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void nvjpg_remove_wrapper(struct platform_device *pdev)
++{
++	nvjpg_remove(pdev);
++}
++#else
++static inline int nvjpg_remove_wrapper(struct platform_device *pdev)
++{
++	return nvjpg_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_nvjpg_driver = {
+ 	.driver = {
+ 		.name = "tegra-nvjpg",
+@@ -741,7 +755,7 @@ struct platform_driver tegra_nvjpg_driver = {
+ 		.pm = &nvjpg_pm_ops
+ 	},
+ 	.probe = nvjpg_probe,
+-	.remove = nvjpg_remove,
++	.remove = nvjpg_remove_wrapper,
+ };
+ 
+ #if IS_ENABLED(CONFIG_ARCH_TEGRA_210_SOC)
+diff --git a/drivers/gpu/drm/tegra/ofa.c b/drivers/gpu/drm/tegra/ofa.c
+index 2ce0d141..0554955c 100644
+--- a/drivers/gpu/drm/tegra/ofa.c
++++ b/drivers/gpu/drm/tegra/ofa.c
+@@ -1,8 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * SPDX-FileCopyrightText: Copyright (c) 2021-2023, NVIDIA Corporation.
++ * SPDX-FileCopyrightText: Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/devfreq.h>
+@@ -632,6 +634,18 @@ static const struct dev_pm_ops ofa_pm_ops = {
+ 				pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void ofa_remove_wrapper(struct platform_device *pdev)
++{
++	ofa_remove(pdev);
++}
++#else
++static inline int ofa_remove_wrapper(struct platform_device *pdev)
++{
++	return ofa_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_ofa_driver = {
+ 	.driver = {
+ 		.name = "tegra-ofa",
+@@ -639,7 +653,7 @@ struct platform_driver tegra_ofa_driver = {
+ 		.pm = &ofa_pm_ops
+ 	},
+ 	.probe = ofa_probe,
+-	.remove = ofa_remove,
++	.remove = ofa_remove_wrapper,
+ };
+ 
+ #if IS_ENABLED(CONFIG_ARCH_TEGRA_234_SOC)
+diff --git a/drivers/gpu/drm/tegra/sor.c b/drivers/gpu/drm/tegra/sor.c
+index 9947d44d..90a6c6ec 100644
+--- a/drivers/gpu/drm/tegra/sor.c
++++ b/drivers/gpu/drm/tegra/sor.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (C) 2013 NVIDIA Corporation
++ * SPDX-FileCopyrightText: Copyright (c) 2013-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
+ #include <nvidia/conftest.h>
+@@ -4082,6 +4082,18 @@ static const struct dev_pm_ops tegra_sor_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(tegra_sor_suspend, tegra_sor_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_sor_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_sor_remove(pdev);
++}
++#else
++static inline int tegra_sor_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_sor_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_sor_driver = {
+ 	.driver = {
+ 		.name = "tegra-sor",
+@@ -4089,5 +4101,5 @@ struct platform_driver tegra_sor_driver = {
+ 		.pm = &tegra_sor_pm_ops,
+ 	},
+ 	.probe = tegra_sor_probe,
+-	.remove = tegra_sor_remove,
++	.remove = tegra_sor_remove_wrapper,
+ };
+diff --git a/drivers/gpu/drm/tegra/vic.c b/drivers/gpu/drm/tegra/vic.c
+index ada3dcd8..b10e9e4a 100644
+--- a/drivers/gpu/drm/tegra/vic.c
++++ b/drivers/gpu/drm/tegra/vic.c
+@@ -3,6 +3,8 @@
+  * SPDX-FileCopyrightText: Copyright (C) 2015-2024 NVIDIA CORPORATION.  All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/bitops.h>
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+@@ -831,6 +833,18 @@ static const struct dev_pm_ops vic_pm_ops = {
+ #endif
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void vic_remove_wrapper(struct platform_device *pdev)
++{
++	vic_remove(pdev);
++}
++#else
++static inline int vic_remove_wrapper(struct platform_device *pdev)
++{
++	return vic_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_vic_driver = {
+ 	.driver = {
+ 		.name = "tegra-vic",
+@@ -838,7 +852,7 @@ struct platform_driver tegra_vic_driver = {
+ 		.pm = &vic_pm_ops
+ 	},
+ 	.probe = vic_probe,
+-	.remove = vic_remove,
++	.remove = vic_remove_wrapper,
+ };
+ 
+ #if IS_ENABLED(CONFIG_ARCH_TEGRA_124_SOC)
+diff --git a/drivers/gpu/drm/tegra/virt.c b/drivers/gpu/drm/tegra/virt.c
+index af5580cd..922bcabe 100644
+--- a/drivers/gpu/drm/tegra/virt.c
++++ b/drivers/gpu/drm/tegra/virt.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (c) 2023, NVIDIA Corporation.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2023-2024, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/clk.h>
+ #include <linux/debugfs.h>
+@@ -563,6 +563,18 @@ static const struct dev_pm_ops virt_engine_pm_ops = {
+ #endif
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void virt_engine_remove_wrapper(struct platform_device *pdev)
++{
++	virt_engine_remove(pdev);
++}
++#else
++static inline int virt_engine_remove_wrapper(struct platform_device *pdev)
++{
++	return virt_engine_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_virt_engine_driver = {
+ 	.driver = {
+ 		.name = "tegra-host1x-virtual-engine",
+@@ -570,5 +582,5 @@ struct platform_driver tegra_virt_engine_driver = {
+ 		.pm = &virt_engine_pm_ops,
+ 	},
+ 	.probe = virt_engine_probe,
+-	.remove = virt_engine_remove,
++	.remove = virt_engine_remove_wrapper,
+ };
+diff --git a/drivers/gpu/host1x/dev.c b/drivers/gpu/host1x/dev.c
+index 8919d73e..3d413046 100644
+--- a/drivers/gpu/host1x/dev.c
++++ b/drivers/gpu/host1x/dev.c
+@@ -2,7 +2,7 @@
+ /*
+  * Tegra host1x driver
+  *
+- * Copyright (c) 2010-2023, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2010-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
+ #include <nvidia/conftest.h>
+@@ -1102,6 +1102,18 @@ static const struct dev_pm_ops host1x_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(host1x_runtime_suspend, host1x_runtime_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void host1x_remove_wrapper(struct platform_device *pdev)
++{
++	host1x_remove(pdev);
++}
++#else
++static inline int host1x_remove_wrapper(struct platform_device *pdev)
++{
++	return host1x_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_host1x_driver = {
+ 	.driver = {
+ 		.name = "tegra-host1x",
+@@ -1109,7 +1121,7 @@ static struct platform_driver tegra_host1x_driver = {
+ 		.pm = &host1x_pm_ops,
+ 	},
+ 	.probe = host1x_probe,
+-	.remove = host1x_remove,
++	.remove = host1x_remove_wrapper,
+ };
+ 
+ static struct platform_driver * const drivers[] = {
+diff --git a/drivers/gpu/host1x/mipi.c b/drivers/gpu/host1x/mipi.c
+index 614733c2..d22cabf5 100644
+--- a/drivers/gpu/host1x/mipi.c
++++ b/drivers/gpu/host1x/mipi.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (C) 2013 NVIDIA Corporation
++ * SPDX-FileCopyrightText: Copyright (c) 2013-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  *
+  * Permission to use, copy, modify, distribute, and sell this software and its
+  * documentation for any purpose is hereby granted without fee, provided that
+@@ -20,6 +20,8 @@
+  * OF THIS SOFTWARE.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/clk.h>
+ #include <linux/host1x-next.h>
+ #include <linux/io.h>
+@@ -546,11 +548,23 @@ static int tegra_mipi_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_mipi_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_mipi_remove(pdev);
++}
++#else
++static inline int tegra_mipi_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_mipi_remove(pdev);
++}
++#endif
++
+ struct platform_driver tegra_mipi_driver = {
+ 	.driver = {
+ 		.name = "tegra-mipi",
+ 		.of_match_table = tegra_mipi_of_match,
+ 	},
+ 	.probe = tegra_mipi_probe,
+-	.remove = tegra_mipi_remove,
++	.remove = tegra_mipi_remove_wrapper,
+ };
+diff --git a/drivers/media/platform/tegra/cam_fsync/cam_fsync.c b/drivers/media/platform/tegra/cam_fsync/cam_fsync.c
+index a179db88..382750d5 100644
+--- a/drivers/media/platform/tegra/cam_fsync/cam_fsync.c
++++ b/drivers/media/platform/tegra/cam_fsync/cam_fsync.c
+@@ -1,7 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (c) 2022-2023, NVIDIA CORPORATION. All rights reserved.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -1125,6 +1123,18 @@ MODULE_DEVICE_TABLE(of, cam_fsync_of_match);
+ 
+ static SIMPLE_DEV_PM_OPS(cam_fsync_pm, cam_fsync_suspend, cam_fsync_resume);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void cam_fsync_remove_wrapper(struct platform_device *pdev)
++{
++	cam_fsync_remove(pdev);
++}
++#else
++static inline int cam_fsync_remove_wrapper(struct platform_device *pdev)
++{
++	return cam_fsync_remove(pdev);
++}
++#endif
++
+ static struct platform_driver cam_fsync_driver = {
+ 	.driver = {
+ 		.name = "cam_fsync",
+@@ -1133,7 +1143,7 @@ static struct platform_driver cam_fsync_driver = {
+ 		.pm = &cam_fsync_pm,
+ 	},
+ 	.probe = cam_fsync_probe,
+-	.remove = cam_fsync_remove,
++	.remove = cam_fsync_remove_wrapper,
+ };
+ module_platform_driver(cam_fsync_driver);
+ 
+diff --git a/drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c b/drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c
+index 753d6cc3..142b8667 100644
+--- a/drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c
++++ b/drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c
+@@ -1,17 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/* SPDX-FileCopyrightText: Copyright (c) 2017-2024 NVIDIA CORPORATION & AFFILIATES.
+- * All rights reserved.
+- *
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2017-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ /**
+  * @file drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c
+@@ -19,6 +7,8 @@
+  * @brief VI channel operations for the T234 Camera RTCPU platform.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/completion.h>
+ #include <linux/nospec.h>
+ #include <linux/nvhost.h>
+@@ -1726,9 +1716,21 @@ static const struct of_device_id capture_vi_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, capture_vi_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void capture_vi_remove_wrapper(struct platform_device *pdev)
++{
++	capture_vi_remove(pdev);
++}
++#else
++static inline int capture_vi_remove_wrapper(struct platform_device *pdev)
++{
++	return capture_vi_remove(pdev);
++}
++#endif
++
+ static struct platform_driver capture_vi_driver = {
+ 	.probe = capture_vi_probe,
+-	.remove = capture_vi_remove,
++	.remove = capture_vi_remove_wrapper,
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "tegra-camrtc-capture-vi",
+diff --git a/drivers/media/platform/tegra/cdi/cam_cdi_tsc.c b/drivers/media/platform/tegra/cdi/cam_cdi_tsc.c
+index b2ab11fb..167259ff 100644
+--- a/drivers/media/platform/tegra/cdi/cam_cdi_tsc.c
++++ b/drivers/media/platform/tegra/cdi/cam_cdi_tsc.c
+@@ -1,5 +1,5 @@
+ /* SPDX-License-Identifier: GPL-2.0 */
+-/* Copyright (c) 2023-2024, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved. */
++/* SPDX-FileCopyrightText: Copyright (c) 2023-2024, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved. */
+ /*
+  * cam_cdi_tsc.c - tsc driver.
+  */
+@@ -645,6 +645,18 @@ MODULE_DEVICE_TABLE(of, cdi_tsc_of_match);
+ 
+ static SIMPLE_DEV_PM_OPS(cdi_tsc_pm, cdi_tsc_suspend, cdi_tsc_resume);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void cdi_tsc_remove_wrapper(struct platform_device *pdev)
++{
++	cdi_tsc_remove(pdev);
++}
++#else
++static inline int cdi_tsc_remove_wrapper(struct platform_device *pdev)
++{
++	return cdi_tsc_remove(pdev);
++}
++#endif
++
+ static struct platform_driver cdi_tsc_driver = {
+ 	.driver = {
+ 		.name = "cdi_tsc",
+@@ -653,7 +665,7 @@ static struct platform_driver cdi_tsc_driver = {
+ 		.pm = &cdi_tsc_pm,
+ 	},
+ 	.probe = cdi_tsc_probe,
+-	.remove = cdi_tsc_remove,
++	.remove = cdi_tsc_remove_wrapper,
+ };
+ module_platform_driver(cdi_tsc_driver);
+ 
+diff --git a/drivers/media/platform/tegra/cdi/cdi_gpio.c b/drivers/media/platform/tegra/cdi/cdi_gpio.c
+index 6f3959ea..34775ddc 100644
+--- a/drivers/media/platform/tegra/cdi/cdi_gpio.c
++++ b/drivers/media/platform/tegra/cdi/cdi_gpio.c
+@@ -330,9 +330,21 @@ static const struct of_device_id cdi_gpio_dt_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(of, cdi_gpio_dt_ids);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void cdi_gpio_remove_wrapper(struct platform_device *pdev)
++{
++	cdi_gpio_remove(pdev);
++}
++#else
++static inline int cdi_gpio_remove_wrapper(struct platform_device *pdev)
++{
++	return cdi_gpio_remove(pdev);
++}
++#endif
++
+ static struct platform_driver cdi_gpio_driver = {
+ 	.probe = cdi_gpio_probe,
+-	.remove = cdi_gpio_remove,
++	.remove = cdi_gpio_remove_wrapper,
+ 	.driver = {
+ 		.name = "cdi-gpio",
+ 		.of_match_table = cdi_gpio_dt_ids,
+diff --git a/drivers/media/platform/tegra/cdi/cdi_mgr.c b/drivers/media/platform/tegra/cdi/cdi_mgr.c
+index 78069c20..198f3177 100644
+--- a/drivers/media/platform/tegra/cdi/cdi_mgr.c
++++ b/drivers/media/platform/tegra/cdi/cdi_mgr.c
+@@ -1,5 +1,5 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2015-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (C) 2015-2024 NVIDIA CORPORATION.  All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -2084,6 +2084,18 @@ static const struct of_device_id cdi_mgr_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, cdi_mgr_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void cdi_mgr_remove_wrapper(struct platform_device *pdev)
++{
++	cdi_mgr_remove(pdev);
++}
++#else
++static inline int cdi_mgr_remove_wrapper(struct platform_device *pdev)
++{
++	return cdi_mgr_remove(pdev);
++}
++#endif
++
+ static struct platform_driver cdi_mgr_driver = {
+ 	.driver = {
+ 		.name = "cdi-mgr",
+@@ -2092,7 +2104,7 @@ static struct platform_driver cdi_mgr_driver = {
+ 		.pm = &cdi_mgr_pm_ops,
+ 	},
+ 	.probe = cdi_mgr_probe,
+-	.remove = cdi_mgr_remove,
++	.remove = cdi_mgr_remove_wrapper,
+ };
+ 
+ module_platform_driver(cdi_mgr_driver);
+diff --git a/drivers/media/platform/tegra/cdi/cdi_pwm.c b/drivers/media/platform/tegra/cdi/cdi_pwm.c
+index 08157ff2..098bbcd1 100644
+--- a/drivers/media/platform/tegra/cdi/cdi_pwm.c
++++ b/drivers/media/platform/tegra/cdi/cdi_pwm.c
+@@ -254,6 +254,18 @@ static const struct dev_pm_ops cdi_pwm_pm_ops = {
+ 	.runtime_resume = cdi_pwm_resume,
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void cdi_pwm_remove_wrapper(struct platform_device *pdev)
++{
++	cdi_pwm_remove(pdev);
++}
++#else
++static inline int cdi_pwm_remove_wrapper(struct platform_device *pdev)
++{
++	return cdi_pwm_remove(pdev);
++}
++#endif
++
+ static struct platform_driver cdi_pwm_driver = {
+ 	.driver = {
+ 		.name = "cdi-pwm",
+@@ -262,7 +274,7 @@ static struct platform_driver cdi_pwm_driver = {
+ 		.pm = &cdi_pwm_pm_ops,
+ 	},
+ 	.probe = cdi_pwm_probe,
+-	.remove = cdi_pwm_remove,
++	.remove = cdi_pwm_remove_wrapper,
+ };
+ 
+ module_platform_driver(cdi_pwm_driver);
+diff --git a/drivers/media/platform/tegra/isc/isc_gpio.c b/drivers/media/platform/tegra/isc/isc_gpio.c
+index c1eca456..35d5af5e 100644
+--- a/drivers/media/platform/tegra/isc/isc_gpio.c
++++ b/drivers/media/platform/tegra/isc/isc_gpio.c
+@@ -330,9 +330,21 @@ static const struct of_device_id isc_gpio_dt_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(of, isc_gpio_dt_ids);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void isc_gpio_remove_wrapper(struct platform_device *pdev)
++{
++	isc_gpio_remove(pdev);
++}
++#else
++static inline int isc_gpio_remove_wrapper(struct platform_device *pdev)
++{
++	return isc_gpio_remove(pdev);
++}
++#endif
++
+ static struct platform_driver isc_gpio_driver = {
+ 	.probe = isc_gpio_probe,
+-	.remove = isc_gpio_remove,
++	.remove = isc_gpio_remove_wrapper,
+ 	.driver = {
+ 		.name = "isc-gpio",
+ 		.of_match_table = isc_gpio_dt_ids,
+diff --git a/drivers/media/platform/tegra/isc/isc_mgr.c b/drivers/media/platform/tegra/isc/isc_mgr.c
+index 92bd05f6..73c83d7f 100644
+--- a/drivers/media/platform/tegra/isc/isc_mgr.c
++++ b/drivers/media/platform/tegra/isc/isc_mgr.c
+@@ -1,5 +1,5 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2015-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2015-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -1204,6 +1204,18 @@ static const struct of_device_id isc_mgr_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, isc_mgr_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void isc_mgr_remove_wrapper(struct platform_device *pdev)
++{
++	isc_mgr_remove(pdev);
++}
++#else
++static inline int isc_mgr_remove_wrapper(struct platform_device *pdev)
++{
++	return isc_mgr_remove(pdev);
++}
++#endif
++
+ static struct platform_driver isc_mgr_driver = {
+ 	.driver = {
+ 		.name = "isc-mgr",
+@@ -1212,7 +1224,7 @@ static struct platform_driver isc_mgr_driver = {
+ 		.pm = &isc_mgr_pm_ops,
+ 	},
+ 	.probe = isc_mgr_probe,
+-	.remove = isc_mgr_remove,
++	.remove = isc_mgr_remove_wrapper,
+ };
+ 
+ module_platform_driver(isc_mgr_driver);
+diff --git a/drivers/media/platform/tegra/isc/isc_pwm.c b/drivers/media/platform/tegra/isc/isc_pwm.c
+index a75fb553..462b2dc7 100644
+--- a/drivers/media/platform/tegra/isc/isc_pwm.c
++++ b/drivers/media/platform/tegra/isc/isc_pwm.c
+@@ -1,5 +1,5 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2016-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2016-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -254,6 +254,18 @@ static const struct dev_pm_ops isc_pwm_pm_ops = {
+ 	.runtime_resume = isc_pwm_resume,
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void isc_pwm_remove_wrapper(struct platform_device *pdev)
++{
++	isc_pwm_remove(pdev);
++}
++#else
++static inline int isc_pwm_remove_wrapper(struct platform_device *pdev)
++{
++	return isc_pwm_remove(pdev);
++}
++#endif
++
+ static struct platform_driver isc_pwm_driver = {
+ 	.driver = {
+ 		.name = "isc-pwm",
+@@ -262,7 +274,7 @@ static struct platform_driver isc_pwm_driver = {
+ 		.pm = &isc_pwm_pm_ops,
+ 	},
+ 	.probe = isc_pwm_probe,
+-	.remove = isc_pwm_remove,
++	.remove = isc_pwm_remove_wrapper,
+ };
+ 
+ module_platform_driver(isc_pwm_driver);
+diff --git a/drivers/misc/bluedroid_pm.c b/drivers/misc/bluedroid_pm.c
+index 639744c1..d2dc7893 100644
+--- a/drivers/misc/bluedroid_pm.c
++++ b/drivers/misc/bluedroid_pm.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// SPDX-FileCopyrightText: Copyright (C) 2019-2023 NVIDIA CORPORATION.  All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2019-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -627,9 +627,21 @@ static struct of_device_id bdroid_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, bdroid_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void bluedroid_pm_remove_wrapper(struct platform_device *pdev)
++{
++	bluedroid_pm_remove(pdev);
++}
++#else
++static inline int bluedroid_pm_remove_wrapper(struct platform_device *pdev)
++{
++	return bluedroid_pm_remove(pdev);
++}
++#endif
++
+ static struct platform_driver bluedroid_pm_driver = {
+ 	.probe = bluedroid_pm_probe,
+-	.remove = bluedroid_pm_remove,
++	.remove = bluedroid_pm_remove_wrapper,
+ 	.suspend = bluedroid_pm_suspend,
+ 	.resume = bluedroid_pm_resume,
+ 	.shutdown = bluedroid_pm_shutdown,
+diff --git a/drivers/misc/nvsciipc/nvsciipc.c b/drivers/misc/nvsciipc/nvsciipc.c
+index b055f47f..cae11e02 100644
+--- a/drivers/misc/nvsciipc/nvsciipc.c
++++ b/drivers/misc/nvsciipc/nvsciipc.c
+@@ -1,7 +1,5 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * SPDX-FileCopyrightText: Copyright (c) 2019-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- */
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2019-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ /*
+  * This is NvSciIpc kernel driver. At present its only use is to support
+@@ -822,9 +820,21 @@ exit:
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void nvsciipc_remove_wrapper(struct platform_device *pdev)
++{
++	nvsciipc_remove(pdev);
++}
++#else
++static inline int nvsciipc_remove_wrapper(struct platform_device *pdev)
++{
++	return nvsciipc_remove(pdev);
++}
++#endif
++
+ static struct platform_driver nvsciipc_driver = {
+ 	.probe  = nvsciipc_probe,
+-	.remove = nvsciipc_remove,
++	.remove = nvsciipc_remove_wrapper,
+ 	.driver = {
+ 		.name = MODULE_NAME,
+ 	},
+diff --git a/drivers/mtd/devices/tegra_hv_mtd.c b/drivers/mtd/devices/tegra_hv_mtd.c
+index 1b6acf97..06568cd6 100644
+--- a/drivers/mtd/devices/tegra_hv_mtd.c
++++ b/drivers/mtd/devices/tegra_hv_mtd.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (c) 2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+@@ -726,9 +726,21 @@ static struct of_device_id tegra_virt_mtd_match[] = {
+ MODULE_DEVICE_TABLE(of, tegra_virt_mtd_match);
+ #endif /* CONFIG_OF */
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_virt_mtd_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_virt_mtd_remove(pdev);
++}
++#else
++static inline int tegra_virt_mtd_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_virt_mtd_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_virt_mtd_driver = {
+ 	.probe	= tegra_virt_mtd_probe,
+-	.remove	= tegra_virt_mtd_remove,
++	.remove	= tegra_virt_mtd_remove_wrapper,
+ 	.driver	= {
+ 		.name = "Virtual MTD device",
+ 		.owner = THIS_MODULE,
+diff --git a/drivers/net/can/mttcan/native/m_ttcan_linux.c b/drivers/net/can/mttcan/native/m_ttcan_linux.c
+index 6f027219..f414f4b2 100644
+--- a/drivers/net/can/mttcan/native/m_ttcan_linux.c
++++ b/drivers/net/can/mttcan/native/m_ttcan_linux.c
+@@ -1,7 +1,5 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * Copyright (c) 2022-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- */
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024, NVIDIA CORPORATION & AFFILIATES. All Rights Reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -2009,6 +2007,18 @@ static int mttcan_resume(struct platform_device *pdev)
+ }
+ #endif
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void mttcan_remove_wrapper(struct platform_device *pdev)
++{
++	mttcan_remove(pdev);
++}
++#else
++static inline int mttcan_remove_wrapper(struct platform_device *pdev)
++{
++	return mttcan_remove(pdev);
++}
++#endif
++
+ static struct platform_driver mttcan_plat_driver = {
+ 	.driver = {
+ 		   .name = KBUILD_MODNAME,
+@@ -2016,7 +2026,7 @@ static struct platform_driver mttcan_plat_driver = {
+ 		   .of_match_table = of_match_ptr(mttcan_of_table),
+ 		   },
+ 	.probe = mttcan_probe,
+-	.remove = mttcan_remove,
++	.remove = mttcan_remove_wrapper,
+ #ifdef CONFIG_PM
+ 	.suspend = mttcan_suspend,
+ 	.resume = mttcan_resume,
+diff --git a/drivers/net/ethernet/nvidia/nvethernet/ether_linux.c b/drivers/net/ethernet/nvidia/nvethernet/ether_linux.c
+index 346cb724..2048d2c8 100644
+--- a/drivers/net/ethernet/nvidia/nvethernet/ether_linux.c
++++ b/drivers/net/ethernet/nvidia/nvethernet/ether_linux.c
+@@ -7048,12 +7048,24 @@ static const struct of_device_id ether_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, ether_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void ether_remove_wrapper(struct platform_device *pdev)
++{
++	ether_remove(pdev);
++}
++#else
++static inline int ether_remove_wrapper(struct platform_device *pdev)
++{
++	return ether_remove(pdev);
++}
++#endif
++
+ /**
+  * @brief Ethernet platform driver instance
+  */
+ static struct platform_driver ether_driver = {
+ 	.probe = ether_probe,
+-	.remove = ether_remove,
++	.remove = ether_remove_wrapper,
+ 	.shutdown = ether_shutdown,
+ 	.driver = {
+ 		.name = "nvethernet",
+diff --git a/drivers/net/wireless/realtek/rtl8822ce/os_dep/linux/rtw_android.c b/drivers/net/wireless/realtek/rtl8822ce/os_dep/linux/rtw_android.c
+index 50dcfed9..c6ef5b2f 100644
+--- a/drivers/net/wireless/realtek/rtl8822ce/os_dep/linux/rtw_android.c
++++ b/drivers/net/wireless/realtek/rtl8822ce/os_dep/linux/rtw_android.c
+@@ -13,6 +13,8 @@
+  *
+  *****************************************************************************/
+ 
++#include <nvidia/conftest.h>
++
+ #ifdef CONFIG_GPIO_WAKEUP
+ #include <linux/gpio.h>
+ #endif
+@@ -1275,10 +1277,22 @@ static int wifi_resume(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void wifi_remove_wrapper(struct platform_device *pdev)
++{
++	wifi_remove(pdev);
++}
++#else
++static inline int wifi_remove_wrapper(struct platform_device *pdev)
++{
++	return wifi_remove(pdev);
++}
++#endif
++
+ /* temporarily use these two */
+ static struct platform_driver wifi_device = {
+ 	.probe          = wifi_probe,
+-	.remove         = wifi_remove,
++	.remove         = wifi_remove_wrapper,
+ 	.suspend        = wifi_suspend,
+ 	.resume         = wifi_resume,
+ #ifdef RTW_SUPPORT_PLATFORM_SHUTDOWN
+@@ -1289,9 +1303,21 @@ static struct platform_driver wifi_device = {
+ 	}
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void wifi_remove_wrapper(struct platform_device *pdev)
++{
++	wifi_remove(pdev);
++}
++#else
++static inline int wifi_remove_wrapper(struct platform_device *pdev)
++{
++	return wifi_remove(pdev);
++}
++#endif
++
+ static struct platform_driver wifi_device_legacy = {
+ 	.probe          = wifi_probe,
+-	.remove         = wifi_remove,
++	.remove = wifi_remove_wrapper,
+ 	.suspend        = wifi_suspend,
+ 	.resume         = wifi_resume,
+ 	.driver         = {
+diff --git a/drivers/nvpmodel/nvpmodel-clk-cap.c b/drivers/nvpmodel/nvpmodel-clk-cap.c
+index 955fa49e..77970a63 100644
+--- a/drivers/nvpmodel/nvpmodel-clk-cap.c
++++ b/drivers/nvpmodel/nvpmodel-clk-cap.c
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// Copyright (c) 2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/clk.h>
+ #include <linux/kobject.h>
+@@ -263,9 +265,21 @@ static int nvpmodel_clk_cap_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void nvpmodel_clk_cap_remove_wrapper(struct platform_device *pdev)
++{
++	nvpmodel_clk_cap_remove(pdev);
++}
++#else
++static inline int nvpmodel_clk_cap_remove_wrapper(struct platform_device *pdev)
++{
++	return nvpmodel_clk_cap_remove(pdev);
++}
++#endif
++
+ static struct platform_driver nvpmodel_clk_cap_driver = {
+ 	.probe = nvpmodel_clk_cap_probe,
+-	.remove = nvpmodel_clk_cap_remove,
++	.remove = nvpmodel_clk_cap_remove_wrapper,
+ 	.driver = {
+ 		.name = "nvpmodel-clk-cap",
+ 		.of_match_table = of_nvpmodel_clk_cap_match,
+diff --git a/drivers/nvpps/nvpps_main.c b/drivers/nvpps/nvpps_main.c
+index 0ae00007..6addb464 100644
+--- a/drivers/nvpps/nvpps_main.c
++++ b/drivers/nvpps/nvpps_main.c
+@@ -1189,6 +1189,18 @@ MODULE_DEVICE_TABLE(of, nvpps_of_table);
+ #endif /* !NVPPS_NO_DT */
+ 
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void nvpps_remove_wrapper(struct platform_device *pdev)
++{
++	nvpps_remove(pdev);
++}
++#else
++static inline int nvpps_remove_wrapper(struct platform_device *pdev)
++{
++	return nvpps_remove(pdev);
++}
++#endif
++
+ static struct platform_driver nvpps_plat_driver = {
+ 	.driver = {
+ 		.name = KBUILD_MODNAME,
+@@ -1198,7 +1210,7 @@ static struct platform_driver nvpps_plat_driver = {
+ #endif /* !NVPPS_NO_DT */
+ 	},
+ 	.probe = nvpps_probe,
+-	.remove = nvpps_remove,
++	.remove = nvpps_remove_wrapper,
+ #ifdef CONFIG_PM
+ 	.suspend = nvpps_suspend,
+ 	.resume = nvpps_resume,
+diff --git a/drivers/pci/controller/pcie-tegra-vf.c b/drivers/pci/controller/pcie-tegra-vf.c
+index 13cacf36..bf88a7c3 100644
+--- a/drivers/pci/controller/pcie-tegra-vf.c
++++ b/drivers/pci/controller/pcie-tegra-vf.c
+@@ -1,11 +1,13 @@
+-// SPDX-License-Identifier: GPL-2.0
++// SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * PCIe driver to enumerate PCIe virtual functions in VM.
+  *
+- * Copyright (C) 2021-2022, NVIDIA Corporation. All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  *
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+@@ -142,13 +144,25 @@ static const struct of_device_id pci_tegra_vf_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, pci_tegra_vf_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void pci_tegra_vf_remove_wrapper(struct platform_device *pdev)
++{
++	pci_tegra_vf_remove(pdev);
++}
++#else
++static inline int pci_tegra_vf_remove_wrapper(struct platform_device *pdev)
++{
++	return pci_tegra_vf_remove(pdev);
++}
++#endif
++
+ static struct platform_driver pci_tegra_vf_driver = {
+ 	.driver = {
+ 		.name = "pcie-tegra-vf",
+ 		.of_match_table = pci_tegra_vf_of_match,
+ 	},
+ 	.probe = pci_tegra_vf_probe,
+-	.remove = pci_tegra_vf_remove,
++	.remove = pci_tegra_vf_remove_wrapper,
+ };
+ module_platform_driver(pci_tegra_vf_driver);
+ 
+diff --git a/drivers/platform/tegra/aon/tegra-aon-ivc-echo.c b/drivers/platform/tegra/aon/tegra-aon-ivc-echo.c
+index f6d20ea9..536375bd 100644
+--- a/drivers/platform/tegra/aon/tegra-aon-ivc-echo.c
++++ b/drivers/platform/tegra/aon/tegra-aon-ivc-echo.c
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// SPDX-FileCopyrightText: Copyright (c) 2017-2023, NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2017-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/device.h>
+ #include <linux/mailbox_client.h>
+@@ -112,9 +114,21 @@ static const struct of_device_id tegra_aon_ivc_echo_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_aon_ivc_echo_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_aon_ivc_echo_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_aon_ivc_echo_remove(pdev);
++}
++#else
++static inline int tegra_aon_ivc_echo_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_aon_ivc_echo_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_aon_ivc_echo_driver = {
+ 	.probe = tegra_aon_ivc_echo_probe,
+-	.remove = tegra_aon_ivc_echo_remove,
++	.remove = tegra_aon_ivc_echo_remove_wrapper,
+ 	.driver = {
+ 		.name = "tegra-aon-ivc-echo",
+ 		.of_match_table = tegra_aon_ivc_echo_match,
+diff --git a/drivers/platform/tegra/aon/tegra-aon-module.c b/drivers/platform/tegra/aon/tegra-aon-module.c
+index e44d16d1..e2df08f0 100644
+--- a/drivers/platform/tegra/aon/tegra-aon-module.c
++++ b/drivers/platform/tegra/aon/tegra-aon-module.c
+@@ -1,7 +1,7 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- * Copyright (c) 2020-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- */
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2020-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/device.h>
+ #include <linux/kernel.h>
+@@ -161,13 +161,25 @@ static const struct of_device_id tegra_aon_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_aon_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_aon_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_aon_remove(pdev);
++}
++#else
++static inline int tegra_aon_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_aon_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra234_aon_driver = {
+ 	.driver = {
+ 		.name	= "tegra234-aon",
+ 		.of_match_table = tegra_aon_of_match,
+ 	},
+ 	.probe = tegra_aon_probe,
+-	.remove = tegra_aon_remove,
++	.remove = tegra_aon_remove_wrapper,
+ };
+ module_platform_driver(tegra234_aon_driver);
+ 
+diff --git a/drivers/platform/tegra/dce/dce-module.c b/drivers/platform/tegra/dce/dce-module.c
+index 6a538d34..384db506 100644
+--- a/drivers/platform/tegra/dce/dce-module.c
++++ b/drivers/platform/tegra/dce/dce-module.c
+@@ -1,6 +1,8 @@
+ // SPDX-FileCopyrightText: Copyright (c) 2019-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ // SPDX-License-Identifier: GPL-2.0-only
+ 
++#include <nvidia/conftest.h>
++
+ #include <dce.h>
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
+@@ -304,6 +306,18 @@ static const struct dev_pm_ops dce_pm_ops = {
+ };
+ #endif
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_dce_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_dce_remove(pdev);
++}
++#else
++static inline int tegra_dce_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_dce_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_dce_driver = {
+ 	.driver = {
+ 		.name   = "tegra-dce",
+@@ -314,7 +328,7 @@ static struct platform_driver tegra_dce_driver = {
+ #endif
+ 	},
+ 	.probe = tegra_dce_probe,
+-	.remove = tegra_dce_remove,
++	.remove = tegra_dce_remove_wrapper,
+ };
+ module_platform_driver(tegra_dce_driver);
+ 
+diff --git a/drivers/platform/tegra/mc-hwpm.c b/drivers/platform/tegra/mc-hwpm.c
+index 217c416a..de607ad0 100644
+--- a/drivers/platform/tegra/mc-hwpm.c
++++ b/drivers/platform/tegra/mc-hwpm.c
+@@ -1,10 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (c) 2022-2023, NVIDIA CORPORATION.  All rights reserved.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #define pr_fmt(fmt) "mc-hwpm: " fmt
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/export.h>
+@@ -145,6 +145,18 @@ static int tegra_mc_hwpm_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_mc_hwpm_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_mc_hwpm_remove(pdev);
++}
++#else
++static inline int tegra_mc_hwpm_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_mc_hwpm_remove(pdev);
++}
++#endif
++
+ static struct platform_driver mc_hwpm_driver = {
+ 	.driver = {
+ 		.name	= "tegra-mc-hwpm",
+@@ -153,7 +165,7 @@ static struct platform_driver mc_hwpm_driver = {
+ 	},
+ 
+ 	.probe		= tegra_mc_hwpm_hwpm_probe,
+-	.remove		= tegra_mc_hwpm_remove,
++	.remove		= tegra_mc_hwpm_remove_wrapper,
+ };
+ 
+ static int __init tegra_mc_hwpm_init(void)
+diff --git a/drivers/platform/tegra/mce/tegra23x-mce.c b/drivers/platform/tegra/mce/tegra23x-mce.c
+index 29b838a0..1fa3ab41 100644
+--- a/drivers/platform/tegra/mce/tegra23x-mce.c
++++ b/drivers/platform/tegra/mce/tegra23x-mce.c
+@@ -1,6 +1,8 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2022-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+-//
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
++
+ #include <linux/cpumask.h>
+ #include <linux/delay.h>
+ #include <linux/io.h>
+@@ -580,9 +582,21 @@ static const struct of_device_id t23x_mce_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, t23x_mce_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void t23x_mce_remove_wrapper(struct platform_device *pdev)
++{
++	t23x_mce_remove(pdev);
++}
++#else
++static inline int t23x_mce_remove_wrapper(struct platform_device *pdev)
++{
++	return t23x_mce_remove(pdev);
++}
++#endif
++
+ static struct platform_driver t23x_mce_driver = {
+ 	.probe = t23x_mce_probe,
+-	.remove = t23x_mce_remove,
++	.remove = t23x_mce_remove_wrapper,
+ 	.driver = {
+ 		.owner  = THIS_MODULE,
+ 		.name = "t23x-mce",
+diff --git a/drivers/platform/tegra/nvadsp/dev.c b/drivers/platform/tegra/nvadsp/dev.c
+index 0726aabe..3c43e2ee 100644
+--- a/drivers/platform/tegra/nvadsp/dev.c
++++ b/drivers/platform/tegra/nvadsp/dev.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/**
+- * Copyright (c) 2014-2023, NVIDIA CORPORATION. All rights reserved.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/platform_device.h>
+ #include <linux/fs.h>
+@@ -583,6 +583,18 @@ static const struct of_device_id nvadsp_of_match[] = {
+ MODULE_DEVICE_TABLE(of, nvadsp_of_match);
+ #endif
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void nvadsp_remove_wrapper(struct platform_device *pdev)
++{
++	nvadsp_remove(pdev);
++}
++#else
++static inline int nvadsp_remove_wrapper(struct platform_device *pdev)
++{
++	return nvadsp_remove(pdev);
++}
++#endif
++
+ static struct platform_driver nvadsp_driver __refdata = {
+ 	.driver	= {
+ 		.name	= "nvadsp",
+@@ -591,7 +603,7 @@ static struct platform_driver nvadsp_driver __refdata = {
+ 		.of_match_table = of_match_ptr(nvadsp_of_match),
+ 	},
+ 	.probe		= nvadsp_probe,
+-	.remove		= nvadsp_remove,
++	.remove		= nvadsp_remove_wrapper,
+ };
+ module_platform_driver(nvadsp_driver);
+ 
+diff --git a/drivers/platform/tegra/psc/tegra23x_psc_mailbox.c b/drivers/platform/tegra/psc/tegra23x_psc_mailbox.c
+index f9375daf..543adc1f 100644
+--- a/drivers/platform/tegra/psc/tegra23x_psc_mailbox.c
++++ b/drivers/platform/tegra/psc/tegra23x_psc_mailbox.c
+@@ -1,5 +1,7 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2020-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2020-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/acpi.h>
+ #include <linux/module.h>
+@@ -293,9 +295,21 @@ static const struct acpi_device_id tegra23x_psc_acpi_match[] = {
+ MODULE_DEVICE_TABLE(acpi, tegra23x_psc_acpi_match);
+ #endif
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra234_psc_remove_wrapper(struct platform_device *pdev)
++{
++	tegra234_psc_remove(pdev);
++}
++#else
++static inline int tegra234_psc_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra234_psc_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra234_psc_driver = {
+ 	.probe          = tegra234_psc_probe,
+-	.remove         = tegra234_psc_remove,
++	.remove		= tegra234_psc_remove_wrapper,
+ 	.driver = {
+ 		.owner  = THIS_MODULE,
+ 		.name   = "tegra23x-psc",
+diff --git a/drivers/platform/tegra/rtcpu/tegra-camera-rtcpu-base.c b/drivers/platform/tegra/rtcpu/tegra-camera-rtcpu-base.c
+index 19c32f73..2bfa5440 100644
+--- a/drivers/platform/tegra/rtcpu/tegra-camera-rtcpu-base.c
++++ b/drivers/platform/tegra/rtcpu/tegra-camera-rtcpu-base.c
+@@ -1,5 +1,7 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/tegra-camera-rtcpu.h>
+ 
+@@ -966,6 +968,18 @@ static const struct dev_pm_ops tegra_cam_rtcpu_pm_ops = {
+ 	.runtime_idle = tegra_cam_rtcpu_runtime_idle,
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_cam_rtcpu_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_cam_rtcpu_remove(pdev);
++}
++#else
++static inline int tegra_cam_rtcpu_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_cam_rtcpu_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_cam_rtcpu_driver = {
+ 	.driver = {
+ 		.name	= "tegra186-cam-rtcpu",
+@@ -976,7 +990,7 @@ static struct platform_driver tegra_cam_rtcpu_driver = {
+ #endif
+ 	},
+ 	.probe = tegra_cam_rtcpu_probe,
+-	.remove = tegra_cam_rtcpu_remove,
++	.remove = tegra_cam_rtcpu_remove_wrapper,
+ 	.shutdown = tegra_cam_rtcpu_shutdown,
+ };
+ module_platform_driver(tegra_cam_rtcpu_driver);
+diff --git a/drivers/platform/tegra/tegra-cactmon-mc-all.c b/drivers/platform/tegra/tegra-cactmon-mc-all.c
+index 49d50c1c..90f322b5 100644
+--- a/drivers/platform/tegra/tegra-cactmon-mc-all.c
++++ b/drivers/platform/tegra/tegra-cactmon-mc-all.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (C) 2023-2024 NVIDIA CORPORATION.  All rights reserved.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION.  All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/clk.h>
+ #include <linux/debugfs.h>
+@@ -138,9 +138,21 @@ static const struct of_device_id central_actmon_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, central_actmon_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void central_actmon_remove_wrapper(struct platform_device *pdev)
++{
++	central_actmon_remove(pdev);
++}
++#else
++static inline int central_actmon_remove_wrapper(struct platform_device *pdev)
++{
++	return central_actmon_remove(pdev);
++}
++#endif
++
+ static struct platform_driver central_actmon_driver = {
+ 	.probe		= central_actmon_probe,
+-	.remove		= central_actmon_remove,
++	.remove		= central_actmon_remove_wrapper,
+ 	.driver	= {
+ 		.name	= "tegra-cactmon-mc-all",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/platform/tegra/tegra-fsicom.c b/drivers/platform/tegra/tegra-fsicom.c
+index 27ff34fc..3e3dce29 100644
+--- a/drivers/platform/tegra/tegra-fsicom.c
++++ b/drivers/platform/tegra/tegra-fsicom.c
+@@ -1,5 +1,5 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2021-2023, NVIDIA CORPORATION. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -463,6 +463,18 @@ static int __maybe_unused fsicom_client_resume(struct device *dev)
+ 
+ static SIMPLE_DEV_PM_OPS(fsicom_client_pm, fsicom_client_suspend, fsicom_client_resume);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void fsicom_client_remove_wrapper(struct platform_device *pdev)
++{
++	fsicom_client_remove(pdev);
++}
++#else
++static inline int fsicom_client_remove_wrapper(struct platform_device *pdev)
++{
++	return fsicom_client_remove(pdev);
++}
++#endif
++
+ static struct platform_driver fsicom_client = {
+ 	.driver = {
+ 		.name   = "fsicom_client",
+@@ -472,7 +484,7 @@ static struct platform_driver fsicom_client = {
+ 	},
+ 	.probe		= fsicom_client_probe,
+ 	.shutdown	= fsicom_client_shutdown,
+-	.remove		= fsicom_client_remove,
++	.remove		= fsicom_client_remove_wrapper,
+ };
+ 
+ module_platform_driver(fsicom_client);
+diff --git a/drivers/platform/tegra/tegra-uss-io-proxy.c b/drivers/platform/tegra/tegra-uss-io-proxy.c
+index de61695f..bd058d77 100644
+--- a/drivers/platform/tegra/tegra-uss-io-proxy.c
++++ b/drivers/platform/tegra/tegra-uss-io-proxy.c
+@@ -1,10 +1,12 @@
+-// SPDX-License-Identifier: GPL-2.0
++// SPDX-License-Identifier: GPL-2.0-only
+ /*
+  * Tegra Ultrasonics Sensor Subsystem IO-Proxy driver
+  *
+- * Copyright (c) 2021-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/kernel.h>
+ #include <linux/compiler.h>
+ #include <linux/interrupt.h>
+@@ -496,9 +498,21 @@ static int tegra_uss_io_proxy_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_uss_io_proxy_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_uss_io_proxy_remove(pdev);
++}
++#else
++static inline int tegra_uss_io_proxy_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_uss_io_proxy_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_uss_io_proxy_driver = {
+ 	.probe = tegra_uss_io_proxy_probe,
+-	.remove = tegra_uss_io_proxy_remove,
++	.remove = tegra_uss_io_proxy_remove_wrapper,
+ 	.driver = {
+ 		.name	= "tegra-uss-io-proxy",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/platform/tegra/tegra_bootloader_debug.c b/drivers/platform/tegra/tegra_bootloader_debug.c
+index 67d16096..eceaedd9 100644
+--- a/drivers/platform/tegra/tegra_bootloader_debug.c
++++ b/drivers/platform/tegra/tegra_bootloader_debug.c
+@@ -1,5 +1,7 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/init.h>
+ #include <linux/module.h>
+@@ -674,9 +676,21 @@ static const struct of_device_id tegra_bl_debug_of_match[] = {
+ 
+ MODULE_DEVICE_TABLE(of, tegra_bl_debug_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_bl_debug_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_bl_debug_remove(pdev);
++}
++#else
++static inline int tegra_bl_debug_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_bl_debug_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_bl_debug_driver = {
+ 	.probe = tegra_bl_debug_probe,
+-	.remove = tegra_bl_debug_remove,
++	.remove = tegra_bl_debug_remove_wrapper,
+ 	.driver = {
+ 		.name = "tegra_bl_debug",
+ 		.of_match_table = tegra_bl_debug_of_match,
+diff --git a/drivers/platform/tegra/uncore_pmu/tegra23x_perf_uncore.c b/drivers/platform/tegra/uncore_pmu/tegra23x_perf_uncore.c
+index 55e60f11..eeff2972 100644
+--- a/drivers/platform/tegra/uncore_pmu/tegra23x_perf_uncore.c
++++ b/drivers/platform/tegra/uncore_pmu/tegra23x_perf_uncore.c
+@@ -1,5 +1,7 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/of.h>
+ #include <linux/platform_device.h>
+@@ -621,13 +623,25 @@ static const struct of_device_id scf_pmu_of_device_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(of, scf_pmu_of_device_ids);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void scf_pmu_device_remove_wrapper(struct platform_device *pdev)
++{
++	scf_pmu_device_remove(pdev);
++}
++#else
++static inline int scf_pmu_device_remove_wrapper(struct platform_device *pdev)
++{
++	return scf_pmu_device_remove(pdev);
++}
++#endif
++
+ static struct platform_driver scf_pmu_driver = {
+ 	.driver = {
+ 		.name = "scf-pmu-drv",
+ 		.of_match_table = scf_pmu_of_device_ids,
+ 	},
+ 	.probe = scf_pmu_device_probe,
+-	.remove = scf_pmu_device_remove,
++	.remove = scf_pmu_device_remove_wrapper,
+ };
+ 
+ static int __init register_pmu_driver(void)
+diff --git a/drivers/pwm/pwm-tegra-tachometer.c b/drivers/pwm/pwm-tegra-tachometer.c
+index 5b2e2ae8..b3760335 100644
+--- a/drivers/pwm/pwm-tegra-tachometer.c
++++ b/drivers/pwm/pwm-tegra-tachometer.c
+@@ -567,6 +567,18 @@ static const struct of_device_id pwm_tegra_tach_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, pwm_tegra_tach_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void pwm_tegra_tach_remove_wrapper(struct platform_device *pdev)
++{
++	pwm_tegra_tach_remove(pdev);
++}
++#else
++static inline int pwm_tegra_tach_remove_wrapper(struct platform_device *pdev)
++{
++	return pwm_tegra_tach_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_tach_driver = {
+ 	.driver = {
+ 		.name = "pwm-tegra-tachometer",
+@@ -574,7 +586,7 @@ static struct platform_driver tegra_tach_driver = {
+ 		.pm = &pwm_tegra_tach_pm_ops,
+ 	},
+ 	.probe = pwm_tegra_tach_probe,
+-	.remove = pwm_tegra_tach_remove,
++	.remove = pwm_tegra_tach_remove_wrapper,
+ };
+ 
+ module_platform_driver(tegra_tach_driver);
+diff --git a/drivers/ras/arm64-ras.c b/drivers/ras/arm64-ras.c
+index 28f4406d..33b0cc4b 100644
+--- a/drivers/ras/arm64-ras.c
++++ b/drivers/ras/arm64-ras.c
+@@ -1,5 +1,7 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2022-2024, NVIDIA CORPORATION.  All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024, NVIDIA CORPORATION.  All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/module.h>
+ #include <linux/interrupt.h>
+@@ -489,9 +491,21 @@ static int ras_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void ras_remove_wrapper(struct platform_device *pdev)
++{
++	ras_remove(pdev);
++}
++#else
++static inline int ras_remove_wrapper(struct platform_device *pdev)
++{
++	return ras_remove(pdev);
++}
++#endif
++
+ static struct platform_driver ras_driver = {
+ 	.probe = ras_probe,
+-	.remove = ras_remove,
++	.remove = ras_remove_wrapper,
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "arm64_ras",
+diff --git a/drivers/rtc/nvvrs-pseq-rtc.c b/drivers/rtc/nvvrs-pseq-rtc.c
+index f22954b7..3908f676 100644
+--- a/drivers/rtc/nvvrs-pseq-rtc.c
++++ b/drivers/rtc/nvvrs-pseq-rtc.c
+@@ -2,9 +2,11 @@
+ /*
+  * RTC driver for NVIDIA Voltage Regulator Power Sequencer
+  *
+- * Copyright (C) 2022-2023 NVIDIA CORPORATION. All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/i2c.h>
+ #include <linux/init.h>
+ #include <linux/slab.h>
+@@ -520,13 +522,25 @@ static const struct platform_device_id nvvrs_rtc_id[] = {
+ };
+ MODULE_DEVICE_TABLE(platform, nvvrs_rtc_id);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void nvvrs_rtc_remove_wrapper(struct platform_device *pdev)
++{
++	nvvrs_rtc_remove(pdev);
++}
++#else
++static inline int nvvrs_rtc_remove_wrapper(struct platform_device *pdev)
++{
++	return nvvrs_rtc_remove(pdev);
++}
++#endif
++
+ static struct platform_driver nvvrs_rtc_driver = {
+ 	.driver		= {
+ 		.name   = "nvvrs-pseq-rtc",
+ 		.pm     = &nvvrs_rtc_pm_ops,
+ 	},
+ 	.probe		= nvvrs_rtc_probe,
+-	.remove		= nvvrs_rtc_remove,
++	.remove	= nvvrs_rtc_remove_wrapper,
+ 	.shutdown	= nvvrs_rtc_shutdown,
+ 	.id_table       = nvvrs_rtc_id,
+ };
+diff --git a/drivers/rtc/rtc-max77851.c b/drivers/rtc/rtc-max77851.c
+index 97fe5043..a858f749 100644
+--- a/drivers/rtc/rtc-max77851.c
++++ b/drivers/rtc/rtc-max77851.c
+@@ -1,9 +1,11 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ /*
+  * RTC driver for Maxim MAX77851
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/rtc.h>
+@@ -874,6 +876,18 @@ static const struct platform_device_id rtc_id[] = {
+ };
+ MODULE_DEVICE_TABLE(platform, rtc_id);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void max77851_rtc_remove_wrapper(struct platform_device *pdev)
++{
++	max77851_rtc_remove(pdev);
++}
++#else
++static inline int max77851_rtc_remove_wrapper(struct platform_device *pdev)
++{
++	return max77851_rtc_remove(pdev);
++}
++#endif
++
+ static struct platform_driver max77851_rtc_driver = {
+ 	.driver		= {
+ 		.name	= "max77851-rtc",
+@@ -881,7 +895,7 @@ static struct platform_driver max77851_rtc_driver = {
+ 	},
+ 	.probe		= max77851_rtc_probe,
+ 	.shutdown	= max77851_rtc_shutdown,
+-	.remove		= max77851_rtc_remove,
++	.remove		= max77851_rtc_remove_wrapper,
+ 	.id_table	= rtc_id,
+ };
+ 
+diff --git a/drivers/scsi/ufs/ufs-tegra-common.c b/drivers/scsi/ufs/ufs-tegra-common.c
+index 74bf3448..e6350fa6 100644
+--- a/drivers/scsi/ufs/ufs-tegra-common.c
++++ b/drivers/scsi/ufs/ufs-tegra-common.c
+@@ -1,7 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// Copyright (c) 2015-2024 NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+-
+-#include <nvidia/conftest.h>
++// SPDX-FileCopyrightText: Copyright (c) 2015-2024 NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -1950,9 +1948,21 @@ static const struct dev_pm_ops ufs_tegra_pm_ops = {
+ 	SET_RUNTIME_PM_OPS(ufshcd_runtime_suspend, ufshcd_runtime_resume, NULL)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void ufs_tegra_remove_wrapper(struct platform_device *pdev)
++{
++	ufs_tegra_remove(pdev);
++}
++#else
++static inline int ufs_tegra_remove_wrapper(struct platform_device *pdev)
++{
++	return ufs_tegra_remove(pdev);
++}
++#endif
++
+ static struct platform_driver ufs_tegra_platform = {
+ 	.probe = ufs_tegra_probe,
+-	.remove = ufs_tegra_remove,
++	.remove = ufs_tegra_remove_wrapper,
+ 	.driver = {
+ 		.name = "ufs_tegra",
+ 		.pm   = &ufs_tegra_pm_ops,
+diff --git a/drivers/soc/tegra/fuse/kfuse.c b/drivers/soc/tegra/fuse/kfuse.c
+index 857648da..2bf6afa0 100644
+--- a/drivers/soc/tegra/fuse/kfuse.c
++++ b/drivers/soc/tegra/fuse/kfuse.c
+@@ -1,10 +1,12 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// Copyright (C) 2022-2024 NVIDIA CORPORATION. All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION. All rights reserved.
+ 
+ /* The kfuse block stores downstream and upstream HDCP keys for use by HDMI
+  * module.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/platform_device.h>
+ #include <linux/kernel.h>
+ #include <linux/io.h>
+@@ -304,9 +306,21 @@ static const struct of_device_id tegra_kfuse_of_match[] = {
+ 	{ },
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_kfuse_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_kfuse_remove(pdev);
++}
++#else
++static inline int tegra_kfuse_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_kfuse_remove(pdev);
++}
++#endif
++
+ static struct platform_driver kfuse_driver = {
+ 	.probe = tegra_kfuse_probe,
+-	.remove = tegra_kfuse_remove,
++	.remove = tegra_kfuse_remove_wrapper,
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "kfuse",
+diff --git a/drivers/spi/spi-tegra124-slave.c b/drivers/spi/spi-tegra124-slave.c
+index f27e73a7..c0cbcd8e 100644
+--- a/drivers/spi/spi-tegra124-slave.c
++++ b/drivers/spi/spi-tegra124-slave.c
+@@ -2273,6 +2273,18 @@ static const struct dev_pm_ops tegra_spi_pm_ops = {
+ 		tegra_spi_runtime_resume, NULL)
+ 	SET_SYSTEM_SLEEP_PM_OPS(tegra_spi_suspend, tegra_spi_resume)
+ };
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_spi_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_spi_remove(pdev);
++}
++#else
++static inline int tegra_spi_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_spi_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_spi_driver = {
+ 	.driver = {
+ 		.name		= "spi-tegra124-slave",
+@@ -2281,7 +2293,7 @@ static struct platform_driver tegra_spi_driver = {
+ 		.of_match_table	= of_match_ptr(tegra_spi_of_match),
+ 	},
+ 	.probe =	tegra_spi_probe,
+-	.remove =	tegra_spi_remove,
++	.remove	=	tegra_spi_remove_wrapper,
+ };
+ module_platform_driver(tegra_spi_driver);
+ 
+diff --git a/drivers/spi/spi-tegra210-quad.c b/drivers/spi/spi-tegra210-quad.c
+index 889c466e..42e90db3 100644
+--- a/drivers/spi/spi-tegra210-quad.c
++++ b/drivers/spi/spi-tegra210-quad.c
+@@ -1924,6 +1924,18 @@ static const struct dev_pm_ops tegra_qspi_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(tegra_qspi_suspend, tegra_qspi_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_qspi_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_qspi_remove(pdev);
++}
++#else
++static inline int tegra_qspi_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_qspi_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_qspi_driver = {
+ 	.driver = {
+ 		.name		= "tegra-qspi",
+@@ -1932,7 +1944,7 @@ static struct platform_driver tegra_qspi_driver = {
+ 		.acpi_match_table = ACPI_PTR(tegra_qspi_acpi_match),
+ 	},
+ 	.probe =	tegra_qspi_probe,
+-	.remove =	tegra_qspi_remove,
++	.remove =	tegra_qspi_remove_wrapper,
+ };
+ module_platform_driver(tegra_qspi_driver);
+ 
+diff --git a/drivers/thermal/tegra234-oc-event.c b/drivers/thermal/tegra234-oc-event.c
+index 1bf8f23a..e7bfa4f7 100644
+--- a/drivers/thermal/tegra234-oc-event.c
++++ b/drivers/thermal/tegra234-oc-event.c
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// Copyright (c) 2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <dt-bindings/thermal/tegra234-soctherm.h>
+ #include <linux/err.h>
+@@ -207,9 +209,21 @@ static int tegra234_oc_event_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra234_oc_event_remove_wrapper(struct platform_device *pdev)
++{
++	tegra234_oc_event_remove(pdev);
++}
++#else
++static inline int tegra234_oc_event_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra234_oc_event_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra234_oc_event_driver = {
+ 	.probe = tegra234_oc_event_probe,
+-	.remove = tegra234_oc_event_remove,
++	.remove = tegra234_oc_event_remove_wrapper,
+ 	.driver = {
+ 		.name = "tegra234-oc-event",
+ 		.of_match_table = of_tegra234_oc_event_match,
+diff --git a/drivers/thermal/thermal-trip-event.c b/drivers/thermal/thermal-trip-event.c
+index fd3f5006..504210d6 100644
+--- a/drivers/thermal/thermal-trip-event.c
++++ b/drivers/thermal/thermal-trip-event.c
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// SPDX-FileCopyrightText: Copyright (c) 2023, NVIDIA CORPORATION & AFFILIATES.  All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -239,6 +241,18 @@ static const struct of_device_id thermal_trip_event_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, thermal_trip_event_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void thermal_trip_event_remove_wrapper(struct platform_device *pdev)
++{
++	thermal_trip_event_remove(pdev);
++}
++#else
++static inline int thermal_trip_event_remove_wrapper(struct platform_device *pdev)
++{
++	return thermal_trip_event_remove(pdev);
++}
++#endif
++
+ static struct platform_driver thermal_trip_event_driver = {
+ 	.driver = {
+ 		.name = "thermal-trip-event",
+@@ -246,7 +260,7 @@ static struct platform_driver thermal_trip_event_driver = {
+ 		.of_match_table = thermal_trip_event_of_match,
+ 	},
+ 	.probe = thermal_trip_event_probe,
+-	.remove = thermal_trip_event_remove,
++	.remove = thermal_trip_event_remove_wrapper,
+ };
+ 
+ module_platform_driver(thermal_trip_event_driver);
+diff --git a/drivers/video/tegra/camera/tegra_camera_platform.c b/drivers/video/tegra/camera/tegra_camera_platform.c
+index 44d442e6..6c194f21 100644
+--- a/drivers/video/tegra/camera/tegra_camera_platform.c
++++ b/drivers/video/tegra/camera/tegra_camera_platform.c
+@@ -1,7 +1,7 @@
+-// SPDX-License-Identifier: GPL-2.0
+-/*
+- * SPDX-FileCopyrightText: Copyright (C) 2015-2023 NVIDIA CORPORATION.  All rights reserved.
+- */
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2015-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/fs.h>
+ #include <linux/platform_device.h>
+@@ -793,9 +793,21 @@ static int tegra_camera_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_camera_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_camera_remove(pdev);
++}
++#else
++static inline int tegra_camera_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_camera_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_camera_driver = {
+ 	.probe = tegra_camera_probe,
+-	.remove = tegra_camera_remove,
++	.remove = tegra_camera_remove_wrapper,
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "tegra_camera_platform",
+diff --git a/drivers/video/tegra/host/capture/capture-support.c b/drivers/video/tegra/host/capture/capture-support.c
+index df0c4fec..e471b2e5 100644
+--- a/drivers/video/tegra/host/capture/capture-support.c
++++ b/drivers/video/tegra/host/capture/capture-support.c
+@@ -2,9 +2,11 @@
+ /*
+  * Capture support for syncpoint and GoS management
+  *
+- * Copyright (c) 2017-2022, NVIDIA Corporation.  All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2017-2024, NVIDIA Corporation.  All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include "capture-support.h"
+ #include <linux/device.h>
+ #include <linux/dma-mapping.h>
+@@ -187,9 +189,21 @@ static const struct of_device_id capture_support_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, capture_support_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void capture_support_remove_wrapper(struct platform_device *pdev)
++{
++	capture_support_remove(pdev);
++}
++#else
++static inline int capture_support_remove_wrapper(struct platform_device *pdev)
++{
++	return capture_support_remove(pdev);
++}
++#endif
++
+ static struct platform_driver capture_support_driver = {
+ 	.probe = capture_support_probe,
+-	.remove = capture_support_remove,
++	.remove = capture_support_remove_wrapper,
+ 	.driver = {
+ 		/* Only suitable name for dummy falcon driver */
+ 		.name = "scare-pigeon",
+diff --git a/drivers/video/tegra/host/isp/isp5.c b/drivers/video/tegra/host/isp/isp5.c
+index 90064569..574def2f 100644
+--- a/drivers/video/tegra/host/isp/isp5.c
++++ b/drivers/video/tegra/host/isp/isp5.c
+@@ -1,6 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ // SPDX-FileCopyrightText: Copyright (c) 2017-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
++#include <nvidia/conftest.h>
++
+ #include <asm/ioctls.h>
+ #include <linux/clk.h>
+ #include <linux/debugfs.h>
+@@ -344,9 +346,21 @@ static const struct of_device_id tegra_isp5_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_isp5_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void isp5_remove_wrapper(struct platform_device *pdev)
++{
++	isp5_remove(pdev);
++}
++#else
++static inline int isp5_remove_wrapper(struct platform_device *pdev)
++{
++	return isp5_remove(pdev);
++}
++#endif
++
+ static struct platform_driver isp5_driver = {
+ 	.probe = isp5_probe,
+-	.remove = isp5_remove,
++	.remove = isp5_remove_wrapper,
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "tegra194-isp5",
+diff --git a/drivers/video/tegra/host/nvcsi/nvcsi-t194.c b/drivers/video/tegra/host/nvcsi/nvcsi-t194.c
+index de40bf66..75f6dc05 100644
+--- a/drivers/video/tegra/host/nvcsi/nvcsi-t194.c
++++ b/drivers/video/tegra/host/nvcsi/nvcsi-t194.c
+@@ -1,9 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * SPDX-FileCopyrightText: Copyright (C) 2017-2023 NVIDIA CORPORATION.  All rights reserved.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2017-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include "nvcsi-t194.h"
++
+ #include <uapi/linux/nvhost_nvcsi_ioctl.h>
+ #include <linux/tegra-camera-rtcpu.h>
+ 
+@@ -243,9 +244,21 @@ static int __exit t194_nvcsi_remove(struct platform_device *dev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void t194_nvcsi_remove_wrapper(struct platform_device *pdev)
++{
++	t194_nvcsi_remove(pdev);
++}
++#else
++static inline int t194_nvcsi_remove_wrapper(struct platform_device *pdev)
++{
++	return t194_nvcsi_remove(pdev);
++}
++#endif
++
+ static struct platform_driver t194_nvcsi_driver = {
+ 	.probe = t194_nvcsi_probe,
+-	.remove = __exit_p(t194_nvcsi_remove),
++	.remove = __exit_p(t194_nvcsi_remove_wrapper),
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "t194-nvcsi",
+diff --git a/drivers/video/tegra/host/nvdla/nvdla.c b/drivers/video/tegra/host/nvdla/nvdla.c
+index 29a2ba42..2132d7b9 100644
+--- a/drivers/video/tegra/host/nvdla/nvdla.c
++++ b/drivers/video/tegra/host/nvdla/nvdla.c
+@@ -1,10 +1,12 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (c) 2016-2023, NVIDIA Corporation.  All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2016-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  *
+  * NVDLA driver for T194/T23x
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/arm64-barrier.h>
+ #include <linux/module.h>
+ #include <linux/fs.h>
+@@ -1526,9 +1528,21 @@ const struct dev_pm_ops nvdla_module_pm_ops = {
+ };
+ #endif /* CONFIG_PM */
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void __exit nvdla_remove_wrapper(struct platform_device *pdev)
++{
++	nvdla_remove(pdev);
++}
++#else
++static inline int __exit nvdla_remove_wrapper(struct platform_device *pdev)
++{
++	return nvdla_remove(pdev);
++}
++#endif
++
+ static struct platform_driver nvdla_driver = {
+ 	.probe = nvdla_probe,
+-	.remove = __exit_p(nvdla_remove),
++	.remove = __exit_p(nvdla_remove_wrapper),
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "nvdla",
+diff --git a/drivers/video/tegra/host/pva/pva.c b/drivers/video/tegra/host/pva/pva.c
+index 09352565..3c4662a2 100644
+--- a/drivers/video/tegra/host/pva/pva.c
++++ b/drivers/video/tegra/host/pva/pva.c
+@@ -1,7 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (c) 2016-2023, NVIDIA CORPORATION.  All rights reserved.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2016-2024, NVIDIA CORPORATION.  All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include "pva_mailbox.h"
+ #include <linux/workqueue.h>
+@@ -1708,9 +1708,21 @@ const struct dev_pm_ops nvpva_module_pm_ops = {
+ };
+ #endif /* CONFIG_PM */
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void __exit pva_remove_wrapper(struct platform_device *pdev)
++{
++	pva_remove(pdev);
++}
++#else
++static inline int __exit pva_remove_wrapper(struct platform_device *pdev)
++{
++	return pva_remove(pdev);
++}
++#endif
++
+ static struct platform_driver pva_driver = {
+ 	.probe = pva_probe,
+-	.remove = __exit_p(pva_remove),
++	.remove = __exit_p(pva_remove_wrapper),
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "pva",
+diff --git a/drivers/video/tegra/host/pva/pva_iommu_context_dev.c b/drivers/video/tegra/host/pva/pva_iommu_context_dev.c
+index 45fa3467..a47abf94 100644
+--- a/drivers/video/tegra/host/pva/pva_iommu_context_dev.c
++++ b/drivers/video/tegra/host/pva/pva_iommu_context_dev.c
+@@ -1,10 +1,12 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (c) 2022-2023, NVIDIA CORPORATION. All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  *
+  * PVA Application Specific Virtual Memory
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/dma-mapping.h>
+ #include <linux/of_platform.h>
+ #include <linux/of_device.h>
+@@ -237,9 +239,21 @@ static int __exit pva_iommu_context_dev_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void __exit pva_iommu_context_dev_remove_wrapper(struct platform_device *pdev)
++{
++	pva_iommu_context_dev_remove(pdev);
++}
++#else
++static inline int __exit pva_iommu_context_dev_remove_wrapper(struct platform_device *pdev)
++{
++	return pva_iommu_context_dev_remove(pdev);
++}
++#endif
++
+ struct platform_driver nvpva_iommu_context_dev_driver = {
+ 	.probe = pva_iommu_context_dev_probe,
+-	.remove = __exit_p(pva_iommu_context_dev_remove),
++	.remove = __exit_p(pva_iommu_context_dev_remove_wrapper),
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "pva_iommu_context_dev",
+diff --git a/drivers/video/tegra/host/vi/vi5.c b/drivers/video/tegra/host/vi/vi5.c
+index e7f6e51d..05bac254 100644
+--- a/drivers/video/tegra/host/vi/vi5.c
++++ b/drivers/video/tegra/host/vi/vi5.c
+@@ -4,6 +4,8 @@
+  * VI5 driver
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <asm/ioctls.h>
+ #include <linux/debugfs.h>
+ #include <linux/device.h>
+@@ -429,9 +431,21 @@ const struct dev_pm_ops vi_pm_ops = {
+ 				pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void vi5_remove_wrapper(struct platform_device *pdev)
++{
++	vi5_remove(pdev);
++}
++#else
++static inline int vi5_remove_wrapper(struct platform_device *pdev)
++{
++	return vi5_remove(pdev);
++}
++#endif
++
+ static struct platform_driver vi5_driver = {
+ 	.probe = vi5_probe,
+-	.remove = vi5_remove,
++	.remove = vi5_remove_wrapper,
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "tegra194-vi5",
+diff --git a/drivers/video/tegra/nvmap/nvmap_init.c b/drivers/video/tegra/nvmap/nvmap_init.c
+index 0cbf8a4d..0cf5abd5 100644
+--- a/drivers/video/tegra/nvmap/nvmap_init.c
++++ b/drivers/video/tegra/nvmap/nvmap_init.c
+@@ -1,10 +1,10 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (c) 2014-2024, NVIDIA CORPORATION. All rights reserved.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION. All rights reserved.
+ 
+ #define pr_fmt(fmt) "%s: " fmt, __func__
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/module.h>
+ #include <linux/of.h>
+ #include <linux/of_device.h>
+@@ -1009,9 +1009,21 @@ static bool nvmap_is_carveout_node_present(void)
+ }
+ #endif /* NVMAP_LOADABLE_MODULE */
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void nvmap_remove_wrapper(struct platform_device *pdev)
++{
++	nvmap_remove(pdev);
++}
++#else
++static inline int nvmap_remove_wrapper(struct platform_device *pdev)
++{
++	return nvmap_remove(pdev);
++}
++#endif
++
+ static struct platform_driver __refdata nvmap_driver = {
+ 	.probe		= nvmap_probe,
+-	.remove		= nvmap_remove,
++	.remove	= nvmap_remove_wrapper,
+ 
+ 	.driver = {
+ 		.name	= "tegra-carveouts",
+diff --git a/drivers/video/tegra/tsec/tsec.c b/drivers/video/tegra/tsec/tsec.c
+index b6616676..abdc1faa 100644
+--- a/drivers/video/tegra/tsec/tsec.c
++++ b/drivers/video/tegra/tsec/tsec.c
+@@ -5,6 +5,8 @@
+  * Tegra TSEC Module Support
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include "tsec_linux.h"
+ #include "tsec.h"
+ #include "tsec_boot.h"
+@@ -460,9 +462,21 @@ static int tsec_remove(struct platform_device *dev)
+ 	return tsec_poweroff(&dev->dev);
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tsec_remove_wrapper(struct platform_device *pdev)
++{
++	tsec_remove(pdev);
++}
++#else
++static inline int tsec_remove_wrapper(struct platform_device *pdev)
++{
++	return tsec_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tsec_driver = {
+ 	.probe = tsec_probe,
+-	.remove = tsec_remove,
++	.remove = tsec_remove_wrapper,
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+ 		.name = "tsec",
+diff --git a/drivers/virt/tegra/tegra_hv.c b/drivers/virt/tegra/tegra_hv.c
+index 37eeb6af..c94bc7a2 100644
+--- a/drivers/virt/tegra/tegra_hv.c
++++ b/drivers/virt/tegra/tegra_hv.c
+@@ -1,7 +1,5 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * Copyright (c) 2022-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- */
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -1009,6 +1007,18 @@ static const struct of_device_id tegra_hv_match[] = {
+ 	{},
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_hv_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_hv_remove(pdev);
++}
++#else
++static inline int tegra_hv_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_hv_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_hv_driver = {
+ 	.driver = {
+ 		.name = DRV_NAME,
+@@ -1016,7 +1026,7 @@ static struct platform_driver tegra_hv_driver = {
+ 		.of_match_table = of_match_ptr(tegra_hv_match),
+ 	},
+ 	.probe = tegra_hv_probe,
+-	.remove = tegra_hv_remove,
++	.remove = tegra_hv_remove_wrapper,
+ };
+ 
+ static int __init tegra_hv_init(void)
+diff --git a/drivers/virt/tegra/tegra_hv_pm_ctl.c b/drivers/virt/tegra/tegra_hv_pm_ctl.c
+index 9ba5d6aa..6e493c12 100644
+--- a/drivers/virt/tegra/tegra_hv_pm_ctl.c
++++ b/drivers/virt/tegra/tegra_hv_pm_ctl.c
+@@ -1,7 +1,5 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- */
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -1144,6 +1142,18 @@ static const struct of_device_id tegra_hv_pm_ctl_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_hv_pm_ctl_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_hv_pm_ctl_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_hv_pm_ctl_remove(pdev);
++}
++#else
++static inline int tegra_hv_pm_ctl_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_hv_pm_ctl_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_hv_pm_ctl_driver = {
+ 	.driver = {
+ 		.name = DRV_NAME,
+@@ -1151,7 +1161,7 @@ static struct platform_driver tegra_hv_pm_ctl_driver = {
+ 		.of_match_table = of_match_ptr(tegra_hv_pm_ctl_match),
+ 	},
+ 	.probe = tegra_hv_pm_ctl_probe,
+-	.remove = tegra_hv_pm_ctl_remove,
++	.remove = tegra_hv_pm_ctl_remove_wrapper,
+ };
+ module_platform_driver(tegra_hv_pm_ctl_driver);
+ 
+diff --git a/drivers/virt/tegra/tegra_hv_vcpu_yield.c b/drivers/virt/tegra/tegra_hv_vcpu_yield.c
+index 66f8ff17..c423fa6d 100644
+--- a/drivers/virt/tegra/tegra_hv_vcpu_yield.c
++++ b/drivers/virt/tegra/tegra_hv_vcpu_yield.c
+@@ -1,5 +1,5 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// Copyright (c) 2022-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #define pr_fmt(fmt) "%s:%s(): " fmt, KBUILD_MODNAME, __func__
+ 
+@@ -458,6 +458,18 @@ static const struct of_device_id tegra_hv_vcpu_yield_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_hv_vcpu_yield_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_hv_vcpu_yield_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_hv_vcpu_yield_remove(pdev);
++}
++#else
++static inline int tegra_hv_vcpu_yield_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_hv_vcpu_yield_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_hv_vcpu_yield_driver = {
+ 	.driver = {
+ 		.name = DRV_NAME,
+@@ -465,7 +477,7 @@ static struct platform_driver tegra_hv_vcpu_yield_driver = {
+ 		.of_match_table = of_match_ptr(tegra_hv_vcpu_yield_match),
+ 	},
+ 	.probe = tegra_hv_vcpu_yield_probe,
+-	.remove = tegra_hv_vcpu_yield_remove,
++	.remove = tegra_hv_vcpu_yield_remove_wrapper,
+ };
+ module_platform_driver(tegra_hv_vcpu_yield_driver);
+ 
+diff --git a/drivers/watchdog/max77851_wdt.c b/drivers/watchdog/max77851_wdt.c
+index 502e11f7..b8244a06 100644
+--- a/drivers/watchdog/max77851_wdt.c
++++ b/drivers/watchdog/max77851_wdt.c
+@@ -1,9 +1,11 @@
+-// SPDX-License-Identifier: GPL-2.0
+-// SPDX-FileCopyrightText: Copyright (c) 2022-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++// SPDX-License-Identifier: GPL-2.0-only
++// SPDX-FileCopyrightText: Copyright (c) 2022-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ /*
+  * Maxim MAX77851 Watchdog Driver
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/err.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+@@ -208,12 +210,24 @@ static struct platform_device_id max77851_wdt_devtype[] = {
+ 	{ },
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void max77851_wdt_remove_wrapper(struct platform_device *pdev)
++{
++	max77851_wdt_remove(pdev);
++}
++#else
++static inline int max77851_wdt_remove_wrapper(struct platform_device *pdev)
++{
++	return max77851_wdt_remove(pdev);
++}
++#endif
++
+ static struct platform_driver max77851_wdt_driver = {
+ 	.driver	= {
+ 		.name	= "max77851-watchdog",
+ 	},
+ 	.probe	= max77851_wdt_probe,
+-	.remove	= max77851_wdt_remove,
++	.remove	= max77851_wdt_remove_wrapper,
+ 	.id_table = max77851_wdt_devtype,
+ };
+ 
+diff --git a/drivers/watchdog/softdog-platform.c b/drivers/watchdog/softdog-platform.c
+index 0064781d..154ebdb3 100644
+--- a/drivers/watchdog/softdog-platform.c
++++ b/drivers/watchdog/softdog-platform.c
+@@ -2,9 +2,11 @@
+ /*
+  * A platform based Software Watchdog Device
+  *
+- * Copyright (c) 2014-2022, NVIDIA CORPORATION.  All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/module.h>
+ #include <linux/types.h>
+ #include <linux/timer.h>
+@@ -240,6 +242,18 @@ static struct of_device_id softdog_platform_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, softdog_platform_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void softdog_platform_remove_wrapper(struct platform_device *pdev)
++{
++	softdog_platform_remove(pdev);
++}
++#else
++static inline int softdog_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return softdog_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver softdog_platform_driver = {
+ 	.driver = {
+ 		.name = "softdog-platform",
+@@ -248,7 +262,7 @@ static struct platform_driver softdog_platform_driver = {
+ 		.pm = &softdog_platform_pm_ops,
+ 	},
+ 	.probe = softdog_platform_probe,
+-	.remove = softdog_platform_remove,
++	.remove = softdog_platform_remove_wrapper,
+ 	.shutdown = softdog_platform_shutdown,
+ };
+ 
+diff --git a/drivers/watchdog/watchdog-tegra-t18x.c b/drivers/watchdog/watchdog-tegra-t18x.c
+index 3c8774a3..53464caf 100644
+--- a/drivers/watchdog/watchdog-tegra-t18x.c
++++ b/drivers/watchdog/watchdog-tegra-t18x.c
+@@ -1,5 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-// Copyright (C) 2023 NVIDIA CORPORATION. All rights reserved.
++// SPDX-FileCopyrightText: Copyright (c) 2023-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/debugfs.h>
+ #include <linux/fs.h>
+@@ -828,9 +830,21 @@ static const struct of_device_id tegra_wdt_t18x_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra_wdt_t18x_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_wdt_t18x_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_wdt_t18x_remove(pdev);
++}
++#else
++static inline int tegra_wdt_t18x_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_wdt_t18x_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_wdt_t18x_driver = {
+ 	.probe		= tegra_wdt_t18x_probe,
+-	.remove		= tegra_wdt_t18x_remove,
++	.remove		= tegra_wdt_t18x_remove_wrapper,
+ 	.shutdown	= tegra_wdt_t18x_shutdown,
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+diff --git a/sound/soc/tegra-virt-alt/tegra_virt_ref_alt.c b/sound/soc/tegra-virt-alt/tegra_virt_ref_alt.c
+index f0bd6166..8aecdc8e 100644
+--- a/sound/soc/tegra-virt-alt/tegra_virt_ref_alt.c
++++ b/sound/soc/tegra-virt-alt/tegra_virt_ref_alt.c
+@@ -1,7 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -251,6 +249,18 @@ static int tegra_virt_machine_driver_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_virt_machine_driver_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_virt_machine_driver_remove(pdev);
++}
++#else
++static inline int tegra_virt_machine_driver_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_virt_machine_driver_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_virt_machine_driver = {
+ 	.driver = {
+ 		.name = DRV_NAME,
+@@ -260,7 +270,7 @@ static struct platform_driver tegra_virt_machine_driver = {
+ 			of_match_ptr(tegra_virt_machine_of_match),
+ 	},
+ 	.probe = tegra_virt_machine_driver_probe,
+-	.remove = tegra_virt_machine_driver_remove,
++	.remove = tegra_virt_machine_driver_remove_wrapper,
+ };
+ module_platform_driver(tegra_virt_machine_driver);
+ 
+diff --git a/sound/soc/tegra/tegra186_arad.c b/sound/soc/tegra/tegra186_arad.c
+index c9c6b655..65d73712 100644
+--- a/sound/soc/tegra/tegra186_arad.c
++++ b/sound/soc/tegra/tegra186_arad.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra186_arad.c - Tegra186 ARAD driver
+-//
+-// Copyright (c) 2015-2023, NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2015-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra186_arad.c - Tegra186 ARAD driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -797,6 +798,18 @@ static const struct dev_pm_ops tegra186_arad_pm_ops = {
+ 				     pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra186_arad_platform_remove_wrapper(struct platform_device *pdev)
++{
++	tegra186_arad_platform_remove(pdev);
++}
++#else
++static inline int tegra186_arad_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra186_arad_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra186_arad_driver = {
+ 	.driver = {
+ 		.name = "tegra186-arad",
+@@ -804,7 +817,7 @@ static struct platform_driver tegra186_arad_driver = {
+ 		.pm = &tegra186_arad_pm_ops,
+ 	},
+ 	.probe = tegra186_arad_platform_probe,
+-	.remove = tegra186_arad_platform_remove,
++	.remove = tegra186_arad_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra186_arad_driver)
+ 
+diff --git a/sound/soc/tegra/tegra186_asrc.c b/sound/soc/tegra/tegra186_asrc.c
+index 6e7f96f2..c4d39896 100644
+--- a/sound/soc/tegra/tegra186_asrc.c
++++ b/sound/soc/tegra/tegra186_asrc.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra186_asrc.c - Tegra186 ASRC driver
+-//
+-// Copyright (c) 2015-2023, NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2015-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra186_asrc.c - Tegra186 ASRC driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -1163,6 +1164,18 @@ static const struct dev_pm_ops tegra186_asrc_pm_ops = {
+ 				     pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra186_asrc_platform_remove_wrapper(struct platform_device *pdev)
++{
++	tegra186_asrc_platform_remove(pdev);
++}
++#else
++static inline int tegra186_asrc_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra186_asrc_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra186_asrc_driver = {
+ 	.driver = {
+ 		.name = "tegra186-asrc",
+@@ -1170,7 +1183,7 @@ static struct platform_driver tegra186_asrc_driver = {
+ 		.pm = &tegra186_asrc_pm_ops,
+ 	},
+ 	.probe = tegra186_asrc_platform_probe,
+-	.remove = tegra186_asrc_platform_remove,
++	.remove = tegra186_asrc_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra186_asrc_driver)
+ 
+diff --git a/sound/soc/tegra/tegra186_dspk.c b/sound/soc/tegra/tegra186_dspk.c
+index 01916c4d..02c58bb6 100644
+--- a/sound/soc/tegra/tegra186_dspk.c
++++ b/sound/soc/tegra/tegra186_dspk.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra186_dspk.c - Tegra186 DSPK driver
+-//
+-// Copyright (c) 2020-2023 NVIDIA CORPORATION. All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2020-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra186_dspk.c - Tegra186 DSPK driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -694,6 +695,18 @@ static const struct dev_pm_ops tegra186_dspk_pm_ops = {
+ 				pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra186_dspk_platform_remove_wrapper(struct platform_device *pdev)
++{
++	tegra186_dspk_platform_remove(pdev);
++}
++#else
++static inline int tegra186_dspk_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra186_dspk_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra186_dspk_driver = {
+ 	.driver = {
+ 		.name = "tegra186-dspk",
+@@ -701,7 +714,7 @@ static struct platform_driver tegra186_dspk_driver = {
+ 		.pm = &tegra186_dspk_pm_ops,
+ 	},
+ 	.probe = tegra186_dspk_platform_probe,
+-	.remove = tegra186_dspk_platform_remove,
++	.remove = tegra186_dspk_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra186_dspk_driver);
+ 
+diff --git a/sound/soc/tegra/tegra210_admaif.c b/sound/soc/tegra/tegra210_admaif.c
+index 5efe2e44..8d9c67dd 100644
+--- a/sound/soc/tegra/tegra210_admaif.c
++++ b/sound/soc/tegra/tegra210_admaif.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_admaif.c - Tegra ADMAIF driver
+-//
+-// Copyright (c) 2020-2024 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2020-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_admaif.c - Tegra ADMAIF driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -1394,9 +1395,21 @@ static const struct dev_pm_ops tegra_admaif_pm_ops = {
+ 				pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_admaif_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_admaif_remove(pdev);
++}
++#else
++static inline int tegra_admaif_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_admaif_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_admaif_driver = {
+ 	.probe = tegra_admaif_probe,
+-	.remove = tegra_admaif_remove,
++	.remove = tegra_admaif_remove_wrapper,
+ 	.driver = {
+ 		.name = "tegra210-admaif",
+ 		.of_match_table = tegra_admaif_of_match,
+diff --git a/sound/soc/tegra/tegra210_adsp.c b/sound/soc/tegra/tegra210_adsp.c
+index dbac867f..a2ef7559 100644
+--- a/sound/soc/tegra/tegra210_adsp.c
++++ b/sound/soc/tegra/tegra210_adsp.c
+@@ -1,12 +1,14 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
+  * tegra210_adsp.c - Tegra ADSP audio driver
+  *
+  * Author: Sumit Bhattacharya <sumitb@nvidia.com>
+- * Copyright (c) 2014-2022 NVIDIA CORPORATION.  All rights reserved.
+- *
+  */
+ 
++#include <nvidia/conftest.h>
++
+ #include <linux/module.h>
+ #include <linux/clk.h>
+ #include <linux/device.h>
+@@ -4806,6 +4808,18 @@ static const struct dev_pm_ops tegra210_adsp_pm_ops = {
+ 
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_adsp_audio_remove_wrapper(struct platform_device *pdev)
++{
++	tegra210_adsp_audio_remove(pdev);
++}
++#else
++static inline int tegra210_adsp_audio_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra210_adsp_audio_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_adsp_audio_driver = {
+ 	.driver = {
+ 		.name = DRV_NAME,
+@@ -4815,7 +4829,7 @@ static struct platform_driver tegra210_adsp_audio_driver = {
+ 		.suppress_bind_attrs = true,
+ 	},
+ 	.probe = tegra210_adsp_audio_probe,
+-	.remove = tegra210_adsp_audio_remove,
++	.remove = tegra210_adsp_audio_remove_wrapper,
+ 	.shutdown = tegra210_adsp_audio_platform_shutdown,
+ };
+ module_platform_driver(tegra210_adsp_audio_driver);
+diff --git a/sound/soc/tegra/tegra210_adx.c b/sound/soc/tegra/tegra210_adx.c
+index 7a0bac33..815b7bbf 100644
+--- a/sound/soc/tegra/tegra210_adx.c
++++ b/sound/soc/tegra/tegra210_adx.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_adx.c - Tegra210 ADX driver
+-//
+-// Copyright (c) 2014-2023 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_adx.c - Tegra210 ADX driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -765,6 +766,18 @@ static const struct dev_pm_ops tegra210_adx_pm_ops = {
+ 				     pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_adx_platform_remove_wrapper(struct platform_device *pdev)
++{
++	tegra210_adx_platform_remove(pdev);
++}
++#else
++static inline int tegra210_adx_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra210_adx_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_adx_driver = {
+ 	.driver = {
+ 		.name = "tegra210-adx",
+@@ -772,7 +785,7 @@ static struct platform_driver tegra210_adx_driver = {
+ 		.pm = &tegra210_adx_pm_ops,
+ 	},
+ 	.probe = tegra210_adx_platform_probe,
+-	.remove = tegra210_adx_platform_remove,
++	.remove = tegra210_adx_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra210_adx_driver);
+ 
+diff --git a/sound/soc/tegra/tegra210_afc.c b/sound/soc/tegra/tegra210_afc.c
+index 42adc3f9..2f82e3a3 100644
+--- a/sound/soc/tegra/tegra210_afc.c
++++ b/sound/soc/tegra/tegra210_afc.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_afc.c - Tegra210 AFC driver
+-//
+-// Copyright (c) 2014-2023 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_afc.c - Tegra210 AFC driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -562,6 +563,18 @@ static const struct dev_pm_ops tegra210_afc_pm_ops = {
+ 				     pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_afc_platform_remove_wrapper(struct platform_device *pdev)
++{
++	tegra210_afc_platform_remove(pdev);
++}
++#else
++static inline int tegra210_afc_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra210_afc_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_afc_driver = {
+ 	.driver = {
+ 		.name = "tegra210-afc",
+@@ -569,7 +582,7 @@ static struct platform_driver tegra210_afc_driver = {
+ 		.pm = &tegra210_afc_pm_ops,
+ 	},
+ 	.probe = tegra210_afc_platform_probe,
+-	.remove = tegra210_afc_platform_remove,
++	.remove = tegra210_afc_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra210_afc_driver)
+ 
+diff --git a/sound/soc/tegra/tegra210_ahub.c b/sound/soc/tegra/tegra210_ahub.c
+index f0c6f38a..a9b90ec2 100644
+--- a/sound/soc/tegra/tegra210_ahub.c
++++ b/sound/soc/tegra/tegra210_ahub.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_ahub.c - Tegra210 AHUB driver
+-//
+-// Copyright (c) 2020-2023 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_ahub.c - Tegra210 AHUB driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -1679,9 +1680,21 @@ static const struct dev_pm_ops tegra_ahub_pm_ops = {
+ 				pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_ahub_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_ahub_remove(pdev);
++}
++#else
++static inline int tegra_ahub_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_ahub_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_ahub_driver = {
+ 	.probe = tegra_ahub_probe,
+-	.remove = tegra_ahub_remove,
++	.remove = tegra_ahub_remove_wrapper,
+ 	.driver = {
+ 		.name = "tegra210-ahub",
+ 		.of_match_table = tegra_ahub_of_match,
+diff --git a/sound/soc/tegra/tegra210_amx.c b/sound/soc/tegra/tegra210_amx.c
+index 46a83ceb..326e2f14 100644
+--- a/sound/soc/tegra/tegra210_amx.c
++++ b/sound/soc/tegra/tegra210_amx.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_amx.c - Tegra210 AMX driver
+-//
+-// Copyright (c) 2014-2023 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_amx.c - Tegra210 AMX driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -859,6 +860,16 @@ static const struct dev_pm_ops tegra210_amx_pm_ops = {
+ 				     pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_amx_platform_remove_wrapper(struct platform_device *pdev){
++	tegra210_amx_platform_remove(pdev);
++}
++#else
++static inline int tegra210_amx_platform_remove_wrapper(struct platform_device *pdev){
++	return tegra210_amx_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_amx_driver = {
+ 	.driver = {
+ 		.name = "tegra210-amx",
+@@ -866,7 +877,7 @@ static struct platform_driver tegra210_amx_driver = {
+ 		.pm = &tegra210_amx_pm_ops,
+ 	},
+ 	.probe = tegra210_amx_platform_probe,
+-	.remove = tegra210_amx_platform_remove,
++	.remove = tegra210_amx_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra210_amx_driver);
+ 
+diff --git a/sound/soc/tegra/tegra210_dmic.c b/sound/soc/tegra/tegra210_dmic.c
+index 3ee630a1..ad820c62 100644
+--- a/sound/soc/tegra/tegra210_dmic.c
++++ b/sound/soc/tegra/tegra210_dmic.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_dmic.c - Tegra210 DMIC driver
+-//
+-// Copyright (c) 2020-2023 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2020-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_dmic.c - Tegra210 DMIC driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -701,6 +702,18 @@ static const struct of_device_id tegra210_dmic_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra210_dmic_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_dmic_remove_wrapper(struct platform_device *pdev)
++{
++	tegra210_dmic_remove(pdev);
++}
++#else
++static inline int tegra210_dmic_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra210_dmic_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_dmic_driver = {
+ 	.driver = {
+ 		.name = "tegra210-dmic",
+@@ -708,7 +721,7 @@ static struct platform_driver tegra210_dmic_driver = {
+ 		.pm = &tegra210_dmic_pm_ops,
+ 	},
+ 	.probe = tegra210_dmic_probe,
+-	.remove = tegra210_dmic_remove,
++	.remove = tegra210_dmic_remove_wrapper,
+ };
+ module_platform_driver(tegra210_dmic_driver)
+ 
+diff --git a/sound/soc/tegra/tegra210_i2s.c b/sound/soc/tegra/tegra210_i2s.c
+index 57e629f5..334755d9 100644
+--- a/sound/soc/tegra/tegra210_i2s.c
++++ b/sound/soc/tegra/tegra210_i2s.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_i2s.c - Tegra210 I2S driver
+-//
+-// Copyright (c) 2020-2023 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2020-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_i2s.c - Tegra210 I2S driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -1279,6 +1280,18 @@ static const struct of_device_id tegra210_i2s_of_match[] = {
+ };
+ MODULE_DEVICE_TABLE(of, tegra210_i2s_of_match);
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_i2s_remove_wrapper(struct platform_device *pdev)
++{
++	tegra210_i2s_remove(pdev);
++}
++#else
++static inline int tegra210_i2s_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra210_i2s_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_i2s_driver = {
+ 	.driver = {
+ 		.name = "tegra210-i2s",
+@@ -1286,7 +1299,7 @@ static struct platform_driver tegra210_i2s_driver = {
+ 		.pm = &tegra210_i2s_pm_ops,
+ 	},
+ 	.probe = tegra210_i2s_probe,
+-	.remove = tegra210_i2s_remove,
++	.remove = tegra210_i2s_remove_wrapper,
+ };
+ module_platform_driver(tegra210_i2s_driver)
+ 
+diff --git a/sound/soc/tegra/tegra210_iqc.c b/sound/soc/tegra/tegra210_iqc.c
+index 5ad3d4d0..a1e26e72 100644
+--- a/sound/soc/tegra/tegra210_iqc.c
++++ b/sound/soc/tegra/tegra210_iqc.c
+@@ -1,8 +1,11 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_iqc.c - Tegra210 IQC driver
+-//
+-// Copyright (c) 2014-2021 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_iqc.c - Tegra210 IQC driver
++ */
++
++#include <nvidia/conftest.h>
+ 
+ #include <linux/clk.h>
+ #include <linux/device.h>
+@@ -346,6 +349,18 @@ static const struct dev_pm_ops tegra210_iqc_pm_ops = {
+ 				     pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_iqc_platform_remove_wrapper(struct platform_device *pdev)
++{
++	tegra210_iqc_platform_remove(pdev);
++}
++#else
++static inline int tegra210_iqc_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra210_iqc_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_iqc_driver = {
+ 	.driver = {
+ 		.name = "tegra210-iqc",
+@@ -353,7 +368,7 @@ static struct platform_driver tegra210_iqc_driver = {
+ 		.pm = &tegra210_iqc_pm_ops,
+ 	},
+ 	.probe = tegra210_iqc_platform_probe,
+-	.remove = tegra210_iqc_platform_remove,
++	.remove = tegra210_iqc_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra210_iqc_driver)
+ 
+diff --git a/sound/soc/tegra/tegra210_mixer.c b/sound/soc/tegra/tegra210_mixer.c
+index 021c28a5..6e4b84e7 100644
+--- a/sound/soc/tegra/tegra210_mixer.c
++++ b/sound/soc/tegra/tegra210_mixer.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_mixer.c - Tegra210 MIXER driver
+-//
+-// Copyright (c) 2014-2023 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_mixer.c - Tegra210 MIXER driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -699,6 +700,18 @@ static const struct dev_pm_ops tegra210_mixer_pm_ops = {
+ 				     pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_mixer_platform_remove_wrapper(struct platform_device *pdev)
++{
++	tegra210_mixer_platform_remove(pdev);
++}
++#else
++static inline int tegra210_mixer_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra210_mixer_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_mixer_driver = {
+ 	.driver = {
+ 		.name = "tegra210_mixer",
+@@ -706,7 +719,7 @@ static struct platform_driver tegra210_mixer_driver = {
+ 		.pm = &tegra210_mixer_pm_ops,
+ 	},
+ 	.probe = tegra210_mixer_platform_probe,
+-	.remove = tegra210_mixer_platform_remove,
++	.remove = tegra210_mixer_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra210_mixer_driver);
+ 
+diff --git a/sound/soc/tegra/tegra210_mvc.c b/sound/soc/tegra/tegra210_mvc.c
+index 53e130d9..17dc03bb 100644
+--- a/sound/soc/tegra/tegra210_mvc.c
++++ b/sound/soc/tegra/tegra210_mvc.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_mvc.c - Tegra210 MVC driver
+-//
+-// Copyright (c) 2014-2023 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_mvc.c - Tegra210 MVC driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -763,6 +764,18 @@ static const struct dev_pm_ops tegra210_mvc_pm_ops = {
+ 				     pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_mvc_platform_remove_wrapper(struct platform_device *pdev)
++{
++	tegra210_mvc_platform_remove(pdev);
++}
++#else
++static inline int tegra210_mvc_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra210_mvc_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_mvc_driver = {
+ 	.driver = {
+ 		.name = "tegra210-mvc",
+@@ -770,7 +783,7 @@ static struct platform_driver tegra210_mvc_driver = {
+ 		.pm = &tegra210_mvc_pm_ops,
+ 	},
+ 	.probe = tegra210_mvc_platform_probe,
+-	.remove = tegra210_mvc_platform_remove,
++	.remove = tegra210_mvc_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra210_mvc_driver)
+ 
+diff --git a/sound/soc/tegra/tegra210_ope.c b/sound/soc/tegra/tegra210_ope.c
+index b09cea59..cb1bed12 100644
+--- a/sound/soc/tegra/tegra210_ope.c
++++ b/sound/soc/tegra/tegra210_ope.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_ope.c - Tegra210 OPE driver
+-//
+-// Copyright (c) 2014-2023, NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_ope.c - Tegra210 OPE driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -371,6 +372,18 @@ static const struct dev_pm_ops tegra210_ope_pm_ops = {
+ 				     pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_ope_platform_remove_wrapper(struct platform_device *pdev)
++{
++	tegra210_ope_platform_remove(pdev);
++}
++#else
++static inline int tegra210_ope_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra210_ope_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_ope_driver = {
+ 	.driver = {
+ 		.name = "tegra210-ope",
+@@ -378,7 +391,7 @@ static struct platform_driver tegra210_ope_driver = {
+ 		.pm = &tegra210_ope_pm_ops,
+ 	},
+ 	.probe = tegra210_ope_platform_probe,
+-	.remove = tegra210_ope_platform_remove,
++	.remove = tegra210_ope_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra210_ope_driver)
+ 
+diff --git a/sound/soc/tegra/tegra210_sfc.c b/sound/soc/tegra/tegra210_sfc.c
+index b14c1590..429ce07f 100644
+--- a/sound/soc/tegra/tegra210_sfc.c
++++ b/sound/soc/tegra/tegra210_sfc.c
+@@ -1,8 +1,9 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-//
+-// tegra210_sfc.c - Tegra210 SFC driver
+-//
+-// Copyright (c) 2014-2023 NVIDIA CORPORATION.  All rights reserved.
++/*
++ * SPDX-FileCopyrightText: Copyright (c) 2014-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
++ *
++ * tegra210_sfc.c - Tegra210 SFC driver
++ */
+ 
+ #include <nvidia/conftest.h>
+ 
+@@ -3504,6 +3505,18 @@ static const struct dev_pm_ops tegra210_sfc_pm_ops = {
+ 				     pm_runtime_force_resume)
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra210_sfc_platform_remove_wrapper(struct platform_device *pdev)
++{
++	tegra210_sfc_platform_remove(pdev);
++}
++#else
++static inline int tegra210_sfc_platform_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra210_sfc_platform_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra210_sfc_driver = {
+ 	.driver = {
+ 		.name = "tegra210-sfc",
+@@ -3511,7 +3524,7 @@ static struct platform_driver tegra210_sfc_driver = {
+ 		.pm = &tegra210_sfc_pm_ops,
+ 	},
+ 	.probe = tegra210_sfc_platform_probe,
+-	.remove = tegra210_sfc_platform_remove,
++	.remove = tegra210_sfc_platform_remove_wrapper,
+ };
+ module_platform_driver(tegra210_sfc_driver)
+ 
+diff --git a/sound/soc/tegra/tegra_machine_driver.c b/sound/soc/tegra/tegra_machine_driver.c
+index 6a152879..0e707c4a 100644
+--- a/sound/soc/tegra/tegra_machine_driver.c
++++ b/sound/soc/tegra/tegra_machine_driver.c
+@@ -1,6 +1,6 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+ /*
+- * Copyright (c) 2017-2023 NVIDIA CORPORATION. All rights reserved.
++ * SPDX-FileCopyrightText: Copyright (c) 2017-2024, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+  *
+  * Tegra ASoC Machine driver
+  */
+@@ -403,6 +403,18 @@ static const struct dev_pm_ops tegra_asoc_machine_pm_ops = {
+ 	.poweroff = snd_soc_poweroff,
+ };
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void tegra_machine_driver_remove_wrapper(struct platform_device *pdev)
++{
++	tegra_machine_driver_remove(pdev);
++}
++#else
++static inline int tegra_machine_driver_remove_wrapper(struct platform_device *pdev)
++{
++	return tegra_machine_driver_remove(pdev);
++}
++#endif
++
+ static struct platform_driver tegra_asoc_machine_driver = {
+ 	.driver = {
+ 		.name = DRV_NAME,
+@@ -411,7 +423,7 @@ static struct platform_driver tegra_asoc_machine_driver = {
+ 		.of_match_table = tegra_machine_of_match,
+ 	},
+ 	.probe = tegra_machine_driver_probe,
+-	.remove = tegra_machine_driver_remove,
++	.remove = tegra_machine_driver_remove_wrapper,
+ };
+ module_platform_driver(tegra_asoc_machine_driver);
+ 
+diff --git a/sound/tegra-safety-audio/sound-card.c b/sound/tegra-safety-audio/sound-card.c
+index 404fceb4..4fcd1e1b 100644
+--- a/sound/tegra-safety-audio/sound-card.c
++++ b/sound/tegra-safety-audio/sound-card.c
+@@ -1,7 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * Copyright (c) 2021-2023 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+- */
++// SPDX-FileCopyrightText: Copyright (c) 2021-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ 
+ #define pr_fmt(msg) "Safety I2S: " msg
+ 
+@@ -817,9 +815,21 @@ static int t234_safety_audio_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#if defined(NV_PLATFORM_DRIVER_STRUCT_REMOVE_RETURNS_VOID) /* Linux v6.11 */
++static inline void t234_safety_audio_remove_wrapper(struct platform_device *pdev)
++{
++	t234_safety_audio_remove(pdev);
++}
++#else
++static inline int t234_safety_audio_remove_wrapper(struct platform_device *pdev)
++{
++	return t234_safety_audio_remove(pdev);
++}
++#endif
++
+ static struct platform_driver t234_safety_audio_driver = {
+ 	.probe = t234_safety_audio_probe,
+-	.remove = t234_safety_audio_remove,
++	.remove = t234_safety_audio_remove_wrapper,
+ 	.driver = {
+ 		.name = "tegra234-safety-audio",
+ 		.owner = THIS_MODULE,
+-- 
+2.43.0
+

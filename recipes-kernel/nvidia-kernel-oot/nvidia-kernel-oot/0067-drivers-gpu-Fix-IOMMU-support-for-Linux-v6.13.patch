@@ -1,0 +1,121 @@
+From f487905e353712b261b0202764190aaa09838c28 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:23 -0800
+Subject: [PATCH 67/98] drivers: gpu: Fix IOMMU support for Linux v6.13
+
+In Linux v6.13, commit f6440fcc9c7b ("iommu: Remove
+iommu_domain_alloc()") removed iommu_domain_alloc() and was replaced by
+iommu_paging_domain_alloc(). Use conftest to detect if the function
+iommu_paging_domain_alloc() is supported by the kernel and update the
+Tegra DRM and Host1x drivers accordingly.
+
+Bug 4991705
+
+Upstream-Status: Backport [commit ed9db43d]
+Change-Id: I86221d96232396fdb6bdccf40c412e029881c513
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3261695
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.c  |  8 ++++++++
+ drivers/gpu/host1x/dev.c     |  7 +++++++
+ scripts/conftest/Makefile    |  1 +
+ scripts/conftest/conftest.sh | 17 +++++++++++++++++
+ 4 files changed, 33 insertions(+)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 72740399..cb7cafe4 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -1190,6 +1190,9 @@ static bool host1x_drm_wants_iommu(struct host1x_device *dev)
+ 
+ static int host1x_drm_probe(struct host1x_device *dev)
+ {
++#if defined(NV_IOMMU_PAGING_DOMAIN_ALLOC_PRESENT) /* Linux v6.11 */
++	struct device *dma_dev = dev->dev.parent;
++#endif
+ 	struct tegra_drm *tegra;
+ 	struct drm_device *drm;
+ 	int err;
+@@ -1204,8 +1207,13 @@ static int host1x_drm_probe(struct host1x_device *dev)
+ 		goto put;
+ 	}
+ 
++#if defined(NV_IOMMU_PAGING_DOMAIN_ALLOC_PRESENT) /* Linux v6.11 */
++	if (host1x_drm_wants_iommu(dev) && device_iommu_mapped(dma_dev)) {
++		tegra->domain = iommu_paging_domain_alloc(dma_dev);
++#else
+ 	if (host1x_drm_wants_iommu(dev) && iommu_present(&platform_bus_type)) {
+ 		tegra->domain = iommu_domain_alloc(&platform_bus_type);
++#endif
+ 		if (!tegra->domain) {
+ 			err = -ENOMEM;
+ 			goto free;
+diff --git a/drivers/gpu/host1x/dev.c b/drivers/gpu/host1x/dev.c
+index 3d413046..e950f320 100644
+--- a/drivers/gpu/host1x/dev.c
++++ b/drivers/gpu/host1x/dev.c
+@@ -620,9 +620,16 @@ static struct iommu_domain *host1x_iommu_attach(struct host1x *host)
+ 		if (err < 0)
+ 			goto put_group;
+ 
++#if defined(NV_IOMMU_PAGING_DOMAIN_ALLOC_PRESENT) /* Linux v6.11 */
++		host->domain = iommu_paging_domain_alloc(host->dev);
++		if (IS_ERR(host->domain)) {
++			err = PTR_ERR(host->domain);
++			host->domain = NULL;
++#else
+ 		host->domain = iommu_domain_alloc(&platform_bus_type);
+ 		if (!host->domain) {
+ 			err = -ENOMEM;
++#endif
+ 			goto put_cache;
+ 		}
+ 
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index d67c0f91..d074a094 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -139,6 +139,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += i2c_driver_struct_remove_return_type_int
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += i2c_mux_add_adapter_has_no_class_argument
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += iio_dev_opaque_has_mlock
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += iommu_map_has_gfp_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += iommu_paging_domain_alloc
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += irq_get_nr_irqs
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += kthread_complete_and_exit
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += mii_bus_struct_has_read_c45
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index c28cfbc7..a8af41f1 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7429,6 +7429,23 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_NETIF_NAPI_ADD_WEIGHT_PRESENT" "" "functions"
+         ;;
+ 
++        iommu_paging_domain_alloc)
++            #
++            # Determine if iommu_paging_domain_alloc() function is present
++            #
++            # Added by commit a27bf2743cb8 ("iommu: Add iommu_paging_domain_alloc()
++            # interface") in Linux v6.11.
++            #
++            CODE="
++            #include <linux/iommu.h>
++            void conftest_iommu_paging_domain_alloc(void)
++            {
++                    iommu_paging_domain_alloc();
++            }
++            "
++            compile_check_conftest "$CODE" "NV_IOMMU_PAGING_DOMAIN_ALLOC_PRESENT" "" "functions"
++        ;;
++
+         iommu_map_has_gfp_arg)
+             #
+             # Determine if iommu_map() has 'gfp' argument.
+-- 
+2.43.0
+

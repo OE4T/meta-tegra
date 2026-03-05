@@ -1,0 +1,43 @@
+From 195369b18282d1dcb8af78d2290ffa979368ece7 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 20 Feb 2026 05:56:41 -0800
+Subject: [PATCH 10/18] kernel-open: update of_property_for_each_u32 references
+
+The signature of that macro changed in 6.12.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ kernel-open/nvidia/nv-dsi-parse-panel-props.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/kernel-open/nvidia/nv-dsi-parse-panel-props.c b/kernel-open/nvidia/nv-dsi-parse-panel-props.c
+index 9ac5866..2287db9 100644
+--- a/kernel-open/nvidia/nv-dsi-parse-panel-props.c
++++ b/kernel-open/nvidia/nv-dsi-parse-panel-props.c
+@@ -290,8 +290,10 @@ static int parse_dsi_properties(const struct device_node *np_dsi, DSI_PANEL_INFO
+ {
+     u32 temp;
+     int ret = 0;
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0)
+     const __be32 *p;
+     struct property *prop;
++#endif
+     struct device_node *np_dsi_panel;
+ 
+     // Get Panel Node from active-panel phandle
+@@ -493,7 +495,11 @@ static int parse_dsi_properties(const struct device_node *np_dsi, DSI_PANEL_INFO
+         "nvidia,dsi-lvds-bridge", &temp))
+         dsi->dsi2lvds_bridge_enable = (bool)temp;
+ 
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0)
+     of_property_for_each_u32(np_dsi_panel, "nvidia,dsi-dpd-pads", prop, p, temp)
++#else
++    of_property_for_each_u32(np_dsi_panel, "nvidia,dsi-dpd-pads", temp)
++#endif
+         dsi->dpd_dsi_pads |= (u32)temp;
+ 
+     if (!of_property_read_u32(np_dsi_panel,
+-- 
+2.43.0
+

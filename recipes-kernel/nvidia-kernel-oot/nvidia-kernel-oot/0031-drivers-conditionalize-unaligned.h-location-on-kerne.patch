@@ -1,0 +1,75 @@
+From 1cf14195135e48737be83bc0160700898b8c9b40 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Fri, 20 Feb 2026 08:22:13 -0800
+Subject: [PATCH 31/98] drivers: conditionalize unaligned.h location on kernel
+ version
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/bluetooth/realtek/rtk_bt.c   | 5 +++++
+ drivers/bluetooth/realtek/rtk_misc.c | 6 +++++-
+ drivers/gpu/drm/tegra/riscv.c        | 5 +++++
+ 3 files changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/bluetooth/realtek/rtk_bt.c b/drivers/bluetooth/realtek/rtk_bt.c
+index 95b7b7e4..cb1aba59 100644
+--- a/drivers/bluetooth/realtek/rtk_bt.c
++++ b/drivers/bluetooth/realtek/rtk_bt.c
+@@ -17,7 +17,12 @@
+ #include <linux/dcache.h>
+ #include <linux/reboot.h>
+ #include <net/sock.h>
++#include <linux/version.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0)
+ #include <asm/unaligned.h>
++#else
++#include <linux/unaligned.h>
++#endif
+ 
+ #include "rtk_bt.h"
+ #include "rtk_misc.h"
+diff --git a/drivers/bluetooth/realtek/rtk_misc.c b/drivers/bluetooth/realtek/rtk_misc.c
+index 5dec1a5f..a0d70b02 100644
+--- a/drivers/bluetooth/realtek/rtk_misc.c
++++ b/drivers/bluetooth/realtek/rtk_misc.c
+@@ -17,7 +17,6 @@
+ #include <linux/dcache.h>
+ #include <linux/in.h>
+ #include <net/sock.h>
+-#include <asm/unaligned.h>
+ 
+ #include <linux/interrupt.h>
+ #include <linux/module.h>
+@@ -36,6 +35,11 @@
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 32)
+ #include <linux/pm_runtime.h>
+ #endif
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0)
++#include <asm/unaligned.h>
++#else
++#include <linux/unaligned.h>
++#endif
+ 
+ #include <linux/firmware.h>
+ #include <linux/suspend.h>
+diff --git a/drivers/gpu/drm/tegra/riscv.c b/drivers/gpu/drm/tegra/riscv.c
+index cee9ba2f..c9631e60 100644
+--- a/drivers/gpu/drm/tegra/riscv.c
++++ b/drivers/gpu/drm/tegra/riscv.c
+@@ -3,7 +3,12 @@
+  * Copyright (c) 2022, NVIDIA Corporation.
+  */
+ 
++#include <linux/version.h>
++#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 12, 0)
+ #include <asm/unaligned.h>
++#else
++#include <linux/unaligned.h>
++#endif
+ 
+ #include <linux/dev_printk.h>
+ #include <linux/device.h>
+-- 
+2.43.0
+

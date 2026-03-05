@@ -1,0 +1,72 @@
+From e604371314e34a7a7e4f934585a174473e42bfba Mon Sep 17 00:00:00 2001
+From: Ketan Patil <ketanp@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:24 -0800
+Subject: [PATCH 71/98] video: tegra: nvmap: Remove use of iommu_present API
+
+Upstream has removed iommu_present function from k6.13, hence remove
+call to this function from nvmap, as IOMMU will be always present in
+any latest SOC. We will rely on dont-convert-iovmm-to-carveout property
+from DT to avoid converting the entire IOVMM to carveout.
+
+Bug 4923950
+
+Upstream-Status: Backport [commit 54aee562392]
+Change-Id: Ia7e374e81ab8c78f3d17187aebd2fcf0170fabdc
+Signed-off-by: Ketan Patil <ketanp@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3243903
+Reviewed-by: Sachin Nikam <snikam@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-by: Pritesh Raithatha <praithatha@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/video/tegra/nvmap/nvmap_dev.c | 26 ++------------------------
+ 1 file changed, 2 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/video/tegra/nvmap/nvmap_dev.c b/drivers/video/tegra/nvmap/nvmap_dev.c
+index 213abbf2..d9267a7b 100644
+--- a/drivers/video/tegra/nvmap/nvmap_dev.c
++++ b/drivers/video/tegra/nvmap/nvmap_dev.c
+@@ -1368,25 +1368,6 @@ static void nvmap_iovmm_debugfs_init(void)
+ 	}
+ }
+ 
+-static bool nvmap_is_iommu_present(void)
+-{
+-	struct device_node *np;
+-	struct property *prop;
+-
+-	np = of_find_node_by_name(NULL, "iommu");
+-	while (np) {
+-		prop = of_find_property(np, "status", NULL);
+-		if (prop && !strcmp(prop->value, "okay")) {
+-			of_node_put(np);
+-			return true;
+-		}
+-		of_node_put(np);
+-		np = of_find_node_by_name(np, "iommu");
+-	}
+-
+-	return false;
+-}
+-
+ int __init nvmap_probe(struct platform_device *pdev)
+ {
+ 	struct nvmap_platform_data *plat;
+@@ -1493,11 +1474,8 @@ int __init nvmap_probe(struct platform_device *pdev)
+ 			generic_carveout_present = 1;
+ 
+ 	if (generic_carveout_present) {
+-		if (!iommu_present(&platform_bus_type) &&
+-			!nvmap_is_iommu_present())
+-			nvmap_convert_iovmm_to_carveout = 1;
+-		else if (!of_property_read_bool(pdev->dev.of_node,
+-				"dont-convert-iovmm-to-carveout"))
++		if (!of_property_read_bool(pdev->dev.of_node,
++			"dont-convert-iovmm-to-carveout"))
+ 			nvmap_convert_iovmm_to_carveout = 1;
+ 	} else {
+ 		nvmap_convert_carveout_to_iovmm = 1;
+-- 
+2.43.0
+

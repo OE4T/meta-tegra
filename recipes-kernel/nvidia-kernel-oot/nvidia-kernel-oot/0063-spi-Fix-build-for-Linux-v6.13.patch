@@ -1,0 +1,104 @@
+From 421576bec477883463a5e93026f533034c6299b5 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:22 -0800
+Subject: [PATCH 63/98] spi: Fix build for Linux v6.13
+
+Commit 0809a9ccac4a ("spi: remove {devm_}spi_alloc_master/slave()")
+removed devm_spi_alloc_master() and this breaks building the Tegra124
+and Tegra210 SPI drivers for Linux v6.13. Commit b8d3b056a78d ("spi:
+introduce new helpers with using modern naming") previously added new
+helpers in Linux v6.2 which should be instead. Add a test for conftest
+to detect if the kernel supports the function devm_spi_alloc_host()
+and if so use this function.
+
+Bug 4991705
+
+Upstream-Status: Backport [commit ef5753799]
+Change-Id: I1d639297ef7adfdcde50927360607639b45a4a60
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3261698
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Brad Griffis <bgriffis@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/spi/spi-tegra124-slave.c |  4 ++++
+ drivers/spi/spi-tegra210-quad.c  |  4 ++++
+ scripts/conftest/Makefile        |  1 +
+ scripts/conftest/conftest.sh     | 17 +++++++++++++++++
+ 4 files changed, 26 insertions(+)
+
+diff --git a/drivers/spi/spi-tegra124-slave.c b/drivers/spi/spi-tegra124-slave.c
+index c0cbcd8e..f42e897b 100644
+--- a/drivers/spi/spi-tegra124-slave.c
++++ b/drivers/spi/spi-tegra124-slave.c
+@@ -1984,7 +1984,11 @@ static int tegra_spi_probe(struct platform_device *pdev)
+ 		 pdata->rx_trig_words != 4 && pdata->rx_trig_words != 8)
+ 		pdata->rx_trig_words = 0;
+ 
++#if defined(NV_DEVM_SPI_ALLOC_HOST_PRESENT) /* Linux v6.2 */
++	controller = devm_spi_alloc_host(&pdev->dev, sizeof(*tspi));
++#else
+ 	controller = devm_spi_alloc_master(&pdev->dev, sizeof(*tspi));
++#endif
+ 	if (!controller) {
+ 		dev_err(&pdev->dev, "controller allocation failed\n");
+ 		return -ENOMEM;
+diff --git a/drivers/spi/spi-tegra210-quad.c b/drivers/spi/spi-tegra210-quad.c
+index 42e90db3..ee67da3a 100644
+--- a/drivers/spi/spi-tegra210-quad.c
++++ b/drivers/spi/spi-tegra210-quad.c
+@@ -1720,7 +1720,11 @@ static int tegra_qspi_probe(struct platform_device *pdev)
+ 	int bus_num;
+ 	u32 as_delay;
+ 
++#if defined(NV_DEVM_SPI_ALLOC_HOST_PRESENT) /* Linux v6.2 */
++	controller = devm_spi_alloc_host(&pdev->dev, sizeof(*tqspi));
++#else
+ 	controller = devm_spi_alloc_master(&pdev->dev, sizeof(*tqspi));
++#endif
+ 	if (!controller)
+ 		return -ENOMEM;
+ 
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 252d0d13..b822c6da 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -107,6 +107,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += class_create_has_no_owner_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += class_struct_devnode_has_const_dev_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += define_semaphore_has_number_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += device_add_disk_has_int_return_type
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += devm_spi_alloc_host
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += devm_tegra_core_dev_init_opp_table_common
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += devm_thermal_of_zone_register
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += disk_check_media_change
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 827d7d2e..8719c8f3 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -6844,6 +6844,23 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_PWM_CHIP_STRUCT_HAS_STRUCT_DEVICE" "" "types"
+         ;;
+ 
++        devm_spi_alloc_host)
++            #
++            # Determine whether devm_spi_alloc_host() is present.
++            #
++            # Commit b8d3b056a78d ("spi: introduce new helpers with using modern
++            # naming") added devm_spi_alloc_host() in Linux v6.2.
++            #
++            CODE="
++            #undef CONFIG_ACPI
++            #include <linux/spi/spi.h>
++            void conftest_devm_spi_alloc_host(void) {
++                devm_spi_alloc_host();
++            }"
++
++            compile_check_conftest "$CODE" "NV_DEVM_SPI_ALLOC_HOST_PRESENT" "" "functions"
++        ;;
++
+         devm_tegra_core_dev_init_opp_table_common)
+             #
+             # Determine whether devm_tegra_core_dev_init_opp_table_common is
+-- 
+2.43.0
+

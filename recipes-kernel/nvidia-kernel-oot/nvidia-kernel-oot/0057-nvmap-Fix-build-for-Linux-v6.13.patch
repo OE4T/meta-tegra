@@ -1,0 +1,102 @@
+From 79a9f3993b99d6bf97852c0d189a95142aed1212 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:20 -0800
+Subject: [PATCH 57/98] nvmap: Fix build for Linux v6.13
+
+In Linux v6.13, commit b129125e1f96 ("arm64: asm-offsets: remove
+DMA_{TO,FROM}_DEVICE") removes the definitions DMA_TO/FROM_DEVICE from
+the assembly header file 'asm-offsets.h' which is used by the functions
+__dma_map_area() and __dma_unmap_area() in nvmap_cache_maint.S.
+
+From reviewing the NVMAP code, the function __dma_unmap_area() is never
+used and so we can simply remove this. Split the __dma_map_area() into
+two functions __dma_map_area_to_device() and
+__dma_map_area_from_device() to avoid having to pass the direction.
+
+Bug 4991895
+
+Upstream-Status: Backport [commit bce8ac355]
+Change-Id: I4a0f658401beff5c5e5457de72050b21acf820fa
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3261710
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Ketan Patil <ketanp@nvidia.com>
+
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/video/tegra/nvmap/nvmap_cache.c       |  4 ++--
+ drivers/video/tegra/nvmap/nvmap_cache_maint.S | 21 +++++++------------
+ drivers/video/tegra/nvmap/nvmap_priv.h        |  3 ++-
+ 3 files changed, 12 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/video/tegra/nvmap/nvmap_cache.c b/drivers/video/tegra/nvmap/nvmap_cache.c
+index 937f508c..db50936a 100644
+--- a/drivers/video/tegra/nvmap/nvmap_cache.c
++++ b/drivers/video/tegra/nvmap/nvmap_cache.c
+@@ -63,9 +63,9 @@ void inner_cache_maint(unsigned int op, void *vaddr, size_t size)
+ 		__dma_flush_area(vaddr, size);
+ #endif
+ 	else if (op == NVMAP_CACHE_OP_INV)
+-		__dma_map_area(vaddr, size, DMA_FROM_DEVICE);
++		__dma_map_area_from_device(vaddr, size);
+ 	else
+-		__dma_map_area(vaddr, size, DMA_TO_DEVICE);
++		__dma_map_area_to_device(vaddr, size);
+ }
+ 
+ static void heap_page_cache_maint(
+diff --git a/drivers/video/tegra/nvmap/nvmap_cache_maint.S b/drivers/video/tegra/nvmap/nvmap_cache_maint.S
+index c0b6d961..f1debff3 100644
+--- a/drivers/video/tegra/nvmap/nvmap_cache_maint.S
++++ b/drivers/video/tegra/nvmap/nvmap_cache_maint.S
+@@ -185,25 +185,20 @@ SYM_FUNC_START(__dma_flush_area)
+ SYM_FUNC_END(__dma_flush_area)
+ 
+ /*
+- *	__dma_map_area(start, size, dir)
++ *	__dma_map_area_from_device(start, size)
+  *	- start	- kernel virtual start address
+  *	- size	- size of region
+- *	- dir	- DMA direction
+  */
+-SYM_FUNC_START(__dma_map_area)
+-	cmp	w2, #DMA_FROM_DEVICE
+-	b.eq	__dma_inv_area
++SYM_FUNC_START(__dma_map_area_from_device)
++	b	__dma_inv_area
+ 	b	__dma_clean_area
+-SYM_FUNC_END(__dma_map_area)
++SYM_FUNC_END(__dma_map_area_from_device)
+ 
+ /*
+- *	__dma_unmap_area(start, size, dir)
++ *	__dma_map_area_to_device(start, size)
+  *	- start	- kernel virtual start address
+  *	- size	- size of region
+- *	- dir	- DMA direction
+  */
+-SYM_FUNC_START(__dma_unmap_area)
+-	cmp	w2, #DMA_TO_DEVICE
+-	b.ne	__dma_inv_area
+-	ret
+-SYM_FUNC_END(__dma_unmap_area)
++SYM_FUNC_START(__dma_map_area_to_device)
++	b	__dma_clean_area
++SYM_FUNC_END(__dma_map_area_to_device)
+diff --git a/drivers/video/tegra/nvmap/nvmap_priv.h b/drivers/video/tegra/nvmap/nvmap_priv.h
+index 232326cb..52603438 100644
+--- a/drivers/video/tegra/nvmap/nvmap_priv.h
++++ b/drivers/video/tegra/nvmap/nvmap_priv.h
+@@ -933,7 +933,8 @@ void nvmap_dma_mark_declared_memory_unoccupied(struct device *dev,
+ 					 dma_addr_t device_addr, size_t size);
+ 
+ extern void __dma_flush_area(const void *cpu_va, size_t size);
+-extern void __dma_map_area(const void *cpu_va, size_t size, int dir);
++extern void __dma_map_area_from_device(const void *cpu_va, size_t size);
++extern void __dma_map_area_to_device(const void *cpu_va, size_t size);
+ 
+ int nvmap_assign_pages_to_handle(struct nvmap_client *client,
+ 		struct nvmap_handle **hs, struct nvmap_handle *h,
+-- 
+2.43.0
+

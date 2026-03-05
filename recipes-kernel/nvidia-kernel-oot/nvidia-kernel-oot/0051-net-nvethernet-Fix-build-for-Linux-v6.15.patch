@@ -1,0 +1,119 @@
+From a5988a600dfb6afad19141af0df16ec21d7df048 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:19 -0800
+Subject: [PATCH 51/98] net: nvethernet: Fix build for Linux v6.15
+
+In Linux v6,15, a 'speed' argument was added to the phy_loopback()
+function. Add a conftest test to detect this change and update the
+nvethernet driver accordingly. Note that if 'speed' is set to 0 when
+calling phy_loopback(), then phy_loopback() behaves the same way as it
+did before this argument was added. So by default set speed to 0 for the
+nvethernet driver.
+
+JIRA LINQPJ14-47
+
+Upstream-Status: Backport [commit 8cb3f30c12f]
+Change-Id: I55f775e672bfa1a00c9ccbd825c82be1868b0b52
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3330685
+Tested-by: mobile promotions <svcmobile_promotions@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: mobile promotions <svcmobile_promotions@nvidia.com>
+Reviewed-by: Revanth Kumar Uppala <ruppala@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../net/ethernet/nvidia/nvethernet/selftests.c  | 14 +++++++++++++-
+ scripts/conftest/Makefile                       |  1 +
+ scripts/conftest/conftest.sh                    | 17 +++++++++++++++++
+ 3 files changed, 31 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/nvidia/nvethernet/selftests.c b/drivers/net/ethernet/nvidia/nvethernet/selftests.c
+index 04ce4858..e69c26a7 100644
+--- a/drivers/net/ethernet/nvidia/nvethernet/selftests.c
++++ b/drivers/net/ethernet/nvidia/nvethernet/selftests.c
+@@ -1,5 +1,5 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/* Copyright (c) 2019-2022, NVIDIA CORPORATION & AFFILIATES. All rights reserved */
++// SPDX-FileCopyrightText: Copyright (c) 2019-2025, NVIDIA CORPORATION & AFFILIATES. All rights reserved
+ 
+ #ifndef OSI_STRIPPED_LIB
+ #include "ether_linux.h"
+@@ -290,7 +290,11 @@ static int ether_test_phy_loopback(struct ether_priv_data *pdata)
+ 	if (!pdata->phydev)
+ 		return -ENODEV;
+ 
++#if defined(NV_PHY_LOOPBACK_HAS_SPEED_ARG) /* Linux v6.15 */
++	ret = phy_loopback(pdata->phydev, true, 0);
++#else
+ 	ret = phy_loopback(pdata->phydev, true);
++#endif
+ 	if (ret != 0 && ret != -EBUSY)
+ 		return ret;
+ 
+@@ -406,7 +410,11 @@ void ether_selftest_run(struct net_device *dev,
+ 		case ETHER_LOOPBACK_PHY:
+ 			ret = -EOPNOTSUPP;
+ 			if (dev->phydev)
++#if defined(NV_PHY_LOOPBACK_HAS_SPEED_ARG) /* Linux v6.15 */
++				ret = phy_loopback(dev->phydev, true, 0);
++#else
+ 				ret = phy_loopback(dev->phydev, true);
++#endif
+ 			if (!ret)
+ 				break;
+ 		/* Fallthrough */
+@@ -439,7 +447,11 @@ void ether_selftest_run(struct net_device *dev,
+ 		case ETHER_LOOPBACK_PHY:
+ 			ret = -EOPNOTSUPP;
+ 			if (dev->phydev)
++#if defined(NV_PHY_LOOPBACK_HAS_SPEED_ARG) /* Linux v6.15 */
++				ret = phy_loopback(dev->phydev, false, 0);
++#else
+ 				ret = phy_loopback(dev->phydev, false);
++#endif
+ 			if (!ret)
+ 				break;
+ 		/* Fallthrough */
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index b03224b9..b3ffeb87 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -161,6 +161,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epc_event_ops_struct_has_core_deinit
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epc_event_ops_struct_has_epc_deinit
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epc_event_ops_struct_has_epc_init
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_epc_irq_type_enum_present
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += phy_loopback_has_speed_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += platform_driver_struct_remove_returns_void
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += register_shrinker_has_fmt_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += shrinker_alloc
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 83061af0..64a1ba1d 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7690,6 +7690,23 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_PCI_EPC_EVENT_OPS_STRUCT_HAS_EPC_INIT" "" "types"
+         ;;
+ 
++        phy_loopback_has_speed_arg)
++            #
++            # Determine if phy_loopback() has 'speed' argument.
++            #
++            # Commit 0d60fd50328a ("net: phy: Support speed selection for PHY
++            # loopback") add a 'speed' argument to phy_loopback() in Linux
++            # v6.15.
++            #
++            CODE="
++            #include <linux/phy.h>
++            int conftest_phy_loopback_has_speed_arg(struct phy_device *phydev) {
++                return phy_loopback(phydev, true, 0);
++            }"
++
++            compile_check_conftest "$CODE" "NV_PHY_LOOPBACK_HAS_SPEED_ARG" "" "types"
++        ;;
++
+         platform_driver_struct_remove_returns_void)
+             #
+             # Determine if the 'platform_driver' structure 'remove' function
+-- 
+2.43.0
+

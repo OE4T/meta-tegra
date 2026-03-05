@@ -1,0 +1,109 @@
+From 5b1f481db1697ddbd34c13ea18d14e70e52d1c91 Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:24 -0800
+Subject: [PATCH 70/98] drm/tegra: Fix aperture support for Linux v6.13
+
+In Linux v6.13, commit 689274a56c0c ("drm: Remove DRM aperture helpers")
+removed the DRM aperture helper functions and drivers should simply use
+the existing video helpers. Update the Tegra DRM driver to use
+aperture_remove_all_conflicting_devices() if available to align with
+upstream.
+
+Bug 4991705
+
+Upstream-Status: Backport [commit a8777837d]
+Change-Id: Ie4b78a4ea519ffcaaf972417ec2cbe7c436eb808
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3261694
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.c  |  8 +++++++-
+ scripts/conftest/Makefile    |  2 ++
+ scripts/conftest/conftest.sh | 22 ++++++++++++++++++++++
+ 3 files changed, 31 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index cb7cafe4..68f16f2b 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -16,7 +16,11 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/version.h>
+ 
++#if defined(NV_APERTURE_REMOVE_ALL_CONFLICTING_DEVICES_PRESENT) /* Linux v6.0 */
++#include <linux/aperture.h>
++#else
+ #include <drm/drm_aperture.h>
++#endif
+ #include <drm/drm_atomic.h>
+ #include <drm/drm_atomic_helper.h>
+ #include <drm/drm_debugfs.h>
+@@ -1320,7 +1324,9 @@ static int host1x_drm_probe(struct host1x_device *dev)
+ 	drm_mode_config_reset(drm);
+ 
+ 	if (drm->mode_config.num_crtc > 0) {
+-#if defined(NV_DRM_APERTURE_REMOVE_FRAMEBUFFERS_HAS_NO_PRIMARY_ARG) /* Linux v6.5 */
++#if defined(NV_APERTURE_REMOVE_ALL_CONFLICTING_DEVICES_PRESENT) /* Linux v6.0 */
++		err = aperture_remove_all_conflicting_devices(tegra_drm_driver.name);
++#elif defined(NV_DRM_APERTURE_REMOVE_FRAMEBUFFERS_HAS_NO_PRIMARY_ARG) /* Linux v6.5 */
+ 		err = drm_aperture_remove_framebuffers(&tegra_drm_driver);
+ #elif defined(NV_DRM_APERTURE_REMOVE_FRAMEBUFFERS_HAS_DRM_DRIVER_ARG) /* Linux v5.15 */
+ 		err = drm_aperture_remove_framebuffers(false, &tegra_drm_driver);
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 4ec1ae8a..be71afd6 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -92,6 +92,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += __alloc_disk_node_has_lkclass_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += __assign_str_has_no_src_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += bin_attribute_struct_mmap_has_const_bin_attribute_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += bin_attribute_struct_readwrite_has_const_bin_attribute_arg
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += aperture_remove_all_conflicting_devices
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += blk_execute_rq_has_no_gendisk_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += blk_mq_alloc_disk_for_queue
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += blk_mq_alloc_queue
+@@ -236,6 +237,7 @@ NV_HEADER_PRESENCE_TESTS = \
+   drm/drm_eld.h \
+   generated/autoconf.h \
+   linux/cpuhplock.h \
++  linux/aperture.h \
+   linux/kconfig.h \
+   linux/iosys-map.h \
+   net/gso.h \
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 3e081a20..94b17cf4 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -6544,6 +6544,28 @@ compile_test() {
+                     "NV_BIN_ATTRIBUTE_STRUCT_READWRITE_HAS_CONST_BIN_ATTRIBUTE_ARG" "" "types"
+         ;;
+ 
++        aperture_remove_all_conflicting_devices)
++            #
++            # Determine if the function aperture_remove_all_conflicting_devices()
++            # is present.
++            #
++            # In Linux v6.0, commit 7283f862bd99 ("drm: Implement DRM aperture
++            # helpers under video/") added the function
++            # aperture_remove_all_conflicting_devices().
++            #
++            CODE="
++            #if defined(NV_LINUX_APERTURE_H_PRESENT)
++            #include <linux/aperture.h>
++            #else
++            #error \"linux/aperture.h not found!\"
++            #endif
++            void conftest_aperture_remove_all_conflicting_devices(const char *name) {
++                aperture_remove_all_conflicting_devices(name);
++            }"
++
++            compile_check_conftest "$CODE" "NV_APERTURE_REMOVE_ALL_CONFLICTING_DEVICES_PRESENT" "" "types"
++        ;;
++
+         blk_execute_rq_has_no_gendisk_arg)
+             #
+             # Determine if the function blk_execute_rq() has an argument of
+-- 
+2.43.0
+

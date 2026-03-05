@@ -1,0 +1,86 @@
+From ab530fe61e092285870adf69373044eb991b5d4e Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Fri, 20 Feb 2026 08:22:28 -0800
+Subject: [PATCH 79/98] gpu/drm: tegra: Fix support for Linux v6.12
+
+In Linux v6.12, commit 641bb4394f40 ("fs: move FMODE_UNSIGNED_OFFSET to
+fop_flags") moves the setting of the FMODE_UNSIGNED_OFFSET into the
+various drivers and renames this flag. This change is causing various
+tests to fail because opening the DRM device is failing.
+
+Use the presence of the new FOP_UNSIGNED_OFFSET flag in the kernel to
+determine if we need to set this flag in the Tegra DRM driver.
+
+Bug 4876974
+
+Upstream-Status: Backport
+Change-Id: Ie72a9340187b1c206f0cda6d7e3dab44d603a41c
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3269063
+Reviewed-by: Mikko Perttunen <mperttunen@nvidia.com>
+GVS: buildbot_gerritrpt <buildbot_gerritrpt@nvidia.com>
+(cherry picked from commit 00ab7abbb67d681bcac68fd9bcee90a05cc83ebc)
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/gpu/drm/tegra/drm.c  |  2 +-
+ scripts/conftest/Makefile    |  1 +
+ scripts/conftest/conftest.sh | 18 ++++++++++++++++++
+ 3 files changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index b09e6cfe..a133eb59 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -806,7 +806,7 @@ static const struct file_operations tegra_drm_fops = {
+ 	.read = drm_read,
+ 	.compat_ioctl = drm_compat_ioctl,
+ 	.llseek = noop_llseek,
+-#if defined(FOP_UNSIGNED_OFFSET)
++#if defined(NV_FOP_UNSIGNED_OFFSET_PRESENT) /* Linux v6.12 */
+ 	.fop_flags = FOP_UNSIGNED_OFFSET,
+ #endif
+ };
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 512dfb59..8262f588 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -133,6 +133,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += fd_empty
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += fd_file
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += file_struct_has_f_ref
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += folio_entire_mapcount
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += fop_unsigned_offset
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += genpd_xlate_t_has_const_of_phandle_args
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += get_file_rcu_has_double_ptr_file_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += get_user_pages
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index 927a2812..e038b46f 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7371,6 +7371,24 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_FOLIO_ENTIRE_MAPCOUNT_PRESENT" "" "functions"
+         ;;
+ 
++        fop_unsigned_offset)
++            #
++            # Determine if definition FOP_UNSIGNED_OFFSET is present.
++            #
++            # Commit 641bb4394f40 ("fs: move FMODE_UNSIGNED_OFFSET to fop_flags")
++            # added the definition FOP_UNSIGNED_OFFSET in Linux v6.12.
++            #
++            CODE="
++            #include <linux/fs.h>
++            int conftest(void)
++            {
++                return FOP_UNSIGNED_OFFSET;
++            }"
++
++            compile_check_conftest "$CODE" "NV_FOP_UNSIGNED_OFFSET_PRESENT" "" "types"
++        ;;
++
++
+         genpd_xlate_t_has_const_of_phandle_args)
+             #
+             # Determine if genpd_xlate_t function pointer has a
+-- 
+2.43.0
+
