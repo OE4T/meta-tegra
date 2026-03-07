@@ -78,3 +78,5 @@
   - [L4T-R28.2-Notes](release-notes/L4T-R28.2-Notes.md)
   - [L4T-R28.1-notes](release-notes/L4T-R28.1-notes.md)
 
+# Misc
+ - [Wiki Redirects](Wiki-Redirects.md)
