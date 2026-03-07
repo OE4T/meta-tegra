@@ -5,6 +5,10 @@ on:
     branches:
       - master
       - scarthgap
+    paths:
+      - 'docs/**'
+      - 'README.md'
+      - 'CONTRIBUTING.md'
   workflow_dispatch:
 
 jobs:
