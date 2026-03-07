@@ -1,9 +1,9 @@
 # Summary
 
-[Introduction](Home.md)
+[Introduction](README.md)
 
 # Getting Started
-- [meta-tegra README](README.md)
+- [meta-tegra README](meta-tegra-README.md)
 - [Which branch should I use](Which-branch-should-I-use.md)
 - [Flashing the Jetson Dev Kit](Flashing-the-Jetson-Dev-Kit.md)
 - [initrd Flashing Support](initrd-flashing-support.md)
