@@ -1,0 +1,3 @@
+Starting with the 4.4 kernel, NVIDIA maintains separate repositories for some of their hardware-specific drivers and the device tree files.  To simplify kernel builds under OE-Core, the `linux-tegra` recipes for 4.4 and later point to a repository where the files in those separate repositories have been merged back together using git subtrees.
+
+This makes it more difficult to compare the sources used here against the NVIDIA upstream sources, but simplifies the recipe and the management any patches that might be needed.
