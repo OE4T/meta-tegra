@@ -34,6 +34,7 @@
 - [Using Linaro gcc7 for CUDA Support](Using-linaro-gcc7-for-CUDA-support.md)
 - [Wayland Weston Support on Jetson Platforms](Wayland-Weston-support-on-Jetson-platforms.md)
 - [Extlinux.conf Support](extlinux.conf-support.md)
+- [Applying-PREEMPT-RT-Real-Time-Kernel-Patches.md](Applying-PREEMPT-RT-Real-Time-Kernel-Patches.md)
 
 # Maintainer Guides
 - [Documentation Workflow](Documentation-Workflow.md)
