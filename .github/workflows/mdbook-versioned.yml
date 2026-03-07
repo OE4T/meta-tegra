@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - master-l4t-r38.4.x
       - scarthgap
     paths:
       - 'docs/**'
