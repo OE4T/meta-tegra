@@ -7,3 +7,4 @@ src = "docs"
 [output.html]
 additional-css = ["docs/mdbook/css/custom.css"]
 additional-js = ["docs/mdbook/js/version-dropdown.js"]
+edit-url-template = "https://github.com/OE4T/meta-tegra/edit/master/{path}"
