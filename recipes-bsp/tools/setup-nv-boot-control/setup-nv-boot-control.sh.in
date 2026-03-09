@@ -4,7 +4,7 @@ BOOTDEV="@BOOTDEV@"
 sysconfdir="@sysconfdir@"
 controlfile="${sysconfdir}/nv_boot_control.conf"
 
-source /usr/bin/uefi_common.func
+. /usr/bin/uefi_common.func
 
 [ ! -e "$controlfile" ] || exit 0
 
