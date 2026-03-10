@@ -53,6 +53,9 @@ UBOOT_EXTLINUX_MENU_TITLE ??= "L4T boot options"
 
 UBOOT_EXTLINUX_CONFIG = "${B}/extlinux.conf"
 
+# Use L4T_UBOOT_EXTLINUX_EXTRA_FDTS to ship extra device-tree blobs to L4T_EXTLINUX_BASEDIR
+L4T_UBOOT_EXTLINUX_EXTRA_FDTS ??= ""
+
 def get_l4t_extlinux_compat_var(varname, d):
     rtnvar = d.getVar(varname)
     if rtnvar.startswith('/boot/'):
