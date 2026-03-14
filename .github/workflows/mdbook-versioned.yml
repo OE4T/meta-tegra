@@ -10,6 +10,7 @@ on:
       - 'docs/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
+      - 'book.toml'
   workflow_dispatch:
 
 jobs:
