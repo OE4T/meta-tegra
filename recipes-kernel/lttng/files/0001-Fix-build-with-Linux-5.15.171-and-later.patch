@@ -1,0 +1,29 @@
+From 4f6719f32c1567e122b9a9ca582651678ce49f02 Mon Sep 17 00:00:00 2001
+From: David Charlap <David_Charlap@jabil.com>
+Date: Mon, 9 Mar 2026 19:31:42 -0400
+Subject: [PATCH] Fix build with Linux 5.15.171 and later
+
+Backport the upstream fix for the kmem tracepoint prototype change
+introduced on Linux 5.15.171 and later.
+
+This keeps lttng-modules 2.13.12 building against the 5.15.185 kernel
+used by meta-tegra.
+
+Upstream-Status: Backport [6479c4ae43e7a2096b97c800ece57defd0ba62b7]
+---
+ include/instrumentation/events/kmem.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/include/instrumentation/events/kmem.h b/include/instrumentation/events/kmem.h
+index f6ce8ac3..57afa1fd 100644
+--- a/include/instrumentation/events/kmem.h
++++ b/include/instrumentation/events/kmem.h
+@@ -381,7 +381,8 @@ LTTNG_TRACEPOINT_EVENT_MAP(mm_page_alloc, kmem_mm_page_alloc,
+ )
+
+ #if (LTTNG_LINUX_VERSION_CODE >= LTTNG_KERNEL_VERSION(5,19,0) || \
+-	LTTNG_RHEL_KERNEL_RANGE(5,14,0,163,0,0, 5,15,0,0,0,0))
++	LTTNG_KERNEL_RANGE(5,15,171, 5,16,0) || \
++	LTTNG_RHEL_KERNEL_RANGE(5,14,0,163,0,0, 5,15,0,0,0,0))
+
+ LTTNG_TRACEPOINT_EVENT_CLASS(kmem_mm_page,
