@@ -17,7 +17,9 @@ When set, this adds a devicetree entry in the extlinux.conf file.  This setting 
 
 ## UBOOT_EXTLINUX_FDTOVERLAYS
 
-The PR at [https://github.com/OE4T/meta-tegra/pull/1968](https://github.com/OE4T/meta-tegra/pull/1968) adds support for specifying a list of overlays in your extlinux.conf file.  These overlays are also stored on the rootfs and applied to the kernel DTB at boot time after root slot selection.
+The PR at [https://github.com/OE4T/meta-tegra/pull/1968](https://github.com/OE4T/meta-tegra/pull/1968) adds support for specifying a list of overlays in your extlinux.conf file. These overlays are stored on the rootfs and applied to the kernel DTB at boot time after root slot selection.
+
+On `scarthgap` and other JetPack 6 / L4T R36.x branches, this is the rootfs-based runtime overlay mechanism. See [Using-device-tree-overlays](Using-device-tree-overlays.md) for a branch-specific comparison with the SPI-flash and build-time approaches.
 
 This feature is only supported when `UBOOT_EXTLINUX_FDT` is specified.
 
@@ -27,7 +29,7 @@ To use, specify
 UBOOT_EXTLINUX_FDT = "${DTBFILE}"
 UBOOT_EXTLINUX_FDTOVERLAYS = "my-overlay.dtbo"
 ```
-Where `"my-overlay.dtbo"` is an overlay built using the mechanisms specific to your branch implementation (or potentially one provided by NVIDIA.  See [Using-device-tree-overlays](Using-device-tree-overlays.md) for more details.  Note that since the overlay only happens to the kernel DTB this mechanism cannot be used to make any changes to the UEFI DTB.
+Where `"my-overlay.dtbo"` is an overlay built using the mechanisms specific to your branch implementation, or one provided by NVIDIA. Since the overlay only happens to the kernel DTB, this mechanism cannot be used to make any changes to the UEFI DTB.
 
 ## Caveats
 
@@ -108,4 +110,3 @@ This has only been tested with ext4-formatted root filesystems, and bugs found i
 cboot's ext4 implementation have been patched to make this work. Other filesystem types
 are unlikely to work.  Also, you should use the `cboot-t19x` recipe that builds
 cboot from source to get the required patches (this is the default).
-
