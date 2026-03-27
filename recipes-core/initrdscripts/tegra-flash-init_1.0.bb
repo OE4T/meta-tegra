@@ -1,4 +1,4 @@
-DESCRIPTION = "Minimal initramfs init script for initrd flashing"
+DESCRIPTION = "Minimal initramfs init script for initrd flashing (T234/Orin)"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
@@ -10,21 +10,22 @@ SRC_URI = "\
     file://initrd-flash.scheme.in \
 "
 
-S = "${UNPACKDIR}"
+COMPATIBLE_MACHINE = "(tegra234)"
 
-COMPATIBLE_MACHINE = "(tegra)"
+S = "${UNPACKDIR}"
+B = "${WORKDIR}/build"
 
 MTD_DEV ?= "${@d.getVar('OTABOOTDEV').replace('mtdblock','mtd')}"
 
-do_configure() {
+do_compile() {
     sed -e's,@MTD_DEV@,${MTD_DEV},g' \
-        ${UNPACKDIR}/program-boot-device.sh > ${UNPACKDIR}/program-boot-device
+        ${S}/program-boot-device.sh > ${B}/program-boot-device
 }
 
 do_install() {
-    install -m 0755 ${UNPACKDIR}/init-flash.sh ${D}/init
-    install -m 0755 ${UNPACKDIR}/init-extra-pre-wipe.sh ${D}/init-extra-pre-wipe
-    install -m 0755 ${UNPACKDIR}/init-extra.sh ${D}/init-extra
+    install -m 0755 ${S}/init-flash.sh ${D}/init
+    install -m 0755 ${S}/init-extra-pre-wipe.sh ${D}/init-extra-pre-wipe
+    install -m 0755 ${S}/init-extra.sh ${D}/init-extra
     install -m 0755 -d ${D}/init-extra-pre-wipe.d
     install -m 0755 -d ${D}/init-extra.d
     install -m 0555 -d ${D}/proc ${D}/sys
@@ -32,15 +33,14 @@ do_install() {
     install -m 1777 -d ${D}/tmp
     mknod -m 622 ${D}/dev/console c 5 1
     install -d ${D}${bindir}
-    install -m 0755 ${UNPACKDIR}/program-boot-device ${D}${bindir}/program-boot-device
+    install -m 0755 ${B}/program-boot-device ${D}${bindir}/program-boot-device
     install -d ${D}${sysconfdir}/initrd-flash
-    install -m 0644 ${UNPACKDIR}/initrd-flash.scheme.in ${D}${sysconfdir}/initrd-flash/
+    install -m 0644 ${S}/initrd-flash.scheme.in ${D}${sysconfdir}/initrd-flash/
 }
 
 FILES:${PN} = "/"
-RDEPENDS:${PN} = "util-linux-blkdiscard tegra-flash-reboot mtd-utils e2fsprogs-mke2fs libusbgx-tegra-initrd-flash watchdog-keepalive gptfdisk tegra-firmware kmod parted"
-RRECOMMENDS:${PN} = "kernel-module-loop \
-                     kernel-module-libcomposite \
+RDEPENDS:${PN} = "util-linux-blkdiscard mtd-utils e2fsprogs-mke2fs libusbgx-tegra-initrd-flash gptfdisk tegra-firmware kmod parted"
+RRECOMMENDS:${PN} = "kernel-module-libcomposite \
                      kernel-module-usb-f-mass-storage \
 "
 PACKAGE_ARCH = "${MACHINE_ARCH}"
