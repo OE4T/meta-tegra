@@ -1,0 +1,30 @@
+UBUNTU: SAUCE: spi: add "tegra-spidev" compatible string.
+BugLink: https://bugs.launchpad.net/bugs/2019240
+
+Add "tegra-spidev" compatible string.
+
+Relevant L4T commits:
+https://github.com/OE4T/linux-jammy-nvidia-tegra/commit/eb5afccf5a83a74c8e3a4d97850c8157080fcd10
+https://github.com/OE4T/linux-jammy-nvidia-tegra/commit/b5482920612a2161b49e5b3abdd5d94d5ba297fd
+
+Upstream-Status: Backport
+ 
+--- a/drivers/spi/spidev.c
++++ b/drivers/spi/spidev.c
+@@ -716,6 +716,7 @@
+ 	{ .name = "spi-authenta" },
+ 	{ .name = "em3581" },
+ 	{ .name = "si3210" },
++	{ .name = "tegra-spidev" },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(spi, spidev_spi_ids);
+@@ -746,6 +747,7 @@
+ 	{ .compatible = "semtech,sx1301", .data = &spidev_of_check },
+ 	{ .compatible = "silabs,em3581", .data = &spidev_of_check },
+ 	{ .compatible = "silabs,si3210", .data = &spidev_of_check },
++	{ .compatible = "nvidia,tegra-spidev", .data = &spidev_of_check },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, spidev_dt_ids);
+
