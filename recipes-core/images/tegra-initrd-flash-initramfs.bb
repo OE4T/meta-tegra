@@ -17,9 +17,18 @@ PACKAGE_INSTALL = "\
     kernel-module-tegra-bpmp-thermal \
     kernel-module-pwm-tegra \
     kernel-module-pwm-fan \
+"
+
+# Thor (T264): unified flash via ADB
+PACKAGE_INSTALL:append:tegra264 = " \
+    tegra-target-flash-scripts \
     nv-kernel-module-pcie-tegra264 \
     nv-kernel-module-ufs-tegra \
-    tegra-target-flash-scripts \
+"
+
+# Orin (T234): initrd flash via USB mass storage
+PACKAGE_INSTALL:append:tegra234 = " \
+    tegra-flash-init \
 "
 
 IMAGE_FEATURES = ""
