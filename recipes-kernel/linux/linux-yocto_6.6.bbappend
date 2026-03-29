@@ -14,7 +14,9 @@ SRC_URI:append:tegra = " \
     file://0009-NVIDIA-SAUCE-soc-tegra-pmc-Add-sysfs-nodes-to-select.patch \
     file://0010-UBUNTU-SAUCE-mtd-spi-nor-support-for-spansion-and-ma.patch \
     file://0011-NVIDIA-SAUCE-enable-handling-of-macronix-block-prote.patch \
-    file://0004-drm-tegra-select-DRM_DISPLAY_HDCP_HELPER.patch \
+    file://0012-drm-tegra-select-DRM_DISPLAY_HDCP_HELPER.patch \
+    file://0013-UBUNTU-SAUCE-spi-add-tegra-spidev-name-string.patch \
+    file://0014-UBUNTU-SAUCE-spi-add-tegra-spidev-compatible-string.patch \
     file://tegra.cfg \
     file://tegra-drm.cfg \
     file://tegra-governors.cfg \

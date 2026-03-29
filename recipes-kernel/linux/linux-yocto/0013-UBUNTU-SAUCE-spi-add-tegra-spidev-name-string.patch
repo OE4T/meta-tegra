@@ -1,0 +1,39 @@
+From e2d4f623377c43c5089d45d75c2798660a251f07 Mon Sep 17 00:00:00 2001
+From: gauthams <gauthams@nvidia.com>
+Date: Sun, 29 Mar 2026 11:38:56 -0700
+Subject: [PATCH] UBUNTU: SAUCE: spi: add "tegra-spidev" name string.
+
+BugLink: https://bugs.launchpad.net/bugs/2028400
+
+Add "tegra-spidev" name string to load spidev.ko driver
+which allows user-space programs to access and communicate
+with SPI devices connected to the system.
+
+Upstream-Status: Backport [5.15.185-1033.33]
+Signed-off-by: Gautham Srinivasan <gauthams@nvidia.com>
+Reviewed-by: Jonathan Hunter <jonathanh@nvidia.com>
+Reviewed-by: Laxman Dewangan <ldewangan@nvidia.com>
+Reviewed-by: Vishwaroop A <va@nvidia.com>
+Signed-off-by: Abhilash G <abhilashg@nvidia.com>
+Acked-by: Jacob Martin <jacob.martin@canonical.com>
+Acked-by: Ian May <ian.may@canonical.com>
+Signed-off-by: Jacob Martin <jacob.martin@canonical.com>
+[nwager: context change]
+Signed-off-by: Noah Wager <noah.wager@canonical.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/spi/spidev.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/spi/spidev.c b/drivers/spi/spidev.c
+index 16bb4fc3a4ba..bec9b032d286 100644
+--- a/drivers/spi/spidev.c
++++ b/drivers/spi/spidev.c
+@@ -716,6 +716,7 @@ static const struct spi_device_id spidev_spi_ids[] = {
+ 	{ .name = "spi-authenta" },
+ 	{ .name = "em3581" },
+ 	{ .name = "si3210" },
++	{ .name = "tegra-spidev" },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(spi, spidev_spi_ids);
