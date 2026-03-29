@@ -1,0 +1,37 @@
+From 7a41655e633f87b77328359cbba7e9674ca4a250 Mon Sep 17 00:00:00 2001
+From: Vishwaroop A <va@nvidia.com>
+Date: Sun, 29 Mar 2026 03:30:25 -0700
+Subject: [PATCH] UBUNTU: SAUCE: spi: add "tegra-spidev" compatible string.
+
+BugLink: https://bugs.launchpad.net/bugs/2019240
+
+Add "tegra-spidev" compatible string.
+
+Upstream-Status: Backport [5.15.185-1033.33]
+Signed-off-by: Vishwaroop A <va@nvidia.com>
+Reviewed-by: Laxman Dewangan <ldewangan@nvidia.com>
+Signed-off-by: Abhilash G <abhilashg@nvidia.com>
+Acked-by: Brad Figg <bfigg@nvidia.com>
+Acked-by: Jacob Martin <jacob.martin@canonical.com>
+Acked-by: Ian May <ian.may@canonical.com>
+Signed-off-by: Brad Figg <bfigg@nvidia.com>
+[nwager: context change]
+Signed-off-by: Noah Wager <noah.wager@canonical.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ drivers/spi/spidev.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/spi/spidev.c b/drivers/spi/spidev.c
+index d76353714553..af5b6bcc1164 100644
+--- a/drivers/spi/spidev.c
++++ b/drivers/spi/spidev.c
+@@ -752,6 +752,8 @@ static const struct of_device_id spidev_dt_ids[] = {
+ 	{ .compatible = "semtech,sx1301", .data = &spidev_of_check },
+ 	{ .compatible = "silabs,em3581", .data = &spidev_of_check },
+ 	{ .compatible = "silabs,si3210", .data = &spidev_of_check },
++	{ .compatible = "nvidia,tegra-spidev", .data = &spidev_of_check },
++	{ .compatible = "tegra-spidev", .data = &spidev_of_check },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, spidev_dt_ids);

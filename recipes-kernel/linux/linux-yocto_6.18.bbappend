@@ -7,6 +7,8 @@ SRC_URI:append:tegra = " \
     file://0002-UBUNTU-SAUCE-mtd-spi-nor-support-for-spansion-and-ma.patch \
     file://0003-NVIDIA-SAUCE-enable-handling-of-macronix-block-prote.patch \
     file://0004-drm-tegra-select-DRM_DISPLAY_HDCP_HELPER.patch \
+    file://0005-UBUNTU-SAUCE-spi-add-tegra-spidev-name-string.patch \
+    file://0006-UBUNTU-SAUCE-spi-add-tegra-spidev-compatible-string.patch \
     file://tegra.cfg \
     file://tegra-drm.cfg \
     file://tegra-governors.cfg \
