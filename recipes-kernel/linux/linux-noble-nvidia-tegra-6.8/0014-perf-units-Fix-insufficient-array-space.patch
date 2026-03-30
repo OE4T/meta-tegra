@@ -1,0 +1,40 @@
+From cf67629f7f637fb988228abdb3aae46d0c1748fe Mon Sep 17 00:00:00 2001
+From: Arnaldo Carvalho de Melo <acme@redhat.com>
+Date: Mon, 10 Mar 2025 16:45:32 -0300
+Subject: [PATCH] perf units: Fix insufficient array space
+
+No need to specify the array size, let the compiler figure that out.
+
+This addresses this compiler warning that was noticed while build
+testing on fedora rawhide:
+
+  31    15.81 fedora:rawhide                : FAIL gcc version 15.0.1 20250225 (Red Hat 15.0.1-0) (GCC)
+    util/units.c: In function 'unit_number__scnprintf':
+    util/units.c:67:24: error: initializer-string for array of 'char' is too long [-Werror=unterminated-string-initialization]
+       67 |         char unit[4] = "BKMG";
+          |                        ^~~~~~
+    cc1: all warnings being treated as errors
+
+Upstream-Status: Backport [cf67629f7f637fb988228abdb3aae46d0c1748fe]
+
+Fixes: 9808143ba2e54818 ("perf tools: Add unit_number__scnprintf function")
+Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
+Link: https://lore.kernel.org/r/20250310194534.265487-3-acme@kernel.org
+Signed-off-by: Namhyung Kim <namhyung@kernel.org>
+---
+ tools/perf/util/units.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/perf/util/units.c b/tools/perf/util/units.c
+index 32c39cfe209b3..4c6a86e1cb54b 100644
+--- a/tools/perf/util/units.c
++++ b/tools/perf/util/units.c
+@@ -64,7 +64,7 @@ unsigned long convert_unit(unsigned long value, char *unit)
+
+ int unit_number__scnprintf(char *buf, size_t size, u64 n)
+ {
+-	char unit[4] = "BKMG";
++	char unit[] = "BKMG";
+ 	int i = 0;
+
+ 	while (((n / 1024) > 1) && (i < 3)) {

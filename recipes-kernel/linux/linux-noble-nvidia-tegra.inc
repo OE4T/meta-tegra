@@ -27,6 +27,20 @@ SRC_REPO = "gitlab.com/nvidia/nv-tegra/3rdparty/canonical/linux-noble.git;protoc
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
     file://0001-tty-vt-conmakehash-remove-non-portable-code-printing.patch \
+    file://0002-perf-build-Setup-PKG_CONFIG_LIBDIR-for-cross-compila.patch \
+    file://0003-perf-metricgroup-Constify-variables-storing-the-resu.patch \
+    file://0004-perf-strlist-Don-t-write-to-const-memory.patch \
+    file://0005-perf-session-Don-t-write-to-memory-pointed-to-a-cons.patch \
+    file://0006-perf-trace-event-Constify-variables-storing-the-resu.patch \
+    file://0007-perf-units-Constify-variables-storing-the-result-of-.patch \
+    file://0008-perf-time-utils-Constify-variables-storing-the-resul.patch \
+    file://0009-perf-demangle-java-Constify-variables-storing-the-re.patch \
+    file://0010-perf-bpf-event-Constify-variables-storing-the-result.patch \
+    file://0011-perf-jitdump-Constify-variables-storing-the-result-o.patch \
+    file://0012-perf-tools-Use-const-for-variables-receiving-str-str.patch \
+    file://0013-perf-python-Stop-using-deprecated-PyUnicode_AsString.patch \
+    file://0014-perf-units-Fix-insufficient-array-space.patch \
+    file://0015-libbpf-Fix-Wdiscarded-qualifiers-under-C23.patch \
     ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
     ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \

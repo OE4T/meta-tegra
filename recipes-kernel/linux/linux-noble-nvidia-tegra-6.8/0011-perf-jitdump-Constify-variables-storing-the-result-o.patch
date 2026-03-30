@@ -1,0 +1,29 @@
+From 68abacb0686651dd3f0bbce2fa94b438afeb2fc4 Mon Sep 17 00:00:00 2001
+From: Arnaldo Carvalho de Melo <acme@redhat.com>
+Date: Tue, 27 Jan 2026 01:15:47 -0300
+Subject: [PATCH 12/12] perf jitdump: Constify variables storing the result of
+ strchr() on const tables
+
+As newer glibcs will propagate the const attribute of the searched table
+to its return.
+
+Upstream-Status: Backport [68abacb0686651dd3f0bbce2fa94b438afeb2fc4]
+
+Signed-off-by: Arnaldo Carvalho de Melo <acme@redhat.com>
+---
+ tools/perf/util/jitdump.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tools/perf/util/jitdump.c b/tools/perf/util/jitdump.c
+index d4fe35f9d9a5f..e0ce8b9047298 100644
+--- a/tools/perf/util/jitdump.c
++++ b/tools/perf/util/jitdump.c
+@@ -758,7 +758,7 @@ jit_inject(struct jit_buf_desc *jd, const char *path)
+ static int
+ jit_detect(const char *mmap_name, pid_t pid, struct nsinfo *nsi, bool *in_pidns)
+  {
+-	char *p;
++	const char *p;
+ 	char *end = NULL;
+ 	pid_t pid2;
+
