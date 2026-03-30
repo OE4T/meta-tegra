@@ -25,7 +25,8 @@ EXTRA_OECMAKE = "-DTENSORRT_ROOT=${S} -DTENSORRT_LIBPATH=${STAGING_LIBDIR} -DTEN
                  -DCUDA_INCLUDE_DIRS=${CUDA_PATH}/include \
                  -DTARGET=${HOST_ARCH} -DCMAKE_BUILD_TYPE=Release \
                  -DPY_INCLUDE=${STAGING_INCDIR}/${PYTHON_DIR} -DEXT_PATH=${STAGING_INCDIR} \
-                 -DCMAKE_POLICY_VERSION_MINIMUM=3.5 "
+                 -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
+                 -DTRT_NVINFER_NAME=nvinfer -DTRT_ONNXPARSER_NAME=nvonnxparser "
 
 CXXFLAGS += "${CUDA_CXXFLAGS}"
 
@@ -62,4 +63,4 @@ do_install() {
     setuptools3_do_install
 }
 
-RDEPENDS:${PN} = "python3-ctypes python3-numpy"
+RDEPENDS:${PN} = "python3-ctypes python3-numpy tensorrt-plugins"
