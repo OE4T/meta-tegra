@@ -395,6 +395,7 @@ tegraflash_populate_package:tegra264() {
         for f in resize2fs losetup e2fsck dumpe2fs flash_lz4 tegrakeyhash xmss-sign tegrasign_v3_nvkey_load.py tegrasign_v3_nvkey.yaml t234_sbk_dev.key t234_rsa_dev.key; do
             touch ./unified_flash/tools/flashtools/flash/$f
         done
+        chmod +x ./unified_flash/tools/flashtools/flash/wr_sh.sh
     fi
 }
 
