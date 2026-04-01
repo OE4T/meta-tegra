@@ -1,0 +1,69 @@
+From f2854f4f5e7b67d4e073ea002ae0174d437e2962 Mon Sep 17 00:00:00 2001
+From: JohnZhang-Tetra <107891650+JohnZhang-Tetra@users.noreply.github.com>
+Date: Mon, 30 Mar 2026 01:51:46 -0600
+Subject: [PATCH] Merge pull request #4097 from
+ JohnZhang-Tetra:use_different_namespace_for_cuda_13.2
+
+Use different namespace for cuda 13.2#4097
+
+### Pull Request Readiness Checklist
+
+Hi Alexander, you mentioned we should define the namespace in CMake and keep the original namespace but after reviewing the new CUDA 13.2 namespaces with coworker @daniel-mitchell-tt, we think the new namespace should be used to replace old namespace.
+
+CUDA 13.2 namespace:
+/usr/local/cuda-13.2/targets/sbsa-linux/include/cccl/cuda/std/__internal/namespaces.h:45:#  define _CCCL_BEGIN_NAMESPACE_CUDA_STD _LIBCUDACXX_PROLOGUE_INCLUDE_CHECK() namespace cuda::std { inline namespace _LIBCUDACXX_ABI_NAMESPACE {
+
+CUDA 12.6 namespace:
+/usr/local/cuda-12.6/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/__config:1216:#  define _LIBCUDACXX_BEGIN_NAMESPACE_STD_NOVERSION namespace cuda { namespace std {
+
+Comment Daniel made: https://github.com/opencv/opencv_contrib/issues/4091#issuecomment-4119360272
+
+Fix: #4091
+Related to: #4095 (closed PR)
+
+See details at https://github.com/opencv/opencv/wiki/How_to_contribute#making-a-good-pull-request
+
+- [x] I agree to contribute to the project under Apache 2 License.
+- [x] To the best of my knowledge, the proposed patch is not based on a code under GPL or another license that is incompatible with OpenCV
+- [x] The PR is proposed to the proper branch
+- [x] There is a reference to the original bug report and related work
+- [ ] There is accuracy test, performance test and test data in opencv_extra repository, if applicable
+      Patch to opencv_extra has the same branch name.
+- [x] The feature is well documented and sample code can be built with the project CMake
+
+
+Upstream-Status: Backport [https://github.com/opencv/opencv_contrib/pull/4097]
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ modules/cudev/include/opencv2/cudev/ptr2d/zip.hpp | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/modules/cudev/include/opencv2/cudev/ptr2d/zip.hpp b/modules/cudev/include/opencv2/cudev/ptr2d/zip.hpp
+index f60ab5d0eb7..2bcc2fb3aab 100644
+--- a/modules/cudev/include/opencv2/cudev/ptr2d/zip.hpp
++++ b/modules/cudev/include/opencv2/cudev/ptr2d/zip.hpp
+@@ -179,7 +179,12 @@ template <class PtrTuple> struct PtrTraits< ZipPtrSz<PtrTuple> > : PtrTraitsBase
+ }}
+ 
+ #if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ > 12 || (__CUDACC_VER_MAJOR__ == 12 && __CUDACC_VER_MINOR__ >= 4))
++#if (__CUDACC_VER_MAJOR__ > 13 || (__CUDACC_VER_MAJOR__ == 13 && __CUDACC_VER_MINOR__ >= 2))
++_CCCL_BEGIN_NAMESPACE_CUDA_STD
++#else
+ _LIBCUDACXX_BEGIN_NAMESPACE_STD
++#endif
++
+ 
+ template< class... Types >
+ struct tuple_size< cv::cudev::ZipPtr<tuple<Types...> > >
+@@ -198,7 +203,11 @@ template<size_t N, class... Types >
+ struct tuple_element<N, cv::cudev::ZipPtrSz<tuple<Types...> > >
+ : tuple_element<N, tuple<Types...> > { };
+ 
++#if (__CUDACC_VER_MAJOR__ > 13 || (__CUDACC_VER_MAJOR__ == 13 && __CUDACC_VER_MINOR__ >= 2))
++_CCCL_END_NAMESPACE_CUDA_STD
++#else
+ _LIBCUDACXX_END_NAMESPACE_STD
++#endif
+ 
+ #endif
+ #endif
