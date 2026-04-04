@@ -1,6 +1,7 @@
 slotsfx=""
 mayberoot=""
 foundslotsfx="no"
+bootdrive=@@BOOTDRIVE@@
 for bootarg in `cat /proc/cmdline`; do
     case "$bootarg" in
         boot.slot_suffix=*) slotsfx="${bootarg##boot.slot_suffix=}"; foundslotsfx="yes" ;;
@@ -22,7 +23,7 @@ if [ "$foundslotsfx" != "yes" ]; then
     message="Waiting for APP$slotsfx partition..."
     for count in $(seq 1 10); do
         blkid --probe 2>/dev/null
-        rootdev=`blkid -l -t PARTLABEL=APP$slotsfx | cut -d: -f1`
+        rootdev=`blkid -l -t PARTLABEL=APP$slotsfx $bootdrive | cut -d: -f1`
         if [ -n "$rootdev" ]; then
             echo "[OK: $rootdev]"
             break
