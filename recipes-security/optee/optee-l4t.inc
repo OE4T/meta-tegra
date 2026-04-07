@@ -20,6 +20,13 @@ OPTEE_NV_PLATFORM:tegra234 = "t234"
 TA_DEV_KIT_DIR = "${STAGING_INCDIR}/optee/export-user_ta"
 
 TEGRA_OPTEE_TA_SIGN_KEY ?= ""
+OPTEE_ENABLE_FTPM ?= "0"
+
+FTPM_CFG = " \
+    CFG_CORE_TPM_EVENT_LOG=y \
+    CFG_REE_STATE=y \
+    CFG_JETSON_FTPM_HELPER_PTA=y \
+"
 
 # Common to all of the builds
 EXTRA_OEMAKE = "\
