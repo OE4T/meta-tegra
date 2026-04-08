@@ -19,7 +19,6 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
                     file://src/${GO_IMPORT}/vendor/github.com/pmezard/go-difflib/LICENSE;md5=e9a2ebb8de779a07500ddecca806145e \
                     file://src/${GO_IMPORT}/vendor/github.com/sirupsen/logrus/LICENSE;md5=8dadfef729c08ec4e631c4f6fc5d43a0 \
                     file://src/${GO_IMPORT}/vendor/github.com/stretchr/testify/LICENSE;md5=188f01994659f3c0d310612333d2a26f \
-                    file://src/${GO_IMPORT}/vendor/github.com/syndtr/gocapability/LICENSE;md5=a7304f5073e7be4ba7bffabbf9f2bbca \
                     file://src/${GO_IMPORT}/vendor/github.com/NVIDIA/go-nvlib/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57 \
                     file://src/${GO_IMPORT}/vendor/golang.org/x/mod/LICENSE;md5=7998cb338f82d15c0eff93b7004d272a \
                     file://src/${GO_IMPORT}/vendor/golang.org/x/sys/LICENSE;md5=7998cb338f82d15c0eff93b7004d272a \
@@ -28,7 +27,7 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
 "
 
 SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;nobranch=1;destsuffix=${GO_SRCURI_DESTSUFFIX}"
-SRCREV = "f8daa5e26de9fd7eb79259040b6dd5a52060048c"
+SRCREV = "09ceee5dde66ba9ce25c7cc69b1ebd5e6e3266fa"
 
 SRC_URI += "\
     file://0001-Add-support-for-alternate-roots-for-tegra-CSV-handli.patch;patchdir=src/${GO_IMPORT} \

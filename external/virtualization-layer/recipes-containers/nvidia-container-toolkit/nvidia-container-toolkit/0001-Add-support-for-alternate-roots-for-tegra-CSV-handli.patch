@@ -1,6 +1,6 @@
-From 2ca1fb9eea2e0e154bb29682a2029a0e2003d9bd Mon Sep 17 00:00:00 2001
+From 2e442a7609580dd83d755c226e4b3323f5a28715 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Thu, 15 Jan 2026 17:58:16 -0800
+Date: Wed, 8 Apr 2026 11:32:04 -0700
 Subject: [PATCH] Add support for 'alternate' roots for tegra CSV handling
 
 So the host OS can provide one or more trees of libraries that
@@ -11,23 +11,57 @@ Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
+ api/config/v1/runtime.go                    |  3 +-
+ api/config/v1/toml_test.go                  |  2 +
  cmd/nvidia-ctk/cdi/generate/generate.go     |  8 +++
- internal/config/runtime.go                  |  3 +-
- internal/config/toml_test.go                |  1 +
- internal/modifier/csv.go                    |  1 +
- internal/platform-support/tegra/csv.go      | 66 ++++++++++++++++-----
- internal/platform-support/tegra/symlinks.go | 41 +++++++------
- internal/platform-support/tegra/tegra.go    | 24 +++++++-
+ internal/platform-support/tegra/csv.go      | 64 ++++++++++++++++-----
+ internal/platform-support/tegra/options.go  | 13 ++++-
+ internal/platform-support/tegra/symlinks.go | 43 ++++++++------
+ internal/platform-support/tegra/tegra.go    | 11 +++-
  pkg/nvcdi/lib-csv.go                        |  1 +
- pkg/nvcdi/lib.go                            |  1 +
- pkg/nvcdi/options.go                        |  8 +++
- 10 files changed, 118 insertions(+), 36 deletions(-)
+ pkg/nvcdi/lib.go                            |  2 +
+ pkg/nvcdi/options.go                        |  9 +++
+ 10 files changed, 120 insertions(+), 36 deletions(-)
 
+diff --git a/api/config/v1/runtime.go b/api/config/v1/runtime.go
+index 946f75a2..47e8bd4c 100644
+--- a/api/config/v1/runtime.go
++++ b/api/config/v1/runtime.go
+@@ -52,7 +52,8 @@ type jitCDIModeConfig struct {
+ }
+ 
+ type csvModeConfig struct {
+-	MountSpecPath string `toml:"mount-spec-path"`
++	MountSpecPath string   `toml:"mount-spec-path"`
++	AltRoots      []string `toml:"alt-roots"`
+ 	// CompatContainerRoot specifies the compat root used when the the standard
+ 	// CUDA compat libraries should not be used.
+ 	CompatContainerRoot string `toml:"compat-container-root,omitempty"`
+diff --git a/api/config/v1/toml_test.go b/api/config/v1/toml_test.go
+index 1739ae98..562aa805 100644
+--- a/api/config/v1/toml_test.go
++++ b/api/config/v1/toml_test.go
+@@ -73,6 +73,7 @@ default-kind = "nvidia.com/gpu"
+ spec-dirs = ["/etc/cdi", "/var/run/cdi"]
+ 
+ [nvidia-container-runtime.modes.csv]
++alt-roots = []
+ mount-spec-path = "/etc/nvidia-container-runtime/host-files-for-container.d"
+ 
+ [nvidia-container-runtime.modes.legacy]
+@@ -129,6 +130,7 @@ default-kind = "nvidia.com/gpu"
+ spec-dirs = ["/etc/cdi", "/var/run/cdi"]
+ 
+ [nvidia-container-runtime.modes.csv]
++alt-roots = []
+ mount-spec-path = "/etc/nvidia-container-runtime/host-files-for-container.d"
+ 
+ [nvidia-container-runtime.modes.legacy]
 diff --git a/cmd/nvidia-ctk/cdi/generate/generate.go b/cmd/nvidia-ctk/cdi/generate/generate.go
-index 4b5f6c95..631d623f 100644
+index 2fff6eac..89ec5fbf 100644
 --- a/cmd/nvidia-ctk/cdi/generate/generate.go
 +++ b/cmd/nvidia-ctk/cdi/generate/generate.go
-@@ -63,6 +63,7 @@ type options struct {
+@@ -64,6 +64,7 @@ type options struct {
  
  	configSearchPaths  []string
  	librarySearchPaths []string
@@ -35,7 +69,7 @@ index 4b5f6c95..631d623f 100644
  	disabledHooks      []string
  	enabledHooks       []string
  
-@@ -163,6 +164,12 @@ func (m command) build() *cli.Command {
+@@ -167,6 +168,12 @@ func (m command) build() *cli.Command {
  				Destination: &opts.librarySearchPaths,
  				Sources:     cli.EnvVars("NVIDIA_CTK_CDI_GENERATE_LIBRARY_SEARCH_PATHS"),
  			},
@@ -48,68 +82,29 @@ index 4b5f6c95..631d623f 100644
  			&cli.StringFlag{
  				Name:    "nvidia-cdi-hook-path",
  				Aliases: []string{"nvidia-ctk-path"},
-@@ -360,6 +367,7 @@ func (m command) generateSpecs(opts *options) ([]generatedSpecs, error) {
+@@ -391,6 +398,7 @@ func (m command) generateSpecs(opts *options) ([]generatedSpecs, error) {
  		nvcdi.WithMode(opts.mode),
  		nvcdi.WithConfigSearchPaths(opts.configSearchPaths),
  		nvcdi.WithLibrarySearchPaths(opts.librarySearchPaths),
 +		nvcdi.WithAltRoots(opts.altRoots),
  		nvcdi.WithCSVFiles(opts.csv.files),
  		nvcdi.WithCSVIgnorePatterns(opts.csv.ignorePatterns),
- 		nvcdi.WithDisabledHooks(opts.disabledHooks...),
-diff --git a/internal/config/runtime.go b/internal/config/runtime.go
-index 315f23ba..8514598a 100644
---- a/internal/config/runtime.go
-+++ b/internal/config/runtime.go
-@@ -44,7 +44,8 @@ type cdiModeConfig struct {
- }
- 
- type csvModeConfig struct {
--	MountSpecPath string `toml:"mount-spec-path"`
-+	MountSpecPath string   `toml:"mount-spec-path"`
-+	AltRoots      []string `toml:"alt-roots"`
- }
- 
- type legacyModeConfig struct {
-diff --git a/internal/config/toml_test.go b/internal/config/toml_test.go
-index 76a64da8..216b6658 100644
---- a/internal/config/toml_test.go
-+++ b/internal/config/toml_test.go
-@@ -72,6 +72,7 @@ default-kind = "nvidia.com/gpu"
- spec-dirs = ["/etc/cdi", "/var/run/cdi"]
- 
- [nvidia-container-runtime.modes.csv]
-+alt-roots = []
- mount-spec-path = "/etc/nvidia-container-runtime/host-files-for-container.d"
- 
- [nvidia-container-runtime.modes.legacy]
-diff --git a/internal/modifier/csv.go b/internal/modifier/csv.go
-index 1f8a12f8..dddfe036 100644
---- a/internal/modifier/csv.go
-+++ b/internal/modifier/csv.go
-@@ -58,6 +58,7 @@ func NewCSVModifier(logger logger.Interface, cfg *config.Config, container image
- 		nvcdi.WithNVIDIACDIHookPath(cfg.NVIDIACTKConfig.Path),
- 		nvcdi.WithMode(nvcdi.ModeCSV),
- 		nvcdi.WithCSVFiles(csvFiles),
-+		nvcdi.WithAltRoots(cfg.NVIDIAContainerRuntimeConfig.Modes.CSV.AltRoots),
- 	)
- 	if err != nil {
- 		return nil, fmt.Errorf("failed to construct CDI library: %v", err)
+ 		nvcdi.WithCSVCompatContainerRoot(opts.csv.CompatContainerRoot),
 diff --git a/internal/platform-support/tegra/csv.go b/internal/platform-support/tegra/csv.go
-index edb7fdc4..aabeaefb 100644
+index 01b1298f..1a4a3998 100644
 --- a/internal/platform-support/tegra/csv.go
 +++ b/internal/platform-support/tegra/csv.go
-@@ -42,16 +42,50 @@ func (o tegraOptions) newDiscovererFromCSVFiles() (discover.Discover, error) {
+@@ -38,16 +38,50 @@ func (o options) newDiscovererFromMountSpecs(targetsByType MountSpecPathsByType)
  		targetsByType[csv.MountSpecDev],
  	)
  
 -	directories := discover.NewMounts(
 +	var directories []discover.Discover
 +	var libraries []discover.Discover
-+	var symlinks []discover.Discover
++	var symlinkMounts []discover.Discover
 +	var symlinkHooks []discover.Discover
 +
-+	symlinkTargets := o.ignorePatterns.Apply(targetsByType[csv.MountSpecSym]...)
-+	o.logger.Debugf("Filtered symlink targets: %v", symlinkTargets)
++	symlinkTargets := targetsByType[csv.MountSpecSym]
 +
 +	for _, altRoot := range o.altRoots {
 +		directories = append(directories, discover.NewMounts(
@@ -134,13 +129,14 @@ index edb7fdc4..aabeaefb 100644
 +			altRoot,
 +			symlinkTargets,
 +		)
-+		symlinks = append(symlinks, s)
++		symlinkMounts = append(symlinkMounts, s)
 +		symlinkHooks = append(symlinkHooks, o.createCSVSymlinkHooks(symlinkTargets, l, altRoot))
 +	}
++
 +	directories = append(directories, discover.NewMounts(
  		o.logger,
- 		lookup.NewDirectoryLocator(lookup.WithLogger(o.logger), lookup.WithRoot(o.driverRoot)),
- 		o.driverRoot,
+ 		lookup.NewDirectoryLocator(lookup.WithLogger(o.logger), lookup.WithRoot(o.driver.Root)),
+ 		o.driver.Root,
  		targetsByType[csv.MountSpecDir],
 -	)
 +	))
@@ -152,46 +148,76 @@ index edb7fdc4..aabeaefb 100644
  		o.logger,
  		discover.NewMounts(
  			o.logger,
-@@ -64,23 +98,25 @@ func (o tegraOptions) newDiscovererFromCSVFiles() (discover.Discover, error) {
+@@ -58,23 +92,25 @@ func (o options) newDiscovererFromMountSpecs(targetsByType MountSpecPathsByType)
+ 		"",
+ 		o.hookCreator,
  	)
++	libraries = append(libraries, librariesInDriverRoot)
  
  	// We process the explicitly requested symlinks.
--	symlinkTargets := o.ignorePatterns.Apply(targetsByType[csv.MountSpecSym]...)
--	o.logger.Debugf("Filtered symlink targets: %v", symlinkTargets)
 -	symlinks := discover.NewMounts(
-+	libraries = append(libraries, librariesInDriverRoot)
 +	symlinksInDriverRoot := discover.NewMounts(
  		o.logger,
  		o.symlinkLocator,
- 		o.driverRoot,
- 		symlinkTargets,
- 	)
--	createSymlinks := o.createCSVSymlinkHooks(symlinkTargets)
+ 		o.driver.Root,
+-		targetsByType[csv.MountSpecSym],
+-	)
+-	createSymlinks := o.createCSVSymlinkHooks(targetsByType[csv.MountSpecSym])
 -
--	d := discover.Merge(
+-	return discover.Merge(
 -		devices,
 -		directories,
 -		libraries,
 -		symlinks,
 -		createSymlinks,
--	)
-+	symlinks = append(symlinks, symlinksInDriverRoot)
-+	symlinkHooks = append(symlinkHooks, o.createCSVSymlinkHooks(symlinkTargets,
-+		librariesInDriverRoot,
-+		o.driverRoot))
++		symlinkTargets,
+ 	)
++	symlinkMounts = append(symlinkMounts, symlinksInDriverRoot)
++	symlinkHooks = append(symlinkHooks, o.createCSVSymlinkHooks(symlinkTargets, librariesInDriverRoot, o.driver.Root))
 +
 +	var allDiscoverers []discover.Discover
 +	allDiscoverers = append(allDiscoverers, devices)
 +	allDiscoverers = append(allDiscoverers, directories...)
 +	allDiscoverers = append(allDiscoverers, libraries...)
-+	allDiscoverers = append(allDiscoverers, symlinks...)
++	allDiscoverers = append(allDiscoverers, symlinkMounts...)
 +	allDiscoverers = append(allDiscoverers, symlinkHooks...)
-+	d := discover.Merge(allDiscoverers...)
- 
- 	return d, nil
++	return discover.Merge(allDiscoverers...)
  }
+ 
+ // MountSpecsFromCSVFiles returns a MountSpecPathsByTyper for the specified list
+diff --git a/internal/platform-support/tegra/options.go b/internal/platform-support/tegra/options.go
+index e52c74f1..f3136de8 100644
+--- a/internal/platform-support/tegra/options.go
++++ b/internal/platform-support/tegra/options.go
+@@ -28,11 +28,13 @@ type options struct {
+ 	logger             logger.Interface
+ 	driver             *root.Driver
+ 	hookCreator        discover.HookCreator
++	altRoots           []string
+ 	librarySearchPaths []string
+ 
+ 	// The following can be overridden for testing
+-	symlinkLocator      lookup.Locator
+-	symlinkChainLocator lookup.Locator
++	symlinkLocator       lookup.Locator
++	symlinkChainLocator  lookup.Locator
++	symlinkChainLocators map[string]lookup.Locator
+ 	// TODO: This should be replaced by a regular mock
+ 	resolveSymlink func(string) (string, error)
+ 
+@@ -75,3 +77,10 @@ func WithMountSpecs(mountSpecs ...MountSpecPathsByTyper) Option {
+ 		o.mountSpecs = mountSpecPathsByTypers(mountSpecs)
+ 	}
+ }
++
++// WithAltRoots sets alternate roots for file/lib/symlink lookups in the discoverer.
++func WithAltRoots(altRoots []string) Option {
++	return func(o *options) {
++		o.altRoots = altRoots
++	}
++}
 diff --git a/internal/platform-support/tegra/symlinks.go b/internal/platform-support/tegra/symlinks.go
-index 822d482f..f2a42444 100644
+index 272fffc6..5ec5174a 100644
 --- a/internal/platform-support/tegra/symlinks.go
 +++ b/internal/platform-support/tegra/symlinks.go
 @@ -17,8 +17,6 @@
@@ -202,7 +228,7 @@ index 822d482f..f2a42444 100644
 -
  	"github.com/NVIDIA/nvidia-container-toolkit/internal/discover"
  	"github.com/NVIDIA/nvidia-container-toolkit/internal/logger"
- 	"github.com/NVIDIA/nvidia-container-toolkit/internal/lookup"
+ 	"github.com/NVIDIA/nvidia-container-toolkit/pkg/lookup"
 @@ -29,6 +27,7 @@ type symlinkHook struct {
  	logger      logger.Interface
  	hookCreator discover.HookCreator
@@ -215,8 +241,8 @@ index 822d482f..f2a42444 100644
  }
  
  // createCSVSymlinkHooks creates a discoverer for a hook that creates required symlinks in the container
--func (o tegraOptions) createCSVSymlinkHooks(targets []string) discover.Discover {
-+func (o tegraOptions) createCSVSymlinkHooks(targets []string, mounts discover.Discover, root string) discover.Discover {
+-func (o options) createCSVSymlinkHooks(targets []string) discover.Discover {
++func (o options) createCSVSymlinkHooks(targets []string, mounts discover.Discover, root string) discover.Discover {
 +	l := o.symlinkChainLocators[root]
 +	if l == nil {
 +		l = o.symlinkChainLocator
@@ -235,6 +261,15 @@ index 822d482f..f2a42444 100644
  		resolveSymlink:      o.resolveSymlink,
  	}
  }
+@@ -51,7 +59,7 @@ func (d symlinkHook) Hooks() ([]discover.Hook, error) {
+ 	return d.hookCreator.Create("create-symlinks", d.getCSVFileSymlinks()...).Hooks()
+ }
+ 
+-// getSymlinkCandidates returns a list of symlinks that are candidates for being created.
++// getSymlinkCandidates returns a list of symlinks to create in the form "target::link".
+ func (d symlinkHook) getSymlinkCandidates() []string {
+ 	var candidates []string
+ 	for _, target := range d.targets {
 @@ -60,7 +68,15 @@ func (d symlinkHook) getSymlinkCandidates() []string {
  			d.logger.Warningf("Failed to locate symlink %v", target)
  			continue
@@ -268,7 +303,7 @@ index 822d482f..f2a42444 100644
 -		}
 -
 -		link := fmt.Sprintf("%v::%v", target, candidate)
-+	// candidates is a list of symlinks to create
++	// candidates is a list of symlinks to create in the form "target::link"
 +	for _, link := range d.getSymlinkCandidates() {
  		if created[link] {
  			d.logger.Debugf("skipping duplicate link: %v", link)
@@ -279,27 +314,10 @@ index 822d482f..f2a42444 100644
  
  		links = append(links, link)
 diff --git a/internal/platform-support/tegra/tegra.go b/internal/platform-support/tegra/tegra.go
-index 6ad774b4..3249e0b1 100644
+index 375b6280..b3459ec3 100644
 --- a/internal/platform-support/tegra/tegra.go
 +++ b/internal/platform-support/tegra/tegra.go
-@@ -32,12 +32,14 @@ type tegraOptions struct {
- 	devRoot            string
- 	hookCreator        discover.HookCreator
- 	ldconfigPath       string
-+	altRoots           []string
- 	librarySearchPaths []string
- 	ignorePatterns     ignoreMountSpecPatterns
- 
- 	// The following can be overridden for testing
--	symlinkLocator      lookup.Locator
--	symlinkChainLocator lookup.Locator
-+	symlinkLocator       lookup.Locator
-+	symlinkChainLocator  lookup.Locator
-+	symlinkChainLocators map[string]lookup.Locator
- 	// TODO: This should be replaced by a regular mock
- 	resolveSymlink func(string) (string, error)
- }
-@@ -64,11 +66,20 @@ func New(opts ...Option) (discover.Discover, error) {
+@@ -46,11 +46,20 @@ func New(opts ...Option) (discover.Discover, error) {
  		)
  	}
  
@@ -312,69 +330,74 @@ index 6ad774b4..3249e0b1 100644
 +				lookup.WithRoot(altRoot),
 +			)
 +		}
-+		o.symlinkChainLocators[o.driverRoot] = lookup.NewSymlinkChainLocator(
++		o.symlinkChainLocators[o.driver.Root] = lookup.NewSymlinkChainLocator(
  			lookup.WithLogger(o.logger),
- 			lookup.WithRoot(o.driverRoot),
+ 			lookup.WithRoot(o.driver.Root),
  		)
 +	} else {
-+		o.symlinkChainLocators[o.driverRoot] = o.symlinkChainLocator
++		o.symlinkChainLocators[o.driver.Root] = o.symlinkChainLocator
  	}
  
  	if o.resolveSymlink == nil {
-@@ -126,6 +137,13 @@ func WithDevRoot(devRoot string) Option {
- 	}
- }
- 
-+// WithAltRoots sets alternate roots for file/lib/symlink lookups in the discoverer.
-+func WithAltRoots(altRoots []string) Option {
-+	return func(o *tegraOptions) {
-+		o.altRoots = altRoots
-+	}
-+}
-+
- // WithCSVFiles sets the CSV files for the discoverer.
- func WithCSVFiles(csvFiles []string) Option {
- 	return func(o *tegraOptions) {
 diff --git a/pkg/nvcdi/lib-csv.go b/pkg/nvcdi/lib-csv.go
-index 6380d79d..a5191186 100644
+index 603fd46b..c7eae904 100644
 --- a/pkg/nvcdi/lib-csv.go
 +++ b/pkg/nvcdi/lib-csv.go
-@@ -52,6 +52,7 @@ func (l *csvlib) GetDeviceSpecs() ([]specs.Device, error) {
- 		tegra.WithDevRoot(l.devRoot),
+@@ -414,6 +414,7 @@ func (l *csvlib) driverDiscoverer() (discover.Discover, error) {
+ 		tegra.WithDriver(l.driver),
  		tegra.WithHookCreator(l.hookCreator),
- 		tegra.WithLdconfigPath(l.ldconfigPath),
-+		tegra.WithAltRoots(l.altRoots),
- 		tegra.WithCSVFiles(l.csvFiles),
  		tegra.WithLibrarySearchPaths(l.librarySearchPaths...),
- 		tegra.WithIngorePatterns(l.csvIgnorePatterns...),
++		tegra.WithAltRoots(l.altRoots),
+ 		tegra.WithMountSpecs(mountSpecs),
+ 	)
+ 	if err != nil {
 diff --git a/pkg/nvcdi/lib.go b/pkg/nvcdi/lib.go
-index 4369a721..fa568204 100644
+index fa84e19c..69bc38df 100644
 --- a/pkg/nvcdi/lib.go
 +++ b/pkg/nvcdi/lib.go
-@@ -43,6 +43,7 @@ type nvcdilib struct {
+@@ -35,6 +35,7 @@ type nvcdilib struct {
+ 	deviceNamers DeviceNamers
+ 	// TODO: We should use the devRoot associated with the driver.
+ 	devRoot            string
++	altRoots           []string
+ 	librarySearchPaths []string
+ 
+ 	csv csvOptions
+@@ -58,6 +59,7 @@ func New(opts ...Option) (Interface, error) {
+ 			o.getDriverOptions()...,
+ 		),
+ 		devRoot:      o.devRoot,
++		altRoots:     o.altRoots,
+ 		deviceNamers: o.deviceNamers,
+ 
+ 		librarySearchPaths: slices.Clone(o.librarySearchPaths),
+diff --git a/pkg/nvcdi/options.go b/pkg/nvcdi/options.go
+index a5e2b1c4..bbd87394 100644
+--- a/pkg/nvcdi/options.go
++++ b/pkg/nvcdi/options.go
+@@ -40,6 +40,7 @@ type options struct {
  	nvidiaCDIHookPath  string
  	ldconfigPath       string
  	configSearchPaths  []string
 +	altRoots           []string
  	librarySearchPaths []string
  
- 	csvFiles          []string
-diff --git a/pkg/nvcdi/options.go b/pkg/nvcdi/options.go
-index 550b18ba..b0401eea 100644
---- a/pkg/nvcdi/options.go
-+++ b/pkg/nvcdi/options.go
-@@ -203,3 +203,11 @@ func WithDisabledHook[T string | HookName](hook T) Option {
- func WithFeatureFlag[T string | FeatureFlag](featureFlag T) Option {
- 	return WithFeatureFlags(featureFlag)
+ 	csv csvOptions
+@@ -308,6 +309,14 @@ func WithLibrarySearchPaths(paths []string) Option {
+ 	}
  }
-+
+ 
 +// WithAltRoots sets the alternate pass-through roots.
 +// This is currently only used for CSV-mode.
 +func WithAltRoots(altRoots []string) Option {
-+	return func(o *nvcdilib) {
++	return func(o *options) {
 +		o.altRoots = altRoots
 +	}
 +}
++
+ // WithDisabledHooks allows specific hooks to be disabled.
+ func WithDisabledHooks[T string | HookName](hooks ...T) Option {
+ 	return func(o *options) {
 -- 
-2.34.1
+2.43.0
 
