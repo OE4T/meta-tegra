@@ -7,7 +7,9 @@ kernel subsystems and is designed to be agnostic of the container runtime. \
 "
 HOMEPAGE = "https://github.com/NVIDIA/libnvidia-container"
 
-inherit go
+inherit go features_check
+
+REQUIRED_DISTRO_FEATURES = "virtualization"
 
 DEPENDS = " \
     coreutils-native \
@@ -44,11 +46,13 @@ SRC_URI = "git://github.com/NVIDIA/libnvidia-container.git;protocol=https;name=l
            file://0001-OE-cross-build-fixups.patch \
 "
 
-# tag: v1.18.0
-SRCREV_libnvidia = "889a3bb5408c195ed7897ba2cb8341c7d249672f"
+# tag: v1.19.1
+SRCREV_libnvidia = "7585946c6471402577e14474d7c56ca5be0348d7"
 # Nvidia modprobe version 550.54.14
 SRCREV_modprobe = "149440ca0654d928f27df5ebff485a122bfe43b1"
 SRCREV_FORMAT = "libnvidia_modprobe"
+
+GO_IMPORT = "github.com/NVIDIA/libnvidia-container"
 
 B = "${S}"
 

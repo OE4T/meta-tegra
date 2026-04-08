@@ -1,6 +1,6 @@
-From 839c45145baf7f19ba2b8a7e03515d0eb85ff8d9 Mon Sep 17 00:00:00 2001
+From 72c8800ef851ac81e5026595eba94662bbf55d64 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Thu, 15 Jan 2026 17:38:05 -0800
+Date: Wed, 8 Apr 2026 11:14:43 -0700
 Subject: [PATCH] OE cross-build fixups
 
 Upstream-Status: Inappropriate [OE-specific]
@@ -162,18 +162,18 @@ index 1633e0c4..27bc18f4 100644
  ##### Public rules #####
  
 diff --git a/src/nvcgo/Makefile b/src/nvcgo/Makefile
-index 7276e29b..3083a9a0 100644
+index d2e36673..4eed3080 100644
 --- a/src/nvcgo/Makefile
 +++ b/src/nvcgo/Makefile
 @@ -39,7 +39,7 @@ build: $(OBJ_NAME)
  $(OBJ_NAME): $(wildcard $(CURDIR)/*.go) $(wildcard */*.go)
  	export CGO_CFLAGS="$(CGO_CFLAGS)"; \
  	export CGO_LDFLAGS="$(CGO_LDFLAGS)"; \
--	$(GO) build -o $(@) -ldflags "-s -w" -buildmode=c-shared .
-+	$(GO) build -o $(@) -trimpath -ldflags "-s -w" -buildmode=c-shared .
+-	$(GO) build -buildvcs=false -o $(@) -ldflags "-s -w" -buildmode=c-shared .
++	$(GO) build -buildvcs=false -o $(@) -trimpath -ldflags "-s -w" -buildmode=c-shared .
  
  install: $(OBJ_NAME)
  	$(INSTALL) -d -m 755 $(addprefix $(DESTDIR),$(libdir) $(includedir)/$(PKG_NAME))
 -- 
-2.34.1
+2.43.0
 
