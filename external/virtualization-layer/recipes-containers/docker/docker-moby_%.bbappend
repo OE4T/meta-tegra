@@ -20,6 +20,7 @@ RRECOMMENDS:${PN}:append:tegra = " \
     kernel-module-xt-addrtype \
     kernel-module-xt-conntrack \
     kernel-module-xt-redirect \
+    kernel-module-iptable-raw \
 "
 
 PACKAGE_ARCH:tegra = "${TEGRA_PKGARCH}"
