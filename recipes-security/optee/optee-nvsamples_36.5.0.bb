@@ -57,6 +57,14 @@ FILES:${PN}-hwkey-agent = "${nonarch_base_libdir}/optee_armtz/82154947-c1bc-4bdf
 FILES:${PN}-luks-srv = "${sbindir}/nvluks-srv-app"
 FILES:${PN}-ftpm-helper = "${sbindir}/nvftpm-helper-app"
 ALLOW_EMPTY:${PN} = "1"
-RDEPENDS:${PN} = "${PN}-luks-srv ${PN}-hwkey-agent ${@d.getVar('PN') + '-ftpm-helper' if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''}"
+RDEPENDS:${PN} = " \
+    ${PN}-luks-srv \
+    ${PN}-hwkey-agent \
+    ${@ \
+        d.getVar('PN') + '-ftpm-helper' \
+        + ' kernel-module-tpm-ftpm-tee' \
+    if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''} \
+"
+RRECOMMENDS:${PN} = " ${@ 'tegra-configs-udev' if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''}"
 INHIBIT_SYSROOT_STRIP = "1"
 INSANE_SKIP:${PN} = "already-stripped"

@@ -6,6 +6,7 @@ DESC="OP-TEE Supplicant"
 
 DAEMON=@sbindir@/$NAME
 OPTARGS=
+FTPM_ENABLED="@OPTEE_ENABLE_FTPM@"
 
 test -f $DAEMON || exit 0
 
@@ -21,8 +22,16 @@ case $1 in
 	    echo -n "Starting $DESC: "
 	    start-stop-daemon --start $SSD_OPTIONS
         echo "${DAEMON##*/}."
+        if [ "${FTPM_ENABLED}" = "1" ]; then
+            echo "Loading tpm_ftpm_tee"
+            modprobe -v --ignore-install tpm_ftpm_tee
+        fi
         ;;
     stop)
+        if [ "${FTPM_ENABLED}" = "1" ]; then
+            echo "Unloading tpm_ftpm_tee"
+            modprobe -v -r tpm_ftpm_tee
+        fi
 	    echo -n "Stopping $DESC: "
 	    start-stop-daemon --stop $SSD_OPTIONS
         echo "${DAEMON##*/}."
