@@ -1,0 +1,34 @@
+From ff4a8d16d9fe4ef5f40dd585a25072143f4ef033 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 13 Apr 2026 16:13:27 +0800
+Subject: [PATCH] Fix building issue caused by upgrading to GStreamer 1.28
+
+GStreamer 1.28 added gstvideodmabufpool.h to the video.h header.
+This new header requires GstVideoBufferPool to be defined, which
+triggers a circular include failure when gstvideopool.h is included
+directly. So, use the header gst/video/video.h instead to ensure
+correct include ordering.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ gst-egl/ext/eglgles/gstegladaptation.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/gst-egl/ext/eglgles/gstegladaptation.h b/gst-egl/ext/eglgles/gstegladaptation.h
+index b307b6f..2c59e26 100644
+--- a/gst-egl/ext/eglgles/gstegladaptation.h
++++ b/gst-egl/ext/eglgles/gstegladaptation.h
+@@ -33,7 +33,7 @@
+ #endif
+ 
+ #include <gst/gst.h>
+-#include <gst/video/gstvideopool.h>
++#include <gst/video/video.h>
+ 
+ #if defined (USE_EGL_RPI) && defined(__GNUC__)
+ #ifndef __VCCOREVER__
+-- 
+2.34.1
+
