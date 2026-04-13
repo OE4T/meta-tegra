@@ -1,0 +1,14 @@
+[Unit]
+Description=Load fTPM Module
+After=tee-supplicant.service
+BindsTo=tee-supplicant.service
+ConditionPathExists=/dev/teepriv0
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=modprobe --ignore-install tpm_ftpm_tee
+ExecStop=modprobe -r tpm_ftpm_tee
+
+[Install]
+WantedBy=tee-supplicant.service
