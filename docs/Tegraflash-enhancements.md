@@ -1,3 +1,10 @@
+# Update: 21 Apr 2026
+
+In the `master` branch:
+* The image type for tegraflash packages has been changed from `tegraflash.tar` to `tegraflash-tar`.
+* The default for `IMAGE_FSTYPES` has been changed from `tegraflash.tar.zst` to `tegraflash-tar.zst`.
+Both to fix `.tar` suffix parsing with latest oe-core: https://github.com/OE4T/meta-tegra/issues/2191
+
 # Update: 10 Feb 2025
 
 In the `master` branch:
