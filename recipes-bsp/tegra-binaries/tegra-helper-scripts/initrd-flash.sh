@@ -542,9 +542,18 @@ get_final_status_t234() {
 # ===========================================================================
 
 get_board_info_t264() {
-    if ! "$here/$FLASH_HELPER" $instance_args --get-board-info 2>&1 >>"$logfile"; then
-        echo "ERR: could not retrieve board information" >&2
-        exit 1
+    if [ ! -e ./boardvars.sh ]; then
+        if ! "$here/$FLASH_HELPER" $instance_args --get-board-info -u "$keyfile" -v "$sbk_keyfile" 2>&1 >>"$logfile"; then
+            echo "ERR: could not retrieve board information" >&2
+            exit 1
+        fi
+    fi
+    if ! grep -q '^BOOTSEC_MODE=' boardvars.sh; then
+        if [ -n "$sbk_keyfile" ]; then
+            echo 'BOOTSEC_MODE="PKCSBK"' >> boardvars.sh
+        elif [ -n "$keyfile" ]; then
+            echo 'BOOTSEC_MODE="PKC"' >> boardvars.sh
+        fi
     fi
     . ./boardvars.sh
     if echo "$CHIP_SKU" | grep -q ":" 2>/dev/null; then
@@ -570,10 +579,10 @@ prepare_binaries_t264() {
             fi
             cp secureflash.xml internal-secureflash.xml
             mv flash.idx internal-flash.idx
-        fi
-        mkdir -p tools/kernel_flash/images/internal
-        if ! stage_files_for_uniflash tools/kernel_flash/images/internal internal-flash.idx internal-secureflash.xml; then
-            return 1
+            mkdir -p tools/kernel_flash/images/internal
+            if ! stage_files_for_uniflash tools/kernel_flash/images/internal internal-flash.idx internal-secureflash.xml; then
+                return 1
+            fi
         fi
         return 0
     elif [ "$target" = "external" ]; then
@@ -584,10 +593,10 @@ prepare_binaries_t264() {
             fi
             mv secureflash.xml external-secureflash.xml
             mv flash.idx external-flash.idx
-        fi
-        mkdir -p tools/kernel_flash/images/external
-        if ! stage_files_for_uniflash tools/kernel_flash/images/external external-flash.idx external-secureflash.xml; then
-            return 1
+            mkdir -p tools/kernel_flash/images/external
+            if ! stage_files_for_uniflash tools/kernel_flash/images/external external-flash.idx external-secureflash.xml; then
+                return 1
+            fi
         fi
         return 0
     elif [ "$target" = "rcm-boot" ]; then
@@ -763,7 +772,9 @@ elif [ "$CHIPID" = "0x26" ]; then
     # ===================================================================
     get_board_info_t264
 
-    rm -rf tools/kernel_flash/images
+    if [ -z "$PRESIGNED" ]; then
+        rm -rf tools/kernel_flash/images
+    fi
 
     if [ $skip_bootloader -eq 0 ] ; then
         step_banner "Preparing contents for QSPI boot flash"
@@ -794,6 +805,9 @@ elif [ "$CHIPID" = "0x26" ]; then
         convargs="$convargs --external-device $ROOTFS_DEVICE external-secureflash.xml"
     fi
     if [ -n "$BOOTSEC_MODE" ]; then
+        if [ "$BOOTSEC_MODE" = "SBKPKC" ]; then
+            BOOTSEC_MODE="PKCSBK"
+        fi
         convargs="$convargs --security-mode $BOOTSEC_MODE"
     fi
     rm -rf out

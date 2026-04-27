@@ -43,6 +43,29 @@ get_value_from_PT_table() {
     eval "$varname=\"$value\""
 }
 
+get_active_key() {
+    local keylist_xml="$1"
+    local varname="$2"
+    local idx active_key
+
+    if ! command -v xmllint >/dev/null 2>&1; then
+        echo "ERR: xmllint not found; install libxml2-utils" >&2
+        return 1
+    fi
+
+    idx=$(xmllint --xpath 'string(//bct/@active_index)' "$keylist_xml" 2>/dev/null | tr -d '\n\r')
+    if [ -z "$idx" ]; then
+        echo "ERR: could not read active_index from $keylist_xml" >&2
+        return 1
+    fi
+    active_key=$(xmllint --xpath "string(//entry[@key_id=\"$idx\"]/@key)" "$keylist_xml" 2>/dev/null | tr -d '\n\r')
+    if [ -z "$active_key" ]; then
+        echo "ERR: no active key found in $keylist_xml" >&2
+        return 1
+    fi
+    eval "$varname=\"\$active_key\""
+}
+
 ARGS=$(getopt -n $(basename "$0") -l "bup,bup-type:,hsm,no-flash,sign,spi-only,qspi-only,boot-only,external-device,rcm-boot,datafile:,usb-instance:,uefi-enc:,erase-spi,get-board-info" -o "u:v:B:c:" -- "$@")
 if [ $? -ne 0 ]; then
     echo "Error parsing options" >&2
@@ -167,7 +190,7 @@ if [ -n "$ODMDATA" ]; then
     odmdata_arg="--odmdata $ODMDATA"
 fi
 
-if [ $external_device -eq 0 -a "$CHPID" != "0x26" ]; then
+if [ $external_device -eq 0 -a "$CHIPID" != "0x26" ]; then
     also_sign_rcmboot=1
 else
     also_sign_rcmboot=0
@@ -302,6 +325,12 @@ if [ -z "$CHIPREV" ]; then
     BOOTSEC_MODE="$bootauth"
 elif [ "$CHIPID" = "0x23" ]; then
     skipuid="--skipuid"
+elif [ "$CHIPID" = "0x26" ]; then
+    if [ -n "$sbk_keyfile" ]; then
+        BOOTSEC_MODE="SBKPKC"
+    elif [ -n "$keyfile" ]; then
+        BOOTSEC_MODE="PKC"
+    fi
 fi
 
 if [ -n "$hsm_arg" -a -z "$keyfile" ]; then
@@ -309,8 +338,16 @@ if [ -n "$hsm_arg" -a -z "$keyfile" ]; then
     exit 1
 fi
 
+if [ "${CHIPID}" = "0x26" ]; then
+    if [ -n "$keyfile" ]; then
+        keylistfile="$keyfile"
+        get_active_key "$keylistfile" keyfile
+    fi
+fi
+
 keyargs=
 [ -z "$keyfile" ] || keyargs="$keyargs $hsm_arg --key $keyfile"
+[ -z "$keylistfile" ] || keyargs="$keyargs $hsm_arg --key_list $keylistfile"
 [ -z "$sbk_keyfile" ] || keyargs="$keyargs --encrypt_key $sbk_keyfile"
 
 if [ $bup_blob -eq -0 -a ! -d rcmdump_blob ]; then
@@ -875,12 +912,12 @@ if [ $want_signing -eq 1 ]; then
           --bct_backup \
           --boot_chain A \
           --no_pva 0 \
-          $odmdata_arg $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
+          $odmdata_arg $keyargs $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
     fi
     FBARGS="--cmd \"$tfcmd\""
     . "$here/odmsign.func"
     (odmsign_ext) || exit 1
-    if [ $also_sign_rcmboot -ne 0 ]; then
+    if [ $also_sign_rcmboot -ne 0 ] || [ "$CHIPID" = "0x26" -a $rcm_boot -ne 0 ]; then
         outfolder="$(odmsign_get_folder)"
         rm -rf ${outfolder}_save
         mv ${outfolder} ${outfolder}_save
@@ -899,6 +936,19 @@ if [ $want_signing -eq 1 ]; then
 --bct_backup \
 --boot_chain A \
 $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
+        elif [ "$CHIPID" = "0x26" ]; then
+            flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl ${RCM_UEFI_IMAGE}_with_dtb.bin \
+--applet mb1_t264.bin \
+--cmd \"$tfcmd\" $skipuid \
+--rcmboot_pt_layout flash.xml \
+--bct_backup \
+--boot_chain A \
+--no_pva 0 \
+$odmdata_arg $bctargs --cpubl ${RCM_UEFI_IMAGE}.bin $keyargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
+--bins \"$binsargs_params\""
+            echo "$flashcmd --no_flash"
+            eval $flashcmd --no_flash < /dev/null || exit 1
+            exit 0
         fi
         (rcm_boot=1 odmsign_ext) || exit 1
         rm -f flashcmd.txt
@@ -932,7 +982,7 @@ $odmdata_arg $bctargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $
 --bct_backup \
 --boot_chain A \
 --no_pva 0 \
-$odmdata_arg $bctargs --cpubl ${RCM_UEFI_IMAGE}.bin $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
+$odmdata_arg $keyargs $bctargs --cpubl ${RCM_UEFI_IMAGE}.bin $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --bins \"$binsargs_params\""
         else
             flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl ${UEFI_IMAGE}_with_dtb.bin \
@@ -942,7 +992,7 @@ $odmdata_arg $bctargs --cpubl ${RCM_UEFI_IMAGE}.bin $rcm_overlay_dtb_arg $custin
 --bct_backup \
 --boot_chain A \
 --no_pva 0 \
-$bctargs --cpubl ${UEFI_IMAGE}.bin $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
+$bctargs --cpubl ${UEFI_IMAGE}.bin $keyargs $overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs \
 --bins \"$binsargs_params\""
         fi
     fi

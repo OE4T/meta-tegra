@@ -172,6 +172,62 @@ ${@'\n'.join(d.getVar("TEGRA_SIGNING_ENV").split())}
 EOF
 }
 
+update_flash_cfg_for_partition() {
+    local flash_idx_partname="$1"
+    local storageline="$2"
+    local dest="$3"
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
+    eval "$storageline"
+    if [ "$partname" = "$flash_idx_partname" -a -n "$partfile" ]; then
+        cp "$partfile" "$dest/"
+        echo "${partname}_ext=$partfile" >> "$dest/flash.cfg"
+        echo "INFO: staged $dest/$partfile for partition $partname"
+    fi
+}
+
+stage_files_for_uniflash() {
+    local dest="$1"
+    local flash_idx="$2"
+    local layout_xml="$3"
+    local partnumber partloc partname start_location partsize partfile partattrs partsha
+    local which devnum instnum pline
+    local partitions_file=""
+    which=$(basename "$dest")
+    if [ -n "$layout_xml" ]; then
+        partitions_file=$(mktemp)
+        if ! "./nvflashxmlparse" -t rootfs "$layout_xml" > "$partitions_file"; then
+            rm -f "$partitions_file"
+            return 1
+        fi
+    fi
+    while IFS=", " read partnumber partloc start_location partsize partfile partattrs partsha; do
+        devnum=$(echo "$partloc" | cut -d':' -f 1)
+        instnum=$(echo "$partloc" | cut -d':' -f 2)
+        partname=$(echo "$partloc" | cut -d':' -f 3)
+        if [ -n "$partfile" ]; then
+            if ! cp "$partfile" "$dest/"; then
+                [ -n "$partitions_file" ] && rm -f "$partitions_file"
+                return 1
+            fi
+        elif [ -n "$partitions_file" ]; then
+            while IFS= read -r pline; do
+                update_flash_cfg_for_partition "$partname" "$pline" "$dest"
+            done < "$partitions_file"
+        fi
+    done < "$flash_idx"
+    [ -n "$partitions_file" ] && rm -f "$partitions_file"
+    cp "$flash_idx" "$dest/flash.idx" || return 1
+    if [ "$which" = "internal" -a -e flash-upi.idx ]; then
+        while IFS=", " read partnumber partloc start_location partsize partfile partattrs partsha; do
+            if [ -n "$partfile" ]; then
+                cp "$partfile" "$dest/" || return 1
+            fi
+        done < flash-upi.idx
+        cp flash-upi.idx "$dest/" || return 1
+    fi
+    return 0
+}
+
 # Override these functions to run a custom code signing
 # step, such as packaging the flash/BUP contents and
 # sending them to a remote code signing server.
@@ -192,6 +248,10 @@ tegraflash_custom_sign_pkg:tegra264() {
     ${TEGRA_SIGNING_ENV} MACHINE=${TNSPEC_MACHINE} ./tegra264-flash-helper.sh --sign --no-flash ${TEGRA_SIGNING_ARGS} flash.xml.in ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     mv secureflash.xml internal-secureflash.xml
     mv flash.idx internal-flash.idx
+    mkdir -p tools/kernel_flash/images/internal
+    if ! stage_files_for_uniflash tools/kernel_flash/images/internal internal-flash.idx internal-secureflash.xml; then
+        return 1
+    fi
     # Note that with recent hardware and BSP versions, all signed
     # firmware is confined to the internal QSPI flash. (A different
     # process is used for signing binaries loaded by the UEFI
@@ -202,6 +262,10 @@ tegraflash_custom_sign_pkg:tegra264() {
         ${TEGRA_SIGNING_ENV} MACHINE=${TNSPEC_MACHINE} ./tegra264-flash-helper.sh --sign --no-flash --external-device ${TEGRA_SIGNING_ARGS} external-flash.xml.in ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
 	mv secureflash.xml external-secureflash.xml
 	mv flash.idx external-flash.idx
+    fi
+    mkdir -p tools/kernel_flash/images/external
+    if ! stage_files_for_uniflash tools/kernel_flash/images/external external-flash.idx external-secureflash.xml; then
+        return 1
     fi
     if [ -e rcmboot-flash.xml.in -a -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         ${TEGRA_SIGNING_ENV} MACHINE=${TNSPEC_MACHINE} ./tegra264-flash-helper.sh --no-flash --rcm-boot ${TEGRA_SIGNING_ARGS} rcmboot-flash.xml.in initrd-flash.img ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
@@ -495,6 +559,15 @@ EXTERNAL_ROOTFS_DRIVE=${TEGRAFLASH_ROOTFS_EXTERNAL}
 NO_INTERNAL_STORAGE=${TEGRAFLASH_NO_INTERNAL_STORAGE}
 END
     fi
+    cat >boardvars.sh <<EOF
+BOARDID="${TEGRA_BOARDID}"
+FAB="${TEGRA_FAB}"
+BOARDSKU="${TEGRA_BOARDSKU}"
+BOARDREV="${TEGRA_BOARDREV}"
+CHIPREV="${TEGRA_CHIPREV}"
+CHIP_SKU="${TEGRA_FLASHVAR_CHIP_SKU}"
+RAMCODE="${TEGRA_FLASHVAR_RAMCODE}"
+EOF
     tegraflash_custom_post
     tegraflash_custom_sign_pkg
     tegraflash_finalize_pkg
