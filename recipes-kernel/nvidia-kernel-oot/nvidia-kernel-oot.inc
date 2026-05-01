@@ -18,6 +18,7 @@ COMMON_PATCHES = "\
     file://0002-bluetooth-fix-build-issues-with-Linux-v6.18.patch;patchdir=nvidia-oot \
     file://0003-Fix-unifiedgpudisp-modules-builds.patch;patchdir=unifiedgpudisp \
     file://0004-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch;patchdir=unifiedgpudisp \
+    file://0005-nvdisplay-nvidia-drm-trigger-connector-detect-on-hot.patch;patchdir=nvdisplay \
 "
 
 EXTRA_PATCHES ??= ""
