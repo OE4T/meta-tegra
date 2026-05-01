@@ -1,0 +1,53 @@
+From 8a05bc1f5a776e7f6b36eb4fc57f14231482bdd7 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Tue, 28 Apr 2026 08:53:24 -0700
+Subject: [PATCH] nvdisplay: nvidia-drm: trigger connector detect on
+ hotplug events
+
+When a DisplayPort sink is hotplugged after boot, the connector status
+reported in /sys/class/drm/card0-DP-1/status remains "disconnected"
+even though the kernel observes the HPD edge and emits a HOTPLUG=1
+uevent. Userspace must run `echo detect > status` to refresh the
+connector before a modeset succeeds.
+
+The hotplug work handler nv_drm_handle_hotplug_event() was calling
+drm_kms_helper_hotplug_event(), which only sends a uevent and invokes
+the output_poll_changed callback. It never calls connector->detect().
+Because the connector status is therefore never refreshed, DRM core
+keeps reporting the cached "disconnected" state.
+
+Call drm_helper_hpd_irq_event() instead. That helper iterates all
+DRM_CONNECTOR_POLL_HPD-flagged connectors, runs connector->detect() on
+each, updates the recorded status, and only sends the uevent if the
+status actually changed. This is the correct entry point for an
+HPD-edge notification and produces a fresh status read for userspace
+without requiring a manual detect.
+
+Upstream-Status: Submitted [https://github.com/NVIDIA/open-gpu-kernel-modules/pull/1127]
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ kernel-open/nvidia-drm/nvidia-drm-drv.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-drv.c b/kernel-open/nvidia-drm/nvidia-drm-drv.c
+index 214aeb34..b25dd3e5 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-drv.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-drv.c
+@@ -670,7 +670,12 @@ static void nv_drm_handle_hotplug_event(struct work_struct *work)
+     struct nv_drm_device *nv_dev =
+         container_of(dwork, struct nv_drm_device, hotplug_event_work);
+ 
+-    drm_kms_helper_hotplug_event(nv_dev->dev);
++    /*
++     * Use drm_helper_hpd_irq_event() so connector->detect() is run and
++     * connector status is refreshed; drm_kms_helper_hotplug_event() only
++     * sends a uevent without updating status.
++     */
++    drm_helper_hpd_irq_event(nv_dev->dev);
+ }
+ 
+ static int nv_drm_load(struct drm_device *dev, unsigned long flags)
+-- 
+2.34.1
+

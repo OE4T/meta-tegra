@@ -1,0 +1,49 @@
+From 4d8d5c29c694f4056323340231ec4f286ff4d4b0 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Tue, 28 Apr 2026 10:16:43 -0700
+Subject: [PATCH] nvdisplay: nvidia-drm: update legacy modeset state on
+ atomic commit
+
+Backport from NVIDIA open-gpu-kernel-modules release 580.82.07.
+
+Without this call, /sys/class/drm/<card connector>/enabled reports
+"disabled" after a successful atomic modeset because connector->encoder
+remains NULL. nv_drm_atomic_commit() calls drm_atomic_helper_swap_state()
+but not drm_atomic_helper_update_legacy_modeset_state(), so the legacy
+connector and encoder fields that DRM core and sysfs still read are
+never refreshed.
+
+Add drm_atomic_helper_update_legacy_modeset_state() right after
+drm_atomic_helper_swap_state(), matching the change and comment wording
+in the NVIDIA open driver. Drivers using drm_atomic_helper_commit() get
+this for free, but here we must call it explicitly.
+
+Upstream-Status: Backport [https://github.com/NVIDIA/open-gpu-kernel-modules commit 6387af30, release 580.82.07]
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+---
+ kernel-open/nvidia-drm/nvidia-drm-modeset.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-modeset.c b/kernel-open/nvidia-drm/nvidia-drm-modeset.c
+index 68c948e5..9ff0ce92 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-modeset.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-modeset.c
+@@ -601,6 +601,14 @@ int nv_drm_atomic_commit(struct drm_device *dev,
+     drm_atomic_helper_swap_state(dev, state);
+ #endif
+ 
++    /*
++     * Used to update legacy modeset state pointers to support UAPIs not updated
++     * by the core atomic modeset infrastructure.
++     *
++     * Example: /sys/class/drm/<card connector>/enabled
++     */
++    drm_atomic_helper_update_legacy_modeset_state(dev, state);
++
+     /*
+      * nv_drm_atomic_commit_internal() must not return failure after
+      * calling drm_atomic_helper_swap_state().
+-- 
+2.34.1
+

@@ -78,6 +78,8 @@ COMMON_PATCHES = "\
     file://0062-gpu-nvgpu-correct-parameter-of-macro-MODULE_IMPORT_N.patch;patchdir=nvgpu \
     file://0063-nvgpu-timer-replace-hrtimer_init-with-hrtimer_setup.patch;patchdir=nvgpu \
     file://0064-nvdisplay-nvidia-drm-support-fbdev-on-Linux-6.11-ker.patch;patchdir=nvdisplay \
+    file://0065-nvdisplay-nvidia-drm-trigger-connector-detect-on-hot.patch;patchdir=nvdisplay \
+    file://0066-nvdisplay-nvidia-drm-update-legacy-modeset-state-on-.patch;patchdir=nvdisplay \
 "
 EXTRA_PATCHES ??= ""
 
