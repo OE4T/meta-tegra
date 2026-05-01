@@ -20,6 +20,6 @@ RDEPENDS:${PN} += " \
 "
 
 python () {
-    if 'meta-python' in d.getVar('BBFILE_COLLECTIONS').split():
-        raise bb.parse.SkipRecipe("meta-python layer present, recipe not required")
+    if 'openembedded-layer' in d.getVar('BBFILE_COLLECTIONS').split():
+        raise bb.parse.SkipRecipe("meta-oe layer present, recipe not required")
 }

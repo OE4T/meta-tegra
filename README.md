@@ -12,9 +12,9 @@ Boards supported:
 * Jetson AGX Orin Industrial 64GB (P3701-0008) in Orin AGX (P3737) carrier
 
 This layer depends on:
-URI: git://git.openembedded.org/openembedded-core
+URI: https://git.openembedded.org/openembedded-core
 branch: master
-LAYERSERIES_COMPAT: whinlatter
+LAYERSERIES_COMPAT: wrynose
 
 
 CUDA toolchain compatibility note
