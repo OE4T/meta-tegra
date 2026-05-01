@@ -77,6 +77,7 @@ COMMON_PATCHES = "\
     file://0061-tegra-hwpm-Fix-build-for-Linux-v6.13.patch;patchdir=hwpm \
     file://0062-gpu-nvgpu-correct-parameter-of-macro-MODULE_IMPORT_N.patch;patchdir=nvgpu \
     file://0063-nvgpu-timer-replace-hrtimer_init-with-hrtimer_setup.patch;patchdir=nvgpu \
+    file://0064-nvdisplay-nvidia-drm-support-fbdev-on-Linux-6.11-ker.patch;patchdir=nvdisplay \
 "
 EXTRA_PATCHES ??= ""
 

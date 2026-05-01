@@ -1,0 +1,368 @@
+From aae7d0e6416038071d99bc525e4c72f83fa94cac Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kekiefer@gmail.com>
+Date: Tue, 28 Apr 2026 10:55:01 -0700
+Subject: [PATCH] nvdisplay: nvidia-drm: support fbdev on Linux 6.11+
+ kernels
+
+Backport from NVIDIA L4T rel-38 source.
+
+The fbdev console (NV_DRM_FBDEV_GENERIC_AVAILABLE) is unconditionally
+disabled on kernels >= 6.11 because the conftest gates check for
+drm_fbdev_generic_setup() and drm_aperture_remove_conflicting_pci_framebuffers(),
+both of which were renamed or removed in 6.13 (commits aae4682e5d66
+"drm/fbdev-generic: Convert to fbdev-ttm", d07fdf922592 "drm/fbdev-ttm:
+Convert to client-setup", and 689274a56c0c "drm: Remove DRM aperture helpers").
+
+Add conftest function tests and header presence tests for drm_fbdev_ttm_setup,
+drm_client_setup, aperture_remove_conflicting_devices and
+aperture_remove_conflicting_pci_devices. Replace the single
+NV_DRM_FBDEV_GENERIC_AVAILABLE gate with NV_DRM_FBDEV_AVAILABLE, with
+NV_DRM_FBDEV_GENERIC_AVAILABLE / NV_DRM_FBDEV_TTM_AVAILABLE /
+NV_DRM_CLIENT_AVAILABLE selecting which setup path is used. Update the
+fbdev probe path in nv_drm_probe_devices() to dispatch on those macros
+for both the aperture clear and the fbdev setup.
+
+Mirrors the structure and naming used in NVIDIA's L4T rel-38 source
+(also present on the open-gpu-kernel-modules main branch) so this
+should rebase cleanly when the OOT modules pick up this change.
+
+Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
+
+Upstream-Status: Backport [L4T rel-38]
+---
+ kernel-open/Kbuild                            |  4 +
+ kernel-open/conftest.sh                       | 76 +++++++++++++++++++
+ kernel-open/nvidia-drm/nvidia-drm-drv.c       | 54 +++++++++++--
+ kernel-open/nvidia-drm/nvidia-drm-linux.c     |  2 +-
+ .../nvidia-drm/nvidia-drm-os-interface.h      | 37 ++++++++-
+ kernel-open/nvidia-drm/nvidia-drm.Kbuild      |  4 +
+ 6 files changed, 166 insertions(+), 11 deletions(-)
+
+diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
+index 21302f47..b92a3914 100644
+--- a/kernel-open/Kbuild
++++ b/kernel-open/Kbuild
+@@ -231,6 +231,10 @@ NV_HEADER_PRESENCE_TESTS = \
+  drm/drm_atomic_uapi.h \
+  drm/drm_drv.h \
+  drm/drm_fbdev_generic.h \
++ drm/drm_fbdev_ttm.h \
++ drm/drm_client_setup.h \
++ drm/clients/drm_client_setup.h \
++ linux/aperture.h \
+  drm/drm_framebuffer.h \
+  drm/drm_connector.h \
+  drm/drm_probe_helper.h \
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index 26a737ed..1722ec09 100644
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -6437,6 +6437,82 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_FBDEV_GENERIC_SETUP_PRESENT" "" "functions"
+         ;;
+ 
++        drm_fbdev_ttm_setup)
++            #
++            # Determine whether drm_fbdev_ttm_setup is present.
++            #
++            # Added by commit aae4682e5d66 ("drm/fbdev-generic:
++            # Convert to fbdev-ttm") in v6.11. Removed by commit
++            # 1000634477d8 ("drm/fbdev-ttm:Convert to client-setup") in v6.13.
++            #
++            CODE="
++            #include <drm/drm_fb_helper.h>
++            #if defined(NV_DRM_DRM_FBDEV_TTM_H_PRESENT)
++            #include <drm/drm_fbdev_ttm.h>
++            #endif
++            void conftest_drm_fbdev_ttm_setup(void) {
++                drm_fbdev_ttm_setup();
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_FBDEV_TTM_SETUP_PRESENT" "" "functions"
++        ;;
++
++        drm_client_setup)
++            #
++            # Determine whether drm_client_setup is present.
++            #
++            # Added by commit d07fdf922592 ("drm/fbdev-ttm: Convert to
++            # client-setup") in v6.13 in drm/drm_client_setup.h, but then moved
++            # to drm/clients/drm_client_setup.h by commit b86711c6d6e2
++            # ("drm/client: Move public client header to clients/ subdirectory")
++            # in linux-next b86711c6d6e2.
++            #
++            CODE="
++            #include <drm/drm_fb_helper.h>
++            #if defined(NV_DRM_DRM_CLIENT_SETUP_H_PRESENT)
++            #include <drm/drm_client_setup.h>
++            #elif defined(NV_DRM_CLIENTS_DRM_CLIENT_SETUP_H_PRESENT)
++            #include <drm/clients/drm_client_setup.h>
++            #endif
++            void conftest_drm_client_setup(void) {
++                drm_client_setup();
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_CLIENT_SETUP_PRESENT" "" "functions"
++        ;;
++
++        aperture_remove_conflicting_devices)
++            #
++            # Determine whether aperture_remove_conflicting_devices is present.
++            #
++            # Added by commit 7283f862bd991 ("drm: Implement DRM aperture
++            # helpers under video/") in v6.0
++            CODE="
++            #if defined(NV_LINUX_APERTURE_H_PRESENT)
++            #include <linux/aperture.h>
++            #endif
++            void conftest_aperture_remove_conflicting_devices(void) {
++                aperture_remove_conflicting_devices();
++            }"
++            compile_check_conftest "$CODE" "NV_APERTURE_REMOVE_CONFLICTING_DEVICES_PRESENT" "" "functions"
++        ;;
++
++        aperture_remove_conflicting_pci_devices)
++            #
++            # Determine whether aperture_remove_conflicting_pci_devices is present.
++            #
++            # Added by commit 7283f862bd991 ("drm: Implement DRM aperture
++            # helpers under video/") in v6.0
++            CODE="
++            #if defined(NV_LINUX_APERTURE_H_PRESENT)
++            #include <linux/aperture.h>
++            #endif
++            void conftest_aperture_remove_conflicting_pci_devices(void) {
++                aperture_remove_conflicting_pci_devices();
++            }"
++            compile_check_conftest "$CODE" "NV_APERTURE_REMOVE_CONFLICTING_PCI_DEVICES_PRESENT" "" "functions"
++        ;;
++
+         drm_output_poll_changed)
+             #
+             # Determine whether drm_mode_config_funcs.output_poll_changed
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-drv.c b/kernel-open/nvidia-drm/nvidia-drm-drv.c
+index b25dd3e5..946d74f3 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-drv.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-drv.c
+@@ -62,12 +62,27 @@
+ #include <drm/drm_ioctl.h>
+ #endif
+ 
+-#if defined(NV_DRM_FBDEV_GENERIC_AVAILABLE)
++#if defined(NV_LINUX_APERTURE_H_PRESENT)
++#include <linux/aperture.h>
++#endif
++
++#if defined(NV_DRM_DRM_APERTURE_H_PRESENT)
+ #include <drm/drm_aperture.h>
++#endif
++
++#if defined(NV_DRM_FBDEV_AVAILABLE)
+ #include <drm/drm_fb_helper.h>
+ #endif
+ 
+-#if defined(NV_DRM_DRM_FBDEV_GENERIC_H_PRESENT)
++#if defined(NV_DRM_DRM_CLIENT_SETUP_H_PRESENT)
++#include <drm/drm_client_setup.h>
++#elif defined(NV_DRM_CLIENTS_DRM_CLIENT_SETUP_H_PRESENT)
++#include <drm/clients/drm_client_setup.h>
++#endif
++
++#if defined(NV_DRM_DRM_FBDEV_TTM_H_PRESENT)
++#include <drm/drm_fbdev_ttm.h>
++#elif defined(NV_DRM_DRM_FBDEV_GENERIC_H_PRESENT)
+ #include <drm/drm_fbdev_generic.h>
+ #endif
+ 
+@@ -731,7 +746,7 @@ static int nv_drm_load(struct drm_device *dev, unsigned long flags)
+         return -ENODEV;
+     }
+ 
+-#if defined(NV_DRM_FBDEV_GENERIC_AVAILABLE)
++#if defined(NV_DRM_FBDEV_AVAILABLE)
+     /*
+      * If fbdev is enabled, take modeset ownership now before other DRM clients
+      * can take master (and thus NVKMS ownership).
+@@ -861,7 +876,7 @@ static void __nv_drm_unload(struct drm_device *dev)
+ 
+     /* Release modeset ownership if fbdev is enabled */
+ 
+-#if defined(NV_DRM_FBDEV_GENERIC_AVAILABLE)
++#if defined(NV_DRM_FBDEV_AVAILABLE)
+     if (nv_dev->hasFramebufferConsole) {
+         drm_atomic_helper_shutdown(dev);
+         nvKms->releaseOwnership(nv_dev->pDevice);
+@@ -1963,6 +1978,10 @@ static struct drm_driver nv_drm_driver = {
+ #elif defined(NV_DRM_DRIVER_HAS_LEGACY_DEV_LIST)
+     .legacy_dev_list        = LIST_HEAD_INIT(nv_drm_driver.legacy_dev_list),
+ #endif
++// XXX implement nvidia-drm's own .fbdev_probe callback that uses NVKMS kapi directly
++#if defined(NV_DRM_FBDEV_AVAILABLE) && defined(DRM_FBDEV_TTM_DRIVER_OPS)
++    DRM_FBDEV_TTM_DRIVER_OPS,
++#endif
+ };
+ 
+ 
+@@ -2058,18 +2077,24 @@ static void nv_drm_register_drm_device(const nv_gpu_info_t *gpu_info)
+         goto failed_drm_register;
+     }
+ 
+-#if defined(NV_DRM_FBDEV_GENERIC_AVAILABLE)
++#if defined(NV_DRM_FBDEV_AVAILABLE)
+     if (nv_drm_fbdev_module_param &&
+         drm_core_check_feature(dev, DRIVER_MODESET)) {
+ 
+         if (bus_is_pci) {
+             struct pci_dev *pdev = to_pci_dev(device);
+ 
++#if defined(NV_DRM_APERTURE_REMOVE_CONFLICTING_PCI_FRAMEBUFFERS_PRESENT)
++
+ #if defined(NV_DRM_APERTURE_REMOVE_CONFLICTING_PCI_FRAMEBUFFERS_HAS_DRIVER_ARG)
+             drm_aperture_remove_conflicting_pci_framebuffers(pdev, &nv_drm_driver);
+ #else
+             drm_aperture_remove_conflicting_pci_framebuffers(pdev, nv_drm_driver.name);
+ #endif
++
++#elif defined(NV_APERTURE_REMOVE_CONFLICTING_PCI_DEVICES_PRESENT)
++            aperture_remove_conflicting_pci_devices(pdev, nv_drm_driver.name);
++#endif
+         } else {
+             struct NvKmsKapiVtFbParams params;
+             resource_size_t base, size = 0;
+@@ -2079,6 +2104,8 @@ static void nv_drm_register_drm_device(const nv_gpu_info_t *gpu_info)
+                 base = (resource_size_t) params.baseAddress;
+                 size = (resource_size_t) params.size;
+ 
++#if defined(NV_DRM_APERTURE_REMOVE_CONFLICTING_FRAMEBUFFERS_PRESENT)
++
+ #if defined(NV_DRM_APERTURE_REMOVE_CONFLICTING_FRAMEBUFFERS_HAS_DRIVER_ARG)
+                 drm_aperture_remove_conflicting_framebuffers(base, size, false, &nv_drm_driver);
+ #elif defined(NV_DRM_APERTURE_REMOVE_CONFLICTING_FRAMEBUFFERS_HAS_NO_PRIMARY_ARG)
+@@ -2086,13 +2113,24 @@ static void nv_drm_register_drm_device(const nv_gpu_info_t *gpu_info)
+ #else
+                 drm_aperture_remove_conflicting_framebuffers(base, size, false, nv_drm_driver.name);
+ #endif
++
++#elif defined(NV_APERTURE_REMOVE_CONFLICTING_DEVICES_PRESENT)
++                aperture_remove_conflicting_devices(base, size, nv_drm_driver.name);
++#endif
+             } else {
+                 NV_DRM_DEV_LOG_WARN(nv_dev, "Failed to get framebuffer console info");
+             }
+         }
++
++#if defined(NV_DRM_CLIENT_AVAILABLE)
++        drm_client_setup(dev, NULL);
++#elif defined(NV_DRM_FBDEV_TTM_AVAILABLE)
++        drm_fbdev_ttm_setup(dev, 32);
++#elif defined(NV_DRM_FBDEV_GENERIC_AVAILABLE)
+         drm_fbdev_generic_setup(dev, 32);
++#endif
+     }
+-#endif /* defined(NV_DRM_FBDEV_GENERIC_AVAILABLE) */
++#endif /* defined(NV_DRM_FBDEV_AVAILABLE) */
+ 
+     /* Add NVIDIA-DRM device into list */
+ 
+@@ -2232,12 +2270,12 @@ void nv_drm_suspend_resume(NvBool suspend)
+ 
+         if (suspend) {
+             drm_kms_helper_poll_disable(dev);
+-#if defined(NV_DRM_FBDEV_GENERIC_AVAILABLE)
++#if defined(NV_DRM_FBDEV_AVAILABLE)
+             drm_fb_helper_set_suspend_unlocked(dev->fb_helper, 1);
+ #endif
+             drm_mode_config_reset(dev);
+         } else {
+-#if defined(NV_DRM_FBDEV_GENERIC_AVAILABLE)
++#if defined(NV_DRM_FBDEV_AVAILABLE)
+             drm_fb_helper_set_suspend_unlocked(dev->fb_helper, 0);
+ #endif
+             drm_kms_helper_poll_enable(dev);
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-linux.c b/kernel-open/nvidia-drm/nvidia-drm-linux.c
+index 641bdb6b..15bc0df3 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-linux.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-linux.c
+@@ -51,7 +51,7 @@ MODULE_PARM_DESC(
+ bool nv_drm_modeset_module_param = false;
+ module_param_named(modeset, nv_drm_modeset_module_param, bool, 0400);
+ 
+-#if defined(NV_DRM_FBDEV_GENERIC_AVAILABLE)
++#if defined(NV_DRM_FBDEV_AVAILABLE)
+ MODULE_PARM_DESC(
+     fbdev,
+     "Create a framebuffer device (1 = enable, 0 = disable (default)) (EXPERIMENTAL)");
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-os-interface.h b/kernel-open/nvidia-drm/nvidia-drm-os-interface.h
+index 7ca3728a..be1d5739 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-os-interface.h
++++ b/kernel-open/nvidia-drm/nvidia-drm-os-interface.h
+@@ -58,15 +58,48 @@ typedef struct nv_timer nv_drm_timer;
+ #error "Need to define kernel timer callback primitives for this OS"
+ #endif /* else defined(NV_LINUX) */
+ 
+-#if defined(NV_DRM_FBDEV_GENERIC_SETUP_PRESENT) && defined(NV_DRM_APERTURE_REMOVE_CONFLICTING_PCI_FRAMEBUFFERS_PRESENT)
++#include <linux/kconfig.h> /* for IS_ENABLED() */
++
++/*
++ * NV_DRM_FBDEV_AVAILABLE indicates that some fbdev setup path is usable.
++ * One of the *_AVAILABLE sub-macros below picks which path:
++ *   NV_DRM_FBDEV_GENERIC_AVAILABLE  - drm_fbdev_generic_setup() (< 6.11)
++ *   NV_DRM_FBDEV_TTM_AVAILABLE      - drm_fbdev_ttm_setup()      (6.11..6.12)
++ *   NV_DRM_CLIENT_AVAILABLE         - drm_client_setup()          (>= 6.13)
++ *
++ * Each path also requires some way to clear conflicting aperture owners,
++ * provided by either the (older) drm_aperture API or the (newer)
++ * <linux/aperture.h> API. The TTM and client paths additionally require
++ * CONFIG_DRM_TTM_HELPER, which is currently used by the fbdev backend.
++ */
++#if defined(NV_DRM_FBDEV_GENERIC_SETUP_PRESENT) && \
++    defined(NV_DRM_APERTURE_REMOVE_CONFLICTING_PCI_FRAMEBUFFERS_PRESENT)
++#define NV_DRM_FBDEV_AVAILABLE
+ #define NV_DRM_FBDEV_GENERIC_AVAILABLE
+ #endif
+ 
++#if defined(NV_DRM_FBDEV_TTM_SETUP_PRESENT) && \
++    defined(NV_DRM_APERTURE_REMOVE_CONFLICTING_PCI_FRAMEBUFFERS_PRESENT)
++#if IS_ENABLED(CONFIG_DRM_TTM_HELPER)
++#define NV_DRM_FBDEV_AVAILABLE
++#define NV_DRM_FBDEV_TTM_AVAILABLE
++#endif
++#endif
++
++#if defined(NV_DRM_CLIENT_SETUP_PRESENT) && \
++    (defined(NV_DRM_APERTURE_REMOVE_CONFLICTING_PCI_FRAMEBUFFERS_PRESENT) || \
++     defined(NV_APERTURE_REMOVE_CONFLICTING_PCI_DEVICES_PRESENT))
++#if IS_ENABLED(CONFIG_DRM_TTM_HELPER)
++#define NV_DRM_FBDEV_AVAILABLE
++#define NV_DRM_CLIENT_AVAILABLE
++#endif
++#endif
++
+ struct page;
+ 
+ /* Set to true when the atomic modeset feature is enabled. */
+ extern bool nv_drm_modeset_module_param;
+-#if defined(NV_DRM_FBDEV_GENERIC_AVAILABLE)
++#if defined(NV_DRM_FBDEV_AVAILABLE)
+ /* Set to true when the nvidia-drm driver should install a framebuffer device */
+ extern bool nv_drm_fbdev_module_param;
+ #endif
+diff --git a/kernel-open/nvidia-drm/nvidia-drm.Kbuild b/kernel-open/nvidia-drm/nvidia-drm.Kbuild
+index 5d2c7594..910ed223 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm.Kbuild
++++ b/kernel-open/nvidia-drm/nvidia-drm.Kbuild
+@@ -86,7 +86,11 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += dma_fence_set_error
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += sync_file_get_fence
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_aperture_remove_conflicting_framebuffers
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_aperture_remove_conflicting_pci_framebuffers
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += aperture_remove_conflicting_devices
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += aperture_remove_conflicting_pci_devices
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fbdev_generic_setup
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fbdev_ttm_setup
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_client_setup
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_helper_crtc_enable_color_mgmt
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_crtc_enable_color_mgmt
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_sysfs_connector_property_event
+-- 
+2.34.1
+
