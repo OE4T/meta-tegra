@@ -13,7 +13,9 @@ def tegra_uefi_signing_filechecksums(d):
     return ' '.join([f + ':True' for f in files])
 
 TEGRA_UEFI_DB_KEY ??= ""
+TEGRA_UEFI_DB_KEY[vardepvalue] = ""
 TEGRA_UEFI_DB_CERT ??= ""
+TEGRA_UEFI_DB_CERT[vardepvalue] = ""
 TEGRA_UEFI_SIGNING_TASKDEPS ?= "${@tegra_uefi_signing_deps(d, tasks=True)}"
 TEGRA_UEFI_SIGNING_DEPENDS ?= "${@tegra_uefi_signing_deps(d)}"
 TEGRA_UEFI_USE_SIGNED_FILES ?= "${@'true' if d.getVar('TEGRA_UEFI_DB_KEY') and d.getVar('TEGRA_UEFI_DB_CERT') else 'false'}"
