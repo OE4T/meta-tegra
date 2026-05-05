@@ -353,6 +353,7 @@ copy_bootloader_files() {
 generate_flash_package() {
     local dev=$(wait_for_usb_storage "$session_id" "flashpkg" "$usb_instance")
     local exports
+    local extra_dir="$here/flashpkg-extra"
 
     if [ -z "$dev" ]; then
 	echo "ERR: could not locate USB storage device for sending flashing commands" >&2
@@ -373,6 +374,11 @@ generate_flash_package() {
 	echo "bootloader" >> "$mnt/flashpkg/conf/command_sequence"
 	mkdir "$mnt/flashpkg/bootloader"
 	cp bootloader_staging/* "$mnt/flashpkg/bootloader"
+    fi
+
+    if [ -d "$extra_dir" ]; then
+	# Allow host-side tooling to inject additional files into the flash package.
+	cp -a "$extra_dir/." "$mnt/flashpkg/flashpkg-extra"
     fi
 
     echo "extra-pre-wipe" >> "$mnt/flashpkg/conf/command_sequence"
