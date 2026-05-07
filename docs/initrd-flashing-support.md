@@ -78,6 +78,169 @@ The script:
 
 **Note:** add the current Linux user to the `disk` group to avoid the usage of `sudo` to run `initrd-flash` script.
 
+## Production-Time Customization
+
+The `initrd-flash` script supports host-side injection of custom files and scripts to customize the target device during production flashing. This enables configuration of per-unit identifiers (hostname, etc.) without modifying the base image.
+
+### How It Works
+
+1. The `tegra-flash-init` recipe provides a flash package (flashpkg) to the target device.
+2. Before device export, scripts in `/init-extra-pre-wipe.d` can perform pre-wipe operations.
+3. After the host finishes writing and the device disconnects, scripts in `/init-extra.d` execute with access to the flashed rootfs.
+4. The `initrd-flash.sh` script copies any files from the host-side `flashpkg-extra/` directory into the generated flash package.
+
+This allows you to:
+- Inject configuration files into `/tmp/flashpkg/flashpkg/conf/` on the target.
+- Include custom hooks in `/init-extra.d/` to process those configurations.
+- Perform device-specific customization without rebuilding the image.
+
+### Example: Configuring Hostname During Production
+
+Suppose you want to set the hostname from a production database or custom serial number (without requiring SSH):
+
+#### Step 1: Create a custom init hook script
+
+Create or append to `tegra-flash-init_1.0.bbappend` to install your hook:
+
+```bitbake
+SRC_URI += "file://extra-flash.sh"
+
+do_install:append() {
+    install -m 0755 ${WORKDIR}/extra-flash.sh ${D}/init-extra.d/
+}
+```
+
+#### Step 2: Create your custom hook script
+
+Create a script file (e.g., `extra-flash.sh`) with the following content:
+
+```bash
+#!/bin/sh
+
+set -eu
+
+# Production flash hook for hostname configuration.
+# Runs on target during 'extra' phase after host finishes writing.
+# Configuration loaded from /tmp/flashpkg/flashpkg/conf/extra-flash.conf
+
+HOSTNAME="${HOSTNAME:-my-jetson}"
+CONFIG_FILE="/tmp/flashpkg/flashpkg/conf/extra-flash.conf"
+ROOTFS_MNT="/mnt/rootfs"
+
+log() {
+    echo "[extra-flash] $*"
+}
+
+log_err() {
+    echo "[extra-flash] ERROR: $*" >&2
+}
+
+load_config() {
+    if [ -r "$CONFIG_FILE" ]; then
+        log "Loading configuration from $CONFIG_FILE"
+        . "$CONFIG_FILE" || {
+            log_err "Failed to parse configuration file"
+            return 1
+        }
+    else
+        log "No configuration file found; using defaults"
+    fi
+    return 0
+}
+
+update_hostname() {
+    local hostname="$1"
+    local mnt="$2"
+
+    if [ ! -d "$mnt/etc" ]; then
+        log_err "etc directory not found in rootfs"
+        return 1
+    fi
+
+    log "Updating /etc/hostname to: $hostname"
+    printf '%s\n' "$hostname" > "$mnt/etc/hostname" || {
+        log_err "Failed to write hostname"
+        return 1
+    }
+    return 0
+}
+
+main() {
+    log "Starting production flash customization"
+
+    load_config || {
+        log_err "Failed to load configuration"
+        exit 1
+    }
+
+    # Update hostname on both A and B rootfs partitions.
+    for rootfs_dev in /dev/nvme0n1p1 /dev/nvme0n1p2; do
+        if [ ! -b "$rootfs_dev" ]; then
+            log "Partition $rootfs_dev not found, skipping"
+            continue
+        fi
+
+        log "Mounting $rootfs_dev on $ROOTFS_MNT"
+        mkdir -p "$ROOTFS_MNT"
+        if ! mount -o rw "$rootfs_dev" "$ROOTFS_MNT"; then
+            log "Failed to mount $rootfs_dev, skipping"
+            continue
+        fi
+
+        trap 'umount "$ROOTFS_MNT" >/dev/null 2>&1 || true' EXIT INT TERM
+
+        if update_hostname "$HOSTNAME" "$ROOTFS_MNT"; then
+            sync
+            log "Hostname updated on $rootfs_dev"
+        else
+            log "Hostname update failed on $rootfs_dev"
+        fi
+
+        umount "$ROOTFS_MNT"
+        trap - EXIT INT TERM
+    done
+
+    log "Production flash customization complete"
+}
+
+main "$@"
+```
+
+#### Step 3: Prepare the host-side configuration file
+
+Before running `initrd-flash.sh`, create the `flashpkg-extra/` directory in your tegraflash directory and provide your configuration:
+
+```bash
+mkdir -p flashpkg-extra/conf
+cat > flashpkg-extra/conf/extra-flash.conf << EOF
+HOSTNAME='my-jetson-001'
+EOF
+```
+
+The configuration can be generated dynamically from your production database or serialization system:
+
+```bash
+SERIAL='my-jetson-001'
+mkdir -p flashpkg-extra/conf
+cat > flashpkg-extra/conf/extra-flash.conf << EOF
+HOSTNAME='$SERIAL'
+EOF
+```
+
+#### Step 4: Run the flash process
+
+```bash
+./initrd-flash.sh
+```
+
+The `initrd-flash.sh` script will automatically copy all files from `flashpkg-extra/` into the flash package. On the target, during the `extra` phase:
+1. The hook script reads the configuration.
+2. It mounts `/dev/nvme0n1p1` and `/dev/nvme0n1p2` (A/B in this example).
+3. It updates the hostname in `/etc/hostname`.
+4. It unmounts cleanly and completes.
+
+**Result:** Your device boots with the configured hostname, with no additional post-flash steps required.
+
 
 # Re-flashing just the rootfs storage device
 The `initrd-flash` script has a `--skip-bootloader` option for skipping the programming of the boot partitions, so you can re-flash just the rootfs storage device.  You should only use this option if you have already programmed the boot partitions once with the versions you're using for your current build.
