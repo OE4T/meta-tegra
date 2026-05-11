@@ -15,4 +15,9 @@ FILES:${PN}-dev += "${prefix}/local/cuda-${CUDA_VERSION}/share/gdb"
 RDEPENDS:${PN} += "gmp"
 RDEPENDS:${PN}-dev += "python3"
 INSANE_SKIP:${PN}-dev += "staticdev"
+# cuda-gdb ships pre-built TUI binaries for multiple Python versions (3.8-3.12)
+# linked against libpython3.x, libncurses and libcrypt from the host OS.
+# There are no nativesdk providers for these system libraries — they are
+# expected to be satisfied by the developer's host at runtime.
+INSANE_SKIP:${PN}:class-nativesdk += "file-rdeps"
 BBCLASSEXTEND = "native nativesdk"
