@@ -39,6 +39,7 @@ SRC_URI += "\
     file://0004-XusbControllerDxe-use-BaseMemoryLib-functions.patch;patchdir=../edk2-nvidia \
     file://0005-PrePi-use-GCC5-instead-of-GCC-in-build-options.patch;patchdir=../edk2-nvidia \
     file://0007-BaseTools-Pccts-set-C-standard.patch \
+    file://0008-BaseTools-EfiRom-fix-compiler-warning.patch \
 "
 
 S = "${UNPACKDIR}/edk2-tegra/edk2"
