@@ -14,7 +14,7 @@ Boards supported:
 This layer depends on:
 URI: https://git.openembedded.org/openembedded-core
 branch: master
-LAYERSERIES_COMPAT: wrynose
+LAYERSERIES_COMPAT: blacksail
 
 
 CUDA toolchain compatibility note
