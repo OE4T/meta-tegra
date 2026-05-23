@@ -38,7 +38,13 @@ SRC_URI += "\
     file://0004-fix-XusbControllerDxe-use-BaseMemoryLib-functions-14.patch;patchdir=../edk2-nvidia \
     file://0005-fix-L4TLauncher-allow-for-empty-missing-APPEND-line-.patch;patchdir=../edk2-nvidia \
     file://0006-PrePi-use-GCC5-instead-of-GCC-in-build-options.patch;patchdir=../edk2-nvidia \
-    file://0007-BaseTools-EfiRom-fix-compiler-warning.patch \
+    file://0007-BaseTools-StringFuncs-fix-gcc-16-warning.patch \
+    file://0008-BaseTools-EfiRom-fix-compiler-warning.patch \
+    file://0009-MdeModulePkg-CustomizedDisplayLib-fix-gcc-16-warning.patch \
+    file://0010-MdeModulePkg-SmbiosMeasurementDxe-fix-gcc-16-warning.patch \
+    file://0011-MdeModulePkg-DisplayEngineDxe-fix-gcc-16-warning.patch \
+    file://0012-MdeModulePkg-VarCheckHiiLib-fix-gcc-16-warning.patch \
+    file://0013-MdeModulePkg-CapsuleOnDiskLoadPei-fix-gcc-16-warning.patch \
 "
 
 S = "${UNPACKDIR}/edk2-tegra/edk2"
