@@ -1,0 +1,44 @@
+From ec3f8338ea42d94f551c46f685f230109ae3ceca Mon Sep 17 00:00:00 2001
+From: Gerd Hoffmann <kraxel@redhat.com>
+Date: Thu, 29 Jan 2026 10:34:52 +0100
+Subject: [PATCH 12/13] MdeModulePkg/VarCheckHiiLib: fix gcc 16 warning
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+MdeModulePkg/Library/VarCheckHiiLib/VarCheckHiiGenFromFv.c: In function ‘ParseFv’:
+MdeModulePkg/Library/VarCheckHiiLib/VarCheckHiiGenFromFv.c:263:34: error: variable ‘FfsIndex’ set but not used [-Werror=unused-but-set-variable=]
+  263 |   UINTN                          FfsIndex;
+      |                                  ^~~~~~~~
+
+Upstream-Status: Backport [https://github.com/tianocore/edk2/pull/12047]
+Signed-off-by: Gerd Hoffmann <kraxel@redhat.com>
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ MdeModulePkg/Library/VarCheckHiiLib/VarCheckHiiGenFromFv.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/MdeModulePkg/Library/VarCheckHiiLib/VarCheckHiiGenFromFv.c b/MdeModulePkg/Library/VarCheckHiiLib/VarCheckHiiGenFromFv.c
+index 562f5a02f6..4363eda115 100644
+--- a/MdeModulePkg/Library/VarCheckHiiLib/VarCheckHiiGenFromFv.c
++++ b/MdeModulePkg/Library/VarCheckHiiLib/VarCheckHiiGenFromFv.c
+@@ -260,7 +260,6 @@ ParseFv (
+   EFI_GUID                       NameGuid;
+   EFI_FV_FILE_ATTRIBUTES         FileAttributes;
+   UINTN                          Size;
+-  UINTN                          FfsIndex;
+   VAR_CHECK_VFR_DRIVER_INFO      *VfrDriverInfo;
+   LIST_ENTRY                     *VfrDriverLink;
+ 
+@@ -315,7 +314,7 @@ ParseFv (
+       Key = InternalVarCheckAllocateZeroPool (Fv2->KeySize);
+       ASSERT (Key != NULL);
+ 
+-      for (FfsIndex = 0; ; FfsIndex++) {
++      while (TRUE) {
+         FileType = EFI_FV_FILETYPE_ALL;
+         Status   = Fv2->GetNextFile (
+                           Fv2,
+-- 
+2.43.0
+
