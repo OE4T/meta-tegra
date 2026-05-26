@@ -1,0 +1,11 @@
+CUDA_INSTALL_ARCH:class-target = "sbsa"
+CUDA_INSTALL_ARCH:class-native = "${HOST_ARCH}"
+
+require cuda-shared-binaries.inc
+
+MAINSUM = "38b72d21685867e2114e8a43e5f0debd7306c05d9665e3b9585c15b811693bb1"
+MAINSUM:x86-64 = "50971acaf1e2d7a5b280460e6e7c1bc24714b140402876e05efe4e4a413400e6"
+DEVSUM = "134b3cc4bf7c5fee31eb1eae234efb603e418266a2c51151985de4147b939682"
+DEVSUM:x86-64 = "b7ea67daa79dbea0d9f4af55d0322c74ed9e5cd197709a5ebb99a33b29b79bc6"
+
+BBCLASSEXTEND = "native nativesdk"

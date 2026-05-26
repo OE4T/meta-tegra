@@ -6,8 +6,8 @@ require cuda-shared-binaries.inc
 
 SRC_URI:append = " file://0001-Avoid-compile-issues-with-libc-math-functions.patch"
 
-MAINSUM = "4ddff5a943bbce2d1793d28c3cde63fd2b011c9515cc5b008f8955005c2965b4"
-MAINSUM:x86-64 = "076ffa2a84ea3e15937136737bbfc174e03616ae29f5800bf5a3aa6552c088b4"
+MAINSUM = "949fde97f8b10c7ee0306c02cf7bfbeed2faef8acfccc10ad54af69bb90cb181"
+MAINSUM:x86-64 = "7fca8d06ad1f527ad35a514bbe4f797a9e292fb9305b313001edd645bd62b7e7"
 
 FILES:${PN} = " \
     ${prefix}/local/cuda-${CUDA_VERSION}/include \
