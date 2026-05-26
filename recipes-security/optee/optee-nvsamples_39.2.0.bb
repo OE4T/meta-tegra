@@ -18,10 +18,7 @@ export LDADD
 S = "${UNPACKDIR}/samples"
 B = "${WORKDIR}/build"
 
-EXTRA_OEMAKE += " \
-    CROSS_COMPILE=${HOST_PREFIX} \
-    ${@d.getVar('FTPM_CFG', True) if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''} \
-"
+EXTRA_OEMAKE += "CROSS_COMPILE=${HOST_PREFIX}"
 
 do_compile() {
     oe_runmake -C ${S} all
@@ -45,7 +42,7 @@ do_install() {
     oe_runmake -C ${S}/pkcs11-sample/host install DESTDIR="${D}"
 }
 
-PACKAGES =+ "${PN}-luks-srv ${PN}-hwkey-agent ${PN}-pkcs11-sample ${@d.getVar('PN') + '-ftpm-helper' if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''}"
+PACKAGES =+ "${PN}-luks-srv ${PN}-hwkey-agent ${@d.getVar('PN') + '-ftpm-helper' if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''} ${PN}-pkcs11-sample"
 FILES:${PN}-hwkey-agent = "${nonarch_base_libdir}/optee_armtz/82154947-c1bc-4bdf-b89d-04f93c0ea97c.ta ${sbindir}/nvhwkey-app"
 FILES:${PN}-luks-srv = "${sbindir}/nvluks-srv-app"
 FILES:${PN}-ftpm-helper = "${sbindir}/nvftpm-helper-app"
@@ -58,6 +55,7 @@ RDEPENDS:${PN} = " \
     ${@ \
         d.getVar('PN') + '-ftpm-helper' \
         + ' kernel-module-tpm-ftpm-tee' \
+        + ' optee-ftpm' \
     if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''} \
 "
 RRECOMMENDS:${PN} = " ${@ 'tegra-configs-udev' if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''}"

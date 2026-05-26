@@ -23,6 +23,7 @@ TA_DEV_KIT_DIR = "${STAGING_INCDIR}/optee/export-user_ta"
 
 TEGRA_OPTEE_TA_SIGN_KEY ?= ""
 OPTEE_ENABLE_FTPM ?= "0"
+OPTEE_ENABLE_FTPM:tegra264 = "1"
 
 FTPM_CFG = " \
     CFG_CORE_TPM_EVENT_LOG=y \

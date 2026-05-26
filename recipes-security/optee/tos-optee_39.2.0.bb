@@ -42,7 +42,7 @@ gen_tos_image:tegra264() {
 }
 
 do_compile() {
-    dtc -I dts -O dtb -o ${S}/${SOC_FAMILY}-optee.dtb ${S}/${SOC_FAMILY}-optee.dts
+    ${CPP} -nostdinc -undef -D__DTS__ -x assembler-with-cpp ${S}/${SOC_FAMILY}-optee.dts | dtc -I dts -O dtb -o ${S}/${SOC_FAMILY}-optee.dtb -
     gen_tos_image
 } 
 

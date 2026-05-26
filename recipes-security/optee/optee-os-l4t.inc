@@ -7,6 +7,8 @@ LIC_FILES_CHKSUM = " \
     file://LICENSE.NVIDIA;md5=ba16bc74328d76e24af960ba01c937dc \
 "
 
+SRC_URI:append = " file://0001-core-Fix-GCC-15-build-errors.patch;striplevel=2"
+
 OPTEEMACHINE ?= "invalid"
 OPTEEMACHINE:tegra ?= "tegra"
 
@@ -32,7 +34,7 @@ EXTRA_OEMAKE += "\
     CROSS_COMPILE_core=${HOST_PREFIX} \
     CROSS_COMPILE_ta_${OPTEE_ARCH}=${HOST_PREFIX} \
     ${@' NV_CCC_PREBUILT=${NV_CCC_PREBUILT}' if d.getVar('NV_CCC_PREBUILT') else ''} \
-    CFG_CORE_TPM_EVENT_LOG=y CFG_REE_STATE=y CFG_JETSON_FTPM_HELPER_PTA=y \
+    ${@d.getVar('FTPM_CFG') if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''} \
 "
 
 do_compile() {
