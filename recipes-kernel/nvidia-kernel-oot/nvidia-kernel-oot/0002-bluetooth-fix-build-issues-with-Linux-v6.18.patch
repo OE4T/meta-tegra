@@ -1,7 +1,7 @@
-From 99aec0a3a6a874aa5f73e99ebd93e6db4e2bd9b7 Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Fri, 13 Feb 2026 14:09:33 -0800
-Subject: [PATCH 7/7] bluetooth: fix build issues with Linux v6.18
+From b8114b6d5bdc77ecbed9b29952a234a4fc9ee190 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Tue, 14 Apr 2026 11:56:54 -0700
+Subject: [PATCH 3/3] bluetooth: fix build issues with Linux v6.18
 
 * quirks tracking changes in struct hci_dev
 * typo corrected in event structure name
@@ -14,10 +14,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  2 files changed, 13 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/bluetooth/realtek/rtk_bt.c b/drivers/bluetooth/realtek/rtk_bt.c
-index 7a778a96..9d9291e2 100644
+index af4d762..3ac1580 100644
 --- a/drivers/bluetooth/realtek/rtk_bt.c
 +++ b/drivers/bluetooth/realtek/rtk_bt.c
-@@ -19,6 +19,8 @@
+@@ -21,6 +21,8 @@
   *
   */
  
@@ -26,7 +26,7 @@ index 7a778a96..9d9291e2 100644
  #include <linux/kernel.h>
  #include <linux/module.h>
  #include <linux/init.h>
-@@ -2035,14 +2037,18 @@ static int btusb_probe(struct usb_interface *intf,
+@@ -2041,14 +2043,18 @@ static int btusb_probe(struct usb_interface *intf,
  	hdev->owner = THIS_MODULE;
  #endif
  
@@ -47,7 +47,7 @@ index 7a778a96..9d9291e2 100644
  #endif
  
  	/* Interface numbers are hardcoded in the specification */
-@@ -2059,7 +2065,7 @@ static int btusb_probe(struct usb_interface *intf,
+@@ -2065,7 +2071,7 @@ static int btusb_probe(struct usb_interface *intf,
  	}
  
  #if HCI_VERSION_CODE >= KERNEL_VERSION(4, 1, 0)
@@ -57,7 +57,7 @@ index 7a778a96..9d9291e2 100644
  
  	err = hci_register_dev(hdev);
 diff --git a/drivers/bluetooth/realtek/rtk_coex.c b/drivers/bluetooth/realtek/rtk_coex.c
-index 08155ee2..1d15a687 100644
+index 08155ee..1d15a68 100644
 --- a/drivers/bluetooth/realtek/rtk_coex.c
 +++ b/drivers/bluetooth/realtek/rtk_coex.c
 @@ -2430,7 +2430,11 @@ static void rtk_handle_le_terminate_big_complete_evt(u8 * p)

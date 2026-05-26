@@ -1,7 +1,7 @@
-From b5ce739ded823a58720b6d031dbf7aeda161a9c1 Mon Sep 17 00:00:00 2001
+From 9426aeee7cbed41b98b270f7bca01a092a1ce6cc Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Thu, 15 Jan 2026 12:47:09 -0800
-Subject: [PATCH 08/11] Fix unifiedgpudisp modules builds
+Date: Tue, 14 Apr 2026 12:13:34 -0700
+Subject: [PATCH] Fix unifiedgpudisp modules builds
 
 Update the makefiles, Kbuild, and conftest.sh script so
 that headers and symbols from the out-of-tree drivers can
@@ -11,13 +11,13 @@ Upstream-Status: Inappropriate [OE specific]
 
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- kernel-open/Kbuild      | 15 ++++++++-------
+ kernel-open/Kbuild      | 15 ++++++------
  kernel-open/Makefile    |  1 +
- kernel-open/conftest.sh | 32 ++++++++++++++++++--------------
+ kernel-open/conftest.sh | 32 +++++++++++++++-----------
  3 files changed, 27 insertions(+), 21 deletions(-)
 
 diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
-index 710570f..9ade365 100644
+index 147358c..50a5fb6 100644
 --- a/kernel-open/Kbuild
 +++ b/kernel-open/Kbuild
 @@ -77,6 +77,7 @@ $(foreach _module, $(NV_KERNEL_MODULES), \
@@ -27,7 +27,7 @@ index 710570f..9ade365 100644
 +ccflags-y += -I$(NV_OOT_SOURCES)/include
  ccflags-y += -Wall $(DEFINES) $(INCLUDES) -Wno-cast-qual -Wno-format-extra-args
  ccflags-y += -D__KERNEL__ -DMODULE -DNVRM
- ccflags-y += -DNV_VERSION_STRING=\"580.00\"
+ ccflags-y += -DNV_VERSION_STRING=\"595.78\"
 @@ -178,7 +179,7 @@ NV_CONFTEST_SCRIPT := $(src)/conftest.sh
  NV_CONFTEST_HEADER := $(obj)/conftest/headers.h
  
@@ -37,7 +37,7 @@ index 710570f..9ade365 100644
  
  NV_CFLAGS_FROM_CONFTEST := $(shell $(NV_CONFTEST_CMD) build_cflags)
  
-@@ -244,8 +245,8 @@ $(eval $(call NV_GENERATE_COMPILE_TEST_HEADER,symbols,$(NV_CONFTEST_SYMBOL_COMPI
+@@ -245,8 +246,8 @@ $(eval $(call NV_GENERATE_COMPILE_TEST_HEADER,symbols,$(NV_CONFTEST_SYMBOL_COMPI
  $(eval $(call NV_GENERATE_COMPILE_TEST_HEADER,types,$(NV_CONFTEST_TYPE_COMPILE_TESTS)))
  
  $(obj)/conftest/patches.h: $(NV_CONFTEST_SCRIPT)
@@ -48,7 +48,7 @@ index 710570f..9ade365 100644
  
  include $(src)/header-presence-tests.mk
  
-@@ -256,8 +257,8 @@ NV_HEADER_PRESENCE_PART = $(addprefix $(obj)/conftest/header_presence/,$(addsuff
+@@ -257,8 +258,8 @@ NV_HEADER_PRESENCE_PART = $(addprefix $(obj)/conftest/header_presence/,$(addsuff
  # Define a rule to check the header $(1).
  define NV_HEADER_PRESENCE_CHECK
   $$(call NV_HEADER_PRESENCE_PART,$(1)): $$(NV_CONFTEST_SCRIPT) $(obj)/conftest/uts_release
@@ -59,7 +59,7 @@ index 710570f..9ade365 100644
  endef
  
  # Evaluate the rule above for each header in the list.
-@@ -265,7 +266,7 @@ $(foreach header,$(NV_HEADER_PRESENCE_TESTS),$(eval $(call NV_HEADER_PRESENCE_CH
+@@ -266,7 +267,7 @@ $(foreach header,$(NV_HEADER_PRESENCE_TESTS),$(eval $(call NV_HEADER_PRESENCE_CH
  
  # Concatenate all of the parts into headers.h.
  $(obj)/conftest/headers.h: $(call NV_HEADER_PRESENCE_PART,$(NV_HEADER_PRESENCE_TESTS))
@@ -68,7 +68,7 @@ index 710570f..9ade365 100644
  
  clean-dirs := $(obj)/conftest
  
-@@ -287,7 +288,7 @@ BUILD_SANITY_CHECKS = \
+@@ -288,7 +289,7 @@ BUILD_SANITY_CHECKS = \
  .PHONY: $(BUILD_SANITY_CHECKS)
  
  $(BUILD_SANITY_CHECKS):
@@ -78,10 +78,10 @@ index 710570f..9ade365 100644
  # Perform all sanity checks before generating the conftest headers
  
 diff --git a/kernel-open/Makefile b/kernel-open/Makefile
-index 245d91b..ea53d57 100644
+index ff19eae..0f74ea8 100644
 --- a/kernel-open/Makefile
 +++ b/kernel-open/Makefile
-@@ -129,6 +129,7 @@ else
+@@ -104,6 +104,7 @@ else
    KBUILD_PARAMS += ARCH=$(ARCH)
    KBUILD_PARAMS += NV_KERNEL_SOURCES=$(KERNEL_SOURCES)
    KBUILD_PARAMS += NV_KERNEL_OUTPUT=$(KERNEL_OUTPUT)
@@ -90,7 +90,7 @@ index 245d91b..ea53d57 100644
    KBUILD_PARAMS += INSTALL_MOD_DIR="$(INSTALL_MOD_DIR)"
    KBUILD_PARAMS += NV_SPECTRE_V2=$(SPECTRE_V2_RETPOLINE)
 diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
-index c4171a0..9c34e18 100755
+index cb4da27..d64725a 100755
 --- a/kernel-open/conftest.sh
 +++ b/kernel-open/conftest.sh
 @@ -11,6 +11,8 @@ ARCH=$2
@@ -120,7 +120,7 @@ index c4171a0..9c34e18 100755
              return 0
          fi
      else
-@@ -399,7 +403,7 @@ export_symbol_gpl_conftest() {
+@@ -400,7 +404,7 @@ export_symbol_gpl_conftest() {
      TAB='	'
  
      if grep -e "${TAB}${SYMBOL}${TAB}.*${TAB}EXPORT_\(UNUSED_\)*SYMBOL_GPL\s*\$" \
@@ -129,7 +129,7 @@ index c4171a0..9c34e18 100755
          echo "#define NV_IS_EXPORT_SYMBOL_GPL_$SYMBOL 1" |
              append_conftest "symbols"
      else
-@@ -5083,13 +5087,13 @@ compile_test() {
+@@ -5154,13 +5158,13 @@ compile_test() {
      esac
  }
  
@@ -145,7 +145,7 @@ index c4171a0..9c34e18 100755
  
          echo "int cc_sanity_check(void) {
              return 0;
-@@ -5156,7 +5160,7 @@ case "$5" in
+@@ -5227,7 +5231,7 @@ case "$5" in
          #  In order to extract GCC version correctly for version strings
          #  like the last one above, we first check for x.y.z and if that
          #  fails, we fallback to x.y format.
@@ -154,7 +154,7 @@ index c4171a0..9c34e18 100755
  
          kernel_compile_h=$OUTPUT/include/generated/compile.h
  
-@@ -5235,7 +5239,7 @@ case "$5" in
+@@ -5306,7 +5310,7 @@ case "$5" in
          # Check if the target kernel is a Xen kernel. If so, exit, since
          # the RM doesn't currently support Xen.
          #
@@ -163,7 +163,7 @@ index c4171a0..9c34e18 100755
  
          if [ -n "$IGNORE_XEN_PRESENCE" -o -n "$VGX_BUILD" ]; then
              exit 0
-@@ -5267,7 +5271,7 @@ case "$5" in
+@@ -5338,7 +5342,7 @@ case "$5" in
          # Check if the target kernel has the PREEMPT_RT patch set applied. If
          # so, exit, since the RM doesn't support this configuration.
          #
@@ -172,7 +172,7 @@ index c4171a0..9c34e18 100755
  
          if [ -n "$IGNORE_PREEMPT_RT_PRESENCE" ]; then
              exit 0
-@@ -5330,7 +5334,7 @@ case "$5" in
+@@ -5401,7 +5405,7 @@ case "$5" in
          # Run a series of compile tests to determine the set of interfaces
          # and features available in the target kernel.
          #
@@ -181,7 +181,7 @@ index c4171a0..9c34e18 100755
  
          CFLAGS=$1
          shift
-@@ -5344,7 +5348,7 @@ case "$5" in
+@@ -5415,7 +5419,7 @@ case "$5" in
          #
          # Determine whether running in DOM0.
          #
@@ -190,7 +190,7 @@ index c4171a0..9c34e18 100755
  
          if [ -n "$VGX_BUILD" ]; then
              if [ -f /proc/xen/capabilities ]; then
-@@ -5366,7 +5370,7 @@ case "$5" in
+@@ -5437,7 +5441,7 @@ case "$5" in
          #
          # Determine whether we are running a vGPU on KVM host.
          #
@@ -199,7 +199,7 @@ index c4171a0..9c34e18 100755
          iommu=CONFIG_VFIO_IOMMU_TYPE1
          iommufd_vfio_container=CONFIG_IOMMUFD_VFIO_CONTAINER
          mdev=CONFIG_VFIO_MDEV
-@@ -5436,7 +5440,7 @@ case "$5" in
+@@ -5507,7 +5511,7 @@ case "$5" in
          #
          # Check to see if the given config option is set.
          #
@@ -208,7 +208,7 @@ index c4171a0..9c34e18 100755
  
          test_configuration_option $OPTION
          exit $?
-@@ -5446,7 +5450,7 @@ case "$5" in
+@@ -5517,7 +5521,7 @@ case "$5" in
          #
          # Get the value of the given config option.
          #
@@ -217,7 +217,7 @@ index c4171a0..9c34e18 100755
  
          get_configuration_option $OPTION
          exit $?
-@@ -5481,9 +5485,9 @@ case "$5" in
+@@ -5552,9 +5556,9 @@ case "$5" in
          # Check for the availability of the given kernel header
          #
  

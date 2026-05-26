@@ -3,11 +3,9 @@ SRC_REPO_NV_ETHERNETRM = "gitlab.com/nvidia/nv-tegra/kernel/nvethernetrm.git;pro
 SRC_REPO_UNIFIED_GPU_DISP = "gitlab.com/nvidia/nv-tegra/tegra/kernel-src/nv-unified-gpu-display-driver.git;protocol=https"
 SRC_REPO_NV_KERNEL_DISPLAY = "gitlab.com/nvidia/nv-tegra/tegra/kernel-src/nv-kernel-display-driver.git;protocol=https"
 SRC_REPO_HWPM = "gitlab.com/nvidia/nv-tegra/linux-hwpm.git;protocol=https"
-SRC_REPO_NVGPU = "gitlab.com/nvidia/nv-tegra/linux-nvgpu.git;protocol=https"
 SRC_REPO_T264_DTS = "gitlab.com/nvidia/nv-tegra/device/hardware/nvidia/t264-public-dts.git;protocol=https"
 SRC_REPO_T23X_DTS = "gitlab.com/nvidia/nv-tegra/device/hardware/nvidia/t23x-public-dts.git;protocol=https"
 SRC_REPO_TEGRA_DTS = "gitlab.com/nvidia/nv-tegra/device/hardware/nvidia/tegra-public-dts.git;protocol=https"
-SRC_REPO_KERNEL_DTS = "gitlab.com/nvidia/nv-tegra/linux/kernel-devicetree.git;protocol=https"
 
 SRC_URI = " \
     git://${SRC_REPO_NV_OOT};branch=${SRCBRANCH};name=nvidia-oot;destsuffix=${BPN}-${PV}/nvidia-oot \
@@ -18,20 +16,18 @@ SRC_URI = " \
     git://${SRC_REPO_T264_DTS};branch=${SRCBRANCH};name=t264-dts;destsuffix=${BPN}-${PV}/hardware/nvidia/t264/nv-public \
     git://${SRC_REPO_T23X_DTS};branch=${SRCBRANCH};name=t23x-dts;destsuffix=${BPN}-${PV}/hardware/nvidia/t23x/nv-public \
     git://${SRC_REPO_TEGRA_DTS};branch=${SRCBRANCH};name=tegra-dts;destsuffix=${BPN}-${PV}/hardware/nvidia/tegra/nv-public \
-    git://${SRC_REPO_KERNEL_DTS};branch=${SRCBRANCH};name=kernel-devicetree;destsuffix=${BPN}-${PV}/kernel-devicetree \
 "
 
-SRCBRANCH = "l4t/l4t-r38.4"
-# tag: jetson_38.4
-SRCREV_nvidia-oot = "33227347c89543042e0eda352db5de852983c8a3"
-SRCREV_nvethernetrm = "507a71fe0be3aabf638c52013a22f1afabda0c5a"
-SRCREV_unifiedgpudisp = "e75fa2f597f20ea36cae5d3de56174638643050a"
-SRCREV_nvdisplay = "5073a1b3d2bd014175bccc9f611ce53e550c3a25"
-SRCREV_hwpm = "d5799a7050d439a5be88bfb0349ffc3e60a3c9eb"
-SRCREV_t264-dts = "bd958e8c5965ea4831ddab7ea522b0b7e8717aea"
-SRCREV_t23x-dts = "21daec5a0cde295fb53506271a796cc2707d8c86"
-SRCREV_tegra-dts = "2101ccc1b1ef8267e63286332aed34891943c7c7"
-SRCREV_kernel-devicetree = "d488feae6501566a90743e45729608bc5f2586f9"
+SRCBRANCH = "l4t/l4t-r39.2"
+# tag: jetson_39.2_GA
+SRCREV_nvidia-oot = "100424630afc3e3d9561d8c4a0f6be6f9f1af7f7"
+SRCREV_nvethernetrm = "cf2ae53fdf4ee85333f3b3907d1337d6546db64f"
+SRCREV_unifiedgpudisp = "a662a636f19939ce9d11ac25a873fab8b2dedb36"
+SRCREV_nvdisplay = "c66bad7cc07f605a59a46cf7e6585433c88ad161"
+SRCREV_hwpm = "80b966b1bdc20f896cc9625a84708cbbe4638e38"
+SRCREV_t264-dts = "664a726551f62958a5a57b6538be01b9a62cd178"
+SRCREV_t23x-dts = "3897df11a86397704db8685071de46559cfb3c6e"
+SRCREV_tegra-dts = "d76c3a7751ea75592413b42c984eac7084a99592"
 
 SRCREV_FORMAT = "nvidia-oot_nvethernetrm_unifiedgpudisp_nvdisplay_hwpm_t264-dts_t23x-dts_tegra-dts_kernel-devicetree"
 
