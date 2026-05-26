@@ -2,8 +2,8 @@ CUDA_PKG = "${BPN}"
 
 require cuda-shared-binaries.inc
 
-MAINSUM = "ee1ebce1ffe6a0f15bd86576f6d2acf10032484f9469eada6ff5e6c9050b6ec6"
-MAINSUM:x86-64 = "ce319e81bfb19abd2a9c2ed1fa2d683e4a4936b598617c1460ca3463a24855c4"
+MAINSUM = "8e82231d4658514e8456238a574feb56ff8444392f64bf48baf50a676db4ec5b"
+MAINSUM:x86-64 = "282145657fc54291e4cc64a6153425b75a0326d53789b57395bf52f0ea6ae115"
 
 FILES:${PN} = "${prefix}/local/cuda-${CUDA_VERSION}"
 FILES:${PN}-dev = ""
