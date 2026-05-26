@@ -1,45 +1,66 @@
-From 865731c87a81e22a431257b36d69d3ae01002923 Mon Sep 17 00:00:00 2001
+From 66daf55d0a9f05690673ccfc53794f6c38bc663b Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Tue, 8 Jul 2025 09:38:43 +0100
+Date: Thu, 2 Apr 2026 09:37:43 -0700
 Subject: [PATCH] Updates for OE cross builds
 
 Upstream-Status: Inappropriate [oe-specific]
 
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
+ CMakeLists.txt                                |  8 --------
  Samples/0_Introduction/CMakeLists.txt         | 20 -------------------
- .../UnifiedMemoryStreams/CMakeLists.txt       | 18 +++++------------
- .../0_Introduction/asyncAPI/CMakeLists.txt    | 12 ++---------
- Samples/0_Introduction/clock/CMakeLists.txt   | 12 ++---------
- .../0_Introduction/cudaOpenMP/CMakeLists.txt  | 16 ++++-----------
- .../fp16ScalarProduct/CMakeLists.txt          | 11 ++--------
- .../0_Introduction/matrixMul/CMakeLists.txt   | 12 ++---------
- .../matrixMulDynlinkJIT/CMakeLists.txt        | 15 +++-----------
- .../simpleAssert/CMakeLists.txt               | 12 ++---------
- .../simpleAtomicIntrinsics/CMakeLists.txt     | 13 ++----------
- .../simpleAttributes/CMakeLists.txt           | 12 ++---------
- .../simpleCallback/CMakeLists.txt             | 12 ++---------
- .../simpleCubemapTexture/CMakeLists.txt       | 12 ++---------
- .../simpleLayeredTexture/CMakeLists.txt       | 12 ++---------
- .../simpleMultiCopy/CMakeLists.txt            | 12 ++---------
- .../simpleMultiGPU/CMakeLists.txt             | 12 ++---------
- .../simpleOccupancy/CMakeLists.txt            | 12 ++---------
- .../simplePitchLinearTexture/CMakeLists.txt   | 12 ++---------
- .../simplePrintf/CMakeLists.txt               | 12 ++---------
- .../simpleStreams/CMakeLists.txt              | 12 ++---------
- .../simpleSurfaceWrite/CMakeLists.txt         | 13 +++---------
- .../simpleTemplates/CMakeLists.txt            | 12 ++---------
- .../simpleTexture/CMakeLists.txt              | 13 +++---------
- .../simpleVoteIntrinsics/CMakeLists.txt       | 12 ++---------
- .../simpleZeroCopy/CMakeLists.txt             | 12 ++---------
- .../0_Introduction/vectorAdd/CMakeLists.txt   | 12 ++---------
+ .../UnifiedMemoryStreams/CMakeLists.txt       | 16 +++------------
+ .../0_Introduction/asyncAPI/CMakeLists.txt    | 10 ----------
+ Samples/0_Introduction/clock/CMakeLists.txt   | 10 ----------
+ .../0_Introduction/cudaOpenMP/CMakeLists.txt  | 14 ++-----------
+ .../fp16ScalarProduct/CMakeLists.txt          |  9 ---------
+ .../0_Introduction/matrixMul/CMakeLists.txt   | 10 ----------
+ .../matrixMulDynlinkJIT/CMakeLists.txt        | 17 ++--------------
+ .../simpleAssert/CMakeLists.txt               | 10 ----------
+ .../simpleAtomicIntrinsics/CMakeLists.txt     | 11 ----------
+ .../simpleAttributes/CMakeLists.txt           | 10 ----------
+ .../simpleCallback/CMakeLists.txt             | 10 ----------
+ .../simpleCubemapTexture/CMakeLists.txt       | 10 ----------
+ .../simpleLayeredTexture/CMakeLists.txt       | 10 ----------
+ .../simpleMultiCopy/CMakeLists.txt            | 10 ----------
+ .../simpleMultiGPU/CMakeLists.txt             | 10 ----------
+ .../simpleOccupancy/CMakeLists.txt            | 10 ----------
+ .../simplePitchLinearTexture/CMakeLists.txt   | 10 ----------
+ .../simplePrintf/CMakeLists.txt               | 10 ----------
+ .../simpleStreams/CMakeLists.txt              | 10 ----------
+ .../simpleSurfaceWrite/CMakeLists.txt         | 10 ----------
+ .../simpleTemplates/CMakeLists.txt            | 10 ----------
+ .../simpleTexture/CMakeLists.txt              | 10 ----------
+ .../simpleVoteIntrinsics/CMakeLists.txt       | 10 ----------
+ .../simpleZeroCopy/CMakeLists.txt             | 10 ----------
+ .../0_Introduction/vectorAdd/CMakeLists.txt   | 10 ----------
  Samples/1_Utilities/CMakeLists.txt            |  2 --
- .../1_Utilities/deviceQuery/CMakeLists.txt    | 14 +++----------
+ .../1_Utilities/deviceQuery/CMakeLists.txt    | 12 +----------
  Samples/6_Performance/CMakeLists.txt          |  4 ----
- .../UnifiedMemoryPerf/CMakeLists.txt          | 12 ++---------
+ .../UnifiedMemoryPerf/CMakeLists.txt          | 10 ----------
  Samples/CMakeLists.txt                        | 19 ------------------
- 31 files changed, 63 insertions(+), 323 deletions(-)
+ cmake/InstallSamples.cmake                    | 13 ++++++++++++
+ 33 files changed, 21 insertions(+), 334 deletions(-)
 
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 49d69f9c..585527de 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -12,14 +12,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
+ set(CMAKE_CUDA_STANDARD 17)
+ set(CMAKE_CUDA_STANDARD_REQUIRED ON)
+ 
+-set(CMAKE_CUDA_ARCHITECTURES 75 80 86 87 89 90 100 110 120)
+-set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Wno-deprecated-gpu-targets")
+-if(ENABLE_CUDA_DEBUG)
+-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -G")        # enable cuda-gdb (may significantly affect performance on some targets)
+-else()
+-    set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo") # add line information to all builds for debug tools (exclusive to -G option)
+-endif()
+-
+ set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --extended-lambda")
+ 
+ # Add MSVC-specific flags for standard-conforming preprocessor (required for CCCL)
 diff --git a/Samples/0_Introduction/CMakeLists.txt b/Samples/0_Introduction/CMakeLists.txt
 index 74534758..238a9b51 100644
 --- a/Samples/0_Introduction/CMakeLists.txt
@@ -92,7 +113,7 @@ index 74534758..238a9b51 100644
 -add_subdirectory(vectorAddMMAP)
 -add_subdirectory(vectorAdd_nvrtc)
 diff --git a/Samples/0_Introduction/UnifiedMemoryStreams/CMakeLists.txt b/Samples/0_Introduction/UnifiedMemoryStreams/CMakeLists.txt
-index d92baee3..b6b92d93 100644
+index b86e9cb1..532a6967 100644
 --- a/Samples/0_Introduction/UnifiedMemoryStreams/CMakeLists.txt
 +++ b/Samples/0_Introduction/UnifiedMemoryStreams/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -117,7 +138,7 @@ index d92baee3..b6b92d93 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -36,16 +26,18 @@ if(${OpenMP_FOUND})
+@@ -36,14 +26,14 @@ if(${OpenMP_FOUND})
      # Add target for UnifiedMemoryStreams
      add_executable(UnifiedMemoryStreams UnifiedMemoryStreams.cu)
  
@@ -134,13 +155,9 @@ index d92baee3..b6b92d93 100644
 +        cublas
          OpenMP::OpenMP_CXX
      )
-+
-+    install(TARGETS UnifiedMemoryStreams RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
  else()
-     message(STATUS "OpenMP not found - will not build sample 'UnifiedMemoryStreams'")
- endif()
 diff --git a/Samples/0_Introduction/asyncAPI/CMakeLists.txt b/Samples/0_Introduction/asyncAPI/CMakeLists.txt
-index 33d160df..c5b4afcb 100644
+index ec50945b..f575d3c7 100644
 --- a/Samples/0_Introduction/asyncAPI/CMakeLists.txt
 +++ b/Samples/0_Introduction/asyncAPI/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -165,14 +182,8 @@ index 33d160df..c5b4afcb 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(asyncAPI PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extended-la
- target_compile_features(asyncAPI PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(asyncAPI PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS asyncAPI RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/clock/CMakeLists.txt b/Samples/0_Introduction/clock/CMakeLists.txt
-index e274a40e..eec1ee59 100644
+index b9d71781..ecc28401 100644
 --- a/Samples/0_Introduction/clock/CMakeLists.txt
 +++ b/Samples/0_Introduction/clock/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -197,14 +208,8 @@ index e274a40e..eec1ee59 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(clock PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambd
- target_compile_features(clock PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(clock PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS clock RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/cudaOpenMP/CMakeLists.txt b/Samples/0_Introduction/cudaOpenMP/CMakeLists.txt
-index 97749d58..01260e8d 100644
+index 991936c1..5ecf6267 100644
 --- a/Samples/0_Introduction/cudaOpenMP/CMakeLists.txt
 +++ b/Samples/0_Introduction/cudaOpenMP/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -229,7 +234,7 @@ index 97749d58..01260e8d 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -26,14 +16,16 @@ if(OpenMP_CXX_FOUND)
+@@ -26,9 +16,9 @@ if(OpenMP_CXX_FOUND)
  # Add target for asyncAPI
      add_executable(cudaOpenMP cudaOpenMP.cu)
  
@@ -241,15 +246,8 @@ index 97749d58..01260e8d 100644
  
      set_target_properties(cudaOpenMP PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
      target_link_libraries(cudaOpenMP PUBLIC
-         OpenMP::OpenMP_CXX
-     )
-+
-+    install(TARGETS cudaOpenMP RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
- else()
-     message(STATUS "OpenMP not found - will not build sample 'cudaOpenMP'")
- endif()
 diff --git a/Samples/0_Introduction/fp16ScalarProduct/CMakeLists.txt b/Samples/0_Introduction/fp16ScalarProduct/CMakeLists.txt
-index 0906205c..f9334cd5 100644
+index 3f2a3d34..1b43a61b 100644
 --- a/Samples/0_Introduction/fp16ScalarProduct/CMakeLists.txt
 +++ b/Samples/0_Introduction/fp16ScalarProduct/CMakeLists.txt
 @@ -1,20 +1,11 @@
@@ -273,14 +271,8 @@ index 0906205c..f9334cd5 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -27,3 +18,5 @@ target_compile_options(fp16ScalarProduct PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--ex
- target_compile_features(fp16ScalarProduct PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(fp16ScalarProduct PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS fp16ScalarProduct RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/matrixMul/CMakeLists.txt b/Samples/0_Introduction/matrixMul/CMakeLists.txt
-index 004967e2..424b1a3e 100644
+index 9293df3f..9a3159b9 100644
 --- a/Samples/0_Introduction/matrixMul/CMakeLists.txt
 +++ b/Samples/0_Introduction/matrixMul/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -305,14 +297,8 @@ index 004967e2..424b1a3e 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(matrixMul PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extended-l
- target_compile_features(matrixMul PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(matrixMul PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS matrixMul RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/matrixMulDynlinkJIT/CMakeLists.txt b/Samples/0_Introduction/matrixMulDynlinkJIT/CMakeLists.txt
-index 3058893e..6eb45cce 100644
+index 6cd324cd..6eb45cce 100644
 --- a/Samples/0_Introduction/matrixMulDynlinkJIT/CMakeLists.txt
 +++ b/Samples/0_Introduction/matrixMulDynlinkJIT/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -337,7 +323,7 @@ index 3058893e..6eb45cce 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -38,10 +28,11 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
+@@ -38,14 +28,11 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clan
  endif()
  
  target_link_libraries(matrixMulDynlinkJIT PUBLIC
@@ -349,10 +335,13 @@ index 3058893e..6eb45cce 100644
  if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
      target_link_libraries(matrixMulDynlinkJIT PUBLIC dl)
  endif()
-+
+ 
+-# Include installation configuration
+-include(${CMAKE_CURRENT_SOURCE_DIR}/../../../cmake/InstallSamples.cmake)
+-setup_samples_install()
 +install(TARGETS matrixMulDynlinkJIT RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleAssert/CMakeLists.txt b/Samples/0_Introduction/simpleAssert/CMakeLists.txt
-index 87d328c4..78118a59 100644
+index ab0406c8..72d3ccc3 100644
 --- a/Samples/0_Introduction/simpleAssert/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleAssert/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -377,14 +366,8 @@ index 87d328c4..78118a59 100644
  # Removes -DNDEBUG For Print specific logs in this sample.
  string(REPLACE "-DNDEBUG" "" CMAKE_CUDA_FLAGS_RELEASE "${CMAKE_CUDA_FLAGS_RELEASE}")
  
-@@ -31,3 +21,5 @@ target_compile_options(simpleAssert PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extende
- target_compile_features(simpleAssert PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleAssert PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleAssert RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleAtomicIntrinsics/CMakeLists.txt b/Samples/0_Introduction/simpleAtomicIntrinsics/CMakeLists.txt
-index 4203a937..ee309883 100644
+index 7ec8e447..b7c0677f 100644
 --- a/Samples/0_Introduction/simpleAtomicIntrinsics/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleAtomicIntrinsics/CMakeLists.txt
 @@ -1,22 +1,11 @@
@@ -410,14 +393,8 @@ index 4203a937..ee309883 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -29,3 +18,5 @@ target_compile_options(simpleAtomicIntrinsics PRIVATE $<$<COMPILE_LANGUAGE:CUDA>
- target_compile_features(simpleAtomicIntrinsics PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleAtomicIntrinsics PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleAtomicIntrinsics RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleAttributes/CMakeLists.txt b/Samples/0_Introduction/simpleAttributes/CMakeLists.txt
-index 389fdfc8..27f2a952 100644
+index d481f57b..4d56150a 100644
 --- a/Samples/0_Introduction/simpleAttributes/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleAttributes/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -442,14 +419,8 @@ index 389fdfc8..27f2a952 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleAttributes PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--ext
- target_compile_features(simpleAttributes PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleAttributes PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleAttributes RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleCallback/CMakeLists.txt b/Samples/0_Introduction/simpleCallback/CMakeLists.txt
-index 1c907a6d..3fe273d9 100644
+index 8c19b28f..8d7d8e47 100644
 --- a/Samples/0_Introduction/simpleCallback/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleCallback/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -474,14 +445,8 @@ index 1c907a6d..3fe273d9 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleCallback PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--exten
- target_compile_features(simpleCallback PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleCallback PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleCallback RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleCubemapTexture/CMakeLists.txt b/Samples/0_Introduction/simpleCubemapTexture/CMakeLists.txt
-index 75e90782..05618b0f 100644
+index 2ec278b2..1275246c 100644
 --- a/Samples/0_Introduction/simpleCubemapTexture/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleCubemapTexture/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -506,14 +471,8 @@ index 75e90782..05618b0f 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleCubemapTexture PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-
- target_compile_features(simpleCubemapTexture PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleCubemapTexture PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleCubemapTexture RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleLayeredTexture/CMakeLists.txt b/Samples/0_Introduction/simpleLayeredTexture/CMakeLists.txt
-index a60a9d27..ab5f4765 100644
+index 86ad2817..2d868ba4 100644
 --- a/Samples/0_Introduction/simpleLayeredTexture/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleLayeredTexture/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -538,14 +497,8 @@ index a60a9d27..ab5f4765 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleLayeredTexture PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-
- target_compile_features(simpleLayeredTexture PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleLayeredTexture PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleLayeredTexture RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleMultiCopy/CMakeLists.txt b/Samples/0_Introduction/simpleMultiCopy/CMakeLists.txt
-index 0e922b68..04354879 100644
+index 1e2d809e..675ce872 100644
 --- a/Samples/0_Introduction/simpleMultiCopy/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleMultiCopy/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -570,14 +523,8 @@ index 0e922b68..04354879 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleMultiCopy PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--exte
- target_compile_features(simpleMultiCopy PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleMultiCopy PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleMultiCopy RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleMultiGPU/CMakeLists.txt b/Samples/0_Introduction/simpleMultiGPU/CMakeLists.txt
-index 81ed2c4e..1b3580c8 100644
+index e88e0c29..3915eeb2 100644
 --- a/Samples/0_Introduction/simpleMultiGPU/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleMultiGPU/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -602,14 +549,8 @@ index 81ed2c4e..1b3580c8 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleMultiGPU PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--exten
- target_compile_features(simpleMultiGPU PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleMultiGPU PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleMultiGPU RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleOccupancy/CMakeLists.txt b/Samples/0_Introduction/simpleOccupancy/CMakeLists.txt
-index c5081c68..c1ee5e79 100644
+index fbd4ec77..9065281c 100644
 --- a/Samples/0_Introduction/simpleOccupancy/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleOccupancy/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -634,14 +575,8 @@ index c5081c68..c1ee5e79 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleOccupancy PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--exte
- target_compile_features(simpleOccupancy PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleOccupancy PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleOccupancy RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simplePitchLinearTexture/CMakeLists.txt b/Samples/0_Introduction/simplePitchLinearTexture/CMakeLists.txt
-index 3aaee214..198dcb33 100644
+index 7a72745c..b041b492 100644
 --- a/Samples/0_Introduction/simplePitchLinearTexture/CMakeLists.txt
 +++ b/Samples/0_Introduction/simplePitchLinearTexture/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -666,14 +601,8 @@ index 3aaee214..198dcb33 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simplePitchLinearTexture PRIVATE $<$<COMPILE_LANGUAGE:CUD
- target_compile_features(simplePitchLinearTexture PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simplePitchLinearTexture PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simplePitchLinearTexture RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simplePrintf/CMakeLists.txt b/Samples/0_Introduction/simplePrintf/CMakeLists.txt
-index d3cdb2d9..7aeaa4d8 100644
+index 8f9ca7d7..56e1db2f 100644
 --- a/Samples/0_Introduction/simplePrintf/CMakeLists.txt
 +++ b/Samples/0_Introduction/simplePrintf/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -698,14 +627,8 @@ index d3cdb2d9..7aeaa4d8 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simplePrintf PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extende
- target_compile_features(simplePrintf PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simplePrintf PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simplePrintf RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleStreams/CMakeLists.txt b/Samples/0_Introduction/simpleStreams/CMakeLists.txt
-index 2c9723b3..410fac1f 100644
+index 8e4be29e..3c16868e 100644
 --- a/Samples/0_Introduction/simpleStreams/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleStreams/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -730,14 +653,8 @@ index 2c9723b3..410fac1f 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleStreams PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extend
- target_compile_features(simpleStreams PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleStreams PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleStreams RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleSurfaceWrite/CMakeLists.txt b/Samples/0_Introduction/simpleSurfaceWrite/CMakeLists.txt
-index f48cbd2a..03e5ab3f 100644
+index f7c5d5fc..e3938561 100644
 --- a/Samples/0_Introduction/simpleSurfaceWrite/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleSurfaceWrite/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -762,15 +679,8 @@ index f48cbd2a..03e5ab3f 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -35,3 +25,6 @@ add_custom_command(TARGET simpleSurfaceWrite POST_BUILD
-     ${CMAKE_CURRENT_SOURCE_DIR}/data
-     ${CMAKE_CURRENT_BINARY_DIR}
- )
-+
-+install(TARGETS simpleSurfaceWrite RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
-+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ref_rotated.pgm ${CMAKE_CURRENT_BINARY_DIR}/teapot512.pgm DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleTemplates/CMakeLists.txt b/Samples/0_Introduction/simpleTemplates/CMakeLists.txt
-index 939ba37d..c32b9eb2 100644
+index e4ae61e1..84eebc98 100644
 --- a/Samples/0_Introduction/simpleTemplates/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleTemplates/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -795,14 +705,8 @@ index 939ba37d..c32b9eb2 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleTemplates PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--exte
- target_compile_features(simpleTemplates PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleTemplates PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleTemplates RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleTexture/CMakeLists.txt b/Samples/0_Introduction/simpleTexture/CMakeLists.txt
-index 8522dbb4..5de6bc07 100644
+index d6a37b65..5379d7e7 100644
 --- a/Samples/0_Introduction/simpleTexture/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleTexture/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -827,15 +731,8 @@ index 8522dbb4..5de6bc07 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -42,3 +32,6 @@ add_custom_command(TARGET simpleTexture POST_BUILD
-     ${CMAKE_CURRENT_SOURCE_DIR}/data/ref_rotated.pgm
-     ${CMAKE_CURRENT_BINARY_DIR}/
- )
-+
-+install(TARGETS simpleTexture RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
-+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/ref_rotated.pgm ${CMAKE_CURRENT_BINARY_DIR}/teapot512.pgm DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleVoteIntrinsics/CMakeLists.txt b/Samples/0_Introduction/simpleVoteIntrinsics/CMakeLists.txt
-index c999b003..736eecb2 100644
+index 11fa110f..0798f019 100644
 --- a/Samples/0_Introduction/simpleVoteIntrinsics/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleVoteIntrinsics/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -860,14 +757,8 @@ index c999b003..736eecb2 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleVoteIntrinsics PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-
- target_compile_features(simpleVoteIntrinsics PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleVoteIntrinsics PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleVoteIntrinsics RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/simpleZeroCopy/CMakeLists.txt b/Samples/0_Introduction/simpleZeroCopy/CMakeLists.txt
-index c20b3c98..8bd429d7 100644
+index 536271db..a77d183f 100644
 --- a/Samples/0_Introduction/simpleZeroCopy/CMakeLists.txt
 +++ b/Samples/0_Introduction/simpleZeroCopy/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -892,14 +783,8 @@ index c20b3c98..8bd429d7 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(simpleZeroCopy PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--exten
- target_compile_features(simpleZeroCopy PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(simpleZeroCopy PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS simpleZeroCopy RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/0_Introduction/vectorAdd/CMakeLists.txt b/Samples/0_Introduction/vectorAdd/CMakeLists.txt
-index e1f4c2e1..09879840 100644
+index b3f03225..cd83df3b 100644
 --- a/Samples/0_Introduction/vectorAdd/CMakeLists.txt
 +++ b/Samples/0_Introduction/vectorAdd/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -924,12 +809,6 @@ index e1f4c2e1..09879840 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -28,3 +18,5 @@ target_compile_options(vectorAdd PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--extended-l
- target_compile_features(vectorAdd PRIVATE cxx_std_17 cuda_std_17)
- 
- set_target_properties(vectorAdd PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-+
-+install(TARGETS vectorAdd RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/1_Utilities/CMakeLists.txt b/Samples/1_Utilities/CMakeLists.txt
 index 1f3f481b..939d8efc 100644
 --- a/Samples/1_Utilities/CMakeLists.txt
@@ -939,7 +818,7 @@ index 1f3f481b..939d8efc 100644
 -add_subdirectory(deviceQueryDrv)
 -add_subdirectory(topologyQuery)
 diff --git a/Samples/1_Utilities/deviceQuery/CMakeLists.txt b/Samples/1_Utilities/deviceQuery/CMakeLists.txt
-index eed2acd4..0a9b7b1f 100644
+index 110d95cd..bac0ead7 100644
 --- a/Samples/1_Utilities/deviceQuery/CMakeLists.txt
 +++ b/Samples/1_Utilities/deviceQuery/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -964,15 +843,15 @@ index eed2acd4..0a9b7b1f 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -34,5 +24,7 @@ target_include_directories(deviceQuery PRIVATE
+@@ -34,7 +24,7 @@ target_include_directories(deviceQuery PRIVATE
  )
  
  target_link_libraries(deviceQuery PUBLIC
 -    CUDA::cudart
 +    cudart
  )
-+
-+install(TARGETS deviceQuery RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
+ 
+ # Include installation configuration
 diff --git a/Samples/6_Performance/CMakeLists.txt b/Samples/6_Performance/CMakeLists.txt
 index ac54e19a..abf7ce68 100644
 --- a/Samples/6_Performance/CMakeLists.txt
@@ -984,7 +863,7 @@ index ac54e19a..abf7ce68 100644
 -add_subdirectory(cudaGraphsPerfScaling)
 -add_subdirectory(transpose)
 diff --git a/Samples/6_Performance/UnifiedMemoryPerf/CMakeLists.txt b/Samples/6_Performance/UnifiedMemoryPerf/CMakeLists.txt
-index fc242dd3..f223c1fc 100644
+index 9ebabf27..bcd1d002 100644
 --- a/Samples/6_Performance/UnifiedMemoryPerf/CMakeLists.txt
 +++ b/Samples/6_Performance/UnifiedMemoryPerf/CMakeLists.txt
 @@ -1,21 +1,11 @@
@@ -1009,12 +888,6 @@ index fc242dd3..f223c1fc 100644
  # Include directories and libraries
  include_directories(../../../Common)
  
-@@ -32,3 +22,5 @@ set_target_properties(UnifiedMemoryPerf PROPERTIES CUDA_SEPARABLE_COMPILATION ON
- target_include_directories(UnifiedMemoryPerf PRIVATE
-     ${CUDAToolkit_INCLUDE_DIRS}
- )
-+
-+install(TARGETS UnifiedMemoryPerf RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
 diff --git a/Samples/CMakeLists.txt b/Samples/CMakeLists.txt
 index 3f7a8f3c..f728b737 100644
 --- a/Samples/CMakeLists.txt
@@ -1045,6 +918,30 @@ index 3f7a8f3c..f728b737 100644
 -    set(CMAKE_FOLDER "8_Platform_Specific/Tegra")
 -    add_subdirectory(8_Platform_Specific/Tegra)
 -endif()
+diff --git a/cmake/InstallSamples.cmake b/cmake/InstallSamples.cmake
+index 667bc077..c01c8493 100644
+--- a/cmake/InstallSamples.cmake
++++ b/cmake/InstallSamples.cmake
+@@ -112,6 +112,19 @@ endif()
+ # Function to setup installation for regular samples
+ # This should be called after all targets are defined
+ function(setup_samples_install)
++    # OE cross-build path: CMAKE_INSTALL_CUDA_SAMPLES is set by the OE recipe.
++    # Use standard install(TARGETS) so OE's do_install controls the destination.
++    if(DEFINED CMAKE_INSTALL_CUDA_SAMPLES)
++        get_directory_property(_targets BUILDSYSTEM_TARGETS)
++        foreach(_t IN LISTS _targets)
++            get_target_property(_type ${_t} TYPE)
++            if(_type STREQUAL "EXECUTABLE")
++                install(TARGETS ${_t} RUNTIME DESTINATION ${CMAKE_INSTALL_CUDA_SAMPLES})
++            endif()
++        endforeach()
++        return()
++    endif()
++
+     # Create an install script that copies executables, data files, and shared libraries
+     # This script only installs - build must be done separately
+     install(CODE "
 -- 
-2.34.1
+2.43.0
 

@@ -4,7 +4,7 @@ CUDA_INSTALL_ARCH:class-native = "${HOST_ARCH}"
 
 require cuda-shared-binaries.inc
 
-MAINSUM = "bc652397c7e20680d74fed7d13be7e21b2cf4bc9bf936aa035607cf6e1d381d9"
-MAINSUM:x86-64 = "ebb9c0940b103cb7ce6510d698ee5c0d423b3196137f60aab2a09c046a6a1caa"
+MAINSUM = "ac9bd1be3cc437838f18747159be70b3ba85b69b6b93577ca3fe03e9e6132ad2"
+MAINSUM:x86-64 = "581cc6c25121538fba179609cd1a05d6c1affaba76894f4db0114cb1880c14c4"
 
 BBCLASSEXTEND = "native nativesdk"
