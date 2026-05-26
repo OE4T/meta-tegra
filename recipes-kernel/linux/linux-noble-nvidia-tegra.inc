@@ -17,34 +17,21 @@ SHRT_VER = "${@d.getVar('PV').split('.')[0]}.${@d.getVar('PV').split('.')[1]}"
 FILESEXTRAPATHS:prepend := "${THISDIR}/linux-noble-nvidia-tegra-${SHRT_VER}:"
 
 TEGRA_LINUX_VERSION_EXTENSION ?= ""
-LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}-1009.9${TEGRA_LINUX_VERSION_EXTENSION}"
+LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}-1021.21${TEGRA_LINUX_VERSION_EXTENSION}"
 SCMVERSION ??= "y"
 
-SRCBRANCH = "l4t/l4t-r38.4-Ubuntu-nvidia-tegra-pvw-6.8.0-1009.9"
-SRCREV = "ad9393b41b82eafd8fd39e5d3d160c754d4249e5"
+SRCBRANCH = "l4t/l4t-r39.2-Ubuntu-nvidia-tegra-6.8.0-1021.21"
+SRCREV = "78272943bba3a47e633b28963b0cda60de503500"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "gitlab.com/nvidia/nv-tegra/3rdparty/canonical/linux-noble.git;protocol=https"
 KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
-    file://0001-tty-vt-conmakehash-remove-non-portable-code-printing.patch \
-    file://0002-perf-build-Setup-PKG_CONFIG_LIBDIR-for-cross-compila.patch \
-    file://0003-perf-metricgroup-Constify-variables-storing-the-resu.patch \
-    file://0004-perf-strlist-Don-t-write-to-const-memory.patch \
-    file://0005-perf-session-Don-t-write-to-memory-pointed-to-a-cons.patch \
-    file://0006-perf-trace-event-Constify-variables-storing-the-resu.patch \
-    file://0007-perf-units-Constify-variables-storing-the-result-of-.patch \
-    file://0008-perf-time-utils-Constify-variables-storing-the-resul.patch \
-    file://0009-perf-demangle-java-Constify-variables-storing-the-re.patch \
-    file://0010-perf-bpf-event-Constify-variables-storing-the-result.patch \
-    file://0011-perf-jitdump-Constify-variables-storing-the-result-o.patch \
-    file://0012-perf-tools-Use-const-for-variables-receiving-str-str.patch \
-    file://0013-perf-python-Stop-using-deprecated-PyUnicode_AsString.patch \
-    file://0014-perf-units-Fix-insufficient-array-space.patch \
-    file://0015-libbpf-Fix-Wdiscarded-qualifiers-under-C23.patch \
+    file://0001-libbpf-Fix-Wdiscarded-qualifiers-under-C23.patch \
     ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
     ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
     file://disable-module-signing.cfg \
+    file://tegra-ip-nf.cfg \
 "
 
 KBUILD_DEFCONFIG = "defconfig"

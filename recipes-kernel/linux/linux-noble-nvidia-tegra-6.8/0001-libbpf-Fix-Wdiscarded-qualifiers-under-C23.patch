@@ -1,6 +1,6 @@
-From c60ecbdbf333aef5f5dc387c4bafe5f9968faffe Mon Sep 17 00:00:00 2001
-From: Mikhail Gavrilov <mikhail.v.gavrilov@gmail.com>
-Date: Sat, 6 Dec 2025 14:28:25 +0500
+From 99720f8e40c47abaaeefd6917864493960696969 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Tue, 14 Apr 2026 09:00:47 -0700
 Subject: [PATCH] libbpf: Fix -Wdiscarded-qualifiers under C23
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -26,10 +26,10 @@ Signed-off-by: Alexei Starovoitov <ast@kernel.org>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/tools/lib/bpf/libbpf.c b/tools/lib/bpf/libbpf.c
-index 554e93189c7c..9092d396f147 100644
+index 09cd58ccc..1f298cc2c 100644
 --- a/tools/lib/bpf/libbpf.c
 +++ b/tools/lib/bpf/libbpf.c
-@@ -11811,7 +11811,7 @@ static int resolve_full_path(const char *file, char *result, size_t result_sz)
+@@ -11813,7 +11813,7 @@ static int resolve_full_path(const char *file, char *result, size_t result_sz)
  		if (!search_paths[i])
  			continue;
  		for (s = search_paths[i]; s != NULL; s = strchr(s, ':')) {
@@ -38,3 +38,6 @@ index 554e93189c7c..9092d396f147 100644
  			int seg_len;
  
  			if (s[0] == ':')
+-- 
+2.43.0
+
