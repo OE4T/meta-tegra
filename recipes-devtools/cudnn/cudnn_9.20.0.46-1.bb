@@ -16,10 +16,11 @@ SRC_COMMON_DEBS = "\
     libcudnn9-headers-cuda-13_${PV}_arm64.deb;name=hdr;subdir=cudnn \
 "
 
-SRC_URI[lib.sha256sum] = "04a793a6e206b153578851f25d7dcb923a17d19e166fb1acb4e4b2f47e7a6516"
-SRC_URI[staticlib.sha256sum] = "f928d0f40c641c251e6f0397d007fa39d82653da04b65efef9df0a5c45b5f945"
-SRC_URI[dev.sha256sum] = "854b889fee8135209acdb076c5feffd8170e9d6c330e5f6d3c19005d7a555917"
-SRC_URI[hdr.sha256sum] = "4f8f12616437d16629769ca899524dfa3057d40c6044c2e8b44078d37be7e467"
+SRC_URI[lib.sha256sum] = "bfe23748fd6bc02745a242ab40cdd071b2a26c1ce304e37461a1b19c3bb71c8c"
+SRC_URI[staticlib.sha256sum] = "bef7ac524c3d35899116717fe18d5156093db738c4bc9a5c3a7ac1115f0f850d"
+SRC_URI[dev.sha256sum] = "f3840f4b46ab947a144afec4c30e5dee5f1765718947a99146a6ba9dbae16a1b"
+SRC_URI[hdr.sha256sum] = "b6b98a0f03da624a58edb5107c0103aed6b856d78fc7b6ec6b1b59701212a929"
+
 COMPATIBLE_MACHINE = "(tegra)"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
 
