@@ -49,5 +49,7 @@ RRECOMMENDS:${PN} = "kernel-module-loop \
                      kernel-module-libcomposite \
                      kernel-module-usb-f-fs \
                      kernel-module-tegra-xudc \
-		     kernel-module-mods \
+                     kernel-module-mods \
+                     kernel-module-ipv6 \
+                     kernel-module-dwmac-tegra \
 "
