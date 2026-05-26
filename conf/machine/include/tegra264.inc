@@ -72,6 +72,6 @@ TEGRA_BOOT_FIRMWARE_FILES = "\
 "
 
 PREFERRED_PROVIDER_hafnium ?= "hafnium"
-PREFERRED_VERSION_hafnium ?= "2.9-l4t%"
+PREFERRED_VERSION_hafnium ?= "2.11-l4t%"
 
 TEGRA_EDK2_PLATFORM = "t26x"
