@@ -14,18 +14,10 @@ COMPATIBLE_MACHINE = "(tegra)"
 B = "${S}"
 
 COMMON_PATCHES = "\
-    file://0001-Makefile-update-for-OE-builds.patch \
-    file://0002-Fix-build-warning-on-rtl8852ce-driver.patch;patchdir=nvidia-oot \
-    file://0003-conftest-work-around-stringify-issue-with-__assign_s.patch;patchdir=nvidia-oot \
-    file://0004-tegra_virt_storage-fix-build-error-for-Linux-v6.18.patch;patchdir=nvidia-oot \
-    file://0005-ASoC-tegra-virt-alt-fix-build-error-with-Linux-v6.18.patch;patchdir=nvidia-oot \
-    file://0006-ASoC-Fix-compression-build-failures-with-Linux-v6.18.patch;patchdir=nvidia-oot \
-    file://0007-bluetooth-fix-build-issues-with-Linux-v6.18.patch;patchdir=nvidia-oot \
-    file://0008-Fix-unifiedgpudisp-modules-builds.patch;patchdir=unifiedgpudisp \
-    file://0009-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch;patchdir=unifiedgpudisp \
-    file://0010-Fix-pfn_t-references-for-Linux-6.17-compatibility.patch;patchdir=unifiedgpudisp \
-    file://0011-Fix-drm-fb-builds-for-Linux-6.17.patch;patchdir=unifiedgpudisp \
-    file://0012-tegra264-ufs-provision-update-for-build-reproducibil.patch;patchdir=hardware/nvidia/t264/nv-public \
+    file://0001-conftest-work-around-stringify-issue-with-__assign_s.patch;patchdir=nvidia-oot \
+    file://0002-bluetooth-fix-build-issues-with-Linux-v6.18.patch;patchdir=nvidia-oot \
+    file://0003-Fix-unifiedgpudisp-modules-builds.patch;patchdir=unifiedgpudisp \
+    file://0004-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch;patchdir=unifiedgpudisp \
 "
 
 EXTRA_PATCHES ??= ""
@@ -65,20 +57,29 @@ TEGRA_OOT_REPLACEMENT_DRIVERS = "\
 "
 
 EXTRA_OEMAKE += '\
-    IGNORE_PREEMPT_RT_PRESENCE=1 KERNEL_PATH="${STAGING_KERNEL_BUILDDIR}" \
+    OE_BUILD=1 \
+    IGNORE_PREEMPT_RT_PRESENCE=1 KERNEL_HEADERS="${STAGING_KERNEL_DIR}" KERNEL_OUTPUT="${STAGING_KERNEL_BUILDDIR}" \
     CC="${KERNEL_CC} -std=gnu17 -Wno-error=header-guard" CXX="${KERNEL_CC} -x c++" LD="${KERNEL_LD}" AR="${KERNEL_AR}" \
-    OBJCOPY="${KERNEL_OBJCOPY}" OPENRM=1 kernel_name="oot" \
+    OBJCOPY="${KERNEL_OBJCOPY}" kernel_name="oot" \
 '
 
-do_compile() {
+do_compile:tegra264() {
     unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
-    oe_runmake modules
+    oe_runmake modules NVIDIA_DISPLAY_MODULE_INSTALL_TARGETS=nvidia-gpu-display
+}
+
+do_compile:tegra234() {
+    unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
+    oe_runmake modules NVIDIA_DISPLAY_MODULE_INSTALL_TARGETS=nvidia-display
+}
+
+do_compile:append() {
     oe_runmake dtbs
 }
 
 do_sign_dtbs() {
     for dtbf in ${KERNEL_DEVICETREE}; do
-        local dtb="${B}/kernel-devicetree/generic-dts/dtbs/${dtbf}"
+        local dtb="${B}/build/nvidia-public/devicetree/generic-dtbs/${dtbf}"
         if [ -e "$dtb" ]; then
             tegra_uefi_attach_sign "$dtb"
         fi
@@ -94,7 +95,7 @@ do_install() {
     unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
     oe_runmake MODLIB="${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}" modules_install
     install -d ${D}/boot/devicetree
-    install -m 0644 ${B}/kernel-devicetree/generic-dts/dtbs/* ${D}/boot/devicetree/
+    install -m 0644 ${B}/build/nvidia-public/devicetree/generic-dtbs/* ${D}/boot/devicetree/
     install -d ${D}${includedir}/${BPN}
     ln -s ${BPN} ${D}${includedir}/kernel-module-${BPN}
     find ${B} -name Module.symvers -type f | xargs sed -e's:${B}/::g' >${D}${includedir}/${BPN}/Module.symvers
@@ -147,8 +148,10 @@ TEGRA_OOT_DISPLAY_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvidia-modeset \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-dce \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-drm \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvidia-uvm \
     ${TEGRA_OOT_EXTRA_DISPLAY_DRIVERS} \
+"
+TEGRA_OOT_DISPLAY_DRIVERS:append:tegra264 = "\
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvidia-uvm \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_DISPLAY_DRIVERS}"
 TEGRA_OOT_EXTRA_CAMERA_DRIVERS ??= ""
@@ -308,6 +311,10 @@ TEGRA_OOT_BASE_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-bpmp-bwmgr \
     ${TEGRA_OOT_EXTRA_BASE_DRIVERS} \
 "
+TEGRA_OOT_BASE_DRIVERS:append:tegra234 = "\
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvgpu \
+"
+
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_BASE_DRIVERS}"
 TEGRA_OOT_EXTRA_OTHER_DRIVERS ??= ""
 TEGRA_OOT_OTHER_DRIVERS ?= "\
@@ -365,6 +372,11 @@ TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-comm \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-max96712-tpg \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-max96726-tpg \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-oops-nvlog \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-sysfs-sample-server \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-net \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvtzvault-soc-comms \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nv-vsock-transport \
     ${TEGRA_OOT_EXTRA_OTHER_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_OTHER_DRIVERS}"
