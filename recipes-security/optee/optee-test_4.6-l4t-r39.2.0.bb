@@ -9,6 +9,8 @@ require optee-l4t.inc
 
 TEGRA_SRC_SUBARCHIVE_OPTS = "--strip-components=1 optee/optee_test"
 
+SRC_URI:append = " file://0001-xtest-Fix-GCC-15-build-errors.patch"
+
 DEPENDS += "optee-os-tadevkit optee-client openssl"
 
 S = "${UNPACKDIR}/optee_test"
