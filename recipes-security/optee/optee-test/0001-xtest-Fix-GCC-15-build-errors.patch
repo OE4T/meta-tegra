@@ -1,0 +1,52 @@
+From cad90e48aa3711c98cd2bc25a3e3cb8ed15d5bd7 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Tue, 17 Mar 2026 08:47:47 -0700
+Subject: [PATCH] xtest: Fix GCC 15 build errors
+
+Upstream-Status: Inappropriate [OE-Specific]
+
+Signed-off-by: Mark Zhang <markz@nvidia.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ optee_test/host/xtest/regression_4000.c      | 2 +-
+ optee_test/host/xtest/regression_4000_data.h | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/host/xtest/regression_4000.c b/host/xtest/regression_4000.c
+index b43a30f..014e915 100644
+--- a/host/xtest/regression_4000.c
++++ b/host/xtest/regression_4000.c
+@@ -1292,7 +1292,7 @@ static const uint8_t hash_data_shake256_out2[] = {
+  * https://tools.ietf.org/html/draft-sca-cfrg-sm3-02
+  * Appendix A.1
+  */
+-static const uint8_t hash_data_sm3_a1_in[3] = "abc";
++static const uint8_t hash_data_sm3_a1_in[3] __attribute__((nonstring)) = "abc";
+ 
+ static const uint8_t hash_data_sm3_a1_out[] = {
+ 	0x66, 0xc7, 0xf0, 0xf4, 0x62, 0xee, 0xed, 0xd9,
+diff --git a/optee_test/host/xtest/regression_4000_data.h b/optee_test/host/xtest/regression_4000_data.h
+index fac7f25..0526e0f 100644
+--- a/host/xtest/regression_4000_data.h
++++ b/host/xtest/regression_4000_data.h
+@@ -7914,7 +7914,7 @@ static struct derive_key_ecdh_t {
+ };
+ 
+ /* G/MT 0003 (SM2) Part 5 Annex C.2 - encryption/decryption */
+-static const uint8_t gmt_0003_part5_c2_sm2_testvector_ptx[19] =
++static const uint8_t gmt_0003_part5_c2_sm2_testvector_ptx[19] __attribute__((nonstring)) =
+ /* M */
+ 	"encryption standard";
+ static const uint8_t gmt_0003_part5_c2_sm2_testvector_private[] = {
+@@ -8383,7 +8383,7 @@ static const uint8_t mac_data_sha3_512_out1[] = {
+  * GM/T 0042-2015
+  * Section D.3 Test vector 1
+  */
+-static const uint8_t mac_data_sm3_d31_in[112] =
++static const uint8_t mac_data_sm3_d31_in[112] __attribute__((nonstring)) =
+ 	"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomn"
+ 	"opnopqabcdbcdecdefdefgefghfghighijhijkijkljklmklmn"
+ 	"lmnomnopnopq";
+-- 
+2.43.0
+

@@ -11,7 +11,6 @@ Upstream-Status: Inappropriate [OE-Specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
-Signed-off-by: dolwup <dol@wup.sh>
 ---
  Makefile                    |  4 ----
  cpubl-payload-dec/Makefile  |  2 --
@@ -298,19 +297,6 @@ index c9a2dcc..7b72181 100644
  clean:
 -	rm -f $(OBJS) $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin/$(BINARY)
 +	rm -f $(OBJS) $(O)/$(BINARY)
-diff --git a/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta/fTPM/Makefile b/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta/fTPM/Makefile
-index b49ca9b..1c84ae0 100644
---- a/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta/fTPM/Makefile
-+++ b/ms-tpm-20-ref/Samples/ARM32-FirmwareTPM/optee_ta/fTPM/Makefile
-@@ -14,6 +14,8 @@ cflags-y +=	-DTHIRTY_TWO_BIT	\
- 		-D_ARM_			\
- 		-w			\
- 		-Wno-strict-prototypes	\
-+		-Wno-error=implicit-function-declaration \
-+		-Wno-error=incompatible-pointer-types \
- 		-mcpu=$(TA_CPU)		\
- 		-Wstack-protector
- 
 diff --git a/pkcs11-sample/Makefile b/pkcs11-sample/Makefile
 index e58838c..82b7216 100644
 --- a/pkcs11-sample/Makefile
@@ -378,3 +364,6 @@ index 6212e02..69d2aca 100644
  clean:
 -	rm -f $(OBJS) $(O)/$(BINARY) $(OPTEE_CLIENT_EXPORT)/sbin/$(BINARY)
 +	rm -f $(OBJS) $(O)/$(BINARY)
+-- 
+2.34.1
+

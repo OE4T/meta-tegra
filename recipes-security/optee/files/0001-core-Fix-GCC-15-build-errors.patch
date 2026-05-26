@@ -1,0 +1,29 @@
+From 7915d0455cacf746471d37c189b38fc216071d49 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Tue, 17 Mar 2026 08:33:44 -0700
+Subject: [PATCH] core: Fix GCC 15 build errors
+
+Upstream-Status: Inappropriate [OE-Specific]
+
+Signed-off-by: Mark Zhang <markz@nvidia.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ optee_os/core/arch/arm/kernel/thread_spmc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/optee_os/core/arch/arm/kernel/thread_spmc.c b/optee_os/core/arch/arm/kernel/thread_spmc.c
+index 2c316c4..795ca8b 100644
+--- a/optee_os/core/arch/arm/kernel/thread_spmc.c
++++ b/optee_os/core/arch/arm/kernel/thread_spmc.c
+@@ -832,7 +832,7 @@ static uint32_t handle_stmm_service(uint16_t sender_id, uint32_t a4, uint32_t a5
+ }
+ #endif
+ 
+-static void handle_blocking_call(struct thread_smc_args *args,
++static void handle_blocking_call(struct thread_smc_1_2_regs *args,
+ 				 uint32_t direct_resp_fid)
+ {
+ 	uint32_t sec_caps = 0;
+-- 
+2.43.0
+
