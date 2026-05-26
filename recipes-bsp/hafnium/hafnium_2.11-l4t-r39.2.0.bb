@@ -12,11 +12,8 @@ TEGRA_SRC_SUBARCHIVE_OPTS = "-C ${S}"
 require recipes-bsp/tegra-sources/tegra-sources-39.2.0.inc
 
 SRC_URI += "file://0001-work-around-visibility-issue.patch \
-           file://0002-fix-build-with-clang-17-and-recent.patch \
-           file://0003-aarch64-fix-use-of-uninitialized-pointer.patch \
-           file://0004-googletest-import-fix-for-compilation-errors.patch \
-           file://0005-toolchain-host-add-BUILD_LDFLAGS.patch \
-           file://0006-Fix-clang-18-compilation-errors.patch \
+           file://0002-googletest-import-fix-for-compilation-errors.patch \
+           file://0003-toolchain-host-add-BUILD_LDFLAGS.patch \
            "
 
 S = "${UNPACKDIR}/hafnium"
