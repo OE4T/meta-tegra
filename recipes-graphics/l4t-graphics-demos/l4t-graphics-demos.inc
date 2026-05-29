@@ -7,7 +7,7 @@ PV .= "${@l4t_bsp_debian_version_suffix(d, pkgname='nvidia-l4t-graphics-demos')}
 
 inherit l4t_deb_pkgfeed
 
-SRC_URI[sha256sum] = "3ed19d2cc0c143d7f30250f907ac3dc301b65c623519b58fb00421b039c17fa9"
+SRC_URI[sha256sum] = "3eba2f17fae36cbaf423933dbe9f9b6375a6f466a726a8a3cc660e522ac31d91"
 
 S = "${UNPACKDIR}/l4t-graphics-demos/usr/src/nvidia/graphics_demos"
 B = "${S}"
