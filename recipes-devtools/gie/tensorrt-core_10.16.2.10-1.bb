@@ -8,26 +8,26 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvinfer10_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer10_${PV}+cuda13.0_arm64.deb;name=lib;subdir=tensorrt \
-    libnvinfer-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-dev_${PV}+cuda13.0_arm64.deb;name=dev;subdir=tensorrt \
-    libnvinfer-headers-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-headers-dev_${PV}+cuda13.0_arm64.deb;name=hdev;subdir=tensorrt \
-    libnvinfer-dispatch10_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-dispatch10_${PV}+cuda13.0_arm64.deb;name=disp;subdir=tensorrt \
-    libnvinfer-dispatch-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-dispatch-dev_${PV}+cuda13.0_arm64.deb;name=dispdev;subdir=tensorrt \
-    libnvinfer-lean10_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-lean10_${PV}+cuda13.0_arm64.deb;name=nvl;subdir=tensorrt \
-    libnvinfer-lean-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-lean-dev_${PV}+cuda13.0_arm64.deb;name=nvldev;subdir=tensorrt \
+    libnvinfer10_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer10_${PV}+cuda13.2_arm64.deb;name=lib;subdir=tensorrt \
+    libnvinfer-dev_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-dev_${PV}+cuda13.2_arm64.deb;name=dev;subdir=tensorrt \
+    libnvinfer-headers-dev_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-headers-dev_${PV}+cuda13.2_arm64.deb;name=hdev;subdir=tensorrt \
+    libnvinfer-dispatch10_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-dispatch10_${PV}+cuda13.2_arm64.deb;name=disp;subdir=tensorrt \
+    libnvinfer-dispatch-dev_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-dispatch-dev_${PV}+cuda13.2_arm64.deb;name=dispdev;subdir=tensorrt \
+    libnvinfer-lean10_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-lean10_${PV}+cuda13.2_arm64.deb;name=nvl;subdir=tensorrt \
+    libnvinfer-lean-dev_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-lean-dev_${PV}+cuda13.2_arm64.deb;name=nvldev;subdir=tensorrt \
 "
 
-SRC_URI[lib.sha256sum] = "c153dd67175d12661437d5bc9b573344467bc716c03133bc77ed1befa820eac6"
-SRC_URI[dev.sha256sum] = "40b2b769b6f5c77684d5feec2ca01e87cbb3d0e1ff8b41c679e264f7d98b65e8"
-SRC_URI[hdev.sha256sum] = "61baa587776b5a074fc4bc794836b32c3fb4d0573ce7610389fc65f58ac0336b"
-SRC_URI[disp.sha256sum] = "da615f77ffd29b14652dc62658089b29cc9cde4560af9991d54f12d45a64b0cd"
-SRC_URI[dispdev.sha256sum] = "7d7a89a6873dbcb7640e39d0f1819f39d5854e6a81a56d3763efc98a43eff80b"
-SRC_URI[nvl.sha256sum] = "85a6ecce9b42d5dac0a9a8c1df2e03e90410b98c6cc99d16aa90ed8fef657ea1"
-SRC_URI[nvldev.sha256sum] = "a84eea17806bef0de03c222a8a3952d6aec2e05e162ae5cc9cdeda5b28982997"
+SRC_URI[lib.sha256sum] = "d02111e3600d91bef407fe537a4179445cdc73fb259bf1f83dd256804de1897e"
+SRC_URI[dev.sha256sum] = "d090713a4690eb7f20612008180b749c9b8e76de2fffc46ca8ef00c2fbe812e0"
+SRC_URI[hdev.sha256sum] = "6208dbba5dc7fd04ca1bca71a3dcaed6642cb08765edbfcc10996b52844b2ec9"
+SRC_URI[disp.sha256sum] = "c5812d5f1fa4036a3c2710c53722ed96e87885a4f615f528cc45a1e00b7c28fc"
+SRC_URI[dispdev.sha256sum] = "2411eec858d7cac59e37433a449f19663b61e4a26c6c11868a769e34817f8c8b"
+SRC_URI[nvl.sha256sum] = "a0ed45dd7fda97fd7ee67af5ee4ed5868cd12161618b1786b12122b73f34ad36"
+SRC_URI[nvldev.sha256sum] = "dbeaed0a6a6779940ed0ad1423018593a71367ca005d25c13069c0393adaf1f8"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=16;md5=57233dd35fa68de1b2e210aced617156"
+LIC_FILES_CHKSUM = "file://usr/include/aarch64-linux-gnu/NvInfer.h;endline=16;md5=caedbfdd8e95ff43ea31d4b19e6f95a3"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
@@ -61,7 +61,7 @@ do_install() {
     install -m 0644 ${S}/usr/include/aarch64-linux-gnu/*.h ${D}${includedir}
     install -d ${D}${libdir}
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libnvinfer.so.${BASEVER} ${D}${libdir}
-    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libnvinfer_builder_resource.so.${BASEVER} ${D}${libdir}
+    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libnvinfer_builder_resource_*.so.${BASEVER} ${D}${libdir}
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libnvinfer_dispatch.so.${BASEVER} ${D}${libdir}
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libnvinfer_lean.so.${BASEVER} ${D}${libdir}
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libnvinfer_static.a ${D}${libdir}

@@ -8,10 +8,10 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvinfer-bin_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-bin_${PV}+cuda13.0_arm64.deb;name=bin;subdir=tensorrt \
+    libnvinfer-bin_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-bin_${PV}+cuda13.2_arm64.deb;name=bin;subdir=tensorrt \
 "
 
-BINSHA256SUM = "87757a408983513ba8c9c7a22fbe04f10673bade62872b87553efa15217bd4e4"
+BINSHA256SUM = "7a7de013265b50acb1839ec1e42c2e611a323446dd09142deced5b0cea052f56"
 
 SRC_URI[bin.sha256sum] = "${BINSHA256SUM}"
 
@@ -19,7 +19,7 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
-LIC_FILES_CHKSUM = "file://usr/share/doc/libnvinfer-bin/copyright;md5=32ccc6a9bbc79616807b9bc252844b2f"
+LIC_FILES_CHKSUM = "file://usr/share/doc/libnvinfer-bin/copyright;md5=85d3e8c5b94689733a8f3c790762d581"
 
 S = "${UNPACKDIR}/tensorrt"
 
@@ -34,8 +34,8 @@ do_compile() {
 }
 
 do_install() {
-    install -d ${D}${prefix}/src
-    cp --preserve=mode,timestamps --recursive ${S}/usr/src/tensorrt ${D}${prefix}/src/
+    install -d ${D}${prefix}/src/tensorrt/bin
+    install -m 0755 ${S}/usr/bin/trtexec ${D}${prefix}/src/tensorrt/bin/
 }
 
 FILES:${PN} = "${prefix}/src/tensorrt/bin"
