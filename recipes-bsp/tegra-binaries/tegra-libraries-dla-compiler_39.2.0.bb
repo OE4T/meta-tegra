@@ -7,7 +7,7 @@ require tegra-debian-libraries-common.inc
 
 COMPATIBLE_MACHINE = "(tegra234)"
 
-MAINSUM = "8dfdfff5df6197dccca8c3232ea6e646098b5f5533c18b8a92cd73a94a104ebb"
+MAINSUM = "20edfd946ce3c91c497f24905729bfd9a9245c326d98d261a11e5fafe3e10bf7"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvdla_compiler.so \

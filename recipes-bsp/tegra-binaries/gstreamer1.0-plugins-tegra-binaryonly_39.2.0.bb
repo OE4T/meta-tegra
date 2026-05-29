@@ -14,7 +14,7 @@ L4T_DEB_IS_COMMON = "1"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "ccd25a20c89d115af04ae0fab5b7fb427fcea33e19649f62ef15dbbc8897f52f"
+MAINSUM = "008c8c2821be7fe8d4e5d8f41d1cebd38801e3dddf7912aeaf63da22a6cd7482"
 
 inherit features_check
 
