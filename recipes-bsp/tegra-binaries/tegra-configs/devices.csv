@@ -32,6 +32,8 @@ dev, /dev/nvgpu/igpu0/prof-dev
 dev, /dev/nvgpu/igpu0/sched
 dev, /dev/nvgpu/igpu0/tsg
 dev, /dev/nvidia-modeset
+dev, /dev/nvidia-uvm
+dev, /dev/nvidia-uvm-tools
 dev, /dev/nvidia0
 dev, /dev/nvidia1
 dev, /dev/nvidiactl
