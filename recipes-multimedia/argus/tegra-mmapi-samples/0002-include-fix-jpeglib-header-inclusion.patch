@@ -1,44 +1,44 @@
-From 00e976a8c74528baab75c25b86960962259d8e86 Mon Sep 17 00:00:00 2001
-From: Ilies CHERGUI <ilies.chergui@gmail.com>
-Date: Wed, 30 Mar 2022 21:54:22 +0100
-Subject: [PATCH 2/8] include: fix jpeglib header inclusion
+From 719ceba2aa4762e80902235666cbf6f02c8f731d Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 18 May 2026 14:20:29 -0700
+Subject: [PATCH] include: fix jpeglib header inclusion
 
 To ensure that it's using the NVIDIA-specific header.
 
 Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
-
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
  include/NvJpegDecoder.h | 2 +-
  include/NvJpegEncoder.h | 2 +-
  2 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/include/NvJpegDecoder.h b/include/NvJpegDecoder.h
-index 1cbb85f..500c3d0 100644
+index 9b877fa..454b9a7 100644
 --- a/include/NvJpegDecoder.h
 +++ b/include/NvJpegDecoder.h
-@@ -56,7 +56,7 @@
+@@ -58,7 +58,7 @@
  #endif
  
  #include <stdio.h>
 -#include "jpeglib.h"
-+#include "libjpeg-8b/jpeglib.h"
++#include "libjpeg-9f/jpeglib.h"
  #include "NvElement.h"
  #include "NvBuffer.h"
  
 diff --git a/include/NvJpegEncoder.h b/include/NvJpegEncoder.h
-index be40589..5b341b9 100644
+index cb8a763..0be4525 100644
 --- a/include/NvJpegEncoder.h
 +++ b/include/NvJpegEncoder.h
-@@ -57,7 +57,7 @@
+@@ -59,7 +59,7 @@
  #endif
  
  #include <stdio.h>
 -#include "jpeglib.h"
-+#include "libjpeg-8b/jpeglib.h"
++#include "libjpeg-9f/jpeglib.h"
  #include "NvElement.h"
  #include "NvBuffer.h"
  
 -- 
-2.34.1
+2.43.0
 
