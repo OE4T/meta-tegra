@@ -16,7 +16,7 @@ do_install() {
     install -d ${D}${includedir}
     cp -R --preserve=mode,timestamps ${S}/argus/include/Argus ${D}${includedir}
     cp -R --preserve=mode,timestamps ${S}/argus/include/EGLStream ${D}${includedir}
-    cp -R --preserve=mode,timestamps ${S}/include/libjpeg-8b ${D}${includedir}
+    cp -R --preserve=mode,timestamps ${S}/include/libjpeg-9f ${D}${includedir}
     install -m 0644 ${S}/include/gstnvdsseimeta.h ${D}${includedir}/
     install -m 0644 ${S}/include/nvbufsurface.h ${D}${includedir}/
     install -m 0644 ${S}/include/nvbufsurftransform.h ${D}${includedir}/
