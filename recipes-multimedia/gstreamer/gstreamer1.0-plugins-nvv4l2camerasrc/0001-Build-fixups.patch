@@ -1,36 +1,33 @@
-From 5ea4e93464f0c51b1e321a90c2c1f4d8f22747f6 Mon Sep 17 00:00:00 2001
+From c262d8ee5e0928f7842280b3be194094c75c7dfe Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Thu, 16 Jul 2020 06:28:39 -0700
-Subject: [PATCH] Build fixups
+Subject: [PATCH 1/2] Build fixups
 
 Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
-
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- Makefile | 23 ++++++++++-------------
- 1 file changed, 10 insertions(+), 13 deletions(-)
+ Makefile | 54 +++++++++++++++++++-----------------------------------
+ 1 file changed, 19 insertions(+), 35 deletions(-)
 
-Index: gst-nvv4l2camera/Makefile
-===================================================================
---- gst-nvv4l2camera.orig/Makefile
-+++ gst-nvv4l2camera/Makefile
-@@ -27,9 +27,10 @@
+diff --git a/Makefile b/Makefile
+index 78c7806..df1c426 100644
+--- a/Makefile
++++ b/Makefile
+@@ -27,40 +27,16 @@
  
  SO_NAME := libgstnvv4l2camerasrc.so
  
 -CC := g++
-+exec_prefix ?= /usr
-+libdir ?= $(exec_prefix)/lib
- 
+-
 -TARGET_DEVICE = $(shell gcc -dumpmachine | cut -f1 -d -)
-+GST_INSTALL_DIR ?= $(libdir)/gstreamer-1.0
- 
- ifdef CUDA_VER
- CUDA_PATH := /usr/local/cuda-$(CUDA_VER)
-@@ -37,31 +38,13 @@ else
- CUDA_PATH := /usr/local/cuda
- endif
- 
+-
+-ifdef CUDA_VER
+-CUDA_PATH := /usr/local/cuda-$(CUDA_VER)
+-else
+-CUDA_PATH := /usr/local/cuda
+-endif
+-
 -# Location of the target rootfs
 -ifeq ($(shell uname -m), aarch64)
 -TARGET_ROOTFS :=
@@ -39,7 +36,9 @@ Index: gst-nvv4l2camera/Makefile
 -$(error Please specify the target rootfs path if you are cross-compiling)
 -endif
 -endif
--
++exec_prefix ?= /usr
++libdir ?= $(exec_prefix)/lib
+ 
  ALGO_CUDA_DIR=cuda
  
 -GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
@@ -47,7 +46,7 @@ Index: gst-nvv4l2camera/Makefile
 -CFLAGS:=
 -LIBS:= -lnvbufsurface -lnvbufsurftransform \
 -	-lcuda -lcudart \
--	-L"$(TARGET_ROOTFS)/$(CUDA_PATH)/lib64" \
+-	-L"$(TARGET_ROOTFS)/$(CUDA_PATH)/lib64"
 -
 +LIBS:= -lnvbufsurface -lnvbufsurftransform
  
@@ -56,12 +55,11 @@ Index: gst-nvv4l2camera/Makefile
 -INCLUDES += -I./ -I../ -I./cuda \
 -	-I/usr/src/jetson_multimedia_api/include/ \
 -	-I$(CUDA_PATH)/include
--
 +INCLUDES += -I./cuda
  
  PKGS := gstreamer-1.0 \
  	gstreamer-base-1.0 \
-@@ -69,37 +52,45 @@ PKGS := gstreamer-1.0 \
+@@ -68,36 +44,44 @@ PKGS := gstreamer-1.0 \
  	gstreamer-allocators-1.0 \
  	glib-2.0 \
  	libv4l2
@@ -75,7 +73,6 @@ Index: gst-nvv4l2camera/Makefile
  
  OBJS := $(SRCS:.cpp=.o)
  OBJS += $(ALGO_CUDA_DIR)/NvCudaProc.o
- 
  
 -CFLAGS += -fPIC \
 +CXXFLAGS += -fPIC \
@@ -96,7 +93,7 @@ Index: gst-nvv4l2camera/Makefile
  
  %.o: %.cpp
 -	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
-+	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $<  -o $@
++	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
  
  $(ALGO_CUDA_DIR)/%.o: $(ALGO_CUDA_DIR)/%.cpp
 -	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
@@ -109,8 +106,11 @@ Index: gst-nvv4l2camera/Makefile
  .PHONY: install
  install: $(SO_NAME)
 -	cp -vp $(SO_NAME) $(GST_INSTALL_DIR)
-+	install -d $(DESTDIR)$(GST_INSTALL_DIR)
-+	install -m 0644 $(SO_NAME) $(DESTDIR)$(GST_INSTALL_DIR)/
++	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
++	install -m 0644 $(SO_NAME) $(DESTDIR)$(libdir)/gstreamer-1.0/
  
  .PHONY: clean
  clean:
+-- 
+2.43.0
+
