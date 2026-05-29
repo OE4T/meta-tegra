@@ -1,0 +1,55 @@
+From 54aef4a0df14a7e68d57778914f1b6c1bd0532cb Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 27 Apr 2026 14:08:23 -0700
+Subject: [PATCH] argus/cudaHistogram: fix CUDA_ERROR_INVALID_CONTEXT on
+ surface creation
+
+cuEGLStreamConsumerAcquireFrame can manipulate the CUDA context stack
+internally, leaving the original context non-current on return. Push the
+context before cuSurfObjectCreate (which strictly requires a current
+context) and pop it after cuSurfObjectDestroy to keep the stack balanced.
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ argus/samples/cudaHistogram/main.cpp | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/argus/samples/cudaHistogram/main.cpp b/argus/samples/cudaHistogram/main.cpp
+index d751d6b..ed5d0bc 100644
+--- a/argus/samples/cudaHistogram/main.cpp
++++ b/argus/samples/cudaHistogram/main.cpp
+@@ -164,6 +164,15 @@ static bool execute(const ArgusSamples::CommonOptions& options)
+         if (cudaEGLFrame.cuFormat != CU_AD_FORMAT_UNSIGNED_INT8)
+             ORIGINATE_ERROR("Only 8-bit unsigned int formats are supported");
+ 
++        // cuEGLStreamConsumerAcquireFrame may leave the context stack in an unexpected
++        // state; restore our context as current before performing surface operations.
++        cuResult = cuCtxPushCurrent(g_cudaContext);
++        if (cuResult != CUDA_SUCCESS)
++        {
++            ORIGINATE_ERROR("Unable to push CUDA context (CUresult %s)",
++                getCudaErrorString(cuResult));
++        }
++
+         // Create a surface from the luminance plane
+         CUDA_RESOURCE_DESC cudaResourceDesc;
+         memset(&cudaResourceDesc, 0, sizeof(cudaResourceDesc));
+@@ -198,6 +207,14 @@ static bool execute(const ArgusSamples::CommonOptions& options)
+                 getCudaErrorString(cuResult));
+         }
+ 
++        CUcontext poppedCtx;
++        cuResult = cuCtxPopCurrent(&poppedCtx);
++        if (cuResult != CUDA_SUCCESS)
++        {
++            ORIGINATE_ERROR("Unable to pop CUDA context (CUresult %s)",
++                getCudaErrorString(cuResult));
++        }
++
+         cuResult = cuEGLStreamConsumerReleaseFrame(&cudaConnection, cudaResource, &cudaStream);
+         if (cuResult != CUDA_SUCCESS)
+         {
+-- 
+2.43.0
+

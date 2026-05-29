@@ -1,0 +1,95 @@
+From 987d778c6ae4852307c34f31c1424f2a5e57c66d Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 27 Apr 2026 15:39:54 -0700
+Subject: [PATCH] argus/cudaBayerDemosaic: fix CUDA_ERROR_INVALID_CONTEXT on
+ buffer alloc and kernel launch
+
+cuEGLStreamProducerConnect (in threadInitialize) and
+cuEGLStreamConsumerAcquireFrame (in threadExecute) can manipulate the
+CUDA context stack internally, leaving the original context non-current
+on return. Push the context before cuMemAlloc / cudaBayerDemosaic (both
+require a current context) and pop it after to keep the stack balanced.
+Also surface the CUresult in the cuMemAlloc error message to aid future
+diagnosis.
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ .../CudaBayerDemosaicConsumer.cpp             | 37 ++++++++++++++++++-
+ 1 file changed, 36 insertions(+), 1 deletion(-)
+
+diff --git a/argus/samples/cudaBayerDemosaic/CudaBayerDemosaicConsumer.cpp b/argus/samples/cudaBayerDemosaic/CudaBayerDemosaicConsumer.cpp
+index 36b712c..210ae06 100644
+--- a/argus/samples/cudaBayerDemosaic/CudaBayerDemosaicConsumer.cpp
++++ b/argus/samples/cudaBayerDemosaic/CudaBayerDemosaicConsumer.cpp
+@@ -86,6 +86,15 @@ bool CudaBayerDemosaicConsumer::threadInitialize()
+             getCudaErrorString(cuResult));
+     }
+ 
++    // cuEGLStreamProducerConnect may leave the context stack in an unexpected
++    // state; restore our context as current before performing CUDA allocations.
++    cuResult = cuCtxPushCurrent(m_cudaContext);
++    if (cuResult != CUDA_SUCCESS)
++    {
++        ORIGINATE_ERROR("Unable to push CUDA context (CUresult %s)",
++            getCudaErrorString(cuResult));
++    }
++
+     // Allocate two RGBA buffers for double-buffering the EGLStream between CUDA and OpenGL.
+     for (unsigned int i = 0; i < RGBA_BUFFER_COUNT; i++)
+     {
+@@ -93,10 +102,19 @@ bool CudaBayerDemosaicConsumer::threadInitialize()
+         cuResult = cuMemAlloc(&m_rgbaBuffers[i], bufferSize);
+         if (cuResult != CUDA_SUCCESS)
+         {
+-            ORIGINATE_ERROR("Failed to allocate CUDA buffer");
++            ORIGINATE_ERROR("Failed to allocate CUDA buffer (CUresult %s)",
++                getCudaErrorString(cuResult));
+         }
+     }
+ 
++    CUcontext poppedCtx;
++    cuResult = cuCtxPopCurrent(&poppedCtx);
++    if (cuResult != CUDA_SUCCESS)
++    {
++        ORIGINATE_ERROR("Unable to pop CUDA context (CUresult %s)",
++            getCudaErrorString(cuResult));
++    }
++
+     return true;
+ }
+ 
+@@ -193,6 +211,15 @@ bool CudaBayerDemosaicConsumer::threadExecute()
+ 
+         printf("CUDA CONSUMER:    Acquired Bayer frame %d\n", frame + 1);
+ 
++        // cuEGLStreamConsumerAcquireFrame may leave the context stack in an unexpected
++        // state; restore our context as current before the CUDA kernel and release.
++        cuResult = cuCtxPushCurrent(m_cudaContext);
++        if (cuResult != CUDA_SUCCESS)
++        {
++            ORIGINATE_ERROR("Unable to push CUDA context (CUresult %s)",
++                getCudaErrorString(cuResult));
++        }
++
+         // Run the CUDA kernel to demosaic the Bayer input into the RGBA output.
+         cudaBayerDemosaic((CUdeviceptr)(bayerEglFrame.frame.pPitch[0]),
+                           bayerEglFrame.width,
+@@ -210,6 +237,14 @@ bool CudaBayerDemosaicConsumer::threadExecute()
+                 getCudaErrorString(cuResult));
+         }
+ 
++        CUcontext poppedCtx;
++        cuResult = cuCtxPopCurrent(&poppedCtx);
++        if (cuResult != CUDA_SUCCESS)
++        {
++            ORIGINATE_ERROR("Unable to pop CUDA context (CUresult %s)",
++                getCudaErrorString(cuResult));
++        }
++
+         // Present the RGBA output frame to the OpenGL PreviewConsumer stream.
+         printf("CUDA PRODUCER:    Presented frame %d to RGBA EGLStream\n", frame + 1);
+         cuResult = cuEGLStreamProducerPresentFrame(
+-- 
+2.43.0
+
