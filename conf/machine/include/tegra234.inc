@@ -37,9 +37,6 @@ TEGRA_BOOT_FIRMWARE_FILES = "\
     mb1_t234_prod.bin \
     mb2_t234.bin \
     mb2rf_t234.bin \
-    preboot_c10_prod_cr.bin \
-    mce_c10_prod_cr.bin \
-    mts_c10_prod_cr.bin \
     spe_t234.bin \
     psc_bl1_t234_prod.bin \
     pscfw_t234_prod.bin \
