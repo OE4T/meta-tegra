@@ -3,9 +3,10 @@ DESCRIPTION = "Trusted Firmware-A (TF-A) provides a reference implementation of 
 for Armv7-A and Armv8-A, including a Secure Monitor executing at Exception Level 3 (EL3)."
 HOMEPAGE = "https://www.trustedfirmware.org/projects/tf-a/"
 LICENSE = "BSD-3-Clause"
-LIC_FILES_CHKSUM = "file://docs/license.rst;md5=b2c740efedc159745b9b31f88ff03dde"
+LIC_FILES_CHKSUM = "file://docs/license.rst;md5=1118e32884721c0be33267bd7ae11130"
 
-TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/atf_src.tbz2"
+TARGET_SOC ??= "t234"
+TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/atf_${TARGET_SOC}_src.tbz2"
 require recipes-bsp/tegra-sources/tegra-sources-39.2.0.inc
 
 SRC_URI += "file://0001-workaround-to-fix-ld.bfd-warning-binutils-version-2..patch"
@@ -13,7 +14,7 @@ SRC_URI += "file://0001-workaround-to-fix-ld.bfd-warning-binutils-version-2..pat
 INHIBIT_DEFAULT_DEPS = "1"
 DEPENDS:append = " virtual/cross-cc"
 
-S = "${UNPACKDIR}/arm-trusted-firmware.t234"
+S = "${UNPACKDIR}/arm-trusted-firmware.${TARGET_SOC}"
 B = "${WORKDIR}/build"
 
 COMPATIBLE_MACHINE = "(tegra234)"

@@ -1,0 +1,38 @@
+From 9a05e47fd557ed2b3fb57c124e38986fb0bcbed5 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Tue, 24 Mar 2026 10:51:52 -0700
+Subject: [PATCH] workaround to fix ld.bfd warning (binutils version 2.39)
+
+l31.elf has a LOAD segment with RWX permissions
+
+Upstream-Status: Pending
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 728bad9..2dabc77 100644
+--- a/Makefile
++++ b/Makefile
+@@ -307,7 +307,7 @@ ifeq ($($(ARCH)-ld-id),arm-link)
+ else ifeq ($($(ARCH)-ld-id),gnu-gcc)
+ 	# Pass ld options with Wl or Xlinker switches
+ 	TF_LDFLAGS		+=	$(call ld_option,-Xlinker --no-warn-rwx-segments)
+-	TF_LDFLAGS		+=	-Wl,--fatal-warnings -O1
++	TF_LDFLAGS		+=	-O1
+ 	TF_LDFLAGS		+=	-Wl,--gc-sections
+ 
+ 	TF_LDFLAGS		+=	-Wl,-z,common-page-size=4096 #Configure page size constants
+@@ -348,7 +348,7 @@ else
+ # ld.lld reports section type mismatch warnings,
+ # therefore don't add --fatal-warnings to it.
+ 	ifneq ($($(ARCH)-ld-id),llvm-lld)
+-		TF_LDFLAGS	+=	$(TF_LDFLAGS_$(ARCH)) --fatal-warnings
++		TF_LDFLAGS	+=	$(TF_LDFLAGS_$(ARCH))
+ 	endif
+ 
+ endif #(LD = armlink)
+-- 
+2.43.0
+
