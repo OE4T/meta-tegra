@@ -30,6 +30,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvargus.so \
     nvidia/libnvargus_socketclient.so \
     nvidia/libnvargus_socketserver.so \
+    nvidia/libnvcam_fsync.so \
     nvidia/libnvcam_imageencoder.so \
     nvidia/libnvcameratools.so \
     nvidia/libnvcamerautils.so \
