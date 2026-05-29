@@ -1,0 +1,66 @@
+From cbda2565b034da5739ea8638631a852c9e6fc7a1 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 27 Apr 2026 16:22:10 -0700
+Subject: [PATCH] argus/utils: suppress EGL_BAD_DISPLAY during shared-display
+ teardown
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+eglGetDisplay(EGL_DEFAULT_DISPLAY) returns the same handle to all
+callers. When PreviewConsumerThread shuts down and calls eglTerminate
+first, the display is invalidated for every other holder. Subsequent
+calls to eglDestroySurface (WindowBase) and eglTerminate (EGLGlobal)
+then return EGL_BAD_DISPLAY (0x3008), which is expected and harmless —
+the resources are implicitly freed by the first eglTerminate call.
+
+Capture the error code before reporting and silently ignore EGL_BAD_DISPLAY.
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ argus/samples/utils/EGLGlobal.cpp  | 8 +++++++-
+ argus/samples/utils/WindowBase.cpp | 8 +++++++-
+ 2 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/argus/samples/utils/EGLGlobal.cpp b/argus/samples/utils/EGLGlobal.cpp
+index 965c61b..d65a5b6 100644
+--- a/argus/samples/utils/EGLGlobal.cpp
++++ b/argus/samples/utils/EGLGlobal.cpp
+@@ -147,7 +147,13 @@ bool EGLDisplayHolder::cleanup()
+ 
+         // continue even on failure, just report it
+         if (eglTerminate(m_display) != EGL_TRUE)
+-            REPORT_ERROR("eglTerminate failed (error 0x%04x)", eglGetError());
++        {
++            // EGL_BAD_DISPLAY means the display was already terminated by another
++            // component (e.g. PreviewConsumerThread); this is expected during shared-display teardown.
++            EGLint err = eglGetError();
++            if (err != EGL_BAD_DISPLAY)
++                REPORT_ERROR("eglTerminate failed (error 0x%04x)", err);
++        }
+         m_display = EGL_NO_DISPLAY;
+     }
+ 
+diff --git a/argus/samples/utils/WindowBase.cpp b/argus/samples/utils/WindowBase.cpp
+index 930d46d..8054303 100644
+--- a/argus/samples/utils/WindowBase.cpp
++++ b/argus/samples/utils/WindowBase.cpp
+@@ -85,7 +85,13 @@ WindowBase::Surface::~Surface()
+     if (m_eglSurface != EGL_NO_SURFACE)
+     {
+         if (!eglDestroySurface(m_display, m_eglSurface))
+-            REPORT_ERROR("Failed to destroy EGL surface (error 0x%04x)", eglGetError());
++        {
++            // EGL_BAD_DISPLAY means the display was already terminated by another
++            // component (e.g. PreviewConsumerThread); the surface is implicitly freed.
++            EGLint err = eglGetError();
++            if (err != EGL_BAD_DISPLAY)
++                REPORT_ERROR("Failed to destroy EGL surface (error 0x%04x)", err);
++        }
+         m_eglSurface = EGL_NO_SURFACE;
+     }
+ }
+-- 
+2.43.0
+
