@@ -1,6 +1,6 @@
-From 037229f4e618fa74189f8311272ec86ba025a83c Mon Sep 17 00:00:00 2001
-From: Matt Madison <matt@madison.systems>
-Date: Mon, 6 May 2024 11:48:24 -0700
+From f256f2880eee72530320b1755d145e9a69593f71 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 27 Mar 2026 14:44:39 -0700
 Subject: [PATCH] Fix builds without wayland IVI extensions
 
 Upstream-Status: Inappropriate [OE specific]
@@ -12,10 +12,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  2 files changed, 9 insertions(+)
 
 diff --git a/gst-egl/ext/eglgles/video_platform_wrapper.c b/gst-egl/ext/eglgles/video_platform_wrapper.c
-index 769e99a..fd88a5e 100644
+index 25fe194..a7ccb80 100644
 --- a/gst-egl/ext/eglgles/video_platform_wrapper.c
 +++ b/gst-egl/ext/eglgles/video_platform_wrapper.c
-@@ -175,10 +175,12 @@ void global_registry_handler (void *data, struct wl_registry *registry, uint32_t
+@@ -283,10 +283,12 @@ void global_registry_handler (void *data, struct wl_registry *registry, uint32_t
      wp_presentation_add_listener (wayland_display->presentation,
          &presentation_listener, NULL);
    }
@@ -29,10 +29,10 @@ index 769e99a..fd88a5e 100644
  
  void global_registry_remover (void *data, struct wl_registry *registry, uint32_t id)
 diff --git a/gst-egl/ext/eglgles/video_platform_wrapper.h b/gst-egl/ext/eglgles/video_platform_wrapper.h
-index 23f6904..594b9a2 100644
+index 1eb354c..38da3a1 100644
 --- a/gst-egl/ext/eglgles/video_platform_wrapper.h
 +++ b/gst-egl/ext/eglgles/video_platform_wrapper.h
-@@ -52,7 +52,14 @@ gboolean platform_destroy_native_window_x11 (EGLNativeDisplayType display,
+@@ -56,7 +56,14 @@ void platform_destroy_display_x11(void* display);
  #include "wayland-client-protocol.h"
  #include "wayland-egl.h"
  #include "presentation-time-client-protocol.h"
@@ -44,6 +44,9 @@ index 23f6904..594b9a2 100644
 +static inline __attribute__((unused)) void *ivi_application_surface_create(void *a, guint id, void *surface) { return NULL; }
 +static inline __attribute__((unused)) void ivi_application_destroy(struct ivi_application *a) { };
 +#endif
+ #include "xdg-shell-client-protocol.h"
  typedef struct
  {
-   struct wl_egl_window *egl_window;
+-- 
+2.43.0
+
