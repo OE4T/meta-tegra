@@ -1,6 +1,6 @@
-From 98f7a09d8d999eabe3b945bfc31689cd9cb11f61 Mon Sep 17 00:00:00 2001
+From 7baa76b56f0f55115323fc68e879f3b109da9cff Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Tue, 12 Aug 2025 14:30:44 +0100
+Date: Fri, 24 Apr 2026 07:42:37 -0700
 Subject: [PATCH] Makefile fixes for OE builds
 
 Upstream-Status: Inappropriate [OE-Specific]
@@ -11,7 +11,7 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  1 file changed, 22 insertions(+), 25 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index 2a11457..187adef 100644
+index 8985856..aae03fe 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -10,49 +10,45 @@
@@ -39,7 +39,7 @@ index 2a11457..187adef 100644
 -endif
 +SO_NAME := libgstnvvideo4linux2.so
  
- LIBS:= -lnvbufsurface -lnvbufsurftransform -lgstnvdsseimeta -lgstnvcustomhelper
+ LIBS:= -lnvbufsurface -lnvbufsurftransform -ldl
  SRCS := $(wildcard *.c)
  
 -INCLUDES += -I./ -I../ -I/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/sources/includes/
@@ -95,5 +95,5 @@ index 2a11457..187adef 100644
  .PHONY: clean
  clean:
 -- 
-2.34.1
+2.43.0
 
