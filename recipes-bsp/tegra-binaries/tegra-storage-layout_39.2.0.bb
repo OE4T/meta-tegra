@@ -80,7 +80,17 @@ copy_in_flash_layout() {
 }
 
 do_compile() {
-    TBCDTB_FILE="${TEGRA_FLASHVAR_UEFI_IMAGE}.bin" copy_in_flash_layout ${PARTITION_FILE} internal-flash.xml.orig
+    case "${SOC_FAMILY}" in
+        tegra234)
+            TBCDTB_FILE="${TEGRA_FLASHVAR_UEFI_IMAGE}_with_dtb.bin" copy_in_flash_layout ${PARTITION_FILE} internal-flash.xml.orig
+        ;;
+        tegra264)
+            TBCDTB_FILE="${TEGRA_FLASHVAR_UEFI_IMAGE}.bin" copy_in_flash_layout ${PARTITION_FILE} internal-flash.xml.orig
+        ;;
+        *)
+            bberror "Unrecognized SOC_FAMILY: ${SOC_FAMILY}"
+        ;;
+    esac
 
     if [ "${TEGRAFLASH_NO_INTERNAL_STORAGE}" = "1" ]; then
         # For modules with *only* SPI flash (or other boot device) and no
