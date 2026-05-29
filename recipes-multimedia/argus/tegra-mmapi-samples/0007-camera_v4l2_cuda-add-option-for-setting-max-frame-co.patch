@@ -1,7 +1,7 @@
-From f30b72e28215591cb93269f07943c14affb3ac64 Mon Sep 17 00:00:00 2001
+From 8cb95b5f1e376fd3506bbb29d508067119ccbfab Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Mon, 8 Sep 2025 10:05:27 +0100
-Subject: [PATCH 7/8] camera_v4l2_cuda: add option for setting max frame count
+Date: Mon, 18 May 2026 14:29:49 -0700
+Subject: [PATCH] camera_v4l2_cuda: add option for setting max frame count
 
 to a allow for an automated timed run, instead of interactive.
 
@@ -12,10 +12,10 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h   |  1 +
  2 files changed, 12 insertions(+), 1 deletion(-)
 
-Index: jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
-===================================================================
---- jetson_multimedia_api.orig/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
-+++ jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
+diff --git a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
+index 2172e89..2c5c925 100644
+--- a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
++++ b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
 @@ -62,6 +62,7 @@ print_usage(void)
             "\t-f\t\tSet output pixel format of video device (supports only YUYV/YVYU/UYVY/VYUY/GREY/MJPEG)\n"
             "\t-r\t\tSet renderer frame rate (30 fps by default)\n"
@@ -24,7 +24,7 @@ Index: jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
             "\t-c\t\tEnable CUDA aglorithm (draw a black box in the upper left corner)\n"
             "\t-v\t\tEnable verbose message\n"
             "\t-h\t\tPrint this usage\n\n"
-@@ -79,7 +80,7 @@ parse_cmdline(context_t * ctx, int argc,
+@@ -79,7 +80,7 @@ parse_cmdline(context_t * ctx, int argc, char **argv)
          exit(EXIT_SUCCESS);
      }
  
@@ -33,7 +33,7 @@ Index: jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
      {
          switch (c)
          {
-@@ -123,6 +124,9 @@ parse_cmdline(context_t * ctx, int argc,
+@@ -123,6 +124,9 @@ parse_cmdline(context_t * ctx, int argc, char **argv)
              case 'c':
                  ctx->enable_cuda = true;
                  break;
@@ -70,10 +70,10 @@ Index: jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.cpp
          }
      }
  
-Index: jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
-===================================================================
---- jetson_multimedia_api.orig/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
-+++ jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
+diff --git a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
+index 04bc463..7418a8d 100644
+--- a/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
++++ b/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
 @@ -74,6 +74,7 @@ typedef struct
      unsigned int cam_h;
      unsigned int frame;
@@ -82,3 +82,6 @@ Index: jetson_multimedia_api/samples/12_v4l2_camera_cuda/camera_v4l2_cuda.h
  
      /* Global buffer ptr */
      nv_buffer * g_buff;
+-- 
+2.43.0
+
