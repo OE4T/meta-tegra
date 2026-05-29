@@ -1,7 +1,8 @@
-From cdc5b344ff32cd0c0beef5ca99852c7f82a48d9e Mon Sep 17 00:00:00 2001
+From 407d84f447bb19c6727fa3b8acc447b47bfe5763 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Fri, 17 Nov 2023 12:57:58 +0000
-Subject: [PATCH 5/7] gstv4l2videodec: check if we have a pool before the locking in video decoder set format
+Date: Fri, 24 Apr 2026 07:41:47 -0700
+Subject: [PATCH] gstv4l2videodec: check if we have a pool before the
+ locking in video decoder set format
 
 There's a dead lock on nvv4l2decoder.
 The dead lock is because the gstv4l2bufferpool only set capture_plane_stopped if the object
@@ -18,16 +19,16 @@ otherwise nvv4l2decoder will hang forever waiting for capture_plane_stopped.
 
 Upstream-Status: Pending
 Signed-off-by: Jose Quaresma <quaresma.jose@gmail.com>
-Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
  gstv4l2videodec.c | 15 +++++++++------
  1 file changed, 9 insertions(+), 6 deletions(-)
 
 diff --git a/gstv4l2videodec.c b/gstv4l2videodec.c
-index 39afc70..aa0ef4f 100644
+index c4184b4..18d4026 100644
 --- a/gstv4l2videodec.c
 +++ b/gstv4l2videodec.c
-@@ -1714,14 +1714,17 @@ gst_v4l2_video_dec_handle_frame (GstVideoDecoder * decoder,
+@@ -1845,14 +1845,17 @@ gst_v4l2_video_dec_handle_frame (GstVideoDecoder * decoder,
              gst_v4l2_object_stop(self->v4l2capture);
              self->output_flow = GST_FLOW_OK;
  
@@ -52,5 +53,5 @@ index 39afc70..aa0ef4f 100644
              gst_v4l2_object_close(self->v4l2output);
              gst_v4l2_object_close(self->v4l2capture);
 -- 
-2.25.1
+2.43.0
 
