@@ -1,7 +1,7 @@
-From 862cd2188407a48cb91cf15600d7c32e15d60c11 Mon Sep 17 00:00:00 2001
+From 56f1c48d21f2c11a628bf53860eb965a13661732 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Mon, 8 Sep 2025 10:07:21 +0100
-Subject: [PATCH 8/8] NvJpegDecoder: remove unused header file
+Date: Wed, 15 Apr 2026 09:01:08 -0700
+Subject: [PATCH] NvJpegDecoder: remove unused header file
 
 Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
@@ -10,17 +10,18 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/samples/common/classes/NvJpegDecoder.cpp b/samples/common/classes/NvJpegDecoder.cpp
-index 08adfed..cb053ac 100644
+index bdffb30..1f3b454 100644
 --- a/samples/common/classes/NvJpegDecoder.cpp
 +++ b/samples/common/classes/NvJpegDecoder.cpp
-@@ -35,13 +35,13 @@
+@@ -35,7 +35,6 @@
  #include "unistd.h"
  #include "stdlib.h"
  #include "NvBufSurface.h"
 -#include "jpegint.h"
  #include <cuda.h>
+ #include "nvbufsurface.h"
  
- #define MAX(a, b) ((a) > (b) ? (a) : (b))
+@@ -43,6 +42,7 @@
  #define ROUND_UP_4(num)  (((num) + 3) & ~3)
  
  #define CAT_NAME "JpegDecoder"
@@ -29,5 +30,5 @@ index 08adfed..cb053ac 100644
  NvJPEGDecoder::NvJPEGDecoder(const char *comp_name)
      :NvElement(comp_name, valid_fields)
 -- 
-2.34.1
+2.43.0
 
