@@ -1,22 +1,21 @@
-From e0ebc42e239fb58ea2eb17fa646782af2c6db8db Mon Sep 17 00:00:00 2001
+From af2e427523c4745e68edf5f5725e9f576dfbb24e Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Thu, 16 Jul 2020 10:43:09 -0700
-Subject: [PATCH] Clean up compiler warnings
+Subject: [PATCH 2/2] Clean up compiler warnings
 
 from a compilation pass with -Wall -Wpedantic.
 
 Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
-
 ---
- gstnvv4l2camerasrc.cpp | 18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ gstnvv4l2camerasrc.cpp | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-Index: gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
-===================================================================
---- gst-nvv4l2camera.orig/gstnvv4l2camerasrc.cpp
-+++ gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
-@@ -119,11 +119,11 @@ GType gst_nv_memory_allocator_get_type (
+diff --git a/gstnvv4l2camerasrc.cpp b/gstnvv4l2camerasrc.cpp
+index 1039b96..f8b7c07 100644
+--- a/gstnvv4l2camerasrc.cpp
++++ b/gstnvv4l2camerasrc.cpp
+@@ -119,11 +119,11 @@ GType gst_nv_memory_allocator_get_type (void);
  #define GST_TYPE_NV_MEMORY_ALLOCATOR   (gst_nv_memory_allocator_get_type())
  
  #define gst_nvv4l2camera_buffer_pool_parent_class bpool_parent_class
@@ -31,7 +30,7 @@ Index: gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
  
  #define GST_NVMEMORY_ALLOCATOR(obj) (G_TYPE_CHECK_INSTANCE_CAST((obj),GST_TYPE_NV_MEMORY_ALLOCATOR,GstNVV4l2MemoryAllocator))
  
-@@ -691,7 +691,7 @@ wrong_video_caps:
+@@ -663,7 +663,7 @@ wrong_video_caps:
    {
      GST_OBJECT_UNLOCK (pool);
      GST_WARNING_OBJECT (pool,
@@ -40,7 +39,7 @@ Index: gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
      return FALSE;
    }
  }
-@@ -779,7 +779,7 @@ static gboolean gst_nv_v4l2_camera_set_c
+@@ -751,7 +751,7 @@ static gboolean gst_nv_v4l2_camera_set_caps (GstBaseSrc *base, GstCaps *caps)
  
    GstNvV4l2CameraSrc *src = GST_NVV4L2CAMERASRC (base);
  
@@ -49,7 +48,7 @@ Index: gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
  
    if (!gst_video_info_from_caps (&info, caps))
    {
-@@ -971,7 +971,7 @@ static gboolean gst_nv_v4l2_camera_set_c
+@@ -915,7 +915,7 @@ static gboolean gst_nv_v4l2_camera_set_caps (GstBaseSrc *base, GstCaps *caps)
    FD_SET(src->video_fd, &(src->read_set));
  
    /* Setting timeout value of select to 5, this can be configured as required */
@@ -58,3 +57,6 @@ Index: gst-nvv4l2camera/gstnvv4l2camerasrc.cpp
    src->tv.tv_sec = DEQUE_TIMEOUT;
  
    return TRUE;
+-- 
+2.43.0
+
