@@ -8,22 +8,22 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvonnxparsers10_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvonnxparsers10_${PV}+cuda13.0_arm64.deb;name=onnx;subdir=tensorrt \
-    libnvonnxparsers-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvonnxparsers-dev_${PV}+cuda13.0_arm64.deb;name=onnxdev;subdir=tensorrt \
-    libnvinfer-plugin10_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-plugin10_${PV}+cuda13.0_arm64.deb;name=plugin;subdir=tensorrt \
-    libnvinfer-plugin-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-plugin-dev_${PV}+cuda13.0_arm64.deb;name=plugindev;subdir=tensorrt \
-    libnvinfer-headers-plugin-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-headers-plugin-dev_${PV}+cuda13.0_arm64.deb;name=hplugindev;subdir=tensorrt \
-    libnvinfer-vc-plugin10_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-vc-plugin10_${PV}+cuda13.0_arm64.deb;name=vc;subdir=tensorrt \
-    libnvinfer-vc-plugin-dev_${PV}+cuda13.0_arm64.deb;downloadfilename=libnvinfer-vc-plugin-dev_${PV}+cuda13.0_arm64.deb;name=vcdev;subdir=tensorrt \
+    libnvonnxparsers10_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvonnxparsers10_${PV}+cuda13.2_arm64.deb;name=onnx;subdir=tensorrt \
+    libnvonnxparsers-dev_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvonnxparsers-dev_${PV}+cuda13.2_arm64.deb;name=onnxdev;subdir=tensorrt \
+    libnvinfer-plugin10_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-plugin10_${PV}+cuda13.2_arm64.deb;name=plugin;subdir=tensorrt \
+    libnvinfer-plugin-dev_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-plugin-dev_${PV}+cuda13.2_arm64.deb;name=plugindev;subdir=tensorrt \
+    libnvinfer-headers-plugin-dev_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-headers-plugin-dev_${PV}+cuda13.2_arm64.deb;name=hplugindev;subdir=tensorrt \
+    libnvinfer-vc-plugin10_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-vc-plugin10_${PV}+cuda13.2_arm64.deb;name=vc;subdir=tensorrt \
+    libnvinfer-vc-plugin-dev_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-vc-plugin-dev_${PV}+cuda13.2_arm64.deb;name=vcdev;subdir=tensorrt \
 "
 
-SRC_URI[onnx.sha256sum] = "64c34bd51d057c048baa7c055ab676e20bb30100f3d63d3eb0ef3032d6686d4f"
-SRC_URI[onnxdev.sha256sum] = "c6345331c14119f0bd236b74c82dc967fdd6f9a55f489f626423b3d9268cdb55"
-SRC_URI[plugin.sha256sum] = "0af6f955b17da27fc94284cdd39a67b6702452bc8bc8587f9f6a63be58ca1f71"
-SRC_URI[plugindev.sha256sum] = "23a3e2f949ddbc266c5945b257f7be276171b6f19ec3d67d76857e890d36f42d"
-SRC_URI[hplugindev.sha256sum] = "8e66fb552c748f7c890cf69eb7596d4a42ab48f916dfbc2036987a79aab43cd5"
-SRC_URI[vc.sha256sum] = "732f161bbebe8b2d1567f2f3cb8e26de38ef469ab08bbfdad2edffa460696e19"
-SRC_URI[vcdev.sha256sum] = "c39aa8d25d8be49e9cd17bc96f2dc45efa2bc8c8606cec0f33cc2ddede402944"
+SRC_URI[onnx.sha256sum] = "f146cbcc4d5d0d29f2c0123dd6a4b16ed1159eff27d03beeab27bbe9a766bff8"
+SRC_URI[onnxdev.sha256sum] = "53bcf84f06c20f2b171379db79389d6680775a94c761b57ea7480134d0c038a7"
+SRC_URI[plugin.sha256sum] = "a19ba2f43860e768045947f59a63fecd1464feeba353bfb6a096985b3a634710"
+SRC_URI[plugindev.sha256sum] = "4552160fed001a990daceca670a9e562470b794cd7f74b354d016bf4ba4efbf7"
+SRC_URI[hplugindev.sha256sum] = "951ebb46c7a33ff71dca064e62fab19c8ebdc4b895aa14027e6907113aa3e928"
+SRC_URI[vc.sha256sum] = "d7490d02f1ec286843bf796fbd4d3d464ca963d2cf9ceefca1ae7b2b14a4203b"
+SRC_URI[vcdev.sha256sum] = "21b9df45051d1d7b956629b6638ecddb1a91c22c1a96be8222d88243883b336a"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
