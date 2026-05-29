@@ -1,16 +1,18 @@
-From 94d057340e8e79293ee5569c47322473a91ce549 Mon Sep 17 00:00:00 2001
+From 93330ece6476bd5a92772229577f391c2550d80a Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Thu, 10 Jul 2025 11:17:55 +0100
+Date: Wed, 15 Apr 2026 08:16:56 -0700
 Subject: [PATCH] Makefile fixups for OE builds
 
 Upstream-Status: Inappropriate [embedded specific]
+
 Signed-off-by: Matt Madison <matt@madison.systems>
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
  Makefile.public | 26 +++++++-------------------
  1 file changed, 7 insertions(+), 19 deletions(-)
 
 diff --git a/Makefile.public b/Makefile.public
-index fd8f575..b8c02ec 100644
+index dfd0faf..b99f49d 100644
 --- a/Makefile.public
 +++ b/Makefile.public
 @@ -21,8 +21,8 @@
@@ -32,9 +34,9 @@ index fd8f575..b8c02ec 100644
 -  LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
 -  CFLAGS:=
 -else
--  NVDS_VERSION ?=8.0
+-  NVDS_VERSION ?=9.1
 -  LIB_INSTALL_DIR ?=/opt/nvidia/deepstream/deepstream-$(NVDS_VERSION)/lib/
--  CFLAGS:= -DDS_VERSION=\"8.0.0\"
+-  CFLAGS:= -DDS_VERSION=\"9.1.0\"
 -endif
 -
  CFLAGS+= -fPIC
@@ -69,4 +71,5 @@ index fd8f575..b8c02ec 100644
  clean:
  	rm -rf $(OBJS) $(LIB)
 -- 
-2.34.1
+2.43.0
+
