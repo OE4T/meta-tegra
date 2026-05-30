@@ -11,6 +11,7 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvbufsurftransform.so.1.0.0 \
+    nvidia/libnvbuf_deinterlace.so.1.0.0 \
     nvidia/libnvdecode2eglimage.so \
     nvidia/libnveventlib.so \
     nvidia/libnvexif.so \
@@ -49,7 +50,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
 
 do_install() {
     install_libraries
-    for libname in nvbufsurftransform nvid_mapper; do
+    for libname in nvbufsurftransform nvbuf_deinterlace nvid_mapper; do
 	ln -sf lib$libname.so.1.0.0 ${D}${libdir}/lib$libname.so.1
 	ln -sf lib$libname.so.1.0.0 ${D}${libdir}/lib$libname.so
     done
