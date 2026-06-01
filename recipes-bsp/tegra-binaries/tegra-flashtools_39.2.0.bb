@@ -9,6 +9,7 @@ SRC_URI = "\
     file://0004-Remove-xxd-dependency-from-l4t_sign_image.sh.patch \
     file://0005-Rework-logging-in-l4t_sign_image.sh.patch \
     file://0006-Fix-location-of-bsp_version-file-in-l4t_bup_gen.func.patch \
+    file://0007-Fix-bootburn_t264_py-path-in-tegraflash.py.patch \
 "
 SRC_URI[sha256sum] = "1626626cd827de0e350b8802033b9da653c69b2290accedb9e5d01f49607e099"
 
