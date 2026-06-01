@@ -1,0 +1,42 @@
+From 7c1e0f4a2b9d5e6f8a0c1d2e3f4a5b6c7d8e9f01 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 01 Jun 2026 09:00:00 -0700
+Subject: [PATCH] Fix bootburn_t264_py path in tegraflash.py
+
+The tegra-flashtools recipe installs tegraflash.py and the unified_flash
+tree side-by-side in the same directory, unlike the upstream
+Linux_for_Tegra layout where unified_flash lives one level up from
+bootloader/. The leading ".." in bootburn_path therefore points one
+directory too high, so the bootburn_t264_py modules are never added to
+sys.path. As a result "import tegraflash_impl_t264" fails (silently,
+via the guarded try/except), TFlashT264 is left undefined, and flashing
+T264 (Thor) targets dies with:
+
+    NameError: name 'TFlashT264' is not defined
+
+Drop the ".." component so bootburn_t264_py is resolved relative to the
+installed tegraflash.py.
+
+Upstream-Status: Inappropriate [OE specific]
+
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ bootloader/tegraflash.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/bootloader/tegraflash.py b/bootloader/tegraflash.py
+index ecde72a..d8f48cf 100755
+--- a/bootloader/tegraflash.py
++++ b/bootloader/tegraflash.py
+@@ -25,7 +25,7 @@ from os.path import expanduser
+ # insert current working directory
+ sys.path.insert(1, os.getcwd())
+ pyfdt_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "pyfdt")
+-bootburn_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "unified_flash", "tools", "flashtools", "bootburn_t264_py")
++bootburn_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "unified_flash", "tools", "flashtools", "bootburn_t264_py")
+ bootburn_path_ = os.path.join(os.path.dirname(os.path.realpath(__file__)), "t264_bootburn_py")
+
+ for p in [bootburn_path, bootburn_path_, pyfdt_path]:
+--
+2.43.0
+
