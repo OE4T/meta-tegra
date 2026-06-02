@@ -112,6 +112,8 @@ SYSROOT_DIRS += "/boot/devicetree"
 SYSROOT_DIRS += "/usr/src/device-tree"
 
 PACKAGES =+ "${PN}-devicetrees ${PN}-display ${PN}-cameras ${PN}-bluetooth ${PN}-wifi ${PN}-canbus ${PN}-virtualization ${PN}-alsa ${PN}-test ${PN}-base ${PN}-extra"
+PACKAGES:append:tegra234 = " ${PN}-compute"
+
 PROVIDES += "kernel-module-${BPN}"
 FILES:${PN}-devicetrees = "/boot/devicetree"
 FILES:${PN}-dev = "\
@@ -129,6 +131,7 @@ ALLOW_EMPTY:${PN}-alsa = "1"
 ALLOW_EMPTY:${PN}-test = "1"
 ALLOW_EMPTY:${PN}-base = "1"
 ALLOW_EMPTY:${PN}-extra = "1"
+ALLOW_EMPTY:${PN}-compute = "1"
 
 RDEPENDS:${PN}-display = "${TEGRA_OOT_DISPLAY_DRIVERS}"
 RDEPENDS:${PN}-cameras = "${TEGRA_OOT_CAMERA_DRIVERS}"
@@ -139,6 +142,7 @@ RDEPENDS:${PN}-virtualization = "${TEGRA_OOT_VIRTUALIZATION_DRIVERS}"
 RDEPENDS:${PN}-alsa = "${TEGRA_OOT_ALSA_DRIVERS}"
 RDEPENDS:${PN}-test = "${TEGRA_OOT_TEST_DRIVERS}"
 RDEPENDS:${PN}-base = "${TEGRA_OOT_BASE_DRIVERS}"
+RDEPENDS:${PN}-compute = "${TEGRA_OOT_COMPUTE_DRIVERS}"
 RRECOMMENDS:${PN}-extra = "${TEGRA_OOT_EXTRA_DRIVERS}"
 
 TEGRA_OOT_ALL_DRIVER_PACKAGES = ""
@@ -312,11 +316,11 @@ TEGRA_OOT_BASE_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-bpmp-bwmgr \
     ${TEGRA_OOT_EXTRA_BASE_DRIVERS} \
 "
-TEGRA_OOT_BASE_DRIVERS:append:tegra234 = "\
+TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_BASE_DRIVERS}"
+TEGRA_OOT_COMPUTE_DRIVERS = "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvgpu \
 "
-
-TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_BASE_DRIVERS}"
+TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_COMPUTE_DRIVERS}"
 TEGRA_OOT_EXTRA_OTHER_DRIVERS ??= ""
 TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-f75308 \
