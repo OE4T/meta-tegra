@@ -13,15 +13,15 @@ inherit python3native
 
 DEPENDS += "dtc-native python3-kconfiglib-native"
 
-SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r38.4-updates"
-SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r38.4-updates"
-SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r38.4-updates"
-SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r38.4-updates"
+SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r39.2-updates"
+SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r39.2-updates"
+SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r39.2-updates"
+SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r39.2-updates"
 
-SRCREV_edk2-non-osi = "cb880bce4843ccabfd6cee678b96a09d42898c05"
-SRCREV_edk2-nvidia = "b4fc9d9902094a238c941d9bcb5ac7c795b21ac7"
-SRCREV_edk2-nvidia-non-osi = "e19a8eae238483c6bbab97cb116d288b28ad6fba"
-SRCREV_edk2-platforms = "0dbe07c94b64c9ae8680637cf2302cadbf04bfb9"
+SRCREV_edk2-non-osi = "c07d24e45c87d175ad1dc5d74b2c7feed9356503"
+SRCREV_edk2-nvidia = "bd49b331a0bbdeef7a34c224a3767f77e36da0c4"
+SRCREV_edk2-nvidia-non-osi = "826921e55a768b4fc5fd56c5ac259dc240b84f0e"
+SRCREV_edk2-platforms = "30c062833913616d54e2101c9d3157e955de1054"
 
 SRC_URI += "\
     ${SRC_URI_EDK2_PLATFORMS};name=edk2-platforms;destsuffix=edk2-tegra/edk2-platforms \
@@ -34,18 +34,14 @@ SRCREV_FORMAT = "edk2_edk2-platforms_edk2-non-osi_edk2-nvidia_edk2-nvidia-non-os
 
 SRC_URI += "\
     file://0001-Update-tools_def.template-for-toolchain-differences.patch \
-    file://0002-MdePkg-BaseFdtLib-fix-build-with-gcc-15.patch \
-    file://0003-L4TLauncher-allow-for-empty-missing-APPEND-line-in-e.patch;patchdir=../edk2-nvidia \
-    file://0004-XusbControllerDxe-use-BaseMemoryLib-functions.patch;patchdir=../edk2-nvidia \
-    file://0005-PrePi-use-GCC5-instead-of-GCC-in-build-options.patch;patchdir=../edk2-nvidia \
-    file://0007-BaseTools-Pccts-set-C-standard.patch \
-    file://0008-BaseTools-StringFuncs-fix-gcc-16-warning.patch \
-    file://0009-BaseTools-EfiRom-fix-compiler-warning.patch \
-    file://0010-MdeModulePkg-CustomizedDisplayLib-fix-gcc-16-warning.patch \
-    file://0011-MdeModulePkg-SmbiosMeasurementDxe-fix-gcc-16-warning.patch \
-    file://0012-MdeModulePkg-DisplayEngineDxe-fix-gcc-16-warning.patch \
-    file://0013-MdeModulePkg-VarCheckHiiLib-fix-gcc-16-warning.patch \
-    file://0014-MdeModulePkg-CapsuleOnDiskLoadPei-fix-gcc-16-warning.patch \
+    file://0002-PrePi-use-GCC5-instead-of-GCC-in-build-options.patch;patchdir=../edk2-nvidia \
+    file://0003-BaseTools-StringFuncs-fix-gcc-16-warning.patch \
+    file://0004-BaseTools-EfiRom-fix-compiler-warning.patch \
+    file://0005-MdeModulePkg-CustomizedDisplayLib-fix-gcc-16-warning.patch \
+    file://0006-MdeModulePkg-SmbiosMeasurementDxe-fix-gcc-16-warning.patch \
+    file://0007-MdeModulePkg-DisplayEngineDxe-fix-gcc-16-warning.patch \
+    file://0008-MdeModulePkg-VarCheckHiiLib-fix-gcc-16-warning.patch \
+    file://0009-MdeModulePkg-CapsuleOnDiskLoadPei-fix-gcc-16-warning.patch \
 "
 
 S = "${UNPACKDIR}/edk2-tegra/edk2"
