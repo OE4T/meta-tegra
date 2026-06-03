@@ -90,6 +90,7 @@ COMMON_PATCHES = "\
     file://0074-nvdisplay-nv-platform-set-the-dma-segment-size-for-n.patch;patchdir=nvdisplay \
     file://0075-drivers-devfreq-call-devfreq_get_freq_range-in-locke.patch;patchdir=nvidia-oot \
     file://0076-drivers-devfreq-avoid-deadlock-issue-when-calling-de.patch;patchdir=nvidia-oot \
+    file://0077-drivers-nvethernet-speed-10-is-not-supported-while-a.patch;patchdir=nvidia-oot \
 "
 EXTRA_PATCHES ??= ""
 

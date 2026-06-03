@@ -1,0 +1,75 @@
+From c6cac18588ff3515b3c428a2371198c2f8c9944c Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Thu, 8 Jan 2026 17:14:50 +0800
+Subject: [PATCH] drivers:nvethernet: speed 10 is not supported while auto
+ negotiation is disabled
+
+On NVIDIA Orin AGX platform, when running below command, there is a
+warning trace reported.
+ethtool -s <net_name> speed 10 duplex full autoneg off
+phy_start_aneg+0x0/0x58: returned: -22
+WARNING: CPU: 0 PID: 628 at /drivers/net/phy/phy.c:1233 phy_state_machine+0xa0/0x328
+Call trace:
+ phy_state_machine+0xa0/0x328
+ process_one_work+0x16c/0x3f8
+ worker_thread+0x330/0x450
+ kthread+0x124/0x130
+ ret_from_fork+0x10/0x20
+The root cause of this issue is speed 10 is not supported while auto
+negotiation is disabled. After setting speed 10, the PHY machine state
+is triggered, detailed code logical as below:
+phy_state_machine()
+->phy_start_aneg()
+    -> phy_sanitize_settings()
+In phy_sanitize_settings(), because speed 10 is not supported, and
+100/HALF selected as link mode finally. When calling aqr_config_aneg()
+of phy driver to set the link mode, genphy_c45_pma_setup_forced() is
+called if auto negotiation is disabled. But based on clause 45, half
+duplex is not supported, so return -EINVAL, and then above warning
+trace is reported in phy_state_machine()->phy_error_precise(). In order
+to avoid this issue, create a specific callback for the set_link_ksettings
+field of struct ethtool_ops, check the speed parameter, like function
+phy_ethtool_ksettings_set() return -EINVAL when encountering unreasonable
+parameters.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/net/ethernet/nvidia/nvethernet/ethtool.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/nvidia/nvethernet/ethtool.c b/drivers/net/ethernet/nvidia/nvethernet/ethtool.c
+index 235d5bf..d552632 100644
+--- a/drivers/net/ethernet/nvidia/nvethernet/ethtool.c
++++ b/drivers/net/ethernet/nvidia/nvethernet/ethtool.c
+@@ -1669,13 +1669,25 @@ static void ether_set_msglevel(struct net_device *ndev, u32 level)
+ }
+ #endif /* OSI_STRIPPED_LIB */
+ 
++static int ether_set_link_ksettings(struct net_device *ndev,
++				   const struct ethtool_link_ksettings *cmd)
++{
++	u8 autoneg = cmd->base.autoneg;
++	u32 speed = cmd->base.speed;
++
++	if (autoneg == AUTONEG_DISABLE && speed == SPEED_10)
++		return -EINVAL;
++
++	return phy_ethtool_set_link_ksettings(ndev, cmd);
++}
++
+ /**
+  * @brief Set of ethtool operations
+  */
+ static const struct ethtool_ops ether_ethtool_ops = {
+ 	.get_link = ethtool_op_get_link,
+ 	.get_link_ksettings = phy_ethtool_get_link_ksettings,
+-	.set_link_ksettings = phy_ethtool_set_link_ksettings,
++	.set_link_ksettings = ether_set_link_ksettings,
+ 	.get_ts_info = ether_get_ts_info,
+ 	.get_strings = ether_get_strings,
+ 	.get_ethtool_stats = ether_get_ethtool_stats,
+-- 
+2.34.1
+
