@@ -95,6 +95,10 @@ COMMON_PATCHES = "\
     file://0079-nvgpu-dma-use-unlocked-variant-function-to-process-d.patch;patchdir=nvgpu \
     file://0080-nvdisplay-dma-use-unlocked-variant-function-when-map.patch;patchdir=nvdisplay \
     file://0081-gpu-nvgpu-probe-clock-availability-during-acquisitio.patch;patchdir=nvgpu \
+    file://0082-gpu-host1x-Do-not-setup-DMA-for-virtual-devices.patch;patchdir=nvidia-oot \
+    file://0083-video-tegra-pva-use-dma_map_phys-for-RAM-backed-carv.patch;patchdir=nvidia-oot \
+    file://0084-video-tegra-pva-use-DMA-IOVA-API-for-contiguous-sync.patch;patchdir=nvidia-oot \
+    file://0085-video-tegra-pva-add-missing-nvhost-syncpt-interface-.patch;patchdir=nvidia-oot \
 "
 EXTRA_PATCHES ??= ""
 

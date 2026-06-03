@@ -1,0 +1,250 @@
+From b9f7752c2ce7bb74eb800377283f037c87975582 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 24 Apr 2026 21:25:24 +0800
+Subject: [PATCH 3/4] video: tegra: pva: use DMA IOVA API for contiguous syncpt
+ mapping
+
+The PVA R5 firmware accesses RW syncpts as base + queue_id * page_size,
+requiring the syncpt IOVAs to be contiguous and 512K-aligned. The
+original code maps each syncpt individually via dma_map_resource(),
+then checks if the resulting IOVAs happen to be contiguous and aligned.
+This fails on module reload because the IOMMU IOVA allocator may
+return non-contiguous addresses after IOVA space fragmentation from
+the previous alloc/free cycle:
+pva 16000000.pva0: RW sync pts base not aligned to 512k
+pva 16000000.pva0: probe with driver pva failed with error -12
+The original code also assumes the IOVA allocator returns addresses
+in decreasing order (top-down), which is not guaranteed on all
+platforms or allocator states.
+Fix by using the DMA IOVA API (dma_iova_try_alloc/dma_iova_link):
+1. dma_iova_try_alloc() allocates a contiguous IOVA block of
+     2 * 512K to allow for 512K alignment
+2. ALIGN() finds the 512K-aligned base within the allocation
+3. dma_iova_link() maps each syncpt's physical page at the
+     aligned offset within the IOVA range
+4. dma_iova_sync() flushes the IOTLB
+For cleanup, dma_iova_unlink() removes each linked page individually,
+then dma_iova_free() releases the IOVA allocation. This avoids using
+dma_iova_destroy() which would attempt to unmap the entire allocated
+range including the unlinked alignment padding, triggering IOMMU page
+table warnings.
+This guarantees contiguous and 512K-aligned IOVAs by construction,
+regardless of syncpt ID order, gaps, or IOVA allocator fragmentation.
+The alignment and contiguity checks are no longer needed.
+For the non-IOMMU case, physical addresses are used directly.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/video/tegra/host/pva/nvpva_syncpt.c | 152 ++++++++++++++------
+ drivers/video/tegra/host/pva/pva.h          |   3 +
+ 2 files changed, 115 insertions(+), 40 deletions(-)
+
+diff --git a/drivers/video/tegra/host/pva/nvpva_syncpt.c b/drivers/video/tegra/host/pva/nvpva_syncpt.c
+index 306dac2..7ddb82b 100644
+--- a/drivers/video/tegra/host/pva/nvpva_syncpt.c
++++ b/drivers/video/tegra/host/pva/nvpva_syncpt.c
+@@ -172,13 +172,30 @@ void nvpva_syncpt_unit_interface_deinit(struct platform_device *pdev,
+ 	pva->syncpts.syncpt_start_iova_r = 0;
+ 	pva->syncpts.syncpt_range_r = 0;
+ 
++	/* Unmap RW syncpt IOVA region */
++	if (pva->syncpts.syncpt_start_iova_rw) {
++		size_t offset = pva->syncpts.iova_align_offset;
++
++		/* Unlink only the mapped portion within the aligned range */
++		for (i = 0; i < MAX_PVA_QUEUE_COUNT; i++) {
++			dma_iova_unlink(&paux_dev->dev,
++					&pva->syncpts.iova_state,
++					offset + i * pva->syncpts.page_size,
++					pva->syncpts.page_size,
++					DMA_BIDIRECTIONAL, 0);
++		}
++
++		/* Free the entire IOVA allocation */
++		dma_iova_free(&paux_dev->dev, &pva->syncpts.iova_state);
++
++		pva->syncpts.syncpt_start_iova_rw = 0;
++		pva->syncpts.syncpt_range_rw = 0;
++	}
++
+ 	for (i = 0; i < MAX_PVA_QUEUE_COUNT; i++) {
+ 		if (pva->syncpts.syncpts_rw[i].id == 0)
+ 			continue;
+ 
+-		nvpva_unmap_region(&paux_dev->dev, pva->syncpts.syncpts_rw[i].addr,
+-			       pva->syncpts.syncpts_rw[i].size,
+-			       DMA_BIDIRECTIONAL);
+ 		pva->syncpts.syncpts_rw[i].addr = 0;
+ 		pva->syncpts.syncpts_rw[i].size = 0;
+ 		pva->syncpts.syncpts_rw[i].assigned = 0;
+@@ -258,52 +275,107 @@ int nvpva_syncpt_unit_interface_init(struct platform_device *pdev,
+ 			goto err_alloc_syncpt;
+ 		}
+ 
+-		syncpt_offset =
+-			nvhost_syncpt_unit_interface_get_byte_offset_ext(pva->syncpts.host_pdev,
+-									 id);
+-		err = nvpva_map_region(&paux_dev->dev,
+-				       (base + syncpt_offset),
+-				       pva->syncpts.page_size,
+-				       &syncpt_addr_rw,
+-				       DMA_BIDIRECTIONAL);
+-		if (err) {
+-			dev_err(&pdev->dev, "failed to map syncpt %d\n", id);
+-			goto err_map_sp;
+-		}
+-
+-		pva->syncpts.syncpts_rw[i].addr = syncpt_addr_rw;
+ 		pva->syncpts.syncpts_rw[i].id = id;
+ 		pva->syncpts.syncpts_rw[i].assigned = 0;
+-		nvpva_dbg_info(pva,
+-			"syncpt_addr:  id: %d   addr: %llx offset: %llx\n",
+-			id,
+-			syncpt_addr_rw,
+-			0LLU);
+ 	}
+ 
+-	pva->syncpts.syncpts_mapped_rw = true;
+-	syncpt_addr_rw = pva->syncpts.syncpts_rw[MAX_PVA_QUEUE_COUNT - 1].addr;
+-	pva->syncpts.syncpt_start_iova_rw = syncpt_addr_rw;
+-	pva->syncpts.syncpt_range_rw = MAX_PVA_QUEUE_COUNT *
+-				       (pva->syncpts.syncpts_rw[0].addr -
+-					pva->syncpts.syncpts_rw[1].addr);
++	/*
++	 * Map all RW syncpts into a contiguous, aligned IOVA range.
++	 * The PVA R5 firmware accesses syncpts as base + queue_id * page_size,
++	 * requiring contiguous and 512K-aligned IOVAs. Individual
++	 * dma_map_resource() calls cannot guarantee this after IOVA space
++	 * fragmentation from module reload cycles.
++	 *
++	 * Use dma_iova_try_alloc() to reserve a contiguous IOVA block, then
++	 * dma_iova_link() to map each syncpt's physical page into the range.
++	 */
++	if (iommu_get_domain_for_dev(&paux_dev->dev)) {
++		u32 total_size = MAX_PVA_QUEUE_COUNT * pva->syncpts.page_size;
++		u32 alloc_size = total_size + total_size; /* over-allocate for alignment */
++		struct dma_iova_state *state = &pva->syncpts.iova_state;
++		dma_addr_t aligned_base;
++		size_t align_offset;
++
++		if (!dma_iova_try_alloc(&paux_dev->dev, state,
++					base, alloc_size)) {
++			dev_err(&pdev->dev, "failed to alloc syncpt IOVA\n");
++			err = -ENOMEM;
++			goto err_map_sp;
++		}
+ 
+-	if (pva->version == PVA_HW_GEN1)
+-		goto out;
++		/* Align the base within the over-allocated range */
++		aligned_base = ALIGN(state->addr, total_size);
++		align_offset = aligned_base - state->addr;
++		pva->syncpts.iova_align_offset = align_offset;
++
++		for (i = 0; i < MAX_PVA_QUEUE_COUNT; i++) {
++			syncpt_offset =
++				nvhost_syncpt_unit_interface_get_byte_offset_ext(
++					pva->syncpts.host_pdev,
++					pva->syncpts.syncpts_rw[i].id);
++
++			err = dma_iova_link(&paux_dev->dev, state,
++					    base + syncpt_offset,
++					    align_offset + i * pva->syncpts.page_size,
++					    pva->syncpts.page_size,
++					    DMA_BIDIRECTIONAL, 0);
++			if (err) {
++				int j;
++
++				dev_err(&pdev->dev,
++					"dma_iova_link syncpt %d failed: %d\n",
++					pva->syncpts.syncpts_rw[i].id, err);
++				for (j = 0; j < i; j++)
++					dma_iova_unlink(&paux_dev->dev, state,
++							align_offset + j * pva->syncpts.page_size,
++							pva->syncpts.page_size,
++							DMA_BIDIRECTIONAL, 0);
++				dma_iova_free(&paux_dev->dev, state);
++				goto err_map_sp;
++			}
++
++			pva->syncpts.syncpts_rw[i].addr =
++				aligned_base + i * pva->syncpts.page_size;
++			pva->syncpts.syncpts_rw[i].size = 0;
++			nvpva_dbg_info(pva,
++				"syncpt_addr:  id: %d   addr: %llx\n",
++				pva->syncpts.syncpts_rw[i].id,
++				pva->syncpts.syncpts_rw[i].addr);
++		}
+ 
+-	if (syncpt_addr_rw % (pva->syncpts.syncpt_range_rw) != 0) {
+-		dev_err(&pdev->dev, "RW sync pts base not aligned to 512k");
+-		err = -ENOMEM;
+-		goto err_map_sp;
+-	}
++		err = dma_iova_sync(&paux_dev->dev, state,
++				    align_offset, total_size);
++		if (err) {
++			dev_err(&pdev->dev, "dma_iova_sync failed: %d\n", err);
++			for (i = 0; i < MAX_PVA_QUEUE_COUNT; i++)
++				dma_iova_unlink(&paux_dev->dev, state,
++						align_offset + i * pva->syncpts.page_size,
++						pva->syncpts.page_size,
++						DMA_BIDIRECTIONAL, 0);
++			dma_iova_free(&paux_dev->dev, state);
++			goto err_map_sp;
++		}
+ 
+-	syncpt_addr_rw += (MAX_PVA_QUEUE_COUNT - 1) * pva->syncpts.page_size;
+-	if (syncpt_addr_rw != pva->syncpts.syncpts_rw[0].addr) {
+-		dev_err(&pdev->dev, "RW sync pts not contiguous");
+-		err = -ENOMEM;
+-		goto err_map_sp;
++		pva->syncpts.syncpt_start_iova_rw = aligned_base;
++		pva->syncpts.syncpt_range_rw = total_size;
++	} else {
++		/* No IOMMU — use physical addresses directly */
++		for (i = 0; i < MAX_PVA_QUEUE_COUNT; i++) {
++			syncpt_offset =
++				nvhost_syncpt_unit_interface_get_byte_offset_ext(
++					pva->syncpts.host_pdev,
++					pva->syncpts.syncpts_rw[i].id);
++			pva->syncpts.syncpts_rw[i].addr = base + syncpt_offset;
++			pva->syncpts.syncpts_rw[i].size = 0;
++		}
++		pva->syncpts.syncpt_start_iova_rw =
++			pva->syncpts.syncpts_rw[0].addr;
++		pva->syncpts.syncpt_range_rw =
++			MAX_PVA_QUEUE_COUNT * pva->syncpts.page_size;
+ 	}
+ 
++	pva->syncpts.syncpts_mapped_rw = true;
++
+ 	goto out;
+ 
+ err_map_sp:
+diff --git a/drivers/video/tegra/host/pva/pva.h b/drivers/video/tegra/host/pva/pva.h
+index cb04fec..2bb30eb 100644
+--- a/drivers/video/tegra/host/pva/pva.h
++++ b/drivers/video/tegra/host/pva/pva.h
+@@ -9,6 +9,7 @@
+ #define __NVHOST_PVA_H__
+ 
+ #include <linux/firmware.h>
++#include <linux/dma-mapping.h>
+ #include <linux/mutex.h>
+ #include <linux/version.h>
+ #include <linux/workqueue.h>
+@@ -324,6 +325,8 @@ struct nvpva_syncpt_desc {
+ struct nvpva_syncpts_desc {
+ 	struct platform_device *host_pdev;
+ 	struct nvpva_syncpt_desc syncpts_rw[MAX_PVA_QUEUE_COUNT];
++	struct dma_iova_state iova_state;
++	size_t iova_align_offset;
+ 	dma_addr_t syncpt_start_iova_r;
+ 	dma_addr_t syncpt_range_r;
+ 	dma_addr_t syncpt_start_iova_rw;
+-- 
+2.34.1
+

@@ -1,0 +1,122 @@
+From bce95a8aea7f884bfcb17234053ece1d65e1952e Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 24 Apr 2026 00:09:31 +0800
+Subject: [PATCH 2/4] video: tegra: pva: use dma_map_phys for RAM-backed
+ carveout mapping
+
+pva_read_ucode_co() maps the PVA firmware carveout region using
+nvpva_map_region() which calls dma_map_resource(). The carveout is
+reserved RAM where pfn_valid() returns true, triggering a warning
+in dma_map_resource() which is intended for MMIO regions only:
+WARNING at dma_map_resource: WARN_ON_ONCE(pfn_valid(PHYS_PFN(phys_addr)))
+Fix by introducing nvpva_map_mem/nvpva_unmap_mem that wrap
+dma_map_phys/dma_unmap_phys for RAM-backed memory regions. Unlike
+dma_map_resource, dma_map_phys handles both RAM and MMIO addresses
+correctly without the pfn_valid warning.
+The existing nvpva_map_region/nvpva_unmap_region helpers remain
+unchanged for MMIO syncpt region mappings where dma_map_resource
+is appropriate.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/video/tegra/host/pva/nvpva_syncpt.c | 26 +++++++++++++++++++++
+ drivers/video/tegra/host/pva/nvpva_syncpt.h |  9 +++++++
+ drivers/video/tegra/host/pva/pva.c          | 18 +++++++-------
+ 3 files changed, 44 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/video/tegra/host/pva/nvpva_syncpt.c b/drivers/video/tegra/host/pva/nvpva_syncpt.c
+index bf3d8c3..306dac2 100644
+--- a/drivers/video/tegra/host/pva/nvpva_syncpt.c
++++ b/drivers/video/tegra/host/pva/nvpva_syncpt.c
+@@ -43,6 +43,32 @@ int nvpva_unmap_region(struct device *dev,
+ 	return 0;
+ }
+ 
++int nvpva_map_mem(struct device *dev,
++		  phys_addr_t start,
++		  size_t size,
++		  dma_addr_t *dma_addr,
++		  enum dma_data_direction dir)
++{
++	if (iommu_get_domain_for_dev(dev)) {
++		*dma_addr = dma_map_phys(dev, start, size, dir, 0);
++		if (dma_mapping_error(dev, *dma_addr))
++			return -ENOMEM;
++	} else {
++		*dma_addr = start;
++	}
++
++	return 0;
++}
++
++void nvpva_unmap_mem(struct device *dev,
++		     dma_addr_t dma_addr,
++		     size_t size,
++		     enum dma_data_direction dir)
++{
++	if (iommu_get_domain_for_dev(dev))
++		dma_unmap_phys(dev, dma_addr, size, dir, 0);
++}
++
+ void nvpva_syncpt_put_ref_ext(struct platform_device *pdev,
+ 			       u32 id)
+ {
+diff --git a/drivers/video/tegra/host/pva/nvpva_syncpt.h b/drivers/video/tegra/host/pva/nvpva_syncpt.h
+index 7fcf56d..eeed3a8 100644
+--- a/drivers/video/tegra/host/pva/nvpva_syncpt.h
++++ b/drivers/video/tegra/host/pva/nvpva_syncpt.h
+@@ -25,4 +25,13 @@ int nvpva_unmap_region(struct device *dev,
+ 		       dma_addr_t addr,
+ 		       size_t size,
+ 		       u32 attr);
++int nvpva_map_mem(struct device *dev,
++		  phys_addr_t start,
++		  size_t size,
++		  dma_addr_t *dma_addr,
++		  enum dma_data_direction dir);
++void nvpva_unmap_mem(struct device *dev,
++		     dma_addr_t dma_addr,
++		     size_t size,
++		     enum dma_data_direction dir);
+ #endif
+diff --git a/drivers/video/tegra/host/pva/pva.c b/drivers/video/tegra/host/pva/pva.c
+index 67b4faa..ce487d0 100644
+--- a/drivers/video/tegra/host/pva/pva.c
++++ b/drivers/video/tegra/host/pva/pva.c
+@@ -486,10 +486,10 @@ static int pva_free_fw(struct platform_device *pdev, struct pva *pva)
+ 					  pva->priv1_dma.va, pva->priv1_dma.pa);
+ 	} else {
+ 		if (pva->map_co_needed && (pva->priv1_dma.pa != 0)) {
+-			nvpva_unmap_region(&pdev->dev,
+-					   pva->priv1_dma.pa,
+-					   pva->co->size,
+-					   DMA_BIDIRECTIONAL);
++			nvpva_unmap_mem(&pdev->dev,
++					pva->priv1_dma.pa,
++					pva->co->size,
++					DMA_BIDIRECTIONAL);
+ 		}
+ 
+ 		pva->co->base_pa = 0;
+@@ -579,11 +579,11 @@ static int pva_read_ucode_co(struct platform_device *pdev,
+ 	}
+ 
+ 	if (pva->map_co_needed) {
+-		err = nvpva_map_region(&pdev->dev,
+-				       pva->co->base,
+-				       pva->co->size,
+-				       &pva->priv1_dma.pa,
+-				       DMA_BIDIRECTIONAL);
++		err = nvpva_map_mem(&pdev->dev,
++				    pva->co->base,
++				    pva->co->size,
++				    &pva->priv1_dma.pa,
++				    DMA_BIDIRECTIONAL);
+ 		if (err) {
+ 			err = -ENOMEM;
+ 			goto out;
+-- 
+2.34.1
+

@@ -1,0 +1,36 @@
+From 10598665a245e78226fbf05effc397e90348807c Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Sat, 25 Apr 2026 09:21:14 +0800
+Subject: [PATCH 4/4] video: tegra: pva: add missing nvhost syncpt interface
+ cleanup on remove
+
+pva_probe() calls nvhost_syncpt_unit_interface_init() which maps the
+syncpt aperture via dma_map_resource(). However, pva_remove() never
+calls the matching nvhost_syncpt_unit_interface_deinit() to unmap it.
+On each module reload cycle, a new DMA mapping is created for the
+same physical syncpt aperture without freeing the previous one. After
+7 cycles, the DMA debug layer warns:
+DMA-API: exceeded 7 overlapping mappings of cacheline 0x0000000001800000
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/video/tegra/host/pva/pva.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/video/tegra/host/pva/pva.c b/drivers/video/tegra/host/pva/pva.c
+index ce487d0..f844b2e 100644
+--- a/drivers/video/tegra/host/pva/pva.c
++++ b/drivers/video/tegra/host/pva/pva.c
+@@ -1518,6 +1518,7 @@ static int __exit pva_remove(struct platform_device *pdev)
+ 	pva_auth_allow_list_destroy(&pva->pva_auth);
+ 	pva_free_task_status_buffer(pva);
+ 	nvpva_syncpt_unit_interface_deinit(pdev, pva->aux_pdev);
++	nvhost_syncpt_unit_interface_deinit(pdev);
+ 	nvpva_client_context_deinit(pva);
+ 	nvpva_queue_deinit(pva->pool);
+ 	nvhost_client_device_release(pdev);
+-- 
+2.34.1
+
