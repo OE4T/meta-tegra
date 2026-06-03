@@ -102,6 +102,7 @@ COMMON_PATCHES = "\
     file://0086-video-tegra-nvcsi-fix-resource-leak-on-module-unload.patch;patchdir=nvidia-oot \
     file://0087-video-tegra-isp5-fix-use-after-free-on-module-unload.patch;patchdir=nvidia-oot \
     file://0088-video-tegra-isp5-fix-resource-leak-on-module-unload.patch;patchdir=nvidia-oot \
+    file://0089-video-tegra-vi5-fix-resource-leak-on-module-unload.patch;patchdir=nvidia-oot \
 "
 EXTRA_PATCHES ??= ""
 

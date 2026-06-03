@@ -1,0 +1,43 @@
+From b1430d72157a9713ac6279d5ae8dbfb55fb2b23f Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 27 Apr 2026 15:09:08 +0800
+Subject: [PATCH] video: tegra: vi5: fix resource leak on module unload
+
+vi5_probe() calls nvhost_module_init() and nvhost_client_device_init()
+to set up runtime PM, debugfs, and the vi device class. However,
+vi5_remove() does not call the corresponding cleanup functions,
+leaking these resources on module unload.
+On module reload, this causes:
+- "Unbalanced pm_runtime_enable!", because pm_runtime_enable called
+  again without prior pm_runtime_disable
+- "debugfs: 'vi0' already exists", because debugfs directory not removed
+- "sysfs: cannot create duplicate filename '/class/vi0'", because device
+  class not destroyed
+- Probe fails with -EEXIST
+Fix by adding nvhost_client_device_release() and nvhost_module_deinit()
+in vi5_remove() to properly clean up the device class, debugfs, and
+runtime PM state.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/video/tegra/host/vi/vi5.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/video/tegra/host/vi/vi5.c b/drivers/video/tegra/host/vi/vi5.c
+index 2a3387a..9a79da2 100644
+--- a/drivers/video/tegra/host/vi/vi5.c
++++ b/drivers/video/tegra/host/vi/vi5.c
+@@ -316,6 +316,8 @@ static int vi5_remove(struct platform_device *pdev)
+ 
+ 	vi5_remove_debugfs(vi5);
+ 	platform_device_put(vi5->vi_thi);
++	nvhost_client_device_release(pdev);
++	nvhost_module_deinit(pdev);
+ 	return 0;
+ }
+ 
+-- 
+2.34.1
+
