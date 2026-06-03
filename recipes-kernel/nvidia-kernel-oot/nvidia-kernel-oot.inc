@@ -81,6 +81,7 @@ COMMON_PATCHES = "\
     file://0065-nvdisplay-nvidia-drm-trigger-connector-detect-on-hot.patch;patchdir=nvdisplay \
     file://0066-nvdisplay-nvidia-drm-update-legacy-modeset-state-on-.patch;patchdir=nvdisplay \
     file://0067-drm-tegra-release-the-count-of-pid-to-avoid-memory-l.patch;patchdir=nvidia-oot \
+    file://0068-usb-typec-remove-IRQF_ONESHOT-flag.patch;patchdir=nvidia-oot \
 "
 EXTRA_PATCHES ??= ""
 
