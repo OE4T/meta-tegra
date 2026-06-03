@@ -87,6 +87,7 @@ COMMON_PATCHES = "\
     file://0071-usb-typec-release-resource-when-removing-usb-driver-.patch;patchdir=nvidia-oot \
     file://0072-nvdisplay-nv-platform-call-platform_device_put-to-de.patch;patchdir=nvdisplay \
     file://0073-nvidia-modeset-dp-decrease-reference-if-destroy-func.patch;patchdir=nvdisplay \
+    file://0074-nvdisplay-nv-platform-set-the-dma-segment-size-for-n.patch;patchdir=nvdisplay \
 "
 EXTRA_PATCHES ??= ""
 
