@@ -1,0 +1,45 @@
+From b1f97c82b9e525a83fd08ec3772e30eb0905e36b Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 27 Apr 2026 10:21:57 +0800
+Subject: [PATCH] video: tegra: nvcsi: fix resource leak on module unload
+
+t194_nvcsi_probe() calls nvhost_module_init() and
+nvhost_client_device_init() to set up runtime PM, debugfs, and
+the nvcsi device class. However, t194_nvcsi_remove() does not call
+the corresponding cleanup functions, leaking these resources on
+module unload.
+On module reload, this causes:
+- "Unbalanced pm_runtime_enable!", because pm_runtime_enable called
+  again without prior pm_runtime_disable
+- "debugfs: 'nvcsi' already exists", because debugfs directory not
+  removed
+- "sysfs: cannot create duplicate filename '/class/nvcsi'", because
+  device class not destroyed
+- Probe fails with -EEXIST
+Fix by adding nvhost_client_device_release() and nvhost_module_deinit()
+in t194_nvcsi_remove() to properly clean up the device class, debugfs,
+and runtime PM state.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/video/tegra/host/nvcsi/nvcsi-t194.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/video/tegra/host/nvcsi/nvcsi-t194.c b/drivers/video/tegra/host/nvcsi/nvcsi-t194.c
+index ea11afa..abbb852 100644
+--- a/drivers/video/tegra/host/nvcsi/nvcsi-t194.c
++++ b/drivers/video/tegra/host/nvcsi/nvcsi-t194.c
+@@ -242,6 +242,8 @@ static int __exit t194_nvcsi_remove(struct platform_device *dev)
+ 	tegra_camera_device_unregister(nvcsi);
+ 	mc_csi = NULL;
+ 	tegra_csi_media_controller_remove(&nvcsi->csi);
++	nvhost_client_device_release(dev);
++	nvhost_module_deinit(dev);
+ 
+ 	return 0;
+ }
+-- 
+2.34.1
+

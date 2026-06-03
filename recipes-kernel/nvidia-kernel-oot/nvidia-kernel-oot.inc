@@ -99,6 +99,7 @@ COMMON_PATCHES = "\
     file://0083-video-tegra-pva-use-dma_map_phys-for-RAM-backed-carv.patch;patchdir=nvidia-oot \
     file://0084-video-tegra-pva-use-DMA-IOVA-API-for-contiguous-sync.patch;patchdir=nvidia-oot \
     file://0085-video-tegra-pva-add-missing-nvhost-syncpt-interface-.patch;patchdir=nvidia-oot \
+    file://0086-video-tegra-nvcsi-fix-resource-leak-on-module-unload.patch;patchdir=nvidia-oot \
 "
 EXTRA_PATCHES ??= ""
 
