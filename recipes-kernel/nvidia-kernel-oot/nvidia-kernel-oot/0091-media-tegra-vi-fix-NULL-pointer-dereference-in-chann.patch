@@ -1,0 +1,38 @@
+From 71c2bc5e207bb59af3ccbd6cb240682f3f079f95 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 27 Apr 2026 17:41:23 +0800
+Subject: [PATCH 2/3] media: tegra: vi: fix NULL pointer dereference in channel
+ unregister
+
+tegra_vi_channels_unregister() dereferences it->video without a NULL
+check. When nvhost_vi5 is unloaded before tegra_camera, the VI
+channel video devices are already cleaned up and it->video is NULL,
+causing a kernel panic during tegra_vi_media_controller_cleanup():
+Unable to handle kernel NULL pointer dereference at virtual address
+00000000000005b8
+Fix by adding a NULL check for it->video before accessing
+it->video->cdev.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/media/platform/tegra/camera/vi/channel.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/tegra/camera/vi/channel.c b/drivers/media/platform/tegra/camera/vi/channel.c
+index 37c5383..96092e9 100644
+--- a/drivers/media/platform/tegra/camera/vi/channel.c
++++ b/drivers/media/platform/tegra/camera/vi/channel.c
+@@ -2762,7 +2762,7 @@ void tegra_vi_channels_unregister(struct tegra_mc_vi *vi)
+ 	struct tegra_channel *it;
+ 
+ 	list_for_each_entry(it, &vi->vi_chans, list) {
+-		if (it->video->cdev != NULL)
++		if (it->video && it->video->cdev != NULL)
+ 			video_unregister_device(it->video);
+ 	}
+ }
+-- 
+2.34.1
+
