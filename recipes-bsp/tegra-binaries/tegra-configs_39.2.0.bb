@@ -5,6 +5,8 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-configs"
 
 require tegra-debian-libraries-common.inc
 
+inherit useradd
+
 SRC_SOC_DEBS += "\
     ${@l4t_deb_pkgname(d, 'init')};subdir=${BP};name=init \
     ${@l4t_deb_pkgname(d, 'x11')};subdir=${BP};name=x11 \
@@ -76,3 +78,6 @@ FILES:${PN}-bootloader = "/opt/nvidia/l4t-bootloader-config"
 RDEPENDS:${PN}-udev = "udev"
 RDEPENDS:${PN}-nvstartup = "bash"
 RDEPENDS:${PN}-bootloader = "bash"
+
+USERADD_PACKAGES = "${PN}-udev"
+GROUPADD_PARAM:${PN}-udev = "--system debug"
