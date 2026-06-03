@@ -1,0 +1,55 @@
+From aa84b6dbf1fe224889872a834259ba8e6f60ee66 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 1 Aug 2025 15:29:04 +0800
+Subject: [PATCH] drm/tegra: release the refcount of pid to avoid memory leak
+
+When playing a mp4 file with gstreamer command gst-launch-1.0, there is
+below memory leak reported:
+  backtrace (crc 57282538):
+    kmemleak_alloc+0x3c/0x50
+    kmem_cache_alloc_noprof+0x1b8/0x420
+    alloc_pid+0x68/0x3e0
+    copy_process+0xbb0/0x1440
+    kernel_clone+0x78/0x3f8
+    __do_sys_clone+0x74/0xb0
+    __arm64_sys_clone+0x28/0x40
+    invoke_syscall+0x5c/0x128
+    el0_svc_common.constprop.0+0xc8/0xf8
+    do_el0_svc+0x24/0x40
+    el0_svc+0x30/0xf8
+    el0t_64_sync_handler+0x120/0x138
+    el0t_64_sync+0x190/0x198
+This issue is caused by forgetting to release the refcount of pid, so call
+put_pid() to avoid memory leak.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/gpu/drm/tegra/uapi.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/uapi.c b/drivers/gpu/drm/tegra/uapi.c
+index 0f9342b..2df0d51 100644
+--- a/drivers/gpu/drm/tegra/uapi.c
++++ b/drivers/gpu/drm/tegra/uapi.c
+@@ -118,9 +118,14 @@ int tegra_drm_ioctl_channel_open(struct drm_device *drm, void *data, struct drm_
+ 		if (err)
+ 			goto put_channel;
+ 
+-		if (supported)
++		if (supported) {
++			struct pid *current_pid;
++
++			current_pid = get_task_pid(current, PIDTYPE_TGID);
+ 			context->memory_context = host1x_memory_context_alloc(
+-				host, client->base.dev, get_task_pid(current, PIDTYPE_TGID));
++				host, client->base.dev, current_pid);
++			put_pid(current_pid);
++		}
+ 
+ 		if (IS_ERR(context->memory_context)) {
+ 			if (PTR_ERR(context->memory_context) != -EOPNOTSUPP) {
+-- 
+2.34.1
+
