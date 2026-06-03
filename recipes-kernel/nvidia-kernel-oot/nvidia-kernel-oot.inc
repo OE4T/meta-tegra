@@ -94,6 +94,7 @@ COMMON_PATCHES = "\
     file://0078-nvdisplay-replace-lock-sync-with-wait-event-mechanis.patch;patchdir=nvdisplay \
     file://0079-nvgpu-dma-use-unlocked-variant-function-to-process-d.patch;patchdir=nvgpu \
     file://0080-nvdisplay-dma-use-unlocked-variant-function-when-map.patch;patchdir=nvdisplay \
+    file://0081-gpu-nvgpu-probe-clock-availability-during-acquisitio.patch;patchdir=nvgpu \
 "
 EXTRA_PATCHES ??= ""
 
