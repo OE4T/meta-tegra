@@ -1,0 +1,533 @@
+From 0c89599e4f2d032eb566a187598fff7f0f280a95 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 12 Jan 2026 19:46:12 +0800
+Subject: [PATCH] nvdisplay: replace lock sync with wait event mechanism
+
+When kernel boots up, there is below warning trace:
+WARNING: lock held when returning to user space!
+Xorg/1509 is leaving the kernel with locks still held!
+1 lock held by Xorg/1509:
+ #0: ffffffe3f958f028 (&nv_system_pm_lock){....}-{3:3}, at:
+nv_procfs_open_params+0x60/0xb8 [nvidia]
+This issue is introduced by using semaphore unreasonable, it should
+not hold semaphore after system call has returned. In order to avoid
+this issue, replace lock sync with wait event, create wait queue head
+and implement sync solution with wait event mechanism.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ kernel-open/common/inc/nv-linux.h             |  2 +
+ kernel-open/common/inc/nv-procfs-utils.h      | 18 ++++----
+ .../nvidia-modeset/nvidia-modeset-linux.c     | 23 ++++++----
+ kernel-open/nvidia/nv-caps.c                  | 12 ++---
+ kernel-open/nvidia/nv-mmap.c                  | 16 ++++---
+ kernel-open/nvidia/nv-procfs.c                | 32 ++++++++-----
+ kernel-open/nvidia/nv.c                       | 45 +++++++++++++------
+ 7 files changed, 95 insertions(+), 53 deletions(-)
+
+diff --git a/kernel-open/common/inc/nv-linux.h b/kernel-open/common/inc/nv-linux.h
+index e2254aa..177ff05 100644
+--- a/kernel-open/common/inc/nv-linux.h
++++ b/kernel-open/common/inc/nv-linux.h
+@@ -1664,6 +1664,8 @@ extern struct semaphore nv_linux_devices_lock;
+  * device state must acquire the lock in read mode.
+  */
+ extern struct rw_semaphore nv_system_pm_lock;
++extern wait_queue_head_t nv_system_pm_wq;
++extern atomic_t nv_wait_flag;
+ 
+ extern NvBool nv_ats_supported;
+ 
+diff --git a/kernel-open/common/inc/nv-procfs-utils.h b/kernel-open/common/inc/nv-procfs-utils.h
+index c4035ec..5d4a232 100644
+--- a/kernel-open/common/inc/nv-procfs-utils.h
++++ b/kernel-open/common/inc/nv-procfs-utils.h
+@@ -91,7 +91,7 @@ typedef struct file_operations nv_proc_ops_t;
+ #define NV_PDE_DATA(inode) PDE_DATA(inode)
+ #endif
+ 
+-#define NV_DEFINE_SINGLE_PROCFS_FILE_HELPER(name, lock)                     \
++#define NV_DEFINE_SINGLE_PROCFS_FILE_HELPER(name, wq, flag)               \
+     static int nv_procfs_open_##name(                                       \
+         struct inode *inode,                                                \
+         struct file *filep                                                  \
+@@ -104,11 +104,12 @@ typedef struct file_operations nv_proc_ops_t;
+         {                                                                   \
+             return ret;                                                     \
+         }                                                                   \
+-        ret = nv_down_read_interruptible(&lock);                            \
++        ret = wait_event_interruptible(wq, !atomic_cmpxchg(&flag, 0, 1));   \
+         if (ret < 0)                                                        \
+         {                                                                   \
+             single_release(inode, filep);                                   \
+         }                                                                   \
++                                                                            \
+         return ret;                                                         \
+     }                                                                       \
+                                                                             \
+@@ -117,12 +118,13 @@ typedef struct file_operations nv_proc_ops_t;
+         struct file *filep                                                  \
+     )                                                                       \
+     {                                                                       \
+-        up_read(&lock);                                                     \
++        atomic_set(&flag, 0);                                               \
++        wake_up_all(&wq);                                                   \
+         return single_release(inode, filep);                                \
+     }
+ 
+-#define NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(name, lock)                  \
+-    NV_DEFINE_SINGLE_PROCFS_FILE_HELPER(name, lock)                         \
++#define NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(name, wq, flag)            \
++    NV_DEFINE_SINGLE_PROCFS_FILE_HELPER(name, wq, flag)                   \
+                                                                             \
+     static const nv_proc_ops_t nv_procfs_##name##_fops = {                  \
+         NV_PROC_OPS_SET_OWNER()                                             \
+@@ -133,9 +135,9 @@ typedef struct file_operations nv_proc_ops_t;
+     };
+ 
+ 
+-#define NV_DEFINE_SINGLE_PROCFS_FILE_READ_WRITE(name, lock,                 \
+-write_callback)                                                             \
+-    NV_DEFINE_SINGLE_PROCFS_FILE_HELPER(name, lock)                         \
++#define NV_DEFINE_SINGLE_PROCFS_FILE_READ_WRITE(name, wq,                 \
++write_callback, flag)                                                       \
++    NV_DEFINE_SINGLE_PROCFS_FILE_HELPER(name, wq, flag)                   \
+                                                                             \
+     static ssize_t nv_procfs_write_##name(                                  \
+         struct file *file,                                                  \
+diff --git a/kernel-open/nvidia-modeset/nvidia-modeset-linux.c b/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
+index c2ae900..7aad962 100644
+--- a/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
++++ b/kernel-open/nvidia-modeset/nvidia-modeset-linux.c
+@@ -381,6 +381,8 @@ static struct semaphore nvkms_lock;
+  *************************************************************************/
+ 
+ static struct rw_semaphore nvkms_pm_lock;
++static wait_queue_head_t nvkms_pm_wq;
++static atomic_t nvkms_wait_flag = ATOMIC_INIT(0);
+ 
+ /*************************************************************************
+  * NVKMS executes almost all of its queued work items on a single
+@@ -428,12 +430,12 @@ struct nvkms_per_open {
+ 
+ static inline int nvkms_read_trylock_pm_lock(void)
+ {
+-    return !down_read_trylock(&nvkms_pm_lock);
++    return atomic_cmpxchg(&nvkms_wait_flag, 0, 1);
+ }
+ 
+ static inline void nvkms_read_lock_pm_lock(void)
+ {
+-    while (!down_read_trylock(&nvkms_pm_lock)) {
++    while (atomic_cmpxchg(&nvkms_wait_flag, 0, 1) == 1) {
+         try_to_freeze();
+         cond_resched();
+     }
+@@ -441,17 +443,19 @@ static inline void nvkms_read_lock_pm_lock(void)
+ 
+ static inline void nvkms_read_unlock_pm_lock(void)
+ {
+-    up_read(&nvkms_pm_lock);
++    atomic_set(&nvkms_wait_flag, 0);
++    wake_up_all(&nvkms_pm_wq);
+ }
+ 
+ static inline void nvkms_write_lock_pm_lock(void)
+ {
+-    down_write(&nvkms_pm_lock);
++    wait_event(nvkms_pm_wq, !atomic_cmpxchg(&nvkms_wait_flag, 0, 1));
+ }
+ 
+ static inline void nvkms_write_unlock_pm_lock(void)
+ {
+-    up_write(&nvkms_pm_lock);
++    atomic_set(&nvkms_wait_flag, 0);
++    wake_up_all(&nvkms_pm_wq);
+ }
+ 
+ /*************************************************************************
+@@ -1534,7 +1538,7 @@ void nvkms_sema_up(nvkms_sema_handle_t *sema)
+ #if defined(CONFIG_PROC_FS)
+ 
+ #define NV_DEFINE_SINGLE_NVKMS_PROCFS_FILE(name) \
+-    NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(name, nvkms_pm_lock)
++    NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(name, nvkms_pm_wq, nvkms_wait_flag)
+ 
+ #define NVKMS_PROCFS_FOLDER "driver/nvidia-modeset"
+ 
+@@ -1768,7 +1772,8 @@ static int nvkms_open(struct inode *inode, struct file *filp)
+ {
+     int status;
+ 
+-    status = nv_down_read_interruptible(&nvkms_pm_lock);
++    status = wait_event_interruptible(nvkms_pm_wq,
++                               !atomic_cmpxchg(&nvkms_wait_flag, 0, 1));
+     if (status != 0) {
+         return status;
+     }
+@@ -1825,7 +1830,8 @@ static int nvkms_ioctl(struct inode *inode, struct file *filp,
+         return -EFAULT;
+     }
+ 
+-    status = nv_down_read_interruptible(&nvkms_pm_lock);
++    status = wait_event_interruptible(nvkms_pm_wq,
++                              !atomic_cmpxchg(&nvkms_wait_flag, 0, 1));
+     if (status != 0) {
+         return status;
+     }
+@@ -1892,6 +1898,7 @@ static int __init nvkms_init(void)
+ 
+     sema_init(&nvkms_lock, 1);
+     init_rwsem(&nvkms_pm_lock);
++    init_waitqueue_head(&nvkms_pm_wq);
+ 
+     ret = nv_kthread_q_init(&nvkms_kthread_q,
+                             "nvidia-modeset/kthread_q");
+diff --git a/kernel-open/nvidia/nv-caps.c b/kernel-open/nvidia/nv-caps.c
+index 7840414..46cada2 100644
+--- a/kernel-open/nvidia/nv-caps.c
++++ b/kernel-open/nvidia/nv-caps.c
+@@ -247,11 +247,11 @@ static int nv_procfs_read_mig_minors(struct seq_file *s, void *v)
+     return 0;
+ }
+ 
+-NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(nvlink_minors, nv_system_pm_lock);
++NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(nvlink_minors, nv_system_pm_wq, nv_wait_flag);
+ 
+-NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(mig_minors, nv_system_pm_lock);
++NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(mig_minors, nv_system_pm_wq, nv_wait_flag);
+ 
+-NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(sys_minors, nv_system_pm_lock);
++NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(sys_minors, nv_system_pm_wq, nv_wait_flag);
+ 
+ static void nv_cap_procfs_exit(void)
+ {
+@@ -425,7 +425,8 @@ static int nv_cap_procfs_open(struct inode *inode, struct file *file)
+         return rc;
+     }
+ 
+-    rc = nv_down_read_interruptible(&nv_system_pm_lock);
++    rc = wait_event_interruptible(nv_system_pm_wq,
++                          !atomic_cmpxchg(&nv_wait_flag, 0, 1));
+     if (rc < 0)
+     {
+         single_release(inode, file);
+@@ -448,7 +449,8 @@ static int nv_cap_procfs_release(struct inode *inode, struct file *file)
+         private = s->private;
+     }
+ 
+-    up_read(&nv_system_pm_lock);
++    atomic_set(&nv_wait_flag, 0);
++    wake_up_all(&nv_system_pm_wq);
+ 
+     single_release(inode, file);
+ 
+diff --git a/kernel-open/nvidia/nv-mmap.c b/kernel-open/nvidia/nv-mmap.c
+index 1549652..587d8fc 100644
+--- a/kernel-open/nvidia/nv-mmap.c
++++ b/kernel-open/nvidia/nv-mmap.c
+@@ -229,10 +229,8 @@ static vm_fault_t nvidia_fault(
+     }
+ 
+     // Wake up GPU and reinstate mappings only if we are not in S3/S4 entry
+-    if (!down_read_trylock(&nv_system_pm_lock))
+-    {
++    if (atomic_cmpxchg(&nv_wait_flag, 0, 1) == 1)
+         return VM_FAULT_NOPAGE;
+-    }
+ 
+     down(&nvl->mmap_lock);
+ 
+@@ -245,7 +243,8 @@ static vm_fault_t nvidia_fault(
+         {
+             // GPU wakeup callback already scheduled.
+             up(&nvl->mmap_lock);
+-            up_read(&nv_system_pm_lock);
++            atomic_set(&nv_wait_flag, 0);
++            wake_up_all(&nv_system_pm_wq);
+             return VM_FAULT_NOPAGE;
+         }
+ 
+@@ -259,14 +258,16 @@ static vm_fault_t nvidia_fault(
+             nv_printf(NV_DBG_ERRORS,
+                       "NVRM: VM: rm_schedule_gpu_wakeup failed: %x\n", status);
+             up(&nvl->mmap_lock);
+-            up_read(&nv_system_pm_lock);
++            atomic_set(&nv_wait_flag, 0);
++            wake_up_all(&nv_system_pm_wq);
+             return VM_FAULT_SIGBUS;
+         }
+         // Ensure that we do not schedule duplicate GPU wakeup callbacks.
+         nvl->gpu_wakeup_callback_needed = NV_FALSE;
+ 
+         up(&nvl->mmap_lock);
+-        up_read(&nv_system_pm_lock);
++        atomic_set(&nv_wait_flag, 0);
++        wake_up_all(&nv_system_pm_wq);
+         return VM_FAULT_NOPAGE;
+     }
+ 
+@@ -288,7 +289,8 @@ static vm_fault_t nvidia_fault(
+         nvl->all_mappings_revoked = NV_FALSE;
+     }
+     up(&nvl->mmap_lock);
+-    up_read(&nv_system_pm_lock);
++    atomic_set(&nv_wait_flag, 0);
++    wake_up_all(&nv_system_pm_wq);
+ 
+     return ret;
+ }
+diff --git a/kernel-open/nvidia/nv-procfs.c b/kernel-open/nvidia/nv-procfs.c
+index d4d2007..c7c3305 100644
+--- a/kernel-open/nvidia/nv-procfs.c
++++ b/kernel-open/nvidia/nv-procfs.c
+@@ -35,7 +35,7 @@
+ #include "nv-ibmnpu.h"
+ 
+ #define NV_DEFINE_SINGLE_NVRM_PROCFS_FILE(name) \
+-    NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(name, nv_system_pm_lock)
++    NV_DEFINE_SINGLE_PROCFS_FILE_READ_ONLY(name, nv_system_pm_wq, nv_wait_flag)
+ 
+ static const char *__README_warning = \
+     "The NVIDIA graphics driver tries to detect potential problems\n"
+@@ -337,7 +337,8 @@ nv_procfs_open_registry(
+         return retval;
+     }
+ 
+-    retval = nv_down_read_interruptible(&nv_system_pm_lock);
++    retval = wait_event_interruptible(nv_system_pm_wq,
++                              !atomic_cmpxchg(&nv_wait_flag, 0, 1));
+     if (retval < 0)
+     {
+         single_release(inode, file);
+@@ -411,7 +412,8 @@ nv_procfs_close_registry(
+     }
+ 
+ done:
+-    up_read(&nv_system_pm_lock);
++    atomic_set(&nv_wait_flag, 0);
++    wake_up_all(&nv_system_pm_wq);
+ 
+     single_release(inode, file);
+ 
+@@ -740,7 +742,8 @@ nv_procfs_open_exercise_error_forwarding(
+         return retval;
+     }
+ 
+-    retval = nv_down_read_interruptible(&nv_system_pm_lock);
++    retval = wait_event_interruptible(nv_system_pm_wq,
++                              !atomic_cmpxchg(&nv_wait_flag, 0, 1));
+     if (retval < 0)
+     {
+         single_release(inode, file);
+@@ -783,7 +786,8 @@ nv_procfs_close_exercise_error_forwarding(
+         status = -EINVAL;
+ 
+ done:
+-    up_read(&nv_system_pm_lock);
++    atomic_set(&nv_wait_flag, 0);
++    wake_up_all(&nv_system_pm_wq);
+ 
+     single_release(inode, file);
+ 
+@@ -845,7 +849,8 @@ nv_procfs_open_unbind_lock(
+         return retval;
+     }
+ 
+-    retval = nv_down_read_interruptible(&nv_system_pm_lock);
++    retval = wait_event_interruptible(nv_system_pm_wq,
++                              !atomic_cmpxchg(&nv_wait_flag, 0, 1));
+     if (retval < 0)
+     {
+         single_release(inode, file);
+@@ -910,7 +915,8 @@ nv_procfs_close_unbind_lock(
+     }
+ 
+ done:
+-    up_read(&nv_system_pm_lock);
++    atomic_set(&nv_wait_flag, 0);
++    wake_up_all(&nv_system_pm_wq);
+ 
+     single_release(inode, file);
+ 
+@@ -1095,7 +1101,8 @@ nv_procfs_open_offline_pages(
+         return retval;
+     }
+ 
+-    retval = nv_down_read_interruptible(&nv_system_pm_lock);
++    retval = wait_event_interruptible(nv_system_pm_wq,
++                              !atomic_cmpxchg(&nv_wait_flag, 0, 1));
+     if (retval < 0)
+     {
+         single_release(inode, file);
+@@ -1114,7 +1121,8 @@ nv_procfs_close_offline_pages(
+     struct seq_file *s = file->private_data;
+     nv_procfs_private_t *nvpp = s->private;
+ 
+-    up_read(&nv_system_pm_lock);
++    atomic_set(&nv_wait_flag, 0);
++    wake_up_all(&nv_system_pm_wq);
+ 
+     single_release(inode, file);
+ 
+@@ -1181,7 +1189,8 @@ nv_procfs_open_numa_status(
+         return retval;
+     }
+ 
+-    retval = nv_down_read_interruptible(&nv_system_pm_lock);
++    retval = wait_event_interruptible(nv_system_pm_wq,
++                              !atomic_cmpxchg(&nv_wait_flag, 0, 1));
+     if (retval < 0)
+     {
+         single_release(inode, file);
+@@ -1264,7 +1273,8 @@ nv_procfs_close_numa_status(
+ done:
+     up(&nvl->ldata_lock);
+ 
+-    up_read(&nv_system_pm_lock);
++    atomic_set(&nv_wait_flag, 0);
++    wake_up_all(&nv_system_pm_wq);
+ 
+     single_release(inode, file);
+ 
+diff --git a/kernel-open/nvidia/nv.c b/kernel-open/nvidia/nv.c
+index 1910355..3cf3be6 100644
+--- a/kernel-open/nvidia/nv.c
++++ b/kernel-open/nvidia/nv.c
+@@ -122,6 +122,8 @@ nv_kthread_q_t nv_kthread_q;
+ nv_kthread_q_t nv_deferred_close_kthread_q;
+ 
+ struct rw_semaphore nv_system_pm_lock;
++wait_queue_head_t nv_system_pm_wq;
++atomic_t nv_wait_flag = ATOMIC_INIT(0);
+ 
+ #if defined(CONFIG_PM)
+ static nv_power_state_t nv_system_power_state;
+@@ -443,6 +445,7 @@ nv_module_state_init(nv_stack_t *sp)
+     nv_linux_devices = NULL;
+     NV_INIT_MUTEX(&nv_linux_devices_lock);
+     init_rwsem(&nv_system_pm_lock);
++    init_waitqueue_head(&nv_system_pm_wq);
+ 
+ #if defined(CONFIG_PM)
+     NV_INIT_MUTEX(&nv_system_power_state_lock);
+@@ -1474,16 +1477,20 @@ nvidia_open(
+         return rc;
+     }
+ 
+-    rc = nv_down_read_interruptible(&nv_system_pm_lock);
++    rc = wait_event_interruptible(nv_system_pm_wq,
++                              !atomic_cmpxchg(&nv_wait_flag, 0, 1));
+     if (rc < 0)
+-        goto failed;
++    {
++	    goto failed;
++    }
+ 
+     /* Takes nvl->ldata_lock */
+     nvl = find_minor(NV_DEVICE_MINOR_NUMBER(inode));
+     if (!nvl)
+     {
+         rc = -ENODEV;
+-        up_read(&nv_system_pm_lock);
++        atomic_set(&nv_wait_flag, 0);
++        wake_up_all(&nv_system_pm_wq);
+         goto failed;
+     }
+ 
+@@ -1510,7 +1517,8 @@ nvidia_open(
+ failed1:
+     up(&nvl->ldata_lock);
+ 
+-    up_read(&nv_system_pm_lock);
++    atomic_set(&nv_wait_flag, 0);
++    wake_up_all(&nv_system_pm_wq);
+ failed:
+     if (rc != 0)
+     {
+@@ -1763,11 +1771,12 @@ static void nvidia_close_deferred(void *data)
+ {
+     nv_linux_file_private_t *nvlfp = data;
+ 
+-    down_read(&nv_system_pm_lock);
++    wait_event(nv_system_pm_wq, !atomic_cmpxchg(&nv_wait_flag, 0, 1));
+ 
+     nvidia_close_callback(nvlfp);
+ 
+-    up_read(&nv_system_pm_lock);
++    atomic_set(&nv_wait_flag, 0);
++    wake_up_all(&nv_system_pm_wq);
+ }
+ 
+ int
+@@ -1790,11 +1799,13 @@ nvidia_close(
+ 
+     NV_SET_FILE_PRIVATE(file, NULL);
+ 
+-    rc = nv_down_read_interruptible(&nv_system_pm_lock);
++    rc = wait_event_interruptible(nv_system_pm_wq,
++                              !atomic_cmpxchg(&nv_wait_flag, 0, 1));
+     if (rc == 0)
+     {
+         nvidia_close_callback(nvlfp);
+-        up_read(&nv_system_pm_lock);
++        atomic_set(&nv_wait_flag, 0);
++        wake_up_all(&nv_system_pm_wq);
+     }
+     else
+     {
+@@ -1939,9 +1950,11 @@ nvidia_ioctl(
+     nv_printf(NV_DBG_INFO, "NVRM: ioctl(0x%x, 0x%x, 0x%x)\n",
+         _IOC_NR(cmd), (unsigned int) i_arg, _IOC_SIZE(cmd));
+ 
+-    status = nv_down_read_interruptible(&nv_system_pm_lock);
+-    if (status < 0)
++    status = wait_event_interruptible(nv_system_pm_wq,
++                              !atomic_cmpxchg(&nv_wait_flag, 0, 1));
++    if (status < 0) {
+         return status;
++    }
+ 
+     status = nv_kmem_cache_alloc_stack(&sp);
+     if (status != 0)
+@@ -2259,7 +2272,8 @@ unlock:
+ done:
+     nv_kmem_cache_free_stack(sp);
+ 
+-    up_read(&nv_system_pm_lock);
++    atomic_set(&nv_wait_flag, 0);
++    wake_up_all(&nv_system_pm_wq);
+ 
+     if (arg_copy != NULL)
+     {
+@@ -4175,7 +4189,8 @@ nv_set_system_power_state(
+     if (power_state == NV_POWER_STATE_RUNNING)
+     {
+         status = nv_resume_devices(pm_action, nv_system_pm_action_depth);
+-        up_write(&nv_system_pm_lock);
++        atomic_set(&nv_wait_flag, 0);
++        wake_up_all(&nv_system_pm_wq);
+     }
+     else
+     {
+@@ -4187,11 +4202,13 @@ nv_set_system_power_state(
+ 
+         nv_system_pm_action_depth = pm_action_depth;
+ 
+-        down_write(&nv_system_pm_lock);
++        wait_event(nv_system_pm_wq, !atomic_cmpxchg(&nv_wait_flag, 0, 1));
++
+         status = nv_suspend_devices(pm_action, nv_system_pm_action_depth);
+         if (status != NV_OK)
+         {
+-            up_write(&nv_system_pm_lock);
++            atomic_set(&nv_wait_flag, 0);
++            wake_up_all(&nv_system_pm_wq);
+             goto done;
+         }
+     }
+-- 
+2.34.1
+
