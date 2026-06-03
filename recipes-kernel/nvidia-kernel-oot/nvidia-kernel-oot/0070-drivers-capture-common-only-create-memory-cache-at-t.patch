@@ -1,0 +1,76 @@
+From fae98a2843915fb3ef8df7f5c774d70d0ab034e7 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Tue, 28 Oct 2025 14:44:47 +0800
+Subject: [PATCH] drivers: capture-common: only create memory cache at the
+ first time
+
+Based on current camera driver design, there are multiple drivers that
+intend to create memory cache with the same name, it is unreasonable.
+So, only create memory cache at the first time, and save it as a global
+variable. If subsequent drivers try to create memory cache, return
+existing the global one directly. In this way, it needs to create a
+variable to count, so that release memory cache if it is equal to 0.
+In addition, use a mutex to protect counter and memory create/destroy
+operation, so that avoid executing code concurrently.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ .../camera/fusa-capture/capture-common.c      | 25 +++++++++++++++++--
+ 1 file changed, 23 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/tegra/camera/fusa-capture/capture-common.c b/drivers/media/platform/tegra/camera/fusa-capture/capture-common.c
+index 9a80e53..2312eb5 100644
+--- a/drivers/media/platform/tegra/camera/fusa-capture/capture-common.c
++++ b/drivers/media/platform/tegra/camera/fusa-capture/capture-common.c
+@@ -21,6 +21,17 @@
+ 
+ #include <media/fusa-capture/capture-common.h>
+ 
++/**
++ * There are multiple drivers that intend to create memory cache with
++ * the same name, it is unreasonable. So, only create memory cache at
++ * the first time, and save it as a global variable. If subsequent drivers
++ * try to create memory cache, return existing the global one directly.
++ * In this way, it needs to create a variable to count, so that release
++ * memory cache if it is equal to 0.
++ */
++static int refcount = 0;
++static struct kmem_cache *memory_cache;
++static DEFINE_MUTEX(kmem_lock);
+ 
+ /**
+  * @brief Capture buffer management table.
+@@ -328,7 +339,13 @@ struct capture_buffer_table *create_buffer_table(
+ 	tab = kmalloc(sizeof(*tab), GFP_KERNEL);
+ 
+ 	if (likely(tab != NULL)) {
+-		tab->cache = KMEM_CACHE(capture_mapping, 0U);
++		mutex_lock(&kmem_lock);
++		if (refcount == 0)
++			tab->cache = memory_cache = KMEM_CACHE(capture_mapping, 0U);
++		else
++			tab->cache = memory_cache;
++		refcount++;
++		mutex_unlock(&kmem_lock);
+ 
+ 		if (likely(tab->cache != NULL)) {
+ 			tab->dev = dev;
+@@ -366,8 +383,12 @@ void destroy_buffer_table(
+ 		kmem_cache_free(tab->cache, pin);
+ 	}
+ 
++	mutex_lock(&kmem_lock);
++	refcount--;
++	if (refcount == 0)
++		kmem_cache_destroy(memory_cache);
++	mutex_unlock(&kmem_lock);
+ 
+-	kmem_cache_destroy(tab->cache);
+ 	kfree(tab);
+ }
+ EXPORT_SYMBOL_GPL(destroy_buffer_table);
+-- 
+2.34.1
+

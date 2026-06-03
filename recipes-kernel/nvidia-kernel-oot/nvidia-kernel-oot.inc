@@ -83,6 +83,7 @@ COMMON_PATCHES = "\
     file://0067-drm-tegra-release-the-count-of-pid-to-avoid-memory-l.patch;patchdir=nvidia-oot \
     file://0068-usb-typec-remove-IRQF_ONESHOT-flag.patch;patchdir=nvidia-oot \
     file://0069-host1x-fence-call-fput-to-avoid-memory-leak.patch;patchdir=nvidia-oot \
+    file://0070-drivers-capture-common-only-create-memory-cache-at-t.patch;patchdir=nvidia-oot \
 "
 EXTRA_PATCHES ??= ""
 
