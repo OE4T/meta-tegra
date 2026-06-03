@@ -1,0 +1,68 @@
+From 7220c4e4015c0a52e1b966daa0a96889f0254a4b Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Tue, 13 Jan 2026 12:37:22 +0800
+Subject: [PATCH] nvgpu: dma: use unlocked variant function to process dma
+ buffer
+
+When kernel boots up, there is below warning trace:
+WARNING: CPU: 1 PID: 1519 at /drivers/dma-buf/dma-buf.c:
+1109 dma_buf_map_attachment+0xb0/0x160
+Call trace:
+dma_buf_map_attachment+0xb0/0x160
+......
+el0t_64_sync+0x19c/0x1a0
+Trace reporting is caused by missing lock before calling
+dma buffer operation fucntion. In order to keep code logical with
+original code that doesn't use lock and avoid the warning trace,
+it prefers to use unlocked variant function to replace them.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/gpu/nvgpu/os/linux/dmabuf_priv.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/gpu/nvgpu/os/linux/dmabuf_priv.c b/drivers/gpu/nvgpu/os/linux/dmabuf_priv.c
+index cbfc1cb..2344c6a 100644
+--- a/drivers/gpu/nvgpu/os/linux/dmabuf_priv.c
++++ b/drivers/gpu/nvgpu/os/linux/dmabuf_priv.c
+@@ -184,7 +184,7 @@ struct sg_table *nvgpu_mm_pin(struct device *dev,
+ 		return ERR_CAST(attach);
+ 	}
+ 
+-	sgt = dma_buf_map_attachment(attach, direction);
++	sgt = dma_buf_map_attachment_unlocked(attach, direction);
+ 	if (IS_ERR(sgt)) {
+ 		dma_buf_detach(dmabuf, attach);
+ 		nvgpu_err(g, "Failed to map attachment (err = %ld)!",
+@@ -202,7 +202,7 @@ void nvgpu_mm_unpin(struct device *dev,
+ 			struct dma_buf_attachment *attachment,
+ 			struct sg_table *sgt)
+ {
+-	dma_buf_unmap_attachment(attachment, sgt, DMA_BIDIRECTIONAL);
++	dma_buf_unmap_attachment_unlocked(attachment, sgt, DMA_BIDIRECTIONAL);
+ 	dma_buf_detach(dmabuf, attachment);
+ }
+ 
+@@ -368,7 +368,7 @@ static void *__gk20a_dmabuf_vmap(struct dma_buf *dmabuf)
+ 	struct dma_buf_map map = {0};
+ #endif
+ 	/* Linux v5.11 and later kernels */
+-	if (dma_buf_vmap(dmabuf, &map))
++	if (dma_buf_vmap_unlocked(dmabuf, &map))
+ 		return NULL;
+ 
+ 	return map.vaddr;
+@@ -396,7 +396,7 @@ void gk20a_dmabuf_vunmap(struct dma_buf *dmabuf, void *addr)
+ 	struct dma_buf_map map = DMA_BUF_MAP_INIT_VADDR(addr);
+ #endif
+ 	/* Linux v5.11 and later kernels */
+-	dma_buf_vunmap(dmabuf, &map);
++	dma_buf_vunmap_unlocked(dmabuf, &map);
+ #else
+ 	/* Linux v5.10 and earlier kernels */
+ 	dma_buf_vunmap(dmabuf, addr);
+-- 
+2.34.1
+

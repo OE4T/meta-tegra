@@ -92,6 +92,8 @@ COMMON_PATCHES = "\
     file://0076-drivers-devfreq-avoid-deadlock-issue-when-calling-de.patch;patchdir=nvidia-oot \
     file://0077-drivers-nvethernet-speed-10-is-not-supported-while-a.patch;patchdir=nvidia-oot \
     file://0078-nvdisplay-replace-lock-sync-with-wait-event-mechanis.patch;patchdir=nvdisplay \
+    file://0079-nvgpu-dma-use-unlocked-variant-function-to-process-d.patch;patchdir=nvgpu \
+    file://0080-nvdisplay-dma-use-unlocked-variant-function-when-map.patch;patchdir=nvdisplay \
 "
 EXTRA_PATCHES ??= ""
 
