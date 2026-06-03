@@ -1,0 +1,35 @@
+From 183e668ee87fe399a092060483c0e090eedd4f1f Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Tue, 28 Oct 2025 16:49:29 +0800
+Subject: [PATCH] usb: typec: release resource when removing usb driver module
+
+When uninstalling and installing usb driver module quickly and
+continuously, there may be a panic triggered because of accessing
+memory that has been released. For example, the struct delayed_work
+instance (twork) is not stopped when removing usb driver module,
+so, it may access unknown memory and cause panic. In order to avoid
+this issue, cancel the 2 work instances in fusb301_remove().
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/usb/typec/fusb301.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/usb/typec/fusb301.c b/drivers/usb/typec/fusb301.c
+index 717ec17..f0141cc 100644
+--- a/drivers/usb/typec/fusb301.c
++++ b/drivers/usb/typec/fusb301.c
+@@ -1492,6 +1492,8 @@ static void fusb301_remove(struct i2c_client *client)
+ 		return;
+ #endif
+ 
++	cancel_work_sync(&chip->dwork);
++	cancel_delayed_work_sync(&chip->twork);
+ 	sysfs_remove_group(&cdev->kobj, &fusb_sysfs_group);
+ 	destroy_workqueue(chip->cc_wq);
+ 	mutex_destroy(&chip->mlock);
+-- 
+2.34.1
+
