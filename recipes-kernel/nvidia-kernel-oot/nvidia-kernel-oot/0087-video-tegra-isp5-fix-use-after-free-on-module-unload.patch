@@ -1,0 +1,42 @@
+From 65ce64cc5377b34860a04876d7c54c3b12f5f99b Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 27 Apr 2026 12:21:56 +0800
+Subject: [PATCH 1/2] video: tegra: isp5: fix use-after-free on module unload
+
+capture_isp_exit() calls isp_channel_drv_exit() before
+platform_driver_unregister(). isp_channel_drv_exit() destroys
+isp_channel_class, then platform_driver_unregister() triggers
+isp5_remove() which calls isp_channel_drv_unregister() that uses
+the already-freed class in device_destroy(), causing a kernel panic:
+Unable to handle kernel paging request at virtual address
+006b6b6b6b6b6b6b
+Fix by reversing the teardown order: unregister the platform driver
+first so isp5_remove() runs while isp_channel_class is still valid,
+then call isp_channel_drv_exit() to destroy the class. This mirrors
+the init order where isp_channel_drv_init() is called before
+platform_driver_register().
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/video/tegra/host/isp/isp5.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/video/tegra/host/isp/isp5.c b/drivers/video/tegra/host/isp/isp5.c
+index 0efa515..dd48afa 100644
+--- a/drivers/video/tegra/host/isp/isp5.c
++++ b/drivers/video/tegra/host/isp/isp5.c
+@@ -391,8 +391,8 @@ static int __init capture_isp_init(void)
+ }
+ static void __exit capture_isp_exit(void)
+ {
+-	isp_channel_drv_exit();
+ 	platform_driver_unregister(&isp5_driver);
++	isp_channel_drv_exit();
+ }
+ 
+ module_init(capture_isp_init);
+-- 
+2.34.1
+

@@ -1,0 +1,45 @@
+From 98de2fe18fce8a0b068c0aa0ca2103be1761dfa7 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 27 Apr 2026 13:49:53 +0800
+Subject: [PATCH 2/2] video: tegra: isp5: fix resource leak on module unload
+
+isp5_probe() calls nvhost_module_init() and nvhost_client_device_init()
+to set up runtime PM, debugfs, and the isp device class. However,
+isp5_remove() does not call the corresponding cleanup functions,
+leaking these resources on module unload.
+On module reload, this causes:
+- "Unbalanced pm_runtime_enable!", because pm_runtime_enable called
+  again without prior pm_runtime_disable
+- "debugfs: 'isp' already exists", because debugfs directory not
+  removed
+- "sysfs: cannot create duplicate filename '/class/isp'", because
+  device class not destroyed
+- Probe fails with -EEXIST
+Fix by adding nvhost_client_device_release() and nvhost_module_deinit()
+in isp5_remove() to properly clean up the device class, debugfs, and
+runtime PM state.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/video/tegra/host/isp/isp5.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/video/tegra/host/isp/isp5.c b/drivers/video/tegra/host/isp/isp5.c
+index dd48afa..f04e876 100644
+--- a/drivers/video/tegra/host/isp/isp5.c
++++ b/drivers/video/tegra/host/isp/isp5.c
+@@ -320,6 +320,9 @@ static int isp5_remove(struct platform_device *pdev)
+ 
+ 	platform_device_put(isp5->isp_thi);
+ 
++	nvhost_client_device_release(pdev);
++	nvhost_module_deinit(pdev);
++
+ 	return 0;
+ }
+ 
+-- 
+2.34.1
+
