@@ -1,0 +1,92 @@
+From 28c7b56e08e415dc2afb829a5dab1b61dd79b169 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Wed, 24 Dec 2025 13:40:20 +0800
+Subject: [PATCH] drivers:devfreq: avoid deadlock issue when calling
+ devfreq_update_wmark_threshold()
+
+After applying last patch ("drivers:devfreq: call devfreq_get_freq_range
+in locked status"), there is a deadlock issue when running multimedia
+cases. Because devfreq_update_wmark_threshold() is called in different
+logical path, sometimes already in locked status, sometimes not, it
+should not add mutex lock in devfreq_update_wmark_threshold() simply.
+In order to avoid deadlock issue, it needs to process it case by case,
+only add mutex lock when devfreq_update_wmark_threshold() is called
+under unlocked status.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/devfreq/tegra_wmark.c | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/devfreq/tegra_wmark.c b/drivers/devfreq/tegra_wmark.c
+index 7194c01..59a0100 100644
+--- a/drivers/devfreq/tegra_wmark.c
++++ b/drivers/devfreq/tegra_wmark.c
+@@ -183,9 +183,7 @@ static void devfreq_update_wmark_threshold(struct devfreq *df)
+ #endif
+ 	int err;
+ 
+-	mutex_lock(&df->lock);
+ 	devfreq_get_freq_range(df, &min_freq, &max_freq);
+-	mutex_unlock(&df->lock);
+ 
+ 	err = devfreq_update_stats(df);
+ 	if (err)
+@@ -328,9 +326,8 @@ static ssize_t up_wmark_margin_store(struct device *dev,
+ 	mutex_lock(&df->lock);
+ 	govdata = df->governor_data;
+ 	govdata->up_wmark_margin = wmark_margin;
+-	mutex_unlock(&df->lock);
+-
+ 	devfreq_update_wmark_threshold(df);
++	mutex_unlock(&df->lock);
+ 
+ 	return count;
+ }
+@@ -370,9 +367,8 @@ static ssize_t down_wmark_margin_store(struct device *dev,
+ 	mutex_lock(&df->lock);
+ 	govdata = df->governor_data;
+ 	govdata->down_wmark_margin = wmark_margin;
+-	mutex_unlock(&df->lock);
+-
+ 	devfreq_update_wmark_threshold(df);
++	mutex_unlock(&df->lock);
+ 
+ 	return count;
+ }
+@@ -412,9 +408,8 @@ static ssize_t load_target_store(struct device *dev,
+ 	mutex_lock(&df->lock);
+ 	govdata = df->governor_data;
+ 	govdata->load_target = load_target;
+-	mutex_unlock(&df->lock);
+-
+ 	devfreq_update_wmark_threshold(df);
++	mutex_unlock(&df->lock);
+ 
+ 	return count;
+ }
+@@ -538,7 +533,9 @@ static int devfreq_tegra_wmark_event_handler(struct devfreq *df,
+ 		if (err)
+ 			return err;
+ 
++		mutex_lock(&df->lock);
+ 		devfreq_update_wmark_threshold(df);
++		mutex_unlock(&df->lock);
+ 		break;
+ 	case DEVFREQ_GOV_STOP:
+ 		wmark_config.upper_wmark_enabled = 0;
+@@ -552,7 +549,9 @@ static int devfreq_tegra_wmark_event_handler(struct devfreq *df,
+ 		drvdata->update_wmark_threshold(df, &wmark_config);
+ 		break;
+ 	case DEVFREQ_GOV_RESUME:
++		mutex_lock(&df->lock);
+ 		devfreq_update_wmark_threshold(df);
++		mutex_unlock(&df->lock);
+ 		break;
+ 	default:
+ 		break;
+-- 
+2.34.1
+
