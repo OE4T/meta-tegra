@@ -1,0 +1,41 @@
+From 12b190ad3cccf8f00b1aefef7c47507a5e26d7b4 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 22 Dec 2025 12:12:17 +0800
+Subject: [PATCH] drivers:devfreq: call devfreq_get_freq_range in locked status
+
+When calling function devfreq_get_freq_range, there is below
+warning trace:
+Call trace:
+devfreq_get_freq_range+0x120/0x130
+devfreq_update_wmark_threshold+0x5c/0x1b8 [tegra_wmark]
+devfreq_tegra_wmark_event_handler+0x190/0x1d8 [tegra_wmark]
+......
+el0t_64_sync_handler+0x120/0x130
+el0t_64_sync+0x190/0x198
+Because it needs to execute in locked status. So refer to other
+similar code, add lock to avoid warning trace.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/devfreq/tegra_wmark.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/devfreq/tegra_wmark.c b/drivers/devfreq/tegra_wmark.c
+index 0405f73..7194c01 100644
+--- a/drivers/devfreq/tegra_wmark.c
++++ b/drivers/devfreq/tegra_wmark.c
+@@ -183,7 +183,9 @@ static void devfreq_update_wmark_threshold(struct devfreq *df)
+ #endif
+ 	int err;
+ 
++	mutex_lock(&df->lock);
+ 	devfreq_get_freq_range(df, &min_freq, &max_freq);
++	mutex_unlock(&df->lock);
+ 
+ 	err = devfreq_update_stats(df);
+ 	if (err)
+-- 
+2.34.1
+
