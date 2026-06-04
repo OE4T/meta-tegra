@@ -1,0 +1,45 @@
+From c662be9243bf1321bb09165a96df5613afd9a527 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 8 May 2026 14:09:46 +0800
+Subject: [PATCH] video: tegra: capture-support: fix resource leak on module
+ unload
+
+capture_support_probe() calls nvhost_module_init(),
+nvhost_client_device_init(), and nvhost_syncpt_unit_interface_init()
+but capture_support_remove() is empty, it doesn't release all resources
+on module unload and causes issues as below when module is loaded again.
+- "Unbalanced pm_runtime_enable!", because pm_runtime_enable called
+  again without prior pm_runtime_disable
+- "debugfs: 'vi0-thi' already exists", because debugfs directory is not
+  removed
+- "sysfs: cannot create duplicate filename '/class/vi0-thi'", because
+  device class is not destroyed
+Fix this issue by adding nvhost_syncpt_unit_interface_deinit(),
+nvhost_client_device_release(), and nvhost_module_deinit() in
+capture_support_remove() to properly clean up the syncpt mapping,
+device class, debugfs, and runtime PM state.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/video/tegra/host/capture/capture-support.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/video/tegra/host/capture/capture-support.c b/drivers/video/tegra/host/capture/capture-support.c
+index e8d8514..a065506 100644
+--- a/drivers/video/tegra/host/capture/capture-support.c
++++ b/drivers/video/tegra/host/capture/capture-support.c
+@@ -143,6 +143,9 @@ error:
+ 
+ static int capture_support_remove(struct platform_device *pdev)
+ {
++	nvhost_syncpt_unit_interface_deinit(pdev);
++	nvhost_client_device_release(pdev);
++	nvhost_module_deinit(pdev);
+ 	return 0;
+ }
+ 
+-- 
+2.34.1
+
