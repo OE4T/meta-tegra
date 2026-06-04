@@ -106,6 +106,7 @@ COMMON_PATCHES = "\
     file://0090-media-tegra-capture-vi-fix-use-after-free-on-module-.patch;patchdir=nvidia-oot \
     file://0091-media-tegra-vi-fix-NULL-pointer-dereference-in-chann.patch;patchdir=nvidia-oot \
     file://0092-video-tegra-camera_platform-fix-debugfs-leak-on-modu.patch;patchdir=nvidia-oot \
+    file://0093-media-tegra-vi-fix-memory-leak-in-media-v4l2-cleanup.patch;patchdir=nvidia-oot \
 "
 EXTRA_PATCHES ??= ""
 
