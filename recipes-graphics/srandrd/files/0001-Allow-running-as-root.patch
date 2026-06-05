@@ -1,0 +1,43 @@
+From 419822fd94fc957ed9c0e7efb739189f0cc5aa34 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kkiefer@nvidia.com>
+Date: Thu, 4 Jun 2026 19:20:27 +0000
+Subject: [PATCH] Allow running as root
+
+srandrd refuses to start when run as root (or setuid). The tegra-demo
+Sato/matchbox session is started by xserver-nodm as root, so srandrd is
+launched as root from the X session and the guard makes it exit before it
+can listen for RandR hotplug events. This single-user embedded demo runs
+its whole X session as root by design, so drop the guard (and the now
+unused uid variable).
+
+Upstream-Status: Inappropriate [OE specific]
+---
+ srandrd.c | 5 -----
+ 1 file changed, 5 deletions(-)
+
+diff --git a/srandrd.c b/srandrd.c
+index bdf34bf..3c59972 100644
+--- a/srandrd.c
++++ b/srandrd.c
+@@ -431,7 +431,6 @@ main(int argc, char **argv)
+ 	Display *dpy;
+ 	int daemonize = 1, args = 1, verbose = 0, emit = 0, list = 0, oneshot = 0;
+ 	int rv = 0;
+-	uid_t uid;
+ 
+ 	if (argc < 2) {
+ 		help(EXIT_FAILURE);
+@@ -468,10 +467,6 @@ main(int argc, char **argv)
+ 		list = 1;
+ 	}
+ 
+-	if (((uid = getuid()) == 0) || uid != geteuid()) {
+-		xerror("This program may not run as root\n");
+-	}
+-
+ 	if ((dpy = XOpenDisplay(NULL)) == NULL) {
+ 		xerror("Cannot open display\n");
+ 	}
+-- 
+2.43.0
+
