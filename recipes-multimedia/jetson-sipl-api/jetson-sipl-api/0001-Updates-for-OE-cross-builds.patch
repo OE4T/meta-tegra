@@ -1,0 +1,81 @@
+From 2c0713b74bd641dd22e98a916ebefab668f39e23 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 5 Jun 2026 15:36:06 -0700
+Subject: [PATCH 1/2] Updates for OE cross builds
+
+Upstream-Status: Inappropriate [oe-specific]
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ CMakeLists.txt | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 56 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index aa64eac..c468703 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -329,6 +329,62 @@ install(TARGETS ${_install_library_targets}
+     COMPONENT drivers
+ )
+ 
++install(TARGETS
++        sample_coe_driver
++        eagle_driver
++    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    COMPONENT drivers
++)
++
++# Install static component driver archives so downstream consumers can link
++# against individual drivers without going through the .so wrappers.
++install(TARGETS
++        # Deserializers
++        deser_max96712_driver
++        deser_max96724_driver
++        # Serializers
++        ser_max9295_driver
++        ser_max96717_driver
++        # Sensors
++        sensor_ar0234_driver
++        sensor_imx623_driver
++        sensor_imx728_driver
++        # EEPROMs
++        eeprom_br24h128_driver
++        eeprom_gt24c64d_driver
++        # Power controllers
++        power_control_max20087_driver
++        # Platform power management
++        uddf_drivers_tegra_deser_power_native_gpio
++        # CoSerDes module drivers
++        ar0234hawkcameramodule_driver
++        r0sim623cameramodule_driver
++        r0sim728cameramodule_driver
++        # Eagle component drivers
++        hsb_transport_driver
++        vb1940_driver
++    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++    COMPONENT drivers
++)
++
++# Collect all public headers recursively (includes nvsci/, nvmedia/, WF/, query/include/,
++# and capture/include/ for the NvFusaCaptureExternal* interface) then filter out the three
++# nvbufsurface* headers owned by a separate multimedia package.
++file(GLOB_RECURSE SIPL_HEADERS
++    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp"
++    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
++    "${CMAKE_CURRENT_SOURCE_DIR}/capture/include/*.hpp"
++    "${CMAKE_CURRENT_SOURCE_DIR}/capture/include/*.h"
++)
++list(FILTER SIPL_HEADERS EXCLUDE REGEX
++    ".*(nvbufsurface_nvscibuf\\.h|nvbufsurface\\.h|nvbufsurftransform\\.h)$"
++)
++# Install all headers flat — no nvsci/, nvmedia/, WF/, or query/include/ subdirectories.
++install(FILES ${SIPL_HEADERS}
++    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
++    COMPONENT headers
++)
++
+ # Component drivers are now static libraries linked into the wrappers above,
+ # so there are no separate .so files to install for them.
+ 
+-- 
+2.43.0
+
