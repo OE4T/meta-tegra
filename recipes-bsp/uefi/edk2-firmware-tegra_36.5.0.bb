@@ -23,15 +23,6 @@ do_configure:append() {
     ${PYTHON} ${WORKDIR}/nvbuildconfig.py --kconfig-path=${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig --output-dir=${B}/nvidia-config/Tegra/${EDK2_PLATFORM} ${S_EDK2_NVIDIA}/Platform/NVIDIA/Tegra/DefConfigs/${EDK2_PLATFORM}.defconfig ${@config_fragments(d)}
 }
 
-def fmp_lowest_version(d):
-    verparts = d.getVar('L4T_VERSION').split('.')
-    branch = int(verparts[0])
-    branch_high = (branch >> 8) & 0xff
-    branch_low = branch & 0xff
-    major = int(verparts[1]) & 0xff
-    minor = int(verparts[2]) & 0xff
-    return "0x%02x%02x%02x%02x" % (branch_high, branch_low, major, minor)
-
 do_compile:append() {
 
     PATH="${WORKSPACE}:${BTOOLS_PATH}:$PATH" \
@@ -67,7 +58,7 @@ do_compile:append() {
         fbase=$(basename "$f" ".dtb")
         cp $f ${B}/images/$fbase.dtbo
     done
-    fdtput -t i ${B}/images/L4TConfiguration.dtbo "/fragment@0/__overlay__/firmware/uefi" fmp-lowest-supported-version ${@fmp_lowest_version(d)}
+    fdtput -t i ${B}/images/L4TConfiguration.dtbo "/fragment@0/__overlay__/firmware/uefi" fmp-lowest-supported-version ${TEGRA_UEFI_LOWEST_SUPPORTED_VERSION}
     cp ${B}/images/L4TConfiguration.dtbo ${B}/images/L4TConfiguration-rcmboot.dtbo
     fdtput -t s ${B}/images/L4TConfiguration-rcmboot.dtbo "/fragment@0/__overlay__/firmware/uefi/variables/gNVIDIATokenSpaceGuid/DefaultBootPriority" data boot.img
 }
