@@ -8,7 +8,7 @@ DEPENDS:tegra = "tegra-libraries-cuda tegra-cuda-utils"
 
 L4T_DEB_GROUP = "cuda-cudart"
 DEVSUM = "58ae46716b0b43ff7b4a7e43211832cc62258f8b266a4f65a6bc6986d4a8ec4a"
-DEVSUM:x86-64 = "99ee338478172437fc5f00c7bacdbece68a3f464db66ea15c55b8d1b8e70e815"
+DEVSUM:x86-64 = "32a1939bb2da9c0db87a5e0fc40f6fca559c37590cff50151807bffcf83d4da0"
 
 ALLOW_EMPTY:${PN} = "1"
 EXCLUDE_PACKAGES_FROM_SHLIBS = ""
