@@ -35,6 +35,7 @@
 - [Wayland Weston Support on Jetson Platforms](Wayland-Weston-support-on-Jetson-platforms.md)
 - [Extlinux.conf Support](extlinux.conf-support.md)
 - [Applying-PREEMPT-RT-Real-Time-Kernel-Patches.md](Applying-PREEMPT-RT-Real-Time-Kernel-Patches.md)
+- [UEFI Capsule Update](UEFI-Capsule-Update.md)
 
 # Maintainer Guides
 - [Documentation Workflow](Documentation-Workflow.md)
