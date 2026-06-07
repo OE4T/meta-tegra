@@ -1,5 +1,6 @@
-DEPENDS:append:cuda = " cuda-compatibility-workarounds"
+DEPENDS:append:cuda = " virtual/cross-cuda-gcc gcc-for-nvcc-runtime cuda-compatibility-workarounds"
 CUDA_HOST_TOOLCHAIN_SUFFIX ??= ""
+CUDA_HOST_TOOLCHAIN_SUFFIX:cuda = "-13.2.0"
 CC_FOR_CUDA ?= "${CCACHE}${HOST_PREFIX}gcc${CUDA_HOST_TOOLCHAIN_SUFFIX} ${HOST_CC_ARCH}${TOOLCHAIN_OPTIONS}"
 CXX_FOR_CUDA ?= "${CCACHE}${HOST_PREFIX}g++${CUDA_HOST_TOOLCHAIN_SUFFIX} ${HOST_CC_ARCH}${TOOLCHAIN_OPTIONS}"
 PACKAGE_ARCH:cuda = "${TEGRA_PKGARCH}"
