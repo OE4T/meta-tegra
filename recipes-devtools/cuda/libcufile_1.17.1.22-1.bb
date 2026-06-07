@@ -4,9 +4,9 @@ CUDA_INSTALL_ARCH:class-native = "${HOST_ARCH}"
 require cuda-shared-binaries.inc
 
 MAINSUM = "6ac612569895fc0ec6f07c6a9d1b382b87629418495aa0d4454c7b2fe7d30ee3"
-MAINSUM:x86-64 = "51ee0cb48c6e8c37b45bffd322d08305bca3e8690cd09c12334b610944a41806"
+MAINSUM:x86-64 = "56b3ba9d4dd25d23adf5d6d411c40a77099de90a996fc6bfed8b4d13dc412398"
 DEVSUM = "a1b018be5958b7369a4134dbad1faea56d3bbc9ffb107fef2634258010efc296"
-DEVSUM:x86-64 = "b350348c17bd2354d99c9fa8fe338ed0ef25d56f8db0b0d35a8fb4da1a8f7d8e"
+DEVSUM:x86-64 = "58c110a4e7e94e865b7b5bd51600ee64c8cfda72aae776a9355c5d3f7d3d47d2"
 
 # XXX -
 #  The RDMA support has runtime requirements on RDMA/Infiband
