@@ -85,29 +85,9 @@ do_compile:tegra234() {
     oe_runmake modules NVIDIA_DISPLAY_MODULE_INSTALL_TARGETS=nvidia-display
 }
 
-do_compile:append() {
-    oe_runmake dtbs
-}
-
-do_sign_dtbs() {
-    for dtbf in ${KERNEL_DEVICETREE}; do
-        local dtb="${B}/build/nvidia-public/devicetree/generic-dtbs/${dtbf}"
-        if [ -e "$dtb" ]; then
-            tegra_uefi_attach_sign "$dtb"
-        fi
-    done
-}
-do_sign_dtbs[dirs] = "${B}"
-do_sign_dtbs[depends] += "${TEGRA_UEFI_SIGNING_TASKDEPS}"
-do_sign_dtbs[file-checksums] += "${TEGRA_UEFI_SIGNING_FILECHECKSUMS}"
-
-addtask sign_dtbs after do_compile before do_install
-
 do_install() {
     unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
     oe_runmake MODLIB="${D}${nonarch_base_libdir}/modules/${KERNEL_VERSION}" modules_install
-    install -d ${D}/boot/devicetree
-    install -m 0644 ${B}/build/nvidia-public/devicetree/generic-dtbs/* ${D}/boot/devicetree/
     install -d ${D}${includedir}/${BPN}
     ln -s ${BPN} ${D}${includedir}/kernel-module-${BPN}
     find ${B} -name Module.symvers -type f | xargs sed -e's:${B}/::g' >${D}${includedir}/${BPN}/Module.symvers
@@ -119,14 +99,12 @@ do_install() {
     cp -R ${S}/hardware/nvidia/ ${D}/usr/src/device-tree
 }
 
-SYSROOT_DIRS += "/boot/devicetree"
 SYSROOT_DIRS += "/usr/src/device-tree"
 
-PACKAGES =+ "${PN}-devicetrees ${PN}-display ${PN}-cameras ${PN}-bluetooth ${PN}-wifi ${PN}-canbus ${PN}-virtualization ${PN}-alsa ${PN}-test ${PN}-base ${PN}-extra ${PN}-compute"
+PACKAGES =+ "${PN}-display ${PN}-cameras ${PN}-bluetooth ${PN}-wifi ${PN}-canbus ${PN}-virtualization ${PN}-alsa ${PN}-test ${PN}-base ${PN}-extra ${PN}-compute"
 PACKAGES:append:tegra234 = " ${PN}-compute-nvgpu"
 
 PROVIDES += "kernel-module-${BPN}"
-FILES:${PN}-devicetrees = "/boot/devicetree"
 FILES:${PN}-dev = "\
     ${includedir}/${BPN} \
     ${includedir}/kernel-module-${BPN} \
