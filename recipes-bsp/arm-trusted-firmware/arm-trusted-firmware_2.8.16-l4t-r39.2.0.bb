@@ -28,10 +28,10 @@ def generate_build_string(d):
         return 'BUILD_STRING={}'.format('-'.join(pv[1:]))
 
 def generate_build_timestamp(d):
-    from datetime import datetime
+    from datetime import datetime, UTC
     sde = d.getVar('SOURCE_DATE_EPOCH')
     if sde:
-        return 'BUILD_MESSAGE_TIMESTAMP="\\\"{}\\\""'.format(datetime.utcfromtimestamp(int(sde)).strftime('%Y-%m-%d %H:%M:%S'))
+        return 'BUILD_MESSAGE_TIMESTAMP="\\\"{}\\\""'.format(datetime.fromtimestamp(int(sde), UTC).strftime('%Y-%m-%d %H:%M:%S'))
     return ''
 
 BUILD_STRING ?= "${@generate_build_string(d)}"
@@ -39,6 +39,7 @@ BUILDTIMESTAMP ?= "${@generate_build_timestamp(d)}"
 
 ATF_DEBUG ?= "0"
 ATF_LOG_LEVEL ?= "20"
+SRC_URI += " file://0001-t264-remove-unused-variable-from-tsc-driver.patch"
 EXTRA_OEMAKE = 'BUILD_BASE=${B} CROSS_COMPILE="${TARGET_PREFIX}" PLAT=tegra ${TARGET_SOC_OEMAKE} \
 	        DEBUG=${ATF_DEBUG} LOG_LEVEL=${ATF_LOG_LEVEL} V=1 TARGET_SOC=${TARGET_SOC} \
 	        ${BUILDTIMESTAMP} ${BUILD_STRING}'

@@ -1,0 +1,41 @@
+From 21c7d7c8ece0ad10141dfb794a9b734764cec34e Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 7 Jun 2026 06:45:56 -0700
+Subject: [PATCH] t264: remove unused variable from tsc driver
+
+plat/nvidia/tegra/soc/t264/drivers/tsc/tsc_sync.c:112:18: error: variable 'ar_incr_rate' set but not used [-Werror=unused-but-set-variable=]
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ plat/nvidia/tegra/soc/t264/drivers/tsc/tsc_sync.c | 4 ----
+ 1 file changed, 4 deletions(-)
+
+diff --git a/plat/nvidia/tegra/soc/t264/drivers/tsc/tsc_sync.c b/plat/nvidia/tegra/soc/t264/drivers/tsc/tsc_sync.c
+index d33987b..66bfd22 100644
+--- a/plat/nvidia/tegra/soc/t264/drivers/tsc/tsc_sync.c
++++ b/plat/nvidia/tegra/soc/t264/drivers/tsc/tsc_sync.c
+@@ -109,7 +109,6 @@ void tegra264_wa_univ_sec_clk_glitch(void)
+ 	uint32_t loop, val, capture_status, initial_capture_status;
+ 	uint32_t rising_edge_count, rising_edge_count_prev = 0U;
+ 	uint64_t tsc_cpu_captured; /* captured value of TSC node for CPU */
+-	uint64_t ar_incr_rate; /* increment rate of always-running CLK32 */
+ 	uint64_t tke_top_captured;
+ 	uint64_t tke_top_shared_1_recapture;
+ 	uint64_t tsc_counter_synced;
+@@ -248,15 +247,12 @@ void tegra264_wa_univ_sec_clk_glitch(void)
+ 	val = mmio_read_32(TEGRA_TSC_BASE + TSC_LOCKING_TSC32_RATE_AR_1);
+ 	mmio_write_32(TEGRA_SCRATCH_BASE +
+ 			SCRATCH_TSC_LOCKING_TSC32_RATE_AR1, val);
+-	ar_incr_rate = (val & TSC_LOCKING_TSC32_RATE_AR_1_MASK) <<
+-					TSC_LOCKING_TSC32_RATE_AR_0_MSB;
+ 
+ 
+ 	/* save AR_0 (containing 20LSB of increment rate) to scratch register */
+ 	val = mmio_read_32(TEGRA_TSC_BASE + TSC_LOCKING_TSC32_RATE_AR_0);
+ 	mmio_write_32(TEGRA_SCRATCH_BASE +
+ 			SCRATCH_TSC_LOCKING_TSC32_RATE_AR0, val);
+-	ar_incr_rate |= (val & TSC_LOCKING_TSC32_RATE_AR_0_MASK);
+ 
+ 	/* disable system counter */
+ 	mmio_write_32(TEGRA_TSC_SYSCTR_BASE + TSC_SYSCTR0_CNTCR, 0U);
