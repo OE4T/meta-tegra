@@ -47,10 +47,10 @@ def generate_build_string(d):
         return 'BUILD_STRING={}'.format('-'.join(pv[1:]))
 
 def generate_build_timestamp(d):
-    from datetime import datetime
+    from datetime import datetime, UTC
     sde = d.getVar('SOURCE_DATE_EPOCH')
     if sde:
-        return 'BUILD_MESSAGE_TIMESTAMP="\\\"{}\\\""'.format(datetime.utcfromtimestamp(int(sde)).strftime('%Y-%m-%d %H:%M:%S'))
+        return 'BUILD_MESSAGE_TIMESTAMP="\\\"{}\\\""'.format(datetime.fromtimestamp(int(sde), UTC).strftime('%Y-%m-%d %H:%M:%S'))
     return ''
 
 BUILD_STRING ?= "${@generate_build_string(d)}"
