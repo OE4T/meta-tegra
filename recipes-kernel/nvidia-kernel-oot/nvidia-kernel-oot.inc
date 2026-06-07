@@ -64,6 +64,17 @@ EXTRA_OEMAKE += '\
     OBJCOPY="${KERNEL_OBJCOPY}" kernel_name="oot" \
 '
 
+# The makefile defaults for linux-noble differ from the concerns of linux-yocto
+TEGRA_OOT_MODULE_SKIP_MAKEFLAGS_LINUX_YOCTO = "\
+    NV_OOT_TEGRA_HV_SKIP_BUILD=n \
+    NV_OOT_IVC_EXT_SKIP_BUILD=n \
+    NV_OOT_TEGRA_BPMP_SKIP_BUILD=n \
+    NV_OOT_REALTEK_RTL8822CE_SKIP_BUILD=y \
+    NV_OOT_REALTEK_RTL8852CE_SKIP_BUILD=y \
+"
+TEGRA_OOT_MODULE_SKIP_MAKEFLAGS ??= "${@d.getVar('TEGRA_OOT_MODULE_SKIP_MAKEFLAGS_LINUX_YOCTO') if 'linux-yocto' in (d.getVar('PREFERRED_PROVIDER_virtual/kernel') or '') else ''}"
+EXTRA_OEMAKE += "${TEGRA_OOT_MODULE_SKIP_MAKEFLAGS}"
+
 do_compile:tegra264() {
     unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
     oe_runmake modules NVIDIA_DISPLAY_MODULE_INSTALL_TARGETS=nvidia-gpu-display
