@@ -3,7 +3,7 @@
 SOC_FAMILY = "tegra234"
 
 require conf/machine/include/soc-family.inc
-DEFAULTTUNE ?= "armv8a-crc"
+DEFAULTTUNE ?= "aarch64"
 require conf/machine/include/arm/arch-armv8-2a.inc
 
 SERIAL_CONSOLES ?= "115200;ttyTCU0"
