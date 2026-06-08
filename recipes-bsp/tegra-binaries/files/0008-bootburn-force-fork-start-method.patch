@@ -1,0 +1,30 @@
+From a1b2c3d4e5f607182930a4b5c6d7e8f900112233 Mon Sep 17 00:00:00 2001
+From: Maxim De Clercq <maximdeclercq00@gmail.com>
+Date: Mon, 08 Jun 2026 12:00:00 +0200
+Subject: [PATCH] Force fork start method in bootburn flash_bsp
+
+Python 3.14 changed the multiprocessing default to forkserver. The
+flasher worker then re-imports flash_utilities and loses the tool paths
+SetBootBurnPaths set on the class, so flashing aborts with "nvdd does
+not exist". Force fork so the worker inherits them.
+
+Upstream-Status: Pending
+
+Signed-off-by: Maxim De Clercq <maximdeclercq00@gmail.com>
+---
+ unified_flash/tools/flashtools/bootburn_t264_py/flash_bsp_images.py | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/unified_flash/tools/flashtools/bootburn_t264_py/flash_bsp_images.py b/unified_flash/tools/flashtools/bootburn_t264_py/flash_bsp_images.py
+index 9a8b7c6..1d2e3f4 100644
+--- a/unified_flash/tools/flashtools/bootburn_t264_py/flash_bsp_images.py
++++ b/unified_flash/tools/flashtools/bootburn_t264_py/flash_bsp_images.py
+@@ -142,6 +142,8 @@ def flash_bsp_active(bootburnLib, targetConfig, dieId="die0", barrier=None):
+         os.chdir(cwd)
+
+ def flash_bsp(commandLineArguments):
++    # py3.14 defaults multiprocessing to forkserver; force fork so the flasher worker inherits SetBootBurnPaths
++    multiprocessing.set_start_method("fork", force=True)
+
+     debug = False
+     GenericOptions = ['b', 'h', 'm', 'o', 'u', 'x', 'y', 'D', 'I', 'P', 'R', 'O', 'U', 'T', 'V',
