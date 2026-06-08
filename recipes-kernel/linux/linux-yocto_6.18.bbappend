@@ -22,7 +22,7 @@ SRC_URI:append:tegra = " \
     file://r8169.cfg \
 "
 
-COMPATIBLE_MACHINE:tegra = "(tegra)"
+COMPATIBLE_MACHINE:tegra = "(tegra234)"
 KMACHINE:tegra = "genericarm64"
 
 KERNEL_FEATURES:append:tegra = " \
