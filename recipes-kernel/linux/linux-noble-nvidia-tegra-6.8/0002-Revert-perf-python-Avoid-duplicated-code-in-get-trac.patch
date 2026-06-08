@@ -1,0 +1,65 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Peter Bergin <peter@berginkonsult.se>
+Date: Sun, 08 Jun 2026 00:00:00 +0000
+Subject: [PATCH] Revert "perf python: Avoid duplicated code in get_tracepoint_field"
+
+evsel__tp_format() is not available in this kernel version. The function
+was introduced by a later commit that was not cherry-picked into this
+tree. Revert the get_tracepoint_field() change from b0ae641a9e1e to use
+trace_event__tp_format_id() directly.
+
+The PyUnicode_AsUTF8 improvement from 60f55efa822c is preserved.
+
+Upstream-Status: Inappropriate [evsel__tp_format() not available in this kernel version]
+Signed-off-by: Peter Bergin <peter@berginkonsult.se>
+---
+ tools/perf/util/python.c | 16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
+
+diff --git a/tools/perf/util/python.c b/tools/perf/util/python.c
+index 24ff94d34ee0..000000000000 100644
+--- a/tools/perf/util/python.c
++++ b/tools/perf/util/python.c
+@@ -521,30 +521,36 @@ tracepoint_field(struct pyrf_event *pe, struct tep_format_field *field)
+ 	return ret;
+ }
+
+ static PyObject*
+ get_tracepoint_field(struct pyrf_event *pevent, PyObject *attr_name)
+ {
+ 	struct evsel *evsel = pevent->evsel;
+-	struct tep_event *tp_format = evsel__tp_format(evsel);
+ 	struct tep_format_field *field;
+
+-	if (IS_ERR_OR_NULL(tp_format))
+-		return NULL;
++	if (!evsel->tp_format) {
++		struct tep_event *tp_format;
++
++		tp_format = trace_event__tp_format_id(evsel->core.attr.config);
++		if (IS_ERR_OR_NULL(tp_format))
++			return NULL;
++
++		evsel->tp_format = tp_format;
++	}
+
+ 	PyObject *obj = PyObject_Str(attr_name);
+ 	if (obj == NULL)
+ 		return NULL;
+
+ 	const char *str = PyUnicode_AsUTF8(obj);
+ 	if (str == NULL) {
+ 		Py_DECREF(obj);
+ 		return NULL;
+ 	}
+
+-	field = tep_find_any_field(tp_format, str);
++	field = tep_find_any_field(evsel->tp_format, str);
+ 	Py_DECREF(obj);
+ 	return field ? tracepoint_field(pevent, field) : NULL;
+ }
+ #endif /* HAVE_LIBTRACEEVENT */
+
+ static PyObject*
+--
+2.39.2
