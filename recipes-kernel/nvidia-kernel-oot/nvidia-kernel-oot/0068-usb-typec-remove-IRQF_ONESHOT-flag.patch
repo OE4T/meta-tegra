@@ -1,0 +1,51 @@
+From 04b956afadbab27145f941821a3a3a8facd77f35 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Fri, 24 Oct 2025 09:45:23 +0800
+Subject: [PATCH] usb: typec: remove IRQF_ONESHOT flag
+
+When booting up the rt kernel, there is below warning trace
+Call trace:
+......
+__might_resched+0x15c/0x1e0
+rt_spin_lock+0x5c/0x128
+pm_wakeup_ws_event.part.0+0x34/0x138
+pm_wakeup_ws_event+0x20/0x40
+fusb301_irq_handler+0x48/0x80 [fusb301]
+......
+tegra186_gpio_irq+0x148/0x270
+handle_irq_desc+0x3c/0x68
+generic_handle_domain_irq+0x24/0x40
+gic_handle_irq+0x6c/0xe4
+......
+__primary_switched+0x80/0x90
+If set IRQF_ONESHOT flag when registering interrupt handler,
+the interrupt handler will be executed in atomic status, and report
+warning trace when calling rt lock. Because the IRQF_ONESHOT flag
+is for threaded interrupt, but there is no threaded interrupt handler
+when registering interrupt, it does not need to set this flag. In this
+way, in rt kernel, interrupt handler fusb301_irq_handler() will be
+executed in threaded context, and there will be no warning trace.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/usb/typec/fusb301.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/typec/fusb301.c b/drivers/usb/typec/fusb301.c
+index 717ec17..8a6a6f1 100644
+--- a/drivers/usb/typec/fusb301.c
++++ b/drivers/usb/typec/fusb301.c
+@@ -1452,7 +1452,7 @@ static int fusb301_probe(struct i2c_client *client,
+ 
+ 	ret = devm_request_threaded_irq(cdev, client->irq,
+ 			  fusb301_irq_handler, NULL,
+-			  IRQF_ONESHOT, dev_name(cdev),
++			  0, dev_name(cdev),
+ 			  chip);
+ 	if (ret)
+ 		goto destroy_workqueue;
+-- 
+2.34.1
+

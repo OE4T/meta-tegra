@@ -1,0 +1,65 @@
+From a0a44adb2c4b7500e9cdc54dd84cf086f6998365 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 27 Apr 2026 19:46:32 +0800
+Subject: [PATCH] media: tegra: vi: fix memory leak in media/v4l2 cleanup
+
+Two missing cleanup calls cause memory leaks on module unload:
+1. tegra_vi_graph_cleanup() calls v4l2_async_nf_unregister() but not
+   v4l2_async_nf_cleanup(). The kernel's v4l2 async framework requires
+   both: unregister unbinds subdevices, cleanup frees the notifier's
+   internal resources.
+2. tegra_vi_v4l2_cleanup() calls media_device_unregister() but not
+   media_device_cleanup(). The media graph walk bitmap allocated by
+   media_graph_walk_init() during entity registration is only freed
+   by media_device_cleanup().
+   kmemleak reports:
+     unreferenced object (size 8):
+       backtrace:
+         bitmap_zalloc
+         media_graph_walk_init
+         media_device_register_entity
+Fix by adding the missing v4l2_async_nf_cleanup() /
+v4l2_async_notifier_cleanup() and media_device_cleanup() calls.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/media/platform/tegra/camera/vi/graph.c     | 2 ++
+ drivers/media/platform/tegra/camera/vi/mc_common.c | 4 +++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/tegra/camera/vi/graph.c b/drivers/media/platform/tegra/camera/vi/graph.c
+index 7c2d05e..731ed87 100644
+--- a/drivers/media/platform/tegra/camera/vi/graph.c
++++ b/drivers/media/platform/tegra/camera/vi/graph.c
+@@ -427,8 +427,10 @@ void tegra_vi_graph_cleanup(struct tegra_mc_vi *vi)
+ #if defined(CONFIG_V4L2_ASYNC)
+ #if defined(NV_V4L2_ASYNC_NOTIFIER_INIT_PRESENT)
+ 		v4l2_async_notifier_unregister(&chan->notifier);
++		v4l2_async_notifier_cleanup(&chan->notifier);
+ #else
+ 		v4l2_async_nf_unregister(&chan->notifier);
++		v4l2_async_nf_cleanup(&chan->notifier);
+ #endif
+ #endif
+ 		list_for_each_entry_safe(entity, entityp,
+diff --git a/drivers/media/platform/tegra/camera/vi/mc_common.c b/drivers/media/platform/tegra/camera/vi/mc_common.c
+index ae6b492..aa14e31 100644
+--- a/drivers/media/platform/tegra/camera/vi/mc_common.c
++++ b/drivers/media/platform/tegra/camera/vi/mc_common.c
+@@ -85,8 +85,10 @@ void tegra_vi_v4l2_cleanup(struct tegra_mc_vi *vi)
+ {
+ 	v4l2_ctrl_handler_free(&vi->ctrl_handler);
+ 	v4l2_device_unregister(&vi->v4l2_dev);
+-	if (!vi->pg_mode)
++	if (!vi->pg_mode) {
+ 		media_device_unregister(&vi->media_dev);
++		media_device_cleanup(&vi->media_dev);
++	}
+ }
+ EXPORT_SYMBOL(tegra_vi_v4l2_cleanup);
+ 
+-- 
+2.34.1
+

@@ -1,0 +1,43 @@
+From 2244a8c6bd34706c6d2ce952f6584735783c6da6 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Sun, 26 Oct 2025 13:27:09 +0800
+Subject: [PATCH] host1x-fence: call fput() to avoid memory leak
+
+When running deepstream test, there is below memory leak reported
+  backtrace (crc d553f09):
+    kmemleak_alloc+0x3c/0x50
+    kmem_cache_alloc_noprof+0x184/0x3a0
+    alloc_empty_file+0x68/0x138
+    alloc_file_pseudo+0xac/0x120
+    anon_inode_getfile+0x78/0x100
+    dev_file_ioctl+0x24c/0x630 [host1x_fence]
+    __arm64_sys_ioctl+0xb4/0x100
+    invoke_syscall+0x5c/0x128
+    ......
+    el0t_64_sync+0x190/0x198
+This issue is caused by forgetting release file, so call fput () to avoid
+memory leak.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/gpu/host1x-fence/dev.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/gpu/host1x-fence/dev.c b/drivers/gpu/host1x-fence/dev.c
+index 2229978..02b8f86 100644
+--- a/drivers/gpu/host1x-fence/dev.c
++++ b/drivers/gpu/host1x-fence/dev.c
+@@ -393,6 +393,8 @@ static int dev_file_ioctl_trigger_pollfd(struct host1x *host1x, void __user *dat
+ 
+ 	mutex_unlock(&pollfd->lock);
+ 
++	fput(file);
++
+ 	return 0;
+ 
+ remove_fence:
+-- 
+2.34.1
+

@@ -1,0 +1,54 @@
+From f0183f7f4fdc0f563292240b96937e3a46e31d03 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 27 Apr 2026 19:13:23 +0800
+Subject: [PATCH 3/3] video: tegra: camera_platform: fix debugfs leak on module
+ unload
+
+dbgfs_tegra_camera_init() creates a debugfs directory
+"tegra_camera_platform" but the dentry is stored in a local variable
+and never removed. On module reload, debugfs_create_dir() warns:
+debugfs: 'tegra_camera_platform' already exists in '/'
+Fix by saving the debugfs dentry in a static variable and calling
+debugfs_remove_recursive() in tegra_camera_remove().
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/video/tegra/camera/tegra_camera_platform.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/video/tegra/camera/tegra_camera_platform.c b/drivers/video/tegra/camera/tegra_camera_platform.c
+index b2b5510..51b40b6 100644
+--- a/drivers/video/tegra/camera/tegra_camera_platform.c
++++ b/drivers/video/tegra/camera/tegra_camera_platform.c
+@@ -153,6 +153,7 @@ static int tegra_camera_release(struct inode *inode, struct file *file)
+ #ifdef CONFIG_DEBUG_FS
+ static u64 vi_mode_d;
+ static u64 bypass_mode_d;
++static struct dentry *tegra_camera_debugfs_dir;
+ 
+ static int dbgfs_tegra_camera_init(void)
+ {
+@@ -162,6 +163,7 @@ static int dbgfs_tegra_camera_init(void)
+ 	if (!dir)
+ 		return -ENOMEM;
+ 
++	tegra_camera_debugfs_dir = dir;
+ 	debugfs_create_u64("vi", S_IRUGO, dir, &vi_mode_d);
+ 	debugfs_create_u64("scf", S_IRUGO, dir, &bypass_mode_d);
+ 
+@@ -789,6 +791,10 @@ static int tegra_camera_remove(struct platform_device *pdev)
+ 
+ 	tegra_camera_isomgr_unregister(info);
+ 	misc_deregister(&tegra_camera_misc);
++#ifdef CONFIG_DEBUG_FS
++	debugfs_remove_recursive(tegra_camera_debugfs_dir);
++	tegra_camera_debugfs_dir = NULL;
++#endif
+ 
+ 	return 0;
+ }
+-- 
+2.34.1
+

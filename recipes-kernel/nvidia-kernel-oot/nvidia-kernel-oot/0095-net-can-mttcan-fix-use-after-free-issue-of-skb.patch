@@ -1,0 +1,59 @@
+From 2fc7986608cc61f98848a0ff475b3643e0fe09e7 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 18 May 2026 18:44:29 +0800
+Subject: [PATCH] net: can: mttcan: fix use-after-free issue of skb
+
+mttcan_handle_bus_err() and mttcan_state_change() access cf->can_dlc
+after calling netif_receive_skb(skb). netif_receive_skb() consumes the skb
+and free it immediately via can_receive() -> consume_skb(), making
+the subsequent access to cause a use-after-free:
+BUG: KFENCE: use-after-free read in mttcan_handle_bus_err+0x158/0x248
+allocated by task 0:
+    alloc_can_err_skb
+    mttcan_handle_bus_err
+freed by task 0:
+    consume_skb
+    can_receive
+    can_rcv
+    __netif_receive_skb_one_core
+    netif_receive_skb
+    mttcan_handle_bus_err
+Fix by updating stats->rx_packets and stats->rx_bytes before calling
+netif_receive_skb(), while the skb data is still valid.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/net/can/mttcan/native/m_ttcan_linux.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/can/mttcan/native/m_ttcan_linux.c b/drivers/net/can/mttcan/native/m_ttcan_linux.c
+index d881f78..582e599 100644
+--- a/drivers/net/can/mttcan/native/m_ttcan_linux.c
++++ b/drivers/net/can/mttcan/native/m_ttcan_linux.c
+@@ -515,9 +515,9 @@ static int mttcan_state_change(struct net_device *dev,
+ 	default:
+ 		break;
+ 	}
+-	netif_receive_skb(skb);
+ 	stats->rx_packets++;
+ 	stats->rx_bytes += cf->can_dlc;
++	netif_receive_skb(skb);
+ 
+ 	return 1;
+ }
+@@ -575,9 +575,9 @@ static int mttcan_handle_bus_err(struct net_device *dev,
+ 		break;
+ 	}
+ 
+-	netif_receive_skb(skb);
+ 	stats->rx_packets++;
+ 	stats->rx_bytes += cf->can_dlc;
++	netif_receive_skb(skb);
+ 	return 1;
+ }
+ 
+-- 
+2.34.1
+

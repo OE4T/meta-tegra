@@ -1,0 +1,43 @@
+From 243eb04b7235b16b4187bed11a0c5c731ee3c8e5 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Mon, 27 Apr 2026 17:36:43 +0800
+Subject: [PATCH 1/3] media: tegra: capture-vi: fix use-after-free on module
+ unload
+
+capture_vi_exit() calls vi_channel_drv_exit() before
+platform_driver_unregister(). vi_channel_drv_exit() destroys
+vi_channel_class, then platform_driver_unregister() triggers
+capture_vi_remove() which calls vi_channel_drv_unregister() that
+uses the already-freed class in device_destroy(), causing a kernel
+panic:
+Unable to handle kernel paging request at virtual address
+0050ac07552f63f8
+Fix by reversing the teardown order: unregister the platform driver
+first so capture_vi_remove() runs while vi_channel_class is still
+valid, then call vi_channel_drv_exit() to destroy the class. This
+mirrors the init order.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c b/drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c
+index 2289f47..62c16c0 100644
+--- a/drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c
++++ b/drivers/media/platform/tegra/camera/fusa-capture/capture-vi.c
+@@ -1755,8 +1755,8 @@ static int __init capture_vi_init(void)
+ }
+ static void __exit capture_vi_exit(void)
+ {
+-	vi_channel_drv_exit();
+ 	platform_driver_unregister(&capture_vi_driver);
++	vi_channel_drv_exit();
+ }
+ 
+ module_init(capture_vi_init);
+-- 
+2.34.1
+

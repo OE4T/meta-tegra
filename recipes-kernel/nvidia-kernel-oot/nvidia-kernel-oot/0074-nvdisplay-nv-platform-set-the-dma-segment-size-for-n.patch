@@ -1,0 +1,62 @@
+From 45aa275d465329ec8fd06ffdb928a1834a470f43 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Wed, 8 Apr 2026 19:18:00 +0800
+Subject: [PATCH] nvdisplay: nv-platform: set the dma segment size for nvidia
+ display device
+
+If kernel config CONFIG_DMA_API_DEBUG is enabled, there are below 2
+similar warning trace reported during kernel boots up:
+The 1st one:
+DMA-API: nv_platform 13800000.display: mapping sg segment longer
+than device claims to support [len=8847360] [max=65536]
+WARNING: CPU: 1 PID: 1629 at /usr/src/kernel/kernel/dma/debug.c:1183
+Call trace:
+debug_dma_map_sg+0x29c/0x408 (P)
+__dma_map_sg_attrs+0xb0/0x240
+......
+nvRmApiAlloc+0x4c/0x60 [nvidia_modeset]
+nvidia_frontend_unlocked_ioctl+0x4c/0x70 [nvidia]
+The 2nd one:
+DMA-API: platform 13800000.display:nvdisplay-niso: mapping sg segment
+longer than device claims to support [len=126976] [max=65536]
+WARNING: CPU: 3 PID: 1478 at /usr/src/kernel/kernel/dma/debug.c:1181
+Call trace:
+check_sg_segment+0x1b0/0x228 (P)
+debug_dma_map_sg+0x1a0/0x1f0
+......
+nvRmAllocDeviceEvo+0x640/0x800 [nvidia_modeset]
+nvidia_frontend_unlocked_ioctl+0x4c/0x70 [nvidia]
+Because the kernel default 'max_seg_size' is 64K, and the mapping sg
+segment longer it. In order to avoid this issue, set the dma segment
+size as UINT_MAX.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ kernel-open/nvidia/nv-platform.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/kernel-open/nvidia/nv-platform.c b/kernel-open/nvidia/nv-platform.c
+index 36167ec..29d8a47 100644
+--- a/kernel-open/nvidia/nv-platform.c
++++ b/kernel-open/nvidia/nv-platform.c
+@@ -614,6 +614,7 @@ static int nv_platform_register_mapping_devs(struct platform_device *plat_dev,
+     nvl->niso_dma_dev.addressable_range.start = 0;
+     nvl->niso_dma_dev.addressable_range.limit = NV_U64_MAX;
+     nv->niso_dma_dev = &nvl->niso_dma_dev;
++    dma_set_max_seg_size(&niso_plat_dev->dev, UINT_MAX);
+ 
+ register_mapping_devs_end:
+     of_node_put(niso_np);
+@@ -706,6 +707,7 @@ static int nv_platform_device_display_probe(struct platform_device *plat_dev)
+     nvl->dma_dev.addressable_range.start = 0;
+     nvl->dma_dev.addressable_range.limit = NV_U64_MAX;
+     nv->dma_dev = &nvl->dma_dev;
++    dma_set_max_seg_size(nvl->dev, UINT_MAX);
+ 
+     nvl->tce_bypass_enabled = NV_TRUE;
+ 
+-- 
+2.34.1
+

@@ -1,0 +1,62 @@
+From 78262b43f4ad8edcc4aa3fcba2f2183f9d129e52 Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Tue, 21 Apr 2026 14:37:37 +0800
+Subject: [PATCH] gpu: nvgpu: probe clock availability during acquisition
+
+On Jetson AGX Orin Platform, it supports multiple power modes. In the
+lower power mode(e.g.MODE_30W), nvpmodel configures BPMP (Boot and Power
+Management Processor) to power-gate GPC1(Graphics Processing Cluster)
+and writes tpc_pg_mask via sysfs, which sets g->gpc_pg_mask so that
+ga10b_tegra_is_clock_available() skips gpc1clk. When module is reloaded
+(modprobe -r followed by modprobe), g->gpc_pg_mask is reset to 0 because
+nvpmodel only runs once at boot (oneshot service) and does not re-apply
+the mask. However, BPMP retains the GPC1 power-gate state from the
+previous session. This causes ga10b_tegra_is_clock_available() to report
+gpc1clk as available, but clk_prepare_enable(gpc1clk) fails with -EINVAL
+because BPMP rejects enabling a clock for a power-gated GPC.
+There is no API from BPMP to get current GPC count automatically, so
+only make a workaround to probing each clock with clk_prepare_enable/
+clk_disable_unprepare during acquisition. If BPMP rejects the enable,
+the clock belongs to a power-gated GPC and is skipped. This ensures
+platform->num_clks only includes clocks that are actually usable in the
+current power mode.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ .../gpu/nvgpu/os/linux/platform_ga10b_tegra.c  | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
+
+diff --git a/drivers/gpu/nvgpu/os/linux/platform_ga10b_tegra.c b/drivers/gpu/nvgpu/os/linux/platform_ga10b_tegra.c
+index 8f1d235..dd70cad 100644
+--- a/drivers/gpu/nvgpu/os/linux/platform_ga10b_tegra.c
++++ b/drivers/gpu/nvgpu/os/linux/platform_ga10b_tegra.c
+@@ -179,6 +179,24 @@ static int ga10b_tegra_acquire_platform_clocks(struct device *dev,
+ 			err = PTR_ERR(c);
+ 			goto err_get_clock;
+ 		} else {
++			/*
++			 * Verify the clock can be enabled in the current
++			 * power mode. BPMP retains GPC power-gate state
++			 * across module reload, but g->gpc_pg_mask may
++			 * not yet reflect it (set later via sysfs by
++			 * nvpmodel). Probe the clock to detect if BPMP
++			 * allows enabling it.
++			 */
++			err = clk_prepare_enable(c);
++			if (err) {
++				nvgpu_info(g, "clock %s unavailable in "
++					   "current power mode, skipping",
++					   clk_entries[i].name);
++				clk_put(c);
++				continue;
++			}
++			clk_disable_unprepare(c);
++
+ 			rate = clk_entries[i].default_rate;
+ 			clk_set_rate(c, rate);
+ 
+-- 
+2.34.1
+

@@ -1,0 +1,47 @@
+From 7e77f65ef1e10fa8458d79e7a27aa7542bd5459b Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Thu, 30 Oct 2025 11:43:16 +0800
+Subject: [PATCH] nvdisplay: nv-platform: call platform_device_put() to
+ decrease reference of niso device
+
+When uninstalling drivers and then installing again with below command:
+There are some memory leaks, one of examples as below:
+kmemleak_alloc+0x3c/0x50
+__kmalloc_noprof+0x228/0x418
+platform_device_alloc+0x34/0xe0
+of_device_alloc+0x50/0x1a8
+of_platform_device_create_pdata+0x58/0x120
+of_platform_bus_create+0x194/0x390
+of_platform_populate+0x58/0x110
+devm_of_platform_populate+0x60/0xd0
+nv_platform_device_display_probe+0x23c/0xa80 [nvidia]
+nv_platform_device_probe+0x18/0x30 [nvidia]
+......
+bus_for_each_dev+0x84/0x100
+Because reference of niso device is not decreased correctly,
+and then cause memory leak when driver is installed again, call
+platform_device_put() to decrease reference of niso device so
+that avoid memory leak.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ kernel-open/nvidia/nv-platform.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/kernel-open/nvidia/nv-platform.c b/kernel-open/nvidia/nv-platform.c
+index 16c1afb..0eb0447 100644
+--- a/kernel-open/nvidia/nv-platform.c
++++ b/kernel-open/nvidia/nv-platform.c
+@@ -618,6 +618,7 @@ static int nv_platform_register_mapping_devs(struct platform_device *plat_dev,
+ 
+ register_mapping_devs_end:
+     of_node_put(niso_np);
++    platform_device_put(niso_plat_dev);
+     return rc;
+ }
+ 
+-- 
+2.34.1
+

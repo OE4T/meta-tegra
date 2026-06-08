@@ -1,0 +1,54 @@
+From bd9375cd1e560e429cab177660b068627d2b0e3b Mon Sep 17 00:00:00 2001
+From: Meng Li <Meng.Li@windriver.com>
+Date: Wed, 5 Nov 2025 12:03:19 +0800
+Subject: [PATCH] nvidia-modeset: dp: decrease reference if destroy function is
+ invoked before timer callback
+
+When monitor enters black screen status, there is a below memory
+leak reported if stop xserver-nodm service.
+kmemleak_alloc+0x3c/0x50
+__kmalloc_noprof+0x2a4/0x500
+nvkms_alloc+0x78/0x120 [nvidia_modeset]
+nvkms_alloc_ref_ptr+0x28/0x50 [nvidia_modeset]
+nvAllocDevEvo+0x6c/0x2a0 [nvidia_modeset]
+nvidia_frontend_unlocked_ioctl+0x4c/0x70 [nvidia]
+......
+el0t_64_sync+0x190/0x198
+After analyzing code, the root cause as below:
+When monitor is in black status and stop xserver-nodm service,
+there is a 2000ms delay timer created. But because of the stop
+operation, timer is freed in Timer::Callback::~Callback() destroy
+function, and the cancel filed of struct nvkms_timer_t is set as true
+before the delay timer that will be triggered in 2000ms later. In this
+way, the proc() function of struct nvkms_timer_t is not able to be
+invoked, and then causes the reference of struct _NVEvoDevRec
+instance is not decreased, and ref_ptr_free() is not invoked, finally
+the struct nvkms_ref_ptr instance is not released. In order to fix the
+memory, check whether Timer::Callback::~Callback() destroy function
+is called before timer callback, if so, it also needs to decrease the
+reference of of struct _NVEvoDevRec instance.
+
+Upstream-Status: Pending
+
+Signed-off-by: Meng Li <Meng.Li@windriver.com>
+---
+ src/nvidia-modeset/src/dp/nvdp-timer.cpp | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/nvidia-modeset/src/dp/nvdp-timer.cpp b/src/nvidia-modeset/src/dp/nvdp-timer.cpp
+index bc4d2e2..5e94051 100644
+--- a/src/nvidia-modeset/src/dp/nvdp-timer.cpp
++++ b/src/nvidia-modeset/src/dp/nvdp-timer.cpp
+@@ -47,6 +47,9 @@ namespace nvkmsDisplayPort {
+ 
+     Timer::Callback::~Callback()
+     {
++        if (!isExpired(nvkms_get_usec())) {
++            nvkms_dec_ref(ref_ptr);
++	}
+         nvkms_free_timer(handle);
+     }
+ 
+-- 
+2.34.1
+
