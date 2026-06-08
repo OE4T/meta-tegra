@@ -1,0 +1,50 @@
+Fix invalid C++ syntax in proclaims_copyable_arguments specializations
+
+cccl/CUB declares its two cuda::proclaims_copyable_arguments specializations in
+cub/device/device_transform.cuh and tuning_transform.cuh with a leading global
+qualifier (struct ::cuda::...<...> : base). gcc rejects this in some translation
+units (e.g. onnxruntime CUDA kernels pulling in cub::DeviceTransform via cutlass
++ libcu++) with:
+
+  error: global qualification of class name is invalid before ':' token
+  error: expected '{' before ':' token
+
+Upstream re-declares the specializations inside "namespace cuda { ... }", which
+is valid C++ and behaviour-preserving.
+
+Upstream-Status: Backport [https://github.com/NVIDIA/cccl/pull/8771]
+Signed-off-by: Johannes Schrimpf <johannes.schrimpf@blueye.no>
+
+--- a/usr/local/cuda-13.2/include/cccl/cub/device/device_transform.cuh	2026-06-05 18:36:49.372858231 +0200
++++ b/usr/local/cuda-13.2/include/cccl/cub/device/device_transform.cuh	2026-06-05 18:37:08.896962291 +0200
+@@ -40,9 +40,12 @@
+ } // namespace detail
+ CUB_NAMESPACE_END
+ 
++namespace cuda
++{
+ template <typename T>
+-struct ::cuda::proclaims_copyable_arguments<CUB_NS_QUALIFIER::detail::__return_constant<T>> : ::cuda::std::true_type
++struct proclaims_copyable_arguments<CUB_NS_QUALIFIER::detail::__return_constant<T>> : ::cuda::std::true_type
+ {};
++} // namespace cuda
+ 
+ CUB_NAMESPACE_BEGIN
+ //! DeviceTransform provides device-wide, parallel operations for transforming elements tuple-wise from multiple input
+--- a/usr/local/cuda-13.2/include/cccl/cub/device/dispatch/tuning/tuning_transform.cuh	2026-06-05 18:36:49.376858252 +0200
++++ b/usr/local/cuda-13.2/include/cccl/cub/device/dispatch/tuning/tuning_transform.cuh	2026-06-05 18:37:08.900962313 +0200
+@@ -48,10 +48,12 @@
+ } // namespace detail::transform
+ CUB_NAMESPACE_END
+ 
++namespace cuda
++{
+ template <>
+-struct ::cuda::proclaims_copyable_arguments<CUB_NS_QUALIFIER::detail::transform::always_true_predicate>
+-    : ::cuda::std::true_type
++struct proclaims_copyable_arguments<CUB_NS_QUALIFIER::detail::transform::always_true_predicate> : ::cuda::std::true_type
+ {};
++} // namespace cuda
+ 
+ CUB_NAMESPACE_BEGIN
+ namespace detail::transform
