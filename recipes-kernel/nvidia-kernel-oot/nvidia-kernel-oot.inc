@@ -111,8 +111,8 @@ do_install() {
 SYSROOT_DIRS += "/boot/devicetree"
 SYSROOT_DIRS += "/usr/src/device-tree"
 
-PACKAGES =+ "${PN}-devicetrees ${PN}-display ${PN}-cameras ${PN}-bluetooth ${PN}-wifi ${PN}-canbus ${PN}-virtualization ${PN}-alsa ${PN}-test ${PN}-base ${PN}-extra"
-PACKAGES:append:tegra234 = " ${PN}-compute"
+PACKAGES =+ "${PN}-devicetrees ${PN}-display ${PN}-cameras ${PN}-bluetooth ${PN}-wifi ${PN}-canbus ${PN}-virtualization ${PN}-alsa ${PN}-test ${PN}-base ${PN}-extra ${PN}-compute"
+PACKAGES:append:tegra234 = " ${PN}-compute-nvgpu"
 
 PROVIDES += "kernel-module-${BPN}"
 FILES:${PN}-devicetrees = "/boot/devicetree"
@@ -132,6 +132,7 @@ ALLOW_EMPTY:${PN}-test = "1"
 ALLOW_EMPTY:${PN}-base = "1"
 ALLOW_EMPTY:${PN}-extra = "1"
 ALLOW_EMPTY:${PN}-compute = "1"
+ALLOW_EMPTY:${PN}-compute-nvgpu = "1"
 
 RDEPENDS:${PN}-display = "${TEGRA_OOT_DISPLAY_DRIVERS}"
 RDEPENDS:${PN}-cameras = "${TEGRA_OOT_CAMERA_DRIVERS}"
@@ -143,6 +144,7 @@ RDEPENDS:${PN}-alsa = "${TEGRA_OOT_ALSA_DRIVERS}"
 RDEPENDS:${PN}-test = "${TEGRA_OOT_TEST_DRIVERS}"
 RDEPENDS:${PN}-base = "${TEGRA_OOT_BASE_DRIVERS}"
 RDEPENDS:${PN}-compute = "${TEGRA_OOT_COMPUTE_DRIVERS}"
+RDEPENDS:${PN}-compute-nvgpu = "${TEGRA_OOT_NVGPU_COMPUTE_DRIVERS}"
 RRECOMMENDS:${PN}-extra = "${TEGRA_OOT_EXTRA_DRIVERS}"
 
 TEGRA_OOT_ALL_DRIVER_PACKAGES = ""
@@ -153,7 +155,6 @@ TEGRA_OOT_DISPLAY_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvidia-modeset \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-dce \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-drm \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvidia-uvm \
     ${TEGRA_OOT_EXTRA_DISPLAY_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_DISPLAY_DRIVERS}"
@@ -227,7 +228,7 @@ TEGRA_OOT_CANBUS_DRIVERS ?= "\
     ${TEGRA_OOT_EXTRA_CANBUS_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_CANBUS_DRIVERS}"
-TEGRA_OOT_EXTRA_VIRUTALIZATION_DRIVERS ??= ""
+TEGRA_OOT_EXTRA_VIRTUALIZATION_DRIVERS ??= ""
 TEGRA_OOT_VIRTUALIZATION_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-hvc-sysfs \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nv-virtio-console-poc \
@@ -243,7 +244,7 @@ TEGRA_OOT_VIRTUALIZATION_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-vblk \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-vnet \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-userspace-ivc-mempool \
-    ${TEGRA_OOT_EXTRA_VIRUTALIZATION_DRIVERS} \
+    ${TEGRA_OOT_EXTRA_VIRTUALIZATION_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_VIRTUALIZATION_DRIVERS}"
 TEGRA_OOT_EXTRA_ALSA_DRIVERS ??= ""
@@ -316,9 +317,15 @@ TEGRA_OOT_BASE_DRIVERS ?= "\
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_BASE_DRIVERS}"
 TEGRA_OOT_COMPUTE_DRIVERS = "\
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvidia-uvm \
+"
+TEGRA_OOT_NVGPU_COMPUTE_DRIVERS = "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvgpu \
 "
-TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_COMPUTE_DRIVERS}"
+TEGRA_OOT_ALL_DRIVER_PACKAGES += "\
+    ${TEGRA_OOT_COMPUTE_DRIVERS} \
+    ${TEGRA_OOT_NVGPU_COMPUTE_DRIVERS} \
+"
 TEGRA_OOT_EXTRA_OTHER_DRIVERS ??= ""
 TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-f75308 \
