@@ -16,7 +16,7 @@ LDFLAGS:prepend:cuda = "${TOOLCHAIN_OPTIONS} "
 LDFLAGS:append:cuda = " ${CUDA_LDFLAGS}"
 DEBUG_PREFIX_MAP:remove:cuda = "-fcanon-prefix-map"
 
-def cuda_extract_compiler(compiler, d, prefix='-Xcompiler '):
+def cuda_extract_compiler(compiler, d, prefix='-Xcompiler='):
     args = d.getVar(compiler).split()
     if args[0] == "ccache":
         return args[1], ' '.join([prefix + arg for arg in args[2:]])
