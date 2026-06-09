@@ -1,0 +1,177 @@
+From 31355469f74d02a155a48161aadadea047131e9d Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Wed, 18 Feb 2026 12:29:15 -0800
+Subject: [PATCH] Build fixups
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ Makefile | 84 ++++++++++++--------------------------------------------
+ 1 file changed, 18 insertions(+), 66 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 5fb433e..047a71a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -35,10 +35,11 @@
+ SO_NAME := libgstnvsiplsrc.so
+ 
+ CC := g++
++exec_prefix ?= /usr
++libdir ?= $(exec_prefix)/lib
++includedir ?= $(exec_prefix)/include
+ 
+-# Installation directories
+-GST_INSTALL_DIR ?= /usr/lib/aarch64-linux-gnu/gstreamer-1.0/
+-LIB_INSTALL_DIR ?= /usr/lib/aarch64-linux-gnu/tegra/
++GST_INSTALL_DIR ?= $(libdir)/gstreamer-1.0
+ 
+ # Source files for the SIPL GStreamer plugin
+ SRCS := \
+@@ -50,30 +51,6 @@ SRCS := \
+ 
+ OBJS := $(SRCS:.cpp=.o)
+ 
+-# SIPL installation path detection
+-# NOTE: jetson_sipl_api.tbz2 installation is a prerequisite for compiling this plugin.
+-# The jetson_sipl_api.tbz2 package should be extracted to provide the SIPL headers and libraries.
+-# SIPL_ROOT can be overridden via command line: make SIPL_ROOT=/path/to/sipl
+-ifeq ($(SIPL_ROOT),)
+-    SIPL_ROOT := $(shell if [ -d "/usr/src/jetson_sipl_api" ]; then echo "/usr/src/jetson_sipl_api"; else find /usr -name "jetson_sipl_api" -type d 2>/dev/null | head -1; fi)
+-    ifeq ($(SIPL_ROOT),)
+-        SIPL_ROOT := /usr/src/jetson_sipl_api/
+-    endif
+-endif
+-
+-# Include paths
+-INCLUDES += -I./
+-INCLUDES += -I../
+-
+-# SIPL-specific include paths
+-INCLUDES += \
+-	-I"$(SIPL_ROOT)/sipl/include" \
+-	-I"$(SIPL_ROOT)/sipl/include/query/include" \
+-	-I"$(SIPL_ROOT)/sipl/include/nvsci"
+-
+-# Jetson Multimedia API includes
+-INCLUDES += -I/usr/src/jetson_multimedia_api/include/
+-
+ # GStreamer and system includes
+ PKGS := gstreamer-1.0 \
+ 	gstreamer-base-1.0 \
+@@ -82,26 +59,26 @@ PKGS := gstreamer-1.0 \
+ 	glib-2.0
+ 
+ # Compilation flags
+-CFLAGS := -fPIC
++CXXFLAGS := -fPIC
+ 
+ # Use C++17 with exceptions and RTTI (required for SIPL)
+-CFLAGS += -std=c++17 -fexceptions -frtti
++CXXFLAGS += -std=c++17 -fexceptions -frtti
+ 
+ # Add GStreamer flags
+-CFLAGS += `pkg-config --cflags $(PKGS)`
++CXXFLAGS += `pkg-config --cflags $(PKGS)`
+ 
+ # Warning flags
+-CFLAGS += -Wall -Wextra
++CXXFLAGS += -Wall -Wextra
+ 
+ # Optimization and debug flags
+ ifdef DEBUG
+-    CFLAGS += -g -O0 -DDEBUG
++    CXXFLAGS += -g -O0 -DDEBUG
+ else
+-    CFLAGS += -O2 -DNDEBUG
++    CXXFLAGS += -O2 -DNDEBUG
+ endif
+ 
+ # Linker flags
+-LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
++LDFLAGS += -Wl,--no-undefined
+ 
+ # SIPL and NvSci libraries
+ LIBS := \
+@@ -114,9 +91,6 @@ LIBS := \
+ 	-lnvbufsurftransform \
+ 	-lpthread
+ 
+-# Add library path for SIPL UDDF libraries
+-LDFLAGS += -L/usr/lib/nvsipl_uddf
+-
+ # GStreamer libraries
+ LIBS += `pkg-config --libs $(PKGS)`
+ 
+@@ -130,57 +104,35 @@ config:
+ 	@echo "SO_NAME: $(SO_NAME)"
+ 	@echo "GST_INSTALL_DIR: $(GST_INSTALL_DIR)"
+ 	@echo "LIB_INSTALL_DIR: $(LIB_INSTALL_DIR)"
+-	@echo "CC: $(CC)"
++	@echo "CXX: $(CXX)"
+ 	@echo "SRCS: $(SRCS)"
+ 	@echo "CFLAGS: $(CFLAGS)"
+ 	@echo "LDFLAGS: $(LDFLAGS)"
+ 	@echo "LIBS: $(LIBS)"
+ 	@echo "==============================================="
+ 
+-# Check if SIPL is installed
+-check-sipl:
+-	@echo "Checking SIPL installation..."
+-	@if [ ! -d "$(SIPL_ROOT)" ]; then \
+-		echo "ERROR: SIPL not found at $(SIPL_ROOT)"; \
+-		echo "Please install jetson_sipl_api.tbz2 or set SIPL_ROOT=/path/to/sipl"; \
+-		exit 1; \
+-	fi
+-	@if [ ! -f "$(SIPL_ROOT)/sipl/include/NvSIPLCamera.hpp" ]; then \
+-		echo "ERROR: SIPL headers not found in $(SIPL_ROOT)"; \
+-		echo "Please check SIPL installation"; \
+-		exit 1; \
+-	fi
+-	@echo "SIPL found at: $(SIPL_ROOT)"
+-
+ # Compilation rule for object files
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+-	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
++	$(CXX) $(CXXFLAGS) -c $< -o $@
+ 
+ # Link the shared library
+-$(SO_NAME): check-sipl $(OBJS)
++$(SO_NAME): $(OBJS)
+ 	@echo "Linking: $@"
+-	$(CC) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
++	$(CXX) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
+ 	@echo "Successfully built: $(SO_NAME)"
+ 
+ # Install the plugin
+ .PHONY: install
+ install: $(SO_NAME)
+ 	@echo "Installing $(SO_NAME) to $(GST_INSTALL_DIR)"
+-	sudo mkdir -p $(GST_INSTALL_DIR)
+-	sudo cp -vp $(SO_NAME) $(GST_INSTALL_DIR)
++	install -d $(DESTDIR)$(GST_INSTALL_DIR)
++	install -m 0644 $(SO_NAME) $(DESTDIR)$(GST_INSTALL_DIR)/
+ 	@echo "Installation complete. Plugin installed at: $(GST_INSTALL_DIR)$(SO_NAME)"
+ 	@echo ""
+ 	@echo "To verify installation, run:"
+ 	@echo "  gst-inspect-1.0 nvsiplsrc"
+ 
+-# Uninstall the plugin
+-.PHONY: uninstall
+-uninstall:
+-	@echo "Uninstalling $(SO_NAME) from $(GST_INSTALL_DIR)"
+-	sudo rm -f $(GST_INSTALL_DIR)$(SO_NAME)
+-	@echo "Uninstallation complete."
+-
+ # Clean build artifacts
+ .PHONY: clean
+ clean:
+@@ -232,4 +184,4 @@ help:
+ 	@echo "  make debug install         - Build debug version and install"
+ 	@echo "  make clean rebuild         - Clean rebuild"
+ 
+-.PHONY: all config check-sipl install uninstall clean rebuild debug test help
++.PHONY: all config install uninstall clean rebuild debug test help
+-- 
+2.43.0
