@@ -42,8 +42,7 @@ do_install() {
 
 do_deploy() {
     install -d ${DEPLOYDIR}
-    install -m 0644 ${B}/uefi_jetson.bin ${DEPLOYDIR}/${TEGRA_FLASHVAR_UEFI_IMAGE}.bin
-    install -m 0644 ${B}/uefi_jetson_minimal.bin ${DEPLOYDIR}/${TEGRA_FLASHVAR_RCM_UEFI_IMAGE}.bin
+    install -m 0644 ${B}/uefi*.bin ${DEPLOYDIR}/
     for dtbo in ${TEGRA_BOOTCONTROL_OVERLAYS}; do
 	[ -e ${S}/kernel/dtb/$dtbo ] || continue
 	install -m 0644 ${S}/kernel/dtb/$dtbo ${DEPLOYDIR}/
