@@ -9,7 +9,7 @@ LIC_FILES_CHKSUM = "file://opt/nvidia/nsight-systems/${BASE_VERSION}/EULA.txt;md
 inherit l4t_deb_pkgfeed
 
 SRC_COMMON_DEBS = "nsight-systems-${BASE_VERSION}_${PV}_arm64.deb;subdir=${BPN}"
-SRC_URI[sha256sum] = "0e4bc67a481a376c4a7315ee1344f055b15efe34d5950b600fddca5e294317ab"
+SRC_URI[sha256sum] = "72640c2c40c2f7f45aa79b06de4c51615ba008b8c4f32fb9807dae7d8f7ab2fb"
 
 S = "${UNPACKDIR}/${BPN}"
 B = "${S}"
@@ -26,7 +26,7 @@ do_compile() {
 
 do_install() {
     install -d ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
-    cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-sbsa-armv8// ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
+    cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-sbsa-armv8/ ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
     cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/host-linux-armv8/ ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
     cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/bin/ ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
 }
@@ -36,7 +36,11 @@ INHIBIT_PACKAGE_DEBUG_SPLIT = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 EXCLUDE_FROM_SHLIBS = "1"
 
+PACKAGES =+ "${PN}-collectx"
 PACKAGES += "${PN}-qdstrmimporter"
+FILES:${PN}-collectx = " \
+    /opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-sbsa-armv8/CollectX \
+"
 FILES:${PN} = " \
     /opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-sbsa-armv8 \
 "
@@ -44,6 +48,11 @@ FILES:${PN}-qdstrmimporter = " \
     /opt/nvidia/nsight-systems/${BASE_VERSION}/host-linux-armv8 \
     /opt/nvidia/nsight-systems/${BASE_VERSION}/bin \
 "
+PACKAGECONFIG ??= ""
+PACKAGECONFIG[rdma] = ",,rdma-core,rdma-core"
+
+RDEPENDS:${PN}-collectx = "${@bb.utils.contains('PACKAGECONFIG', 'rdma', 'rdma-core', '', d)}"
 INSANE_SKIP:${PN} = "ldflags file-rdeps dev-so"
+INSANE_SKIP:${PN}-collectx = "ldflags file-rdeps dev-so"
 INSANE_SKIP:${PN}-qdstrmimporter = "ldflags file-rdeps dev-so"
 PACKAGE_ARCH = "${TEGRA_PKGARCH}"
