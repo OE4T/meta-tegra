@@ -1,4 +1,5 @@
 SRC_REPO_NV_OOT = "gitlab.com/nvidia/nv-tegra/linux-nv-oot.git;protocol=https"
+SRC_REPO_BUILD_NV_PUBLIC = "gitlab.com/nvidia/nv-tegra/kernel/build/nvidia-public.git;protocol=https"
 SRC_REPO_NV_ETHERNETRM = "gitlab.com/nvidia/nv-tegra/kernel/nvethernetrm.git;protocol=https"
 SRC_REPO_UNIFIED_GPU_DISP = "gitlab.com/nvidia/nv-tegra/tegra/kernel-src/nv-unified-gpu-display-driver.git;protocol=https"
 SRC_REPO_NV_KERNEL_DISPLAY = "gitlab.com/nvidia/nv-tegra/tegra/kernel-src/nv-kernel-display-driver.git;protocol=https"
@@ -10,6 +11,7 @@ SRC_REPO_TEGRA_DTS = "gitlab.com/nvidia/nv-tegra/device/hardware/nvidia/tegra-pu
 
 SRC_URI = " \
     git://${SRC_REPO_NV_OOT};branch=${SRCBRANCH};name=nvidia-oot;destsuffix=${BPN}-${PV}/nvidia-oot \
+    git://${SRC_REPO_BUILD_NV_PUBLIC};branch=${SRCBRANCH};name=build-nv-public;destsuffix=${BPN}-${PV}/build/nvidia-public \
     git://${SRC_REPO_NV_ETHERNETRM};branch=${SRCBRANCH};name=nvethernetrm;destsuffix=${BPN}-${PV}/nvethernetrm \
     git://${SRC_REPO_UNIFIED_GPU_DISP};branch=${SRCBRANCH};name=unifiedgpudisp;destsuffix=${BPN}-${PV}/unifiedgpudisp \
     git://${SRC_REPO_NV_KERNEL_DISPLAY};branch=${SRCBRANCH};name=nvdisplay;destsuffix=${BPN}-${PV}/nvdisplay \
@@ -23,6 +25,7 @@ SRC_URI = " \
 SRCBRANCH = "l4t/l4t-r39.2"
 # tag: jetson_39.2_GA
 SRCREV_nvidia-oot = "100424630afc3e3d9561d8c4a0f6be6f9f1af7f7"
+SRCREV_build-nv-public = "c47fa7443cbf767db422430121de2bf4a5bac895"
 SRCREV_nvethernetrm = "cf2ae53fdf4ee85333f3b3907d1337d6546db64f"
 SRCREV_unifiedgpudisp = "a662a636f19939ce9d11ac25a873fab8b2dedb36"
 SRCREV_nvdisplay = "c66bad7cc07f605a59a46cf7e6585433c88ad161"
@@ -32,7 +35,7 @@ SRCREV_t264-dts = "664a726551f62958a5a57b6538be01b9a62cd178"
 SRCREV_t23x-dts = "3897df11a86397704db8685071de46559cfb3c6e"
 SRCREV_tegra-dts = "d76c3a7751ea75592413b42c984eac7084a99592"
 
-SRCREV_FORMAT = "nvidia-oot_nvethernetrm_unifiedgpudisp_nvdisplay_hwpm_nvgpu_t264-dts_t23x-dts_tegra-dts_kernel-devicetree"
+SRCREV_FORMAT = "nvidia-oot_build-nv-public_nvethernetrm_unifiedgpudisp_nvdisplay_hwpm_nvgpu_t264-dts_t23x-dts_tegra-dts"
 
 inherit l4t_bsp
 
