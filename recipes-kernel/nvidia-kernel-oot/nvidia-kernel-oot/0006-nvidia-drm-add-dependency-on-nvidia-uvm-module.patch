@@ -1,0 +1,24 @@
+From 02c24f4404eb8ee6eecdef53acfe47ff278ca38b Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Tue, 9 Jun 2026 10:36:33 -0700
+Subject: [PATCH] nvidia-drm: add dependency on nvidia-uvm module
+
+Upstream-Status: Pending
+
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ kernel-open/nvidia-drm/nvidia-drm-linux.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/kernel-open/nvidia-drm/nvidia-drm-linux.c b/kernel-open/nvidia-drm/nvidia-drm-linux.c
+index 628cb49..d5d5822 100644
+--- a/kernel-open/nvidia-drm/nvidia-drm-linux.c
++++ b/kernel-open/nvidia-drm/nvidia-drm-linux.c
+@@ -65,3 +65,4 @@ module_exit(nv_linux_drm_exit);
+ MODULE_INFO(supported, "external");
+ MODULE_VERSION(NV_VERSION_STRING);
+ MODULE_DESCRIPTION("NVIDIA DRM kernel module");
++MODULE_SOFTDEP("pre: nvidia_uvm");
+-- 
+2.43.0
+
