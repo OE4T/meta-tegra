@@ -85,4 +85,26 @@ FILES:${PN}-lean = "${libdir}/libnvinfer_lean${SOLIBS}"
 FILES:${PN}-lean-dev = "${libdir}/libnvinfer_lean${SOLIBSDEV}"
 RDEPENDS:${PN}-lean-dev = "${PN}-lean"
 RDEPENDS:${PN}-dev += "${PN}-dispatch-dev ${PN}-lean-dev"
-PACKAGE_ARCH = "${TEGRA_PKGARCH}"
+
+# NVIDIA's 10.16 deb bundles one builder resource per GPU arch (sm75..sm120 +
+# PTX, ~2GB). Split each into its own package and pull in only the target SoC's
+# arch via RDEPENDS, instead of installing all of them.
+PACKAGES_DYNAMIC += "^${PN}-builder-resource-.*"
+
+python split_builder_resources() {
+    do_split_packages(d, d.expand('${libdir}'),
+                      r'^libnvinfer_builder_resource_(.*)\.so\..*$',
+                      d.expand('${PN}-builder-resource-%s'),
+                      'TensorRT builder resource for %s',
+                      allow_dirs=False, prepend=True)
+}
+PACKAGESPLITFUNCS =+ "split_builder_resources"
+
+# The resource the builder loads is not simply sm<compute-capability>: the SBSA
+# deb ships no sm_87, and on orin, tensorrt apparently loads sm_86.
+# Select per SoC.
+TENSORRT_BUILDER_RESOURCE_ARCH ?= "${TEGRA_CUDA_ARCHITECTURE}"
+TENSORRT_BUILDER_RESOURCE_ARCH:tegra234 = "86"
+RDEPENDS:${PN} += "${PN}-builder-resource-sm${TENSORRT_BUILDER_RESOURCE_ARCH}"
+
+PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
