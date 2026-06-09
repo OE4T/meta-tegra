@@ -75,4 +75,4 @@ PREFERRED_PROVIDER_hafnium ?= "hafnium"
 PREFERRED_VERSION_hafnium ?= "2.11-l4t%"
 
 TEGRA_EDK2_PLATFORM = "t26x"
-MACHINE_EXTRA_RDEPENDS += "nv-kernel-module-nvpmodel-clk-cap"
+MACHINE_EXTRA_RDEPENDS += "nvidia-kernel-oot-compute nv-kernel-module-nvpmodel-clk-cap"
