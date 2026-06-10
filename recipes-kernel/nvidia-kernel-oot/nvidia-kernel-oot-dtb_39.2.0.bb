@@ -26,7 +26,7 @@ DT_FILES_PATH:tegra264 = "${DT_NV_BASE}/t264/nv-public/nv-platform"
 # Prepend the NVIDIA extended kernel headers to DTC_PPFLAGS so those flags
 # are emitted before DT_INCLUDE paths.
 DTC_PPFLAGS:prepend:tegra234 = "-I${DT_NV_BASE}/tegra/nv-public/include/kernel "
-DTC_PPFLAGS:prepend:tegra264 = "-I${DT_NV_BASE}/tegra/nv-public/include/kernel "
+DTC_PPFLAGS:prepend:tegra264 = "-I${DT_NV_BASE}/t264/nv-public/include/kernel-t264 -I${DT_NV_BASE}/tegra/nv-public/include/kernel "
 
 DT_INCLUDE:tegra234 = " \
     ${DT_NV_BASE}/t23x/nv-public/nv-platform \
@@ -39,8 +39,7 @@ DT_INCLUDE:tegra234 = " \
 DT_INCLUDE:tegra264 = " \
     ${DT_NV_BASE}/t264/nv-public/nv-platform \
     ${DT_NV_BASE}/t264/nv-public \
-    ${DT_NV_BASE}/t264/nv-public/include/nvidia-oot \
-    ${DT_NV_BASE}/t264/nv-public/include/platforms \
+    ${DT_NV_BASE}/tegra/nv-public/include/nvidia-oot \
     ${DT_NV_BASE}/tegra/nv-public \
     ${KERNEL_INCLUDE} \
 "
