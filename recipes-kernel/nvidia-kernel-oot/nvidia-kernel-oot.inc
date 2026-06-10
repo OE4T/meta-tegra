@@ -64,6 +64,9 @@ EXTRA_OEMAKE += '\
     OBJCOPY="${KERNEL_OBJCOPY}" kernel_name="oot" \
 '
 
+EXTRA_OEMAKE:append:tegra264 = ' NVIDIA_DISPLAY_MODULE_TARGETS="nvidia-gpu-display"'
+EXTRA_OEMAKE:append:tegra234 = ' NVIDIA_DISPLAY_MODULE_TARGETS="nvidia-display"'
+
 # The makefile defaults for linux-noble differ from the concerns of linux-yocto
 TEGRA_OOT_MODULE_SKIP_MAKEFLAGS_LINUX_YOCTO = "\
     NV_OOT_TEGRA_HV_SKIP_BUILD=n \
@@ -75,14 +78,9 @@ TEGRA_OOT_MODULE_SKIP_MAKEFLAGS_LINUX_YOCTO = "\
 TEGRA_OOT_MODULE_SKIP_MAKEFLAGS ??= "${@d.getVar('TEGRA_OOT_MODULE_SKIP_MAKEFLAGS_LINUX_YOCTO') if 'linux-yocto' in (d.getVar('PREFERRED_PROVIDER_virtual/kernel') or '') else ''}"
 EXTRA_OEMAKE += "${TEGRA_OOT_MODULE_SKIP_MAKEFLAGS}"
 
-do_compile:tegra264() {
+do_compile() {
     unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
-    oe_runmake modules NVIDIA_DISPLAY_MODULE_INSTALL_TARGETS=nvidia-gpu-display
-}
-
-do_compile:tegra234() {
-    unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS
-    oe_runmake modules NVIDIA_DISPLAY_MODULE_INSTALL_TARGETS=nvidia-display
+    oe_runmake modules
 }
 
 do_install() {
