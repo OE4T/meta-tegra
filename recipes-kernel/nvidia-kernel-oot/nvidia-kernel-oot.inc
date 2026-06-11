@@ -41,18 +41,6 @@ KERNEL_MODULE_PACKAGE_PREFIX = "nv-"
 # settings in conf/machine/include/tegra-common.inc accordingly
 TEGRA_OOT_REPLACEMENT_DRIVERS = "\
     host1x \
-    snd-soc-tegra186-asrc \
-    snd-soc-tegra186-dspk \
-    snd-soc-tegra210-admaif \
-    snd-soc-tegra210-adx \
-    snd-soc-tegra210-ahub \
-    snd-soc-tegra210-amx \
-    snd-soc-tegra210-dmic \
-    snd-soc-tegra210-i2s \
-    snd-soc-tegra210-mixer \
-    snd-soc-tegra210-mvc \
-    snd-soc-tegra210-ope \
-    snd-soc-tegra210-sfc \
     tegra-bpmp-thermal \
     tegra-drm \
 "
@@ -222,6 +210,7 @@ TEGRA_OOT_VIRTUALIZATION_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-pcie-tegra-vf \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra-virt-t210ref-pcm \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-virt-alt-admaif \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-virt-alt-adsp \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-gr-comm \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-mtd \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-pm-ctl \
@@ -237,8 +226,10 @@ TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_VIRTUALIZATION_DRIVERS}"
 TEGRA_OOT_EXTRA_ALSA_DRIVERS ??= ""
 TEGRA_OOT_ALSA_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra186-arad \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-adsp \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-afc \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-iqc \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra-controls \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra-utils \
     ${TEGRA_OOT_EXTRA_ALSA_DRIVERS} \
 "
@@ -363,9 +354,6 @@ TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvadsp \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-nvdisp-serdes \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-virt-alt-adsp \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra-controls \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-snd-soc-tegra210-adsp \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-hv-comm \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-max96712-tpg \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-max96726-tpg \
