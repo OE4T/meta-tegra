@@ -5,7 +5,10 @@ NVIDIA L4T/meta-tegra.  If you are viewing this page in the
 mdbook please ensure you use the "master" branch version of
 documentation to ensure you are referencing the most recent source
 
-# Jetpack 7 / R38.x
+# JetPack 7.2 / R39.x
+- [JetPack-7.2-L4T-R39.2.0-Notes](release-notes/JetPack-7.2-L4T-R39.2.0-Notes.md)
+
+# JetPack 7.0–7.1 / R38.x
 - [JetPack-7.1-L4T-R38.4.x-Notes](release-notes/JetPack-7.1-L4T-R38.4.x-Notes.md)
 - [JetPack-7.0-L4T-R38.2.x-Notes](release-notes/JetPack-7.0-L4T-R38.2.x-Notes.md)
 

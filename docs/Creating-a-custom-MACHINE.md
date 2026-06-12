@@ -103,6 +103,83 @@ Include this new file in Yocto the same way as explained in [Add pinmux dtsi fil
 ## Use a custom device tree
 See [Custom Device Tree](#custom-device-tree) and apply the described changes to your `${machine}.conf`.
 
+# Jetson AGX Thor
+
+Thor (Tegra264) custom machine definitions follow a similar pattern to Orin (Tegra234). Replace
+occurrences of `${machine}` below with your machine name.
+
+## Create a new machine config
+
+Create `conf/machine/${machine}.conf` in your layer. Use one of the existing Thor machine
+configurations in `meta-tegra` (e.g., `jetson-agx-thor-t4000.conf`) as a starting point. Your
+config should `require` the appropriate `agx-thor-*.inc` or `tegra264.inc` include.
+
+Key Thor-specific variables to be aware of:
+
+* **`PARTITION_LAYOUT_RCMBOOT` / `PARTITION_LAYOUT_RCMBOOT_DEFAULT`** — partition layout XML used
+  for the RCMBoot flashing stage. Thor uses a separate UEFI image for this stage. The default is
+  `flash_l4t_t264_rcmboot.xml`.
+
+* **`TEGRA_RCM_EDK2_CONFIGURATION`** — controls which EDK2 firmware build is used for RCMBoot.
+  Defaults to `"minimal"`. If you set this to the same value as `TEGRA_EDK2_CONFIGURATION`, the
+  main UEFI build is reused and no separate RCMBoot UEFI build is required.
+
+* **`EMC_BCTS`** — a comma-separated list of EMC BCT files for the flash process. This extends
+  `EMC_BCT` to support multiple entries when needed for different memory configurations.
+
+## RCMBoot UEFI
+
+Unlike Orin, Thor requires a UEFI firmware image specifically for the RCMBoot stage. The
+`edk2-firmware-tegra-rcmboot` recipe builds this from EDK2 sources. If you cannot or do not wish
+to build from source, the `edk2-firmware-tegra-rcmboot-prebuilt` recipe provides a prebuilt
+binary. To use the prebuilt binary, add the following to your machine configuration or
+`local.conf`:
+
+```
+PREFERRED_PROVIDER_edk2-firmware-tegra-rcmboot = "edk2-firmware-tegra-rcmboot-prebuilt"
+```
+
+See `bootloader/uefi_bins/README_uefi.txt` in the L4T BSP kit for information on the UEFI
+sources.
+
+## Add pinmux and BCT files
+
+Unlike Orin, which uses `.dtsi` kernel device tree fragments for pinmux configuration, Thor uses
+MB1 BCT DTS files (`.dts`) for all boot-time hardware configuration. These are generated from the
+NVIDIA pinmux spreadsheet for Thor and have a `tegra264-mb1-bct-` naming convention in the
+reference BSP.
+
+In your machine configuration, set the relevant `TEGRA_FLASHVAR_*` variables to the filenames of
+your custom BCT DTS files. The two most commonly customized are:
+
+```
+TEGRA_FLASHVAR_PINMUX_CONFIG ?= "tegra264-mb1-bct-pinmux-${MACHINE}.dts"
+TEGRA_FLASHVAR_PMC_CONFIG    ?= "tegra264-mb1-bct-padvoltage-${MACHINE}.dts"
+```
+
+Then provide those files via a `tegra-bootfiles_39.2.0.bbappend` in your layer:
+
+```bitbake
+FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
+SRC_URI:append:${machine} = "\
+    file://tegra264-mb1-bct-pinmux-${MACHINE}.dts \
+    file://tegra264-mb1-bct-padvoltage-${MACHINE}.dts \
+"
+
+CUSTOM_BCT_DIR := "${THISDIR}/${BPN}"
+do_install:append:${machine}() {
+    install -m 0644 ${CUSTOM_BCT_DIR}/tegra264-mb1-bct-pinmux-${MACHINE}.dts ${D}${datadir}/tegraflash/
+    install -m 0644 ${CUSTOM_BCT_DIR}/tegra264-mb1-bct-padvoltage-${MACHINE}.dts ${D}${datadir}/tegraflash/
+}
+```
+
+Other `TEGRA_FLASHVAR_*` variables (e.g. `GPIOINT_CONFIG`, `MB2BCT_CFG`, `PMIC_CONFIG`) may also
+require custom files depending on your carrier board design. Consult the Platform Adaptation and
+Bring-Up Guide for Thor for the full list of configuration files and their purpose.
+
+## Use a custom device tree
+See [Custom Device Tree](#custom-device-tree) and apply the described changes to your `${machine}.conf`.
+
 # Customizing the kernel
 For custom hardware, you'll probably need to modify the kernel in at least one of the following ways:
 * Custom kernel configuration
