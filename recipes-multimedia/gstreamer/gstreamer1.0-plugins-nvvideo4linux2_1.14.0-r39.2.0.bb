@@ -44,3 +44,5 @@ do_install() {
 }
 FILES:${PN} = "${libdir}/gstreamer-1.0"
 RDEPENDS:${PN} += "libgstnvcustomhelper"
+# dlopen'd by the encoders at runtime, not seen by shlib dependency tracking
+RDEPENDS:${PN} += "tegra-libraries-nvdsseimeta"
