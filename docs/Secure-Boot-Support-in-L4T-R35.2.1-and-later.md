@@ -83,12 +83,53 @@ EXTRA_OEMAKE += "TA_SIGN_KEY=${WORKDIR}/optee-signing-key.pem"
 Post-build signing of TAs is more difficult, since external TAs are generally packaged and installed into the root filesystem as part of the build. For that approach, though, you would include the public key file in the `optee-os` bbappend, and set `TA_PUBLIC_KEY` instead of `TA_SIGN_KEY`.  The OP-TEE makefiles will sign TAs with the a dummy private key, but the public key you specify will be compiled into the secure OS.  You will have to figure out how to re-sign the TAs with your actual private key before they get used.
 
 # Using the NVIDIA built-in sample TAs
-To make use of the encryption/decryption functions NVIDIA provides by default with their OP-TEE implementation, you will need to supply an "Encrypted Keyblob" (EKB) that corresponds to the KEK/K2 fuses you have burned on your Jetson device.  Instructions for generating an EKB are in [this section](https://docs.nvidia.com/jetson/archives/r36.4.3/DeveloperGuide/SD/Security/OpTee.html#tool-for-ekb-generation) of the Jetson Linux documentation.  See the note at the top of this page for information about changes in L4T R35.5.0 that require the re-generation of the EKB.
+To make use of the encryption/decryption functions NVIDIA provides by default with their OP-TEE implementation, you will need to supply an "Encrypted Keyblob" (EKB) that corresponds to the fuses you have burned on your Jetson device.  See the [EKB documentation](https://docs.nvidia.com/jetson/archives/r39.2/DeveloperGuide/SD/Security/OpTee/Ekb.html) in the Jetson Linux Developer's Guide for full details.  See the note at the top of this page for information about changes in L4T R35.5.0 that require the re-generation of the EKB.
 
-The `tegra-bootfiles` recipe installs the default EKB from the L4T kit.  Add a bbappend for that recipe to replace the default with the custom EKB for your device.
+The `tegra-bootfiles` recipe installs the default EKB from the L4T kit.  If you have burned secure boot fuses on your device, you must replace this with a custom EKB that matches your fuse keys, for example by configuring the build-time EKB generation, or adding a bbappend to include keys generated outside the build.
 
-## Generating a Custom EKB
-Before replacing the default EKB in your Yocto build, you must generate a custom one that matches OemK1 fuse burned on your Jetson device. To do this, you need the `gen_ekb.py` script from the NVIDIA OP-TEE samples code base (for the `hwkey-agent` sample). You can find that script either in the L4T public sources tarball, or on [NVIDIA's git server](https://nv-tegra.nvidia.com/r/plugins/gitiles/tegra/optee-src/nv-optee) (making sure you choose the branch for the L4T version you are targeting).
+## Build-time EKB generation
+
+The `tegra-eks-image` recipe can generate your custom EKB automatically during the build. Set the
+following variables in your `local.conf` (or machine configuration) to enable this:
+
+| Variable | Platform | Description |
+|---|---|---|
+| `TEGRA_EKB_OEM_K1` | Orin (Tegra234) | Path to the `OEM_K1` fuse key file |
+| `TEGRA_EKB_OEM_KDK1` | Thor (Tegra264) | Path to the `PSC_OEM_KDK1` fuse key file |
+| `TEGRA_EKB_SYM2` | Both | Path to the disk encryption key file (optional but recommended) |
+| `TEGRA_EKB_AUTH` | Both | Path to the UEFI variable authentication key file |
+
+The recipe automatically selects `-chip t234` or `-chip t264` based on the target `SOC_FAMILY`.
+When the platform-appropriate fuse key variable is set and points to an existing file, `gen_ekb.py`
+is invoked during the build and the resulting `eks.img` is used instead of the default from the
+L4T kit.
+
+Example `local.conf` entries for Orin:
+```
+TEGRA_EKB_OEM_K1 = "/path/to/oem_k1.key"
+TEGRA_EKB_SYM2   = "/path/to/sym2.key"
+TEGRA_EKB_AUTH   = "/path/to/auth.key"
+```
+
+Example `local.conf` entries for Thor:
+```
+TEGRA_EKB_OEM_KDK1 = "/path/to/oem_kdk1.key"
+TEGRA_EKB_SYM2     = "/path/to/sym2.key"
+TEGRA_EKB_AUTH     = "/path/to/auth.key"
+```
+
+If the fuse key variable is not set or the file does not exist, the default EKB from the L4T kit
+is used — this is suitable for development only and must not be used on a production device with
+fuses burned.
+
+## Generating a Custom EKB manually
+
+If you need to generate the EKB outside of the build, you can run `gen_ekb.py` directly. The
+script is available in the L4T public sources tarball or on
+[NVIDIA's git server](https://nv-tegra.nvidia.com/r/plugins/gitiles/tegra/optee-src/nv-optee)
+(choose the branch matching your L4T version).
+
+### Jetson Orin (Tegra234)
 
 Example:
 ```
@@ -105,4 +146,26 @@ where
 * `eks_t234.img` is the generated EKB image to be flashed to the EKS partition of the device
 
 Kernel encryption is not currently supported in meta-tegra, so do *not* provide the UEFI payload encryption key (using `-in_sym_key`).
+
+### Jetson AGX Thor (Tegra264)
+
+Thor uses a different fuse key (`PSC_OEM_KDK1` instead of `OEM_K1`/`OEM_K2`) and a different key
+derivation function (NIST-SP-800-108 with HMAC-SHA256). The generated EKB image is `eks_t264.img`
+(EKB version 2.1), which is not backward-compatible with the Orin format.
+
+Example:
+```
+python3 gen_ekb.py -chip t264 \
+    -oem_kdk1_key oem_kdk1.key \
+    -in_sym_key2 sym2_t264.key \
+    -in_auth_key auth_t264.key \
+    -out eks_t264.img
+```
+where
+* `oem_kdk1.key` is the `PSC_OEM_KDK1` key burned into the Thor device fuses.
+* `sym2_t264.key` is the disk encryption key.
+* `auth_t264.key` is the UEFI variable authentication key.
+* `eks_t264.img` is the generated EKB image to be flashed to the EKS partition of the device.
+
+See the [EKB documentation](https://docs.nvidia.com/jetson/archives/r39.2/DeveloperGuide/SD/Security/OpTee/Ekb.html) for the full key derivation details and additional generation parameters.
 
