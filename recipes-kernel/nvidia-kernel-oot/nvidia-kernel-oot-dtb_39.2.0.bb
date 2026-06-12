@@ -21,27 +21,24 @@ DT_NV_BASE = "${STAGING_DIR_HOST}/usr/src/device-tree/nvidia"
 DT_FILES_PATH:tegra234 = "${DT_NV_BASE}/t23x/nv-public/nv-platform"
 DT_FILES_PATH:tegra264 = "${DT_NV_BASE}/t264/nv-public/nv-platform"
 
-# The devicetree bbclass expand_includes() uses a Python set(), which loses
-# include order, which is critical since there are some same-named headers.
-# Prepend the NVIDIA extended kernel headers to DTC_PPFLAGS so those flags
-# are emitted before DT_INCLUDE paths.
-DTC_PPFLAGS:prepend:tegra234 = "-I${DT_NV_BASE}/tegra/nv-public/include/kernel "
-DTC_PPFLAGS:prepend:tegra264 = "-I${DT_NV_BASE}/t264/nv-public/include/kernel-t264 -I${DT_NV_BASE}/tegra/nv-public/include/kernel "
-
-DT_INCLUDE:tegra234 = " \
-    ${DT_NV_BASE}/t23x/nv-public/nv-platform \
-    ${DT_NV_BASE}/t23x/nv-public \
-    ${DT_NV_BASE}/t23x/nv-public/include/nvidia-oot \
-    ${DT_NV_BASE}/t23x/nv-public/include/platforms \
-    ${DT_NV_BASE}/tegra/nv-public \
-    ${KERNEL_INCLUDE} \
+# expand_includes() used on the DT_INCLUDE variables uses a Python set(),
+# which randomizes the -I order. The nv-public/ and nv-platform/ paths
+# have same-named dtsi files, causing conflic, and some other include ordering
+# is also order sensitive. List paths explicitly in DTC_PPFLAGS (before DT_INCLUDE)
+DTC_PPFLAGS:prepend:tegra234 = " \
+    -I${DT_NV_BASE}/tegra/nv-public/include/kernel \
+    -I${DT_NV_BASE}/tegra/nv-public/include/nvidia-oot \
+    -I${DT_NV_BASE}/tegra/nv-public \
+    -I${DT_NV_BASE}/t23x/nv-public/include/nvidia-oot \
+    -I${DT_NV_BASE}/t23x/nv-public/include/platforms \
+    -I${DT_NV_BASE}/t23x/nv-public \
 "
-DT_INCLUDE:tegra264 = " \
-    ${DT_NV_BASE}/t264/nv-public/nv-platform \
-    ${DT_NV_BASE}/t264/nv-public \
-    ${DT_NV_BASE}/tegra/nv-public/include/nvidia-oot \
-    ${DT_NV_BASE}/tegra/nv-public \
-    ${KERNEL_INCLUDE} \
+DTC_PPFLAGS:prepend:tegra264 = " \
+    -I${DT_NV_BASE}/tegra/nv-public/include/kernel \
+    -I${DT_NV_BASE}/tegra/nv-public/include/nvidia-oot \
+    -I${DT_NV_BASE}/tegra/nv-public \
+    -I${DT_NV_BASE}/t264/nv-public/include/kernel-t264 \
+    -I${DT_NV_BASE}/t264/nv-public \
 "
 
 NV_OVERLAY_PATH:tegra234 = "${DT_NV_BASE}/t23x/nv-public/overlay"
