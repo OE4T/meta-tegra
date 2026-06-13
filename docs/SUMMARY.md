@@ -18,7 +18,6 @@
 - [Over the Air Reflashing Process](Over-the-air-reflashing-process.md)
 - [PPS GPIO Support on Jetson TX1 TX2](PPS-GPIO-Support-on-Jetson-TX1-TX2.md)
 - [Redundant Rootfs A B Partition Support](Redundant-Rootfs-A-B-Partition-Support.md)
-- [SPI Support](SPI-support.md)
 - [Secure Boot Support](Secure-Boot-Support.md)
 - [Tegra Specific Gstreamer Plugins](Tegra-specific-gstreamer-plugins.md)
 - [Tegraflash Troubleshooting](Tegraflash-Troubleshooting.md)
@@ -85,3 +84,4 @@
 - [Controlling Jetson Pin States](Controlling-Jetson-pin-states.md)
 - [Over the Air Reflashing Process](Over-the-air-reflashing-process.md)
 - [PPS GPIO Support on Jetson TX1 TX2](PPS-GPIO-Support-on-Jetson-TX1-TX2.md)
+- [SPI Support](SPI-support.md)
