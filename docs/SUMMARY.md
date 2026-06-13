@@ -82,3 +82,4 @@
 
 # Misc
  - [Wiki Redirects](Wiki-Redirects.md)
+ - [Outdated Content Redirects](Outdated-Content-Redirects.md)
