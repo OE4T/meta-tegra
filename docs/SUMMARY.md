@@ -85,3 +85,4 @@
 - [Applying-PREEMPT-RT-Real-Time-Kernel-Patches.md](Applying-PREEMPT-RT-Real-Time-Kernel-Patches.md)
 - [Controlling Jetson Pin States](Controlling-Jetson-pin-states.md)
 - [Over the Air Reflashing Process](Over-the-air-reflashing-process.md)
+- [PPS GPIO Support on Jetson TX1 TX2](PPS-GPIO-Support-on-Jetson-TX1-TX2.md)
