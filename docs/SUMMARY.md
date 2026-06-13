@@ -23,7 +23,6 @@
 - [Tegraflash Troubleshooting](Tegraflash-Troubleshooting.md)
 - [Tegraflash Enhancements](Tegraflash-enhancements.md)
 - [USB Device Mode Support](USB-device-mode-support.md)
-- [Using cboot as Bootloader](Using-cboot-as-bootloader.md)
 - [Using Device Tree Overlays](Using-device-tree-overlays.md)
 - [Using gcc7 from the Contrib Layer](Using-gcc7-from-the-contrib-layer.md)
 - [Using gcc8 from the Contrib Layer](Using-gcc8-from-the-contrib-layer.md)
