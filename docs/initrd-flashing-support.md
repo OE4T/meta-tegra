@@ -2,7 +2,8 @@ Notes on extending support for flashing Jetson devices that boot from external s
 
 Last update: 25 Jul 2025
 
-This is currently supported on branches based off JetPack 5/L4T R35 or later, and `kirkstone-l4t-r32.7.x`.  For R32.7.x, there is support for T210 (TX1/Nano) as well as T186 (TX2) and T194 (Xavier) targets.
+This is currently supported on branches based off JetPack 5/L4T R35 or later, and `kirkstone-l4t-r32.7.x`.  For R32.7.x, there is support for T210 (TX1/Nano) as well as T186 (TX2) and T194 (Xavier) targets.  Please refer to the appropriate documentation branch
+for flashing instructions on older hardware.
 
 # Prerequisites
 
@@ -56,9 +57,10 @@ systemctl restart polkit
 
 # Build configuration
 
-No configuration is required if you just want to use initrd flashing and still keep your rootfs on the Jetson's internal storage device. You only need to add a configuration setting if you want to configure your system to have its rootfs (`APP` partition) on an external storage device.  To do that, add a line to your `local.conf` such as:
+No configuration is required if you just want to use initrd flashing and still keep your rootfs on the Jetson's internal storage device
+for devices which include an internal storage device such as AGX Orin. You only need to add a configuration setting if you want to configure your system to have its rootfs (`APP` partition) on an external storage device.  To do that, add a line to your `local.conf` such as:
 ```
-TNSPEC_BOOTDEV:jetson-xavier-nx-devkit-emmc = "nvme0n1p1"
+TNSPEC_BOOTDEV:jetson-agx-orin-devkit = "nvme0n1p1"
 ```
 
 * If trying this out with a different Jetson device, use the MACHINE name for the override in the above.
@@ -261,10 +263,6 @@ The `initrd-flash` script has a `--skip-bootloader` option for skipping the prog
 
 
 # Notes
-* RCM booting on T194 platforms bypasses the UEFI bootloader, directly loading the kernel from nvtboot.  This means that the kernel/initrd does not have access to any EFI variables.  UEFI *is* used in the RCM boot chain on T234 platforms.
-* On Xavier NX dev kits (SDcard-based), you must still have an SDcard installed in the slot even if you are booting off an external drive. The SDcard must *not* have an `esp` or `APP` partition on it.  You must manually reformat the SDcard, as the flashing process will not do that for you.  For all other Jetsons with internal eMMC storage, the eMMC *will* be erased as part of the flashing process (and re-partitioned/re-populated for those platforms that store some of the bootloader binaries in the eMMC).
-* Based on readings of some NVIDIA dev forum posts, A/B updates in JetPack 5.0 do not work properly in all cases when booting off an external drive.  That is supposed to be fixed in JetPack 5.1.
-* Depending on your device's configuration (e.g., having multiple storage devices attached), you may need to manually configure the boot order in the UEFI bootloader by hitting `ESC` when UEFI starts, and then selecting `Boot Maintenance Manager`, then `Boot Options`, then `Change Boot Order`.  This is a limitation in JetPack 5.0 that is supposed to be fixed in JetPack 5.1.
 * If you use a custom flash layout for your builds, note that there are some limitations on the composition of your flash layout file(s) due to how the bootloaders and the NVIDIA tools work. For example, you cannot use a SPI flash-only layout for internal storage, since the BUP payload generator expects to be able to create a payload containing the kernel/kernel DTB. The generator will fail during the build, since those partitions are not present in the SPI flash.  You also cannot use a single flash layout that includes only the boot partitions (in, for example, SPI flash on AGX Orin and Xavier NX) and the external storage device (`nvme`).  The tools that generate the MB1 BCT and/or MB2 BCT will error out because those bootloaders cannot access external storage. Hopefully NVIDIA will resolve these limitations in a future release.
 
 # Comparison with stock L4T initrd flashing
@@ -275,13 +273,10 @@ The `initrd-flash` script has a `--skip-bootloader` option for skipping the prog
 * Stock L4T inserts udev rules on the host during flashing and does some network setup to talk to the device.  The process implemented for OE builds does not use any networking and does not require any udev rules changes during the flashing process.  You also don't have to be root to perform initrd-based flashing for OE builds, if you have followed the instructions [here](Flashing-the-Jetson-Dev-Kit.md#avoiding-sudo). (However, the `bmaptool copy` command used in the `make-sdcard` script does need root access for its setup, and the script will run it under `sudo` for you).
 
 # Limitations on using an external drive for the rootfs
-* On Jetson TX2 devices, the bootloaders do not have support for loading the kernel from an external drive.  The kernel, initrd, and device tree must reside on the eMMC (along with some of the boot partitions).
-* Other Jetsons that boot directly from the eMMC (TX1, Nano-eMMC, Xavier NX-eMMC, AGX Xavier) also need to have some of the boot partitions in the main part of the eMMC.
-* With Jetsons running JetPack 5/L4T R35.1.0, you may need to manually interrupt the UEFI bootloader to adjust the boot order to favor the external drive.  Even then, UEFI may attempt a PXE (network) boot first.  (This appears to be fixed with JetPack 5.1/L4T R35.2.1.)
+* Jetsons that boot directly from the eMMC (AGX Orin) need to have some of the boot partitions in the main part of the eMMC.
 
 # Known issues
 * On an AGX Orin configured to use an external drive for the rootfs (NVMe), once it has been flashed using `initrd-flash`, the RCM boot of the `initrd-flash` kernel stops working; the NVMe-resident OS is booted instead.  This happens with the stock L4T initrd flashing tools also. To work around the problem, clear the partition table on the NVMe drive (e.g., using `sgdisk /dev/nvme0n1 --clear`) before resetting the Orin into recovery mode to start the re-flashing process.
-* On T210 platforms (TX1/Nano), if you use the normal `doflash.sh` script, boot binaries will get overwritten (due to the way the NVIDIA flashing tools work), and that will cause an "FDT_ERR_BADMAGIC" error if you later try to run `initrd-flash`.  The error is minor, and probably won't cause any real issues with the flashing/booting process.  To be safe, though, you should not mix normal and initrd-based flashing in the same tegraflash directory.
 
 # Customizing External Storage Size
 
