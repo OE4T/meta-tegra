@@ -14,7 +14,6 @@
 - [Controlling Jetson Pin States](Controlling-Jetson-pin-states.md)
 - [Creating a Custom MACHINE](Creating-a-custom-MACHINE.md)
 - [Disk Encryption for Jetson Devices](Disk-Encryption-for-Jetson-Devices.md)
-- [Linux 4.x Kernel Notes](Linux-4.x-kernel-notes.md)
 - [NVIDIA Container Runtime Support](NVIDIA-Container-Runtime-support.md)
 - [NVIDIA DEVNET MIRROR and SDK Manager](NVIDIA_DEVNET_MIRROR-and-SDK-Manager.md)
 - [Over the Air Reflashing Process](Over-the-air-reflashing-process.md)
