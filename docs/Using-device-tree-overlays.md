@@ -15,12 +15,9 @@ For example, to configure a Jetson Xavier NX development kit for IMX477 and IMX2
 
         KERNEL_DEVICETREE_APPLY_OVERLAYS:jetson-xavier-nx-devkit = "tegra194-p3668-all-p3509-0000-camera-imx477-imx219.dtbo"
 
-## Other possible use cases
-For U-Boot-based Jetsons (only supported on a subset of Jetson modules with L4T R32.x), the `.dtbo` files will get populated into the `/boot` directory in the rootfs, and you could modify the `/boot/extlinux/extlinux.conf` file to add an `FDTOVERLAY` line to have one or more overlays applied at boot time. Unfortunately, OE-Core's support for generating `extlinux.conf` content does not include support for `FDTOVERLAY` lines, so to make such a change you would have to work out a way to rewrite that file in a bbappend.
-
 ## For out-of-tree device trees
 
-For L4T R36.x, the `nvidia-kernel-oot` recipe is the default device tree provider for the Jetson platforms. You can also set the `PREFERRED_PROVIDER_virtual/dtb` variable to point to a recipe for providing your own customized device tree. To apply overlays to these device trees, add `fdtoverlay` invocations to the compilation step via a `bbappend` (for `nvidia-kernel-oot`) or in your custom recipe.
+As of L4T R36.x and later, the `nvidia-kernel-oot` recipe is the default device tree provider for the Jetson platforms. You can also set the `PREFERRED_PROVIDER_virtual/dtb` variable to point to a recipe for providing your own customized device tree. To apply overlays to these device trees, add `fdtoverlay` invocations to the compilation step via a `bbappend` (for `nvidia-kernel-oot`) or in your custom recipe.
 
 ### Example out-of-tree devicetree in tegra-demo-distro
 
