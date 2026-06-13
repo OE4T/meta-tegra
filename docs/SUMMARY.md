@@ -11,7 +11,6 @@
 # Developer Guides
 - [OE4T Contributor Guide](OE4T-Contributor-Guide.md)
 - [CONTRIBUTING](CONTRIBUTING.md)
-- [Controlling Jetson Pin States](Controlling-Jetson-pin-states.md)
 - [Creating a Custom MACHINE](Creating-a-custom-MACHINE.md)
 - [Disk Encryption for Jetson Devices](Disk-Encryption-for-Jetson-Devices.md)
 - [NVIDIA Container Runtime Support](NVIDIA-Container-Runtime-support.md)
@@ -85,3 +84,4 @@
 
 # Outdated Content
 - [Applying-PREEMPT-RT-Real-Time-Kernel-Patches.md](Applying-PREEMPT-RT-Real-Time-Kernel-Patches.md)
+- [Controlling Jetson Pin States](Controlling-Jetson-pin-states.md)
