@@ -14,7 +14,6 @@
 - [Creating a Custom MACHINE](Creating-a-custom-MACHINE.md)
 - [Disk Encryption for Jetson Devices](Disk-Encryption-for-Jetson-Devices.md)
 - [NVIDIA Container Runtime Support](NVIDIA-Container-Runtime-support.md)
-- [NVIDIA DEVNET MIRROR and SDK Manager](NVIDIA_DEVNET_MIRROR-and-SDK-Manager.md)
 - [Over the Air Reflashing Process](Over-the-air-reflashing-process.md)
 - [PPS GPIO Support on Jetson TX1 TX2](PPS-GPIO-Support-on-Jetson-TX1-TX2.md)
 - [Redundant Rootfs A B Partition Support](Redundant-Rootfs-A-B-Partition-Support.md)
