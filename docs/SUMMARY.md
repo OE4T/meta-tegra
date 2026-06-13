@@ -19,7 +19,6 @@
 - [PPS GPIO Support on Jetson TX1 TX2](PPS-GPIO-Support-on-Jetson-TX1-TX2.md)
 - [Redundant Rootfs A B Partition Support](Redundant-Rootfs-A-B-Partition-Support.md)
 - [SPI Support](SPI-support.md)
-- [Secure Boot Support in L4T R35.2.1 and Later](Secure-Boot-Support-in-L4T-R35.2.1-and-later.md)
 - [Secure Boot Support](Secure-Boot-Support.md)
 - [Tegra Specific Gstreamer Plugins](Tegra-specific-gstreamer-plugins.md)
 - [Tegraflash Troubleshooting](Tegraflash-Troubleshooting.md)
