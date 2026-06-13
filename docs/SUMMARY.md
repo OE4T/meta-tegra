@@ -85,3 +85,4 @@
 # Outdated Content
 - [Applying-PREEMPT-RT-Real-Time-Kernel-Patches.md](Applying-PREEMPT-RT-Real-Time-Kernel-Patches.md)
 - [Controlling Jetson Pin States](Controlling-Jetson-pin-states.md)
+- [Over the Air Reflashing Process](Over-the-air-reflashing-process.md)
