@@ -1,45 +1,11 @@
 The `meta-tegra` layer includes MACHINE definitions for NVIDIA's Jetson development kits. If you are developing a custom device using one of the Jetson modules with, for example, a custom carrier board, or you just want to modify the default boot-time configuration (pinmux, etc.) for an existing development kit as a separate MACHINE in your own metadata layer, you may need to supply a MACHINE-specific file for your builds.
 
-**IMPORTANT:** For any custom carrier board/hardware design, make sure you consult the appropriate Platform Adaptation and Bring-Up Guide document available from the [NVIDIA Developer Download site](https://developer.nvidia.com/embedded/downloads) to get all the details on how to customize the pinmux configuration and other low-level hardware configuration settings. _Failing to provide the correct settings could damage your device._
+**IMPORTANT:** For any custom carrier board/hardware design, make sure you consult the appropriate Platform Adaptation and Bring-Up Guide document available at the [Jetson Software Documentation Site](https://docs.nvidia.com/jetson/) to get all the details on how to customize the pinmux configuration and other low-level hardware configuration settings. _Failing to provide the correct settings could damage your device._
 
-Boot-time hardware configuration and boot flash programming is particularly complicated for Jetson modules, and varies substantially between models. Consult a recent version of the [L4T Driver Package Documentation](https://docs.nvidia.com/jetson/archives/l4t-archived/l4t-322/index.html), particularly the "BSP Customization" and "Bootloader" chapters, for background information.  As mentioned above, the Platform Adaptation documentation is also a good reference.
+Boot-time hardware configuration and boot flash programming is particularly complicated for Jetson modules, and varies substantially between models. Consult a recent version of the [L4T Driver Package Documentation](https://developer.nvidia.com/embedded/downloads#?search=driver%20package), particularly the "BSP Customization" and "Bootloader" chapters, for background information.  As mentioned above, the Platform Adaptation documentation is also a good reference.
 
 **NOTE:** Due to restrictions in the implementation of bootloader update payloads, the length of your custom MACHINE name should
 be 31 characters or less.
-
-# Jetson-TX1 #
-No additional build-time files are necessary for MACHINEs based on the Jetson-TX1 module. All customizations can be done in the device tree and/or U-Boot.  You'll need to point your build at your customized kernel and/or U-Boot repository and set variables in the machine `.conf` file for your custom device.
-
-# Jetson-Nano #
-In the `warrior` and `zeus` branches, the only MACHINE-specific build-time file for Jetson-Nano is the SDCard layout file used by `recipes-bsp/sdcard-layout/sdcard-layout_1.0.bb`.  If you modify the partition layout for the SDCard, you'll need to supply a copy of the `sdcard-layout.in` file that matches the SDCard partitions you define in your customized version of the `flash_l4t_t210_spi_sd_p3448.xml` file from the L4T BSP.
-
-Starting with the `zeus-l4t-r32.3.1` branch, full support for all revisions and SKUs of the Jetson Nano module was added, and the SDcard layout file was eliminated.  To modify your partition layout, you need only provide a customized copy of the `flash_l4t_t210_spi_sd_p3448.xml` (for 0000 SKUs) or `flash_l4t_t210_emmc_p3448.xml` (for 0002 SKUs) file. Different module revisions (FABs) use different device tree files, so you may need to have multiple device tree source files to account for module variants in your custom device/carrier.
-
-# Jetson-TX2 and Jetson-TX2i #
-
-For the Jetson-TX2 family, there are several boot-time configuration files that are machine-specific. Be sure to follow the Platform Adaptation Guide documentation carefully so all of the necessary customizations for the BPMP device tree and the MB1 `.cfg` files for the pinmux, PMIC, PMC, boot ROM, and other on-module hardware get created properly.  The basic steps are filling in the pinmux spreadsheet and generating the `dtsi` fragments, then converting those fragments to `cfg` files using the L4T `pinmux-dts2cfg.py` script.
-
-The `recipes-bsp/tegra-binaries/tegra-flashvars_<bsp-version>.bb` recipe installs a file called `flashvars` that identifies the boot-time configuration files that need to be processed by the `tegra186-flash-helper` script for feeding into NVIDIA's flashing tools.  With older OE4T branches, you need to supply a customized copy of the `flashvars` file in your BSP layer.  With the latest branches, the `flashvars` file gets generated automatically from the variables listed in `TEGRA_FLASHVARS`.  Check the recipe in `meta-tegra` to confirm which method you need to follow.
-
-The files listed in your `flashvars` file must be installed into `${datadir}/tegraflash` in the build sysroot by another recipe.  The simplest method is to create an overlay for the `recipes-bsp/tegra-binaries/tegra-bootfiles` recipe, as it already extracts the files for the Jetson development kits from the L4T BSP package:
-```
-# The fetch task is disabled on this recipe, but we need our files included in the task signature.
-CUSTOM_DTSI_DIR := "${THISDIR}/${BPN}"
-FILESEXTRAPATHS:prepend := "${CUSTOM_DTSI_DIR}:"
-
-SRC_URI:append:${machine} = "\
-    file://tegra19x-${machine}-padvoltage-default.cfg \
-    file://tegra19x-${machine}-pinmux.cfg \
-    "
-
-# As the fetch task is disabled for this recipe, we access the files directly out of the layer.
-do_install:append:${machine}() {
-    install -m 0644 ${CUSTOM_DTSI_DIR}/tegra19x-${machine}-padvoltage-default.cfg ${D}${datadir}/tegraflash/
-    install -m 0644 ${CUSTOM_DTSI_DIR}/tegra19x-${machine}-pinmux.cfg ${D}${datadir}/tegraflash/
-}
-```
-
-The specifics of the configuration files and variables required may vary from version to version of the L4T BSP, so be sure to review any changes when upgrading.
 
 # Jetson AGX Xavier #
 Jetson AGX Xavier systems are similar to Jetson-TX2, but (as of this writing) have only two version-dependent boot-time files - the BPMP device tree and the PMIC configuration.  Consult the NVIDIA documentation for customization steps, and see the Jetson-TX2 section above for information on how to integrate your custom files into the build.
