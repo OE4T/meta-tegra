@@ -35,7 +35,7 @@ Please note, also, that flashing typically does **not** work from a virtual mach
 
 ### For SDcard-based development kits
 
-If you have a Jetson Nano or Jetson Xavier NX development kit, you'll need a good-quality MicroSDHC/SDXC card, preferably
+If you have a Jetson Orin Nano development kit, you'll need a good-quality MicroSDHC/SDXC card, preferably
 16GB or larger. Higher-speed cards (at least UHS-I) are preferred, particularly if you plan to program the SDcard through
 an SDcard reader/writer on your development host. The reader/writer should be high-speed also, and connected through a
 high-speed I/O interface (e.g., USB 3.1).
@@ -43,9 +43,6 @@ high-speed I/O interface (e.g., USB 3.1).
 Programming an SDcard in a reader/writer attached to your host is also faster (*much* faster) if you have the `bmaptool`
 command in your PATH. On Ubuntu systems, that command is provided by the `bmap-tools` package. (But note that `bmaptool`
 requires `sudo`.)
-
-The Jetson AGX Xavier development kit also supports booting from a MicroSD card instead of the on-board eMMC, with some
-limitations.
 
 ### Avoiding sudo
 
@@ -70,34 +67,9 @@ All of the Jetson machine configurations add a `tegraflash` image type by defaul
 contains all of the files, tools, and scripts for flashing the device and/or creating a fully-populated SDcard. If you've
 successfully run a bitbake build of an image, you should see a file called
 
-    <image-type>-${MACHINE}.tegraflash.tar.gz
-
-or, in more recent branches,
-
     <image-type>-${MACHINE}.rootfs.tegraflash.tar.<compression>
 
 in the directory `$BUILDDIR/tmp/deploy/images/${MACHINE}`. where `<compression>` could be either `gz` or `zst`, depending on the branch you are using (zstd replaced gzip as the default compression method in Feb 2025).
-
-### Using an SDcard with the Jetson AGX Xavier
-
-By default, the `tegraflash` package for the AGX Xavier is set up for flashing the on-board eMMC. If you want to
-boot your Xavier off an SDcard instead, you should add the following to your build configuration (e.g., in
-`$BUILDDIR/conf/local.conf`):
-
-      TEGRA_ROOTFS_AND_KERNEL_ON_SDCARD = "1"
-      ROOTFSPART_SIZE = "15032385536"
-
-The `ROOTFSPART_SIZE` setting is for a 16GB SDcard; adjust the size as needed for a larger or smaller card.
-
-With these settings in place, the resulting `tegraflash` package supports flashing the bootloader file to
-the on-board eMMC, moving the kernel, device tree, and rootfs on the SDcard. Note that this is *only* supported
-for the Jetson AGX Xavier, and that SDcard booting *does not* support the bootloader redundancy features.
-
-With this configuration, there will be two scripts in the `tegraflash` package: `dosdcard.sh` for writing the
-SDcard, and `doflash.sh` for flashing the bootloader partitions to the eMMC.  Run the `dosdcard.sh` script to
-format and write the SDcard on your development host, insert the SDcard into the slot on the AGX Xavier dev kit,
-then use the `doflash.sh` to flash the bootloader partitions. (Unlike for Xavier NX devices, you *must* perform
-these steps separately.)
 
 ## Unpacking the tegraflash package
 
@@ -133,36 +105,16 @@ following command:
 If you don't see your Jetson listed, double-check the cable and try the recovery mode sequence
 again.
 
-### Recovery mode jumpers and buttons
-
-The different Jetson develpoment kits have different mechanisms for entering recovery mode.
-
-#### Jetson TX1 and TX2 development kits
-
-Press *and hold* the REC ("recovery") button, press and release the RST ("reset") button. Continue
-to hold the REC button for 3-4 seconds, then release.
-[[images/TX1-TX2-Devkit-RecoveryMode-Button.jpg|alt=TX1-TX2 buttons]]
-
-#### Jetson AGX Xavier development kit
-
-Press *and hold* the center button, and press and release the reset button (on the right).
-[[images/AGX-Xavier-RecoveryMode-Button.jpg|alt=AGX Xavier buttons]]
-
 #### Jetson Orin development kit
 
 Press *and hold* the center button. Then plug in the power supply. Release the center button.  Note that it can take 10-15 seconds for the device to fully enter recovery mode and export its serial console after power up.
 
-#### All Jetson Nano, Xavier NX development kits
+#### Jetson Orin Nano development kits
 
 Connect a jumper between the 3rd and 4th pins from the right hand side of "button header"
 underneath the back of the module (FRC and GND; see the labeling on the underside of the
 carrier board). The module will power up in recovery mode automatically.
 [[images/Nano-NX-RecoveryMode-Jumper.jpg|alt=Nano-Xavier pins]]
-
-For the older Jetson Nano rev A02 carrier boards, the FRC pin is in the 8-pin header next to
-the module, beside the MIPI-CSI camera interface. The pins are labeled on the underside of
-the carrier board.
-![Nano A02 pins](https://user-images.githubusercontent.com/227565/112763078-4475dd80-8fc0-11eb-8670-a2d13f0c5083.png)
 
 ## Writing an SDcard
 
@@ -190,7 +142,7 @@ The resulting file will be quite large, and writing the image can take a long ti
 ### SPI flash on SDcard-based kits
 
 The SDcard-based development kits store some (in some cases, all) of the bootloader
-content on a SPI flash device on the Jetson module. You must ensure that the bootloader content 
+content on a SPI flash device on the Jetson module. You must ensure that the bootloader content
 in this flash device is compatible with the layout on the SDcard you create, since the
 early-stage boot data is programmed with the locations/sizes of SDcard-resident partitions,
 and cannot read the GPT partition table at runtime. To do this, you must perform a USB flash
@@ -219,10 +171,6 @@ For SDcard-based development kits, you can program *just* the boot partitions in
 You should insert your programmed SDcard in the slot on the Jetson before performing this step, so
 when the Jetson reboots after the flashing process completes, it will boot into your image.
 
-## Automating Unpack and Flash Steps
-
-You can use [this script](https://github.com/OE4T/tegra-demo-distro/blob/master/layers/meta-tegrademo/scripts/oe4t-tegraflash-deploy) if desired to automate the steps associated with unpacking and running the `./doflash.sh` script for tegraflashing.
-
 ## Issues during flashing
 If you run ```sudo ./doflash.sh``` and flashing is started but then it hang in some step like:
 ```
@@ -248,7 +196,7 @@ If you run ```sudo ./doflash.sh``` and flashing is started but then it hang in s
 or if e.g following:
 ```
 [   1.9394 ] 00000007: Written less bytes than expected
-[  21.7219 ] 
+[  21.7219 ]
 Error: Return value 7
 Command tegradevflash --pt flash.xml.bin --storageinfo storage_info.bin --create
 ```
