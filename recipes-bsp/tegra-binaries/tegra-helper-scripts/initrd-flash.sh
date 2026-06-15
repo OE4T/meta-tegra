@@ -798,9 +798,6 @@ elif [ "$CHIPID" = "0x26" ]; then
     mkdir -p out/flash_workspace/flash-images out/flash_workspace/rcm-boot
     ./create_l4t_bsp_images.py $convargs --info --dest $PWD/out
     ./create_l4t_bsp_images.py $convargs --dest $PWD/out/flash_workspace/flash-images
-    if [ -n "$partition_name" ]; then
-        ./create_l4t_bsp_images.py $convargs -k $partition_name --dest $PWD/out/flash_workspace/flash-images
-    fi
     ./create_l4t_bsp_images.py $convargs --dest $PWD/out/flash_workspace/rcm-boot --rcm-boot
     cp -R out/flash_workspace/rcm-boot out/flash_workspace/rcm-flash
     cat > out/doflash.sh <<EOF
