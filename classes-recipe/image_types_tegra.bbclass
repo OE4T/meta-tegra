@@ -3,10 +3,12 @@ inherit image_types image_types_cboot image_types_tegra_esp python3native perlna
 TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 inherit ${TEGRA_UEFI_SIGNING_CLASS}
 TEGRA_UEFI_USE_SIGNED_FILES ??= "false"
+TEGRA_UNIFIED_FLASH_DEFAULT = "false"
+TEGRA_UNIFIED_FLASH_DEFAULT:tegra264 = "true"
+TEGRA_UNIFIED_FLASH ??= "${TEGRA_UNIFIED_FLASH_DEFAULT}"
 
 IMAGE_TYPES += "tegraflash-tar"
 CONVERSIONTYPES =+ "simg"
-
 
 IMAGE_ROOTFS_ALIGNMENT ?= "4"
 
@@ -85,7 +87,6 @@ TEGRA_BUPGEN_SPECS ??= "boardid=${TEGRA_BOARDID};fab=${TEGRA_FAB};boardrev=${TEG
 TEGRA_BUPGEN_STRIP_IMG_NAMES ??= ""
 TEGRA_BUPGEN_STRIP_CMD ??= "${@tegraflash_bupgen_strip_cmd(d)}"
 
-DTBFILE ?= "${@os.path.basename(d.getVar('KERNEL_DEVICETREE').split()[0])}"
 LNXFILE ?= "boot.img"
 LNXSIZE ?= "83886080"
 TEGRA_RECOVERY_KERNEL_PART_SIZE ??= "83886080"
@@ -150,23 +151,6 @@ tegraflash_custom_pre() {
 }
 
 tegraflash_post_sign_pkg() {
-    :
-}
-
-tegraflash_post_sign_pkg:tegra264() {
-    cat > .presigning-vars <<EOF
-${@'\n'.join(d.getVar("TEGRA_SIGNING_ENV").split())}
-EOF
-}
-
-tegraflash_post_sign_pkg:tegra234() {
-    mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_ROOTFS}" ${IMAGE_BASENAME}.img
-    cp secureflash.xml initrd-secureflash.xml
-    sed -i -e"s,APPFILE_b,${IMAGE_BASENAME}.img," -e"s,APPFILE,${IMAGE_BASENAME}.img," secureflash.xml
-    if [ -n "${IMAGE_TEGRAFLASH_DATA}" -a -n "${DATAFILE}" ]; then
-        mksparse -b ${TEGRA_BLBLOCKSIZE} --fillpattern=0 "${IMAGE_TEGRAFLASH_DATA}" ${DATAFILE}.img
-        sed -i -e"s,DATAFILE,${DATAFILE}.img," secureflash.xml
-    fi
     cat > .presigning-vars <<EOF
 ${@'\n'.join(d.getVar("TEGRA_SIGNING_ENV").split())}
 EOF
@@ -241,52 +225,41 @@ tegraflash_custom_sign_pkg() {
     :
 }
 
-tegraflash_custom_sign_pkg:tegra264() {
+tegraflash_custom_sign_pkg() {
     if [ -z "${TEGRA_SIGNING_ARGS}" -a "${TEGRA_SIGNING_ALWAYS}" != "1" ]; then
         return 0
     fi
-    ${TEGRA_SIGNING_ENV} MACHINE=${TNSPEC_MACHINE} ./tegra264-flash-helper.sh --sign --no-flash ${TEGRA_SIGNING_ARGS} flash.xml.in ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    ${TEGRA_SIGNING_ENV} MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh --sign --no-flash ${TEGRA_SIGNING_ARGS} flash.xml.in ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
     mv secureflash.xml internal-secureflash.xml
     mv flash.idx internal-flash.idx
-    mkdir -p tools/kernel_flash/images/internal
-    if ! stage_files_for_uniflash tools/kernel_flash/images/internal internal-flash.idx internal-secureflash.xml; then
-        return 1
-    fi
-    # Note that with recent hardware and BSP versions, all signed
-    # firmware is confined to the internal QSPI flash. (A different
-    # process is used for signing binaries loaded by the UEFI
-    # bootloader.) However, we still run through the flashing script
-    # here so that the .idx file used by NVIDIA's flashing tools
-    # gets generated.
-    if [ -e external-flash.xml.in ]; then
-        ${TEGRA_SIGNING_ENV} MACHINE=${TNSPEC_MACHINE} ./tegra264-flash-helper.sh --sign --no-flash --external-device ${TEGRA_SIGNING_ARGS} external-flash.xml.in ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
-	mv secureflash.xml external-secureflash.xml
-	mv flash.idx external-flash.idx
-    fi
-    mkdir -p tools/kernel_flash/images/external
-    if ! stage_files_for_uniflash tools/kernel_flash/images/external external-flash.idx external-secureflash.xml; then
-        return 1
+    if ${TEGRA_UNIFIED_FLASH}; then
+        mkdir -p tools/kernel_flash/images/internal
+	if ! stage_files_for_uniflash tools/kernel_flash/images/internal internal-flash.idx internal-secureflash.xml; then
+            return 1
+	fi
+	# Note that with recent hardware and BSP versions, all signed
+	# firmware is confined to the internal QSPI flash. (A different
+	# process is used for signing binaries loaded by the UEFI
+	# bootloader.) However, we still run through the flashing script
+	# here so that the .idx file used by NVIDIA's flashing tools
+	# gets generated.
+	if [ -e external-flash.xml.in ]; then
+            ${TEGRA_SIGNING_ENV} MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh --sign --no-flash --external-device ${TEGRA_SIGNING_ARGS} external-flash.xml.in ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+	    mv secureflash.xml external-secureflash.xml
+	    mv flash.idx external-flash.idx
+	fi
+	mkdir -p tools/kernel_flash/images/external
+	if ! stage_files_for_uniflash tools/kernel_flash/images/external external-flash.idx external-secureflash.xml; then
+            return 1
+	fi
     fi
     if [ -e rcmboot-flash.xml.in -a -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
-        ${TEGRA_SIGNING_ENV} MACHINE=${TNSPEC_MACHINE} ./tegra264-flash-helper.sh --no-flash --rcm-boot ${TEGRA_SIGNING_ARGS} rcmboot-flash.xml.in initrd-flash.img ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+        ${TEGRA_SIGNING_ENV} MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh --no-flash --rcm-boot ${TEGRA_SIGNING_ARGS} rcmboot-flash.xml.in initrd-flash.img ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
 	[ -d rcmboot_blob ] || bberror "RCM boot blob was not created"
     fi
     find . -type d -name __pycache__ -exec rm -rf {} +
     tegraflash_post_sign_pkg
 }
-
-tegraflash_custom_sign_pkg:tegra234() {
-    if [ -n "${TEGRA_SIGNING_ARGS}" ]; then
-        ${TEGRA_SIGNING_ENV} ./doflash.sh --no-flash ${TEGRA_SIGNING_ARGS}
-        [ -e flashcmd.txt ] || bbfatal "No flashcmd.txt generated by signing step"
-        rm -rf doflash.sh secureflash.sh
-        find . -type d -name __pycache__ -exec rm -rf {} +
-        mv flashcmd.txt doflash.sh
-        chmod +x doflash.sh
-        tegraflash_post_sign_pkg
-    fi
-}
-
 
 # -- Function for BUP signing/creation --
 # Note that this is *always* run. If no key is provided, binaries
@@ -397,10 +370,6 @@ copy_dtb_overlays() {
 }
 
 tegraflash_populate_package() {
-    :
-}
-
-tegraflash_populate_package:tegra264() {
     local kernelimg="$1"
     local lnxfile="$2"
     local bcoverlays="$3"
@@ -424,8 +393,6 @@ tegraflash_populate_package:tegra264() {
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     sed -e "\$a\BOOTCONTROL_OVERLAYS=\"$bcoverlays\"" ${STAGING_DATADIR}/tegraflash/flashvars > ./flashvars
-    rm -rf ./rollback
-    mkdir ./rollback
     if [ "${SOC_FAMILY}" = "tegra234" ]; then
         cp ${STAGING_DATADIR}/tegraflash/bpmp_t234-*.bin .
         cp ${STAGING_DATADIR}/tegraflash/tegra234-*.dts* .
@@ -463,56 +430,7 @@ tegraflash_populate_package:tegra264() {
     fi
 }
 
-tegraflash_populate_package:tegra234() {
-    local kernelimg="$1"
-    local lnxfile="$2"
-    local bcoverlays="$3"
-    PATH="${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}:$PATH"
-
-    cp "${STAGING_DATADIR}/tegraflash/bsp_version" .
-    cp "${STAGING_DATADIR}/tegraflash/${EMC_BCT}" .
-    if [ -n "${EMC_BCT_OVERRIDE}" ]; then
-        cp "${STAGING_DATADIR}/tegraflash/${EMC_BCT_OVERRIDE}" .
-    fi
-    cp "$kernelimg" ./$lnxfile
-    if [ -n "${DATAFILE}" -a -n "${IMAGE_TEGRAFLASH_DATA}" ]; then
-        cp "${IMAGE_TEGRAFLASH_DATA}" ./${DATAFILE}
-        DATAARGS="--datafile ${DATAFILE}"
-    fi
-    cp "${DEPLOY_DIR_IMAGE}/${TEGRA_FLASHVAR_UEFI_IMAGE}.bin" ./${TEGRA_FLASHVAR_UEFI_IMAGE}.bin
-    cp "${DEPLOY_DIR_IMAGE}/${TEGRA_FLASHVAR_RCM_UEFI_IMAGE}.bin" ./${TEGRA_FLASHVAR_RCM_UEFI_IMAGE}.bin
-    cp "${DEPLOY_DIR_IMAGE}/tos-${MACHINE}.img" ./${TOSIMGFILENAME}
-    for f in ${TEGRA_STAGED_BOOT_FIRMWARE}; do
-        cp "${STAGING_DATADIR}/tegraflash/$f" .
-    done
-    sed -e "\$a\BOOTCONTROL_OVERLAYS=\"$bcoverlays\"" ${STAGING_DATADIR}/tegraflash/flashvars > ./flashvars
-    rm -rf ./rollback
-    mkdir ./rollback
-    if [ "${SOC_FAMILY}" = "tegra234" ]; then
-        cp ${STAGING_DATADIR}/tegraflash/bpmp_t234-*.bin .
-        cp ${STAGING_DATADIR}/tegraflash/tegra234-*.dts* .
-        cp ${STAGING_DATADIR}/tegraflash/fuse_t234.xml .
-        cp ${STAGING_DATADIR}/tegraflash/tegra234-bpmp-*.dtb .
-    fi
-
-    copy_dtbs .
-    local bcos="$(echo "$bcoverlays" | sed -e's!,! !g')"
-    copy_dtb_overlays . $bcos
-    if [ "${TEGRA_SIGNING_EXCLUDE_TOOLS}" != "1" ]; then
-        cp -R ${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}/* .
-	if [ -z "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
-	    rm -f ./initrd-flash
-	fi
-        sed -i -e 's,^function ,,' ./l4t_bup_gen.func
-        tegraflash_generate_bupgen_script
-    fi
-}
-
 create_tegraflash_pkg() {
-    :
-}
-
-create_tegraflash_pkg:append:tegra264() {
     local oldwd="$PWD"
     local has_sdcard="no"
 
@@ -542,7 +460,7 @@ create_tegraflash_pkg:append:tegra264() {
     if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
         rm -f .env.initrd-flash
 	cat > .env.initrd-flash <<END
-FLASH_HELPER=tegra264-flash-helper.sh
+FLASH_HELPER=tegra-flash-helper.sh
 BOOTDEV="${TNSPEC_BOOTDEV}"
 ROOTFS_DEVICE="${ROOTFS_DEVICE_FOR_INITRD_FLASH}"
 CHIPID="${NVIDIA_CHIP}"
@@ -568,69 +486,11 @@ CHIPREV="${TEGRA_CHIPREV}"
 CHIP_SKU="${TEGRA_FLASHVAR_CHIP_SKU}"
 RAMCODE="${TEGRA_FLASHVAR_RAMCODE}"
 EOF
-    tegraflash_custom_post
-    tegraflash_custom_sign_pkg
-    tegraflash_finalize_pkg
-    cd "$oldwd"
-}
-create_tegraflash_pkg:append:tegra234() {
-    local oldwd="$PWD"
-    local has_sdcard="no"
-
-    rm -rf ${WORKDIR}/tegraflash
-    mkdir -p ${WORKDIR}/tegraflash
-    cd ${WORKDIR}/tegraflash
-    tegraflash_populate_package ${IMAGE_TEGRAFLASH_KERNEL} ${LNXFILE} ${@tegra_bootcontrol_overlay_list(d)}
-    if [ -n "${ESP_FILE}" ]; then
-        cp "${IMAGE_TEGRAFLASH_ESPIMG}" ./${ESP_FILE}
-    fi
-    if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
-        cp "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ./initrd-flash.img
-    fi
-    tegraflash_custom_pre
-    cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
-    tegraflash_create_flash_config flash.xml.in ${LNXFILE}
-    if grep -Eq '^[[:space:]]+<device type="sdcard"' flash.xml.in; then
-        has_sdcard="yes"
-    fi
-    if [ "${TEGRAFLASH_ROOTFS_EXTERNAL}" = "1" ]; then
-        tegraflash_create_flash_config external-flash.xml.in ${LNXFILE} ${STAGING_DATADIR}/tegraflash/external-flash.xml
-    fi
-    rm -f doflash.sh
-    cat > doflash.sh <<END
-#!/bin/sh
-MACHINE=${TNSPEC_MACHINE} ./tegra234-flash-helper.sh $DATAARGS flash.xml.in ${DTBFILE} ${EMC_BCT} ${TEGRA_FLASHVAR_ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
-END
-    chmod +x doflash.sh
-
-    if [ -n "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ]; then
-        rm -f .env.initrd-flash
-	cat > .env.initrd-flash <<END
-FLASH_HELPER=tegra234-flash-helper.sh
-BOOTDEV="${TNSPEC_BOOTDEV}"
-ROOTFS_DEVICE="${ROOTFS_DEVICE_FOR_INITRD_FLASH}"
-CHIPID="${NVIDIA_CHIP}"
-MACHINE="${TNSPEC_MACHINE}"
-DEFAULTS[BOARDID]="${TEGRA_BOARDID}"
-DEFAULTS[FAB]="${TEGRA_FAB}"
-DEFAULTS[CHIPREV]="${TEGRA_CHIPREV}"
-DEFAULTS[BOARDSKU]="${TEGRA_BOARDSKU}"
-DEFAULTS[BOARDREV]="${TEGRA_BOARDREV}"
-DTBFILE="${DTBFILE}"
-EMC_BCT="${EMC_BCT}"
-ODMDATA="${TEGRA_FLASHVAR_ODMDATA}"
-LNXFILE="${LNXFILE}"
-ROOTFS_IMAGE="${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
-DATAFILE="${DATAFILE}"
-EXTERNAL_ROOTFS_DRIVE=${TEGRAFLASH_ROOTFS_EXTERNAL}
-NO_INTERNAL_STORAGE=${TEGRAFLASH_NO_INTERNAL_STORAGE}
-END
-    fi
     if [ "$has_sdcard" = "yes" ]; then
         rm -f dosdcard.sh
         cat > dosdcard.sh <<END
 #!/bin/sh
-MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra234-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -s ${TEGRAFLASH_SDCARD_SIZE} -b ${IMAGE_BASENAME} $DATAARGS flash.xml.in ${DTBFILE} ${EMC_BCT} ${TEGRA_FLASHVAR_ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --no-flash --sign $DATAARGS flash.xml.in ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} && ./make-sdcard secureflash.xml "\$@"
 END
         chmod +x dosdcard.sh
     fi
@@ -638,10 +498,11 @@ END
         rm -f doexternal.sh
         cat > doexternal.sh <<END
 #!/bin/sh
-MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra234-flash-helper.sh --sdcard -B ${TEGRA_BLBLOCKSIZE} -b ${IMAGE_BASENAME} $DATAARGS --external-device external-flash.xml.in ${DTBFILE} ${EMC_BCT} ${TEGRA_FLASHVAR_ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --no-flash --sign $DATAARGS --external-device external-flash.xml.in ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} && ./make-sdcard secureflash.xml "\$@"
 END
         chmod +x doexternal.sh
     fi
+
     tegraflash_custom_post
     tegraflash_custom_sign_pkg
     tegraflash_finalize_pkg
@@ -660,10 +521,6 @@ def tegraflash_bupgen_strip_cmd(d):
     return 'sed {} flash.xml.in > flash-stripped.xml.in'.format(' '.join(['-e"/<filename>.*{}/d"'.format(img) for img in images]))
 
 tegraflash_generate_bupgen_script() {
-    :
-}
-
-tegraflash_generate_bupgen_script:tegra264() {
     local outfile="${1:-./generate_bup_payload.sh}"
     local spec__ fab boardsku boardrev bup_type buptype_arg
     rm -f $outfile
@@ -688,38 +545,7 @@ EOF
             buptype_arg=""
         fi
         cat <<EOF >> $outfile
-MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" CHIP_SKU="$chipsku" ./tegra264-flash-helper.sh --sign --bup $buptype_arg ./flash-stripped.xml.in "\$@"
-EOF
-    done
-    chmod +x $outfile
-}
-
-tegraflash_generate_bupgen_script:tegra234() {
-    local outfile="${1:-./generate_bup_payload.sh}"
-    local spec__ fab boardsku boardrev bup_type buptype_arg
-    rm -f $outfile
-    cat <<EOF > $outfile
-#!/bin/bash
-${TEGRA_BUPGEN_STRIP_CMD}
-rm -rf signed multi_signed rollback.bin ${BUP_PAYLOAD_DIR}
-export BOARDID=${TEGRA_BOARDID}
-export localbootfile=${LNXFILE}
-export CHIPREV=${TEGRA_CHIPREV}
-export CHIPID=${NVIDIA_CHIP}
-EOF
-    fab="${TEGRA_FAB}"
-    boardsku="${TEGRA_BOARDSKU}"
-    boardrev="${TEGRA_BOARDREV}"
-    for spec__ in ${@' '.join(['"%s"' % entry for entry in d.getVar('TEGRA_BUPGEN_SPECS').split()])}; do
-        bup_type=""
-        eval $spec__
-        if [ -n "$bup_type" ]; then
-            buptype_arg="--bup-type $bup_type"
-        else
-            buptype_arg=""
-        fi
-        cat <<EOF >> $outfile
-MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" CHIP_SKU="$chipsku" ./tegra234-flash-helper.sh --sign --bup $buptype_arg ./flash-stripped.xml.in ${DTBFILE} ${EMC_BCT} ${TEGRA_FLASHVAR_ODMDATA} "\$@"
+MACHINE=${TNSPEC_MACHINE} FAB="$fab" BOARDSKU="$boardsku" BOARDREV="$boardrev" CHIP_SKU="$chipsku" ./tegra-flash-helper.sh --sign --bup $buptype_arg ./flash-stripped.xml.in "\$@"
 EOF
     done
     chmod +x $outfile
