@@ -486,6 +486,23 @@ CHIPREV="${TEGRA_CHIPREV}"
 CHIP_SKU="${TEGRA_FLASHVAR_CHIP_SKU}"
 RAMCODE="${TEGRA_FLASHVAR_RAMCODE}"
 EOF
+    if [ "$has_sdcard" = "yes" ]; then
+        rm -f dosdcard.sh
+        cat > dosdcard.sh <<END
+#!/bin/sh
+MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --no-flash --sign $DATAARGS flash.xml.in ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} && ./make-sdcard secureflash.xml "\$@"
+END
+        chmod +x dosdcard.sh
+    fi
+    if [ "${TEGRAFLASH_ROOTFS_EXTERNAL}" = "1" ]; then
+        rm -f doexternal.sh
+        cat > doexternal.sh <<END
+#!/bin/sh
+MACHINE=${TNSPEC_MACHINE} BOARDID=\${BOARDID:-${TEGRA_BOARDID}} FAB=\${FAB:-${TEGRA_FAB}} CHIPREV=\${CHIPREV:-${TEGRA_CHIPREV}} BOARDSKU=\${BOARDSKU:-${TEGRA_BOARDSKU}} ./tegra-flash-helper.sh --no-flash --sign $DATAARGS --external-device external-flash.xml.in ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} && ./make-sdcard secureflash.xml "\$@"
+END
+        chmod +x doexternal.sh
+    fi
+
     tegraflash_custom_post
     tegraflash_custom_sign_pkg
     tegraflash_finalize_pkg
