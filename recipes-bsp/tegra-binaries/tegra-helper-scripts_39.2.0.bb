@@ -10,16 +10,14 @@ SRC_URI = " \
     file://find-jetson-usb.sh \
     file://initrd-flash.sh \
     file://make-sdcard.sh \
-    file://tegra234-flash-helper.sh \
-    file://tegra264-flash-helper.sh \
+    file://tegra-flash-helper.sh \
 "
 
 S = "${UNPACKDIR}"
 
 do_install() {
     install -d ${D}${bindir}/tegra-flash
-    install -m 0755 ${S}/tegra234-flash-helper.sh ${D}${bindir}/tegra-flash/
-    install -m 0755 ${S}/tegra264-flash-helper.sh ${D}${bindir}/tegra-flash/
+    install -m 0755 ${S}/tegra-flash-helper.sh ${D}${bindir}/tegra-flash/
     install -m 0755 ${S}/nvflashxmlparse.py ${D}${bindir}/tegra-flash/nvflashxmlparse
     install -m 0755 ${S}/nvbct-config.py ${D}${bindir}/tegra-flash/nvbct-config
     install -m 0755 ${S}/find-jetson-usb.sh ${D}${bindir}/tegra-flash/find-jetson-usb

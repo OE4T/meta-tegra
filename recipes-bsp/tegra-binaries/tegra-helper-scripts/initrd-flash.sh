@@ -189,8 +189,6 @@ EOF
 
 sign_binaries_t234() {
     if [ -n "$PRESIGNED" ]; then
-        cp doflash.sh flash_signed.sh
-        sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
         cp secureflash.xml internal-secureflash.xml
         if [ -e external-flash.xml.in ]; then
             cp external-flash.xml.in external-secureflash.xml
@@ -215,13 +213,8 @@ sign_binaries_t234() {
     rm -rf rcmboot_blob
     if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
               "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
-              flash.xml.in $DTBFILE $EMC_BCT $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
-        cp flashcmd.txt flash_signed.sh
-        sed -i -e's,--cfg secureflash.xml,--cfg internal-secureflash.xml,g' flash_signed.sh
+              flash.xml.in $LNXFILE $ROOTFS_IMAGE; then
         cp secureflash.xml internal-secureflash.xml
-        if [ -e external-flash.xml.in ]; then
-            cp external-flash.xml.in external-secureflash.xml
-        fi
         create_rcm_boot_script
     else
         return 1
@@ -230,17 +223,15 @@ sign_binaries_t234() {
         return 1
     fi
     if [ -e external-flash.xml.in ]; then
-        if grep -q 'oem_sign="true"' external-flash.xml.in 2>/dev/null; then
-            . ./boardvars.sh
-            if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
+        # Even if there are no signable entries in the external device layout, we need the script to
+        # apply its sed rewrites to the the xxxFILE tokens.
+        . ./boardvars.sh
+        if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
                             "$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args \
-                            external-flash.xml.in $DTBFILE $EMC_BCT $ODMDATA $LNXFILE $ROOTFS_IMAGE; then
-                mv secureflash.xml external-secureflash.xml
-            else
-                return 1
-            fi
+                            external-flash.xml.in $LNXFILE $ROOTFS_IMAGE; then
+            mv secureflash.xml external-secureflash.xml
         else
-            cp external-flash.xml.in external-secureflash.xml
+            return 1
         fi
     fi
     return 0
@@ -496,7 +487,7 @@ write_to_device_t234() {
     # name of the sparseimage file, and we need to convert it back to
     # the raw image name.
     simgname="${ROOTFS_IMAGE%.*}.img"
-    sed -i -e"s,$simgname,$ROOTFS_IMAGE," -e"s,APPFILE_b,$ROOTFS_IMAGE," -e"s,APPFILE,$ROOTFS_IMAGE," -e"s,DTB_FILE,kernel_$DTBFILE," $datased initrd-flash.xml
+    sed -i -e"s,$simgname,$ROOTFS_IMAGE," -e"s,APPFILE_b,$ROOTFS_IMAGE," -e"s,APPFILE,$ROOTFS_IMAGE," -e"s,DTB_FILE,kernel_$DTB_FILE," $datased initrd-flash.xml
     if "$here/make-sdcard" -y $opts $extraarg initrd-flash.xml "$dev"; then
         rc=0
     fi
