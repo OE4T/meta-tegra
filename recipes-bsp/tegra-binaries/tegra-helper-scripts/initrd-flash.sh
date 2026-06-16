@@ -13,6 +13,8 @@ me=$(basename "$0")
 here=$(readlink -f $(dirname "$0"))
 
 declare -A DEFAULTS
+SUDO=
+[ $(id -u) -eq 0 ] || SUDO="sudo"
 
 usage() {
     cat <<EOF
@@ -823,7 +825,7 @@ EOF
     chmod +x out/doflash.sh
 
     step_banner "Running unified flash"
-    ./out/doflash.sh $uniflash_flags 2>&1 | tee -a "$logfile"
+    $SUDO ./out/doflash.sh $uniflash_flags 2>&1 | tee -a "$logfile"
     echo "Finished at $(date -Is)" | tee -a "$logfile"
     echo "Host-side log:              $logfile"
     exit 0
