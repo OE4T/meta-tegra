@@ -1,7 +1,7 @@
 require tegra-binaries-${PV}.inc
 require tegra-shared-binaries.inc
 
-COMPATIBLE_MACHINE = "(tegra)"
+COMPATIBLE_MACHINE = "(tegra264)"
 DEPENDS = "abootimg-native"
 
 B = "${WORKDIR}/build"
@@ -86,11 +86,6 @@ adb=1
 EOF
 }
 
-do_compile:append:tegra234() {
-    cat >"${B}/ramdisk/initrd_flash.cfg" <<'EOF'
-adb=0
-EOF
-}
 do_compile[cleandirs] = "${B}"
 
 do_install() {
