@@ -1,5 +1,6 @@
 MACHINE_EXTRA_RRECOMMENDS += " \
     kernel-module-tegra-aconnect \
+    kernel-module-tegra210-adma \
     kernel-module-snd-soc-rl6231 \
     kernel-module-snd-soc-rt5640 \
     kernel-module-snd-soc-tegra-audio-graph-card \
