@@ -20,10 +20,7 @@ hsm_arg=
 blocksize=4096
 get_board_info=0
 
-# These functions are used in odmsign.func but do not
-# need to do anything when run from this script, as we
-# have already copied needed files to the current working
-# directory.
+# These functions are used in odmsign.func.
 partition_exists_in_PT_table() {
     local partname="$1"
     local layoutfile="$2"
@@ -360,6 +357,7 @@ if [ $bup_blob -eq -0 -a ! -d rcmdump_blob ]; then
              --dev_params $EMC_FUSE_DEV_PARAMS \
              --cfg readinfo_t234_min_prod.xml \
              --device_config $DEVICE_CONFIG --misc_config $MISC_CONFIG --bins "mb2_applet applet_t234.bin" \
+             $MINRATCHET_CONFIG \
              --cmd "dump gen_blob"; then
             echo "ERR: could not generate rcmdump_blob" >&2
             exit 1
@@ -377,6 +375,7 @@ if [ $bup_blob -eq -0 -a ! -d rcmdump_blob ]; then
                              brbct_cfg/mb2bctcfg=$MB2BCT_CFG \
                              brbct_cfg/uphy=$UPHY_CONFIG \
                              brbct_cfg/device=$DEVICE_CONFIG \
+                             brbct_cfg/minratchet=$MINRATCHET_CONFIG \
                              brbct_cfg/misc=$MISC_CONFIG \
                              brbct_cfg/pinmux=$PINMUX_CONFIG \
                              brbct_cfg/gpioint=$GPIOINT_CONFIG \
@@ -576,7 +575,7 @@ if [ "$CHIPID" = "0x23" ]; then
         if ! [ "$BOARDSKU" = "0000" -o "$BOARDSKU" = "0001" -o "$BOARDSKU" = "0002" ]; then
             BPFDTB_FILE=$(echo "$BPFDTB_FILE" | sed -e"s,3701-0000,3701-$BOARDSKU,")
             if [ "$BOARDSKU" = "0005" -o "$BOARDSKU" = "0008" ]; then
-                EMC_BCT=$(echo "$EMC_BCT" | sed -e"s,3701-0000,3701-$BOARDSKU,")
+                BCTFILE=$(echo "$BCTFILE" | sed -e"s,3701-0000,3701-$BOARDSKU,")
                 WB0SDRAM_BCT=$(echo "$WB0SDRAM_BCT" | sed -e"s,3701-0000,3701-$BOARDSKU,")
             else
                 dtb_file=$(echo "$dtb_file" | sed -e"s,p3701-0000,p3701-$BOARDSKU,")
@@ -615,10 +614,10 @@ if [ "$CHIPID" = "0x23" ]; then
             fi
         fi
         if [ "$BOARDSKU" = "0001" -o "$BOARDSKU" = "0003" -o "$BOARDSKU" = "0005" ]; then
-            EMC_BCT="tegra234-p3767-0001-sdram-l4t.dts"
+            BCTFILE="tegra234-p3767-0001-sdram-l4t.dts"
             WB0SDRAM_BCT="tegra234-p3767-0001-wb0sdram-l4t.dts"
         elif [ "$BOARDSKU" = "0004" ]; then
-            EMC_BCT="tegra234-p3767-0004-sdram-l4t.dts"
+            BCTFILE="tegra234-p3767-0004-sdram-l4t.dts"
             WB0SDRAM_BCT="tegra234-p3767-0004-wb0sdram-l4t.dts"
         fi
         PINMUX_CONFIG=$(echo "$PINMUX_CONFIG" | sed -e"s,@PINMUXREV@,$PINMUXREV,")
@@ -675,7 +674,7 @@ if [ $bup_blob -ne 0 -o $rcm_boot -ne 0 ]; then
     appfile_sed="-e/APPFILE/d -e/DATAFILE/d"
 else
     appfile_sed="-es,APPFILE_b,$appfile, -es,APPFILE,$appfile,"
-    if [ -e "$datafile" ]; then
+    if [ -n "$datafile" -a -e "$datafile" ]; then
         appfile_sed="$appfile_sed -es,DATAFILE,$datafile,"
     else
         appfile_sed="$appfile_sed -e/DATAFILE/d"
@@ -882,8 +881,7 @@ if [ $want_signing -eq 1 ]; then
         SOSARGS="--applet mb1_t234_prod.bin "
         NV_ARGS=" "
         FLASHARGS="--chip 0x23 $hsm_arg --bl ${RCM_UEFI_IMAGE}_with_dtb.bin \
-          --sdram_config $sdramcfg_files \
-          --odmdata $odmdata \
+          --sdram_config $BCTFILE \
           --applet mb1_t234_prod.bin \
           --cmd \"$tfcmd\" $skipuid \
           --cfg flash.xml \
@@ -929,13 +927,12 @@ if [ $want_signing -eq 1 ]; then
         if [ "$CHIPID" = "0x23" ]; then
             FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
 --sdram_config $BCTFILE \
---odmdata $ODMDATA \
 --applet mb1_t234_prod.bin \
 --cmd \"$tfcmd\" $skipuid \
 --cfg flash.xml \
 --bct_backup \
 --boot_chain A \
-$bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
+$odmdata_arg $bctargs $rcm_overlay_dtb_arg $custinfo_args $ramcodeargs $extdevargs $sparseargs $BINSARGS"
         elif [ "$CHIPID" = "0x26" ]; then
             flashcmd="python3 $flashappname ${inst_args} --chip 0x26 $hsm_arg --bl ${RCM_UEFI_IMAGE}_with_dtb.bin \
 --applet mb1_t264.bin \
@@ -1022,12 +1019,13 @@ if [ $to_sign -ne 0 ]; then
 fi
 
 if [ $no_flash -ne 0 ]; then
-    if [ "$CHIPID" = "0x26" -a $rcm_boot -ne 0 ]; then
+    if [ $rcm_boot -ne 0 ]; then
         [ -z "$keyargs" ] || flashcmd="${flashcmd} $keyargs"
         eval $flashcmd --no_flash < /dev/null || exit 1
-        mem_rcm_file=$(awk -F"bct_mem " '/bct_mem /{print $2}' rcmboot_blob/rcmbootcmd.txt | cut -f1 -d' ')
-        sed -e"s,$mem_rcm_file,membct_ramcode_file," rcmboot_blob/rcmbootcmd.txt > rcmboot_blob/rcmbootcmd.tmp
-        cat > rcmboot_blob/rcmbootcmd.txt <<EOF
+        if [ "$CHIPID" = "0x26" ]; then
+            mem_rcm_file=$(awk -F"bct_mem " '/bct_mem /{print $2}' rcmboot_blob/rcmbootcmd.txt | cut -f1 -d' ')
+            sed -e"s,$mem_rcm_file,membct_ramcode_file," rcmboot_blob/rcmbootcmd.txt > rcmboot_blob/rcmbootcmd.tmp
+            cat > rcmboot_blob/rcmbootcmd.txt <<EOF
 #!/bin/bash
 oldwd="\$PWD"
 rm -rf rcmdump_blob
@@ -1053,8 +1051,9 @@ RAMCODE="\$board_ramcode"
 ram_group=\$((\$board_ramcode / 2))
 cp -v \$(echo "$mem_rcm_file" | sed -re"s,membct_[0-9]+_,membct_\${ram_group}_,") membct_ramcode_file
 EOF
-        cat rcmboot_blob/rcmbootcmd.tmp >> rcmboot_blob/rcmbootcmd.txt
-        rm rcmboot_blob/rcmbootcmd.tmp
+            cat rcmboot_blob/rcmbootcmd.tmp >> rcmboot_blob/rcmbootcmd.txt
+            rm rcmboot_blob/rcmbootcmd.tmp
+        fi
         tar -cf rcmboot_blob/rcmdump_blob.tar rcmdump_blob
     else
         echo "$flashcmd" | sed -e 's,--skipuid,,g' > flashcmd.txt
