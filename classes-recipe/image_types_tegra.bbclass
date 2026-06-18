@@ -342,6 +342,7 @@ tegraflash_populate_package() {
 create_tegraflash_pkg() {
     local oldwd="$PWD"
     local has_sdcard="no"
+    local has_rootfs="yes"
 
     rm -rf ${WORKDIR}/tegraflash
     mkdir -p ${WORKDIR}/tegraflash
@@ -354,7 +355,15 @@ create_tegraflash_pkg() {
         cp "${IMAGE_TEGRAFLASH_INITRD_FLASHER}" ./initrd-flash.img
     fi
     tegraflash_custom_pre
-    cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    if [ -f "${IMAGE_TEGRAFLASH_ROOTFS}" ]; then
+        cp "${IMAGE_TEGRAFLASH_ROOTFS}" ./${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}
+    else
+        bbwarn "No rootfs detected, Are you sure you know what you are doing?
+            We recommend using initrd-flash for flashing, or only use doflash.sh
+            for spi only flashing. Forcing --spi-only for this target"
+        
+        has_rootfs="no"
+    fi
     tegraflash_create_flash_config flash.xml.in ${LNXFILE}
     if grep -Eq '^[[:space:]]+<device type="sdcard"' flash.xml.in; then
         has_sdcard="yes"
@@ -365,7 +374,9 @@ create_tegraflash_pkg() {
     rm -f doflash.sh
     cat > doflash.sh <<END
 #!/bin/sh
-MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} ${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE} "\$@"
+img_args="${IMAGE_BASENAME}.${IMAGE_TEGRAFLASH_FS_TYPE}"
+[ "${has_rootfs}" = "no" ] && { echo "No rootfs detected, forcing --spi-only"; img_args="--spi-only"; }
+MACHINE=${TNSPEC_MACHINE} ./tegra-flash-helper.sh $DATAARGS flash.xml.in ${DTBFILE} ${EMMC_BCTS} ${ODMDATA} ${LNXFILE} "\${img_args}" "\$@"
 END
     chmod +x doflash.sh
 
