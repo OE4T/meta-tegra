@@ -1,0 +1,34 @@
+From 22806fb44c2f45bacd135d064c466a7ab91e7356 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Tue, 16 Jun 2026 14:13:15 -0700
+Subject: [PATCH] Jetson/board.py: fix block device check for standard Linux
+
+_board_root_partition_is_block_device() only checked /dev/block/ (an
+Android convention). On standard Linux the equivalent is /sys/dev/block/,
+so the check always returned False, causing unnecessary APP partition
+mounts and DTB searches in /mnt/APP/boot/dtb.
+
+Upstream-Status: Pending
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ opt/nvidia/jetson-io/Jetson/board.py | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/opt/nvidia/jetson-io/Jetson/board.py b/opt/nvidia/jetson-io/Jetson/board.py
+index fb45b5c..1fe79ee 100644
+--- a/opt/nvidia/jetson-io/Jetson/board.py
++++ b/opt/nvidia/jetson-io/Jetson/board.py
+@@ -117,7 +117,9 @@ def _board_root_partition_is_block_device():
+     dev = syscall.call_out('mountpoint -q -d /')
+     if not dev or len(dev) != 1:
+         raise RuntimeError("Root partition not found!")
+-    return os.path.exists("/dev/block/%s" % dev[0])
++    # /dev/block/ exists on Android-based systems; /sys/dev/block/ on standard Linux
++    return os.path.exists("/dev/block/%s" % dev[0]) or \
++           os.path.exists("/sys/dev/block/%s" % dev[0])
+ 
+ 
+ def _board_root_partition_get_partlabel():
+-- 
+2.43.0
+
