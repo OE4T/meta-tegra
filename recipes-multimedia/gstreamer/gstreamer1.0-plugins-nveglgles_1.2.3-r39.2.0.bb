@@ -10,14 +10,9 @@ require recipes-bsp/tegra-sources/tegra-sources-39.2.0.inc
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-SRC_URI += "\
-    file://0001-Makefile-fixes-for-OE-builds.patch;patchdir=.. \
-    file://0002-Fix-builds-without-x11.patch;patchdir=.. \
-    file://0003-Fix-builds-without-wayland.patch;patchdir=.. \
-    file://0004-Fix-builds-without-wayland-IVI-extensions.patch;patchdir=.. \
-    file://0005-Convert-from-wl-shell-to-xdg-shell-for-wayland.patch;patchdir=.. \
-    file://0006-Fix-building-issue-caused-by-upgrading-to-GStreamer-.patch;patchdir=.. \
-"
+SRC_URI += "file://0001-Makefile-fixes-for-OE-builds.patch;patchdir=.. \
+            file://0002-Fix-building-issue-caused-by-upgrading-to-GStreamer-.patch;patchdir=.. \
+           "
 
 DEPENDS = "tegra-mmapi gstreamer1.0 glib-2.0-native gstreamer1.0-plugins-base virtual/egl virtual/libgles2 cuda-cudart cuda-driver"
 
