@@ -99,8 +99,9 @@ addtask sign_files after do_compile do_create_extlinux_config do_copy_dtb_overla
 do_install() {
     install -d ${D}${L4T_EXTLINUX_BASEDIR}/extlinux
     install -m 0644 ${B}/${KERNEL_IMAGETYPE} ${D}${L4T_EXTLINUX_BASEDIR}/
+    install -d ${D}${L4T_EXTLINUX_BASEDIR}/dtb
     if [ -n "${L4T_UBOOT_EXTLINUX_FDT}" ]; then
-        install -m 0644 ${B}/${L4T_UBOOT_EXTLINUX_FDT}* ${D}${L4T_EXTLINUX_BASEDIR}/
+        install -m 0644 ${B}/${L4T_UBOOT_EXTLINUX_FDT}* ${D}${L4T_EXTLINUX_BASEDIR}/dtb/
     fi
     if [ -n "${UBOOT_EXTLINUX_FDTOVERLAYS}" ]; then
         for overlay in ${UBOOT_EXTLINUX_FDTOVERLAYS}; do
@@ -109,7 +110,7 @@ do_install() {
     fi
     if [ -n "${L4T_UBOOT_EXTLINUX_EXTRA_FDTS}" ]; then
         for fdt in ${L4T_UBOOT_EXTLINUX_EXTRA_FDTS}; do
-            install -m 0644 ${B}/${fdt}* ${D}${L4T_EXTLINUX_BASEDIR}/
+            install -m 0644 ${B}/${fdt}* ${D}${L4T_EXTLINUX_BASEDIR}/dtb/
         done
     fi
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
