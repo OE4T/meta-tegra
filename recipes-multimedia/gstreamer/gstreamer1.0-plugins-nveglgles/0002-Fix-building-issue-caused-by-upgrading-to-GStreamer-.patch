@@ -1,4 +1,4 @@
-From ff4a8d16d9fe4ef5f40dd585a25072143f4ef033 Mon Sep 17 00:00:00 2001
+From 1248704a34e71e811fa869a173b0752cbcdd83dd Mon Sep 17 00:00:00 2001
 From: Meng Li <Meng.Li@windriver.com>
 Date: Mon, 13 Apr 2026 16:13:27 +0800
 Subject: [PATCH] Fix building issue caused by upgrading to GStreamer 1.28
@@ -29,6 +29,3 @@ index b307b6f..2c59e26 100644
  
  #if defined (USE_EGL_RPI) && defined(__GNUC__)
  #ifndef __VCCOREVER__
--- 
-2.34.1
-
