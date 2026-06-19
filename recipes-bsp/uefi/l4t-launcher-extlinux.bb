@@ -48,6 +48,8 @@ do_compile[depends] += "${@compute_dependencies(d)}"
 do_compile[dirs] = "${B}"
 
 python do_copy_dtb_overlays() {
+   import glob
+
    if d.getVar('L4T_UBOOT_EXTLINUX_FDT'):
         oe4t.dtbutils.copy_dtb_files(d.getVar('L4T_UBOOT_EXTLINUX_FDT'),
                                           d.getVar('B'), d)
@@ -59,6 +61,15 @@ python do_copy_dtb_overlays() {
    if d.getVar('L4T_UBOOT_EXTLINUX_EXTRA_FDTS'):
         oe4t.dtbutils.copy_dtb_files(d.getVar('L4T_UBOOT_EXTLINUX_EXTRA_FDTS'),
                                           d.getVar('B'), d)
+
+   extern_root = d.getVar('EXTERNAL_KERNEL_DEVICETREE')
+   if extern_root and os.path.isdir(extern_root):
+       dtbs = [os.path.basename(f) for f in glob.glob(os.path.join(extern_root, '*.dtb'))]
+       if dtbs:
+           oe4t.dtbutils.copy_dtb_files(' '.join(dtbs), d.getVar('B'), d)
+       dtbos = [os.path.basename(f) for f in glob.glob(os.path.join(extern_root, '*.dtbo'))]
+       if dtbos:
+           oe4t.dtbutils.copy_dtb_files(' '.join(dtbos), d.getVar('B'), d)
 }
 do_copy_dtb_overlays[dirs] = "${B}"
 do_copy_dtb_overlays[depends] += "virtual/kernel:do_deploy"
@@ -113,11 +124,27 @@ do_install() {
             install -m 0644 ${B}/${fdt}* ${D}${L4T_EXTLINUX_BASEDIR}/dtb/
         done
     fi
+    for dtb in ${B}/*.dtb; do
+        [ -f "$dtb" ] && install -m 0644 "$dtb" ${D}${L4T_EXTLINUX_BASEDIR}/dtb/
+    done
+    for dtbo in ${B}/*.dtbo; do
+        [ -f "$dtbo" ] && install -m 0644 "$dtbo" ${D}${L4T_EXTLINUX_BASEDIR}/
+    done
     if [ -n "${INITRAMFS_IMAGE}" -a "${INITRAMFS_IMAGE_BUNDLE}" != "1" ]; then
         install -m 0644 ${B}/initrd* ${D}${L4T_EXTLINUX_BASEDIR}/
     fi
     install -m 0644 ${B}/extlinux.conf* ${D}${L4T_EXTLINUX_BASEDIR}/extlinux/
 }
 
-FILES:${PN} = "${L4T_EXTLINUX_BASEDIR}"
+# Configured DTBs and overlays will be put in the main package. All other staged
+# DTBs and DTBOs go into the dtb-extra package (e.g. for jetson-io).
+PACKAGES += "${PN}-dtb-extra"
+FILES:${PN}-dtb-extra = "${L4T_EXTLINUX_BASEDIR}/dtb/* ${L4T_EXTLINUX_BASEDIR}/*.dtbo"
+FILES:${PN} = " \
+    ${L4T_EXTLINUX_BASEDIR}/${KERNEL_IMAGETYPE} \
+    ${L4T_EXTLINUX_BASEDIR}/extlinux \
+    ${L4T_EXTLINUX_BASEDIR}/initrd* \
+    ${@' '.join([d.getVar('L4T_EXTLINUX_BASEDIR') + '/dtb/' + f + '*' for f in (d.getVar('L4T_UBOOT_EXTLINUX_FDT') or '').split() + (d.getVar('L4T_UBOOT_EXTLINUX_EXTRA_FDTS') or '').split()])} \
+    ${@' '.join([d.getVar('L4T_EXTLINUX_BASEDIR') + '/' + f + '*' for f in (d.getVar('UBOOT_EXTLINUX_FDTOVERLAYS') or '').split()])} \
+"
 PACKAGE_ARCH = "${MACHINE_ARCH}"
