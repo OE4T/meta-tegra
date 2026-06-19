@@ -7,8 +7,8 @@ DEPENDS = "eglexternalplatform virtual/egl wayland wayland-protocols wayland-nat
 SRC_REPO = "github.com/NVIDIA/egl-wayland.git;protocol=https"
 SRCBRANCH = "master"
 SRC_URI = "git://${SRC_REPO};branch=${SRCBRANCH}"
-SRCREV = "91bca6e4b015330587f47400ad8d124fe0fe9927"
-PV = "1.1.20"
+SRCREV = "a557bed172dcd7ba379095f784d047202281c0de"
+PV = "1.1.22+git"
 
 SRC_URI += " \
     file://0001-Fix-wayland-eglstream-protocols-pc-file.patch \
