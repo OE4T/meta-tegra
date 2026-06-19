@@ -1,20 +1,27 @@
-From 798d1b634c815f0c64562a373046dd1c112d3103 Mon Sep 17 00:00:00 2001
+From 45ff5b1d51e141863dd1b0096a90fcfba2155ac9 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
-Date: Mon, 6 May 2024 11:53:29 -0700
+Date: Fri, 19 Jun 2026 06:31:10 -0700
 Subject: [PATCH] Makefile fixes for OE builds
+
+* Allow for building with/without X11, Wayland
+* Allow for building without the IVI application Wayland
+  protocol, which isn't part of the standard set
+* Run wayland-scanner for code/header generation
 
 Upstream-Status: Inappropriate [OE specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
-Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
-Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- gst-egl/Makefile                   | 58 ++++++++++++++++++++++--------
- gst-egl/pre-gen-source_64/config.h |  6 ++--
- 2 files changed, 47 insertions(+), 17 deletions(-)
+ gst-egl/Makefile                             | 63 +++++++++++++++-----
+ gst-egl/ext/eglgles/gstegladaptation_egl.c   |  2 +
+ gst-egl/ext/eglgles/gsteglglessink.c         |  2 +
+ gst-egl/ext/eglgles/video_platform_wrapper.c |  2 +
+ gst-egl/ext/eglgles/video_platform_wrapper.h |  7 +++
+ gst-egl/pre-gen-source_64/config.h           |  6 +-
+ 6 files changed, 65 insertions(+), 17 deletions(-)
 
 diff --git a/gst-egl/Makefile b/gst-egl/Makefile
-index a266201..244ba49 100644
+index a266201..da0053a 100644
 --- a/gst-egl/Makefile
 +++ b/gst-egl/Makefile
 @@ -16,8 +16,11 @@ ifeq ($(CUDA_VER),)
@@ -30,7 +37,7 @@ index a266201..244ba49 100644
  
  SRCS := ext/eglgles/gstegladaptation.c \
  	ext/eglgles/gstegladaptation_egl.c \
-@@ -29,46 +32,73 @@ SRCS := ext/eglgles/gstegladaptation.c \
+@@ -29,46 +32,78 @@ SRCS := ext/eglgles/gstegladaptation.c \
  INCLUDES += -I./pre-gen-source_64/ \
          -I./gst-libs \
          -I./gst-libs/gst/egl \
@@ -73,9 +80,9 @@ index a266201..244ba49 100644
 +endif
 +ifneq ($(USE_WAYLAND),)
 +CFLAGS += -DHAVE_WAYLAND -DUSE_EGL_WAYLAND
-+SRCS += ext/eglgles/presentation-time.c
-+EXTRADEPS += ext/eglgles/presentation-time-client-protocol.h
-+OBJS += ext/eglgles/presentation-time.o
++SRCS += ext/eglgles/presentation-time.c ext/eglgles/xdg-shell.c
++EXTRADEPS += ext/eglgles/presentation-time-client-protocol.h ext/eglgles/xdg-shell-client-protocol.h
++OBJS += ext/eglgles/presentation-time.o ext/eglgles/xdg-shell.o
 +endif
  
  CFLAGS += `pkg-config --cflags $(PKGS)`
@@ -104,6 +111,11 @@ index a266201..244ba49 100644
 +	wayland-scanner client-header < $< > $@
 +ext/eglgles/presentation-time.c: $(PT_DESC)
 +	wayland-scanner private-code < $< > $@
++XS_DESC := $(shell pkg-config --variable=pkgdatadir wayland-protocols)/stable/xdg-shell/xdg-shell.xml
++ext/eglgles/xdg-shell-client-protocol.h: $(XS_DESC)
++	wayland-scanner client-header < $< > $@
++ext/eglgles/xdg-shell.c: $(XS_DESC)
++	wayland-scanner private-code < $< > $@
 +endif
 +
  .PHONY: install
@@ -116,7 +128,73 @@ index a266201..244ba49 100644
  clean:
 -	rm -rf $(OBJS) $(SO_NAME)
 -
-+	rm -rf $(OBJS) $(SO_NAME) $(EXTRADEPS) ext/eglgles/presentation-time.c
++	rm -rf $(OBJS) $(SO_NAME) $(EXTRADEPS) ext/eglgles/presentation-time.c ext/eglgles/xdg-shell.c
+diff --git a/gst-egl/ext/eglgles/gstegladaptation_egl.c b/gst-egl/ext/eglgles/gstegladaptation_egl.c
+index 8a4abef..77d0501 100644
+--- a/gst-egl/ext/eglgles/gstegladaptation_egl.c
++++ b/gst-egl/ext/eglgles/gstegladaptation_egl.c
+@@ -283,9 +283,11 @@ gboolean
+ gst_egl_adaptation_context_swap_buffers (GstEglAdaptationContext * ctx, gchar* winsys,
+         gpointer * own_window_data, GstBuffer * buf, gboolean show_latency)
+ {
++#ifdef USE_EGL_WAYLAND
+   if (g_strcmp0(winsys, "wayland") == 0 && show_latency) {
+     register_presentation_feedback(own_window_data, buf);
+   }
++#endif
+ 
+   gboolean ret = eglSwapBuffers (gst_egl_display_get (ctx->display),
+       ctx->eglglesctx->surface);
+diff --git a/gst-egl/ext/eglgles/gsteglglessink.c b/gst-egl/ext/eglgles/gsteglglessink.c
+index 1ad4ddb..c70ee37 100644
+--- a/gst-egl/ext/eglgles/gsteglglessink.c
++++ b/gst-egl/ext/eglgles/gsteglglessink.c
+@@ -107,7 +107,9 @@
+ #include <gst/video/gstvideopool.h>
+ #include <gst/video/videooverlay.h>
+ 
++#ifdef USE_EGL_X11
+ #include <X11/Xlib.h>
++#endif
+ 
+ #include "gstegladaptation.h"
+ #include "video_platform_wrapper.h"
+diff --git a/gst-egl/ext/eglgles/video_platform_wrapper.c b/gst-egl/ext/eglgles/video_platform_wrapper.c
+index 25fe194..a7ccb80 100644
+--- a/gst-egl/ext/eglgles/video_platform_wrapper.c
++++ b/gst-egl/ext/eglgles/video_platform_wrapper.c
+@@ -283,10 +283,12 @@ void global_registry_handler (void *data, struct wl_registry *registry, uint32_t
+     wp_presentation_add_listener (wayland_display->presentation,
+         &presentation_listener, NULL);
+   }
++#ifdef HAVE_WAYLAND_IVI_APPLICATION
+   else if (strcmp (interface, "ivi_application") == 0) {
+     wayland_display->ivi_application = wl_registry_bind (registry, id,
+         &ivi_application_interface, 1);
+   }
++#endif
+ }
+ 
+ void global_registry_remover (void *data, struct wl_registry *registry, uint32_t id)
+diff --git a/gst-egl/ext/eglgles/video_platform_wrapper.h b/gst-egl/ext/eglgles/video_platform_wrapper.h
+index 1eb354c..38da3a1 100644
+--- a/gst-egl/ext/eglgles/video_platform_wrapper.h
++++ b/gst-egl/ext/eglgles/video_platform_wrapper.h
+@@ -56,7 +56,14 @@ void platform_destroy_display_x11(void* display);
+ #include "wayland-client-protocol.h"
+ #include "wayland-egl.h"
+ #include "presentation-time-client-protocol.h"
++#ifdef HAVE_WAYLAND_IVI_APPLICATION
+ #include "ivi-application-client-protocol.h"
++#else
++struct ivi_surface;
++struct ivi_application;
++static inline __attribute__((unused)) void *ivi_application_surface_create(void *a, guint id, void *surface) { return NULL; }
++static inline __attribute__((unused)) void ivi_application_destroy(struct ivi_application *a) { };
++#endif
+ #include "xdg-shell-client-protocol.h"
+ typedef struct
+ {
 diff --git a/gst-egl/pre-gen-source_64/config.h b/gst-egl/pre-gen-source_64/config.h
 index d06e1a8..af67714 100644
 --- a/gst-egl/pre-gen-source_64/config.h
