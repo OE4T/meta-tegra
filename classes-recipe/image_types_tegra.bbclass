@@ -28,6 +28,8 @@ def tegra_dtb_extra_deps(d):
     deps = []
     if d.getVar('PREFERRED_PROVIDER_virtual/dtb'):
         deps.append('virtual/dtb:do_populate_sysroot')
+    if d.getVar('PREFERRED_PROVIDER_virtual/dtbo'):
+        deps.append('virtual/dtbo:do_populate_sysroot')
     if d.getVar('TEGRA_UEFI_USE_SIGNED_FILES') == "true":
         deps.append('tegra-uefi-keys-dtb:do_deploy')
     return ' '.join(deps)
