@@ -23,6 +23,7 @@ DT_INCLUDE:tegra234 ?= " \
     ${DT_NV_BASE}/t23x/nv-public/include/nvidia-oot \
     ${DT_NV_BASE}/t23x/nv-public/include/platforms \
     ${DT_NV_BASE}/t23x/nv-public \
+    ${DT_NV_BASE}/t23x/nv-public/nv-platform \
     ${DT_FILES_PATH} \
     ${KERNEL_INCLUDE} \
 "
@@ -32,6 +33,7 @@ DT_INCLUDE:tegra264 ?= " \
     ${DT_NV_BASE}/tegra/nv-public \
     ${DT_NV_BASE}/t264/nv-public/include/kernel-t264 \
     ${DT_NV_BASE}/t264/nv-public \
+    ${DT_NV_BASE}/t264/nv-public/nv-platform \
     ${DT_FILES_PATH} \
     ${KERNEL_INCLUDE} \
 "
