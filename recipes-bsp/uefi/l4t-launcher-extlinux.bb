@@ -63,6 +63,7 @@ python do_copy_dtb_overlays() {
 do_copy_dtb_overlays[dirs] = "${B}"
 do_copy_dtb_overlays[depends] += "virtual/kernel:do_deploy"
 do_copy_dtb_overlays[depends] += "${@'virtual/dtb:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtb') else ''}"
+do_copy_dtb_overlays[depends] += "${@'virtual/dtbo:do_populate_sysroot' if d.getVar('PREFERRED_PROVIDER_virtual/dtbo') else ''}"
 
 addtask copy_dtb_overlays after do_configure before do_sign_files
 
