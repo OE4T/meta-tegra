@@ -83,6 +83,7 @@ do_install() {
     # include device-tree source for building external dtb
     install -d ${D}/usr/src/device-tree
     cp -R ${S}/hardware/nvidia/ ${D}/usr/src/device-tree
+    find ${D}/usr/src/device-tree -name '.git' -depth -type d -exec rm -rf '{}' ';'
 }
 
 SYSROOT_DIRS += "/usr/src/device-tree"
