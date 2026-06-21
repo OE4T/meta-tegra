@@ -298,27 +298,29 @@ if [ -z "$CHIPREV" ]; then
         echo "ERR: unrecognized chip ID: 0x${chipid:6:2}" >&2
         exit 1
     fi
-    case $bootauth in
-        PKC)
-            if [ -z "$keyfile" ]; then
-                echo "ERR: Target is configured for secure boot ($bootauth); use -u option to specify key file" >&2
-                exit 1
-            fi
-            ;;
-        SBKPKC)
-            if [ -z "$keyfile" -o -z "$sbk_keyfile" ]; then
-                echo "ERR: Target is configured for secure boot ($bootauth); use -u and -v options to specify key files" >&2
-                exit 1
-            fi
-            ;;
-        NS)
-            if [ -n "$keyfile" -o -n "$sbk_keyfile" ]; then
-                echo "WARN: Target is not secured; ignoring key files" >&2
-                keyfile=
-                sbk_keyfile=
-            fi
-            ;;
-    esac
+    if [ $get_board_info -eq 0 ]; then
+        case $bootauth in
+            PKC)
+                if [ -z "$keyfile" ]; then
+                    echo "ERR: Target is configured for secure boot ($bootauth); use -u option to specify key file" >&2
+                    exit 1
+                fi
+                ;;
+            SBKPKC)
+                if [ -z "$keyfile" -o -z "$sbk_keyfile" ]; then
+                    echo "ERR: Target is configured for secure boot ($bootauth); use -u and -v options to specify key files" >&2
+                    exit 1
+                fi
+                ;;
+            NS)
+                if [ -n "$keyfile" -o -n "$sbk_keyfile" ]; then
+                    echo "WARN: Target is not secured; ignoring key files" >&2
+                    keyfile=
+                    sbk_keyfile=
+                fi
+                ;;
+        esac
+    fi
     BOOTSEC_MODE="$bootauth"
 elif [ "$CHIPID" = "0x23" ]; then
     skipuid="--skipuid"
@@ -492,10 +494,14 @@ if [ -z "$serial_number" -a -n "$have_boardinfo" ]; then
     serial_number="${board_info[SERIALNUMBER]}"
 fi
 
-if [ -n "$RAMCODE" -a -n "$have_boardinfo" ]; then
-    if [ "$RAMCODE" != "${board_info[RAMCODE]}" ]; then
-        echo "Using RAMCODE from board: ${board_info[RAMCODE]}"
+if [ -n "$have_boardinfo" ]; then
+    if [ -z "$RAMCODE" ]; then
         RAMCODE="${board_info[RAMCODE]}"
+    else
+        if [ "$RAMCODE" != "${board_info[RAMCODE]}" ]; then
+            echo "Using RAMCODE from board: ${board_info[RAMCODE]}"
+            RAMCODE="${board_info[RAMCODE]}"
+        fi
     fi
 fi
 

@@ -189,47 +189,35 @@ EOF
     chmod +x rcm-boot.sh
 }
 
-sign_binaries_t234() {
-    if [ -n "$PRESIGNED" ]; then
-        cp secureflash.xml internal-secureflash.xml
-        if [ -e external-flash.xml.in ]; then
-            cp external-flash.xml.in external-secureflash.xml
+prepare_binaries_t234() {
+    if [ -z "$PRESIGNED" ]; then
+        if [ -z "$BOARDID" -o -z "$FAB" ]; then
+            wait_for_rcm
         fi
-        if ! copy_bootloader_files_t234 bootloader_staging; then
-            return 1
-        fi
-        if [ -e rcm-boot.sh ]; then
-            return 0
-        fi
-        if [ ! -e rcmboot_blob/rcmbootcmd.txt ]; then
-            echo "ERR: missing RCM boot blob in pre-signed binaries" >&2
-            return 1
-        fi
-        create_rcm_boot_script
-        return 0
-    fi
-
-    if [ -z "$BOARDID" -o -z "$FAB" ]; then
-        wait_for_rcm
-    fi
-    rm -rf rcmboot_blob
-    if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
-              "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
+        rm -rf rcmboot_blob
+        if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
+              "$here/$FLASH_HELPER" --no-flash --datafile "$DATAFILE" --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
               flash.xml.in $LNXFILE $ROOTFS_IMAGE; then
-        cp secureflash.xml internal-secureflash.xml
-        create_rcm_boot_script
-    else
+            cp secureflash.xml internal-secureflash.xml
+            mv flash.idx internal-flash.idx
+        else
+            return 1
+        fi
+    fi
+    if [ ! -e rcmboot_blob/rcmbootcmd.txt ]; then
+        echo "ERR: RCM boot blob incomplete" >&2
         return 1
     fi
+    create_rcm_boot_script
     if ! copy_bootloader_files_t234 bootloader_staging; then
         return 1
     fi
-    if [ -e external-flash.xml.in ]; then
+    if [ $qspi_only -eq 0 ] && [ -e external-flash.xml.in ]; then
         # Even if there are no signable entries in the external device layout, we need the script to
         # apply its sed rewrites to the the xxxFILE tokens.
         . ./boardvars.sh
         if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
-                            "$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" $instance_args \
+                            "$here/$FLASH_HELPER" --no-flash --sign --external-device --datafile "$DATAFILE" -u "$keyfile" -v "$sbk_keyfile" $instance_args \
                             external-flash.xml.in $LNXFILE $ROOTFS_IMAGE; then
             mv secureflash.xml external-secureflash.xml
         else
@@ -255,6 +243,7 @@ mount_partition() {
     local dev="$1"
     local mnt=$(cat /proc/mounts | grep "^$dev" | cut -d' ' -f2)
     local i=$(echo $mnt|awk -F' ' '{print NF}')
+    local j
     while [ $i -ne 0 ]; do
         local mnt=$(echo ${mnt} | cut -d' ' -f$i)
         if ! umount "${mnt}" > /dev/null 2>&1; then
@@ -263,9 +252,16 @@ mount_partition() {
         fi
         i=$(expr $i - 1)
     done
+
     if udisksctl mount -b "$dev" > /dev/null 2>&1; then
-        cat /proc/mounts | grep "^$dev" | cut -d' ' -f2
-        return 0
+        for j in 1 2 3 4 5; do
+            sleep 1
+            mnt=$(cat /proc/mounts | grep "^$dev" | cut -d' ' -f2)
+            if [ -n "$mnt" ]; then
+                echo "$mnt"
+                return 0
+            fi
+        done
     fi
     # Fall back to direct mount if udisksctl fails (e.g. no udevd in containers)
     local fallback_mnt="/tmp/initrd-flash-mnt.$$"
@@ -408,7 +404,7 @@ copy_bootloader_files_t234() {
             fi
             echo "$partname:$start_location:$partsize:$partfile" >> "$dest/partitions.conf"
         fi
-    done < flash.idx
+    done < internal-flash.idx
     if [ -n "$is_spi" ]; then
         if [ -n "$is_mmcboot" ]; then
             echo "ERR: found bootloader entries for both SPI flash and eMMC boot partitions" >&2
@@ -449,15 +445,16 @@ generate_flash_package_t234() {
         cp bootloader_staging/* "$mnt/flashpkg/bootloader"
     fi
 
-    echo "extra-pre-wipe" >> "$mnt/flashpkg/conf/command_sequence"
+    if [ $qspi_only -eq 0 ]; then
+        echo "extra-pre-wipe" >> "$mnt/flashpkg/conf/command_sequence"
 
-    if [ $erase_nvme -eq 1 ]; then
-        echo "erase-nvme" >> "$mnt/flashpkg/conf/command_sequence"
+        if [ $erase_nvme -eq 1 ]; then
+            echo "erase-nvme" >> "$mnt/flashpkg/conf/command_sequence"
+        fi
+        [ $EXTERNAL_ROOTFS_DRIVE -eq 0 -o $NO_INTERNAL_STORAGE -eq 1 ] || echo "erase-mmc" >> "$mnt/flashpkg/conf/command_sequence"
+        echo "export-devices $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
+        echo "extra" >> "$mnt/flashpkg/conf/command_sequence"
     fi
-    [ $EXTERNAL_ROOTFS_DRIVE -eq 0 -o $NO_INTERNAL_STORAGE -eq 1 ] || echo "erase-mmc" >> "$mnt/flashpkg/conf/command_sequence"
-    echo "export-devices $ROOTFS_DEVICE" >> "$mnt/flashpkg/conf/command_sequence"
-
-    echo "extra" >> "$mnt/flashpkg/conf/command_sequence"
     echo "reboot" >> "$mnt/flashpkg/conf/command_sequence"
 
     unmount_and_release "$mnt" "$dev" || return 1
@@ -469,7 +466,7 @@ write_to_device_t234() {
     local dev=$(wait_for_usb_storage "$session_id" "$devname" "$usb_instance")
     local opts="$3"
     local rewritefiles="internal-secureflash.xml"
-    local datased simgname rc=1
+    local rc=1
     local extraarg
 
     if [ -z "$dev" ]; then
@@ -480,16 +477,6 @@ write_to_device_t234() {
         rewritefiles="external-secureflash.xml,$rewritefiles"
     fi
     "$here/nvflashxmlparse" --rewrite-contents-from=$rewritefiles -o initrd-flash.xml "$flashlayout"
-    if [ -n "$DATAFILE" ]; then
-        datased="-es,DATAFILE,$DATAFILE,"
-    else
-        datased="-e/DATAFILE/d"
-    fi
-    # For the pre-signed case, the flash layout will contain the
-    # name of the sparseimage file, and we need to convert it back to
-    # the raw image name.
-    simgname="${ROOTFS_IMAGE%.*}.img"
-    sed -i -e"s,$simgname,$ROOTFS_IMAGE," -e"s,APPFILE_b,$ROOTFS_IMAGE," -e"s,APPFILE,$ROOTFS_IMAGE," -e"s,DTB_FILE,kernel_$DTB_FILE," $datased initrd-flash.xml
     if "$here/make-sdcard" -y $opts $extraarg initrd-flash.xml "$dev"; then
         rc=0
     fi
@@ -530,22 +517,18 @@ get_final_status_t234() {
     return 0
 }
 
-# ===========================================================================
-# T264 (Thor) functions - unified flash flow
-# ===========================================================================
-
-get_board_info_t264() {
-    if [ ! -e ./boardvars.sh ]; then
-        if ! "$here/$FLASH_HELPER" $instance_args --get-board-info -u "$keyfile" -v "$sbk_keyfile" 2>&1 >>"$logfile"; then
-            echo "ERR: could not retrieve board information" >&2
-            exit 1
-        fi
+get_board_info() {
+    if ! "$here/$FLASH_HELPER" $instance_args --get-board-info -u "$keyfile" -v "$sbk_keyfile" 2>&1 >>"$logfile"; then
+        echo "ERR: could not retrieve board information" >&2
+        exit 1
     fi
-    if ! grep -q '^BOOTSEC_MODE=' boardvars.sh; then
-        if [ -n "$sbk_keyfile" ]; then
-            echo 'BOOTSEC_MODE="PKCSBK"' >> boardvars.sh
-        elif [ -n "$keyfile" ]; then
-            echo 'BOOTSEC_MODE="PKC"' >> boardvars.sh
+    if [ "$CHIPID" = "0x26" ]; then
+        if ! grep -q '^BOOTSEC_MODE=' boardvars.sh; then
+            if [ -n "$sbk_keyfile" ]; then
+                echo 'BOOTSEC_MODE="PKCSBK"' >> boardvars.sh
+            elif [ -n "$keyfile" ]; then
+                echo 'BOOTSEC_MODE="PKC"' >> boardvars.sh
+            fi
         fi
     fi
     . ./boardvars.sh
@@ -556,6 +539,10 @@ get_board_info_t264() {
     fi
     echo "Board ID($BOARDID) version($FAB) sku($BOARDSKU) revision($BOARDREV) Chip SKU($chip_sku) ramcode($RAMCODE)"
 }
+
+# ===========================================================================
+# T264 (Thor) functions - unified flash flow
+# ===========================================================================
 
 prepare_binaries_t264() {
     local target="$1"
@@ -689,15 +676,17 @@ if [ -n "$usb_instance" ]; then
     instance_args="--usb-instance $usb_instance"
 fi
 
+get_board_info
+
 # Branch based on chip ID
 if [ "$CHIPID" = "0x23" ]; then
     # ===================================================================
     # T234 (Orin) flow - tegraflash.py with USB mass storage
     # ===================================================================
-    step_banner "Signing binaries"
+    step_banner "Preparing binaries"
     rm -rf bootloader_staging
     mkdir bootloader_staging
-    if ! sign_binaries_t234 2>&1 >>"$logfile"; then
+    if ! prepare_binaries_t234 2>&1 >>"$logfile"; then
         echo "ERR: signing failed at $(date -Is)" | tee -a "$logfile"
         exit 1
     fi
@@ -729,24 +718,25 @@ if [ "$CHIPID" = "0x23" ]; then
         exit 1
     fi
 
-    if [ $EXTERNAL_ROOTFS_DRIVE -eq 1 ]; then
-        step_banner "Writing partitions on external storage device"
-        if ! write_to_device_t234 $ROOTFS_DEVICE external-flash.xml.in 2>&1 | tee -a "$logfile"; then
-            echo "ERR: write failure to external storage at $(date -Is)" | tee -a "$logfile"
-            if [ $early_final_status -eq 0 ]; then
-                exit 1
+    if [ $qspi_only -eq 0 ]; then
+        if [ $EXTERNAL_ROOTFS_DRIVE -eq 1 ]; then
+            step_banner "Writing partitions on external storage device"
+            if ! write_to_device_t234 $ROOTFS_DEVICE external-flash.xml.in 2>&1 | tee -a "$logfile"; then
+                echo "ERR: write failure to external storage at $(date -Is)" | tee -a "$logfile"
+                if [ $early_final_status -eq 0 ]; then
+                    exit 1
+                fi
             fi
-        fi
-    else
-        step_banner "Writing partitions on internal storage device"
-        if ! write_to_device_t234 $ROOTFS_DEVICE flash.xml.in 2>&1 | tee -a "$logfile"; then
-            echo "ERR: write failure to internal storage at $(date -Is)" | tee -a "$logfile"
-            if [ $early_final_status -eq 0 ]; then
-                exit 1
+        else
+            step_banner "Writing partitions on internal storage device"
+            if ! write_to_device_t234 $ROOTFS_DEVICE flash.xml.in 2>&1 | tee -a "$logfile"; then
+                echo "ERR: write failure to internal storage at $(date -Is)" | tee -a "$logfile"
+                if [ $early_final_status -eq 0 ]; then
+                    exit 1
+                fi
             fi
         fi
     fi
-
     step_banner "Waiting for final status from device"
     if ! get_final_status_t234 "$dtstamp" 2>&1 | tee -a "$logfile"; then
         echo "ERR: failed to retrieve device status at $(date -Is)" | tee -a "$logfile"
@@ -763,7 +753,6 @@ elif [ "$CHIPID" = "0x26" ]; then
     # ===================================================================
     # T264 (Thor) flow - unified flash
     # ===================================================================
-    get_board_info_t264
 
     if [ -z "$PRESIGNED" ]; then
         rm -rf tools/kernel_flash/images
