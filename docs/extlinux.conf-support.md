@@ -20,12 +20,16 @@ These variables are typically set in a machine or distro configuration file (a `
 
 When set, adds an `FDT` directive to `extlinux.conf` pointing to the specified device tree file. The file is installed to `/boot/dtb/` on the rootfs.
 
-This is useful for testing devicetree changes in the kernel and for supporting devicetree transitions on slot switch without a capsule update. When not set, the devicetree for the kernel is taken from the `kernel-dtb` partition, which is only updated via tegraflash or capsule update.
+Defaults to the first entry in `KERNEL_DEVICETREE`, so the rootfs DTB tracks the kernel build by default. When unset, the devicetree for the kernel is taken from the `kernel-dtb` partition, which is only updated via tegraflash or capsule update.
 
-Set it to the DTB filename (no path prefix):
+The value is a DTB filename with no path prefix. To override or clear the default:
 
 ```
-UBOOT_EXTLINUX_FDT = "tegra234-p3701-0000-p3737-0000.dtb"
+# Use a specific DTB
+UBOOT_EXTLINUX_FDT = "tegra234-p3701-0005-p3737-0000.dtb"
+
+# Revert to kernel-dtb partition (disable rootfs DTB)
+UBOOT_EXTLINUX_FDT = ""
 ```
 
 ### UBOOT_EXTLINUX_FDTOVERLAYS
