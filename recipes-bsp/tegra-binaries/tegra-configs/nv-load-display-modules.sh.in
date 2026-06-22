@@ -1,0 +1,6 @@
+#!/bin/sh
+echo "@VARIANT@" > /run/nvidia-gpu-driver-active
+if echo "@VARIANT@" | grep -q "nvgpu"; then
+    modprobe nvgpu
+fi
+modprobe nvidia_drm
