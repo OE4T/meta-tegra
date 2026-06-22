@@ -13,7 +13,7 @@ do_install() {
 
 PACKAGES = "tegra-redundant-boot-update-engine ${PN} ${PN}-dev"
 FILES:tegra-redundant-boot-update-engine = "${sbindir}/nv_update_engine /opt/ota_package"
-RDEPENDS:${PN} = "setup-nv-boot-control-service tegra-configs-bootloader util-linux-lsblk"
+RDEPENDS:${PN} = "setup-nv-boot-control-service util-linux-lsblk"
 INSANE_SKIP:${PN} = "ldflags"
 RDEPENDS:tegra-redundant-boot-update-engine = "${PN} util-linux-lsblk"
 INSANE_SKIP:tegra-redundant-boot-update-engine = "ldflags"

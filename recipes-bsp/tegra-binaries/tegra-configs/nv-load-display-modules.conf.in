@@ -1,0 +1,2 @@
+[Service]
+ExecStartPost=@LIBEXECDIR@/nv-load-display-modules
