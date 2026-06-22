@@ -1,7 +1,6 @@
 [Unit]
 Description=nvfancontrol service
-Requires=nvstartup.service
-After=nvstartup.service
+After=nvpower.service
 Before=graphical.target display-manager.service
 
 [Service]

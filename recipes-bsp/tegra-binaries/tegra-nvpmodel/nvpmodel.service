@@ -1,7 +1,7 @@
 [Unit]
-Description=NVIDIA power model daemon
-Requires=nvstartup.service nvpower.service
-After=nvstartup.service nvpower.service
+Description=NVIDIA power model setup
+Requires=nvpower.service
+After=systemd-modules-load.service nvpower.service
 Before=graphical.target display-manager.service weston.service
 
 [Service]

@@ -1,6 +1,5 @@
 [Unit]
 Description=OTA bootloader update verifier
-After=nvstartup.service
 
 [Service]
 Type=simple
