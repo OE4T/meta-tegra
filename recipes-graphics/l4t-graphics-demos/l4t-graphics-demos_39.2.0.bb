@@ -9,6 +9,7 @@ SRC_URI += "\
     file://0001-Fix-stdbool.h-inclusion-check.patch;patchdir=../../../.. \
     file://0002-weston-dmabuf-formats-cross-build-fixes.patch;patchdir=../../../.. \
     file://0003-Fix-use-of-wayland-protocols-in-nvgldemo-makefile.patch;patchdir=../../../.. \
+    file://0004-weston-dmabuf-formats-Thor-compatibility-fixes.patch;patchdir=../../../.. \
 "
 
 REQUIRED_DISTRO_FEATURES = "opengl"
