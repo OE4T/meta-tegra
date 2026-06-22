@@ -7,4 +7,5 @@ PACKAGEGROUP_DISABLE_COMPLEMENTARY = "1"
 
 RDEPENDS:${PN} = "\
     nativesdk-cuda-compiler \
+    nativesdk-cuda-cccl \
 "
