@@ -38,14 +38,15 @@ A space-separated list of device tree overlay files to apply at boot time. The o
 
 Overlays can be standard DTB overlays (applied unconditionally) or plugin-manager-format overlays (which contain conditional directives evaluated against the hardware configuration at boot time).
 
-`UBOOT_EXTLINUX_FDT` must be set for overlays to be applied. L4TLauncher only processes the `OVERLAYS` directive when it has loaded a DTB from the rootfs via the `FDT` directive. Without `FDT`, overlays are silently ignored.
+Note: `UBOOT_EXTLINUX_FDT` must be left as default or set to a valid devicetree entry for overlays to be applied. L4TLauncher only processes the `OVERLAYS` directive when it has loaded a DTB from the rootfs via the `FDT` directive.
 
 ```
-UBOOT_EXTLINUX_FDT = "tegra234-p3701-0000-p3737-0000.dtb"
 UBOOT_EXTLINUX_FDTOVERLAYS = "my-overlay.dtbo"
 ```
 
-See [Using-device-tree-overlays](Using-device-tree-overlays.md) for more details on building and using overlays. An advantage of rootfs-based overlays over SPI flash overlays is that they can be updated with the rootfs, without a capsule update or tegraflash.
+Where `my-overlay.dtbo` is an overlay built as part of your Yocto build. See [Using-device-tree-overlays](Using-device-tree-overlays.md) for details on building overlays. An advantage of rootfs-based overlays over SPI flash overlays is that they can be updated with the rootfs, without a capsule update or tegraflash.
+
+Note that this is a build-time setting distinct from the overlays written by `jetson-io` at runtime.
 
 ### UBOOT_EXTLINUX_KERNEL_ARGS
 
