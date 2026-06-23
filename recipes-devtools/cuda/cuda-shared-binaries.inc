@@ -30,7 +30,20 @@ CUDA_VERSION_DASHED = "${@d.getVar('CUDA_VERSION').replace('.','-')}"
 
 CUDA_PKGNAMES ?= "${@' '.join(['%s-${CUDA_VERSION_DASHED}_${PV}_${CUDA_DEB_PKGARCH}.deb' % pkg for pkg in d.getVar('CUDA_PKG').split()])}"
 
-CUDA_INSTALL_ARCH ?= "${HOST_ARCH}"
+# CUDA 13.x arm64 debs lay their per-target files out under targets/sbsa-linux,
+# while amd64 debs use targets/x86_64-linux. The directory is purely a function
+# of HOST_ARCH (which selects CUDA_DEB_PKGARCH), so map it here for every class.
+# This default covers class-nativesdk (which has no per-recipe override); the
+# explicit class-native assignment below overrides the recipes' "${HOST_ARCH}"
+# so that native builds on aarch64 hosts also resolve to sbsa.
+def cuda_install_arch(d):
+    arch = d.getVar('HOST_ARCH')
+    if arch == 'aarch64':
+        return 'sbsa'
+    return arch
+
+CUDA_INSTALL_ARCH ?= "${@cuda_install_arch(d)}"
+CUDA_INSTALL_ARCH:class-native = "${@cuda_install_arch(d)}"
 
 do_compile() {
     rm -f ${B}/usr/local/cuda-${CUDA_VERSION}/lib64
