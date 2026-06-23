@@ -1,6 +1,4 @@
 DEPENDS = "cuda-driver cuda-nvcc-headers cuda-cccl cuda-crt"
-CUDA_INSTALL_ARCH:class-target = "sbsa"
-CUDA_INSTALL_ARCH:class-native = "${HOST_ARCH}"
 
 require cuda-shared-binaries.inc
 
