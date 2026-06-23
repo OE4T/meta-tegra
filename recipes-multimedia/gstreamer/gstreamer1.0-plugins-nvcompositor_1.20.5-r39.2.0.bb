@@ -13,7 +13,10 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl tegra-mmapi tegra-libraries-multimedia-utils cuda-cudart"
 
-SRC_URI += " file://0001-Update-makefile-for-OE-builds.patch"
+SRC_URI += "\
+    file://0001-Update-makefile-for-OE-builds.patch \
+    file://0002-Fix-SIGSEGV-when-input-dmabuf-count-is-zero.patch \
+"
 
 S = "${UNPACKDIR}/gst-nvcompositor"
 

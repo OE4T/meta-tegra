@@ -1,0 +1,61 @@
+From e1d09d7faad69c53138ec57e4b0ceadbe6b8a92d Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Mon, 22 Jun 2026 13:28:02 -0700
+Subject: [PATCH] weston-dmabuf-formats: Thor compatibility fixes
+
+* Explicitly use NVBUF_MEM_SURFACE_ARRAY memory
+  with the nvbufsurface API
+* Use libdrm calls to locate the DRM device, rather
+  than hard-coding the card0 device name
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../weston-dmabuf-formats.c                   | 19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
+
+diff --git a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/weston-dmabuf-formats.c b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/weston-dmabuf-formats.c
+index 7c51437..c1cc08d 100644
+--- a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/weston-dmabuf-formats.c
++++ b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/weston-dmabuf-formats.c
+@@ -699,7 +699,7 @@ create_dmabuf_buffer(struct display *display, struct buffer *buffer,
+ 		nvbuf_params.width = width;
+ 		nvbuf_params.height = height;
+ 		nvbuf_params.layout = NVBUF_LAYOUT_PITCH;
+-		nvbuf_params.memType = NVBUF_MEM_DEFAULT;
++		nvbuf_params.memType = NVBUF_MEM_SURFACE_ARRAY;
+ 		nvbuf_params.colorFormat = colorFormat;
+ 		CHECK(NvBufSurfaceCreate(&buffer->surface, 1, &nvbuf_params));
+ 		buffer->surface->numFilled = 1;
+@@ -1048,6 +1048,14 @@ static struct display *
+ create_display(int opts, int format)
+ {
+ 	struct display *display;
++	drmDevicePtr drm_device;
++	int drm_device_count;
++
++	drm_device_count = drmGetDevices2(0, &drm_device, 1);
++	if (drm_device_count <= 0) {
++		fprintf(stderr, "Could not locate DRM device\n");
++		return NULL;
++	}
+ 
+ 	display = malloc(sizeof *display);
+ 	if (display == NULL) {
+@@ -1056,9 +1064,14 @@ create_display(int opts, int format)
+ 	}
+ 
+ 	memset(display, 0, sizeof(*display));
+-	display->drm_fd = open("/dev/dri/card0", O_RDWR);
++
++	display->drm_fd = -1;
++	if (drm_device->nodes[DRM_NODE_RENDER])
++		display->drm_fd = open(drm_device->nodes[DRM_NODE_RENDER], O_RDWR|O_CLOEXEC);
++	if (display->drm_fd < 0 && drm_device->nodes[DRM_NODE_PRIMARY])
++		display->drm_fd = open(drm_device->nodes[DRM_NODE_PRIMARY], O_RDWR|O_CLOEXEC);
+ 	if (display->drm_fd < 0) {
+-		fprintf(stderr, "Couldn't open /dev/dri/card0\n");
++		fprintf(stderr, "Couldn't open DRM device\n");
+ 		free(display);
+ 		return NULL;
+ 	}

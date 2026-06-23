@@ -23,61 +23,62 @@ SRC_URI[x11.sha256sum] = "${X11SUM}"
 SRC_URI[openrm.sha256sum] = "${OPENRMSUM}"
 
 SRC_URI += "\
-    file://0001-Patch-nv-graphics.sh-script-for-OE-use.patch \
     file://0001-tegra-configs-fix-path-to-nvpower.sh.patch \
-    file://nv-l4t-bootloader-config.sh \
+    file://nv-load-display-modules.sh.in \
+    file://nv-load-display-modules.conf.in \
     file://devices.csv \
     file://drivers.csv \
 "
 
+GPU_VARIANT = "UNKNOWN"
+GPU_VARIANT:tegra234 = "nvgpu-l4t"
+GPU_VARIANT:tegra264 = "openrm-l4t"
+XORG_CONFIG = "UNKNOWN"
+XORG_CONFIG:tegra234 = "xorg.conf"
+XORG_CONFIG:tegra264 = "xorg.conf.pci"
+
+TEGRA_SYSRQ_ENABLE ??= "0"
+
+B = "${WORKDIR}/build"
+
+do_compile() {
+    sed -r -e's,^(kernel\.sysrq =).*,\1 ${TEGRA_SYSRQ_ENABLE},' ${S}/etc/sysctl.d/90-tegra-settings.conf > ${B}/90-tegra-settings.conf
+    sed -e's,@VARIANT@,${GPU_VARIANT},g' ${UNPACKDIR}/nv-load-display-modules.sh.in > ${B}/nv-load-display-modules.sh
+    sed -e's,@LIBEXECDIR@,${libexecdir},g' ${UNPACKDIR}/nv-load-display-modules.conf.in > ${B}/nv-load-display-modules.conf
+}
+
 do_install() {
-    install -d ${D}${sbindir}
-    install -m 0755 ${S}/etc/systemd/nv-graphics.sh ${D}${sbindir}/nvstartup
-    install -d ${D}/${sysconfdir}/udev/rules.d
-    install -m 0644 ${S}/etc/udev/rules.d/99-tegra-devices.rules ${D}${sysconfdir}/udev/rules.d
-    install -m 0644 ${S}/etc/udev/rules.d/99-tegra-mmc-ra.rules ${D}${sysconfdir}/udev/rules.d
-    install -m 0644 ${S}/etc/udev/rules.d/99-nv-l4t-usb-host-config.rules ${D}${sysconfdir}/udev/rules.d
+    install -m 0644 -D -t ${D}/${sysconfdir}/udev/rules.d \
+	    ${S}/etc/udev/rules.d/99-tegra-devices.rules \
+	    ${S}/etc/udev/rules.d/99-tegra-mmc-ra.rules \
+	    ${S}/etc/udev/rules.d/99-nv-l4t-usb-host-config.rules
 
-    install -d ${D}/opt/nvidia/l4t-bootloader-config
-    install -m 0755 ${UNPACKDIR}/nv-l4t-bootloader-config.sh ${D}/opt/nvidia/l4t-bootloader-config/nv-l4t-bootloader-config.sh
+    install -m 0644 -D -t ${D}${sysconfdir}/sysctl.d ${B}/90-tegra-settings.conf
 
-    # We use a statically generated file by using 
-    # https://gist.github.com/dwalkes/0e2dea422f2df93bcc9badc0512a6855
-    # and oe-pkgdata-util file-path <libname> for oe4t-missing.csv 
-    # libraries generated from the script and few hand-modified changes
-    # Removed *.json file as this created errors
-    # Please create an issue for a missing file in the passthrough
-    # FIXME: create a mechanism to dynamically generate l4t.csv based on the installed libraries
-    install -d ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
-    install -m 0644 ${UNPACKDIR}/drivers.csv ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
-    install -m 0644 ${UNPACKDIR}/devices.csv ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d
+    install -m 0644 -D -t ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d ${UNPACKDIR}/drivers.csv ${UNPACKDIR}/devices.csv
+
+    install -m 0644 -D ${S}/opt/nvidia/nv-disp-module-configs/nv-modprobe-${GPU_VARIANT}-display.conf ${D}${sysconfdir}/modprobe.d/nv-display.conf
+    install -m 0644 -D ${S}/opt/nvidia/nv-disp-module-configs/nv-depmod-${GPU_VARIANT}-display.conf -t ${D}${sysconfdir}/depmod.d/nv-display.conf
+    if [ "${GPU_VARIANT}" = "nvgpu-l4t" ]; then
+        install -m 0644 ${S}/etc/modprobe.d/nvgpu.conf ${D}${sysconfdir}/modprobe.d/
+    fi
+
+    install -m 0755 -D ${B}/nv-load-display-modules.sh ${D}${libexecdir}/nv-load-display-modules
+    install -m 0644 -D -t ${D}${sysconfdir}/systemd/system/systemd-modules-load.service.d ${B}/nv-load-display-modules.conf
+
+    install -m 0644 -D ${S}/etc/X11/${XORG_CONFIG} ${D}${sysconfdir}/X11/xorg.conf
+    install -m 0644 -D -t ${D}${sysconfdir}/X11/xorg.conf.d ${S}/etc/X11/xorg.conf.d/tegra-drm-outputclass.conf
 }
 
-do_install:append:tegra234() {
-    install -d ${D}${sysconfdir}/X11
-    install -m 0644 ${S}/etc/X11/xorg.conf ${D}${sysconfdir}/X11/xorg.conf
-    install -d ${D}${sysconfdir}/X11/xorg.conf.d
-    install -m 0644 ${S}/etc/X11/xorg.conf.d/tegra-drm-outputclass.conf ${D}${sysconfdir}/X11/xorg.conf.d
-    install -d ${D}${sysconfdir}/modprobe.d
-    install -m 0644 ${S}/etc/modprobe.d/nvgpu.conf ${D}${sysconfdir}/modprobe.d/
-}
-
-do_install:append:tegra264() {
-    install -d ${D}${sysconfdir}/X11
-    install -m 0644 ${S}/etc/X11/xorg.conf.pci ${D}${sysconfdir}/X11/xorg.conf
-    install -d ${D}${sysconfdir}/X11/xorg.conf.d
-    install -m 0644 ${S}/etc/X11/xorg.conf.d/tegra-drm-outputclass.conf ${D}${sysconfdir}/X11/xorg.conf.d
-}
-
-PACKAGES = "${PN}-udev ${PN}-xorg ${PN}-nvstartup ${PN}-container-csv ${PN}-bootloader"
+PACKAGES = " ${PN}-display-driver ${PN}-udev ${PN}-xorg ${PN}-sysctl ${PN}-container-csv"
+FILES:${PN}-display-driver = "${sysconfdir}/modprobe.d/nv-modprobe* ${sysconfdir}/modprobe.d/nvgpu.conf ${sysconfdir}/depmod.d \
+			      ${sysconfdir}/systemd/system/systemd-modules-load.service.d ${libexecdir}/nv-load-display-modules"
 FILES:${PN}-udev = "${sysconfdir}/udev/rules.d ${sysconfdir}/modprobe.d"
 FILES:${PN}-xorg = "${sysconfdir}/X11"
-FILES:${PN}-nvstartup = "${sbindir} ${sysconfdir}/sysctl.d"
+FILES:${PN}-sysctl = "${sysconfdir}/sysctl.d"
 FILES:${PN}-container-csv = "${sysconfdir}/nvidia-container-runtime"
-FILES:${PN}-bootloader = "/opt/nvidia/l4t-bootloader-config"
-RDEPENDS:${PN}-udev = "udev"
-RDEPENDS:${PN}-nvstartup = "bash"
-RDEPENDS:${PN}-bootloader = "bash"
+RDEPENDS:${PN}-udev = "udev bash"
 
 USERADD_PACKAGES = "${PN}-udev"
 GROUPADD_PARAM:${PN}-udev = "--system debug"
+PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
