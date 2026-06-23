@@ -1,0 +1,29 @@
+From a152ef9403e0923e25ad7b5a5bdc2b028bf95d96 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Tue, 23 Jun 2026 06:19:34 -0700
+Subject: [PATCH] Fix SIGSEGV when input dmabuf count is zero
+
+See https://forums.developer.nvidia.com/t/nvcompositor-sigsegv-on-jetpack7-0/371694/8
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ gstnvcompositor.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/gstnvcompositor.c b/gstnvcompositor.c
+index 1b1625e..7fa6014 100644
+--- a/gstnvcompositor.c
++++ b/gstnvcompositor.c
+@@ -1330,6 +1330,11 @@ do_nvcomposite (GstVideoAggregator * vagg, gint out_dmabuf_fd)
+     i++;
+   }
+ 
++  if (input_dmabuf_count == 0) {
++    GST_WARNING_OBJECT(vagg, "No valid frames");
++    return TRUE;
++  }
++
+   nvcomp->comp_params.params.input_buf_count = input_dmabuf_count;
+ 
+   if (nvcomp->out_pix_fmt == NVBUF_COLOR_FORMAT_RGBA) {
