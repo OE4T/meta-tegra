@@ -1,46 +1,105 @@
-While not enabled by default (except on the Jetsons that use the U-Boot bootloader), you can use the
-L4T `extlinux.conf` support in your builds.
+# extlinux.conf support
 
-In the `kirkstone` and later branches based on the L4T R35.x and later series of releases, set `UBOOT_EXTLINUX = "1"` to configure the build to use an `extlinux.conf` file.  (As of 14 Apr 2024, `"1"` is now the default setting in the `master` branch.)
+L4T `extlinux.conf` support is implemented by NVIDIA's `L4TLauncher` UEFI application, not the upstream UEFI specification. It is enabled by default on all Tegra machines: `UBOOT_EXTLINUX = "1"` is set in `tegra-common.inc` and causes `l4t-launcher-extlinux` to be added as a runtime image dependency. Set `UBOOT_EXTLINUX = "0"` to disable it.
 
-See the comments in [l4t-extlinux-config.bbclass](https://github.com/OE4T/meta-tegra/blob/master/classes-recipe/l4t-extlinux-config.bbclass) for additional configuration settings you can use.
-
-## UBOOT_EXTLINUX_FDT
-
-The `UBOOT_EXTLINUX_FDT` setting can be set to exactly `UBOOT_EXTLINUX_FDT = "/boot/${DTBFILE}"` before [https://github.com/OE4T/meta-tegra/pull/1968](https://github.com/OE4T/meta-tegra/pull/1968) or to any dtb file without full path (like `UBOOT_EXTLINUX_FDT = "${DTBFILE}"`) after [https://github.com/OE4T/meta-tegra/pull/1968](https://github.com/OE4T/meta-tegra/pull/1968) and backports.
-
-When set, this adds a devicetree entry in the extlinux.conf file.  This setting is useful for easy testing of devicetree changes in the kernel and to support devicetree transitions on slot switch without capsule update.  Note that when `UBOOT_EXTLINUX` or `UBOOT_EXTLINUX_FDT` is not set, the `kernel-dtb` partitions defined in the root filesystem are ignored and the devicetree for the kernel is taken from the devicetree which is appended to the uefi image, therefore only updated when the uefi image is changed via tegraflash or capsule update.
-
-`efivar -p --name 781e084c-a330-417c-b678-38e696380cb9-L4TDefaultBootMode` should return a value of `1` when using this feature. For additional context see [this thread](https://matrix.to/#/!YBfWVpJwNVtkmqVCPS:gitter.im/$x-m4h9rIYnwtMOaYtEkHg0a5HFzM4-mcpjoALOGkP4Y?via=gitter.im&via=matrix.org&via=3dvisionlabs.com) in element.
-
-## UBOOT_EXTLINUX_FDTOVERLAYS
-
-The PR at [https://github.com/OE4T/meta-tegra/pull/1968](https://github.com/OE4T/meta-tegra/pull/1968) adds support for specifying a list of overlays in your extlinux.conf file.  These overlays are also stored on the rootfs and applied to the kernel DTB at boot time after root slot selection.
-
-This feature is only supported when `UBOOT_EXTLINUX_FDT` is specified.
-
-To use, specify
+L4TLauncher reads the `L4TDefaultBootMode` EFI variable (GUID `781e084c-a330-417c-b678-38e696380cb9`) to determine the preferred boot mode. A value of `1` selects extlinux.conf-based boot. This is set at flash time and can be inspected on the target with:
 
 ```
-UBOOT_EXTLINUX_FDT = "${DTBFILE}"
+efivar -p --name 781e084c-a330-417c-b678-38e696380cb9-L4TDefaultBootMode
+```
+
+This reflects the *preferred* mode. If `extlinux.conf` cannot be found or read, L4TLauncher falls back to partition-based boot automatically.
+
+The ext4 implementation in L4TLauncher may have bugs or limitations that prevent it from reading `extlinux.conf` or other rootfs files when newer ext4 features are in use. Non-ext4 root filesystems are unlikely to work.
+
+## Configuration variables
+
+These variables are typically set in a machine or distro configuration file (a `.conf` file in `conf/machine/` or `conf/distro/`, or a layer's `layer.conf`). They can also be set in `local.conf` for local development. Variables that control which DTB or overlays are deployed belong in machine configuration alongside `KERNEL_DEVICETREE`.
+
+### UBOOT_EXTLINUX_FDT
+
+When set, adds an `FDT` directive to `extlinux.conf` pointing to the specified device tree file. The file is installed to `/boot/dtb/` on the rootfs.
+
+Defaults to the first entry in `KERNEL_DEVICETREE`, so the rootfs DTB tracks the kernel build by default. When unset, the devicetree for the kernel is taken from the `kernel-dtb` partition, which is only updated via tegraflash or capsule update.
+
+The value is a DTB filename with no path prefix. To override or clear the default:
+
+```
+# Use a specific DTB
+UBOOT_EXTLINUX_FDT = "tegra234-p3701-0005-p3737-0000.dtb"
+
+# Revert to kernel-dtb partition (disable rootfs DTB)
+UBOOT_EXTLINUX_FDT = ""
+```
+
+### UBOOT_EXTLINUX_FDTOVERLAYS
+
+A space-separated list of device tree overlay files to apply at boot time. The overlays are installed to `/boot/` on the rootfs and listed in an `OVERLAYS` directive in `extlinux.conf`. L4TLauncher applies them to the kernel DTB late in the boot sequence. Only kernel DTB modifications are supported, as the UEFI DTB cannot be changed this way.
+
+Overlays can be standard DTB overlays (applied unconditionally) or plugin-manager-format overlays (which contain conditional directives evaluated against the hardware configuration at boot time).
+
+Note: `UBOOT_EXTLINUX_FDT` must be left as default or set to a valid devicetree entry for overlays to be applied. L4TLauncher only processes the `OVERLAYS` directive when it has loaded a DTB from the rootfs via the `FDT` directive.
+
+```
 UBOOT_EXTLINUX_FDTOVERLAYS = "my-overlay.dtbo"
 ```
-Where `"my-overlay.dtbo"` is an overlay built using the mechanisms specific to your branch implementation (or potentially one provided by NVIDIA.  See [Using-device-tree-overlays](Using-device-tree-overlays.md) for more details.  Note that since the overlay only happens to the kernel DTB this mechanism cannot be used to make any changes to the UEFI DTB.
+
+Where `my-overlay.dtbo` is an overlay built as part of your Yocto build. See [Using-device-tree-overlays](Using-device-tree-overlays.md) for details on building overlays. An advantage of rootfs-based overlays over SPI flash overlays is that they can be updated with the rootfs, without a capsule update or tegraflash.
+
+Note that this is a build-time setting distinct from the overlays written by `jetson-io` at runtime.
+
+### UBOOT_EXTLINUX_KERNEL_ARGS
+
+Kernel command line arguments written to the `APPEND` line in `extlinux.conf`. Defaults to `${KERNEL_ARGS}`, which is set in each machine configuration to provide platform-specific arguments such as console device and memory settings. Override or append to this variable to add arguments beyond what the machine configuration provides.
+
+```
+UBOOT_EXTLINUX_KERNEL_ARGS:append = " systemd.log_level=debug"
+```
+
+### UBOOT_EXTLINUX_MENU_TITLE
+
+The `MENU TITLE` line written to `extlinux.conf`. Defaults to `"L4T boot options"`. This line is required by L4TLauncher.
+
+### UBOOT_EXTLINUX_TIMEOUT
+
+Time in tenths of a second to display the boot menu before selecting the default entry. Not set by default, meaning the default entry is selected immediately without showing the menu. Useful during development to allow manual boot entry selection.
+
+```
+UBOOT_EXTLINUX_TIMEOUT = "30"
+```
+
+### L4T_UBOOT_EXTLINUX_EXTRA_FDTS
+
+A space-separated list of additional DTB files to install to `/boot/dtb/` alongside any DTB configured via `UBOOT_EXTLINUX_FDT`. These are included in the base `l4t-launcher-extlinux` package and are not referenced in `extlinux.conf`. These are distinct from the files in the `l4t-launcher-extlinux-dtb-extra` subpackage, which contains all remaining staged DTBs and DTBOs not claimed by the base package. See [Jetson expansion header configuration](#jetson-expansion-header-configuration-jetson-io).
+
+### EXTERNAL_KERNEL_DEVICETREE
+
+Path to a directory containing DTBs and DTBOs from an external device tree provider (i.e. when `PREFERRED_PROVIDER_virtual/dtb` is set). Defaults to `${RECIPE_SYSROOT}/boot/devicetree` when a `virtual/dtb` provider is configured, empty otherwise. The recipe stages all `.dtb` and `.dtbo` files found here. Any not claimed by `UBOOT_EXTLINUX_FDT`, `UBOOT_EXTLINUX_FDTOVERLAYS`, or `L4T_UBOOT_EXTLINUX_EXTRA_FDTS` end up in the `l4t-launcher-extlinux-dtb-extra` subpackage. This variable does not normally need to be set manually.
+
+### L4T_EXTLINUX_BASEDIR
+
+The root directory for all files installed by `l4t-launcher-extlinux`. Defaults to `/boot`. Changing this would require a corresponding patch to `edk2-nvidia` and is not recommended.
+
+## Jetson expansion header configuration (jetson-io)
+
+NVIDIA's `jetson-io` tool allows runtime reconfiguration of the Jetson expansion header pins. It generates device tree overlay files for the selected pin configuration and writes them to the rootfs, then updates `extlinux.conf` to reference the new overlays via the `OVERLAYS` directive, causing them to be applied at the next boot. The `python3-jetson-io` recipe packages this tool for use in meta-tegra builds.
+
+To include it in your image:
+
+```
+IMAGE_INSTALL:append = " python3-jetson-io"
+```
+
+The recipe depends on `l4t-launcher-extlinux` and recommends `l4t-launcher-extlinux-dtb-extra`. The `dtb-extra` subpackage contains all available DTBs (from `/boot/dtb/`) and DTBOs (from `/boot/`) that were not explicitly configured via `UBOOT_EXTLINUX_FDT` or `UBOOT_EXTLINUX_FDTOVERLAYS`. `jetson-io` uses these files to enumerate available hardware configurations and generate overlay files.
+
+For `jetson-io` to write the resulting overlay back into the extlinux boot configuration, `UBOOT_EXTLINUX` must be enabled (it is by default) and the rootfs must be accessible from the bootloader. See the NVIDIA developer guide for [Configuring the Jetson Expansion Headers](https://docs.nvidia.com/jetson/archives/r39.2/DeveloperGuide/HR/ConfiguringTheJetsonExpansionHeaders.html) for instructions on running the tool on the target.
+
+**Note:** `jetson-io` modifies the device tree configuration at runtime on the target device. Its output is not reproducible at build time and is intended for development and devkit use, not production images.
 
 ## Caveats
 
-* The upstream UEFI bootloader does not implement this; it was tacked on by NVIDIA in their `L4TLauncher` EFI application.
-* The ext4 filesystem implementation that NVIDIA provides in their bootloader may have some bugs/limitations that could prevent it from reading the `extlinux.conf` or other files in your root filesystem.  Using newer ext4 features, or non-ext4 filesystems for your root filesystem, could lead to boot failures.
-* The `extlinux.conf` syntax supported in `L4TLauncher` is not the same as U-Boot's, and the parsing code isn't the most robust/forgiving, so be careful about any modifications you may want to make, to avoid boot failures.
-
-### extlinux.conf file format
-
-The format of the configuration file is a subset of the format used in the
-[distro boot](https://source.denx.de/u-boot/u-boot/-/blob/master/doc/README.distro)
-feature of U-Boot.  The `cboot-extlinux-config.bbclass` file implements the cboot-specific configuration subset; see the comments in that
-file for more information.
-
-**WARNING** Modifying the `extlinux.conf` file incorrectly will often result in
-cboot crashes, making your device unbootable. Use caution when making any changes
-to the file.
-
+* The `extlinux.conf` syntax supported in L4TLauncher is not the same as U-Boot's, and the parsing code is not particularly robust, so be careful about any modifications to avoid boot failures.
+* All paths in `extlinux.conf` must be absolute. Relative paths are not supported by L4TLauncher.
+* `FDTDIR` is not supported.
+* `UBOOT_EXTLINUX_CONSOLE` is not used. Console settings are provided via `KERNEL_ARGS` in the machine configuration.
+* The kernel image directive in the generated file uses `LINUX` rather than `KERNEL`.

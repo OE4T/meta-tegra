@@ -116,7 +116,7 @@ python do_create_extlinux_config() {
         fdt = get_l4t_extlinux_compat_var('UBOOT_EXTLINUX_FDT', localdata)
         overlays = localdata.getVar('UBOOT_EXTLINUX_FDTOVERLAYS')
         if fdt:
-            fdt = '\tFDT ' + localdata.getVar('L4T_EXTLINUX_BASEDIR') + '/' + fdt + '\n'
+            fdt = '\tFDT ' + localdata.getVar('L4T_EXTLINUX_BASEDIR') + '/dtb/' + fdt + '\n'
             if overlays:
                 overlay_paths = ",".join([ localdata.getVar('L4T_EXTLINUX_BASEDIR') + "/" + overlay for overlay in overlays.split(" ") ])
                 overlays = '\tOVERLAYS ' + overlay_paths + '\n'
