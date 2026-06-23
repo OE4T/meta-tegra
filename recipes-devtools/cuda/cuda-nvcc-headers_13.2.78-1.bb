@@ -1,6 +1,4 @@
 CUDA_PKG = "cuda-nvcc"
-CUDA_INSTALL_ARCH:class-target = "sbsa"
-CUDA_INSTALL_ARCH:class-native = "${HOST_ARCH}"
 
 require cuda-shared-binaries.inc
 
