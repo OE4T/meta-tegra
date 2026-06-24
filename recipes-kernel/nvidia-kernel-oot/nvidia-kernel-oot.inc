@@ -80,6 +80,7 @@ COMMON_PATCHES = "\
     file://0064-nvdisplay-nvidia-drm-support-fbdev-on-Linux-6.11-ker.patch;patchdir=nvdisplay \
     file://0065-nvdisplay-nvidia-drm-trigger-connector-detect-on-hot.patch;patchdir=nvdisplay \
     file://0066-nvdisplay-nvidia-drm-update-legacy-modeset-state-on-.patch;patchdir=nvdisplay \
+    file://0067-host1x-fence-fix-NULL-deref-and-add-module-exit-cleanup.patch;patchdir=nvidia-oot \
 "
 EXTRA_PATCHES ??= ""
 
