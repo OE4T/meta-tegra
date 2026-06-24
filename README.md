@@ -18,11 +18,14 @@ URI: https://git.openembedded.org/openembedded-core
 branch: master
 LAYERSERIES_COMPAT: blacksail
 
-Please consult [this wiki page](https://github.com/OE4T/meta-tegra/wiki/JetPack-7.1-L4T-R38.4.x-Notes)
-for information about support for this release.
+See [this page](docs/JetPack-7.2-L4T-R39.2.0-Notes.md) for information
+about changes in this release.
 
 Getting Help
 ------------
+
+Our documentation is available [here](https://oe4t.github.io). You can
+also find documentation in Markdown form in the [docs](docs) directory.
 
 For general build issues or questions about getting started with your build
 setup please use the
