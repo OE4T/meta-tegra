@@ -369,7 +369,7 @@ if [ $bup_blob -eq -0 -a ! -d rcmdump_blob ]; then
         cp flash_l4t_t264_bct_cfg.xml diag_bct_cfg.xml
         if ! "$here/nvbct-config" diag_bct_cfg.xml \
                              brbct_cfg/bpmp_mem_cfg=$BPMP_MEM_CONFIG \
-                             brbct_cfg/brcommand=$BOOTROM_CONFIG \
+                             brbct_cfg/brcommand=$BR_CMD_CONFIG \
                              brbct_cfg/wb0sdram=$WB0SDRAM_BCT \
                              brbct_cfg/deviceprod=$DEVICEPROD_CONFIG \
                              brbct_cfg/prod=$PROD_CONFIG \
@@ -737,7 +737,7 @@ if [ "$CHIPID" = "0x26" ]; then
          brbct_cfg/prod=$PROD_CONFIG \
          brbct_cfg/scr=$SCR_CONFIG \
          brbct_cfg/wb0sdram=$WB0SDRAM_BCT \
-         brbct_cfg/brcommand=$BOOTROM_CONFIG \
+         brbct_cfg/brcommand=$BR_CMD_CONFIG \
          brbct_cfg/bpmp_mem_cfg=$BPMP_MEM_CONFIG \
          brbct_cfg/dev_param=$DEV_PARAMS \
          hpct_cfg/dev_param=$DEV_PARAMS \
