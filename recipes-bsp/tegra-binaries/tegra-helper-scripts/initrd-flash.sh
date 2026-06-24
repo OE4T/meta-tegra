@@ -68,7 +68,7 @@ erase_nvme=0
 check_usb_instance="${TEGRAFLASH_CHECK_USB_INSTANCE:-no}"
 uniflash_flags=""
 
-ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,external-only,qspi-only,partition,debug,erase-nvme" -o "u:v:k:hD" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,external-only,qspi-only,partition:,debug,erase-nvme" -o "u:v:k:hD" -- "$@")
 if [ $? -ne 0 ]; then
     usage >&2
     exit 1
