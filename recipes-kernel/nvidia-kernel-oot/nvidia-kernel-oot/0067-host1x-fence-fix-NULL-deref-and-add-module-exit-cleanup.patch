@@ -1,0 +1,55 @@
+From: Wei Gao <wei.gao@windriver.com>
+Date: Sat, 6 Jun 2026 12:00:00 +0800
+Subject: [PATCH] gpu: host1x-fence: fix NULL deref in devnode and add module
+ exit cleanup
+
+The host1x_fence module has two bugs:
+
+1. host1x_fence_devnode() unconditionally dereferences the mode pointer,
+   but device_destroy -> devtmpfs_delete_node calls device_get_devnode
+   with mode=NULL, causing a NULL pointer dereference kernel panic on
+   module unload.
+
+2. tegra_host1x_exit() is empty - no cleanup of the sysfs class, cdev,
+   or device on module unload. This leaves dangling sysfs entries whose
+   devnode callback points to freed module memory. Any subsequent access
+   to /sys/class/host1x-fence/host1x-fence/uevent triggers an Undefined
+   instruction kernel panic. Reloading the module fails with -EEXIST.
+
+Fix by adding a NULL guard for mode, and implementing proper reverse-order
+teardown in the module exit function.
+
+Upstream-Status: Pending
+Signed-off-by: Wei Gao <wei.gao@windriver.com>
+---
+ drivers/gpu/host1x-fence/dev.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/gpu/host1x-fence/dev.c b/drivers/gpu/host1x-fence/dev.c
+index 2229978..39b6295 100644
+--- a/drivers/gpu/host1x-fence/dev.c
++++ b/drivers/gpu/host1x-fence/dev.c
+@@ -449,7 +449,8 @@ static char *host1x_fence_devnode(const struct device *dev, umode_t *mode)
+ static char *host1x_fence_devnode(struct device *dev, umode_t *mode)
+ #endif
+ {
+-	*mode = 0666;
++	if (mode)
++		*mode = 0666;
+ 	return NULL;
+ }
+ 
+@@ -515,6 +516,10 @@ module_init(tegra_host1x_init);
+ 
+ static void __exit tegra_host1x_exit(void)
+ {
++	device_destroy(uapi_data.class, uapi_data.dev_num);
++	cdev_del(&uapi_data.cdev);
++	class_destroy(uapi_data.class);
++	unregister_chrdev_region(uapi_data.dev_num, 1);
+ }
+ module_exit(tegra_host1x_exit);
+ 
+-- 
+2.39.2
+
