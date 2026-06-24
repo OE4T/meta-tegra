@@ -792,7 +792,7 @@ elif [ "$CHIPID" = "0x26" ]; then
         fi
         convargs="$convargs --security-mode $BOOTSEC_MODE"
     fi
-    rm -rf out
+    $SUDO rm -rf out
     mkdir out
     ./unified_flash/tools/flashtools/bootburn/create_bsp_images.py -b jetson-t264 --toolsonly -l -g $PWD/out --l4t
     mkdir -p out/flash_workspace/flash-images out/flash_workspace/rcm-boot
