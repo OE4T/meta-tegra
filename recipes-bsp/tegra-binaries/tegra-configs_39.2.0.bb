@@ -71,7 +71,7 @@ do_install() {
 }
 
 PACKAGES = " ${PN}-display-driver ${PN}-udev ${PN}-xorg ${PN}-sysctl ${PN}-container-csv"
-FILES:${PN}-display-driver = "${sysconfdir}/modprobe.d/nv-modprobe* ${sysconfdir}/modprobe.d/nvgpu.conf ${sysconfdir}/depmod.d \
+FILES:${PN}-display-driver = "${sysconfdir}/modprobe.d/nv-display.conf ${sysconfdir}/modprobe.d/nvgpu.conf ${sysconfdir}/depmod.d \
 			      ${sysconfdir}/systemd/system/systemd-modules-load.service.d ${libexecdir}/nv-load-display-modules"
 FILES:${PN}-udev = "${sysconfdir}/udev/rules.d ${sysconfdir}/modprobe.d"
 FILES:${PN}-xorg = "${sysconfdir}/X11"
