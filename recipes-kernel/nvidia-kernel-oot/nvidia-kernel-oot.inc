@@ -81,6 +81,7 @@ COMMON_PATCHES = "\
     file://0065-nvdisplay-nvidia-drm-trigger-connector-detect-on-hot.patch;patchdir=nvdisplay \
     file://0066-nvdisplay-nvidia-drm-update-legacy-modeset-state-on-.patch;patchdir=nvdisplay \
     file://0067-host1x-fence-fix-NULL-deref-and-add-module-exit-cleanup.patch;patchdir=nvidia-oot \
+    file://0068-tegra-camera-suppress-kmemleak-false-positive.patch;patchdir=nvidia-oot \
 "
 EXTRA_PATCHES ??= ""
 

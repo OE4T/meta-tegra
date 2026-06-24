@@ -1,0 +1,43 @@
+From: Wei Gao <wei.gao@windriver.com>
+Date: Sat, 6 Jun 2026 12:00:00 +0800
+Subject: [PATCH] media: tegra_camera: suppress kmemleak false positive for
+ video_device_alloc
+
+kmemleak reports unreferenced video_device objects allocated in
+tegra_channel_init_video(). These are long-lived V4L2 video device
+structures referenced through OOT module data structures that kmemleak
+cannot scan. The objects are properly freed in tegra_channel_cleanup_video()
+on module unload.
+
+Mark them with kmemleak_not_leak() to suppress the false positives.
+
+Upstream-Status: Pending
+
+Signed-off-by: Wei Gao <wei.gao@windriver.com>
+---
+ drivers/media/platform/tegra/camera/vi/channel.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/media/platform/tegra/camera/vi/channel.c b/drivers/media/platform/tegra/camera/vi/channel.c
+index 37c5383..c74e612 100644
+--- a/drivers/media/platform/tegra/camera/vi/channel.c
++++ b/drivers/media/platform/tegra/camera/vi/channel.c
+@@ -38,6 +38,7 @@
+ #include <linux/clk/tegra.h>
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/camera_common.h>
++#include <linux/kmemleak.h>
+ 
+ #include "mipical/mipi_cal.h"
+ 
+@@ -2563,6 +2564,7 @@ int tegra_channel_init_video(struct tegra_channel *chan)
+ 	}
+ 
+ 	chan->video = video_device_alloc();
++	kmemleak_not_leak(chan->video);
+ 
+ 	/* Initialize the media entity... */
+ 	chan->pad.flags = MEDIA_PAD_FL_SINK;
+-- 
+2.39.2
+
