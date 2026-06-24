@@ -1,8 +1,4 @@
-Notes on integrating the NVIDIA container runtime with Docker support on Jetson platforms.
-
-# Supported branches
-
-Container runtime support is available on the `zeus-l4t-r32.3.1` and later branches.
+Notes on integrating the NVIDIA container runtime on Jetson platforms.
 
 # Layers required
 
@@ -13,14 +9,11 @@ the `meta-oe`, `meta-networking`, and `meta-python` layers from the
 
 # Configuration
 
-Add `virtualization` to your `DISTRO_FEATURES` setting.
+1. Add `virtualization` to your `DISTRO_FEATURES` setting.
 
 # Building
 
 1. Add `nvidia-container-toolkit` to your image to enable GPU-accelerated containers.
-
-   **Note:** The `nvidia-docker` recipe was removed in L4T R39.2.0/JetPack 7.2.
-   `nvidia-container-toolkit` is the current replacement and provides the same functionality.
 
 2. See the [NVIDIA Container Toolkit documentation](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
    for details on runtime configuration and usage.
@@ -33,3 +26,7 @@ Add `virtualization` to your `DISTRO_FEATURES` setting.
 4. For containers that use GStreamer, include the Jetson-specific GStreamer plugins you may need.
    See [Tegra-specific GStreamer plugins](Tegra-specific-gstreamer-plugins.md) for the available
    plugin recipes.
+
+5. Consult the documentation in the branch of `meta-virtualization` you are using for information
+   on how to configure Docker to register the `nvidia` runtime to be available at boot time, to avoid
+   having to run the `nvidia-ctk` tool and restart the Docker service on every boot.
