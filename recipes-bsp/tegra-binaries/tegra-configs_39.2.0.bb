@@ -58,7 +58,7 @@ do_install() {
     install -m 0644 -D -t ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d ${UNPACKDIR}/drivers.csv ${UNPACKDIR}/devices.csv
 
     install -m 0644 -D ${S}/opt/nvidia/nv-disp-module-configs/nv-modprobe-${GPU_VARIANT}-display.conf ${D}${sysconfdir}/modprobe.d/nv-display.conf
-    install -m 0644 -D ${S}/opt/nvidia/nv-disp-module-configs/nv-depmod-${GPU_VARIANT}-display.conf -t ${D}${sysconfdir}/depmod.d/nv-display.conf
+    install -m 0644 -D ${S}/opt/nvidia/nv-disp-module-configs/nv-depmod-${GPU_VARIANT}-display.conf ${D}${sysconfdir}/depmod.d/nv-display.conf
     if [ "${GPU_VARIANT}" = "nvgpu-l4t" ]; then
         install -m 0644 ${S}/etc/modprobe.d/nvgpu.conf ${D}${sysconfdir}/modprobe.d/
     fi
@@ -71,7 +71,7 @@ do_install() {
 }
 
 PACKAGES = " ${PN}-display-driver ${PN}-udev ${PN}-xorg ${PN}-sysctl ${PN}-container-csv"
-FILES:${PN}-display-driver = "${sysconfdir}/modprobe.d/nv-modprobe* ${sysconfdir}/modprobe.d/nvgpu.conf ${sysconfdir}/depmod.d \
+FILES:${PN}-display-driver = "${sysconfdir}/modprobe.d/nv-display.conf ${sysconfdir}/modprobe.d/nvgpu.conf ${sysconfdir}/depmod.d \
 			      ${sysconfdir}/systemd/system/systemd-modules-load.service.d ${libexecdir}/nv-load-display-modules"
 FILES:${PN}-udev = "${sysconfdir}/udev/rules.d ${sysconfdir}/modprobe.d"
 FILES:${PN}-xorg = "${sysconfdir}/X11"
