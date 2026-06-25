@@ -14,7 +14,6 @@
 - [Disk Encryption for Jetson Devices](Disk-Encryption-for-Jetson-Devices.md)
 - [Flashing without sudo](Flashing-without-sudo.md)
 - [NVIDIA Container Runtime Support](NVIDIA-Container-Runtime-support.md)
-- [Over the Air Reflashing Process](Over-the-air-reflashing-process.md)
 - [PPS GPIO Support on Jetson TX1 TX2](PPS-GPIO-Support-on-Jetson-TX1-TX2.md)
 - [Redundant Rootfs A B Partition Support](Redundant-Rootfs-A-B-Partition-Support.md)
 - [Secure Boot Support](Secure-Boot-Support.md)
