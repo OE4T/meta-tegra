@@ -18,7 +18,7 @@ URI: https://git.openembedded.org/openembedded-core
 branch: master
 LAYERSERIES_COMPAT: blacksail
 
-See [this page](docs/JetPack-7.2-L4T-R39.2.0-Notes.md) for information
+See [this page](docs/release-notes/JetPack-7.2-L4T-R39.2.0-Notes.md) for information
 about changes in this release.
 
 Getting Help
