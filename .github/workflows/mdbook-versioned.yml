@@ -4,12 +4,13 @@ on:
   push:
     branches:
       - master
-      - master-l4t-r38.4.x
+      - wrynose
       - scarthgap
     paths:
       - 'docs/**'
       - 'README.md'
       - 'CONTRIBUTING.md'
+      - 'book.toml'
   workflow_dispatch:
 
 jobs:
