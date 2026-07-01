@@ -30,3 +30,5 @@ the `meta-oe`, `meta-networking`, and `meta-python` layers from the
 5. Consult the documentation in the branch of `meta-virtualization` you are using for information
    on how to configure Docker to register the `nvidia` runtime to be available at boot time, to avoid
    having to run the `nvidia-ctk` tool and restart the Docker service on every boot.
+   * See [demo-image-docker-base.bb](https://github.com/OE4T/tegra-demo-distro/tree/master/layers/meta-tegrademo/dynamic-layers/meta-virtualization/recipes-demo/images/demo-image-docker-base.bb)
+for a minimal example of an image which includes runtime support with the tegrademo distro configuration.
