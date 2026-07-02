@@ -9,7 +9,9 @@ inherit nopackages
 
 PN = "gcc-source-for-nvcc-${PV}"
 WORKDIR = "${TMPDIR}/work-shared/gcc-for-nvcc-${PV}-${PR}"
-SSTATE_SWSPEC = "sstate:gcc::${PV}:${PR}::${SSTATE_VERSION}:"
+# Keep NVCC GCC source cache namespace separate from oe-core gcc-source.
+# Their patch sets can diverge, causing noisy cross-matches and hash churn.
+SSTATE_SWSPEC = "sstate:gcc-for-nvcc::${PV}:${PR}::${SSTATE_VERSION}:"
 
 STAMP = "${STAMPS_DIR}/work-shared/gcc-for-nvcc-${PV}-${PR}"
 STAMPCLEAN = "${STAMPS_DIR}/work-shared/gcc-${PV}-*"
