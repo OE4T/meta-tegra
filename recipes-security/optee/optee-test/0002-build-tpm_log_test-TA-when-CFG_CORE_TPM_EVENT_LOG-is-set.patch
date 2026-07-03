@@ -1,0 +1,46 @@
+From eadf869252df100a5bceee894a3570d52d605f9e Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 3 Jul 2026 11:09:17 -0700
+Subject: [PATCH] build tpm_log_test TA when CFG_CORE_TPM_EVENT_LOG is set
+
+The host xtest binary compiles regression_1024 (the
+PTA_SYSTEM_GET_TPM_EVENT_LOG test) whenever the OP-TEE OS TA-devkit
+reports CFG_CORE_TPM_EVENT_LOG, but the GNU-Makefile TA build never
+builds the tpm_log_test TA that the test depends on (only the CMake
+build lists it).
+
+On platforms that enable CFG_CORE_TPM_EVENT_LOG (e.g. Tegra264/Thor
+with fTPM) this leaves regression_1024 opening a session against a TA
+that is not installed. The test does not check the return code of
+xtest_teec_open_session() and then invokes a command on the resulting
+NULL session context, which crashes xtest with SIGSEGV and aborts the
+whole regression suite before any later test can run.
+
+Build (and therefore install) the tpm_log_test TA under the same guard
+that the host side uses to compile the test, so xtest and the TA stay
+in sync and the regression suite runs to completion.
+
+Upstream-Status: Pending
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ ta/Makefile.gmake | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/ta/Makefile.gmake b/ta/Makefile.gmake
+index 8f3f802..2f227bd 100644
+--- a/ta/Makefile.gmake
++++ b/ta/Makefile.gmake
+@@ -43,6 +43,10 @@ ifeq ($(CFG_TA_BTI),y)
+ TA_DIRS += bti_test
+ endif
+ 
++ifeq ($(CFG_CORE_TPM_EVENT_LOG),y)
++TA_DIRS += tpm_log_test
++endif
++
+ .PHONY: all
+ all: ta
+ 
+-- 
+2.43.0
+
