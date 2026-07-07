@@ -6,11 +6,11 @@ SRC_URI = "file://cuda_target.sh.in"
 
 COMPATIBLE_MACHINE = "(cuda)"
 
-inherit cuda-gcc
+inherit cuda
 
 S = "${UNPACKDIR}"
 
-COMPILER_CMD  = "${@d.getVar('CXX_FOR_CUDA').split()[0]}"
+COMPILER_CMD  = "${@cuda_extract_compiler('CXX_FOR_CUDA', d)[0]}"
 CMAKE_CUDA_ARCHITECTURES = "${@d.getVar('CUDA_ARCHITECTURES') if d.getVar('CUDA_ARCHITECTURES') else 'OFF'}"
 CUDA_EXTRA_CXXFLAGS ??= "-isystem=${includedir}/cuda-compat-workarounds"
 
