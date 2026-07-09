@@ -43,10 +43,7 @@ EXTRA_OECMAKE = '-DBUILD_SAMPLES=OFF -DSKIP_GPU_ARCHS=ON -DTRT_PLATFORM_ID="${TA
   -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
 '
 
-def cudify_flags(varname, d):
-    return ' '.join(['-Xcompiler {}'.format(flag) for flag in (d.getVar(varname) or '').split()])
-
-CUDAFLAGS += "-Xcompiler -DENABLE_SM${TEGRA_CUDA_ARCHITECTURE} ${@cudify_flags('DEBUG_PREFIX_MAP', d)}"
+CUDAFLAGS += "-Xcompiler -DENABLE_SM${TEGRA_CUDA_ARCHITECTURE}"
 LDFLAGS += "-Wl,--no-undefined"
 
 do_install:append() {

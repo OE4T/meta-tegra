@@ -3,7 +3,7 @@ CUDA_ARCHITECTURES ??= ""
 CUDA_NVCC_COMPAT_FLAGS ??= ""
 CUDA_NVCC_PATH_FLAGS ??= "--include-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include --library-path ${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/${baselib} -Xcompiler -isystem,=${includedir}/cuda-compat-workarounds"
 CUDA_NVCC_EXTRA_FLAGS ??= ""
-CUDA_NVCC_FLAGS ?= "${CUDA_NVCC_ARCH_FLAGS} ${CUDA_NVCC_COMPAT_FLAGS} ${CUDA_NVCC_PATH_FLAGS} ${CUDA_NVCC_EXTRA_FLAGS}"
+CUDA_NVCC_FLAGS ?= "${CUDA_NVCC_ARCH_FLAGS} ${CUDA_NVCC_COMPAT_FLAGS} ${CUDA_NVCC_PATH_FLAGS} ${CUDA_NVCC_EXTRA_FLAGS} ${CUDA_NVCC_PREFIX_MAP_FLAGS}"
 
 CUDA_CXXFLAGS = "-I${STAGING_DIR_NATIVE}/usr/local/cuda-${CUDA_VERSION}/include -I=/usr/local/cuda-${CUDA_VERSION}/include"
 CUDA_LDFLAGS = "\
@@ -16,7 +16,17 @@ LDFLAGS:prepend:cuda = "${TOOLCHAIN_OPTIONS} "
 LDFLAGS:append:cuda = " ${CUDA_LDFLAGS}"
 DEBUG_PREFIX_MAP:remove:cuda = "-fcanon-prefix-map"
 
-def cuda_extract_compiler(compiler, d, prefix='-Xcompiler '):
+def cudify_flags(varname, d):
+    return ' '.join(['-Xcompiler {}'.format(flag) for flag in (d.getVar(varname) or '').split()])
+
+# nvcc compiles .cu sources through a host-compiler pass but does NOT receive the
+# C/C++ DEBUG_PREFIX_MAP flags, so __FILE__ (and debug paths) from .cu files bake
+# in the absolute build path (TMPDIR) and leak into packaged binaries. Forward the
+# prefix-map flags to the host compiler via -Xcompiler so .cu objects are
+# normalized just like .cpp objects.
+CUDA_NVCC_PREFIX_MAP_FLAGS ??= "${@cudify_flags('DEBUG_PREFIX_MAP', d)}"
+
+def cuda_extract_compiler(compiler, d, prefix='-Xcompiler='):
     args = d.getVar(compiler).split()
     if args[0] == "ccache":
         return args[1], ' '.join([prefix + arg for arg in args[2:]])
