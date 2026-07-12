@@ -18,7 +18,6 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/linux-noble-nvidia-tegra-${SHRT_VER}:"
 
 TEGRA_LINUX_VERSION_EXTENSION ?= ""
 LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}-1021.21${TEGRA_LINUX_VERSION_EXTENSION}"
-SCMVERSION ??= "y"
 
 SRCBRANCH = "l4t/l4t-r39.2-Ubuntu-nvidia-tegra-6.8.0-1021.21"
 SRCREV = "78272943bba3a47e633b28963b0cda60de503500"
@@ -28,7 +27,6 @@ KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
     file://0001-libbpf-Fix-Wdiscarded-qualifiers-under-C23.patch \
     file://0002-Revert-perf-python-Avoid-duplicated-code-in-get-trac.patch \
-    ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
     ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
     file://disable-module-signing.cfg \
@@ -39,10 +37,4 @@ SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
 KBUILD_DEFCONFIG = "defconfig"
 KCONFIG_MODE = "--alldefconfig"
 
-set_scmversion() {
-    if [ "${SCMVERSION}" = "y" -a -d "${S}/.git" ]; then
-        head=$(git --git-dir=${S}/.git rev-parse --verify --short HEAD 2>/dev/null || true)
-        [ -z "$head" ] || echo "+g$head" > ${S}/.scmversion
-    fi
-}
-do_kernel_checkout[postfuncs] += "set_scmversion"
+PR = "r1"
