@@ -21,6 +21,9 @@ PACKAGE_INSTALL = "\
     kernel-module-tegra-bpmp-thermal \
     kernel-module-pwm-tegra \
     kernel-module-pwm-fan \
+"
+
+PACKAGE_INSTALL:append:tegra264 = "\
     nv-kernel-module-pcie-tegra264 \
     nv-kernel-module-ufs-tegra \
 "
