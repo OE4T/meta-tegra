@@ -46,9 +46,8 @@ TEGRA_FLASHVAR_BPMP_MEM_CONFIG ?= "tegra264-p3834-0000-sdram-dfs.dts"
 
 require conf/machine/include/tegra264.inc
 
-MACHINE_EXTRA_RRECOMMENDS += "kernel-module-r8126 kernel-module-r8168 kernel-module-r8169 kernel-module-realtek kernel-module-ina238"
+MACHINE_EXTRA_RRECOMMENDS += "kernel-module-ina238"
 MACHINE_EXTRA_RRECOMMENDS += "kernel-module-ramoops kernel-module-tsecriscv"
-MACHINE_EXTRA_RDEPENDS += "linux-firmware-rtl8168"
 
 KERNEL_DEVICETREE ?= "tegra264-p4071-0000+p3834-0000-nv.dtb"
 # 50GiB default rootfs size
