@@ -57,9 +57,6 @@ EXTRA_OEMAKE:append:tegra234 = ' NVIDIA_DISPLAY_MODULE_TARGETS="nvidia-display"'
 
 # The makefile defaults for linux-noble differ from the concerns of linux-yocto
 TEGRA_OOT_MODULE_SKIP_MAKEFLAGS_LINUX_YOCTO = "\
-    NV_OOT_TEGRA_HV_SKIP_BUILD=n \
-    NV_OOT_IVC_EXT_SKIP_BUILD=n \
-    NV_OOT_TEGRA_BPMP_SKIP_BUILD=n \
     NV_OOT_REALTEK_RTL8822CE_SKIP_BUILD=y \
     NV_OOT_REALTEK_RTL8852CE_SKIP_BUILD=y \
 "
