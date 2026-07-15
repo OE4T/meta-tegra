@@ -1,39 +1,28 @@
-FILESEXTRAPATHS:prepend:tegra := "${THISDIR}/${PN}-6.18:${THISDIR}/${PN}:"
-
 require ${@'tegra-kernel.inc' if 'tegra' in d.getVar('MACHINEOVERRIDES').split(':') else ''}
 
-SRC_URI:append:tegra = " \
-    file://0001-NVIDIA-SAUCE-soc-tegra-pmc-Add-sysfs-nodes-to-select.patch \
-    file://0002-UBUNTU-SAUCE-mtd-spi-nor-support-for-spansion-and-ma.patch \
-    file://0003-NVIDIA-SAUCE-enable-handling-of-macronix-block-prote.patch \
-    file://0004-drm-tegra-select-DRM_DISPLAY_HDCP_HELPER.patch \
-    file://0005-UBUNTU-SAUCE-spi-add-tegra-spidev-name-string.patch \
-    file://0006-UBUNTU-SAUCE-spi-add-tegra-spidev-compatible-string.patch \
-    file://tegra.cfg \
-    file://tegra-drm.cfg \
-    file://tegra-governors.cfg \
-    file://tegra-pcie.cfg \
-    file://tegra-scsi-ufs.cfg \
-    file://tegra-sound.cfg \
-    file://tegra-usb.cfg \
-    file://tegra-v4l2.cfg \
-    file://tegra-virtualization.cfg \
-    file://rtw8822ce-wifi.cfg \
-    file://r8169.cfg \
-"
+# SoC / devkit kernel config now lives entirely in the tegra-kernel-cache kmeta
+# (cfg/tegra.cfg shared, cfg/<machine>.cfg overlays, cfg/jetson-devkit.cfg for
+# board peripherals) — not in recipe .cfg fragments.
 
-COMPATIBLE_MACHINE:tegra = "(tegra234)"
-KMACHINE:tegra = "genericarm64"
+# Shared tegra-kernel-cache kmeta (all tegra machines): vendor patch queues plus
+# a per-machine BSP (selected by KMACHINE) that inherits genericarm64.
+TEGRA_KERNEL_CACHE_URI ?= "git://github.com/OE4T/tegra-kernel-cache.git;protocol=https;branch=yocto-6.18"
+SRC_URI:append:tegra = " \
+    ${TEGRA_KERNEL_CACHE_URI};name=tegrameta;type=kmeta;destsuffix=tegra-meta \
+"
+SRCREV_FORMAT:tegra = "meta_machine_tegrameta"
+SRCREV_tegrameta ?= "${AUTOREV}"
+
+COMPATIBLE_MACHINE:tegra = "(tegra234|tegra264)"
+KMACHINE:tegra = "${SOC_FAMILY}"
+
+# Devkit board peripherals (Wi-Fi/Ethernet/sensors/codec). Overridable: a custom
+# carrier board drops them with KERNEL_FEATURES_EXTRA_DEVKIT = "" in its machine
+# conf, or points it at a different board feature.
+KERNEL_FEATURES_EXTRA_DEVKIT ?= "features/tegra/jetson-devkit.scc"
 
 KERNEL_FEATURES:append:tegra = " \
-    features/bluetooth/bluetooth.scc \
-    features/bluetooth/bluetooth-usb.scc \
-    features/i2c/i2c.scc \
-    features/input/touchscreen.scc \
-    features/media/media.scc \
-    features/media/media-platform.scc \
-    features/media/media-usb-webcams.scc \
-    features/usb/serial.scc \
-    features/usb/usb-raw-gadget.scc \
-    features/usb/xhci-hcd.scc \
+    features/tegra/tegra-patches.scc \
+    features/tegra/tegra-distro.scc \
+    ${KERNEL_FEATURES_EXTRA_DEVKIT} \
 "
