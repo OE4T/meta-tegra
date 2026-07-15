@@ -2,6 +2,29 @@ TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
 
 inherit ${TEGRA_UEFI_SIGNING_CLASS}
 
+# kgit-s2q applies kernel features as git commits; large tegra264 queues can
+# trigger git maintenance run --auto / repack storms during do_patch.
+disable_kernel_git_maintenance() {
+    [ -d "${S}/.git" ] || return 0
+    git -C "${S}" config maintenance.auto false 2>/dev/null || true
+    git -C "${S}" config gc.auto 0 2>/dev/null || true
+    git -C "${S}" maintenance stop 2>/dev/null || true
+}
+
+enable_kernel_git_maintenance() {
+    [ -d "${S}/.git" ] || return 0
+    git -C "${S}" config --unset maintenance.auto 2>/dev/null || true
+    git -C "${S}" config --unset gc.auto 2>/dev/null || true
+}
+
+do_patch:prepend() {
+    disable_kernel_git_maintenance
+}
+
+do_patch:append() {
+    enable_kernel_git_maintenance
+}
+
 # All of our device trees are out-of-tree
 KERNEL_DEVICETREE:forcevariable = ""
 
