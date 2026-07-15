@@ -25,7 +25,7 @@ Options:
   -D|--debug            Enable debug logging when running flash script
   -h|--help             Displays this usage information
   --external-only       Write only the external storage device
-  --erase-nvme          Erase NVME drive during flashing (T234 only)
+  --erase-nvme          Erase NVME drive during flashing
   -k|--partition NAME   Write only the specified partition (T264 only)
   --qspi-only           Write only the QSPI flash (boot firmware)
   --usb-instance        USB instance of Jetson device
@@ -100,6 +100,7 @@ while true; do
             ;;
         --erase-nvme)
             erase_nvme=1
+            uniflash_flags="$uniflash_flags --clean"
             shift
             ;;
         -u)
