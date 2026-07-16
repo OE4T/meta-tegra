@@ -10,6 +10,7 @@ SRC_URI += "\
     file://0002-weston-dmabuf-formats-cross-build-fixes.patch;patchdir=../../../.. \
     file://0003-Fix-use-of-wayland-protocols-in-nvgldemo-makefile.patch;patchdir=../../../.. \
     file://0004-weston-dmabuf-formats-Thor-compatibility-fixes.patch;patchdir=../../../.. \
+    file://0005-Remove-unneeded-libweston-linkage.patch;patchdir=../../../.. \
 "
 
 REQUIRED_DISTRO_FEATURES = "opengl"
@@ -20,7 +21,7 @@ inherit pkgconfig features_check
 
 PACKAGECONFIG ??= "${@bb.utils.filter('DISTRO_FEATURES', 'x11 wayland', d)}"
 PACKAGECONFIG[x11] = ",,libx11 virtual/libgbm"
-PACKAGECONFIG[wayland] = ",,libxkbcommon wayland wayland-native weston wayland-protocols libffi virtual/libgbm tegra-mmapi tegra-libraries-multimedia-utils"
+PACKAGECONFIG[wayland] = ",,libxkbcommon wayland wayland-native wayland-protocols libffi virtual/libgbm tegra-mmapi tegra-libraries-multimedia-utils"
 
 CONFIGURESTAMPFILE = "${WORKDIR}/configure.sstate"
 

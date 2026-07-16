@@ -1,0 +1,35 @@
+From ca973042df6e58574377a79599f333755167e00e Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Thu, 16 Jul 2026 13:26:18 -0700
+Subject: [PATCH] Remove unneeded libweston linkage
+
+The weston-dmabuf-formats makefile links against libweston,
+but the code makes no calls to the weston core. Remove this
+unwanted and unnecessary dependency.
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
+index 2c12dff..c33354e 100644
+--- a/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
++++ b/usr/src/nvidia/graphics_demos/weston-dmabuf-formats/Makefile
+@@ -37,7 +37,6 @@ INTERMEDIATES += $(PROTOCOLS)
+ CFLAGS += -I$(NV_WINSYS)/ -I=$(includedir)/libdrm/nvidia
+ 
+ PROTOCOLSDIR := $(shell pkg-config --variable=pkgdatadir wayland-protocols)
+-WESTON-VERSION := $(shell pkg-config --modversion weston | cut -d. -f1)
+ 
+ WESTON-DMABUF-FORMATS_OBJS += $(patsubst %.h,%.o,$(PROTOCOLS))
+ 
+@@ -47,7 +46,6 @@ WESTON-DMABUF-FORMATS_LDLIBS += -lrt
+ WESTON-DMABUF-FORMATS_LDLIBS += -lpthread
+ WESTON-DMABUF-FORMATS_LDLIBS += $(shell pkg-config --libs egl)
+ WESTON-DMABUF-FORMATS_LDLIBS += $(shell pkg-config --libs glesv2)
+-WESTON-DMABUF-FORMATS_LDLIBS += $(shell pkg-config --libs libweston-$(WESTON-VERSION))
+ WESTON-DMABUF-FORMATS_LDLIBS += $(shell pkg-config --libs libdrm)
+ WESTON-DMABUF-FORMATS_LDLIBS += $(shell pkg-config --libs gbm)
+ WESTON-DMABUF-FORMATS_LDLIBS += ${NV_PLATFORM_WINSYS_LIBS}
