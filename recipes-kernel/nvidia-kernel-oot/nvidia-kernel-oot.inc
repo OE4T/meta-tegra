@@ -19,6 +19,7 @@ COMMON_PATCHES = "\
     file://0003-Fix-unifiedgpudisp-modules-builds.patch;patchdir=unifiedgpudisp \
     file://0004-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch;patchdir=unifiedgpudisp \
     file://0005-nvdisplay-nvidia-drm-trigger-connector-detect-on-hot.patch;patchdir=nvdisplay \
+    file://0006-drm-tegra-Migrate-to-PMC-contextual-power-APIs.patch;patchdir=nvidia-oot \
 "
 
 EXTRA_PATCHES ??= ""
