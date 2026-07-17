@@ -1,0 +1,270 @@
+From bc49da6f1c4be77b95fbe853adc5bf12bc16d7ae Mon Sep 17 00:00:00 2001
+From: Jon Hunter <jonathanh@nvidia.com>
+Date: Mon, 25 May 2026 10:16:38 +0000
+Subject: [PATCH] drm/tegra: Migrate to PMC contextual power APIs
+
+Upstream commit 70f752ebb08c ("soc/tegra: pmc: Add PMC contextual
+functions") added PMC variants (tegra_pmc_powergate_power_off,
+tegra_pmc_powergate_sequence_power_up, tegra_pmc_io_pad_power_enable,
+tegra_pmc_io_pad_power_disable) that take a 'struct tegra_pmc *' as
+their first argument, and the (not yet upstream) commit a5ea3afd659f
+("soc/tegra: pmc: Remove unused legacy functions") drops the
+no-context wrappers entirely, breaking the OOT tegra DRM driver
+against linux-next + that follow-on patch.
+
+Add a new conftest test, tegra_pmc_powergate_power_off, that detects
+the presence of the new PMC contextual powergate API. Migrate the
+affected drivers (dc, gr3d, sor) to fetch a PMC reference via
+devm_tegra_pmc_get() at probe time and call the new tegra_pmc_*
+helpers, falling back to the legacy helper functions on older kernels.
+
+Bug 5998347
+
+Change-Id: Ia6cebeaa4685cdf17e55b8a1a745d02c0d59b7f8
+Signed-off-by: Jon Hunter <jonathanh@nvidia.com>
+Reviewed-on: https://git-master.nvidia.com/r/c/linux-nv-oot/+/3627017
+Upstream-Status: Backport [215bcd29128fcfe62996846a97cb53a743a9e135]
+---
+ drivers/gpu/drm/tegra/dc.c   | 21 +++++++++++++++++++++
+ drivers/gpu/drm/tegra/dc.h   |  3 +++
+ drivers/gpu/drm/tegra/gr3d.c | 15 +++++++++++++++
+ drivers/gpu/drm/tegra/sor.c  | 27 +++++++++++++++++++++++++++
+ scripts/conftest/Makefile    |  1 +
+ scripts/conftest/conftest.sh | 22 ++++++++++++++++++++++
+ 6 files changed, 89 insertions(+)
+
+diff --git a/drivers/gpu/drm/tegra/dc.c b/drivers/gpu/drm/tegra/dc.c
+index 58e13560..a50298b3 100644
+--- a/drivers/gpu/drm/tegra/dc.c
++++ b/drivers/gpu/drm/tegra/dc.c
+@@ -2795,7 +2795,11 @@ static int tegra_dc_runtime_suspend(struct host1x_client *client)
+ 	}
+ 
+ 	if (dc->soc->has_powergate)
++#if defined(NV_TEGRA_PMC_POWERGATE_POWER_OFF_PRESENT) /* Linux v7.2 */
++		tegra_pmc_powergate_power_off(dc->pmc, dc->powergate);
++#else
+ 		tegra_powergate_power_off(dc->powergate);
++#endif
+ 
+ 	clk_disable_unprepare(dc->clk);
+ 	pm_runtime_put_sync(dev);
+@@ -2816,8 +2820,14 @@ static int tegra_dc_runtime_resume(struct host1x_client *client)
+ 	}
+ 
+ 	if (dc->soc->has_powergate) {
++#if defined(NV_TEGRA_PMC_POWERGATE_POWER_OFF_PRESENT) /* Linux v7.2 */
++		err = tegra_pmc_powergate_sequence_power_up(dc->pmc,
++							    dc->powergate,
++							    dc->clk, dc->rst);
++#else
+ 		err = tegra_powergate_sequence_power_up(dc->powergate, dc->clk,
+ 							dc->rst);
++#endif
+ 		if (err < 0) {
+ 			dev_err(dev, "failed to power partition: %d\n", err);
+ 			goto put_rpm;
+@@ -3245,12 +3255,23 @@ static int tegra_dc_probe(struct platform_device *pdev)
+ 	clk_disable_unprepare(dc->clk);
+ 
+ 	if (dc->soc->has_powergate) {
++#if defined(NV_TEGRA_PMC_POWERGATE_POWER_OFF_PRESENT) /* Linux v7.2 */
++		dc->pmc = devm_tegra_pmc_get(dc->dev);
++		if (IS_ERR(dc->pmc))
++			return dev_err_probe(dc->dev, PTR_ERR(dc->pmc),
++					     "failed to get PMC\n");
++#endif
++
+ 		if (dc->pipe == 0)
+ 			dc->powergate = TEGRA_POWERGATE_DIS;
+ 		else
+ 			dc->powergate = TEGRA_POWERGATE_DISB;
+ 
++#if defined(NV_TEGRA_PMC_POWERGATE_POWER_OFF_PRESENT) /* Linux v7.2 */
++		tegra_pmc_powergate_power_off(dc->pmc, dc->powergate);
++#else
+ 		tegra_powergate_power_off(dc->powergate);
++#endif
+ 	}
+ 
+ 	err = tegra_dc_init_opp_table(dc);
+diff --git a/drivers/gpu/drm/tegra/dc.h b/drivers/gpu/drm/tegra/dc.h
+index 00ecde46..7ea9afc4 100644
+--- a/drivers/gpu/drm/tegra/dc.h
++++ b/drivers/gpu/drm/tegra/dc.h
+@@ -85,6 +85,9 @@ struct tegra_dc {
+ 	struct device *dev;
+ 
+ 	struct drm_crtc base;
++#if defined(NV_TEGRA_PMC_POWERGATE_POWER_OFF_PRESENT) /* Linux v7.0 */
++	struct tegra_pmc *pmc;
++#endif
+ 	unsigned int powergate;
+ 	int pipe;
+ 
+diff --git a/drivers/gpu/drm/tegra/gr3d.c b/drivers/gpu/drm/tegra/gr3d.c
+index b63ba3e7..4d5fd3c5 100644
+--- a/drivers/gpu/drm/tegra/gr3d.c
++++ b/drivers/gpu/drm/tegra/gr3d.c
+@@ -52,6 +52,9 @@ struct gr3d {
+ #if defined(NV_DEVM_PM_DOMAIN_ATTACH_LIST_PRESENT) /* Linux v6.13 */
+ 	struct dev_pm_domain_list *pd_list;
+ #endif
++#if defined(NV_TEGRA_PMC_POWERGATE_POWER_OFF_PRESENT) /* Linux v7.2 */
++	struct tegra_pmc *pmc;
++#endif
+ 
+ 	DECLARE_BITMAP(addr_regs, GR3D_NUM_REGS);
+ };
+@@ -358,7 +361,12 @@ static int gr3d_power_up_legacy_domain(struct device *dev, const char *name,
+ 	if (err) {
+ 		dev_err(dev, "failed to acquire %s reset: %d\n", name, err);
+ 	} else {
++#if defined(NV_TEGRA_PMC_POWERGATE_POWER_OFF_PRESENT) /* Linux v7.2 */
++		err = tegra_pmc_powergate_sequence_power_up(gr3d->pmc, id,
++							    clk, reset);
++#else
+ 		err = tegra_powergate_sequence_power_up(id, clk, reset);
++#endif
+ 		reset_control_release(reset);
+ 	}
+ 
+@@ -404,6 +412,13 @@ static int gr3d_init_power(struct device *dev, struct gr3d *gr3d)
+ 		if (err != -ENOENT)
+ 			return err;
+ 
++#if defined(NV_TEGRA_PMC_POWERGATE_POWER_OFF_PRESENT) /* Linux v7.2 */
++		gr3d->pmc = devm_tegra_pmc_get(dev);
++		if (IS_ERR(gr3d->pmc))
++			return dev_err_probe(dev, PTR_ERR(gr3d->pmc),
++					     "failed to get PMC\n");
++#endif
++
+ 		/*
+ 		 * Older device-trees don't use GENPD. In this case we should
+ 		 * toggle power domain manually.
+diff --git a/drivers/gpu/drm/tegra/sor.c b/drivers/gpu/drm/tegra/sor.c
+index 5125591e..1dede1e1 100644
+--- a/drivers/gpu/drm/tegra/sor.c
++++ b/drivers/gpu/drm/tegra/sor.c
+@@ -424,6 +424,10 @@ struct tegra_sor {
+ 	struct tegra_output output;
+ 	struct device *dev;
+ 
++#if defined(NV_TEGRA_PMC_IO_PAD_POWER_ENABLE_PRESENT) /* Linux v7.2 */
++	struct tegra_pmc *pmc;
++#endif
++
+ 	const struct tegra_sor_soc *soc;
+ 	void __iomem *regs;
+ 	unsigned int index;
+@@ -2283,7 +2287,11 @@ static void tegra_sor_hdmi_disable(struct drm_encoder *encoder)
+ 	if (err < 0)
+ 		dev_err(sor->dev, "failed to power down SOR: %d\n", err);
+ 
++#if defined(NV_TEGRA_PMC_IO_PAD_POWER_ENABLE_PRESENT) /* Linux v7.2 */
++	err = tegra_pmc_io_pad_power_disable(sor->pmc, sor->pad);
++#else
+ 	err = tegra_io_pad_power_disable(sor->pad);
++#endif
+ 	if (err < 0)
+ 		dev_err(sor->dev, "failed to power off I/O pad: %d\n", err);
+ 
+@@ -2323,7 +2331,11 @@ static void tegra_sor_hdmi_enable(struct drm_encoder *encoder)
+ 
+ 	div = clk_get_rate(sor->clk) / 1000000 * 4;
+ 
++#if defined(NV_TEGRA_PMC_IO_PAD_POWER_ENABLE_PRESENT) /* Linux v7.2 */
++	err = tegra_pmc_io_pad_power_enable(sor->pmc, sor->pad);
++#else
+ 	err = tegra_io_pad_power_enable(sor->pad);
++#endif
+ 	if (err < 0)
+ 		dev_err(sor->dev, "failed to power on I/O pad: %d\n", err);
+ 
+@@ -2751,7 +2763,11 @@ static void tegra_sor_dp_disable(struct drm_encoder *encoder)
+ 	if (err < 0)
+ 		dev_err(sor->dev, "failed to power down SOR: %d\n", err);
+ 
++#if defined(NV_TEGRA_PMC_IO_PAD_POWER_ENABLE_PRESENT) /* Linux v7.2 */
++	err = tegra_pmc_io_pad_power_disable(sor->pmc, sor->pad);
++#else
+ 	err = tegra_io_pad_power_disable(sor->pad);
++#endif
+ 	if (err < 0)
+ 		dev_err(sor->dev, "failed to power off I/O pad: %d\n", err);
+ 
+@@ -2793,7 +2809,11 @@ static void tegra_sor_dp_enable(struct drm_encoder *encoder)
+ 	if (err < 0)
+ 		dev_err(sor->dev, "failed to set safe parent clock: %d\n", err);
+ 
++#if defined(NV_TEGRA_PMC_IO_PAD_POWER_ENABLE_PRESENT) /* Linux v7.2 */
++	err = tegra_pmc_io_pad_power_enable(sor->pmc, sor->pad);
++#else
+ 	err = tegra_io_pad_power_enable(sor->pad);
++#endif
+ 	if (err < 0)
+ 		dev_err(sor->dev, "failed to power on LVDS rail: %d\n", err);
+ 
+@@ -3784,6 +3804,13 @@ static int tegra_sor_probe(struct platform_device *pdev)
+ 
+ 	sor->num_settings = sor->soc->num_settings;
+ 
++#if defined(NV_TEGRA_PMC_IO_PAD_POWER_ENABLE_PRESENT) /* Linux v7.2 */
++	sor->pmc = devm_tegra_pmc_get(&pdev->dev);
++	if (IS_ERR(sor->pmc))
++		return dev_err_probe(&pdev->dev, PTR_ERR(sor->pmc),
++				     "failed to get PMC\n");
++#endif
++
+ 	np = of_parse_phandle(pdev->dev.of_node, "nvidia,dpaux", 0);
+ 	if (np) {
+ 		sor->aux = drm_dp_aux_find_by_of_node(np);
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index 7c2186a6..ac2adc08 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -240,6 +240,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += spi_get_chipselect
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tc_taprio_qopt_offload_struct_has_cmd
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tegra264_chip_id
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tegra_pmc_io_pad_power_enable
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += tegra_pmc_powergate_power_off
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tegra_dev_iommu_get_stream_id
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += tegra_ivc_struct_has_iosys_map
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += thermal_zone_device_priv
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index ecf30344..cfca2dd3 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -9002,6 +9002,28 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_TEGRA_PMC_IO_PAD_POWER_ENABLE_PRESENT" "" "functions"
+         ;;
+ 
++        tegra_pmc_powergate_power_off)
++            #
++            # Determine if tegra_pmc_powergate_power_off() and
++            # tegra_pmc_powergate_sequence_power_up() are present, replacing
++            # the legacy tegra_powergate_power_off() /
++            # tegra_powergate_sequence_power_up() helpers that take no PMC
++            # context.
++            #
++            # Upstream Linux change info:
++            # - Commit 70f752ebb08c ("soc/tegra: pmc: Add PMC contextual functions").
++            # - Added in Linux v7.2.
++            #
++            CODE="
++            #include <soc/tegra/pmc.h>
++            int conftest_tegra_pmc_powergate_power_off(void) {
++                tegra_pmc_powergate_power_off();
++            }
++            "
++
++            compile_check_conftest "$CODE" "NV_TEGRA_PMC_POWERGATE_POWER_OFF_PRESENT" "" "functions"
++        ;;
++
+         tegra_ivc_struct_has_iosys_map)
+             #
+             # Determine if the 'tegra_ivc' structure has the 'map' argument.
+-- 
+2.43.0
+
