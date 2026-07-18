@@ -1,5 +1,5 @@
 L4T_DEB_COPYRIGHT_MD5 = "661953981b9ae6f275ad01c67b2e881e"
-DEPENDS = "tegra-libraries-core tegra-libraries-adaruntime"
+DEPENDS = "tegra-libraries-core tegra-libraries-adaruntime tegra-nvsci-headers"
 
 require tegra-debian-libraries-common.inc
 
