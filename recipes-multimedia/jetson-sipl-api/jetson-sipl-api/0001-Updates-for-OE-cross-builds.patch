@@ -6,8 +6,8 @@ Subject: [PATCH 1/2] Updates for OE cross builds
 Upstream-Status: Inappropriate [oe-specific]
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- CMakeLists.txt | 56 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 56 insertions(+)
+ CMakeLists.txt | 57 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
 diff --git a/CMakeLists.txt b/CMakeLists.txt
 index aa64eac..c468703 100644
@@ -56,8 +56,8 @@ index aa64eac..c468703 100644
 +)
 +
 +# Collect all public headers recursively (includes nvsci/, nvmedia/, WF/, query/include/,
-+# and capture/include/ for the NvFusaCaptureExternal* interface) then filter out the three
-+# nvbufsurface* headers owned by a separate multimedia package.
++# and capture/include/ for the NvFusaCaptureExternal* interface) then filter out headers
++# owned by other packages: nvbufsurface* (multimedia) and nvsci* (tegra-nvsci-headers).
 +file(GLOB_RECURSE SIPL_HEADERS
 +    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp"
 +    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h"
@@ -65,7 +65,7 @@ index aa64eac..c468703 100644
 +    "${CMAKE_CURRENT_SOURCE_DIR}/capture/include/*.h"
 +)
 +list(FILTER SIPL_HEADERS EXCLUDE REGEX
-+    ".*(nvbufsurface_nvscibuf\\.h|nvbufsurface\\.h|nvbufsurftransform\\.h)$"
++    ".*(nvbufsurface_nvscibuf\\.h|nvbufsurface\\.h|nvbufsurftransform\\.h|nvsci[^/]*\\.h)$"
 +)
 +# Install all headers flat — no nvsci/, nvmedia/, WF/, or query/include/ subdirectories.
 +install(FILES ${SIPL_HEADERS}
