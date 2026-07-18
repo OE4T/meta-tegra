@@ -3,6 +3,7 @@ SECTION = "multimedia"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://nvgst_sample_apps/nvgstcapture-1.0/nvgstcapture-1.0_README.txt;endline=21;md5=75e7c2d08d6618cb836cbef46b410515 \
                     file://nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer-1.0_README.txt;endline=21;md5=694cc29d69c54345f88511643308aae5 \
+                    file://nvgst_sample_apps/nvgstipctestapp-1.0/LICENSE.nvgstipctestapp-1.0;md5=7a741546263d60716bc5f6a387e30ad9 \
 "
 
 TEGRA_SRC_SUBARCHIVE = "Linux_for_Tegra/source/nvgstapps_src.tbz2"
@@ -36,6 +37,19 @@ do_compile() {
             ${S}/nvgst_sample_apps/nvgstplayer-1.0/nvgst_asound_common.c ${S}/nvgst_sample_apps/nvgstplayer-1.0/nvgst_x11_common.c ${LDFLAGS} \
             $(pkg-config --cflags --libs gstreamer-1.0 gstreamer-plugins-base-1.0 gstreamer-pbutils-1.0 x11 xext gstreamer-video-1.0 alsa) -ldl
     fi
+    ${CC} ${CFLAGS} \
+        -o ${B}/nvgstipctestapp-1.0 \
+        ${S}/nvgst_sample_apps/nvgstipctestapp-1.0/nvgstipctestapp.c \
+        ${LDFLAGS} \
+        $(pkg-config --cflags --libs \
+            gstreamer-1.0 \
+            gstreamer-base-1.0 \
+            gstreamer-video-1.0 \
+            gstreamer-allocators-1.0 \
+            gstreamer-audio-1.0 \
+            gstreamer-app-1.0 \
+            glib-2.0 gobject-2.0) \
+        -ldl -lm -lpthread
 }
 
 do_install() {
@@ -45,13 +59,15 @@ do_install() {
     if [ "$WITH_NVGSTPLAYER" = "yes" ]; then
         install -m 0755 ${B}/nvgstplayer-1.0 ${D}${bindir}/
     fi
+    install -m 0755 ${B}/nvgstipctestapp-1.0 ${D}${bindir}/
 }
 
-PACKAGES =+ "nvgstcapture nvgstplayer"
+PACKAGES =+ "nvgstcapture nvgstplayer nvgstipctestapp"
 FILES:nvgstplayer = "${bindir}/nvgstplayer-1.0"
 FILES:nvgstcapture = "${bindir}/nvgstcapture-1.0"
+FILES:nvgstipctestapp = "${bindir}/nvgstipctestapp-1.0"
 ALLOW_EMPTY:nvgstplayer = "1"
 ALLOW_EMPTY:${PN} = "1"
-RDEPENDS:${PN} = "nvgstcapture nvgstplayer"
+RDEPENDS:${PN} = "nvgstcapture nvgstplayer nvgstipctestapp"
 RRECOMMENDS:nvgstcapture = "gstreamer1.0-plugins-nvarguscamerasrc gstreamer1.0-plugins-nvv4l2camerasrc gstreamer1.0-plugins-good-video4linux2 gstreamer1.0-plugins-tegra"
 RRECOMMENDS:nvgstplayer = "gstreamer1.0-plugins-nveglgles gstreamer1.0-plugins-nvvideo4linux2 gstreamer1.0-plugins-nvvideosinks gstreamer1.0-plugins-nvjpeg gstreamer1.0-plugins-tegra"
