@@ -25,7 +25,10 @@ Each recipe below corresponds to a Yocto package that can be added to your image
 ### Supporting packages
 
 * **`libgstnvcustomhelper`** — shared helper library used internally by several of the plugins above; pulled in automatically as a dependency
-* **`nvgstapps`** — sample GStreamer applications from NVIDIA demonstrating use of these plugins
+* **`nvgstapps`** — sample GStreamer applications from NVIDIA demonstrating use of these plugins:
+  * **`nvgstcapture`** — camera capture and encode sample using `nvarguscamerasrc` or `nvv4l2camerasrc`
+  * **`nvgstplayer`** — video playback sample using hardware decode and NVIDIA render sinks
+  * **`nvgstipctestapp`** — inter-process pipeline sharing demo using `nvipcsrc`/`nvipcsink`; runs as a server (decodes an RTSP H.264/H.265 stream and sends frames over a Unix socket) or as a client (receives those frames and renders them)
 
 ## Machine configuration
 
