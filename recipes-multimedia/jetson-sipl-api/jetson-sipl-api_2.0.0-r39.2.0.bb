@@ -16,7 +16,7 @@ inherit l4t_bsp cmake cuda features_check
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-DEPENDS += "tegra-libraries-camera tegra-libraries-nvsci tegra-libraries-openwfd fmt virtual/egl virtual/libgles2 libx11"
+DEPENDS += "tegra-nvsci-headers tegra-libraries-camera tegra-libraries-nvsci tegra-libraries-openwfd fmt virtual/egl virtual/libgles2 libx11"
 
 REQUIRED_DISTRO_FEATURES = "x11"
 
