@@ -1,0 +1,49 @@
+From: Kurt Kiefer <kkiefer@nvidia.com>
+Subject: [PATCH] Fix include/lib paths for OE cross-compile
+
+When CMAKE_SYSROOT is set (OE cross-compile into a staging sysroot),
+absolute paths like "/usr/include" are NOT automatically prefixed by gcc
+--sysroot.  Prefix all include paths and library hint paths with
+${CMAKE_SYSROOT} so cmake's find_library() and target_include_directories()
+resolve against the OE staging sysroot rather than the host filesystem.
+
+Also set TARGET_LIB_PATH to ${_SYSROOT}/usr/lib/nvidia and ${_SYSROOT}/usr/lib
+so libvulkansc.so (installed by tegra-libraries-vulkan-sc to ${libdir}/nvidia/)
+is found. OE uses /usr/lib/ flat — not the Debian /usr/lib/aarch64-linux-gnu/
+multilib layout.
+
+Upstream-Status: Inappropriate (OE-specific)
+Signed-off-by: Kurt Kiefer <kkiefer@nvidia.com>
+---
+--- a/CMakeLists.txt	2026-07-17 08:49:02.666271983 -0700
++++ b/CMakeLists.txt	2026-07-17 08:49:02.666565017 -0700
+@@ -75,15 +75,24 @@
+     set(VULKANSC_LIB_PATH "${TARGET_LIB_PATH}")
+     message("VulkanSC lib DIR: ${VULKAN_LIB_PATH}")
+ else()
+-    # For target build, need to override header path and lib path
+-    # TODO: No vulkan headers packaged to target_rootfs
+-    set(VULKAN_HEADER_PATH "/usr/include")
++    # For target build (or OE cross-compile), override header and lib paths.
++    # When CMAKE_SYSROOT is set by the OE cmake class, prefix absolute paths
++    # so they resolve into the staging sysroot rather than the host.
++    if (CMAKE_SYSROOT)
++        set(_SYSROOT "${CMAKE_SYSROOT}")
++    else()
++        set(_SYSROOT "")
++    endif()
++
++    set(VULKAN_HEADER_PATH "${_SYSROOT}/usr/include")
+     message("Vulkan header DIR: ${VULKAN_HEADER_PATH}")
+ 
+-    set(VULKANSC_HEADER_PATH "/usr/include/VulkanSC")
++    set(VULKANSC_HEADER_PATH "${_SYSROOT}/usr/include/VulkanSC")
+     message("VulkanSC header DIR: ${VULKANSC_HEADER_PATH}")
+ 
+-    set(TARGET_LIB_PATH "/usr/lib/aarch64-linux-gnu;/usr/lib;/usr/lib/aarch64-linux-gnu/tegra")
++    set(TARGET_LIB_PATH
++        "${_SYSROOT}/usr/lib/nvidia"
++        "${_SYSROOT}/usr/lib")
+     set(VULKAN_LIB_PATH "${TARGET_LIB_PATH}")
+     message("Vulkan lib DIR: ${VULKAN_LIB_PATH}")
+ 
