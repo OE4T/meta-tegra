@@ -1,0 +1,18 @@
+#!/bin/sh
+#
+# SPDX-License-Identifier: MIT
+#
+# chip=<ga10b|gb10b>, datadir, bindir injected by postinst_intercept
+
+set -e
+for pipeline_dir in "$D${datadir}"/vulkan-sc/data/pipeline/*/; do
+    [ -d "$pipeline_dir" ] || continue
+    PSEUDO_UNLOAD=1 ${binprefix}qemuwrapper -L "$D" "$D${bindir}/pcc" \
+        -chip "$chip" \
+        -path "$pipeline_dir" \
+        -out "${pipeline_dir}pipeline_cache.bin" ||
+    PSEUDO_UNLOAD=1 qemuwrapper -L "$D" "$D${bindir}/pcc" \
+        -chip "$chip" \
+        -path "$pipeline_dir" \
+        -out "${pipeline_dir}pipeline_cache.bin"
+done
