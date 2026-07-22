@@ -1,6 +1,6 @@
 DESCRIPTION = "NVIDIA nvsiplcamera GStreamer plugin"
 SECTION = "multimedia"
-LICENSE = "BSD-3-Clause & Proprietary"
+LICENSE = "BSD-3-Clause AND LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "file://gstnvsipl.h;endline=29;md5=a94fb30f9bc256e10bfed0615bba9756 \
                     file://README.txt;endline=32;md5=06e37147d5873f2584371719d9887f89 \
 "

@@ -3,7 +3,7 @@ DEPENDS = "tegra-libraries-core tegra-libraries-adaruntime"
 
 require tegra-debian-libraries-common.inc
 
-LICENSE += "& MIT"
+LICENSE += "AND MIT"
 LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-l4t-nvsci/LICENSE.libnvscibuf;md5=0cd5a346aecd6451e0224bf024e84756"
 
 MAINSUM = "35e31b63db4739040b036ef4a473743ced965c42c209c1cd8bd7e29b3c0408a0"

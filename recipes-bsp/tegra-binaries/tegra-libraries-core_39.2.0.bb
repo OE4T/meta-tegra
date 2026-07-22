@@ -2,7 +2,7 @@ L4T_DEB_COPYRIGHT_MD5 = "d9a8361f8068fc4e3b934118d1de9f3f"
 
 require tegra-debian-libraries-common.inc
 
-LICENSE += "& Apache-2.0"
+LICENSE += "AND Apache-2.0"
 LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-l4t-core/LICENSE.libnvidia-rmapi-tegra;md5=5c7c5200a29e873064f17b5bbf4d3c56"
 
 MAINSUM = "f364c7e11437e4137d29eb08bac965da7c6c39624088ebfa22f4342d9ad5bcf7"

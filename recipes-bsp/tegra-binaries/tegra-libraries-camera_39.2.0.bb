@@ -3,7 +3,7 @@ DEPENDS = "tegra-libraries-core tegra-libraries-multimedia tegra-libraries-multi
 
 require tegra-debian-libraries-common.inc
 
-LICENSE += "& BSD-3-Clause"
+LICENSE += "AND BSD-3-Clause"
 LIC_FILES_CHKSUM += "\
     file://usr/share/doc/nvidia-l4t-camera/LICENSE.libnvargus;md5=271791ce6ff6f928d44a848145021687 \
     file://usr/share/doc/nvidia-l4t-camera/LICENSE.libnvcam_imageencoder;md5=059e39d33711ff9e6a76760cffcf0811 \

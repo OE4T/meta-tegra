@@ -4,7 +4,7 @@ SUMMARY = "Runtime libraries from GCC"
 
 # Over-ride the LICENSE set by gcc-${PV}.inc to remove "& GPLv3"
 # All gcc-runtime packages are now covered by the runtime exception.
-LICENSE = "GPL-3.0-with-GCC-exception"
+LICENSE = "GPL-3.0-or-later WITH GCC-exception-3.1"
 
 CXXFLAGS:remove = "-fvisibility-inlines-hidden"
 

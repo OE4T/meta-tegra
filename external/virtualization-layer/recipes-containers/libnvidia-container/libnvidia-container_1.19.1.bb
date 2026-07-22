@@ -19,7 +19,7 @@ DEPENDS = " \
     libtirpc \
     ldconfig-native \
 "
-LICENSE = "Apache-2.0 & MIT"
+LICENSE = "Apache-2.0 AND MIT"
 
 # Both source repositories include GPL COPYING (and for
 # libnvidia-container, COPYING.LESSER) files. However:

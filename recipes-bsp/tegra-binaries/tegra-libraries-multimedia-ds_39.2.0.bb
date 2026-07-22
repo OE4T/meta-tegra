@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-multimedia"
 
 require tegra-debian-libraries-common.inc
 
-LICENSE += "& MIT & BSD-3-Clause"
+LICENSE += "AND MIT AND BSD-3-Clause"
 
 MAINSUM = "ea71387feea6c60af41608084c82374596bced0258ac8c40e0de9e2642938ab5"
 

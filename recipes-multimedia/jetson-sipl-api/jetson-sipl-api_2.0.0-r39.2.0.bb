@@ -3,7 +3,7 @@ DESCRIPTION = "The Safe Image Processing Library (SIPL) is NVIDIA modular, \
     extensible framework for camera and image sensor integration, image \
     processing, and control, which supports continuous streaming of image data from camera sensors. \
 "
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "file://../../../share/doc/jetson_sipl_api/Tegra_Software_License_Agreement-Tegra-Linux.txt;md5=376d20bd5275442226fcdf54e4844ddf"
 
 SRC_URI = "\

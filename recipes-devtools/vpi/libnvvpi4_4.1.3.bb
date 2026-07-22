@@ -1,7 +1,7 @@
 SUMMARY = "Vision Programming Interface(VPI) is an API for accelerated \
   computer vision and image processing for embedded systems."
 HOMEPAGE = "https://developer.nvidia.com/embedded/vpi"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = " \
     file://opt/nvidia/vpi4/doc/LICENSE.Boost;md5=5babd6e46e208e82f5759113623a6059 \
     file://opt/nvidia/vpi4/doc/LICENSE.Ceres;md5=b25c1d0dcdc903abbcc42fc0d3c2bd7a \

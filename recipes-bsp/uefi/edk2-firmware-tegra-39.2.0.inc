@@ -2,7 +2,7 @@ require edk2-firmware.inc
 require edk2-firmware-core-tegra-39.2.0.inc
 require conf/image-uefi.conf
 
-LICENSE .= " & Proprietary"
+LICENSE .= " AND LicenseRef-Proprietary"
 
 LIC_FILES_CHKSUM += "file://../edk2-platforms/License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia/LICENSE;md5=52d8683e3d65a77ef84cc863e3f24f25"

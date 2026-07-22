@@ -22,7 +22,7 @@ CUDA_DL_CLASS = "l4t_deb_pkgfeed"
 inherit ${CUDA_DL_CLASS}
 
 DESCRIPTION = "CUDA package ${PN}"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 LIC_FILES_CHKSUM ?= "file://usr/local/cuda-${CUDA_VERSION}/EULA.txt;md5=adab0e709d8c3b4c5f151392d2ff3a72"
 
 DEPENDS ?= "cuda-cudart"

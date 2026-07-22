@@ -2,7 +2,7 @@ DESCRIPTION = "NVIDIA Nsight Systems is a multi-core CPU sampling profiler that 
     provides an interactive view of captured profiling data, helping improve \
     overall application performance."
 HOMEPAGE = "https://developer.nvidia.com/nsight-systems"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 BASE_VERSION = "${@'.'.join(d.getVar('PV').split('.')[0:3])}"
 LIC_FILES_CHKSUM = "file://opt/nvidia/nsight-systems/${BASE_VERSION}/EULA.txt;md5=59a793e0da68faeaa65ccfa38d9408b4"
 

@@ -1,7 +1,7 @@
 require optee-l4t.inc
 TEGRA_SRC_SUBARCHIVE_OPTS = "--strip-components=1 optee/optee_os"
 
-LICENSE = "BSD-2-Clause & Proprietary"
+LICENSE = "BSD-2-Clause AND LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = " \
     file://LICENSE;md5=2f6a2cb48b5cc5cd0bd3f87a836cb407 \
     file://LICENSE.NVIDIA;md5=ba16bc74328d76e24af960ba01c937dc \

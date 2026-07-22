@@ -1,6 +1,6 @@
 DESCRIPTION = "Compute Unified Programmable Vision Accelerator SDK"
 HOMEPAGE = "https://www.nvidia.com"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "file://usr/share/doc/pva-sdk-${BASEVER}/copyright;md5=bb46a5b9fba375d52481253b20200701"
 
 inherit l4t_deb_pkgfeed

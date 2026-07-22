@@ -1,6 +1,6 @@
 SUMMARY = "Python bindings for TensorRT"
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "file://python/packaging/bindings_wheel/LICENSE.txt;md5=0f58ca2991dd21e8f5c268a18ac2535b"
 
 DEPENDS = "python3-pybind11 tensorrt-core tensorrt-plugins"

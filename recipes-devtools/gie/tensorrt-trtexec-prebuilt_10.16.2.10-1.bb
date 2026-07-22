@@ -1,5 +1,5 @@
 DESCRIPTION = "NVIDIA TensorRT Prebuilt Plugins for deep learning"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 
 inherit l4t_deb_pkgfeed features_check
 
