@@ -86,7 +86,28 @@ MACHINE_ESSENTIAL_EXTRA_RRECOMMENDS = "kernel-module-ina3221 kernel-module-lm90 
                                        kernel-module-ucsi-ccg kernel-module-pcie-tegra194 kernel-module-phy-tegra194-p2u \
                                        kernel-module-nvme kernel-module-pwm-tegra kernel-module-tegra-xudc"
 MACHINE_EXTRA_RDEPENDS = "tegra-nvsciipc tegra-configs-sysctl tegra-nvfancontrol tegra-configs-udev tegra-redundant-boot nvidia-kernel-oot-display tegra-configs-display-driver"
-MACHINE_EXTRA_RRECOMMENDS = "kernel-module-snd-hda-tegra kernel-module-snd-hda-codec-hdmi nvidia-kernel-oot-cameras nvidia-kernel-oot-canbus"
+MACHINE_EXTRA_RRECOMMENDS = " \
+    kernel-module-snd-hda-codec-hdmi \
+    kernel-module-snd-hda-tegra \
+    kernel-module-snd-soc-tegra-audio-graph-card \
+    kernel-module-snd-soc-tegra186-asrc \
+    kernel-module-snd-soc-tegra186-dspk \
+    kernel-module-snd-soc-tegra210-admaif \
+    kernel-module-snd-soc-tegra210-adx \
+    kernel-module-snd-soc-tegra210-ahub \
+    kernel-module-snd-soc-tegra210-amx \
+    kernel-module-snd-soc-tegra210-dmic \
+    kernel-module-snd-soc-tegra210-i2s \
+    kernel-module-snd-soc-tegra210-mixer \
+    kernel-module-snd-soc-tegra210-mvc \
+    kernel-module-snd-soc-tegra210-ope \
+    kernel-module-snd-soc-tegra210-sfc \
+    kernel-module-tegra-aconnect \
+    kernel-module-tegra210-adma \
+    nvidia-kernel-oot-alsa \
+    nvidia-kernel-oot-cameras \
+    nvidia-kernel-oot-canbus \
+"
 MACHINE_HWCODECS = "gstreamer1.0-plugins-nvvideo4linux2"
 
 PREFERRED_PROVIDER_virtual/xserver ?= "xserver-xorg"
