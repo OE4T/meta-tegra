@@ -15,5 +15,7 @@ MACHINE_EXTRA_RRECOMMENDS += " \
     ${DEVKIT_ETHERNET_RRECOMMENDS} \
     kernel-module-rtk-btusb \
     ${DEVKIT_WIFI_RRECOMMENDS} \
+    kernel-module-snd-soc-rl6231 \
+    kernel-module-snd-soc-rt5640 \
 "
 TEGRA_BT_SUPPORT_PACKAGE ?= ""
