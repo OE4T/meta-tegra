@@ -196,7 +196,7 @@ prepare_binaries_t234() {
             wait_for_rcm
         fi
         rm -rf rcmboot_blob
-        if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
+        if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU RAMCODE=$RAMCODE serial_number=$serial_number \
               "$here/$FLASH_HELPER" --no-flash --datafile "$DATAFILE" --sign -u "$keyfile" -v "$sbk_keyfile" $instance_args \
               flash.xml.in $LNXFILE $ROOTFS_IMAGE; then
             cp secureflash.xml internal-secureflash.xml
@@ -217,7 +217,7 @@ prepare_binaries_t234() {
         # Even if there are no signable entries in the external device layout, we need the script to
         # apply its sed rewrites to the the xxxFILE tokens.
         . ./boardvars.sh
-        if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
+        if MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU RAMCODE=$RAMCODE \
                             "$here/$FLASH_HELPER" --no-flash --sign --external-device --datafile "$DATAFILE" -u "$keyfile" -v "$sbk_keyfile" $instance_args \
                             external-flash.xml.in $LNXFILE $ROOTFS_IMAGE; then
             mv secureflash.xml external-secureflash.xml
