@@ -8,18 +8,24 @@ TEGRA_UEFI_CAPSULE_SIGNING_CLASS ??= "tegra-uefi-capsule-signing"
 inherit ${TEGRA_UEFI_CAPSULE_SIGNING_CLASS}
 
 TEGRA_UEFI_CAPSULE_SIGNING_EXTRA_DEPS ??= ""
+TEGRA_UEFI_SYSTEM_IMAGE_TYPE_GUID ??= ""
+TEGRA_UEFI_CAPSULE_ALT_IMAGE_TYPE_GUIDS ??= ""
 
 COMPATIBLE_MACHINE = "(tegra)"
 
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
 
 do_compile() {
+    # Older versions of this recipe use GUID
+    if [ -n "${GUID}" ]; then
+        bberror "Please set TEGRA_SYSTEM_IMAGE_GUID to override the image type GUID"
+    fi
     if [ ! -e ${DEPLOY_DIR_IMAGE}/${TEGRA_FLASHVAR_UEFI_IMAGE}.fmp-image-type-id ]; then
         bberror "Missing FMP system image type GUID file"
     fi
     this_guid=$(cat ${DEPLOY_DIR_IMAGE}/${TEGRA_FLASHVAR_UEFI_IMAGE}.fmp-image-type-id)
-    if [ -n "${GUID}" -a "$this_guid" != "${GUID}" ]; then
-        bbwarn "FMP system image type GUID set in recipe does not match built configuration"
+    if [ -n "${TEGRA_UEFI_SYSTEM_IMAGE_GUID}" -a "$this_guid" != "${TEGRA_UEFI_SYSTEM_IMAGE_GUID}" ]; then
+        bbwarn "TEGRA_UEFI_SYSTEM_IMAGE_GUID variable does not match built configuration"
     fi
     # Generate BUP images
     PATH="${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}:${PATH}"
@@ -40,24 +46,34 @@ do_compile() {
     done
     mv ${B}/bup-payload/${BUP_PAYLOAD_DIR}/* .
     cd "$oldwd"
+    # Use a separate sub-directory for each signing with a different GUID
+    for guid in $this_guid ${TEGRA_UEFI_CAPSULE_ALT_IMAGE_TYPE_GUIDS}; do
+	rm -rf $guid
+	mkdir $guid
+	cd $guid
+	# Create symlinks BUP payloads with a naming expected by sign_uefi_capsules
+	for f in ${B}/bup-payload/*_only_payload; do
+            [ -e $f ] || continue
+            sfx=$(basename $f _payload)
 
-    # Create symlinks BUP payloads with a naming expected by sign_uefi_capsules
-    for f in ${B}/bup-payload/*_only_payload; do
-        [ -e $f ] || continue
-        sfx=$(basename $f _payload)
+            ln -sf $f ${B}/${BUPFILENAME}.$sfx.bup-payload
+	done
 
-        ln -sf $f ${B}/${BUPFILENAME}.$sfx.bup-payload
+	# Generate UEFI capsules
+	GUID="$guid" sign_uefi_capsules
+
+	# Check if capsules were generated successfully
+	if [ ! -e tegra-bl.cap ]; then
+            bberror "tegra-bl.cap wasn't generated for GUID $guid"
+	fi
+	if [ -e ${B}/${BUPFILENAME}.kernel.bup_payload -a ! -e tegra-kernel.cap ]; then
+            bberror "tegra-kernel.cap wasn't generated for GUID $guid"
+	fi
+	cd "$oldwd"
     done
-
-    # Generate UEFI capsules
-    GUID="$this_guid" sign_uefi_capsules
-
-    # Check if capsules were generated successfully
-    if [ ! -e ${B}/tegra-bl.cap ]; then
-        bberror "${B}/tegra-bl.cap wasn't generated"
-    fi
-    if [ -e ${B}/${BUPFILENAME}.kernel.bup_payload -a ! -e ${B}/tegra-kernel.cap ]; then
-        bberror "${B}/tegra-kernel.cap wasn't generated"
+    mv $this_guid/tegra-bl.cap ${B}/
+    if [ -e $this_guid/tegra-kernel.cap ]; then
+        mv $this_guid/tegra-kernel.cap ${B}/
     fi
 }
 do_compile[file-checksums] += "${TEGRA_SIGNING_FILECHECKSUMS}"
@@ -70,9 +86,14 @@ do_install() {
         if [ -e ${B}/tegra-bl.cap ]; then
             install -m 0644 ${B}/tegra-bl.cap ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
         fi
-        if [ -e ${B}/tegra-kernel.cap ]; then
+	if [ -e ${B}/tegra-kernel.cap ]; then
             install -m 0644 ${B}/tegra-kernel.cap ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}
         fi
+	for guid in ${TEGRA_UEFI_CAPSULE_ALT_IMAGE_TYPE_GUIDS}; do
+	    install -m 0644 ${B}/$guid/tegra-bl.cap ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}/tegra-bl-${guid}.cap
+	    [ -e ${B}/$guid/tegra-kernel.cap ] || continue
+	    install -m 0644 ${B}/$guid/tegra-kernel.cap ${D}${TEGRA_UEFI_CAPSULE_INSTALL_DIR}/tegra-kernel-${guid}.cap
+	done
     else
         bbnote "TEGRA_UEFI_CAPSULE_INSTALL_DIR is empty, capsules won't be installed"
     fi
@@ -87,13 +108,29 @@ do_deploy() {
     if [ -e ${B}/tegra-bl.cap ]; then
         BL_NAME=${TNSPEC_MACHINE}-tegra-bl.cap
         install -m 0644 ${B}/tegra-bl.cap ${DEPLOYDIR}/$BL_NAME
-        ln -s -r ${DEPLOYDIR}/$BL_NAME ${DEPLOYDIR}/tegra-bl.cap
+        ln -sf -r ${DEPLOYDIR}/$BL_NAME ${DEPLOYDIR}/tegra-bl.cap
     fi
     if [ -e ${B}/tegra-kernel.cap ]; then
         KERNEL_NAME=${TNSPEC_MACHINE}-tegra-kernel.cap
         install -m 0644 ${B}/tegra-kernel.cap ${DEPLOYDIR}/$KERNEL_NAME
-        ln -s -r ${DEPLOYDIR}/$KERNEL_NAME ${DEPLOYDIR}/tegra-kernel.cap
+        ln -sf -r ${DEPLOYDIR}/$KERNEL_NAME ${DEPLOYDIR}/tegra-kernel.cap
     fi
+    altcapcount=0
+    for guid in ${TEGRA_UEFI_CAPSULE_ALT_IMAGE_TYPE_GUIDS}; do
+	install -m 0644 ${B}/$guid/tegra-bl.cap ${DEPLOYDIR}/${TNSPEC_MACHINE}-tegra-bl-${guid}.cap
+	ln -sf ${TNSPEC_MACHINE}-tegra-bl-${guid}.cap ${DEPLOYDIR}/tegra-bl-${guid}.cap
+	if [ $altcapcount -eq 0 ]; then
+	    ln -sf ${TNSPEC_MACHINE}-tegra-bl-${guid}.cap ${DEPLOYDIR}/tegra-bl-alt.cap
+        fi
+	if [ -e ${B}/$guid/tegra-kernel.cap ]; then
+	    install -m 0644 ${B}/$guid/tegra-kernel.cap ${DEPLOYDIR}/${TNSPEC_MACHINE}-tegra-kernel-${guid}.cap
+	    ln -sf ${TNSPEC_MACHINE}-tegra-kernel-${guid}.cap ${DEPLOYDIR}/tegra-kernel-${guid}.cap
+            if [ $altcapcount -eq 0 ]; then
+	        ln -sf ${TNSPEC_MACHINE}-tegra-kernel-${guid}.cap ${DEPLOYDIR}/tegra-kernel-alt.cap
+	    fi
+	fi
+        altcapcount=$(expr $altcapcount + 1)
+    done
 }
 
 addtask deploy after do_install
