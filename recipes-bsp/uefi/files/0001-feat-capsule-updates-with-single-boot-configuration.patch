@@ -1,0 +1,208 @@
+From 94d9907719079e83189d0b536dde77c8922356e3 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sat, 18 Jul 2026 07:25:47 -0700
+Subject: [PATCH] feat: capsule updates with single-boot configuration
+
+Let the EFI boot manager find ESP partitions, even for a single-boot
+setup, so that capsule updates can be applied. Have the PlatformBootOrder
+library prepend the single-boot application to the boot order, so the ESP
+does not need to contain a boot launcher.
+
+Also make sure that the platform boot order is always computed for the
+single-boot case, without tracking it in the non-volatile variable store.
+This way, if someone uses a capsule update to switch from normal to
+single boot, the previously stashed BootOrderSet state doesn't affect the
+single-boot sequence (and vice-versa).
+
+Upstream-Status: Pending
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ .../Include/Library/PlatformBootOrderLib.h    |  6 ++
+ .../PlatformBootManagerLib/PlatformBm.c       |  4 ++
+ .../PlatformBootOrderLib.c                    | 65 +++++++++++++++----
+ .../PlatformBootOrderLib.inf                  |  1 +
+ .../PlatformBootOrderLibNoIpmi.inf            |  3 +
+ 5 files changed, 67 insertions(+), 12 deletions(-)
+
+diff --git a/Silicon/NVIDIA/Include/Library/PlatformBootOrderLib.h b/Silicon/NVIDIA/Include/Library/PlatformBootOrderLib.h
+index b6587c33..98a1b3fa 100644
+--- a/Silicon/NVIDIA/Include/Library/PlatformBootOrderLib.h
++++ b/Silicon/NVIDIA/Include/Library/PlatformBootOrderLib.h
+@@ -15,6 +15,12 @@ SetBootOrder (
+   VOID
+   );
+ 
++VOID
++EFIAPI
++SetBootOrderUntracked (
++  VOID
++  );
++
+ VOID
+ PrintCurrentBootOrder (
+   IN CONST UINTN  DebugPrintLevel
+diff --git a/Silicon/NVIDIA/Library/PlatformBootManagerLib/PlatformBm.c b/Silicon/NVIDIA/Library/PlatformBootManagerLib/PlatformBm.c
+index 895ae854..5e86c5e5 100644
+--- a/Silicon/NVIDIA/Library/PlatformBootManagerLib/PlatformBm.c
++++ b/Silicon/NVIDIA/Library/PlatformBootManagerLib/PlatformBm.c
+@@ -2196,6 +2196,10 @@ PlatformBootManagerBeforeConsole (
+     if (!EFI_ERROR (Status)) {
+       mRscHandler->Register (SingleBootStatusCodeCallback, TPL_CALLBACK);
+     }
++
++    EfiBootManagerRefreshAllBootOption ();
++    SetBootOrderUntracked ();
++
+   }
+ 
+   //
+diff --git a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
+index a1a6876f..649f3788 100644
+--- a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
++++ b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
+@@ -13,6 +13,7 @@
+ #include <Library/MemoryAllocationLib.h>
+ #include <Library/HobLib.h>
+ #include <Library/PlatformResourceLib.h>
++#include <Library/PcdLib.h>
+ #include <Library/PrintLib.h>
+ #include <Library/UefiBootManagerLib.h>
+ #include <Library/UefiLib.h>
+@@ -48,6 +49,9 @@ NVIDIA_BOOT_ORDER_PRIORITY  mBootPriorityTemplate[BOOT_ORDER_TEMPLATE_CLASS_COUN
+ STATIC  NVIDIA_BOOT_ORDER_PRIORITY  *mBootPriorityTable = NULL;
+ STATIC  UINTN                       mBootPriorityCount  = 0;
+ 
++STATIC NVIDIA_BOOT_ORDER_PRIORITY mBootAppTemplate =
++{ "bootapp",    0, MAX_UINT8,             MAX_UINT8,             MAX_UINT8,                MAX_UINTN, MAX_UINTN, MAX_UINTN, MAX_UINTN };
++
+ STATIC
+ EFI_PCI_IO_PROTOCOL *
+ GetBootOptPciIoProtocol (
+@@ -335,6 +339,16 @@ GetBootClassOfOption (
+   Bus      = MAX_UINTN;
+   Device   = MAX_UINTN;
+   Function = MAX_UINTN;
++
++  if (FeaturePcdGet (PcdSingleBootSupport) && StrCmp (Option->Description, L"Boot Application") == 0) {
++    for (BootPriorityIndex = 0; BootPriorityIndex < Count; BootPriorityIndex++) {
++      if (AsciiStrCmp (Table[BootPriorityIndex].OrderName, "bootapp") == 0) {
++        Result = &Table[BootPriorityIndex];
++        goto ReturnResult;
++      }
++    }
++  }
++
+   if (StrCmp (Option->Description, L"UEFI Shell") == 0) {
+     for (BootPriorityIndex = 0; BootPriorityIndex < Count; BootPriorityIndex++) {
+       if (AsciiStrCmp (Table[BootPriorityIndex].OrderName, "shell") == 0) {
+@@ -645,17 +659,11 @@ STATIC
+ INTN
+ EFIAPI
+ BootOrderSortCompare (
+-  IN CONST VOID  *Buffer1,
+-  IN CONST VOID  *Buffer2
++  IN CONST EFI_BOOT_MANAGER_LOAD_OPTION  *Left,
++  IN CONST EFI_BOOT_MANAGER_LOAD_OPTION  *Right
+   )
+ {
+-  INT32  Priority1;
+-  INT32  Priority2;
+-
+-  Priority1 = GetDevicePriority (*(UINT16 *)Buffer1);
+-  Priority2 = GetDevicePriority (*(UINT16 *)Buffer2);
+-
+-  return Priority1 - Priority2;
++  return GetDevicePriority (Left->OptionNumber) - GetDevicePriority (Right->OptionNumber);
+ }
+ 
+ STATIC
+@@ -681,7 +689,29 @@ ParseDefaultBootPriority (
+   UINTN                       BootPrioritySbdfLen;
+   UINTN                       BootClassIndex;
+ 
++  // For single-boot setup, make sure the single-boot app is first
+   Priority = 0;
++  if (FeaturePcdGet (PcdSingleBootSupport)) {
++    NVIDIA_BOOT_ORDER_PRIORITY  *NewBuffer;
++    NewBuffer = (NVIDIA_BOOT_ORDER_PRIORITY *)ReallocatePool (
++                                                mBootPriorityCount * sizeof (NVIDIA_BOOT_ORDER_PRIORITY),
++                                                (mBootPriorityCount + 1) * sizeof (NVIDIA_BOOT_ORDER_PRIORITY),
++                                                (VOID *)mBootPriorityTable
++                                              );
++    if (NewBuffer == NULL) {
++      DEBUG ((DEBUG_ERROR, "%a: Failed to allocate boot table buffer\r\n", __FUNCTION__));
++    } else {
++      mBootPriorityTable = NewBuffer;
++      CopyMem (
++        &mBootPriorityTable[mBootPriorityCount],
++        &mBootAppTemplate,
++        sizeof (mBootAppTemplate)
++      );
++      ClassBootPriority = &mBootPriorityTable[mBootPriorityCount++];
++      ClassBootPriority->PriorityOrder = Priority++;
++    }
++  }
++
+   // Process the priority order
+   Status = GetVariable2 (
+              L"DefaultBootPriority",
+@@ -792,6 +822,19 @@ ParseDefaultBootPriority (
+   return;
+ }
+ 
++VOID
++EFIAPI
++SetBootOrderUntracked (
++  VOID
++  )
++{
++
++  ParseDefaultBootPriority ();
++
++  EfiBootManagerSortLoadOptionVariable (LoadOptionTypeBoot, (SORT_COMPARE)BootOrderSortCompare);
++
++}
++
+ VOID
+ EFIAPI
+ SetBootOrder (
+@@ -818,9 +861,7 @@ SetBootOrder (
+     }
+   }
+ 
+-  ParseDefaultBootPriority ();
+-
+-  EfiBootManagerSortLoadOptionVariable (LoadOptionTypeBoot, BootOrderSortCompare);
++  SetBootOrderUntracked ();
+ 
+   VariableData = TRUE;
+   gRT->SetVariable (
+diff --git a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
+index 7fd6ec56..65b08f8f 100644
+--- a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
++++ b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
+@@ -44,6 +44,7 @@
+ [Pcd]
+   gNVIDIATokenSpaceGuid.PcdIpmiNetworkBootMode
+   gNVIDIATokenSpaceGuid.PcdLockAllVariables
++  gNVIDIATokenSpaceGuid.PcdSingleBootSupport
+ 
+ [Guids]
+   gEfiGlobalVariableGuid
+diff --git a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLibNoIpmi.inf b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLibNoIpmi.inf
+index e2ea7d68..d3fd0405 100644
+--- a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLibNoIpmi.inf
++++ b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLibNoIpmi.inf
+@@ -39,6 +39,9 @@
+ [Protocols]
+   gEfiPciIoProtocolGuid          ## CONSUMES
+ 
++[Pcd]
++  gNVIDIATokenSpaceGuid.PcdSingleBootSupport
++
+ [Guids]
+   gEfiGlobalVariableGuid
+   gNVIDIATokenSpaceGuid
+-- 
+2.43.0
+
