@@ -14,11 +14,11 @@ is used to set the system type ID for the firmware contained in the capsule. A c
 that GUID matches the system type GUID built into the currently running firmware.
 
 In the initial Jetson Linux UEFI releases (L4T R35.x/R36.x), one system type GUID (per SoC type) was set in the UEFI build configuration,
-and the same GUID was used during capsule generation. However, The EFI and NVIDIA documentation recommends that vendors
+and the same GUID was used during capsule generation. However, The EFI and NVIDIA documentation recommend that vendors
 set unique system type GUIDs for their products, and with L4T R38.x and later, NVIDIA sets a different GUID in each of the pre-defined UEFI
 configurations they provide in pre-built form.
 
-To provide a custom systeim image type GUID for your target system, you can set the `TEGRA_UEFI_SYSTEM_IMAGE_TYPE_GUID` variable
+To provide a custom system image type GUID for your target system, you can set the `TEGRA_UEFI_SYSTEM_IMAGE_TYPE_GUID` variable
 in your machine configuration. When that variable is set to a non-null string, the `edk2-firmware-tegra` recipe automatically creates a configuration
 fragment to set `CONFIG_FMP_SYSTEM_IMAGE_TYPE_ID` to the specified string value. The recipe also deploys a file containing the
 system image type GUID that was configured into the build, so the `tegra-uefi-capsules` recipe can pass that same GUID to the `GenerateCapsule.py`
@@ -30,7 +30,7 @@ If you have devices you have already deployed with UEFI firmware you built using
 to use a capsule update as part of a field (OTA) upgrade to L4T R39.x or later, make sure you have plan for any system image type ID
 change that may occur as part of the upgrade.
 
-The R39.x GUID for the `t23x_general`/`t26x_general` full-featured UEFI configuration that is used by default, and matches the
+The R39.x GUID for the `t23x_general`/`t26x_general` full-featured UEFI configuration is used by default, and matches the
 corresponding `general` configuration used in prior releases. If you intend to switch to one of the minimal-boot configurations
 described on [this page](UEFI-Minimal-for-A-B-Updates.md) as part of the upgrade, the GUID in the new configuration
 will be different, and you must take one of the following steps to provide a compatible upgrade path.
@@ -42,12 +42,29 @@ also simplifies the downgrade path, if you intended to allow for downgrades acro
 OTA packages you may have already created based on the older L4T release.
 
 * For t23x (Orin) systems: set `TEGRA_UEFI_SYSTEM_IMAGE_TYPE_GUID = "bf0d4599-20d4-414e-b2c5-3595b1cda402"`
-* For t26x (Thor) system: set `TEGRA_UEFI_SYSTEM_IMAGE_TYPE_GUID = "3c834404-d2d7-4912-8c1c-6e850b5f2824"`
+* For t26x (Thor) systems: set `TEGRA_UEFI_SYSTEM_IMAGE_TYPE_GUID = "3c834404-d2d7-4912-8c1c-6e850b5f2824"`
 
 #### Option 2: Use multiple capsules with different image type GUIDs
 
-Explanation and settings TBD.
+A more complicated option is to perform an OTA update that supports upgrading the old firmware image to the new one, as well
+as updates to the new firmware that uses the new type ID. To do this, set the `TEGRA_UEFI_CAPSULE_ALT_IMAGE_TYPE_GUIDS`
+variable to one or more GUID values (separated by blanks if more than one). When set, the `tegra-uefi-capsules` recipe
+will generate capsules with the specified GUIDs in the capsule header, each containing the same content as the capsule that
+matches the image type GUID specified during the UEFI build. The additional capsules will be named `tegra-bl-<GUID>.cap`
+(and likewise for a `-kernel` capsule, if one is generated) where `<GUID>` is the image type GUID value specified in the variable.
 
+You can then create an OTA update package specifically for upgrading from the older release to your new release which bundles in
+the capsule that would be recognized by the older firmware.  Alternatively, you could bundle all of the capsules into
+the update package and install the correct capsule into the ESP partition (but you would need to identify a method for
+determining the correct capsule). With all capsules included, the same update package could be used for updates from
+your pre-R39.x _or_ your latest R39.x+ releases.
+
+Be sure to test thoroughly if you adopt this approach, since the typical failure will be that no capsule is selected at all,
+which could render a device unbootable. Troubleshooting such issues can be difficult, too.
+
+#### Option 3: Re-flash
+
+A third option is to require re-flashing, rather than attempting to support the change with an OTA update.
 
 ## Rollback protection
 
