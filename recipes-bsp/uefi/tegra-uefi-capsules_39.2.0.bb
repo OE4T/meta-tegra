@@ -13,10 +13,14 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
 
-GUID:tegra234 ?= "bf0d4599-20d4-414e-b2c5-3595b1cda402"
-GUID:tegra264 ?= "3c834404-d2d7-4912-8c1c-6e850b5f2824"
-
 do_compile() {
+    if [ ! -e ${DEPLOY_DIR_IMAGE}/${TEGRA_FLASHVAR_UEFI_IMAGE}.fmp-image-type-id ]; then
+        bberror "Missing FMP system image type GUID file"
+    fi
+    this_guid=$(cat ${DEPLOY_DIR_IMAGE}/${TEGRA_FLASHVAR_UEFI_IMAGE}.fmp-image-type-id)
+    if [ -n "${GUID}" -a "$this_guid" != "${GUID}" ]; then
+        bbwarn "FMP system image type GUID set in recipe does not match built configuration"
+    fi
     # Generate BUP images
     PATH="${STAGING_BINDIR_NATIVE}/${FLASHTOOLS_DIR}:${PATH}"
     export tosimgfilename=${TOSIMGFILENAME}
@@ -46,7 +50,7 @@ do_compile() {
     done
 
     # Generate UEFI capsules
-    sign_uefi_capsules
+    GUID="$this_guid" sign_uefi_capsules
 
     # Check if capsules were generated successfully
     if [ ! -e ${B}/tegra-bl.cap ]; then
