@@ -931,7 +931,7 @@ if [ $want_signing -eq 1 ]; then
         L4T_CONF_DTBO="$rcm_bootcontrol_overlay"
         BINSARGS="--bins \"$binsargs_params; kernel $RCMBOOT_KERNEL; kernel_dtb $kernel_dtbfile\""
         if [ "$CHIPID" = "0x23" ]; then
-            FLASHARGS="--chip 0x23 $hsm_arg --bl uefi_t23x_general_with_dtb.bin \
+            FLASHARGS="--chip 0x23 $hsm_arg --bl ${RCM_UEFI_IMAGE}_with_dtb.bin \
 --sdram_config $BCTFILE \
 --applet mb1_t234_prod.bin \
 --cmd \"$tfcmd\" $skipuid \
