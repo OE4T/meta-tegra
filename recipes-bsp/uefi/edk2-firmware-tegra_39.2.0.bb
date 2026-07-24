@@ -16,6 +16,7 @@ TEGRA_EDK2_CONFIGURATION ??= "general"
 EDK2_PLATFORM = "${TEGRA_EDK2_PLATFORM}_${TEGRA_EDK2_CONFIGURATION}"
 TEGRA_FLASHVAR_UEFI_IMAGE ??= "uefi_${EDK2_PLATFORM}"
 EDK2_BIN_NAME = "uefi_${EDK2_PLATFORM}.bin"
+TEGRA_UEFI_SYSTEM_IMAGE_TYPE_GUID ??= ""
 
 SRC_URI += "file://nvbuildconfig.py"
 
@@ -47,7 +48,14 @@ do_patch[postfuncs] += "${@'fix_boot_timeout' if bb.utils.to_boolean(d.getVar('T
 
 
 do_configure:append() {
-    ${PYTHON} ${UNPACKDIR}/nvbuildconfig.py --kconfig-path=${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig --output-dir=${B}/nvidia-config/Tegra/${EDK2_PLATFORM} ${S_EDK2_NVIDIA}/Platform/NVIDIA/Tegra/DefConfigs/${EDK2_PLATFORM}.defconfig ${@config_fragments(d)}
+    if [ -n "${TEGRA_UEFI_SYSTEM_IMAGE_TYPE_GUID}" ]; then
+        echo 'CONFIG_FMP_SYSTEM_IMAGE_TYPE_ID="${TEGRA_UEFI_SYSTEM_IMAGE_TYPE_GUID}"' > ${B}/nvidia-config/Tegra/${EDK2_PLATFORM}/image_type_id_override.cfg
+        extracfg=${B}/nvidia-config/Tegra/${EDK2_PLATFORM}/image_type_id_override.cfg
+    else
+       rm -f ${B}/nvidia-config/Tegra/${EDK2_PLATFORM}/image_type_id_override.cfg
+       extracfg=
+    fi
+    ${PYTHON} ${UNPACKDIR}/nvbuildconfig.py --kconfig-path=${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig --output-dir=${B}/nvidia-config/Tegra/${EDK2_PLATFORM} ${S_EDK2_NVIDIA}/Platform/NVIDIA/Tegra/DefConfigs/${EDK2_PLATFORM}.defconfig ${@config_fragments(d)} $extracfg
     . ${B}/nvidia-config/Tegra/${EDK2_PLATFORM}/.config
     echo "$CONFIG_FMP_SYSTEM_IMAGE_TYPE_ID" > ${B}/nvidia-config/Tegra/${EDK2_PLATFORM}/fmp-image-type-id.txt
 }
