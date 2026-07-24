@@ -141,7 +141,10 @@ TEGRA_FLASH_CHECK_BOARDSKU ?= "${TEGRA_BOARDSKU}"
 # For more information on UEFI configurations, see the edk2-nvidia
 # sources, or the bootloader/uefi_bins/README_uefi.txt file in
 # the L4T kit.
-TEGRA_EDK2_CONFIGURATION ?= "general"
+TEGRA_MINIMAL_BOOT ?= "0"
+TEGRA_EDK2_CONFIGURATION ?= "${@oe4t.uefi.derive_config_name(d)}"
+TEGRA_MINIMAL_BOOTORDER_OVERLAY ?= "${@oe4t.uefi.default_boot_order(d)}"
+TEGRA_BOOTCONTROL_OVERLAYS += "${TEGRA_MINIMAL_BOOTORDER_OVERLAY}"
 TEGRA_FLASHVAR_UEFI_IMAGE ?= "uefi_${TEGRA_EDK2_PLATFORM}_${TEGRA_EDK2_CONFIGURATION}"
 TEGRA_RCM_EDK2_CONFIGURATION ?= "minimal"
 TEGRA_FLASHVAR_RCM_UEFI_IMAGE ?= "uefi_${TEGRA_EDK2_PLATFORM}_rcmboot"
