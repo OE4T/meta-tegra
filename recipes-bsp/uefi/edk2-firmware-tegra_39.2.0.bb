@@ -48,6 +48,8 @@ do_patch[postfuncs] += "${@'fix_boot_timeout' if bb.utils.to_boolean(d.getVar('T
 
 do_configure:append() {
     ${PYTHON} ${UNPACKDIR}/nvbuildconfig.py --kconfig-path=${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig --output-dir=${B}/nvidia-config/Tegra/${EDK2_PLATFORM} ${S_EDK2_NVIDIA}/Platform/NVIDIA/Tegra/DefConfigs/${EDK2_PLATFORM}.defconfig ${@config_fragments(d)}
+    . ${B}/nvidia-config/Tegra/${EDK2_PLATFORM}/.config
+    echo "$CONFIG_FMP_SYSTEM_IMAGE_TYPE_ID" > ${B}/nvidia-config/Tegra/${EDK2_PLATFORM}/fmp-image-type-id.txt
 }
 
 do_compile:append() {
@@ -119,6 +121,7 @@ INSANE_SKIP:l4t-launcher = "buildpaths"
 do_deploy() {
     install -d ${DEPLOYDIR}
     install -m 0644 ${B}/images/${EDK2_BIN_NAME} ${DEPLOYDIR}/${TEGRA_FLASHVAR_UEFI_IMAGE}.bin
+    install -m 0644 ${B}/nvidia-config/Tegra/${EDK2_PLATFORM}/fmp-image-type-id.txt ${DEPLOYDIR}/${TEGRA_FLASHVAR_UEFI_IMAGE}.fmp-image-type-id
     for dtb in ${TEGRA_BOOTCONTROL_OVERLAYS} L4TConfiguration-rcmboot.dtbo; do
 	[ -e ${B}/images/$dtb ] || continue
 	install -m 0644 ${B}/images/$dtb ${DEPLOYDIR}/
