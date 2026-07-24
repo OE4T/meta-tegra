@@ -7,7 +7,7 @@ HOMEPAGE = "https://github.com/NVIDIA/nvidia-container-runtime"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
-LICENSE = "Apache-2.0 & MIT & ISC & MPL-2.0 & (Apache-2.0 | MIT) & BSD-3-Clause"
+LICENSE = "Apache-2.0 AND MIT AND ISC AND MPL-2.0 AND (Apache-2.0 OR MIT) AND BSD-3-Clause"
 LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57 \
                     file://src/${GO_IMPORT}/vendor/tags.cncf.io/container-device-interface/LICENSE;md5=86d3f3a95c324c9479bd8986968f4327 \
                     file://src/${GO_IMPORT}/vendor/github.com/davecgh/go-spew/LICENSE;md5=c06795ed54b2a35ebeeb543cd3a73e56 \

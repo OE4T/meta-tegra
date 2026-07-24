@@ -1,6 +1,6 @@
 SUMMARY = "NVIDIA EGL/GLES GStreamer plugin"
 SECTION = "multimedia"
-LICENSE = "LGPL-2.0-or-later & MIT"
+LICENSE = "LGPL-2.0-or-later AND MIT"
 LIC_FILES_CHKSUM = "file://gst-libs/gst/egl/LICENSE.libgstnvegl-1.0;md5=de0f9dfa389a77a904a5a2919a9e6b08 \
                     file://LICENSE.libgstnveglglessink;md5=5cf2b0235eb3cb8f4073a66ecb29212a"
 

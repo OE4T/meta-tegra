@@ -1,6 +1,6 @@
 DESCRIPTION = "NVIDIA compositor GStreamer plugin"
 SECTION = "multimedia"
-LICENSE = "BSD-3-Clause & Proprietary"
+LICENSE = "BSD-3-Clause AND LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "file://gstnvcompositor.h;beginline=64;endline=64;md5=4bc2fab8a765b0fc125c88f3b3c38d2f \
                     file://README.txt;endline=26;md5=d4da79f8cebc6b73ce481b090afa99ae \
 "

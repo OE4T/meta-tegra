@@ -1,6 +1,6 @@
 DESCRIPTION = "NVIDIA v4l2 GStreamer plugin"
 SECTION = "multimedia"
-LICENSE = "LGPL-2.0-only & BSD-3-Clause & Proprietary"
+LICENSE = "BSD-3-Clause AND LGPL-2.0-only AND LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "file://LICENSE.gst-nvvideo4linux2;md5=457fb5d7ae2d8cd8cabcc21789a37e5c \
                     file://README.txt;endline=11;md5=c5bf1833f4b7ed06fc647441eafc8f82 \
 "

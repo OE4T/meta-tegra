@@ -1,6 +1,6 @@
 DESCRIPTION = "NVIDIA-modified unixfd GStreamer plugin"
 SECTION = "multimedia"
-LICENSE = "LGPL-2.1-only & Proprietary"
+LICENSE = "LGPL-2.1-only AND LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "file://LICENSE.gst-nvunixfd;md5=9625f2513c71cc788cdb110c47a3d9ca \
                     file://gstnvipcbufferpool.h;endline=10;md5=d9dae5d6e4678fa3c11acc234577e28c"
 

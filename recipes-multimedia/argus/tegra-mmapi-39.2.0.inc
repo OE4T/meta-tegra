@@ -1,5 +1,5 @@
 HOMEPAGE = "http://developer.nvidia.com"
-LICENSE = "Proprietary & BSD-3-Clause"
+LICENSE = "LicenseRef-Proprietary AND BSD-3-Clause"
 
 SRC_COMMON_DEBS = "${@l4t_deb_pkgname(d, 'jetson-multimedia-api')};subdir=tegra-mmapi"
 PV .= "${@l4t_bsp_debian_version_suffix(d, pkgname='nvidia-l4t-jetson-multimedia-api')}"

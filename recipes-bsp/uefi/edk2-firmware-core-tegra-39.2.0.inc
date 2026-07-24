@@ -1,4 +1,4 @@
-LICENSE .= " & Proprietary"
+LICENSE .= " AND LicenseRef-Proprietary"
 
 LIC_FILES_CHKSUM = "file://License.txt;md5=2b415520383f7964e96700ae12b4570a"
 

@@ -1,6 +1,6 @@
 DESCRIPTION = "NVIDIA custom gstreamer events helper library"
 SECTION = "multimedia"
-LICENSE = "MIT & Proprietary"
+LICENSE = "MIT AND LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "file://LICENSE.libgstnvcustomhelper;md5=9e0fe9cd844e2cba9b43e7a16ad5d431 \
                     file://README;endline=11;md5=8a55074f13f4cdb3c9966343177e1f9e \
 "

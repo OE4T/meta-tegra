@@ -1,6 +1,6 @@
 DESCRIPTION = "NVIDIA TensorRT Plugins for deep learning"
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
-LICENSE = "Apache-2.0 & BSD-3-Clause & MIT"
+LICENSE = "Apache-2.0 AND BSD-3-Clause AND MIT"
 LIC_FILES_CHKSUM = " \
   file://LICENSE;md5=5feff12211c5116f88277308f4b88a64 \
   file://third_party/cub/LICENSE.TXT;md5=20d1414b801e2a130d7d546685105508 \

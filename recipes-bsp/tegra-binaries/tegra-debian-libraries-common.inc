@@ -1,5 +1,5 @@
 HOMEPAGE = "https://developer.nvidia.com/embedded-computing"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 
 L4T_DEB_COPYRIGHT_MD5 ??= ""
 L4T_DEB_TRANSLATED_BPN ?= "${@d.getVar('BPN').replace('tegra-libraries-', 'nvidia-l4t-')}"

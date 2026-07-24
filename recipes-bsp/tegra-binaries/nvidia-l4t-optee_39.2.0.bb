@@ -18,10 +18,10 @@ LIC_FILES_CHKSUM += " \
     file://usr/share/doc/nvidia-l4t-optee/LICENSE.optee_client;md5=69663ab153298557a59c67a60a743e5b \
     file://usr/share/doc/nvidia-l4t-optee/LICENSE.82154947-c1bc-4bdf-b89d-04f93c0ea97c.ta;md5=6938d70d5e5d49d31049419e85bb82f8 \
 "
-LICENSE += "& BSD-2-Clause & BSD-3-Clause & GPL-2.0-only"
-LICENSE:${PN} = "BSD-2-Clause & BSD-3-Clause"
+LICENSE += "AND BSD-2-Clause AND BSD-3-Clause AND GPL-2.0-only"
+LICENSE:${PN} = "BSD-2-Clause AND BSD-3-Clause"
 LICENSE:${PN}-base-tas = "BSD-2-Clause"
-LICENSE:${PN}-test = "GPL-2.0-only & BSD-2-Clause"
+LICENSE:${PN}-test = "GPL-2.0-only AND BSD-2-Clause"
 LICENSE:${PN}-nvsamples = "BSD-2-Clause"
 
 PROVIDES += "optee-client optee-test optee-nvsamples"

@@ -1,5 +1,5 @@
 DESCRIPTION = "Out-of-tree kernel modules and device trees for Jetson Linux platforms"
-LICENSE = "GPL-2.0-only & BSD-3-Clause & (MIT | GPL-2.0-only)"
+LICENSE = "GPL-2.0-only AND BSD-3-Clause AND (MIT OR GPL-2.0-only)"
 LIC_FILES_CHKSUM = "file://unifiedgpudisp/COPYING;md5=1d5fa2a493e937d5a4b96e5e03b90f7c \
                     file://Makefile;beginline=2;endline=2;md5=a670216ac93e92dc066b1a876610705f \
                     file://nvidia-oot/Makefile;endline=1;md5=829e563511c9a1d6d41f17a7a4989d6a"

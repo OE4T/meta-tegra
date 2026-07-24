@@ -33,9 +33,9 @@ PACKAGES = "\
 
 # All libgcc source is marked with the exception.
 #
-LICENSE:${PN} = "GPL-3.0-with-GCC-exception"
-LICENSE:${PN}-dev = "GPL-3.0-with-GCC-exception"
-LICENSE:${PN}-dbg = "GPL-3.0-with-GCC-exception"
+LICENSE:${PN} = "GPL-3.0-or-later WITH GCC-exception-3.1"
+LICENSE:${PN}-dev = "GPL-3.0-or-later WITH GCC-exception-3.1"
+LICENSE:${PN}-dbg = "GPL-3.0-or-later WITH GCC-exception-3.1"
 
 
 FILES:${PN}-dev = "\
