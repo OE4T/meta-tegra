@@ -19,6 +19,33 @@ EDK2_BIN_NAME = "uefi_${EDK2_PLATFORM}.bin"
 
 SRC_URI += "file://nvbuildconfig.py"
 
+TEGRA_MINIMAL_BOOT ??= "0"
+TEGRA_MINIMAL_BOOT_HEADLESS ??= "1"
+
+MINIMAL_BOOT_PATCHES = "file://0001-feat-capsule-updates-with-single-boot-configuration.patch;patchdir=../edk2-nvidia"
+
+def minimal_configuration(d):
+    result = []
+    if bb.utils.to_boolean(d.getVar('TEGRA_MINIMAL_BOOT')):
+        result += d.getVar('MINIMAL_BOOT_PATCHES').split()
+        result.append("file://disable-unused-features.cfg")
+        if not bb.utils.to_boolean(d.getVar('TEGRAFLASH_NO_INTERNAL_STORAGE') or '0') and not d.getVar('TNSPEC_BOOTDEV').startswith('nvme'):
+            result.append("file://enable-{}.cfg".format('sdcard' if d.getVar('TNSPEC_BOOTDEV') == 'mmcblk1p1' else 'emmc'))
+        if bb.utils.to_boolean(d.getVar('TEGRA_MINIMAL_BOOT_HEADLESS')):
+            result.append("file://disable-display.cfg")
+    return ' '.join(result)
+
+SRC_URI += "${@minimal_configuration(d)}"
+
+# The Kconfig/Kbuild files NVIDIA provides don't get the logic for
+# setting the default boot timeout quite right, so just hack in a
+# hard-coded zero for the minimal-boot case.
+fix_boot_timeout() {
+    sed -i -e's,\$(CONFIG_BOOT_DEFAULT_TIMEOUT),0,' ${S}/../edk2-nvidia/Platform/NVIDIA/NVIDIA.common.dsc.inc
+}
+do_patch[postfuncs] += "${@'fix_boot_timeout' if bb.utils.to_boolean(d.getVar('TEGRA_MINIMAL_BOOT')) else ''}"
+
+
 do_configure:append() {
     ${PYTHON} ${UNPACKDIR}/nvbuildconfig.py --kconfig-path=${S_EDK2_NVIDIA}/Platform/NVIDIA/Kconfig --output-dir=${B}/nvidia-config/Tegra/${EDK2_PLATFORM} ${S_EDK2_NVIDIA}/Platform/NVIDIA/Tegra/DefConfigs/${EDK2_PLATFORM}.defconfig ${@config_fragments(d)}
 }
@@ -78,7 +105,11 @@ addtask sign_efi_launcher after do_compile before do_install
 
 do_install() {
     install -d ${D}${EFIDIR}
-    install -m 0644 ${B}/images/BOOTAA64.efi ${D}${EFIDIR}/${EFI_BOOT_IMAGE}
+    # For the minimal-boot configuration, L4TLauncher is built directly
+    # into the UEFI image, and should not be installed in the ESP.
+    if ${@'false' if bb.utils.to_boolean(d.getVar('TEGRA_MINIMAL_BOOT')) else 'true'}; then
+        install -m 0644 ${B}/images/BOOTAA64.efi ${D}${EFIDIR}/${EFI_BOOT_IMAGE}
+    fi
 }
 
 PACKAGES = "l4t-launcher"
