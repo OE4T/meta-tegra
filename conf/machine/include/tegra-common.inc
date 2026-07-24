@@ -153,7 +153,7 @@ TEGRA_RCM_EDK2_DEPENDS ?= "${@'edk2-firmware-tegra-rcmboot' if d.getVar('TEGRA_R
 EMC_BCTS ?= "${EMC_BCT}${@',' + d.getVar('EMC_BCT_OVERRIDE') if d.getVar('EMC_BCT_OVERRIDE') else ''}"
 
 TEGRA_UEFI_SIGNING_CLASS ?= "tegra-uefi-signing"
-
+TEGRA_UEFI_SYSTEM_IMAGE_TYPE_GUID ?= ""
 TEGRA_UEFI_FW_VERSION ?= "${@oe4t.uefi.get_hex_version(d.getVar('L4T_VERSION'))}"
 TEGRA_UEFI_LOWEST_SUPPORTED_VERSION ?= "${TEGRA_UEFI_FW_VERSION}"
 
