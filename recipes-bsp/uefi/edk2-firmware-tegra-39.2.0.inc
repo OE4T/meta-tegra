@@ -44,6 +44,9 @@ SRC_URI += "\
     file://0009-MdeModulePkg-CapsuleOnDiskLoadPei-fix-gcc-16-warning.patch \
 "
 
+TEGRA_UEFI_VERBOSE_LOGGING ??= "0"
+SRC_URI += "${@'file://debugprint.cfg' if bb.utils.to_boolean(d.getVar('TEGRA_UEFI_VERBOSE_LOGGING')) else ''}"
+
 S = "${UNPACKDIR}/edk2-tegra/edk2"
 
 COMPATIBLE_MACHINE = "(tegra)"
