@@ -22,6 +22,8 @@
 - [Wayland Weston Support on Jetson Platforms](Wayland-Weston-support-on-Jetson-platforms.md)
 - [Extlinux.conf Support](extlinux.conf-support.md)
 - [UEFI Capsule Update](UEFI-Capsule-Update.md)
+- [UEFI Debug Logging](UEFI-Debug-Logging.md)
+- [UEFI Minimal for A-B Updates](UEFI-Minimal-for-A-B-Updates.md)
 
 # Maintainer Guides
 - [Documentation Workflow](Documentation-Workflow.md)
