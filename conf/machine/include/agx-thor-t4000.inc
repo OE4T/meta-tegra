@@ -19,7 +19,6 @@ TEGRA_BUPGEN_SPECS ?= " \
 "
 
 EMMC_SIZE ?= ""
-BOOTPART_SIZE ?= ""
 
 TEGRA_PLUGIN_MANAGER_OVERLAYS ?= "tegra264-p4071-0000+p3834-xxxx-dynamic.dtbo tegra264-ftpm.dtbo"
 TEGRA_FLASHVAR_BPFDTB_FILE ?= "tegra264-bpmp-3834-0000-4071-xxxx.dtb"

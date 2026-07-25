@@ -5,8 +5,6 @@ require conf/machine/include/tegra234.inc
 KERNEL_ARGS ?= "mminit_loglevel=4 console=tty0 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 video=efifb:off console=tty0 efi=runtime nvme.use_threaded_interrupts=1 pci=pcie_bus_perf"
 
 EMMC_DEVSECT_SIZE ?= "512"
-BOOTPART_SIZE ?= "8388608"
-BOOTPART_LIMIT ?= "10485760"
 ROOTFSPART_SIZE_DEFAULT ?= "30064771072"
 TEGRA_FLASHVAR_ODMDATA ?= "gbe-uphy-config-22,hsstp-lane-map-3,nvhs-uphy-config-0,hsio-uphy-config-0,gbe0-enable-10g"
 EMC_BCT ?= "tegra234-p3701-0000-sdram-l4t.dts"
