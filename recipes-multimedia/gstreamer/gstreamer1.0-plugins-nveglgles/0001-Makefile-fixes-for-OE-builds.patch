@@ -1,4 +1,4 @@
-From 45ff5b1d51e141863dd1b0096a90fcfba2155ac9 Mon Sep 17 00:00:00 2001
+From 02a33737ba6a4ec899d7063793768b7549007f37 Mon Sep 17 00:00:00 2001
 From: Matt Madison <matt@madison.systems>
 Date: Fri, 19 Jun 2026 06:31:10 -0700
 Subject: [PATCH] Makefile fixes for OE builds
@@ -12,16 +12,16 @@ Upstream-Status: Inappropriate [OE specific]
 
 Signed-off-by: Matt Madison <matt@madison.systems>
 ---
- gst-egl/Makefile                             | 63 +++++++++++++++-----
+ gst-egl/Makefile                             | 62 ++++++++++++++++----
  gst-egl/ext/eglgles/gstegladaptation_egl.c   |  2 +
  gst-egl/ext/eglgles/gsteglglessink.c         |  2 +
  gst-egl/ext/eglgles/video_platform_wrapper.c |  2 +
  gst-egl/ext/eglgles/video_platform_wrapper.h |  7 +++
  gst-egl/pre-gen-source_64/config.h           |  6 +-
- 6 files changed, 65 insertions(+), 17 deletions(-)
+ 6 files changed, 65 insertions(+), 16 deletions(-)
 
 diff --git a/gst-egl/Makefile b/gst-egl/Makefile
-index a266201..da0053a 100644
+index a266201..adb8906 100644
 --- a/gst-egl/Makefile
 +++ b/gst-egl/Makefile
 @@ -16,8 +16,11 @@ ifeq ($(CUDA_VER),)
@@ -37,7 +37,7 @@ index a266201..da0053a 100644
  
  SRCS := ext/eglgles/gstegladaptation.c \
  	ext/eglgles/gstegladaptation_egl.c \
-@@ -29,46 +32,78 @@ SRCS := ext/eglgles/gstegladaptation.c \
+@@ -29,46 +32,79 @@ SRCS := ext/eglgles/gstegladaptation.c \
  INCLUDES += -I./pre-gen-source_64/ \
          -I./gst-libs \
          -I./gst-libs/gst/egl \
@@ -70,9 +70,9 @@ index a266201..da0053a 100644
  	-DHAVE_CONFIG_H \
  	-DG_THREADS_MANDATORY \
  	-DG_DISABLE_DEPRECATED \
--	-DUSE_EGL_TEGRA \
+ 	-DUSE_EGL_TEGRA \
 -	-DUSE_EGL_WAYLAND
-+	-DUSE_EGL_TEGRA
++	-DNVOS_IS_L4T
 +
 +EXTRADEPS :=
 +ifneq ($(USE_X11),)
