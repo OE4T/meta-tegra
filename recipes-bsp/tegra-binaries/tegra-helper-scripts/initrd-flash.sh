@@ -554,7 +554,7 @@ prepare_binaries_t264() {
 
     if [ "$target" = "internal" ]; then
         if [ -z "$PRESIGNED" ]; then
-            if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
+            if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU RAMCODE=$RAMCODE serial_number=$serial_number \
                  "$here/$FLASH_HELPER" --no-flash --sign -u "$keyfile" -v "$sbk_keyfile" --datafile "$datafile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
                 return 1
             fi
@@ -568,7 +568,7 @@ prepare_binaries_t264() {
         return 0
     elif [ "$target" = "external" ]; then
         if [ -z "$PRESIGNED" ]; then
-            if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU \
+            if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU RAMCODE=$RAMCODE \
                  "$here/$FLASH_HELPER" --no-flash --sign --external-device -u "$keyfile" -v "$sbk_keyfile" --datafile "$datafile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
                 return 1
             fi
@@ -583,7 +583,7 @@ prepare_binaries_t264() {
     elif [ "$target" = "rcm-boot" ]; then
         if [ -z "$PRESIGNED" ]; then
             rm -rf rcmboot_blob
-            if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU serial_number=$serial_number \
+            if ! MACHINE=$MACHINE BOARDID=$BOARDID FAB=$FAB BOARDSKU=$BOARDSKU BOARDREV=$BOARDREV CHIPREV=$CHIPREV CHIP_SKU=$CHIP_SKU RAMCODE=$RAMCODE serial_number=$serial_number \
                  "$here/$FLASH_HELPER" --no-flash --rcm-boot -u "$keyfile" -v "$sbk_keyfile" --datafile "$datafile" $instance_args "$layout_xml" "$kernel" "$rootfs_img"; then
                 echo "ERR: could not create RCM boot blob" >&2
                 return 1
