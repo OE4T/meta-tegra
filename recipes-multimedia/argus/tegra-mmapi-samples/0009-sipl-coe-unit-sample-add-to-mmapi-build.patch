@@ -1,0 +1,112 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kkiefer@nvidia.com>
+Date: Sun, 27 Jul 2026 00:00:00 -0700
+Subject: [PATCH] sipl-coe-unit-sample: add to mmapi build
+
+Add samples/unittest_samples/sipl_coe_unit_sample to the top-level
+SUBDIRS so it is built and installed alongside the other mmapi samples.
+
+Rework the sipl_coe_unit_sample Makefile for OE cross-compilation:
+- Remove the SIPL_ROOT detection block; SIPL and NvSci headers are
+  installed by jetson-sipl-api into the standard sysroot include path
+  and are found without extra -I flags.
+- Drop the -L"$(TARGET_ROOTFS)/usr/lib/nvsipl_uddf" linker search path;
+  the toolchain sysroot handles library lookup.
+- Remove the $(wildcard $(CLASS_DIR)/*.cpp) expansion from SRCS;
+  common classes are built as libnvclasses.a and linked via $(CLASSES),
+  matching the pattern established for other unittest_samples.
+- Remove the CLASS_DIR pattern rule (superseded by the classes target
+  in Rules.mk).
+- Remove the install target override; the install rule inherited from
+  Rules.mk correctly uses $(DESTDIR)$(bindir), placing the binary
+  at /opt/tegra-mmapi/bin/sipl_coe_sample.
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Kurt Kiefer <kkiefer@nvidia.com>
+---
+ Makefile                                           |  3 ++-
+ .../sipl_coe_unit_sample/Makefile                  | 31 +++---------------
+ 2 files changed, 8 insertions(+), 26 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 18e37d3..2e6fbf7 100644
+--- a/Makefile
++++ b/Makefile
+@@ -52,7 +52,8 @@
+ 	samples/unittest_samples/decoder_unit_sample \
+ 	samples/unittest_samples/encoder_unit_sample \
+ 	samples/unittest_samples/transform_unit_sample \
+-	samples/unittest_samples/camera_unit_sample
++	samples/unittest_samples/camera_unit_sample \
++	samples/unittest_samples/sipl_coe_unit_sample
+
+ .PHONY: all
+ all:
+diff --git a/samples/unittest_samples/sipl_coe_unit_sample/Makefile b/samples/unittest_samples/sipl_coe_unit_sample/Makefile
+index 676bc16..a3c42bf 100644
+--- a/samples/unittest_samples/sipl_coe_unit_sample/Makefile
++++ b/samples/unittest_samples/sipl_coe_unit_sample/Makefile
+@@ -38,57 +38,32 @@
+ 	sipl_coe_unit_sample.cpp \
+ 	NvNvSciBufHelper.cpp \
+ 	NvSiplCameraInterface.cpp \
+-	NvSiplCoEUtils.cpp \
+-	$(wildcard $(CLASS_DIR)/*.cpp)
++	NvSiplCoEUtils.cpp
+
+ OBJS := $(SRCS:.cpp=.o)
+
+-# NOTE: jetson_sipl_api.tbz2 installation is a prerequisite for compiling and running this sample.
+-# The jetson_sipl_api.tbz2 package should be extracted to provide the SIPL headers and libraries.
+-# SIPL_ROOT can be overridden via command line: make SIPL_ROOT=/path/to/sipl
+-ifeq ($(SIPL_ROOT),)
+-    # First try to find SIPL relative to TOP_DIR (from Rules.mk)
+-    SIPL_ROOT := $(shell if [ -d "$(TOP_DIR)/../jetson_sipl_api" ]; then echo "$(TOP_DIR)/../jetson_sipl_api"; else find /usr -name "jetson_sipl_api" -type d 2>/dev/null | head -1; fi)
+-    ifeq ($(SIPL_ROOT),)
+-        SIPL_ROOT := /usr/src/jetson_sipl_api/
+-    endif
+-endif
+-
+-# Additional include paths for SIPL
+-CPPFLAGS += \
+-	-I"$(SIPL_ROOT)/sipl/include" \
+-	-I"$(SIPL_ROOT)/sipl/include/query/include" \
+-	-I"$(SIPL_ROOT)/sipl/include/nvsci"
+-
+-# Additional library flags for SIPL components
++# SIPL and NvSci libraries; headers come from the jetson-sipl-api sysroot
+ LDFLAGS += \
+ 	-lnvscibuf \
+ 	-lnvscisync \
+ 	-lnvbufsurface_nvsci \
+ 	-lnvsipl_query \
+-	-lnvsipl \
+-	-L"$(TARGET_ROOTFS)/usr/lib/nvsipl_uddf"
++	-lnvsipl
+
+ # Override C++ standard for this project (C++17 with exceptions and RTTI)
+ CPPFLAGS := $(filter-out -std=c++11,$(CPPFLAGS)) -std=c++17 -fexceptions -frtti
+
+ all: $(APP)
+
+-$(CLASS_DIR)/%.o: $(CLASS_DIR)/%.cpp
+-	$(AT)$(MAKE) -C $(CLASS_DIR)
+-
+ %.o: %.cpp
+ 	@echo "Compiling: $<"
+ 	$(CPP) $(CPPFLAGS) -c $<
+
+-$(APP): $(OBJS)
++$(APP): $(OBJS) classes
+ 	@echo "Linking: $@"
+-	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(LDFLAGS)
++	$(CPP) -o $@ $(OBJS) $(CPPFLAGS) $(CLASSES) $(LDFLAGS)
+
+ clean:
+ 	$(AT)rm -rf $(APP) $(OBJS)
+
+-install: $(APP)
+-	cp $(APP) $(TARGET_ROOTFS)/usr/bin/
+-
+-.PHONY: all clean install
++.PHONY: all clean
