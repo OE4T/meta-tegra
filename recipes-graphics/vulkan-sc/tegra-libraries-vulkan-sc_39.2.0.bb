@@ -1,6 +1,6 @@
 SUMMARY = "NVIDIA Vulkan Safety Critical loader, validation layers, and dev headers"
 HOMEPAGE = "https://developer.nvidia.com/embedded/jetpack"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "\
     file://usr/share/doc/nvidia-l4t-vulkan-sc-sdk/copyright;md5=fea1f6ae9b5b80f1b769ae7c6cd85882 \
     file://usr/share/doc/nvidia-l4t-vulkan-sc-dev/copyright;md5=7b227641d976dcc6d473fb345610ac57 \

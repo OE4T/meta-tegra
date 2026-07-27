@@ -1,6 +1,6 @@
 SUMMARY = "NVIDIA Vulkan Safety Critical core driver library"
 HOMEPAGE = "https://developer.nvidia.com/embedded/jetpack"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 LIC_FILES_CHKSUM:tegra234 = "file://usr/share/doc/nvidia-l4t-vulkan-sc-nvgpu/copyright;md5=2efa2b52d37f190602d403961e089024"
 LIC_FILES_CHKSUM:tegra264 = "file://usr/share/doc/nvidia-l4t-vulkan-sc-openrm/copyright;md5=bf057ebea50d20e3884056bebc851ce6"
 

@@ -1,6 +1,6 @@
 SUMMARY = "NvSci header files (build-time only)"
 HOMEPAGE = "https://developer.nvidia.com/embedded/jetpack"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "file://usr/share/doc/jetson_sipl_api/Tegra_Software_License_Agreement-Tegra-Linux.txt;md5=376d20bd5275442226fcdf54e4844ddf"
 
 COMPATIBLE_MACHINE = "(tegra)"
