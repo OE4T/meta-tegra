@@ -10,9 +10,10 @@ SRC_URI += "\
     file://0006-frontend-add-option-to-set-timeout.patch \
     file://0007-camera_v4l2_cuda-add-option-for-setting-max-frame-co.patch \
     file://0008-NvJpegDecoder-remove-unused-header-file.patch \
+    file://0009-sipl-coe-unit-sample-add-to-mmapi-build.patch \
 "
 
-DEPENDS = "libdrm tegra-mmapi tegra-libraries-camera virtual/egl virtual/libgles1 virtual/libgles2 jpeg expat gstreamer1.0 glib-2.0 libv4l pango vulkan-headers vulkan-loader"
+DEPENDS = "libdrm tegra-mmapi tegra-libraries-camera virtual/egl virtual/libgles1 virtual/libgles2 jpeg expat gstreamer1.0 glib-2.0 libv4l pango vulkan-headers vulkan-loader jetson-sipl-api"
 
 inherit pkgconfig cuda python3native features_check
 
