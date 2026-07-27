@@ -1,6 +1,6 @@
 SUMMARY = "NVIDIA Vulkan Safety Critical sample applications (built from source)"
 HOMEPAGE = "https://developer.nvidia.com/embedded/jetpack"
-LICENSE = "Proprietary"
+LICENSE = "LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = "file://license.txt;md5=dcf473723faabf17baa9b5f2207599d0"
 
 COMPATIBLE_MACHINE = "(tegra)"
