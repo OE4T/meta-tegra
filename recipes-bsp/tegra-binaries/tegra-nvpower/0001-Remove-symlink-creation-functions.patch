@@ -8,14 +8,12 @@ Upstream-Status: Pending
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
 ---
- etc/systemd/nvpower.sh | 189 -----------------------------------------
- 1 file changed, 189 deletions(-)
+ etc/systemd/nvpower.sh | 193 --------------------------------------------------
+ 1 file changed, 193 deletions(-)
 
-diff --git a/etc/systemd/nvpower.sh b/etc/systemd/nvpower.sh
-index e4e92a5..e0ea3ed 100755
---- a/etc/systemd/nvpower.sh
-+++ b/etc/systemd/nvpower.sh
-@@ -213,193 +213,6 @@ function is_nvpm_relinking_needed()
+--- a/etc/systemd/nvpower.sh	2026-07-28 17:28:07.444673271 -0700
++++ b/etc/systemd/nvpower.sh	2026-07-28 17:28:07.454138821 -0700
+@@ -215,195 +215,6 @@
  	return 1
  }
  
@@ -108,6 +106,8 @@ index e4e92a5..e0ea3ed 100755
 -				conf_file="/etc/nvpmodel/nvpmodel_p3834_0000.conf"
 -			elif [ "${machine}" = "p3834-0005" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_p3834_0005.conf"
+-			elif [ "${machine}" = "p3834-0008-as-p5767-0000" ]; then
+-				conf_file="/etc/nvpmodel/nvpmodel_p3834_0008_as_p5767_0000.conf"
 -			elif [ "${machine}" = "p3834-0008-safety" ]; then
 -				conf_file="/etc/nvpmodel/nvpmodel_igx_thor_safety.conf"
 -			elif [ "${machine}" = "p3834-0008" ]; then
@@ -209,7 +209,7 @@ index e4e92a5..e0ea3ed 100755
  # CPU hotplug helper function that turns on/off the CPU cores in the specified range
  # * Parameters:
  # * ${1}: desired online status (0 for offline, 1 for online)
-@@ -907,8 +720,6 @@ function udev_ina238_handler()
+@@ -911,8 +722,6 @@
  # This path is triggered once when systemd start the nvpower.service in one-shot manner
  if [[ "$#" -eq 0 ]]; then
  	set_power_state_perm
@@ -218,6 +218,6 @@ index e4e92a5..e0ea3ed 100755
  	cpu_hotplug
  	set_cpufreq_governor
  	set_cpu_floor_freq
+
 -- 
 2.43.0
-
