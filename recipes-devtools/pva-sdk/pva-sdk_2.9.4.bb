@@ -8,7 +8,7 @@ inherit l4t_deb_pkgfeed
 BASEVER = "${@'.'.join(d.getVar('PV').split('.')[0:2])}"
 
 SRC_COMMON_DEBS = "pva-sdk-${BASEVER}-l4t_${PV}_arm64.deb;subdir=${BPN}"
-SRC_URI[sha256sum] = "065d4a23328811c672ea1a77890f41ae9f8f590444ea0d77b0b91aa970a1cc23"
+SRC_URI[sha256sum] = "8b6a6dc33bae3d41824020a9ae589db7cd8e3e86810d322382040c2fbd9007ed"
 
 S = "${UNPACKDIR}/${BPN}"
 B = "${S}"
