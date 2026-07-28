@@ -4,8 +4,8 @@ require cuda-shared-binaries.inc
 
 DEPENDS = "cuda-cudart libnvvm cuda-crt"
 
-MAINSUM = "3b943b0c907d6c56aa8924d9aabd124813c8a329f7f3a836198e0757fc835a15"
-MAINSUM:x86-64 = "10fce0a6cd8ac8e8e0d223f17ad0b067936cd17c2e3d7b2bdb61f0f1a869e3e0"
+MAINSUM = "f142c71a5dea49fd1f58a97d6899ddf2b80b1cd61da2c5c43eecfb8308121715"
+MAINSUM:x86-64 = "5fbb98fe3a1a652bd725104f4099613298cc27c0edc1cd59b20d3c29c756f5ad"
 
 # header files are populated by cuda-nvcc-headers recipes
 do_install:append() {
