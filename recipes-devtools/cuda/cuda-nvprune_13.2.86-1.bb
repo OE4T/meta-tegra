@@ -1,0 +1,8 @@
+CUDA_PKG = "${BPN}"
+
+require cuda-shared-binaries.inc
+
+MAINSUM = "78e24475fb5416bc32322184612759032cbf637aaa86c33cb1317e40e4a87f41"
+MAINSUM:x86-64 = "44f832e7a54b5d361c67f7d170ec56c18405af505672465ac5363b022dbf8487"
+
+BBCLASSEXTEND = "native nativesdk"

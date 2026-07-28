@@ -1,10 +1,10 @@
 
 require cuda-shared-binaries.inc
 
-MAINSUM = "f9a56a72c766521e64d659f0f9817e0965d5df6da6227b24ab53846c3a93165f"
-MAINSUM:x86-64 = "c237ea3e04e4390d17a0bc047697d3dba2f2db9fe283641ba430afa08ed992b6"
-DEVSUM = "d06d64a1d4f7197b4d786b86f190e24a2e1a235bd2ba786b0ac62bb3da60b531"
-DEVSUM:x86-64 = "2b4fffd8abceb84ef51e12c2c8d58849c24cb8cef0226bda5a026ee08b84a684"
+MAINSUM = "cec8bdb770f98e24be2cad58b00a696b2f115970a09eb51e290fd9e8a4ddb6a2"
+MAINSUM:x86-64 = "5be5c79c3fc1cb2d0dad067db70c3d18566298a3f7804932a0b13077a8dc2578"
+DEVSUM = "5753ce8d77401146105d5e369bdaa19fa89f84c061eb10e3b6d9c9bfc72860c8"
+DEVSUM:x86-64 = "919e94ea84ae4a33535ade98bc5d6e6c6cbcc76e8fa6ba90080dc763a2036ca5"
 
 do_install:append:class-nativesdk () {
     rm -f ${D}${prefix}/local/cuda-${CUDA_VERSION}/${baselib}/libnvrtc*.alt.so*
