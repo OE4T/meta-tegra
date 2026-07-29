@@ -66,12 +66,12 @@ do_install() {
     cp -R ${B}/var/nvidia ${D}${localstatedir}/
     if ${@bb.utils.contains('PACKAGECONFIG', 'x11', 'true', 'false', d)}; then
         install -d ${D}${libdir}/libv4l/plugins/
-	install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/libv4l2_nvargus.so ${D}${libdir}/libv4l/plugins/
+        install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/libv4l2_nvargus.so ${D}${libdir}/libv4l/plugins/
+        install -d ${D}${sbindir}
+        install -m 0755 ${B}/usr/sbin/nvargus_nvraw ${D}${sbindir}/
     fi
-    install -d ${D}${sbindir}
     install -m755 ${B}/usr/sbin/nvargus-daemon ${D}${sbindir}/
     install -m755 ${B}/usr/sbin/nvtunerd ${D}${sbindir}/
-    install -m755 ${B}/usr/sbin/nvargus_nvraw ${D}${sbindir}/
     install -d ${D}${libdir}/nvsipl_drv
     install -m 0644 ${S}/usr/lib/nvsipl_drv/libnvsipl_qry_vb1940.so ${D}${libdir}/nvsipl_drv/
     install -m 0644 ${S}/usr/lib/nvsipl_drv/libnvsipl_qry_nova0_hawk.so ${D}${libdir}/nvsipl_drv/
