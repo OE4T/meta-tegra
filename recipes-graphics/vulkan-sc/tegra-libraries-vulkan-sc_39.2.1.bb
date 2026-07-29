@@ -17,8 +17,8 @@ SRC_SOC_DEBS = "\
     ${@l4t_deb_pkgname(d, 'vulkan-sc-sdk')};subdir=${BP};name=sdk \
     ${@l4t_deb_pkgname(d, 'vulkan-sc-dev')};subdir=${BP};name=dev \
 "
-SRC_URI[sdk.sha256sum] = "5152f36510de21d49f32d3d8881e48eb19f75d1519505b121d88ca6032f440a1"
-SRC_URI[dev.sha256sum] = "9e141e553e9710b03b3f3f40ad3e9257da4166fa25c7935f2741c17ea742bd14"
+SRC_URI[sdk.sha256sum] = "283c60a286746a0a29948afb62cc0db24b77aaa1eec80d7851c8cf31274e66f6"
+SRC_URI[dev.sha256sum] = "9de146ce1b149306ed20ebb7bdf6a42f65a1bdcaf3e6ae7c44b46684d16065f7"
 
 S = "${UNPACKDIR}/${BP}"
 

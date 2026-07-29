@@ -10,7 +10,7 @@ inherit python3native
 
 JETSON_IO_BASE = "/opt/nvidia/jetson-io"
 
-MAINSUM = "b39ab6e59b7dcdb1d3c7fe208a55e1ea297381df9b3e96c4399aff6fb311b2e3"
+MAINSUM = "063410764178ab1933fefcc8adf610743d8eec7a0456592ecd0c7c52c28fa753"
 SRC_URI += "file://0001-Jetson-board.py-fix-block-device-check-for-standard-.patch"
 
 do_install() {

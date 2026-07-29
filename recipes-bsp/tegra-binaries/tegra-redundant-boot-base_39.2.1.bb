@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-bootloader-utils"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "1f666b7df62633f93ad428e676b08cac67bc8884370f90b24813588760342fe4"
+MAINSUM = "c05285f68b5ce23a6f382a949eb44162e5cd2a8123f8e5cdaeb86a12b5e01c8f"
 
 do_install() {
 	install -D -m 0755 -t ${D}${sbindir} ${S}/usr/sbin/nvbootctrl

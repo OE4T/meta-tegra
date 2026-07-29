@@ -8,9 +8,9 @@ require tegra-debian-libraries-common.inc
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'nvpmodel')};subdir=${BP};name=nvpmodel"
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'tools')};subdir=${BP};name=tools"
 
-MAINSUM = "f364c7e11437e4137d29eb08bac965da7c6c39624088ebfa22f4342d9ad5bcf7"
-SRC_URI[nvpmodel.sha256sum] = "07ce163b59058992f225328cf993e9c97a9806319db6b14e29f5662f3b6a032c"
-SRC_URI[tools.sha256sum] = "6ccbbf32182b9c7a98d89a6fe58bb5028b05e61b1732b9c26ac721ab8683e3ec"
+MAINSUM = "277a6fb25f2c06cc2dee6d352bef3abb15929739f396fea1cee70d1dea83008b"
+SRC_URI[nvpmodel.sha256sum] = "e434d97e0423476913808c58a769a419a7f39cf63dd4e7b4c6ddd97c8283f761"
+SRC_URI[tools.sha256sum] = "c73b0cb57f5c16055fca985252b62a5ce4e9e9b5f912f78bd73250d6e5db23c1"
 
 SRC_URI += "file://nvpower.init \
     file://nvpower.service \
