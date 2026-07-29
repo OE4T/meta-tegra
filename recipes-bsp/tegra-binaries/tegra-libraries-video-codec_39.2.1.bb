@@ -7,7 +7,7 @@ require tegra-debian-libraries-common.inc
 
 COMPATIBLE_MACHINE = "(tegra264)"
 
-MAINSUM = "fe02b584ce2ec0a0336daeaf491af3453a552729943303724734c68a720fbcff"
+MAINSUM = "a25ce7fcec1904a5b841e262413c5c6384eb82a9f5d9bc70877b677d970551c6"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvidia-encode.so \

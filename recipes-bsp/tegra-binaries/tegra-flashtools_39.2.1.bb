@@ -12,7 +12,7 @@ SRC_URI = "\
     file://0007-Fix-bootburn_t264_py-path-in-tegraflash.py.patch \
     file://0008-bootburn-force-fork-start-method.patch \
 "
-SRC_URI[sha256sum] = "1626626cd827de0e350b8802033b9da653c69b2290accedb9e5d01f49607e099"
+SRC_URI[sha256sum] = "2e5619088ba88e85dab25247f033d70659b6f676ff835176a07766dcb0fdbe6b"
 
 inherit l4t_bsp
 

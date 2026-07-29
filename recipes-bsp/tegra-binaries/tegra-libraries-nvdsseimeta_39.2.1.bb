@@ -8,7 +8,7 @@ L4T_DEB_IS_COMMON = "1"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "008c8c2821be7fe8d4e5d8f41d1cebd38801e3dddf7912aeaf63da22a6cd7482"
+MAINSUM = "5101937ba4df642e2a054b5bc87ff6155703fee21ad1c85c134d6cf2b02b6f33"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libgstnvdsseimeta.so.1.0.0 \

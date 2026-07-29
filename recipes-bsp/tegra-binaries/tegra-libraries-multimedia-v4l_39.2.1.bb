@@ -8,9 +8,9 @@ require tegra-debian-libraries-common.inc
 SRC_SOC_DEBS:append:tegra264 = " ${@l4t_deb_pkgname(d, 'multimedia-openrm')};subdir=${BP};name=mm"
 SRC_SOC_DEBS:append:tegra234 = " ${@l4t_deb_pkgname(d, 'multimedia-nvgpu')};subdir=${BP};name=mm"
 
-MAINSUM = "ea71387feea6c60af41608084c82374596bced0258ac8c40e0de9e2642938ab5"
-MULTIMEDIAMSUM:tegra264 = "42f03e5ec0ae5e20cab20d728f2b15f82283caf5b193cf705049bc80eddd916f"
-MULTIMEDIAMSUM:tegra234 = "e2d3fc26b6d0d91126623a58e88b10ee3869257fa59226d48b9993e3ef1b0ec4"
+MAINSUM = "5f070f28008ff59a9f948dd8b0b7f6cc864285a595864043eb682efce913f7ca"
+MULTIMEDIAMSUM:tegra264 = "6b886530befb3aacb6c931b0ec97c2b626fa5b0fc23dd43d4d16b87011fb68ef"
+MULTIMEDIAMSUM:tegra234 = "b55df254f1a5e185170b3d7c1a92fe6e3d812e30d849c7141e11647a7dbd55d4"
 
 SRC_URI[mm.sha256sum] = "${MULTIMEDIAMSUM}"
 

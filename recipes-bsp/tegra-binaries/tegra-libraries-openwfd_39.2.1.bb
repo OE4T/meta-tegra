@@ -3,7 +3,7 @@ DEPENDS = "tegra-libraries-core tegra-libraries-nvsci"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "7d03fdcc13a0d4014c6c4bfcf7ba02158d301f76e6f8ce535026626b4205f12e"
+MAINSUM = "964d96d8dfd076024db3bea298896286ba76a53de31cc1c2009c187d46628d3d"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libtegrawfd.so \

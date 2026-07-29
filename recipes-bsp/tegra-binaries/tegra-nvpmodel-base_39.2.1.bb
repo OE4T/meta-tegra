@@ -6,8 +6,8 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-nvpmodel"
 require tegra-debian-libraries-common.inc
 
 SRC_SOC_DEBS += "${@l4t_deb_pkgname(d, 'init')};subdir=${BP};name=init"
-MAINSUM = "07ce163b59058992f225328cf993e9c97a9806319db6b14e29f5662f3b6a032c"
-SRC_URI[init.sha256sum] = "95f5f1c860fed1bf353919eb979b3f67301acdbe5abae8c964edebad405a737e"
+MAINSUM = "e434d97e0423476913808c58a769a419a7f39cf63dd4e7b4c6ddd97c8283f761"
+SRC_URI[init.sha256sum] = "26cfc6b244ba3d3bbf424732a1ffe0d9e21faa0298eaacc911b7466b5bd76b93"
 
 DEPENDS = "tegra-libraries-core"
 

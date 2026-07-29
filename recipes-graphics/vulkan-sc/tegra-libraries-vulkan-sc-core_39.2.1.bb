@@ -10,8 +10,8 @@ inherit l4t_deb_pkgfeed features_check
 
 REQUIRED_DISTRO_FEATURES = "vulkan"
 
-MAINSUM:tegra234 = "c95c7a14d23cb3abb9f50d77e7adc17014461cc9b864c86fe3f550df72629a03"
-MAINSUM:tegra264 = "6cf5820f2c4ce789d3ca09476d4ace1325fe501b3d7b61ef650f7427644e3601"
+MAINSUM:tegra234 = "ab64c4b940ebf9af164964c2e32fb18ebeaff7623557f66a7798d85e2ce3a7d6"
+MAINSUM:tegra264 = "0b9877ad0b7ad7a6cc1bc20a200c335e03e26cd69028b5b6ea3d2a3f38fe6368"
 
 SRC_SOC_DEBS:tegra234 = "${@l4t_deb_pkgname(d, 'vulkan-sc-nvgpu')};subdir=${BP};name=main"
 SRC_SOC_DEBS:tegra264 = "${@l4t_deb_pkgname(d, 'vulkan-sc-openrm')};subdir=${BP};name=main"

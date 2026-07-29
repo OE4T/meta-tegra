@@ -12,7 +12,7 @@ REQUIRED_DISTRO_FEATURES = "vulkan"
 PACKAGE_WRITE_DEPS += "qemuwrapper-cross"
 
 SRC_SOC_DEBS = "${@l4t_deb_pkgname(d, 'vulkan-sc-samples')};subdir=${BP};name=main"
-SRC_URI[main.sha256sum] = "94664f405d766cc6fe8b698e4f15aa4106621cbff378ea117a51d79d97adc4e6"
+SRC_URI[main.sha256sum] = "529a81d473fa846bd7032b0e30ac0c30c05dee969508c1407f4e8cbb700b600f"
 
 SRC_URI:append = " file://0001-fix-oe-cross-compile-paths.patch"
 

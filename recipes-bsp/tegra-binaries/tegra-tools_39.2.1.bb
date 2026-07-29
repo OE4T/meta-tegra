@@ -5,7 +5,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-tools"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "6ccbbf32182b9c7a98d89a6fe58bb5028b05e61b1732b9c26ac721ab8683e3ec"
+MAINSUM = "c73b0cb57f5c16055fca985252b62a5ce4e9e9b5f912f78bd73250d6e5db23c1"
 
 do_install() {
     install -d ${D}${bindir}

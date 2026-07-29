@@ -6,7 +6,7 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-nvsci"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "35e31b63db4739040b036ef4a473743ced965c42c209c1cd8bd7e29b3c0408a0"
+MAINSUM = "7dc851490b23a4bba340786ee9b2fc51793c6c6bcdeca2fe0add5cadc0307423"
 
 do_install() {
     install -d ${D}${bindir} ${D}${sysconfdir}
