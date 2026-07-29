@@ -29,6 +29,9 @@ do_install() {
     cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-tegra-armv8/ ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
     cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/host-linux-armv8/ ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
     cp -R --preserve=mode,timestamps,links --no-dereference ${B}/opt/nvidia/nsight-systems/${BASE_VERSION}/bin/ ${D}/opt/nvidia/nsight-systems/${BASE_VERSION}/
+
+    install -d ${D}${bindir}
+    ln -snf /opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-tegra-armv8/nsys ${D}${bindir}/nsys
 }
 
 INHIBIT_PACKAGE_STRIP = "1"
@@ -39,6 +42,7 @@ EXCLUDE_FROM_SHLIBS = "1"
 PACKAGES += "${PN}-qdstrmimporter"
 FILES:${PN} = " \
     /opt/nvidia/nsight-systems/${BASE_VERSION}/target-linux-tegra-armv8 \
+    ${bindir}/nsys \
 "
 FILES:${PN}-qdstrmimporter = " \
     /opt/nvidia/nsight-systems/${BASE_VERSION}/host-linux-armv8 \
