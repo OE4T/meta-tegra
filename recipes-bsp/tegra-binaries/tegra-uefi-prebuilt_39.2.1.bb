@@ -7,6 +7,13 @@ INHIBIT_DEFAULT_DEPS = "1"
 
 PROVIDES = "virtual/bootloader"
 
+python() {
+    if bb.utils.to_boolean(d.getVar('TEGRA_MINIMAL_BOOT')):
+        raise bb.parse.SkipRecipe("tegra-uefi-prebuilt is not compatible with TEGRA_MINIMAL_BOOT: " \
+            "minimal boot requires source-level patches to edk2 that are not reflected in the " \
+            "prebuilt binaries.  Use edk2-firmware-tegra instead.")
+}
+
 DEPENDS = "coreutils-native dtc-native"
 
 TEGRA_UEFI_SIGNING_CLASS ??= "tegra-uefi-signing"
