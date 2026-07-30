@@ -6,8 +6,8 @@ LINUX_ETHERNET = "kernel-module-r8169"
 NVIDIA_WIFI = "nv-kernel-module-rtl8822ce"
 NVIDIA_ETHERNET = "nv-kernel-module-r8168"
 
-DEVKIT_WIFI_RRECOMMENDS ?= "${@'${NVIDIA_WIFI}' if d.getVar('PREFERRED_PROVIDER_virtual/kernel') == 'linux-noble-nvidia-tegra' else '${LINUX_WIFI}'}"
-DEVKIT_ETHERNET_RRECOMMENDS ?= "${@'${NVIDIA_ETHERNET}' if d.getVar('PREFERRED_PROVIDER_virtual/kernel') == 'linux-noble-nvidia-tegra' else '${LINUX_ETHERNET}'} kernel-module-realtek linux-firmware-rtl8168"
+DEVKIT_WIFI_RRECOMMENDS ?= "${@'${NVIDIA_WIFI}' if d.getVar('TEGRA_USING_VENDOR_KERNEL') else '${LINUX_WIFI}'}"
+DEVKIT_ETHERNET_RRECOMMENDS ?= "${@'${NVIDIA_ETHERNET}' if d.getVar('TEGRA_USING_VENDOR_KERNEL') else '${LINUX_ETHERNET}'} kernel-module-realtek linux-firmware-rtl8168"
 
 MACHINE_EXTRA_RRECOMMENDS += " \
     nv-kernel-module-rtk-btusb \
