@@ -14,7 +14,10 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 DEPENDS = "gstreamer1.0 gstreamer1.0-plugins-base virtual/egl libx11 libxext"
 
-SRC_URI += "file://0002-Fix-stringop-truncation-warning.patch"
+SRC_URI += " \
+    file://0002-Fix-stringop-truncation-warning.patch \
+    file://0003-nvgstplayer-force-audioconvert-when-decoded-format-i.patch \
+"
 
 S = "${UNPACKDIR}/nvgstapps_src"
 B = "${WORKDIR}/build"

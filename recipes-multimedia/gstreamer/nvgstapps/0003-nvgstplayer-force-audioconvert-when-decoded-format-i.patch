@@ -1,0 +1,66 @@
+From 4c4f9f7ad6483f2242a004277bc72428bbb99baa Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kkiefer@nvidia.com>
+Date: Wed, 5 Aug 2026 12:53:11 -0700
+Subject: [PATCH] nvgstplayer: force audioconvert when decoded format is a caps
+ list
+
+gst_structure_get_string() returns NULL when the "format" field is a
+GValue list rather than a fixed string. This occurs with any libav
+audio decoder whose underlying FFmpeg codec does not declare specific
+output sample_fmts (e.g. avdec_amrnb, avdec_amrwb): gst-libav then
+advertises a union of all possible GstAudioFormat values as a
+GST_TYPE_LIST.
+
+The NVGST_TARGET_TEGRA code path in create_audio_pipeline() guarded
+the entire "needs conversion" decision inside if (format), so a NULL
+format left NVGST_PLAY_FLAG_NATIVE_AUDIO set and skipped inserting
+audioconvert into the audio bin. The downstream sink then received the
+un-narrowed list caps, could not negotiate a fixed format, and returned
+GST_FLOW_NOT_NEGOTIATED, surfacing as an "Internal data stream error"
+from qtdemux.
+
+A manually constructed pipeline (filesrc ! qtdemux ! avdec_amrnb !
+audioconvert ! alsasink) plays correctly because audioconvert narrows
+the list caps to a single negotiated format before alsasink sees them.
+nvgstplayer bypasses GStreamer's standard playsink audio chain and
+builds its own audio bin, so it does not benefit from playsink's
+built-in audioconvert element.
+
+On Ubuntu JetPack the bug went unnoticed because libasound2-plugins
+routes the ALSA default PCM device through PulseAudio (pcm.!default
+of type pulse). PulseAudio resolves list-type caps internally, so even
+without audioconvert in the bin the pipeline negotiates successfully.
+On OE4T there is no PulseAudio ALSA sink plugin and alsasink connects
+directly to the hardware PCM, which requires a fixed format and fails
+to negotiate the list.
+
+Fix: treat a NULL format field (list/set type) the same as a
+non-intersecting or float/unsigned format and force the audioconvert
+path. Short-circuit evaluation of || ensures strstr() is never called
+with a NULL pointer.
+
+Upstream-Status: Pending
+Signed-off-by: Kurt Kiefer <kkiefer@nvidia.com>
+---
+ nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c | 8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c b/nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c
+index 50aea77..23c6f5a 100644
+--- a/nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c
++++ b/nvgst_sample_apps/nvgstplayer-1.0/nvgstplayer.c
+@@ -1974,11 +1974,9 @@ create_audio_pipeline (GstCaps * caps)
+         channel_mask =
+             gst_value_get_bitmask (gst_structure_get_value (str,
+                 "channel-mask"));
+-      if (format) {
+-        if (!intersect || (strstr (format, "F")) || (strstr (format, "U"))
+-            || (channel_mask != 0x3)) {
+-          use_conv = app->input->attrs.flags &= ~NVGST_PLAY_FLAG_NATIVE_AUDIO;
+-        }
++      if (!format || !intersect || (strstr (format, "F"))
++          || (strstr (format, "U")) || (channel_mask != 0x3)) {
++        use_conv = app->input->attrs.flags &= ~NVGST_PLAY_FLAG_NATIVE_AUDIO;
+       }
+ #else
+       if (!intersect) {
