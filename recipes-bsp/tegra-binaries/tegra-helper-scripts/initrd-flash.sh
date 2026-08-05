@@ -242,22 +242,20 @@ run_rcm_boot_t234() {
 
 mount_partition() {
     local dev="$1"
-    local mnt=$(cat /proc/mounts | grep "^$dev" | cut -d' ' -f2)
-    local i=$(echo $mnt|awk -F' ' '{print NF}')
+    local mnt=$(cat /proc/mounts | grep "^$dev " | cut -d' ' -f2)
     local j
-    while [ $i -ne 0 ]; do
-        local mnt=$(echo ${mnt} | cut -d' ' -f$i)
-        if ! umount "${mnt}" > /dev/null 2>&1; then
-            echo "ERR: unmount ${mnt} on device $dev failed" >&2
+    local m
+    for m in $mnt; do
+        if ! umount "$m" > /dev/null 2>&1; then
+            echo "ERR: unmount $m on device $dev failed" >&2
             return 1
         fi
-        i=$(expr $i - 1)
     done
 
     if udisksctl mount -b "$dev" > /dev/null 2>&1; then
         for j in 1 2 3 4 5; do
             sleep 1
-            mnt=$(cat /proc/mounts | grep "^$dev" | cut -d' ' -f2)
+            mnt=$(cat /proc/mounts | grep "^$dev " | cut -d' ' -f2)
             if [ -n "$mnt" ]; then
                 echo "$mnt"
                 return 0
