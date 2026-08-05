@@ -181,13 +181,14 @@ copy_to_device() {
 
 unmount_device() {
     local dev="$1"
-    local mnt=$(cat /proc/mounts | grep "^$dev" | cut -d' ' -f2)
-    if [ -n "$mnt" ]; then
-        if ! umount "${mnt}" > /dev/null 2>&1; then
-            echo "ERR: unmount ${mnt} on device $dev failed" >&2
+    local mnt=$(cat /proc/mounts | grep "^$dev " | cut -d' ' -f2)
+    local m
+    for m in $mnt; do
+        if ! umount "$m" > /dev/null 2>&1; then
+            echo "ERR: unmount $m on device $dev failed" >&2
             return 1
         fi
-    fi
+    done
     return 0
 }
 
