@@ -30,13 +30,20 @@ do_install() {
     install -m 0755 ${UNPACKDIR}/nvpower.init ${D}${sysconfdir}/init.d/nvpower
     install -d ${D}${systemd_system_unitdir}
     install -m 0644 ${UNPACKDIR}/nvpower.service ${D}${systemd_system_unitdir}
+    install -d ${D}${PYTHON_SITEPACKAGES_DIR}/pylibjetsonpower
+    install -m 0644 ${S}/usr/lib/python3/dist-packages/pylibjetsonpower/__init__.py \
+        ${D}${PYTHON_SITEPACKAGES_DIR}/pylibjetsonpower/
 }
 
-inherit systemd update-rc.d
+inherit python3-dir systemd update-rc.d
 
 INITSCRIPT_NAME = "nvpower"
 INITSCRIPT_PARAMS = "defaults"
 SYSTEMD_SERVICE:${PN} = "nvpower.service"
+PACKAGES =+ "${PN}-python"
+FILES:${PN}-python = "${PYTHON_SITEPACKAGES_DIR}/pylibjetsonpower"
+RDEPENDS:${PN}-python = "${PN} python3"
+RRECOMMENDS:${PN} = "${PN}-python"
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
 RDEPENDS:${PN} = "bash tegra-nvpmodel"
