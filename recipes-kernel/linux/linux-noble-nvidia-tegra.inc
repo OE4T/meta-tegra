@@ -19,7 +19,7 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/linux-noble-nvidia-tegra-${SHRT_VER}:"
 TEGRA_LINUX_VERSION_EXTENSION ?= ""
 LINUX_VERSION_EXTENSION ?= "-l4t-r${@'.'.join(d.getVar('L4T_VERSION').split('.')[0:3])}-1021.21${TEGRA_LINUX_VERSION_EXTENSION}"
 
-SRCBRANCH = "l4t/l4t-r39.2-Ubuntu-nvidia-tegra-6.8.0-1021.21"
+SRCBRANCH = "l4t/l4t-r39.2.1-Ubuntu-nvidia-tegra-6.8.0-1021.21"
 SRCREV = "78272943bba3a47e633b28963b0cda60de503500"
 KBRANCH = "${SRCBRANCH}"
 SRC_REPO = "gitlab.com/nvidia/nv-tegra/3rdparty/canonical/linux-noble.git;protocol=https"
