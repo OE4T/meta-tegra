@@ -39,7 +39,7 @@ do_install() {
 }
 
 FILES:${PN} = "/"
-RDEPENDS:${PN} = "util-linux-blkdiscard mtd-utils e2fsprogs-mke2fs libusbgx-tegra-initrd-flash gptfdisk tegra-firmware kmod parted"
+RDEPENDS:${PN} = "util-linux-blkdiscard mtd-utils e2fsprogs-mke2fs libusbgx-tegra-initrd-flash util-linux-sfdisk tegra-firmware kmod parted"
 RRECOMMENDS:${PN} = "kernel-module-libcomposite \
                      kernel-module-usb-f-mass-storage \
 "
