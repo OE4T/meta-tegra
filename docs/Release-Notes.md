@@ -6,6 +6,7 @@ mdbook please ensure you use the "master" branch version of
 documentation to ensure you are referencing the most recent source
 
 # JetPack 7.2 / R39.x
+- [JetPack-7.2.1-L4T-R39.2.1-Notes](release-notes/JetPack-7.2.1-L4T-R39.2.1-Notes.md)
 - [JetPack-7.2-L4T-R39.2.0-Notes](release-notes/JetPack-7.2-L4T-R39.2.0-Notes.md)
 
 # JetPack 7.0–7.1 / R38.x

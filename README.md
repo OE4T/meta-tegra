@@ -1,8 +1,8 @@
 OpenEmbedded/Yocto BSP layer for NVIDIA Jetson Modules
 ======================================================
 
-Jetson Linux release: R39.2.0
-JetPack release:      7.2
+Jetson Linux release: R39.2.1
+JetPack release:      7.2.1
 
 Boards supported:
 * Jetson AGX Thor development kit
@@ -18,7 +18,7 @@ URI: https://git.openembedded.org/openembedded-core
 branch: wrynose
 LAYERSERIES_COMPAT: wrynose
 
-See [this page](docs/JetPack-7.2-L4T-R39.2.0-Notes.md) for information
+See [this page](docs/release-notes/JetPack-7.2.1-L4T-R39.2.1-Notes.md) for information
 about changes in this release.
 
 Getting Help
