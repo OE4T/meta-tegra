@@ -560,7 +560,7 @@ tegra_mksparse() {
 
 IMAGE_CMD:tegraflash-tar = "create_tegraflash_pkg"
 do_image_tegraflash_tar[depends] += "dtc-native:do_populate_sysroot coreutils-native:do_populate_sysroot \
-                                 tegra-flashtools-native:do_populate_sysroot gptfdisk-native:do_populate_sysroot \
+                                 tegra-flashtools-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
                                  ${TEGRA_RCM_EDK2_DEPENDS} virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \
