@@ -10,7 +10,7 @@ LIC_FILES_CHKSUM += "\
     file://usr/share/doc/nvidia-l4t-multimedia/LICENSE.libnvjpeg;md5=1b873f8976e4e3683c04133e3035be98 \
 "
 
-MAINSUM = "03069358ddda34be5884740d49c0dd8a5154571a0086074376fe1809be4d9d91"
+MAINSUM = "933d023cb2a0a129102c50035664fcec9a7a03059dd16830905f0f3569c39bbd"
 
 inherit features_check
 

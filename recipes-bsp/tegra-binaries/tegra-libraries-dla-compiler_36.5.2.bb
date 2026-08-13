@@ -5,7 +5,7 @@ L4T_DEB_IS_COMMON = "1"
 
 require tegra-debian-libraries-common.inc
 
-MAINSUM = "aaab864da8540410f9c69c8ca886cc79900e56a1e7c77a6d18f600fb4d3b08ea"
+MAINSUM = "55e6998a952bb7fbc784518b20a6eeaa417325152151c3e849b1174b548f130a"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvdla_compiler.so \
