@@ -120,7 +120,7 @@ TEGRA_FLASHVAR_PINMUX_CONFIG ?= "tegra264-mb1-bct-pinmux-${MACHINE}.dts"
 TEGRA_FLASHVAR_PMC_CONFIG    ?= "tegra264-mb1-bct-padvoltage-${MACHINE}.dts"
 ```
 
-Then provide those files via a `tegra-bootfiles_39.2.0.bbappend` in your layer:
+Then provide those files via a `tegra-bootfiles_%.bbappend` in your layer:
 
 ```bitbake
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"

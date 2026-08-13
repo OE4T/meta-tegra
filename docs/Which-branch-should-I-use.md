@@ -1,7 +1,5 @@
 # Currently maintained branches #
 
-Last update: 28 Jun 2026
-
 The [OE4T demo distro](https://github.com/OE4T/tegra-demo-distro) has corresponding branches to demonstrate full builds for the Jetson platforms supported by this layer.
 
 Branches are named for the OE-Core branch name each one tracks; see [this page](https://wiki.yoctoproject.org/wiki/Releases) for Yocto Project releases and branches.
@@ -12,7 +10,7 @@ For Jetson Linux (L4T) releases:
 * branches corresponding to long-term support (LTS) OE-Core release branches are kept up-to-date with the Jetson Linux releases. When there is a significant Jetson Linux upgrade, an additional LTS branch is created for the older release series.
 
 Active branches:
-* **master** - never stable, [L4T R39.2.0/JetPack 7.2](release-notes/JetPack-7.2-L4T-R39.2.0-Notes.md) for AGX Orin/Orin NX/Orin Nano/AGX Thor
+* **master** - never stable, [L4T R39.2.1/JetPack 7.2.1](release-notes/JetPack-7.2.1-L4T-R39.2.1-Notes.md) for AGX Orin/Orin NX/Orin Nano/AGX Thor
 * **wrynose** - [L4T R39.2.0/JetPack 7.2](release-notes/JetPack-7.2-L4T-R39.2.0-Notes.md) for AGX Orin/Orin NX/Orin Nano/AGX Thor
 * **scarthgap** - [L4T R36.5.0/JetPack 6.2.2](release-notes/JetPack-6.2.2-L4T-R36.5.0-Notes.md) for AGX Orin/Orin NX/Orin Nano (will stay on R36.x/JetPack 6.x)
 
