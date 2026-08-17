@@ -23,8 +23,8 @@ index e0c539b90a..b49bd2e485 100644
 +  endif()
  endif()
  
- if(((NOT CMAKE_VERSION VERSION_LESS "3.9.0")  # requires https://gitlab.kitware.com/cmake/cmake/merge_requests/663
-@@ -245,8 +247,6 @@ if(HAVE_CUDA)
+ if(CMAKE_CUDA_HOST_COMPILER AND NOT CUDA_HOST_COMPILER)
+@@ -252,8 +254,6 @@ if(HAVE_CUDA)
    foreach(p ${CUDA_LIBS_PATH})
      if(MSVC AND CMAKE_GENERATOR MATCHES "Ninja|JOM")
        set(OPENCV_LINKER_LIBS ${OPENCV_LINKER_LIBS} ${CMAKE_LIBRARY_PATH_FLAG}"${p}")
@@ -33,6 +33,3 @@ index e0c539b90a..b49bd2e485 100644
      endif()
    endforeach()
  endif()
--- 
-2.34.1
-
