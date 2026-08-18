@@ -97,6 +97,7 @@ lib, /usr/lib/libnvcapture.so
 lib, /usr/lib/libnvcolorutil.so
 lib, /usr/lib/libnvcucompat.so
 lib, /usr/lib/libnvcudla.so
+lib, /usr/lib/libnvcuvid.so
 lib, /usr/lib/libnvcuvidv4l2.so
 lib, /usr/lib/libnvdc.so
 lib, /usr/lib/libnvddk_2d_v2.so
@@ -126,6 +127,7 @@ lib, /usr/lib/libnvidia-allocator.so.1
 lib, /usr/lib/libnvidia-egl-gbm.so.1.1.0
 lib, /usr/lib/libnvidia-egl-wayland.so.1.1.11
 lib, /usr/lib/libnvidia-eglcore.so.580.00
+lib, /usr/lib/libnvidia-encode.so
 lib, /usr/lib/libnvidia-glcore.so.580.00
 lib, /usr/lib/libnvidia-glsi.so.580.00
 lib, /usr/lib/libnvidia-glvkspirv.so.580.00
@@ -133,6 +135,7 @@ lib, /usr/lib/libnvidia-gpucomp.so.580.00
 lib, /usr/lib/libnvidia-kms.so.580.00
 lib, /usr/lib/libnvidia-ml.so.1
 lib, /usr/lib/libnvidia-nvvm.so.580.00
+lib, /usr/lib/libnvidia-opticalflow.so
 lib, /usr/lib/libnvidia-ptxjitcompiler.so.580.00
 lib, /usr/lib/libnvidia-rmapi-tegra.so.580.00
 lib, /usr/lib/libnvidia-rtcore.so.580.00
@@ -216,6 +219,7 @@ lib, /usr/lib/aarch64-linux-gnu/nvidia/libvulkansc.so.1.0.10
 lib, /usr/lib/aarch64-linux-gnu/nvidia/nvidia_icd.json
 lib, /usr/lib/aarch64-linux-gnu/tegra-egl/ld.so.conf
 lib, /usr/lib/aarch64-linux-gnu/tegra-egl/libEGL_nvidia.so.0
+lib, /usr/lib/libv4l/plugins/libv4l2_nvcuvidvideocodec.so
 lib, /usr/lib/libEGL_nvidia.so.0
 lib, /usr/lib/libGLESv1_CM_nvidia.so.1
 lib, /usr/lib/libGLESv2_nvidia.so.2
@@ -227,6 +231,7 @@ sym, /usr/lib/gbm/tegra_gbm.so
 sym, /usr/lib/libcuda.so
 sym, /usr/lib/libnvcucompat.so
 sym, /usr/lib/libnvcudla.so
+sym, /usr/lib/libnvcuvid.so.1
 sym, /usr/lib/aarch64-linux-gnu/libv4l/plugins/nv/libv4l2_nvargus.so
 sym, /usr/lib/aarch64-linux-gnu/libv4l/plugins/nv/libv4l2_nvcuvidvideocodec.so
 sym, /usr/lib/aarch64-linux-gnu/libv4l/plugins/nv/libv4l2_nvvideocodec.so
@@ -240,8 +245,10 @@ sym, /usr/lib/libnvid_mapper.so
 sym, /usr/lib/libnvidia-allocator.so
 sym, /usr/lib/libnvidia-egl-gbm.so.1
 sym, /usr/lib/libnvidia-egl-wayland.so.1
+sym, /usr/lib/libnvidia-encode.so.1
 sym, /usr/lib/libnvidia-kms.so
 sym, /usr/lib/libnvidia-nvvm.so.4
+sym, /usr/lib/libnvidia-opticalflow.so.1
 sym, /usr/lib/libnvidia-ptxjitcompiler.so.1
 sym, /usr/lib/libnvidia-vksc-core.so
 sym, /usr/lib/libnvidia-vksc-core.so.1
