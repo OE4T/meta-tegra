@@ -1,0 +1,68 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Date: Mon, 11 Mar 2024 12:30:18 +0100
+Subject: [PATCH 2/2] tty: vt: conmakehash: Don't mention the full path of the
+ input in output
+
+This change strips $abs_srctree of the input file containing the
+character mapping table in the generated output. The motivation for this
+change is Yocto emitting a build warning
+
+        WARNING: linux-lxatac-6.7-r0 do_package_qa: QA Issue: File /usr/src/debug/linux-lxatac/6.7-r0/drivers/tty/vt/consolemap_deftbl.c in package linux-lxatac-src contains reference to TMPDIR
+
+So this change brings us one step closer to make the build result
+reproducible independent of the build path.
+
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Link: https://lore.kernel.org/r/20240311113017.483101-2-u.kleine-koenig@pengutronix.de
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+Upstream-Status: Backport [3bd85c6c97b2d232638594bf828de62083fe3389]
+
+Backported from mainline v6.9; rebased onto 5.15.199 (context only, no
+functional change).  Fixes the [buildpaths] QA warning for
+drivers/tty/vt/consolemap_deftbl.c.
+---
+ drivers/tty/vt/conmakehash.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/tty/vt/conmakehash.c b/drivers/tty/vt/conmakehash.c
+index cddd789fe46e..dc2177fec715 100644
+--- a/drivers/tty/vt/conmakehash.c
++++ b/drivers/tty/vt/conmakehash.c
+@@ -76,7 +76,8 @@ static void addpair(int fp, int un)
+ int main(int argc, char *argv[])
+ {
+   FILE *ctbl;
+-  char *tblname;
++  const char *tblname, *rel_tblname;
++  const char *abs_srctree;
+   char buffer[65536];
+   int fontlen;
+   int i, nuni, nent;
+@@ -101,6 +102,16 @@ int main(int argc, char *argv[])
+ 	}
+     }
+ 
++  abs_srctree = getenv("abs_srctree");
++  if (abs_srctree && !strncmp(abs_srctree, tblname, strlen(abs_srctree)))
++    {
++      rel_tblname = tblname + strlen(abs_srctree);
++      while (*rel_tblname == '/')
++	++rel_tblname;
++    }
++  else
++    rel_tblname = tblname;
++
+   /* For now we assume the default font is always 256 characters. */
+   fontlen = 256;
+ 
+@@ -253,7 +264,7 @@ int main(int argc, char *argv[])
+ #include <linux/types.h>\n\
+ \n\
+ u8 dfont_unicount[%d] = \n\
+-{\n\t", argv[1], fontlen);
++{\n\t", rel_tblname, fontlen);
+ 
+   for ( i = 0 ; i < fontlen ; i++ )
+     {
