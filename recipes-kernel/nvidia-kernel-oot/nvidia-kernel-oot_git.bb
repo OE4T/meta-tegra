@@ -22,17 +22,17 @@ SRC_URI = " \
     git://${SRC_REPO_TEGRA_DTS};branch=${SRCBRANCH};name=tegra-dts;destsuffix=${BPN}-${PV}/hardware/nvidia/tegra/nv-public \
 "
 
-SRCBRANCH = "l4t/l4t-r39.2"
-# tag: jetson_39.2_GA
-SRCREV_nvidia-oot = "100424630afc3e3d9561d8c4a0f6be6f9f1af7f7"
+SRCBRANCH = "l4t/l4t-r39.2.1"
+# tag: jetson_39.2.1
+SRCREV_nvidia-oot = "e71bacb7c611f880c5f341263967f13de54de3a9"
 SRCREV_build-nv-public = "c47fa7443cbf767db422430121de2bf4a5bac895"
-SRCREV_nvethernetrm = "cf2ae53fdf4ee85333f3b3907d1337d6546db64f"
-SRCREV_unifiedgpudisp = "a662a636f19939ce9d11ac25a873fab8b2dedb36"
-SRCREV_nvdisplay = "c66bad7cc07f605a59a46cf7e6585433c88ad161"
+SRCREV_nvethernetrm = "92d78286257d0c536c78e140f7bae159c625edcf"
+SRCREV_unifiedgpudisp = "5c61042f62d7c5310a75e34770cdde4a2644d1a2"
+SRCREV_nvdisplay = "f6983e7d6013ed3f3b532fcdb32b7fd1d1d1a884"
 SRCREV_hwpm = "80b966b1bdc20f896cc9625a84708cbbe4638e38"
-SRCREV_nvgpu = "fb2c5dedeb1843eab91e8fd7e976fdc277d58aa3"
-SRCREV_t264-dts = "664a726551f62958a5a57b6538be01b9a62cd178"
-SRCREV_t23x-dts = "3897df11a86397704db8685071de46559cfb3c6e"
+SRCREV_nvgpu = "fc23d33512d3bf1361b201e31406c47762102429"
+SRCREV_t264-dts = "a7ee111043299392ec982eca434123f4291e39c6"
+SRCREV_t23x-dts = "0e155aa7767cba2595faf05a8ab14c4cee5a7a27"
 SRCREV_tegra-dts = "d76c3a7751ea75592413b42c984eac7084a99592"
 
 SRCREV_FORMAT = "nvidia-oot_build-nv-public_nvethernetrm_unifiedgpudisp_nvdisplay_hwpm_nvgpu_t264-dts_t23x-dts_tegra-dts"

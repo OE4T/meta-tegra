@@ -1,0 +1,49 @@
+L4T_DEB_COPYRIGHT_MD5 = "c5a9810a8ac2bdcdce4e85013d7044d4"
+DEPENDS = "tegra-libraries-core tegra-libraries-cuda tegra-libraries-multimedia tegra-libraries-multimedia-utils"
+
+L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-multimedia"
+
+require tegra-debian-libraries-common.inc
+
+SRC_SOC_DEBS:append:tegra264 = " ${@l4t_deb_pkgname(d, 'multimedia-openrm')};subdir=${BP};name=mm"
+SRC_SOC_DEBS:append:tegra234 = " ${@l4t_deb_pkgname(d, 'multimedia-nvgpu')};subdir=${BP};name=mm"
+
+MAINSUM = "5f070f28008ff59a9f948dd8b0b7f6cc864285a595864043eb682efce913f7ca"
+MULTIMEDIAMSUM:tegra264 = "6b886530befb3aacb6c931b0ec97c2b626fa5b0fc23dd43d4d16b87011fb68ef"
+MULTIMEDIAMSUM:tegra234 = "b55df254f1a5e185170b3d7c1a92fe6e3d812e30d849c7141e11647a7dbd55d4"
+
+SRC_URI[mm.sha256sum] = "${MULTIMEDIAMSUM}"
+
+inherit features_check
+
+REQUIRED_DISTRO_FEATURES = "opengl"
+
+TEGRA_LIBRARIES_TO_INSTALL = ""
+TEGRA_LIBRARIES_TO_INSTALL:append:tegra264 = "\
+    nvidia/libnvcuvidv4l2.so \
+"
+TEGRA_LIBRARIES_TO_INSTALL:append:tegra234 = "\
+    nvidia/libtegrav4l2.so \
+"
+
+TEGRA_PLUGINS = ""
+TEGRA_PLUGINS:append:tegra264 = "\
+    libv4l2_nvcuvidvideocodec.so \
+"
+TEGRA_PLUGINS:append:tegra234 = "\
+    libv4l2_nvvideocodec.so \
+"
+
+do_install() {
+    install_libraries
+    install -d ${D}${libdir}/libv4l/plugins
+    for f in ${TEGRA_PLUGINS}; do
+        install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/$f ${D}${libdir}/libv4l/plugins/
+    done
+}
+
+FILES_SOLIBSDEV = ""
+SOLIBS = ".so*"
+FILES:${PN} += "${libdir}/libv4l"
+RDEPENDS:${PN}:append:tegra264 = "tegra-libraries-video-codec"
+PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
