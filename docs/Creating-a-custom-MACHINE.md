@@ -36,7 +36,7 @@ Rename the resulting files to start with `tegra234-` (Otherwise `meta-tegra` has
 
 **NOTE:** If you manually rename your generated DTSI files, you may need to modify the `#include` statement on line 35 of your `-pinmux.dtsi` file, as it has the original filename for the `-gpio-default.dtsi` file hardcoded.
 
-Install the files with following `tegra-bootfiles_35.4.1.bbappend`:
+Install the files with following `tegra-bootfiles_%.bbappend`:
 ```
 # Hack: The fetch task is disabled on this recipe, so the following is just for the task signature.
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
@@ -63,7 +63,7 @@ Then update the `TEGRA_FLASHVAR_*` settings in your `${machine}.conf` to referen
 ## (Optionally) disable board EEPROM usage
 As explained in the _Platform Adaptation and Bring-Up Guide_ by Nvidia, you might want to disable the usage of the board EEPROM.
 For that, create a custom version of the file referenced by `TEGRA_FLASHVAR_MB2BCT_CFG` in your machine configuration and modify it according to the Nvidia guide.
-Include this new file in Yocto using a `tegra-bootfiles_35.4.1.bbappend` as described in [Add pinmux dtsi files](#add-pinmux-dtsi-files), then update `TEGRA_FLASHVAR_MB2BCT_CFG` in your `${machine}.conf` to reference the new file name.
+Include this new file in Yocto using a `tegra-bootfiles_%.bbappend` as described in [Add pinmux dtsi files](#add-pinmux-dtsi-files), then update `TEGRA_FLASHVAR_MB2BCT_CFG` in your `${machine}.conf` to reference the new file name.
 
 ## Use a custom device tree
 See [Custom Device Tree](#custom-device-tree) and apply the described changes to your `${machine}.conf`.
@@ -122,7 +122,7 @@ TEGRA_FLASHVAR_PINMUX_CONFIG ?= "tegra264-mb1-bct-pinmux-${MACHINE}.dts"
 TEGRA_FLASHVAR_PMC_CONFIG    ?= "tegra264-mb1-bct-padvoltage-${MACHINE}.dts"
 ```
 
-Then provide those files via a `tegra-bootfiles_39.2.0.bbappend` in your layer:
+Then provide those files via a `tegra-bootfiles_%.bbappend` in your layer:
 
 ```bitbake
 FILESEXTRAPATHS:prepend := "${THISDIR}/${BPN}:"
