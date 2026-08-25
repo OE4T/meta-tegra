@@ -2,7 +2,7 @@ LICENSE .= " & Proprietary"
 
 LIC_FILES_CHKSUM = "file://License.txt;md5=2b415520383f7964e96700ae12b4570a"
 
-SRC_URI_EDK2 = "gitsm://github.com/NVIDIA/edk2.git;protocol=https;branch=r39.2-updates"
+SRC_URI_EDK2 = "gitsm://github.com/NVIDIA/edk2.git;protocol=https;branch=r39.2.1-updates"
 
 SRCREV_edk2 = "5acf429321649bc191baf19de19670216a75cfb0"
 

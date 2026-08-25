@@ -6,21 +6,21 @@ LICENSE .= " & Proprietary"
 
 LIC_FILES_CHKSUM += "file://../edk2-platforms/License.txt;md5=2b415520383f7964e96700ae12b4570a"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia/LICENSE;md5=52d8683e3d65a77ef84cc863e3f24f25"
-LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-chips-platform.efi;md5=782048cadee3851a0da2b4a3fdae0d93"
+LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-chips-platform.efi;md5=06d7391520aeeb988e2265dbb859286c"
 LIC_FILES_CHKSUM += "file://../edk2-nvidia-non-osi/Silicon/NVIDIA/Drivers/NvGopDriver/NOTICE.nvgop-gb1xx-platform.efi;md5=9e5f17821be35eed9a8cd2c7fc05897d"
 
 inherit python3native
 
 DEPENDS += "dtc-native python3-kconfiglib-native"
 
-SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r39.2-updates"
-SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r39.2-updates"
-SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r39.2-updates"
-SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r39.2-updates"
+SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r39.2.1-updates"
+SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r39.2.1-updates"
+SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r39.2.1-updates"
+SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r39.2.1-updates"
 
 SRCREV_edk2-non-osi = "c07d24e45c87d175ad1dc5d74b2c7feed9356503"
-SRCREV_edk2-nvidia = "bd49b331a0bbdeef7a34c224a3767f77e36da0c4"
-SRCREV_edk2-nvidia-non-osi = "826921e55a768b4fc5fd56c5ac259dc240b84f0e"
+SRCREV_edk2-nvidia = "7e9f9ec4de8d979807683a7b4605a15ec3299b89"
+SRCREV_edk2-nvidia-non-osi = "a7f635e781e067613b5080da22bd563072718cb6"
 SRCREV_edk2-platforms = "30c062833913616d54e2101c9d3157e955de1054"
 
 SRC_URI += "\
