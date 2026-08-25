@@ -17,6 +17,7 @@ Options:
   --skip-bootloader     Skip boot partition programming
   --usb-instance        USB instance of Jetson device
   --erase-nvme          Erase NVME drive during flashing
+  --no-bmap             Do not use bmaptool for writing data
 
 Options passed through to flash helper:
   -u                    PKC key file for signing
@@ -48,9 +49,10 @@ sbk_keyfile=
 skip_bootloader=0
 early_final_status=0
 erase_nvme=0
+ignore_bmap=0
 check_usb_instance="${TEGRAFLASH_CHECK_USB_INSTANCE:-no}"
 
-ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,erase-nvme" -o "u:v:h" -- "$@")
+ARGS=$(getopt -n $(basename "$0") -l "usb-instance:,help,skip-bootloader,erase-nvme,no-bmap" -o "u:v:h" -- "$@")
 if [ $? -ne 0 ]; then
     usage >&2
     exit 1
@@ -72,6 +74,10 @@ while true; do
 	    erase_nvme=1
 	    shift
 	    ;;
+        --no-bmap)
+            ignore_bmap=1
+            shift
+            ;;
 	-u)
 	    keyfile="$2"
 	    shift 2
@@ -407,6 +413,9 @@ write_to_device() {
     if [ -z "$dev" ]; then
 	echo "ERR: could not find $devname" >&2
 	return 1
+    fi
+    if [ $ignore_bmap -eq 1 ]; then
+        opts="$opts --no-bmap"
     fi
     if [ -e external-secureflash.xml ]; then
 	rewritefiles="external-secureflash.xml,$rewritefiles"

@@ -30,6 +30,7 @@ Options:
   -b basename             Base filename for SDcard image (required if no output specified)
   -y                      Skip prompting for confirmation
   --honor-start-locations Use the start locations emitted by nvflashxmlparse
+  --no-bmap               Don't use bmaptool for writing data
   --no-final-part         Skip special handling of final partition
   --serial-number <sn>    Select USB /dev/sd[a-z] device based on serial number
   --keep-connection       Do not disconnect USB drive after use
@@ -165,8 +166,8 @@ create_filesystems() {
 copy_to_device() {
     local src="$1"
     local dst="$2"
-    if [ -z "$HAVEBMAPTOOL" ]; then
-	dd if="$src" of="$dst" conv=fsync status=none >/dev/null 2>&1 || return 1
+    if [ -z "$HAVEBMAPTOOL" -o -n "$ignore_bmap" ]; then
+	dd if="$src" of="$dst" bs=1M conv=fsync status=none >/dev/null 2>&1 || return 1
 	return 0
     fi
     local bmap=$(mktemp)
@@ -315,7 +316,7 @@ confirm() {
     done
 }
 
-ARGS=$(getopt -l "serial-number:,keep-connection,no-final-part,honor-start-locations" -o "yhs:b:" -n "$me" -- "$@")
+ARGS=$(getopt -l "serial-number:,keep-connection,no-final-part,honor-start-locations,no-bmap" -o "yhs:b:" -n "$me" -- "$@")
 if [ $? -ne 0 ]; then
     usage
     exit 1
@@ -332,6 +333,7 @@ keep_connection=
 serial_number=
 ignore_finalpart=
 use_start_locations=
+ignore_bmap=
 while true; do
     case "$1" in
 	--serial-number)
@@ -351,6 +353,10 @@ while true; do
 	    use_start_locations=yes
 	    shift
 	    ;;
+        --no-bmap)
+            ignore_bmap=yes
+            shift
+            ;;
 	-h)
 	    usage
 	    exit 0
