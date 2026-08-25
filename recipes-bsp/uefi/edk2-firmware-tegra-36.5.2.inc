@@ -12,13 +12,13 @@ inherit python3native
 
 DEPENDS += "dtc-native python3-kconfiglib-native"
 
-SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r36.5-updates"
-SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r36.5-updates"
-SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r36.5-updates"
-SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r36.5-updates"
+SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r36.5.1-updates"
+SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r36.5.1-updates"
+SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r36.5.1-updates"
+SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r36.5.1-updates"
 
 SRCREV_edk2-non-osi = "889f9c90de53e7c8729d1f449b8781a5477f0df4"
-SRCREV_edk2-nvidia = "79ad0c17aa4f13fdd5164d5b026fa49436b34891"
+SRCREV_edk2-nvidia = "3dfabbec197a7614deaa57e4782296b57290a911"
 SRCREV_edk2-nvidia-non-osi = "d311b96b3867901325b7228cc374090d23750cd0"
 SRCREV_edk2-platforms = "0dbe07c94b64c9ae8680637cf2302cadbf04bfb9"
 
