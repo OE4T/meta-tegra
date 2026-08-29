@@ -52,13 +52,3 @@ l4t_deb_src_uri[vardepsexclude] += "L4T_DEB_SOCNAME"
 
 SRC_URI = "${@l4t_deb_src_uri(d)}"
 do_unpack[depends] += "zstd-native:do_populate_sysroot"
-
-do_unpack[depends] += "tar-l4t-workaround-native:do_populate_sysroot"
-EXTRANATIVEPATH:append:task-unpack = " tar-l4t-workaround-native"
-
-do_unpack:prepend() {
-    path = d.getVar('PATH')
-    subpath = ':'.join([p for p in path.split(':') if 'tar-l4t-workaround-native' not in p])
-    os.environ['TAR_WRAPPER_STRIPPED_PATH'] = subpath
-    os.environ['PATH'] = path
-}
