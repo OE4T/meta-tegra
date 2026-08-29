@@ -23,7 +23,7 @@ EXTRA_OEMAKE += " \
     OPTEE_OS_DIR=${UNPACKDIR}/optee_os \
     CFG_TA_MEASURED_BOOT=y \
     CFG_USE_PLATFORM_EPS=y \
-" 
+"
 
 do_compile() {
     oe_runmake -C ${S} all
