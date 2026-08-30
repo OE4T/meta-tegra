@@ -1,5 +1,5 @@
 HOMEPAGE = "https://developer.nvidia.com/embedded/jetson-linux"
-L4T_BSP_NAME ??= "release"
+L4T_BSP_NAME ??= "releases"
 L4T_SRCS_NAME ??= "sources"
 L4T_BSP_PREFIX ??= "Jetson"
 
@@ -8,7 +8,7 @@ L4T_LIB_VERSION ?= "540.5.0"
 
 # Version (date-time stamp) suffixes for nvidia-l4t-* packages
 # in the package feeds.
-L4T_BSP_DEB_DEFAULT_VERSION = "20260115194252"
+L4T_BSP_DEB_DEFAULT_VERSION = "20260716114719"
 L4T_BSP_DEB_VERSION ?= "${L4T_BSP_DEB_DEFAULT_VERSION}"
 L4T_BSP_DEB_ORIG_VERSION = ""
 L4T_BSP_DEB_PACKAGES_USING_ORIG_VERSION = ""

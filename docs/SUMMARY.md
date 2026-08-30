@@ -43,6 +43,7 @@
 - [Release Notes](Release-Notes.md)
   - [JetPack-7.1-L4T-R38.4.x-Notes](release-notes/JetPack-7.1-L4T-R38.4.x-Notes.md)
   - [JetPack-7.0-L4T-R38.2.x-Notes](release-notes/JetPack-7.0-L4T-R38.2.x-Notes.md)
+  - [JetPack-6.2.3-L4T-R36.5.2-Notes](release-notes/JetPack-6.2.3-L4T-R36.5.2-Notes.md)
   - [JetPack-6.2.2-L4T-R36.5.0-Notes](release-notes/JetPack-6.2.2-L4T-R36.5.0-Notes.md)
   - [JetPack-6.2.1-L4T-R36.4.4-Notes](release-notes/JetPack-6.2.1-L4T-R36.4.4-Notes.md)
   - [JetPack-6.2-L4T-R36.4.3-Notes](release-notes/JetPack-6.2-L4T-R36.4.3-Notes.md)

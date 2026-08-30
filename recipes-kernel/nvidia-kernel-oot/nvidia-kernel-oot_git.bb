@@ -19,13 +19,13 @@ SRC_URI = " \
     git://${SRC_REPO_KERNEL_DTS};branch=${SRCBRANCH};name=kernel-devicetree;destsuffix=${BPN}-${PV}/kernel-devicetree \
 "
 
-SRCBRANCH = "l4t/l4t-r36.5"
-# tag: jetson_36.5
-SRCREV_nvidia-oot = "b05da1f94ae5a2dbfe928ef7ab387035a2b77a20"
+SRCBRANCH = "l4t/l4t-r36.5.2"
+# tag: jetson_36.5.2
+SRCREV_nvidia-oot = "4adf488f7eba09f84ca2c50ab2ad5aedfdca37f3"
 SRCREV_nvethernetrm = "22e582e01d1c9c258ac56873f1aa0822acb695f3"
-SRCREV_nvdisplay = "a3da679668071cff718a33922b6d302bd18ebaa1"
+SRCREV_nvdisplay = "8e7950e96fc392bedfb3645b39e0598bd5dae232"
 SRCREV_hwpm = "ebfe0e9c4b4d96e07232ceb37f67168a1234ffeb"
-SRCREV_nvgpu = "a4145c7b6e05af9b5ee4b8da246e3b3820023dca"
+SRCREV_nvgpu = "d23f41442f9d2a7829b9d7cec320ce54a844dd65"
 SRCREV_t23x-dts = "ed1b0f6b113bb050c8cda1ccb411a163f8e2799f"
 SRCREV_tegra-dts = "8ba5d53ef1e1753f9f2a5b1f7b7b5fc5039de68e"
 SRCREV_kernel-devicetree = "19952c8e25702e9de23500c3b1fb351bf4380446"
