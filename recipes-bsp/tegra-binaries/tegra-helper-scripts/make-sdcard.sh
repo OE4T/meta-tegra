@@ -10,6 +10,7 @@ DEVNAME=
 PARTSEP=
 OUTSYSBLK=
 HAVEBMAPTOOL=
+declare -a LUKS_MAPPERS
 
 SUDO=
 [ $(id -u) -eq 0 ] || SUDO="sudo"
@@ -142,21 +143,153 @@ make_partitions() {
     return 0
 }
 
+cleanup_luks_mappers() {
+    local mapper
+    for mapper in "${LUKS_MAPPERS[@]}"; do
+        [ ! -e "/dev/mapper/$mapper" ] || close_encrypted_partition "$mapper" || true
+    done
+    LUKS_MAPPERS=()
+}
+
+partition_var_suffix() {
+    echo "$1" | tr '[:lower:]' '[:upper:]' | sed 's/[^[:alnum:]]/_/g'
+}
+
+partition_mapper_name() {
+    echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^[:alnum:]]/-/g'
+}
+
+validate_encrypted_partitions() {
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype encrypted partfilltoend
+    local pline suffix keyvar uuidvar keyfile luksuuid mapper
+    local have_encrypted=0
+
+    for pline in "${PARTS[@]}"; do
+        eval "$pline"
+        [ "$encrypted" -eq 1 ] || continue
+        have_encrypted=1
+        suffix=$(partition_var_suffix "$partname")
+        mapper=$(partition_mapper_name "$partname")
+        mapper="initrd-flash-$mapper-$$"
+        if [ -z "$suffix" ] || [ "$mapper" = "initrd-flash--$$" ] || [ ${#mapper} -gt 127 ]; then
+            echo "ERR: partition name $partname cannot be used for LUKS environment or mapper names" >&2
+            return 1
+        fi
+        if [ -e "/dev/mapper/$mapper" ]; then
+            echo "ERR: refusing to reuse existing LUKS mapper $mapper" >&2
+            return 1
+        fi
+        keyvar="LUKS_KEYFILE_$suffix"
+        uuidvar="LUKS_UUID_$suffix"
+        keyfile="${!keyvar}"
+        luksuuid="${!uuidvar}"
+        if [ -z "$keyfile" ] || [ ! -r "$keyfile" ] || [ ! -s "$keyfile" ]; then
+            echo "ERR: encrypted partition $partname requires readable non-empty \$$keyvar" >&2
+            return 1
+        fi
+        if ! [[ "$luksuuid" =~ ^[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}$ ]]; then
+            echo "ERR: encrypted partition $partname requires UUID \$$uuidvar" >&2
+            return 1
+        fi
+    done
+    if [ "$have_encrypted" -eq 1 ]; then
+        if [ ! -b "$output" ]; then
+            echo "ERR: encrypted partitions require a block-device output" >&2
+            return 1
+        fi
+        if ! command -v cryptsetup >/dev/null 2>&1; then
+            echo "ERR: encrypted partitions require the 'cryptsetup' command" >&2
+            return 1
+        fi
+    fi
+    return 0
+}
+
+open_encrypted_partition() {
+    local partname="$1"
+    local dest="$2"
+    local suffix=$(partition_var_suffix "$partname")
+    local keyvar="LUKS_KEYFILE_$suffix"
+    local uuidvar="LUKS_UUID_$suffix"
+    local keyfile="${!keyvar}"
+    local luksuuid="${!uuidvar}"
+    local mapper="initrd-flash-$(partition_mapper_name "$partname")-$$"
+
+    if [ -e "/dev/mapper/$mapper" ]; then
+        echo "ERR: refusing to reuse existing LUKS mapper $mapper" >&2
+        return 1
+    fi
+    echo "  Formatting $dest as LUKS2 (UUID=$luksuuid)..." >&2
+    if ! $SUDO cryptsetup luksFormat --batch-mode --type luks2 --cipher aes-xts-plain64 --key-size 256 --uuid "$luksuuid" "$dest" < "$keyfile"; then
+        echo "ERR: LUKS formatting failed for $dest" >&2
+        return 1
+    fi
+    if ! $SUDO cryptsetup luksOpen "$dest" "$mapper" < "$keyfile"; then
+        echo "ERR: LUKS open failed for $dest" >&2
+        return 1
+    fi
+    LUKS_MAPPERS+=("$mapper")
+    LUKS_DEVICE="/dev/mapper/$mapper"
+}
+
+close_encrypted_partition() {
+    local mapper="$1"
+    local mapperdev="/dev/mapper/$mapper"
+    local attempt errlog i
+    local max_attempts=5
+
+    for attempt in $(seq 1 $max_attempts); do
+        if command -v udevadm >/dev/null 2>&1; then
+            udevadm settle --timeout=2 >/dev/null 2>&1 || true
+        fi
+        unmount_device "$mapperdev" || return 1
+        errlog=$(mktemp)
+        if $SUDO cryptsetup close "$mapper" 2>"$errlog"; then
+            rm -f "$errlog"
+            for i in "${!LUKS_MAPPERS[@]}"; do
+                [ "${LUKS_MAPPERS[$i]}" != "$mapper" ] || unset 'LUKS_MAPPERS[i]'
+            done
+            return 0
+        fi
+        if [ "$attempt" -eq "$max_attempts" ]; then
+            echo "ERR: failed to close LUKS mapper $mapper after $max_attempts attempts" >&2
+            cat "$errlog" >&2
+            rm -f "$errlog"
+            return 1
+        fi
+        rm -f "$errlog"
+        echo "  LUKS mapper $mapper is busy; retrying close ($attempt/$max_attempts)..." >&2
+        sleep 0.2
+    done
+}
+
 create_filesystems() {
-    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
-    local pline mke2fscmd
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype encrypted partfilltoend
+    local pline mke2fscmd dest mapper
     local errlog=$(mktemp)
     for pline in "${PARTS[@]}"; do
 	eval "$pline"
-	if [ -z "$partfile" ] && [ -n "$fstype" ] && [ "$fstype" != "basic" ]; then
+	if [ -z "$partfile" ] && { [ "$encrypted" -eq 1 ] || { [ -n "$fstype" ] && [ "$fstype" != "basic" ]; }; }; then
 	    printf "Creating $fstype filesystem to /dev/$DEVNAME$PARTSEP$partnumber\n"
-	    mke2fscmd="mkfs.$fstype /dev/$DEVNAME$PARTSEP$partnumber"
-	    if ! eval "$mke2fscmd" >/dev/null 2>"$errlog"; then
+            dest="/dev/$DEVNAME$PARTSEP$partnumber"
+            if [ "$encrypted" -eq 1 ]; then
+                open_encrypted_partition "$partname" "$dest" || return 1
+                dest="$LUKS_DEVICE"
+                mapper=$(basename "$dest")
+            fi
+            if [ -n "$fstype" ] && [ "$fstype" != "basic" ]; then
+	        mke2fscmd="$SUDO mkfs.$fstype $dest"
+	        if ! eval "$mke2fscmd" >/dev/null 2>"$errlog"; then
 		    echo "ERR: filesystem failed" >&2
 		    cat "$errlog" >&2
 		    rm -f "$errlog"
 		    return 1
-	    fi
+	        fi
+            fi
+            if [ "$encrypted" -eq 1 ] && ! close_encrypted_partition "$mapper"; then
+                echo "ERR: failed to close LUKS mapper $mapper" >&2
+                return 1
+            fi
 	fi
     done
     rm -f "$errlog"
@@ -167,7 +300,7 @@ copy_to_device() {
     local src="$1"
     local dst="$2"
     if [ -z "$HAVEBMAPTOOL" -o -n "$ignore_bmap" ]; then
-	dd if="$src" of="$dst" bs=1M conv=fsync status=none >/dev/null 2>&1 || return 1
+	$SUDO dd if="$src" of="$dst" bs=1M conv=fsync status=none >/dev/null 2>&1 || return 1
 	return 0
     fi
     local bmap=$(mktemp)
@@ -182,20 +315,31 @@ copy_to_device() {
 
 unmount_device() {
     local dev="$1"
-    local mnt=$(cat /proc/mounts | grep "^$dev " | cut -d' ' -f2)
-    local m
-    for m in $mnt; do
-        if ! umount "$m" > /dev/null 2>&1; then
-            echo "ERR: unmount $m on device $dev failed" >&2
-            return 1
-        fi
-    done
+    local realdev mounteddev realmounteddev mnt rest
+
+    realdev=$(readlink -f "$dev" 2>/dev/null) || realdev="$dev"
+    while read -r mounteddev mnt rest; do
+        case "$mounteddev" in
+            /dev/*)
+                realmounteddev=$(readlink -f "$mounteddev" 2>/dev/null) || realmounteddev="$mounteddev"
+                ;;
+            *)
+                continue
+                ;;
+        esac
+        [ "$realmounteddev" != "$realdev" ] || {
+            if ! $SUDO umount "$mnt" >/dev/null 2>&1; then
+                echo "ERR: unmount $mnt on device $dev failed" >&2
+                return 1
+            fi
+        }
+    done < /proc/mounts
     return 0
 }
 
 write_partitions_to_device() {
-    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
-    local i dest pline destsize filesize n_written
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype encrypted partfilltoend
+    local i dest rawdest pline destsize filesize n_written mapper
     n_written=0
     i=0
     for pline in "${PARTS[@]}"; do
@@ -229,11 +373,30 @@ write_partitions_to_device() {
 	    sleep 1
 	    destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
 	fi
-	echo "  Writing $partfile (size=$filesize) to $dest (size=$destsize)..."
+        rawdest="$dest"
+        if [ "$encrypted" -eq 1 ]; then
+            open_encrypted_partition "$partname" "$rawdest" || return 1
+            dest="$LUKS_DEVICE"
+            mapper=$(basename "$dest")
+        fi
+        destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
+        if [ "$encrypted" -eq 1 ]; then
+            echo "  Writing $partfile (size=$filesize) through encrypted mapper $dest (payload size=$destsize; raw partition=$rawdest)..."
+        else
+            echo "  Writing $partfile (size=$filesize) to $dest (size=$destsize)..."
+        fi
+        if [ "$filesize" -gt "$destsize" ]; then
+            echo "ERR: $partfile does not fit in $dest; leave room for the LUKS header" >&2
+            return 1
+        fi
 	if ! copy_to_device "$partfile" "$dest"; then
 	    echo "ERR: failed to write $partfile to $dest" >&2
 	    return 1
 	fi
+        if [ "$encrypted" -eq 1 ] && ! close_encrypted_partition "$mapper"; then
+            echo "ERR: failed to close LUKS mapper $mapper" >&2
+            return 1
+        fi
 	n_written=$(expr $n_written + 1)
 	i=$(expr $i + 1)
     done
@@ -261,17 +424,36 @@ write_partitions_to_device() {
 	    sleep 1
 	    destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
 	fi
-	echo "  Writing $partfile (size=$filesize) to $dest (size=$destsize)..."
+        rawdest="$dest"
+        if [ "$encrypted" -eq 1 ]; then
+            open_encrypted_partition "$partname" "$rawdest" || return 1
+            dest="$LUKS_DEVICE"
+            mapper=$(basename "$dest")
+        fi
+        destsize=$(blockdev --getsize64 "$dest" 2>/dev/null)
+        if [ "$encrypted" -eq 1 ]; then
+            echo "  Writing $partfile (size=$filesize) through encrypted mapper $dest (payload size=$destsize; raw partition=$rawdest)..."
+        else
+            echo "  Writing $partfile (size=$filesize) to $dest (size=$destsize)..."
+        fi
+        if [ "$filesize" -gt "$destsize" ]; then
+            echo "ERR: $partfile does not fit in $dest; leave room for the LUKS header" >&2
+            return 1
+        fi
 	if ! copy_to_device "$partfile" "$dest"; then
 	    echo "ERR: failed to write $partfile to $dest" >&2
 	    return 1
 	fi
+        if [ "$encrypted" -eq 1 ] && ! close_encrypted_partition "$mapper"; then
+            echo "ERR: failed to close LUKS mapper $mapper" >&2
+            return 1
+        fi
     fi
 }
 
 write_partitions_to_image() {
     local -a partstart
-    local blksize partnumber partname start_location partsize partfile partguid parttype fstype partfilltoend
+    local blksize partnumber partname start_location partsize partfile partguid parttype fstype encrypted partfilltoend
     local i s e stuff partstart partend pline
 
     while read partnumber s e stuff; do
@@ -446,7 +628,6 @@ if [ -b "$output" ]; then
 else
     if [ -e "$output" ]; then
 	[ -n "$preconfirmed" ] || confirm "$output"
-	rm "$output"
     fi
     if [ -z "$outsize" ]; then
 	echo "ERR: no size specified for SDcard image $output" >&2
@@ -458,6 +639,14 @@ mapfile PARTS < <("$here/nvflashxmlparse" -t rootfs "$cfgfile")
 if [ ${#PARTS[@]} -eq 0 ]; then
     echo "No partition definitions found in $cfgfile" >&2
     exit 1
+fi
+if ! validate_encrypted_partitions; then
+    exit 1
+fi
+trap cleanup_luks_mappers EXIT INT TERM
+
+if [ ! -b "$output" ] && [ -e "$output" ]; then
+    rm "$output"
 fi
 
 echo  "Creating partitions"

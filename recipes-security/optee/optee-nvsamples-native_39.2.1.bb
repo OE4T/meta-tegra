@@ -21,6 +21,7 @@ do_compile[noexec] = "1"
 do_install() {
     install -d ${D}${bindir}
     install -m 0755 ${S}/hwkey-agent/host/tool/gen_ekb/gen_ekb.py ${D}${bindir}
+    install -m 0755 ${S}/luks-srv/host/tool/gen_luks_passphrase/gen_luks_passphrase.py ${D}${bindir}
 }
 
 INHIBIT_SYSROOT_STRIP = "1"

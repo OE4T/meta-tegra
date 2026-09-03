@@ -395,6 +395,9 @@ tegraflash_populate_package() {
         cp "${STAGING_DATADIR}/tegraflash/$f" .
     done
     sed -e "\$a\BOOTCONTROL_OVERLAYS=\"$bcoverlays\"" ${STAGING_DATADIR}/tegraflash/flashvars > ./flashvars
+    install -d ./tools/disk-encryption
+    install -m 0755 ${RECIPE_SYSROOT_NATIVE}/usr/bin/gen_ekb.py ./tools/disk-encryption/
+    install -m 0755 ${RECIPE_SYSROOT_NATIVE}/usr/bin/gen_luks_passphrase.py ./tools/disk-encryption/
     if [ "${SOC_FAMILY}" = "tegra234" ]; then
         cp ${STAGING_DATADIR}/tegraflash/bpmp_t234-*.bin .
         cp ${STAGING_DATADIR}/tegraflash/tegra234-*.dts* .
@@ -561,6 +564,7 @@ tegra_mksparse() {
 IMAGE_CMD:tegraflash-tar = "create_tegraflash_pkg"
 do_image_tegraflash_tar[depends] += "dtc-native:do_populate_sysroot coreutils-native:do_populate_sysroot \
                                  tegra-flashtools-native:do_populate_sysroot gptfdisk-native:do_populate_sysroot \
+                                 optee-nvsamples-native:do_populate_sysroot \
                                  tegra-bootfiles:do_populate_sysroot tegra-bootfiles:do_populate_lic \
                                  ${TEGRA_RCM_EDK2_DEPENDS} virtual/kernel:do_deploy \
                                  ${@'${INITRD_IMAGE}:do_image_complete' if d.getVar('INITRD_IMAGE') != '' else  ''} \

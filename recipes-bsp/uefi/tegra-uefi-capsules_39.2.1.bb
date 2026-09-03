@@ -15,6 +15,8 @@ COMPATIBLE_MACHINE = "(tegra)"
 
 TEGRA_SIGNING_EXTRA_DEPS ??= ""
 
+DEPENDS += "optee-nvsamples-native"
+
 do_compile() {
     # Older versions of this recipe use GUID
     if [ -n "${GUID}" ]; then

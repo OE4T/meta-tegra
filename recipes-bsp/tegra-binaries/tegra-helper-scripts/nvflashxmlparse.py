@@ -54,6 +54,7 @@ class Partition(object):
         default_id = None if self.is_partition_table() else partnum
         self.id = default_id if ignore_id else element.get('id', default_id)
         self.oem_sign = element.get('oemsign', 'false') == 'true'
+        self.encrypted = element.get('encrypted', 'false') == 'true'
         guid = element.find('unique_guid')
         self.partguid = "" if guid is None else validate_guid(guid.text.strip())
 
@@ -469,7 +470,7 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
     blksize = layout.devices[args.type].sector_size
     for n, part in enumerate(partitions):
         print("blksize={};partnumber={};partname=\"{}\";start_location={};partsize={};"
-              "partfile=\"{}\";partguid=\"{}\";parttype=\"{}\";fstype=\"{}\";partfilltoend={}".format(blksize,
+              "partfile=\"{}\";partguid=\"{}\";parttype=\"{}\";fstype=\"{}\";encrypted={};partfilltoend={}".format(blksize,
                                                                                         part.id,
                                                                                         part.name,
                                                                                         part.start_location,
@@ -478,6 +479,7 @@ Extracts/manipulates partition information in an NVIDIA flash layout XML file
                                                                                         part.partguid,
                                                                                         part.parttype,
                                                                                         part.fstype,
+                                                                                        1 if part.encrypted else 0,
                                                                                         1 if part.filltoend() else 0),
               file=outf)
     outf.close()
