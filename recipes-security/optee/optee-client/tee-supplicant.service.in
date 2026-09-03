@@ -2,7 +2,7 @@
 Description=TEE Supplicant
 
 [Service]
-Type=exec
+Type=notify
 User=root
 EnvironmentFile=-@sysconfdir@/default/tee-supplicant
 ExecStart=@sbindir@/tee-supplicant $OPTARGS
