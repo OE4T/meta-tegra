@@ -26,7 +26,8 @@ LIC_FILES_CHKSUM = "file://src/${GO_IMPORT}/LICENSE;md5=3b83ef96387f14655fc854dd
                     file://src/${GO_IMPORT}/vendor/sigs.k8s.io/yaml/LICENSE;md5=b5d30dd5bc47d1b56b678ac06dead1c7 \
 "
 
-SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;nobranch=1;destsuffix=${GO_SRCURI_DESTSUFFIX}"
+VER_MAJOR = "${@'.'.join(d.getVar('PV').split('.')[0:2])}"
+SRC_URI = "git://github.com/NVIDIA/nvidia-container-toolkit.git;protocol=https;branch=release-${VER_MAJOR};tag=v${PV};destsuffix=${GO_SRCURI_DESTSUFFIX}"
 SRCREV = "09ceee5dde66ba9ce25c7cc69b1ebd5e6e3266fa"
 
 SRC_URI += "\
@@ -43,13 +44,13 @@ LDFLAGS += "-Wl,-z,lazy"
 GO_LINKSHARED = ""
 
 GO_EXTRA_LDFLAGS:append = "\
-    -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.version=${GITPKGVTAG} \
-    -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.gitCommit=${GITPKGV} \
+    -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.version=${PV} \
+    -X github.com/NVIDIA/nvidia-container-toolkit/internal/info.gitCommit=${@bb.fetch.get_pkgv_string(d).lstrip('AUTOINC+')} \
 "
 
 REQUIRED_DISTRO_FEATURES = "virtualization"
 
-inherit go-mod gitpkgv features_check systemd
+inherit go-mod features_check systemd
 
 do_compile() {
     go_do_compile
