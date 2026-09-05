@@ -37,8 +37,8 @@ python do_unpack() {
             d.setVar("SOURCE_BASEDIR", workdir + '/' + basedir)
 
     try:
-        fetcher = bb.fetch2.Fetch(src_uri, d)
-    except bb.fetch2.BBFetchException as e:
+        fetcher = bb.fetch.Fetch(src_uri, d)
+    except bb.fetch.BBFetchException as e:
         raise bb.build.FuncFailed(e)
     other_src_uris = []
     for s in src_uri:
