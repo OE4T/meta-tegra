@@ -7,6 +7,7 @@ SRC_URI = "\
     file://70-l4tbr0.network \
     file://l4tbr0.netdev \
     file://98-usb-gadget-tty.rules \
+    file://serial-getty@ttyGS0.service.d/no-tty-reset.conf \
 "
 
 COMPATIBLE_MACHINE = "(tegra)"
@@ -27,7 +28,11 @@ do_install() {
     install -m 0644 ${S}/70-l4t-usb-gadget.network ${D}${sysconfdir}/systemd/network/
     install -d ${D}${sysconfdir}/udev/rules.d
     install -m 0644 ${S}/98-usb-gadget-tty.rules ${D}${sysconfdir}/udev/rules.d/
+    install -d ${D}${systemd_system_unitdir}/serial-getty@ttyGS0.service.d
+    install -m 0644 ${S}/serial-getty@ttyGS0.service.d/no-tty-reset.conf ${D}${systemd_system_unitdir}/serial-getty@ttyGS0.service.d/
 }
+
+FILES:${PN} += "${systemd_system_unitdir}/serial-getty@ttyGS0.service.d/no-tty-reset.conf"
 
 L4T_USBGX_DEPENDS ?= "libusbgx-tegra"
 
