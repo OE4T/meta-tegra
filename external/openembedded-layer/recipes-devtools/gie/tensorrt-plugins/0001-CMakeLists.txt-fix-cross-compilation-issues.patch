@@ -3,30 +3,38 @@ From: Ilies CHERGUI <ilies.chergui@gmail.com>
 Date: Mon, 14 Oct 2024 04:13:16 -0700
 Subject: [PATCH] CMakeLists.txt: fix cross compilation issues
 
+ * Use the protobuf from the target sysroot instead of building and
+   installing an internal copy (new BUILD_PROTOBUF option, off by
+   default).
+ * Pull in GNUInstallDirs, otherwise the install directories are empty.
+ * Link against the shared CUDA runtime from the target sysroot
+   (CUDA_TOOLKIT_TARGET_DIR) rather than the static one from the native
+   toolkit.
+ * Drop SOURCE_LENGTH, which bakes the build path into the objects.
+
 Upstream-Status: Pending
 Signed-off-by: Ilies CHERGUI <ilies.chergui@gmail.com>
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Kurt Kiefer <kekiefer@gmail.com>
 ---
- CMakeLists.txt             | 17 ++++++++++++++---
- parsers/CMakeLists.txt     |  9 ++++++---
- plugin/CMakeLists.txt      | 14 ++++++++++----
- third_party/protobuf.cmake |  2 +-
- 4 files changed, 31 insertions(+), 11 deletions(-)
+ CMakeLists.txt              | 24 +++++++++++++-----------
+ parsers/CMakeLists.txt      |  7 +++++--
+ parsers/onnx/CMakeLists.txt |  4 ----
+ 3 files changed, 18 insertions(+), 17 deletions(-)
 
 Index: git/CMakeLists.txt
 ===================================================================
 --- git.orig/CMakeLists.txt
 +++ git/CMakeLists.txt
-@@ -78,6 +78,7 @@ endif(CMAKE_INSTALL_PREFIX_INITIALIZED_T
- option(BUILD_PLUGINS "Build TensorRT plugin" ON)
- option(BUILD_PARSERS "Build TensorRT parsers" ON)
+@@ -124,6 +124,7 @@
  option(BUILD_SAMPLES "Build TensorRT samples" ON)
+ option(BUILD_SAFE_SAMPLES "Build TensorRT safety samples" OFF)
+ option(TRT_SAFETY_INFERENCE_ONLY "Build only the safety inference components (no safety builders)" OFF)
 +option(BUILD_PROTOBUF "Build internal copy of protobuf" OFF)
  
- # C++14
- set(CMAKE_CXX_STANDARD 14)
-@@ -90,6 +91,9 @@ else()
+ ############################################################################################
+ # Early dependency discovery
+@@ -261,6 +262,9 @@
      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBUILD_SYSTEM=cmake_oss")
  endif()
  
@@ -36,19 +44,19 @@ Index: git/CMakeLists.txt
  ############################################################################################
  # Cross-compilation settings
  
-@@ -122,7 +126,7 @@ message(STATUS "Protobuf version set to
+@@ -287,7 +291,7 @@
+ set_ifndef(PROTOBUF_VERSION ${DEFAULT_PROTOBUF_VERSION})
+ message(STATUS "Protobuf version set to ${PROTOBUF_VERSION}")
  
- set(THREADS_PREFER_PTHREAD_FLAG ON)
- find_package(Threads REQUIRED)
 -if (BUILD_PLUGINS OR BUILD_PARSERS)
 +if (BUILD_PROTOBUF)
      include(third_party/protobuf.cmake)
  endif()
  if(NOT CUB_ROOT_DIR)
-@@ -139,8 +143,10 @@ endif()
- include_directories(
-     ${CUDA_INCLUDE_DIRS}
- )
+@@ -296,8 +300,10 @@
+   endif()
+ endif()
+ 
 -if(BUILD_PARSERS)
 +if(BUILD_PROTOBUF)
      configure_protobuf(${PROTOBUF_VERSION})
@@ -56,119 +64,65 @@ Index: git/CMakeLists.txt
 +    find_package(Protobuf REQUIRED)
  endif()
  
- # Windows library names have major version appended.
-@@ -158,7 +164,7 @@ endif()
+ # Define library names
+@@ -323,14 +329,10 @@
+ if (DEFINED USE_CUGFX)
+     find_library(CUDART_LIB cugfx_dll HINTS ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib/x64 lib64)
+ else()
+-    # DriveOS platforms use cudart.so instead of cudart_static. This isn't the most sophisticated check, but it's correct.
+-    if(CUDA_VERSION VERSION_GREATER_EQUAL 12.0)
+-        set(CUDART_LIB_NAME cudart_static)
+-        set(CMAKE_CUDA_RUNTIME_LIBRARY "static")
+-    else()
+-        set(CUDART_LIB_NAME cudart)
+-        set(CMAKE_CUDA_RUNTIME_LIBRARY "shared")
+-    endif()
++    # Cross-compiled builds link against the shared CUDA runtime from the target
++    # sysroot rather than the static one.
++    set(CUDART_LIB_NAME cudart)
++    set(CMAKE_CUDA_RUNTIME_LIBRARY "shared")
  
- find_library_create_target(nvinfer ${nvinfer_lib_name} SHARED ${TRT_LIB_DIR})
+     # SafeCUDA (QNX-Safe) does not ship libcudadevrt. When CMAKE_CUDA_RUNTIME_LIBRARY
+     # is "shared" or "static", CMake automatically links -lcudadevrt for targets with
+@@ -341,7 +343,7 @@
+         set(CMAKE_CUDA_RUNTIME_LIBRARY "None")
+     endif()
  
--find_library(CUDART_LIB cudart_static HINTS ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib/x64 lib64)
-+find_library(CUDART_LIB cudart HINTS ${CUDA_TOOLKIT_TARGET_DIR} PATH_SUFFIXES lib lib64)
+-    find_library(CUDART_LIB ${CUDART_LIB_NAME} HINTS ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib/x64 lib64)
++    find_library(CUDART_LIB ${CUDART_LIB_NAME} HINTS ${CUDA_TOOLKIT_TARGET_DIR} ${CUDA_TOOLKIT_ROOT_DIR} PATH_SUFFIXES lib lib/x64 lib64)
+ endif()
  
  if (NOT MSVC)
-     find_library(RT_LIB rt)
-@@ -169,6 +175,10 @@ set(CUDA_LIBRARIES ${CUDART_LIB})
- ############################################################################################
- # CUDA targets
- 
-+if (SKIP_GPU_ARCHS)
-+  set(GENCODES "")
-+  set(BERT_GENCODES "")
-+else()
- if (DEFINED GPU_ARCHS)
-   message(STATUS "GPU_ARCHS defined as ${GPU_ARCHS}. Generating CUDA code for SM ${GPU_ARCHS}")
-   separate_arguments(GPU_ARCHS)
-@@ -214,6 +224,7 @@ set(GENCODES "${GENCODES} -gencode arch=
- if (${LATEST_SM} GREATER_EQUAL 70)
-     set(BERT_GENCODES "${BERT_GENCODES} -gencode arch=compute_${LATEST_SM},code=compute_${LATEST_SM}")
- endif()
-+endif()
- 
- if(NOT MSVC)
-     set(CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --expt-relaxed-constexpr -Xcompiler -Wno-deprecated-declarations")
 Index: git/parsers/CMakeLists.txt
 ===================================================================
 --- git.orig/parsers/CMakeLists.txt
 +++ git/parsers/CMakeLists.txt
-@@ -19,14 +19,17 @@
- add_custom_target(parsers DEPENDS
-     nvonnxparser)
+@@ -18,8 +18,10 @@
+ ############################# GENERATE C++ PROTO FILES ###################################
+ add_custom_target(parsers DEPENDS nvonnxparser)
  
 -add_definitions("-D_PROTOBUF_INSTALL_DIR=${Protobuf_INSTALL_DIR}")
--add_compile_options("-Dgoogle=google_private")
+-add_compile_options("-Dgoogle=google_trtrepack")
 +if(BUILD_PROTOBUF)
 +    add_definitions("-D_PROTOBUF_INSTALL_DIR=${Protobuf_INSTALL_DIR}")
-+    add_compile_options("-Dgoogle=google_private")
++    add_compile_options("-Dgoogle=google_trtrepack")
 +endif()
  set(TENSORRT_ROOT ${PROJECT_SOURCE_DIR})
- set(TENSORRT_BUILD ${TRT_OUT_DIR} ${TRT_LIB_DIR})
- set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${TRT_OUT_DIR})
+ set(TENSORRT_BUILD ${TRT_OUT_DIR})
+ 
+@@ -33,6 +35,7 @@
  
  include_directories(
     ${Protobuf_INCLUDE_DIR}
--)
 +   ${PROJECT_SOURCE_DIR}/include
-+ )
- 
- add_subdirectory(onnx)
-Index: git/plugin/CMakeLists.txt
-===================================================================
---- git.orig/plugin/CMakeLists.txt
-+++ git/plugin/CMakeLists.txt
-@@ -29,7 +29,8 @@ set(VFC_PLUGIN_EXPORT_MAP ${TARGET_DIR}/
- if(${CMAKE_BUILD_TYPE} MATCHES "Debug")
-     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
- endif()
--set(ENABLED_SMS "-DENABLE_SM72 -DENABLE_SM75 -DENABLE_SM80 -DENABLE_SM86 -DENABLE_SM87 -DENABLE_SM89 -DENABLE_SM90")
-+
-+message(STATUS "Enabled SM: ${ENABLED_SMS}")
- set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ENABLED_SMS}")
- set(PLUGIN_SOURCES)
- set(PLUGIN_CU_SOURCES)
-@@ -75,7 +76,7 @@ set(PLUGIN_LISTS
  )
  
- # Add BERT sources if ${BERT_GENCODES} was populated
--if(BERT_GENCODES)
-+if(DEFINED BERT_GENCODES)
-     set(BERT_CU_SOURCES)
-     set(PLUGIN_LISTS
-         ${PLUGIN_LISTS}
-@@ -99,10 +100,15 @@ endforeach(PLUGIN_ITER)
- add_subdirectory(common)
- 
- # Set gencodes
--set_source_files_properties(${PLUGIN_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${GENCODES} ${ENABLED_SMS}")
-+if(GENCODES)
-+    set_source_files_properties(${PLUGIN_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${GENCODES} ${ENABLED_SMS}")
-+endif()
-+
- list(APPEND PLUGIN_SOURCES "${PLUGIN_CU_SOURCES}")
- if (BERT_CU_SOURCES)
--    set_source_files_properties(${BERT_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${BERT_GENCODES} ${ENABLED_SMS}")
-+    if(BERT_GENCODES)
-+        set_source_files_properties(${BERT_CU_SOURCES} PROPERTIES COMPILE_FLAGS "${BERT_GENCODES} ${ENABLED_SMS}")
-+    endif()
-     list(APPEND PLUGIN_SOURCES "${BERT_CU_SOURCES}")
- endif()
- 
-Index: git/third_party/protobuf.cmake
-===================================================================
---- git.orig/third_party/protobuf.cmake
-+++ git/third_party/protobuf.cmake
-@@ -209,7 +209,7 @@ function(protobuf_generate_cpp SRCS HDRS
-             COMMAND ${Protobuf_PROTOC_EXECUTABLE}
-             ARGS --cpp_out ${CMAKE_CURRENT_BINARY_DIR}/${PROTO_DIR} -I${CMAKE_CURRENT_SOURCE_DIR}/${PROTO_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/${proto}
-             WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
--            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${proto}" protobuf::libprotobuf Protobuf protobuf::protoc
-+            DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/${proto}" protobuf::libprotobuf
-             COMMENT "${proto} -> ${PROTO_DIR}/${PROTO_SRC} ${PROTO_DIR}/${PROTO_HEADER}"
-         )
- 
+ add_subdirectory(onnx)
 Index: git/parsers/onnx/CMakeLists.txt
 ===================================================================
 --- git.orig/parsers/onnx/CMakeLists.txt
 +++ git/parsers/onnx/CMakeLists.txt
-@@ -20,10 +20,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+@@ -20,10 +20,6 @@
  
  set(PARSER_LINKER_SCRIPT  ${ONNX2TRT_ROOT}/libnvonnxparser.version)
  
