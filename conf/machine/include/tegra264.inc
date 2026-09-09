@@ -27,6 +27,8 @@ TEGRA_CUDA_ARCHITECTURE ?= "110"
 TEGRA_FLASHVAR_BR_CMD_CONFIG ?= ""
 TEGRA_FLASHVAR_FSIFW ?= ""
 
+TEGRA_ESSENTIAL_PCIE_RRECOMMENDS ?= "nv-kernel-module-pcie-tegra264"
+
 require conf/machine/include/tegra-common.inc
 
 L4T_BSP_PREFIX = "Jetson"
