@@ -22,7 +22,6 @@ PACKAGE_INSTALL = "\
 # Thor (T264): unified flash via ADB
 PACKAGE_INSTALL:append:tegra264 = " \
     tegra-target-flash-scripts \
-    nv-kernel-module-pcie-tegra264 \
     nv-kernel-module-ufs-tegra \
 "
 
