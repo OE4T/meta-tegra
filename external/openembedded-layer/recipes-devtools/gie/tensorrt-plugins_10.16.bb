@@ -2,7 +2,7 @@ DESCRIPTION = "NVIDIA TensorRT Plugins for deep learning"
 HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 LICENSE = "Apache-2.0 & BSD-3-Clause & MIT"
 LIC_FILES_CHKSUM = " \
-  file://LICENSE;md5=5feff12211c5116f88277308f4b88a64 \
+  file://LICENSE;md5=99db4b09478f3c2b0a11901785687034 \
   file://third_party/cub/LICENSE.TXT;md5=20d1414b801e2a130d7d546685105508 \
   file://parsers/onnx/third_party/onnx/LICENSE;md5=3b83ef96387f14655fc854ddc3c6bd57 \
   file://parsers/onnx/LICENSE;md5=aa3e92f9f2b6da1568c23ceaec468692 \
@@ -11,13 +11,13 @@ LIC_FILES_CHKSUM = " \
 inherit cuda cmake pkgconfig
 
 SRC_REPO = "github.com/NVIDIA/TensorRT.git;protocol=https"
-SRCBRANCH = "release/10.3"
+SRCBRANCH = "release/10.16"
 SRC_URI = "gitsm://${SRC_REPO};branch=${SRCBRANCH} \
     file://0001-CMakeLists.txt-fix-cross-compilation-issues.patch \
 "
 
-# v10.3.0 tag
-SRCREV = "c5b9de37f7ef9034e2efc621c664145c7c12436e"
+# v10.16 tag
+SRCREV = "52399f555c2f80cb690a4a558b604e1a5f227e7c"
 
 DEPENDS += "zlib cuda-cudart cuda-nvrtc protobuf protobuf-native tensorrt-core"
 
@@ -30,11 +30,11 @@ PACKAGECONFIG ??= " \
 PACKAGECONFIG[plugin] = "-DBUILD_PLUGINS=ON,-DBUILD_PLUGINS=OFF,"
 PACKAGECONFIG[parsers] = "-DBUILD_PARSERS=ON,-DBUILD_PARSERS=OFF,"
 
-EXTRA_OECMAKE = '-DBUILD_SAMPLES=OFF -DSKIP_GPU_ARCHS=ON -DTRT_PLATFORM_ID="${TARGET_ARCH}" \
+EXTRA_OECMAKE = '-DBUILD_SAMPLES=OFF -DTRT_PLATFORM_ID="${TARGET_ARCH}" \
+  -DGPU_ARCHS="${TEGRA_CUDA_ARCHITECTURE}" \
   -DCUDA_VERSION="${CUDA_VERSION}" \
   -DCUDA_INCLUDE_DIRS="${STAGING_DIR_HOST}/usr/local/cuda-${CUDA_VERSION}/include" \
-  -DENABLED_SMS="-DENABLE_SM${TEGRA_CUDA_ARCHITECTURE}" \
-  -DSTABLE_DIFFUSION_GENCODES="-gencode arch=compute_${TEGRA_CUDA_ARCHITECTURE},code=compute_${TEGRA_CUDA_ARCHITECTURE}" \
+  -DTENSORRT_PYTHON_INCLUDE_DIR="${S}/include/impl" \
   -DProtobuf_LIBRARY="${STAGING_LIBDIR}/libprotobuf.so" \
   -DProtobuf_PROTOC_EXECUTABLE="${STAGING_BINDIR_NATIVE}/protoc" \
   -DONNX_CUSTOM_PROTOC_EXECUTABLE="${STAGING_BINDIR_NATIVE}/protoc" \
