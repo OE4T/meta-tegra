@@ -63,6 +63,7 @@ def get_l4t_extlinux_compat_var(varname, d):
 # Make compatible version of each of the FDT variable which
 # removes the /boot/ prefix for backwards compatibility
 L4T_UBOOT_EXTLINUX_FDT = "${@get_l4t_extlinux_compat_var('UBOOT_EXTLINUX_FDT', d)}"
+L4T_UBOOT_EXTLINUX_FDT[vardeps] += "UBOOT_EXTLINUX_FDT"
 
 python do_create_extlinux_config() {
     if d.getVar('UBOOT_EXTLINUX') != '1':
@@ -149,7 +150,8 @@ python do_create_extlinux_config() {
         bb.fatal('Unable to open %s' % (cfile))
 }
 UBOOT_EXTLINUX_VARS = "CONSOLE MENU_DESCRIPTION KERNEL_IMAGE FDT FDTOVERLAYS KERNEL_ARGS INITRD"
-do_create_extlinux_config[vardeps] += "${@' '.join(['UBOOT_EXTLINUX_%s_%s' % (v, l) for v in d.getVar('UBOOT_EXTLINUX_VARS').split() for l in d.getVar('UBOOT_EXTLINUX_LABELS').split()])}"
+do_create_extlinux_config[vardeps] += "UBOOT_EXTLINUX_FDT"
+do_create_extlinux_config[vardeps] += "${@' '.join(['UBOOT_EXTLINUX_%s:%s' % (v, l) for v in d.getVar('UBOOT_EXTLINUX_VARS').split() for l in d.getVar('UBOOT_EXTLINUX_LABELS').split()])}"
 do_create_extlinux_config[vardepsexclude] += "OVERRIDES"
 
 addtask create_extlinux_config before do_install do_deploy after do_compile
