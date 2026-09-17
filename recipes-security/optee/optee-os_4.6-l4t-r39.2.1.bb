@@ -4,7 +4,7 @@ HOMEPAGE = "https://www.op-tee.org/"
 
 require optee-os-l4t.inc
 
-CVE_PRODUCT = "linaro:op-tee op-tee:op-tee_os"
+CVE_PRODUCT = "linaro:op-tee op-tee:op-tee_os trustedfirmware:op-tee"
 
 DEPENDS += "optee-nvsamples"
 DEPENDS += "${@'optee-ftpm' if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''}"
