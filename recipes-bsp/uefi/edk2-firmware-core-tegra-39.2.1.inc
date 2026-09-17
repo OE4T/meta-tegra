@@ -6,6 +6,10 @@ SRC_URI_EDK2 = "gitsm://github.com/NVIDIA/edk2.git;protocol=https;branch=r39.2.1
 
 SRCREV_edk2 = "5acf429321649bc191baf19de19670216a75cfb0"
 
+# PV is the L4T release, but NVD versions edk2 by its edk2-stable tag.
+# Keep this at the newest edk2-stable tag merged into SRCREV_edk2.
+CVE_VERSION = "202505"
+
 SRC_URI = "${SRC_URI_EDK2};name=edk2;destsuffix=edk2-tegra/edk2"
 
 S = "${UNPACKDIR}/edk2-tegra/edk2"
