@@ -19,7 +19,7 @@ SRC_URI = "gitsm://${SRC_REPO};branch=${SRCBRANCH} \
 # v10.16 tag
 SRCREV = "52399f555c2f80cb690a4a558b604e1a5f227e7c"
 
-DEPENDS += "zlib cuda-cudart cuda-nvrtc protobuf protobuf-native tensorrt-core"
+DEPENDS += "zlib cuda-cudart cuda-nvrtc protobuf protobuf-native tensorrt"
 
 COMPATIBLE_MACHINE = "(tegra)"
 
