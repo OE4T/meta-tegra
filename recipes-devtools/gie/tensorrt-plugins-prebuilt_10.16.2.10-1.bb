@@ -45,7 +45,7 @@ MAJVER = "${@extract_majver(d)}"
 
 S = "${UNPACKDIR}/tensorrt"
 
-DEPENDS = "cuda-cudart tensorrt-core"
+DEPENDS = "cuda-cudart tensorrt"
 
 do_configure() {
     :
