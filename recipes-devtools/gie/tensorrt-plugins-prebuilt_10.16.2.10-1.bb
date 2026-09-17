@@ -35,7 +35,7 @@ require tensorrt-version.inc
 
 S = "${UNPACKDIR}/tensorrt"
 
-DEPENDS = "cuda-cudart tensorrt-core"
+DEPENDS = "cuda-cudart tensorrt"
 
 do_configure() {
     :
