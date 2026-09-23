@@ -4,8 +4,6 @@ HOMEPAGE = "https://www.op-tee.org/"
 
 require optee-os-l4t.inc
 
-CVE_PRODUCT = "linaro:op-tee op-tee:op-tee_os"
-
 DEPENDS += "optee-nvsamples"
 
 EARLY_TA_PATHS_FTPM = " \

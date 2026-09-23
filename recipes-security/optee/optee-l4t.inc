@@ -10,6 +10,8 @@ DEPENDS = "python3-pyelftools-native python3-cryptography-native standalone-mm-o
 # right path until this is relocated automatically.
 export OPENSSL_MODULES="${STAGING_LIBDIR_NATIVE}/ossl-modules"
 
+CVE_VERSION = "${@d.getVar('PV').split('-l4t-')[0]}"
+
 OPTEE_NV_PLATFORM ?= ""
 OPTEE_NV_PLATFORM:tegra234 = "t234"
 

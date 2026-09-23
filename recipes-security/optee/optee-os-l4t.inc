@@ -42,3 +42,5 @@ do_compile[cleandirs] = "${B}"
 
 INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
+
+CVE_PRODUCT = "linaro:op-tee trustedfirmware:op-tee"
