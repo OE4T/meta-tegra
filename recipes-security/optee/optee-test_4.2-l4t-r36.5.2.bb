@@ -48,3 +48,5 @@ RDEPENDS:${PN} = "optee-os optee-client"
 CVE_PRODUCT = "linaro:op-tee trustedfirmware:op-tee"
 
 CVE_STATUS[CVE-2021-36133] = "not-applicable-platform: applies to the NXP i.MX CSU driver, not Tegra"
+CVE_STATUS[CVE-2026-40290] = "not-applicable-config: requires CFG_SECURE_PARTITION=y with CFG_CORE_SEL1_SPMC; plat-tegra/conf.mk forces CFG_CORE_SEL2_SPMC=n and no recipe sets SP_PATHS, so CFG_SECURE_PARTITION defaults to n and no SPMC mode is built"
+CVE_STATUS[CVE-2026-41515] = "not-applicable-platform: requires the NXP CAAM crypto driver (CFG_NXP_CAAM), not built for Tegra"
