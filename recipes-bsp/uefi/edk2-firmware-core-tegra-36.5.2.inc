@@ -24,3 +24,6 @@ python() {
     d.setVarFlag('do_patch', 'postfuncs', ' '.join(new_postfuncs))
 }
 
+CVE_PRODUCT = "tianocore:edk2"
+CVE_VERSION = "202408"
+
