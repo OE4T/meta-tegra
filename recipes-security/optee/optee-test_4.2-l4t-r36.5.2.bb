@@ -44,3 +44,5 @@ FILES:${PN} += " \
 "
 
 RDEPENDS:${PN} = "optee-os optee-client"
+
+CVE_PRODUCT = "linaro:op-tee trustedfirmware:op-tee"

@@ -55,3 +55,5 @@ SYSTEMD_SERVICE:${PN} = "tee-supplicant.service ${@'tee-ftpm-modprobe.service' i
 INITSCRIPT_PACKAGES = "${PN}"
 INITSCRIPT_NAME:${PN} = "tee-supplicant"
 INITSCRIPT_PARAMS:${PN} = "start 10 1 2 3 4 5 . stop 90 0 6 ."
+
+CVE_PRODUCT = "linaro:op-tee trustedfirmware:op-tee"
