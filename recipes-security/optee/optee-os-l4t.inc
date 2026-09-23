@@ -44,3 +44,5 @@ INHIBIT_PACKAGE_STRIP = "1"
 INHIBIT_SYSROOT_STRIP = "1"
 
 CVE_PRODUCT = "linaro:op-tee trustedfirmware:op-tee"
+
+CVE_STATUS[CVE-2021-36133] = "not-applicable-platform: applies to the NXP i.MX CSU driver, not Tegra"

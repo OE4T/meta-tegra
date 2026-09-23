@@ -46,3 +46,5 @@ FILES:${PN} += " \
 RDEPENDS:${PN} = "optee-os optee-client"
 
 CVE_PRODUCT = "linaro:op-tee trustedfirmware:op-tee"
+
+CVE_STATUS[CVE-2021-36133] = "not-applicable-platform: applies to the NXP i.MX CSU driver, not Tegra"
