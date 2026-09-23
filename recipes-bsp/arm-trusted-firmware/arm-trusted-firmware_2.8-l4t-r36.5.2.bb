@@ -18,10 +18,14 @@ B = "${WORKDIR}/build"
 
 COMPATIBLE_MACHINE = "(tegra234)"
 
-CVE_PRODUCT = "arm:arm-trusted-firmware \
+CVE_PRODUCT = "trustedfirmware:trusted_firmware-a \
                arm:trusted_firmware-a \
-               arm:arm_trusted_firmware \
-               arm_trusted_firmware_project:arm_trusted_firmware"
+               arm:arm-trusted-firmware \
+               arm:arm_trusted_firmware"
+CVE_VERSION = "${@d.getVar('PV').split('-l4t-')[0]}"
+
+CVE_STATUS[CVE-2022-47630] = "not-applicable-config: this 2.8.0 source has the unfixed get_ext(), but the X.509 parser is only built with TRUSTED_BOARD_BOOT=1; Tegra builds BL31 only, with TRUSTED_BOARD_BOOT=0"
+CVE_STATUS[CVE-2023-31339] = "not-applicable-platform: applies to AMD Zynq UltraScale+ MPSoC/RFSoC platform code, not Tegra"
 
 PACKAGECONFIG ??= "optee"
 PACKAGECONFIG[trusty] = "SPD=trusty"
