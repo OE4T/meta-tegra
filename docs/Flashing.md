@@ -118,6 +118,74 @@ By default, the script flashes both the boot firmware to the QSPI flash and the 
 
 For Thor-family devices, you must power cycle or reset the target after flashing is done.
 
+## Production-time customization
+
+For Orin targets, an optional `flashpkg-extra/` directory beside `initrd-flash` can carry per-device files without rebuilding the Yocto image or tegraflash package. Its contents are copied into the target flash package and are available during flashing under `/tmp/flashpkg/flashpkg/`. Hooks installed in `/init-extra-pre-wipe.d/` run before destructive storage operations; hooks in `/init-extra.d/` run later and can perform final customization of the newly flashed root filesystem.
+
+For example, a production host can generate different hostname and access-point settings for each unit while reusing the same image and tegraflash package:
+
+```text
+flashpkg-extra/
+└── conf/
+    ├── device.conf
+    └── hostapd.conf
+```
+
+```bash
+mkdir -p flashpkg-extra/conf
+
+cat > flashpkg-extra/conf/device.conf <<EOF
+HOSTNAME='device-000123'
+EOF
+
+cp generated-hostapd.conf flashpkg-extra/conf/hostapd.conf
+
+./initrd-flash
+```
+
+An external layer can install a hook by placing the following in `tegra-flash-init_1.0.bbappend` (with the script under a sibling `tegra-flash-init/` directory):
+
+```bitbake
+FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
+
+SRC_URI += "file://production-customization.sh"
+
+do_install:append() {
+    install -m 0755 ${UNPACKDIR}/production-customization.sh \
+        ${D}/init-extra.d/production-customization.sh
+}
+```
+
+A short `production-customization.sh` hook could be:
+
+```sh
+#!/bin/sh
+set -eu
+
+CONF_DIR=/tmp/flashpkg/flashpkg/conf
+ROOTFS_DEVICE=${ROOTFS_DEVICE:-/dev/nvme0n1p1}
+ROOTFS_MNT=/mnt/rootfs
+
+. "$CONF_DIR/device.conf"
+: "${HOSTNAME:?HOSTNAME is not set}"
+
+mkdir -p "$ROOTFS_MNT"
+mount "$ROOTFS_DEVICE" "$ROOTFS_MNT"
+cleanup() { umount "$ROOTFS_MNT"; }
+trap cleanup EXIT INT TERM
+
+printf '%s\n' "$HOSTNAME" > "$ROOTFS_MNT/etc/hostname"
+mkdir -p "$ROOTFS_MNT/etc/hostapd"
+cp "$CONF_DIR/hostapd.conf" "$ROOTFS_MNT/etc/hostapd/hostapd.conf"
+chmod 0644 "$ROOTFS_MNT/etc/hostapd/hostapd.conf"
+sync
+
+umount "$ROOTFS_MNT"
+trap - EXIT INT TERM
+```
+
+The rootfs block-device path is machine- and partition-layout-specific; adapt `ROOTFS_DEVICE` for the target. `flashpkg-extra/` is a transient production-data transport mechanism, not secure secret storage by itself.
+
 # SDcard/External drive writing (Orin only)
 
 For the Orin Nano development kit where you use the SDcard slot, or any Orin target where you use either a USB or NVMe external drive for the rootfs partition, you can use initrd flashing once (to ensure the boot firmware is at the correct version), then use either the `./dosdcard.sh` or `./doexternal.sh` script to write to a storage device that is directly connected to your host.  These scripts run the flashing helper script to assemble the partitions for the SDcard or external storage device, then runs a script to write those partitions to a storage device.
