@@ -171,7 +171,7 @@ else
 	echo "Processing: $cmd $args"
 	case "$cmd" in
 	    bootloader)
-		process_bootloader_package 2>&1 > /tmp/flashpkg/flashpkg/logs/bootloader.log &
+		process_bootloader_package > /tmp/flashpkg/flashpkg/logs/bootloader.log 2>&1 &
 		wait_for_bootloader=yes
 		;;
 	    extra-pre-wipe)
@@ -183,26 +183,26 @@ else
 		;;
 	    erase-mmc)
 		if [ -b /dev/mmcblk0 ]; then
-		    blkdiscard -f /dev/mmcblk0 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
+		    blkdiscard -f /dev/mmcblk0 > /tmp/flashpkg/flashpkg/logs/erase-mmc.log 2>&1
 		else
 		    echo "/dev/mmcblk0 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-mmc.log
 		fi
 		;;
 	    erase-nvme)
 		if [ -b /dev/nvme0n1 ]; then
-		    blkdiscard -f /dev/nvme0n1 2>&1 > /tmp/flashpkg/flashpkg/logs/erase-nvme.log
+		    blkdiscard -f /dev/nvme0n1 > /tmp/flashpkg/flashpkg/logs/erase-nvme.log 2>&1
 		else
 		    echo "/dev/nvme0n1 does not exist, skipping" > /tmp/flashpkg/flashpkg/logs/erase-nvme.log
 		fi
 		;;
 	    export-devices)
 		for dev in $args; do
-		    if setup_usb_export /dev/$dev $dev 2>&1 > /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
-			if wait_for_connect 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
-			    if wait_for_disconnect 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log; then
-				partprobe /dev/$dev 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log
-				sfdisk --verify /dev/$dev 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log
-				sfdisk -l /dev/$dev 2>&1 >> /tmp/flashpkg/flashpkg/logs/export-$dev.log
+		    if setup_usb_export /dev/$dev $dev > /tmp/flashpkg/flashpkg/logs/export-$dev.log 2>&1; then
+			if wait_for_connect >> /tmp/flashpkg/flashpkg/logs/export-$dev.log 2>&1; then
+			    if wait_for_disconnect >> /tmp/flashpkg/flashpkg/logs/export-$dev.log 2>&1; then
+				partprobe /dev/$dev >> /tmp/flashpkg/flashpkg/logs/export-$dev.log 2>&1
+				sfdisk --verify /dev/$dev >> /tmp/flashpkg/flashpkg/logs/export-$dev.log 2>&1
+				sfdisk -l /dev/$dev >> /tmp/flashpkg/flashpkg/logs/export-$dev.log 2>&1
 				continue
 			    fi
 			fi
