@@ -171,7 +171,7 @@ else
 	echo "Processing: $cmd $args"
 	case "$cmd" in
 	    bootloader)
-		process_bootloader_package 2>&1 > /tmp/flashpkg/flashpkg/logs/bootloader.log &
+		process_bootloader_package > /tmp/flashpkg/flashpkg/logs/bootloader.log 2>&1 &
 		wait_for_bootloader=yes
 		;;
 	    extra-pre-wipe)
