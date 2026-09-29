@@ -428,6 +428,7 @@ copy_bootloader_files_t234() {
 generate_flash_package_t234() {
     local dev=$(wait_for_usb_storage "$session_id" "flashpkg" "$usb_instance")
     local exports
+    local extra_dir="$here/flashpkg-extra"
 
     if [ -z "$dev" ]; then
         echo "ERR: could not locate USB storage device for sending flashing commands" >&2
@@ -442,6 +443,14 @@ generate_flash_package_t234() {
     fi
 
     mkdir "$mnt/flashpkg/conf"
+    if [ -d "$extra_dir" ]; then
+        # Allow host-side tooling to inject additional files into the flash package.
+        if ! cp -a "$extra_dir/." "$mnt/flashpkg/"; then
+            echo "ERR: failed to copy flashpkg-extra contents" >&2
+            unmount_and_release "$mnt" "$dev" || true
+            return 1
+        fi
+    fi
     rm -f "$mnt/flashpkg/conf/command_sequence"
     touch "$mnt/flashpkg/conf/command_sequence"
     if [ $skip_bootloader -eq 0 ]; then
