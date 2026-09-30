@@ -304,6 +304,7 @@ tegraflash_create_flash_config() {
 	-e"s,ESP_FILE,${ESP_FILE}," -e"/VARSTORE_FILE/d" \
 	-e"s,EXT_NUM_SECTORS,${TEGRA_EXTERNAL_DEVICE_SECTORS}," \
 	-e"s,INT_NUM_SECTORS,${TEGRA_INTERNAL_DEVICE_SECTORS}," \
+	-e"/TEEDATA_FILE/d" \
 	"$infile" \
         > "$destfile"
 }
