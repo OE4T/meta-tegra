@@ -39,6 +39,9 @@ PACKAGES =+ "\
     ${PN}-driver-max96724 \
     ${PN}-driver-r0sim623 \
     ${PN}-driver-r0sim728 \
+    ${PN}-driver-sgwisx031 \
+    ${PN}-driver-shf3lisx031 \
+    ${PN}-driver-snsa0vb1940 \
     ${PN}-driver-tegra-deser-power \
 "
 
@@ -53,6 +56,9 @@ FILES:${PN}-driver-max96712 = "${libdir}/nvsipl_drv/libnvuddf_max96712_library.s
 FILES:${PN}-driver-max96724 = "${libdir}/nvsipl_drv/libnvuddf_max96724_library.so"
 FILES:${PN}-driver-r0sim623 = "${libdir}/nvsipl_drv/libnvuddf_r0sim623cameramodule_library.so"
 FILES:${PN}-driver-r0sim728 = "${libdir}/nvsipl_drv/libnvuddf_r0sim728cameramodule_library.so"
+FILES:${PN}-driver-sgwisx031 = "${libdir}/nvsipl_drv/libnvuddf_sgwisx031cameramodule_library.so"
+FILES:${PN}-driver-shf3lisx031 = "${libdir}/nvsipl_drv/libnvuddf_shf3lisx031cameramodule_library.so"
+FILES:${PN}-driver-snsa0vb1940 = "${libdir}/nvsipl_drv/libnvuddf_snsa0vb1940cameramodule_library.so"
 FILES:${PN}-driver-tegra-deser-power = "${libdir}/nvsipl_drv/libnvuddf_tegra_deser_power_library.so"
 RDEPENDS:${PN}-driver-ar0234hawk = "tegra-libraries-camera-sipl-nova0-hawk"
 RDEPENDS:${PN}-driver-eagle = "tegra-libraries-camera-sipl-vb1940"
@@ -70,4 +76,7 @@ RDEPENDS:${PN}-drivers = "\
     ${PN}-driver-max96724 \
     ${PN}-driver-r0sim623 \
     ${PN}-driver-r0sim728 \
+    ${PN}-driver-sgwisx031 \
+    ${PN}-driver-shf3lisx031 \
+    ${PN}-driver-snsa0vb1940 \
 "
