@@ -26,7 +26,7 @@ do_install() {
 
 do_install:append:tegra264() {
     install -d ${D}/opt/nvidia/l4t-gpusetup
-    install -m 0755 ${B}/opt/nvidia/l4t-gpusetup/gpu_pg_mask ${D}/opt/nvidia/l4t-gpusetup/
+    install -m 0755 ${B}/var/lib/l4t-gpu-static-pg/gpu_pg_mask ${D}/opt/nvidia/l4t-gpusetup/
 }
 
 FILES:${PN} = "${sbindir}/nvpmodel ${sysconfdir}"
