@@ -44,7 +44,7 @@ FILES:${PN}-tegra264 = " \
     ${nonarch_base_libdir}/firmware/rtl8852cu_fw \
     ${nonarch_base_libdir}/firmware/nvidia/gb10b \
     ${nonarch_base_libdir}/firmware/nvidia/tegra264 \
-    ${nonarch_base_libdir}/firmware/nvidia/595.78 \
+    ${nonarch_base_libdir}/firmware/nvidia/${L4T_LIB_VERSION} \
     ${nonarch_base_libdir}/firmware/display-t264-dce.bin \
 "
 
