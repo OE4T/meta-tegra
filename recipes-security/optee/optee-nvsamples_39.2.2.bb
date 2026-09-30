@@ -18,7 +18,9 @@ export LDADD
 S = "${UNPACKDIR}/samples"
 B = "${WORKDIR}/build"
 
-EXTRA_OEMAKE += "CROSS_COMPILE=${HOST_PREFIX}"
+# Build the samples consumed by do_install instead of discovering new apps.
+OPTEE_NV_SAMPLE_APPS = "cpubl-payload-dec hwkey-agent luks-srv pkcs11-sample ${@'ftpm-helper' if d.getVar('OPTEE_ENABLE_FTPM') == '1' else ''}"
+EXTRA_OEMAKE += "CROSS_COMPILE=${HOST_PREFIX} SAMPLE_APPS_LIST='${OPTEE_NV_SAMPLE_APPS}'"
 
 do_compile() {
     oe_runmake -C ${S} all
