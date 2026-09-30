@@ -13,7 +13,7 @@ DEVKIT_WIFI_RRECOMMENDS ?= "${@'${NVIDIA_WIFI}' if d.getVar('TEGRA_USING_VENDOR_
 
 MACHINE_EXTRA_RRECOMMENDS += " \
     ${DEVKIT_ETHERNET_RRECOMMENDS} \
-    kernel-module-rtk-btusb \
+    kernel-module-btrtlusb \
     ${DEVKIT_WIFI_RRECOMMENDS} \
     kernel-module-snd-soc-rl6231 \
     kernel-module-snd-soc-rt5640 \

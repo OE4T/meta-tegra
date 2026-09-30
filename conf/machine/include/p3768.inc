@@ -10,7 +10,7 @@ DEVKIT_WIFI_RRECOMMENDS ?= "${@'${NVIDIA_WIFI}' if d.getVar('TEGRA_USING_VENDOR_
 DEVKIT_ETHERNET_RRECOMMENDS ?= "${@'${NVIDIA_ETHERNET}' if d.getVar('TEGRA_USING_VENDOR_KERNEL') else '${LINUX_ETHERNET}'} kernel-module-realtek linux-firmware-rtl8168"
 
 MACHINE_EXTRA_RRECOMMENDS += " \
-    nv-kernel-module-rtk-btusb \
+    kernel-module-btrtlusb \
     tegra-firmware-rtl8822 \
     ${DEVKIT_WIFI_RRECOMMENDS} \
     ${DEVKIT_ETHERNET_RRECOMMENDS} \
