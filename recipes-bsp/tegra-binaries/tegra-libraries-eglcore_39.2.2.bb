@@ -5,11 +5,15 @@ L4T_DEB_TRANSLATED_BPN = "nvidia-l4t-3d-core"
 
 require tegra-debian-libraries-common.inc
 
+LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-l4t-3d-core/LICENSE.libnvidia-rmapi-tegra;md5=5c7c5200a29e873064f17b5bbf4d3c56"
+
 MAINSUM = "7bbf86938d923a7dca0da30d8b76ba7d1245a53ce3e888e09eee7c1bceb948ce"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
     tegra-egl/libEGL_nvidia.so.0 \
     nvidia/libnvidia-eglcore.so.${L4T_LIB_VERSION} \
+    nvidia/libnvidia-rmapi-tegra.so.${L4T_LIB_VERSION} \
+    nvidia/libnvidia-tls.so.${L4T_LIB_VERSION} \
     nvidia/libnvidia-glsi.so.${L4T_LIB_VERSION} \
     nvidia/libnvidia-glvkspirv.so.${L4T_LIB_VERSION} \
     nvidia/libnvidia-rtcore.so.${L4T_LIB_VERSION} \

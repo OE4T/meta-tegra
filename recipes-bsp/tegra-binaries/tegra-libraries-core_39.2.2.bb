@@ -2,9 +2,6 @@ L4T_DEB_COPYRIGHT_MD5 = "d9a8361f8068fc4e3b934118d1de9f3f"
 
 require tegra-debian-libraries-common.inc
 
-LICENSE += "AND Apache-2.0"
-LIC_FILES_CHKSUM += "file://usr/share/doc/nvidia-l4t-core/LICENSE.libnvidia-rmapi-tegra;md5=5c7c5200a29e873064f17b5bbf4d3c56"
-
 MAINSUM = "d10d5e95a4970e7667c08fd987e4d37ac6efa1268b6ee07ecf769a537bfa43c3"
 
 TEGRA_LIBRARIES_TO_INSTALL = "\
@@ -13,8 +10,6 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
     nvidia/libnvddk_2d_v2.so \
     nvidia/libnvddk_vic.so \
     nvidia/libnvdla_runtime.so \
-    nvidia/libnvidia-rmapi-tegra.so.${L4T_LIB_VERSION} \
-    nvidia/libnvidia-tls.so.${L4T_LIB_VERSION} \
     nvidia/libnvimp.so \
     nvidia/libnvisp_utils.so \
     nvidia/libnvos.so \

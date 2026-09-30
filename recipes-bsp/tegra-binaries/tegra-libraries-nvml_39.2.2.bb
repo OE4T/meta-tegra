@@ -1,5 +1,5 @@
 L4T_DEB_COPYRIGHT_MD5 = "4108d6904a9ac6948333d8c6b1d756e5"
-DEPENDS = "tegra-libraries-core"
+DEPENDS = "tegra-libraries-core tegra-libraries-eglcore"
 
 require tegra-debian-libraries-common.inc
 
