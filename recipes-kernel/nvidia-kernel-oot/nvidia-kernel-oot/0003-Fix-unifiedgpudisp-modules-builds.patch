@@ -27,7 +27,7 @@ index 147358c..50a5fb6 100644
 +ccflags-y += -I$(NV_OOT_SOURCES)/include
  ccflags-y += -Wall $(DEFINES) $(INCLUDES) -Wno-cast-qual -Wno-format-extra-args
  ccflags-y += -D__KERNEL__ -DMODULE -DNVRM
- ccflags-y += -DNV_VERSION_STRING=\"595.78\"
+ ccflags-y += -DNV_VERSION_STRING=\"595.108\"
 @@ -178,7 +179,7 @@ NV_CONFTEST_SCRIPT := $(src)/conftest.sh
  NV_CONFTEST_HEADER := $(obj)/conftest/headers.h
  
