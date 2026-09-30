@@ -24,13 +24,16 @@ do_install() {
     fi
 }
 
+# nvpmodel and the GPU module load both read the mask from here.
 do_install:append:tegra264() {
-    install -d ${D}/opt/nvidia/l4t-gpusetup
-    install -m 0755 ${B}/opt/nvidia/l4t-gpusetup/gpu_pg_mask ${D}/opt/nvidia/l4t-gpusetup/
+    install -D -m 0644 ${B}/var/lib/l4t-gpu-static-pg/gpu_pg_mask \
+        ${D}${localstatedir}/lib/l4t-gpu-static-pg/gpu_pg_mask
 }
 
 FILES:${PN} = "${sbindir}/nvpmodel ${sysconfdir}"
-FILES:${PN}:append:tegra264 = " /opt/nvidia/l4t-gpusetup"
+FILES:${PN}:append:tegra264 = " ${localstatedir}/lib/l4t-gpu-static-pg"
+# nvpmodel rewrites the mask for each power mode; keep that across upgrades.
+CONFFILES:${PN}:append:tegra264 = " ${localstatedir}/lib/l4t-gpu-static-pg/gpu_pg_mask"
 INSANE_SKIP:${PN} = "ldflags"
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
