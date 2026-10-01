@@ -1,6 +1,6 @@
 # Currently maintained branches #
 
-Last update: 30 Aug 2026
+Last update: 01 Oct 2026
 
 The [OE4T demo distro](https://github.com/OE4T/tegra-demo-distro) has corresponding branches to demonstrate full builds for the Jetson platforms supported by this layer.
 
@@ -13,8 +13,9 @@ For Jetson Linux (L4T) releases:
 
 Active branches:
 * **master** - never stable, [L4T R39.2.1/JetPack 7.2.1](release-notes/JetPack-7.2.1-L4T-R39.2.1-Notes.md) for AGX Orin/Orin NX/Orin Nano/AGX Thor
-* **wrynose** - [L4T R39.2.1/JetPack 7.2.1](release-notes/JetPack-7.2.1-L4T-R39.2.1-Notes.md) for AGX Orin/Orin NX/Orin Nano/AGX Thor
-* **scarthgap** - [L4T R36.5.2/JetPack 6.2.3](release-notes/JetPack-6.2.3-L4T-R36.5.2-Notes.md) for AGX Orin/Orin NX/Orin Nano (will stay on R36.x/JetPack 6.x)
+* **blacksail** - (non-LTS) [L4T R39.2.1/JetPack 7.2.1](release-notes/JetPack-7.2.1-L4T-R39.2.1-Notes.md) for AGX Orin/Orin NX/Orin Nano/AGX Thor
+* **wrynose** - (LTS) [L4T R39.2.1/JetPack 7.2.1](release-notes/JetPack-7.2.1-L4T-R39.2.1-Notes.md) for AGX Orin/Orin NX/Orin Nano/AGX Thor
+* **scarthgap** - (LTS) [L4T R36.5.2/JetPack 6.2.3](release-notes/JetPack-6.2.3-L4T-R36.5.2-Notes.md) for AGX Orin/Orin NX/Orin Nano (will stay on R36.x/JetPack 6.x)
 
 
 Deprecated branches that receive less attention: (none, currently)
