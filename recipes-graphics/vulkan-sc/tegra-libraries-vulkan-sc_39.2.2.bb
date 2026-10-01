@@ -37,11 +37,11 @@ do_install() {
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/libvulkansc.so.${VKSC_SDK_VERSION} ${D}${libdir}/
     ln -sf libvulkansc.so.${VKSC_SDK_VERSION} ${D}${libdir}/libvulkansc.so.1
     ln -sf libvulkansc.so.1 ${D}${libdir}/libvulkansc.so
-    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/libVkLayer_json_gen.so ${D}${libdir}/
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/nvidia/libVkSCLayer_khronos_validation.so ${D}${libdir}/
 
     install -d ${D}${sysconfdir}/vulkansc/icd.d
     install -m 0644 ${S}/etc/vulkansc/icd.d/*.json ${D}${sysconfdir}/vulkansc/icd.d/
+    rm -f ${D}${sysconfdir}/vulkansc/icd.d/VkLayer_json_gen.json
 
     # Headers from the dev deb, needed for cross-compile sysroot population
     install -d ${D}${includedir}/VulkanSC/vulkan
@@ -56,7 +56,6 @@ SOLIBS = ".so*"
 
 FILES:${PN} = "\
     ${libdir}/libvulkansc.so.* \
-    ${libdir}/libVkLayer_json_gen.so \
     ${libdir}/libVkSCLayer_khronos_validation.so \
     ${sysconfdir}/vulkansc/ \
     ${bindir}/pcc \
@@ -67,4 +66,4 @@ FILES:${PN}-dev = "\
 "
 
 INSANE_SKIP = "dev-so ldflags"
-RDEPENDS:${PN} += "libssl libcrypto tegra-libraries-vulkan-sc-core"
+RDEPENDS:${PN} += "tegra-libraries-vulkan-sc-core"
