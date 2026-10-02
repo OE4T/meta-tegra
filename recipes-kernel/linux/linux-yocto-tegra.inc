@@ -11,7 +11,7 @@ SRC_URI:append:tegra = " \
     ${TEGRA_KERNEL_CACHE_URI};name=tegrameta;type=kmeta;destsuffix=tegra-meta \
 "
 SRCREV_FORMAT:tegra = "meta_machine_tegrameta"
-SRCREV_tegrameta ?= "69835d24c700282ea5094e61ab1ddf48aa8950ad"
+SRCREV_tegrameta ?= "26383b66cdb27f8e21bd70e168c26253b4d12e5c"
 
 COMPATIBLE_MACHINE:tegra = "(tegra234|tegra264)"
 KMACHINE:tegra = "${SOC_FAMILY}"
