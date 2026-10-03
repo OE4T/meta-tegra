@@ -302,7 +302,15 @@ unmount_and_release() {
     local devname=$(basename "$dev")
     local syspath=$(readlink -f "/sys/block/$devname" 2>/dev/null)
     if [ -n "$syspath" ]; then
-        local usbdev=$(echo "$syspath" | grep -o 'usb[0-9]*/[0-9]-[0-9]*' | tail -1 | cut -d/ -f2)
+        local usbdev="" d="$syspath"
+        # Find the USB leaf node by walking up from the block device
+        while [ "$d" != "/" ]; do
+            if [ -e "$d/idVendor" ]; then
+                usbdev=$(basename "$d")
+                break
+            fi
+            d=$(dirname "$d")
+        done
         if [ -n "$usbdev" ]; then
             local sysfs_usb
             for sysfs_usb in /sys/bus/usb/drivers/usb /dev/.lxc/sys/bus/usb/drivers/usb; do
