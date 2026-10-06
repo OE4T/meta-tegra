@@ -9,6 +9,7 @@ Address=192.168.55.1/24
 DHCPServer=yes
 
 [DHCPServer]
+PersistLeases=runtime
 PoolOffset=100
 PoolSize=1
 DefaultLeaseTimeSec=900
