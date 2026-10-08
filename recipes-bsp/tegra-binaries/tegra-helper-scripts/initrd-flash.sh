@@ -9,6 +9,12 @@
 
 set -o pipefail
 
+# Set TEGRA_FLASH_PROGRESS=1 to emit additional JSON progress lines.
+report_flash_progress() {
+    [ "$TEGRA_FLASH_PROGRESS" = "1" ] || return 0
+    printf 'TEGRA_FLASH_PROGRESS:%s\n' "$1" 2>/dev/null || :
+}
+
 me=$(basename "$0")
 here=$(readlink -f $(dirname "$0"))
 
@@ -539,6 +545,11 @@ get_final_status_t234() {
     fi
     unmount_and_release "$mnt" "$dev" || return 1
     echo "Final status: $final_status"
+    if [ "$final_status" = "SUCCESS" ]; then
+        report_flash_progress '{"type":"result","status":"COMPLETED"}'
+    else
+        report_flash_progress '{"type":"result","status":"FAILED"}'
+    fi
     return 0
 }
 
@@ -684,6 +695,10 @@ stepnumber=1
 step_banner() {
     local msg="$1"
     echo "== Step $stepnumber: $msg at $(date -Is) ==" | tee -a "$logfile"
+    if [ "$TEGRA_FLASH_PROGRESS" = "1" ]; then
+        local name="${msg^^}"
+        report_flash_progress "{\"type\":\"step\",\"step\":$stepnumber,\"name\":\"${name// /_}\"}"
+    fi
     stepnumber=$(expr $stepnumber \+ 1)
 }
 
@@ -764,6 +779,7 @@ if [ "$CHIPID" = "0x23" ]; then
     fi
     step_banner "Waiting for final status from device"
     if ! get_final_status_t234 "$dtstamp" 2>&1 | tee -a "$logfile"; then
+        report_flash_progress '{"type":"result","status":"FAILED"}'
         echo "ERR: failed to retrieve device status at $(date -Is)" | tee -a "$logfile"
         echo "Host-side log:              $logfile"
         echo "Device-side logs stored in: device-logs-$dtstamp"
@@ -837,6 +853,11 @@ EOF
 
     step_banner "Running unified flash"
     $SUDO ./out/doflash.sh $uniflash_flags 2>&1 | tee -a "$logfile"
+    if [ $? -eq 0 ]; then
+        report_flash_progress '{"type":"result","status":"COMPLETED"}'
+    else
+        report_flash_progress '{"type":"result","status":"FAILED"}'
+    fi
     echo "Finished at $(date -Is)" | tee -a "$logfile"
     echo "Host-side log:              $logfile"
     exit 0
