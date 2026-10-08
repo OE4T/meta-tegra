@@ -17,7 +17,7 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  3 files changed, 27 insertions(+), 21 deletions(-)
 
 diff --git a/kernel-open/Kbuild b/kernel-open/Kbuild
-index 147358c..50a5fb6 100644
+index 4b95a4d..4de5779 100644
 --- a/kernel-open/Kbuild
 +++ b/kernel-open/Kbuild
 @@ -77,6 +77,7 @@ $(foreach _module, $(NV_KERNEL_MODULES), \
@@ -27,7 +27,7 @@ index 147358c..50a5fb6 100644
 +ccflags-y += -I$(NV_OOT_SOURCES)/include
  ccflags-y += -Wall $(DEFINES) $(INCLUDES) -Wno-cast-qual -Wno-format-extra-args
  ccflags-y += -D__KERNEL__ -DMODULE -DNVRM
- ccflags-y += -DNV_VERSION_STRING=\"595.108\"
+ ccflags-y += -DNV_VERSION_STRING=\"595.113\"
 @@ -178,7 +179,7 @@ NV_CONFTEST_SCRIPT := $(src)/conftest.sh
  NV_CONFTEST_HEADER := $(obj)/conftest/headers.h
  
@@ -90,7 +90,7 @@ index ff19eae..0f74ea8 100644
    KBUILD_PARAMS += INSTALL_MOD_DIR="$(INSTALL_MOD_DIR)"
    KBUILD_PARAMS += NV_SPECTRE_V2=$(SPECTRE_V2_RETPOLINE)
 diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
-index cb4da27..d64725a 100755
+index 7e95811..c79af57 100755
 --- a/kernel-open/conftest.sh
 +++ b/kernel-open/conftest.sh
 @@ -11,6 +11,8 @@ ARCH=$2
@@ -129,7 +129,7 @@ index cb4da27..d64725a 100755
          echo "#define NV_IS_EXPORT_SYMBOL_GPL_$SYMBOL 1" |
              append_conftest "symbols"
      else
-@@ -5154,13 +5158,13 @@ compile_test() {
+@@ -5320,13 +5324,13 @@ compile_test() {
      esac
  }
  
@@ -145,7 +145,7 @@ index cb4da27..d64725a 100755
  
          echo "int cc_sanity_check(void) {
              return 0;
-@@ -5227,7 +5231,7 @@ case "$5" in
+@@ -5393,7 +5397,7 @@ case "$5" in
          #  In order to extract GCC version correctly for version strings
          #  like the last one above, we first check for x.y.z and if that
          #  fails, we fallback to x.y format.
@@ -154,7 +154,7 @@ index cb4da27..d64725a 100755
  
          kernel_compile_h=$OUTPUT/include/generated/compile.h
  
-@@ -5306,7 +5310,7 @@ case "$5" in
+@@ -5472,7 +5476,7 @@ case "$5" in
          # Check if the target kernel is a Xen kernel. If so, exit, since
          # the RM doesn't currently support Xen.
          #
@@ -163,7 +163,7 @@ index cb4da27..d64725a 100755
  
          if [ -n "$IGNORE_XEN_PRESENCE" -o -n "$VGX_BUILD" ]; then
              exit 0
-@@ -5338,7 +5342,7 @@ case "$5" in
+@@ -5504,7 +5508,7 @@ case "$5" in
          # Check if the target kernel has the PREEMPT_RT patch set applied. If
          # so, exit, since the RM doesn't support this configuration.
          #
@@ -172,7 +172,7 @@ index cb4da27..d64725a 100755
  
          if [ -n "$IGNORE_PREEMPT_RT_PRESENCE" ]; then
              exit 0
-@@ -5401,7 +5405,7 @@ case "$5" in
+@@ -5567,7 +5571,7 @@ case "$5" in
          # Run a series of compile tests to determine the set of interfaces
          # and features available in the target kernel.
          #
@@ -181,7 +181,7 @@ index cb4da27..d64725a 100755
  
          CFLAGS=$1
          shift
-@@ -5415,7 +5419,7 @@ case "$5" in
+@@ -5581,7 +5585,7 @@ case "$5" in
          #
          # Determine whether running in DOM0.
          #
@@ -190,7 +190,7 @@ index cb4da27..d64725a 100755
  
          if [ -n "$VGX_BUILD" ]; then
              if [ -f /proc/xen/capabilities ]; then
-@@ -5437,7 +5441,7 @@ case "$5" in
+@@ -5603,7 +5607,7 @@ case "$5" in
          #
          # Determine whether we are running a vGPU on KVM host.
          #
@@ -199,7 +199,7 @@ index cb4da27..d64725a 100755
          iommu=CONFIG_VFIO_IOMMU_TYPE1
          iommufd_vfio_container=CONFIG_IOMMUFD_VFIO_CONTAINER
          mdev=CONFIG_VFIO_MDEV
-@@ -5507,7 +5511,7 @@ case "$5" in
+@@ -5673,7 +5677,7 @@ case "$5" in
          #
          # Check to see if the given config option is set.
          #
@@ -208,7 +208,7 @@ index cb4da27..d64725a 100755
  
          test_configuration_option $OPTION
          exit $?
-@@ -5517,7 +5521,7 @@ case "$5" in
+@@ -5683,7 +5687,7 @@ case "$5" in
          #
          # Get the value of the given config option.
          #
@@ -217,7 +217,7 @@ index cb4da27..d64725a 100755
  
          get_configuration_option $OPTION
          exit $?
-@@ -5552,9 +5556,9 @@ case "$5" in
+@@ -5718,9 +5722,9 @@ case "$5" in
          # Check for the availability of the given kernel header
          #
  
