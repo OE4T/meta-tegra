@@ -22,6 +22,7 @@ KMACHINE:tegra = "${SOC_FAMILY}"
 KERNEL_FEATURES_EXTRA_DEVKIT ?= "features/tegra/jetson-devkit.scc"
 
 KERNEL_FEATURES:append:tegra = " \
+    features/net/xdp/xdp.scc \
     features/tegra/tegra-patches.scc \
     features/tegra/tegra-distro.scc \
     ${KERNEL_FEATURES_EXTRA_DEVKIT} \
