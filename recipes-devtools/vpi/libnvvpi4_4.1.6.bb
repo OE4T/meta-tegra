@@ -26,8 +26,8 @@ SRC_COMMON_DEBS = "\
     vpi4-dev_${PV}_arm64.deb;name=dev;subdir=vpi4 \
 "
 L4T_DEB_GROUP[dev] = "vpi4-dev"
-SRC_URI[lib.sha256sum] = "2cba87a09e15c57f3fca977537535a19abee0992099c97f65f6e5fbda309e559"
-SRC_URI[dev.sha256sum] = "73f378b9a0fe437558ea1759f0a3c46337338a68e54efbb6e5eeea7dd46f5858"
+SRC_URI[lib.sha256sum] = "1f55345ad7d57df1baf10d0ee04d9b3cbde1b90e68d5d77609c41dc543349b1b"
+SRC_URI[dev.sha256sum] = "93426e75586d3f7167305b4258a0e004690f34a3c26cdc4ea4b094f4b74b3ade"
 
 REQUIRED_DISTRO_FEATURES = "opengl"
 
