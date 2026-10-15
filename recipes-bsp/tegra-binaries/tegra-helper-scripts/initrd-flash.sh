@@ -539,7 +539,7 @@ get_final_status_t234() {
     fi
     unmount_and_release "$mnt" "$dev" || return 1
     echo "Final status: $final_status"
-    return 0
+    [ "$final_status" = "SUCCESS" ]
 }
 
 get_board_info() {
