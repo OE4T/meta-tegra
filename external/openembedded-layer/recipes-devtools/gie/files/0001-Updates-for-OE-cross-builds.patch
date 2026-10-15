@@ -1,0 +1,39 @@
+From 6fec32a5292b46dab46feaca546fdac46cf51c3f Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 12 Oct 2026 12:05:16 -0700
+Subject: [PATCH] Updates for OE cross builds
+
+Give installLibraries() explicit destinations. Without RUNTIME, LIBRARY
+and ARCHIVE destinations, install(TARGETS) installs nothing for the
+sample executables. The group stays last because EXPORT, which trtexec
+passes, is not accepted after a destination group.
+
+Upstream-Status: Inappropriate [oe-specific]
+
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ cmake/modules/InstallUtils.cmake | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/cmake/modules/InstallUtils.cmake b/cmake/modules/InstallUtils.cmake
+index d880651..cfbebcc 100644
+--- a/cmake/modules/InstallUtils.cmake
++++ b/cmake/modules/InstallUtils.cmake
+@@ -63,6 +63,14 @@ function(installLibraries)
+         set(runtime_only_arg
+             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+         )
++    else()
++        # Required on Unix; without these, install(TARGETS) installs nothing
++        # for executables. Kept last: EXPORT is not valid after a TYPE group.
++        set(runtime_only_arg
++            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
++            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
++            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
++        )
+     endif()
+ 
+     # Install the libraries
+-- 
+2.43.0
+
