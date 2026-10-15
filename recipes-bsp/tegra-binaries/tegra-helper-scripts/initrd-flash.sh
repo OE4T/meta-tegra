@@ -764,7 +764,7 @@ if [ "$CHIPID" = "0x23" ]; then
     fi
     step_banner "Waiting for final status from device"
     if ! get_final_status_t234 "$dtstamp" 2>&1 | tee -a "$logfile"; then
-        echo "ERR: failed to retrieve device status at $(date -Is)" | tee -a "$logfile"
+        echo "ERR: could not confirm successful flash at $(date -Is)" | tee -a "$logfile"
         echo "Host-side log:              $logfile"
         echo "Device-side logs stored in: device-logs-$dtstamp"
         exit 1
