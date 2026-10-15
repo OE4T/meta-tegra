@@ -6,18 +6,17 @@ require tensorrt.inc
 PROVIDES += "tensorrt-core"
 
 SRC_COMMON_DEBS += "\
-    libnvinfer10_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer10_${PV}+cuda13.2_arm64.deb;name=lib;subdir=tensorrt \
-    libnvinfer-dev_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-dev_${PV}+cuda13.2_arm64.deb;name=dev;subdir=tensorrt \
+    libnvinfer11_${PV}+cuda13.4_arm64.deb;downloadfilename=libnvinfer11_${PV}+cuda13.4_arm64.deb;name=lib;subdir=tensorrt \
+    libnvinfer-dev_${PV}+cuda13.4_arm64.deb;downloadfilename=libnvinfer-dev_${PV}+cuda13.4_arm64.deb;name=dev;subdir=tensorrt \
 "
 
-SRC_URI[lib.sha256sum] = "d02111e3600d91bef407fe537a4179445cdc73fb259bf1f83dd256804de1897e"
-SRC_URI[dev.sha256sum] = "d090713a4690eb7f20612008180b749c9b8e76de2fffc46ca8ef00c2fbe812e0"
+SRC_URI[lib.sha256sum] = "9c278096e89d5ef9bd670e3be3933037e49faa5c483c5224007c45feda57c5b2"
+SRC_URI[dev.sha256sum] = "08fef71b28c45173cce297e49df2cf1f5a53d8e59d9bab084fef46a3fc3ec608"
 
 do_install() {
     install -d ${D}${libdir}
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libnvinfer.so.${BASEVER} ${D}${libdir}
     install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libnvinfer_builder_resource_*.so.${BASEVER} ${D}${libdir}
-    install -m 0644 ${S}/usr/lib/aarch64-linux-gnu/libnvinfer_static.a ${D}${libdir}
 
     ln -s libnvinfer.so.${BASEVER} ${D}${libdir}/libnvinfer.so.${MAJVER}
     ln -s libnvinfer.so.${BASEVER} ${D}${libdir}/libnvinfer.so
@@ -25,7 +24,10 @@ do_install() {
 
 DEPENDS += "tensorrt-headers"
 
-# NVIDIA's 10.16 deb bundles one builder resource per GPU arch (sm75..sm120 +
+# TensorRT loads the DLA runtime and compiler dynamically.
+RDEPENDS:${PN}:append:tegra234 = " libcudla tensorrt-dla-compiler"
+
+# NVIDIA's deb bundles one builder resource per GPU arch (sm75..sm120 +
 # PTX, ~2GB). Split each into its own package and pull in only the target SoC's
 # arch via RDEPENDS, instead of installing all of them.
 PACKAGES_DYNAMIC += "^${PN}-builder-resource-.*"
