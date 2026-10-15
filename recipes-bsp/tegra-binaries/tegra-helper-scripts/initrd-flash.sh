@@ -539,7 +539,7 @@ get_final_status_t234() {
     fi
     unmount_and_release "$mnt" "$dev" || return 1
     echo "Final status: $final_status"
-    return 0
+    [ "$final_status" = "SUCCESS" ]
 }
 
 get_board_info() {
@@ -764,7 +764,7 @@ if [ "$CHIPID" = "0x23" ]; then
     fi
     step_banner "Waiting for final status from device"
     if ! get_final_status_t234 "$dtstamp" 2>&1 | tee -a "$logfile"; then
-        echo "ERR: failed to retrieve device status at $(date -Is)" | tee -a "$logfile"
+        echo "ERR: could not confirm successful flash at $(date -Is)" | tee -a "$logfile"
         echo "Host-side log:              $logfile"
         echo "Device-side logs stored in: device-logs-$dtstamp"
         exit 1
@@ -837,6 +837,12 @@ EOF
 
     step_banner "Running unified flash"
     $SUDO ./out/doflash.sh $uniflash_flags 2>&1 | tee -a "$logfile"
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        echo "ERR: unified flash failed at $(date -Is)" | tee -a "$logfile"
+        echo "Host-side log:              $logfile"
+        exit $rc
+    fi
     echo "Finished at $(date -Is)" | tee -a "$logfile"
     echo "Host-side log:              $logfile"
     exit 0
