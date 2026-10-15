@@ -8,10 +8,10 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvinfer-bin_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-bin_${PV}+cuda13.2_arm64.deb;name=bin;subdir=tensorrt \
+    libnvinfer-bin_${PV}+cuda13.4_arm64.deb;downloadfilename=libnvinfer-bin_${PV}+cuda13.4_arm64.deb;name=bin;subdir=tensorrt \
 "
 
-BINSHA256SUM = "7a7de013265b50acb1839ec1e42c2e611a323446dd09142deced5b0cea052f56"
+BINSHA256SUM = "2cf4082bac5c0245fe9b479b32ab663e1a77914bd5b17f8feeb21367262cc31a"
 
 SRC_URI[bin.sha256sum] = "${BINSHA256SUM}"
 
@@ -26,6 +26,8 @@ require tensorrt-version.inc
 S = "${UNPACKDIR}/tensorrt"
 
 DEPENDS = "cuda-cudart cudnn tensorrt-core tensorrt-plugins libcublas"
+
+RDEPENDS:${PN} += "tensorrt tensorrt-dispatch tensorrt-lean tensorrt-plugins-prebuilt"
 
 do_configure() {
     :
