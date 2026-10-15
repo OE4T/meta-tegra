@@ -837,6 +837,12 @@ EOF
 
     step_banner "Running unified flash"
     $SUDO ./out/doflash.sh $uniflash_flags 2>&1 | tee -a "$logfile"
+    rc=$?
+    if [ $rc -ne 0 ]; then
+        echo "ERR: unified flash failed at $(date -Is)" | tee -a "$logfile"
+        echo "Host-side log:              $logfile"
+        exit $rc
+    fi
     echo "Finished at $(date -Is)" | tee -a "$logfile"
     echo "Host-side log:              $logfile"
     exit 0
