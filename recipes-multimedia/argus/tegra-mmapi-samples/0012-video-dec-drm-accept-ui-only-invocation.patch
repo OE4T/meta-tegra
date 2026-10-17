@@ -1,0 +1,36 @@
+From 40a40213787f8307c884bb05f47d3ea93e60342f Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kkiefer@nvidia.com>
+Date: Mon, 19 Oct 2026 13:34:33 -0700
+Subject: [PATCH] video_dec_drm: accept the documented UI-only invocation
+
+The help text documents video_dec_drm --disable-video and the option
+parser supports it, but get_num_context rejects the invocation before
+it reaches that parser because there is no video filename and codec.
+
+Allow the UI-only option through the initial argument-count check while
+retaining the required arguments for video playback.
+
+Change-Id: If2b8166e451158152a6a64ba70925c6375ed59e0
+Upstream-Status: Submitted [NVIDIA internal review]
+Signed-off-by: Kurt Kiefer <kkiefer@nvidia.com>
+---
+ samples/08_video_dec_drm/video_dec_drm_csvparser.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/samples/08_video_dec_drm/video_dec_drm_csvparser.cpp b/samples/08_video_dec_drm/video_dec_drm_csvparser.cpp
+index 9a8dfd6..a81b6bc 100644
+--- a/samples/08_video_dec_drm/video_dec_drm_csvparser.cpp
++++ b/samples/08_video_dec_drm/video_dec_drm_csvparser.cpp
+@@ -129,7 +129,8 @@ get_num_context(int argc, char **argv, int *skip)
+         exit(EXIT_SUCCESS);
+     }
+
+-    CSV_PARSE_CHECK_ERROR(argc < 3, "Insufficient arguments");
++    CSV_PARSE_CHECK_ERROR(argc < 3 && strcmp(argv[1], "--disable-video"),
++                          "Insufficient arguments");
+
+     if (!strcmp(argv[1], "multi"))
+     {
+-- 
+2.43.0
+
