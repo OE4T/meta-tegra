@@ -11,6 +11,8 @@ SRC_URI += "\
     file://0007-camera_v4l2_cuda-add-option-for-setting-max-frame-co.patch \
     file://0008-NvJpegDecoder-remove-unused-header-file.patch \
     file://0009-sipl-coe-unit-sample-add-to-mmapi-build.patch \
+    file://0011-video-dec-drm-restore-console-after-interruption.patch \
+    file://0012-video-dec-drm-accept-ui-only-invocation.patch \
 "
 
 DEPENDS = "libdrm tegra-mmapi tegra-libraries-camera virtual/egl virtual/libgles1 virtual/libgles2 jpeg expat gstreamer1.0 glib-2.0 libv4l pango vulkan-headers vulkan-loader jetson-sipl-api"
