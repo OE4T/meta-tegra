@@ -29,14 +29,18 @@ done
 
 check_jetson() {
     local usbpath="$1"
-    local idVendor idProduct
+    local idVendor idProduct busnum devnum usbnode
     idVendor=$(cat "$usbpath/idVendor" 2>/dev/null)
     if [ "$idVendor" = "0955" ]; then
         idProduct=$(cat "$usbpath/idProduct" 2>/dev/null)
         case "$idProduct" in
             7019|7819|7919|7e19|7023|7026|7223|7226|7323|7423|7523|7623)
                 if [ -f "$usbpath/busnum" -a -f "$usbpath/devpath" ]; then
-                    return 0
+                    read -r busnum < "$usbpath/busnum" || return 1
+                    read -r devnum < "$usbpath/devnum" || return 1
+                    usbnode=$(printf '/dev/bus/usb/%03d/%03d' "$busnum" "$devnum")
+                    # Ignore devices visible in sysfs but not mapped into /dev.
+                    [ -e "$usbnode" ] && return 0
                 fi
                 ;;
             *)
