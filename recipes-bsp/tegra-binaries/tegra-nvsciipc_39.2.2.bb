@@ -22,7 +22,14 @@ do_install() {
     install -m 0644 ${S}/61-nvsciipc.rules ${D}${sysconfdir}/udev/rules.d/
 }
 
-inherit systemd update-rc.d
+inherit systemd update-rc.d useradd
+
+USERADD_PACKAGES = "${PN}"
+GROUPADD_PARAM:${PN} = "--system nvsciipc; --system nvsciipc2"
+USERADD_PARAM:${PN} = "\
+    --system -g nvsciipc -d /nonexistent -s ${base_sbindir}/nologin nvsciipc; \
+    --system -g nvsciipc2 -G nvsciipc -d /nonexistent -s ${base_sbindir}/nologin nvsciipc2 \
+"
 
 INITSCRIPT_NAME = "nv_nvsciipc_init"
 INITSCRIPT_PARAMS = "defaults"
