@@ -1,0 +1,239 @@
+From fe80c6679cfa81763ba35540e6373d100d0af97d Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Mon, 19 Oct 2026 16:43:34 -0700
+Subject: [PATCH] samples: honour CMAKE_CUDA_ARCHITECTURES
+
+Each CUDA sample hard-codes its target's CUDA_ARCHITECTURES to 75 (or
+50 before CUDA 13), overriding whatever the build selected. Only set
+those defaults when CMAKE_CUDA_ARCHITECTURES is not defined, so the
+samples are built for the target GPU.
+
+Upstream-Status: Inappropriate [OE-specific]
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ .../13.0.37/Samples/AppDecode/AppDecD3D/CMakeLists.txt        | 4 +++-
+ .../13.0.37/Samples/AppDecode/AppDecGL/CMakeLists.txt         | 4 +++-
+ .../Samples/AppDecode/AppDecImageProvider/CMakeLists.txt      | 4 +++-
+ .../13.0.37/Samples/AppDecode/AppDecLowLatency/CMakeLists.txt | 4 +++-
+ .../13.0.37/Samples/AppDecode/AppDecMem/CMakeLists.txt        | 4 +++-
+ .../13.0.37/Samples/AppDecode/AppDecMultiFiles/CMakeLists.txt | 4 +++-
+ .../13.0.37/Samples/AppDecode/AppDecMultiInput/CMakeLists.txt | 4 +++-
+ .../13.0.37/Samples/AppDecode/AppDecPerf/CMakeLists.txt       | 4 +++-
+ .../13.0.37/Samples/AppEncode/AppEncCuda/CMakeLists.txt       | 4 +++-
+ .../13.0.37/Samples/AppEncode/AppEncDec/CMakeLists.txt        | 4 +++-
+ .../13.0.37/Samples/AppEncode/AppEncLowLatency/CMakeLists.txt | 4 +++-
+ .../13.0.37/Samples/AppEncode/AppEncQual/CMakeLists.txt       | 4 +++-
+ .../13.0.37/Samples/AppTranscode/AppTrans/CMakeLists.txt      | 4 +++-
+ .../Samples/AppTranscode/AppTransOneToN/CMakeLists.txt        | 4 +++-
+ 14 files changed, 42 insertions(+), 14 deletions(-)
+
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecD3D/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecD3D/CMakeLists.txt
+index d55f546..4472eb8 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecD3D/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecD3D/CMakeLists.txt
+@@ -87,7 +87,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_DEC_SOURCES} ${NV_DEC_HDRS} ${NV_ENC_CUDA_UTILS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecGL/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecGL/CMakeLists.txt
+index f5e2dc6..808053c 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecGL/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecGL/CMakeLists.txt
+@@ -99,7 +99,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_DEC_SOURCES} ${NV_DEC_HDRS} ${NV_ENC_CUDA_UTILS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecImageProvider/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecImageProvider/CMakeLists.txt
+index bece113..fc6856e 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecImageProvider/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecImageProvider/CMakeLists.txt
+@@ -81,7 +81,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_DEC_SOURCES} ${NV_DEC_HDRS} ${NV_ENC_CUDA_UTILS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecLowLatency/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecLowLatency/CMakeLists.txt
+index 6f36488..85082d8 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecLowLatency/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecLowLatency/CMakeLists.txt
+@@ -70,7 +70,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_DEC_SOURCES} ${NV_DEC_HDRS} ${NV_ENC_CUDA_UTILS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMem/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMem/CMakeLists.txt
+index 589ef70..98429a7 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMem/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMem/CMakeLists.txt
+@@ -70,7 +70,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_DEC_SOURCES} ${NV_DEC_HDRS} ${NV_ENC_CUDA_UTILS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMultiFiles/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMultiFiles/CMakeLists.txt
+index f4ae352..f404afa 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMultiFiles/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMultiFiles/CMakeLists.txt
+@@ -72,7 +72,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_DEC_SOURCES} ${NV_DEC_HDRS} ${NV_ENC_CUDA_UTILS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMultiInput/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMultiInput/CMakeLists.txt
+index 6c3a3b3..5e60c40 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMultiInput/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecMultiInput/CMakeLists.txt
+@@ -79,7 +79,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_DEC_SOURCES} ${NV_DEC_HDRS} ${NV_ENC_CUDA_UTILS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecPerf/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecPerf/CMakeLists.txt
+index 1f6d736..6744a1f 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecPerf/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppDecode/AppDecPerf/CMakeLists.txt
+@@ -72,7 +72,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_DEC_SOURCES} ${NV_DEC_HDRS} ${NV_ENC_CUDA_UTILS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncCuda/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncCuda/CMakeLists.txt
+index d52ef91..2d2bb5a 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncCuda/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncCuda/CMakeLists.txt
+@@ -80,7 +80,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_ENC_SOURCES} ${NV_ENC_CUDA_UTILS} ${NV_ENC_HDRS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncDec/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncDec/CMakeLists.txt
+index a79c830..2494692 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncDec/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncDec/CMakeLists.txt
+@@ -85,7 +85,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_ENC_SOURCES} ${NV_ENC_CUDA_UTILS} ${NV_ENC_HDRS} ${NV_DEC_HDRS} ${NV_FFMPEG_HDRS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncLowLatency/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncLowLatency/CMakeLists.txt
+index d5c331a..991fc02 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncLowLatency/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncLowLatency/CMakeLists.txt
+@@ -76,7 +76,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_ENC_SOURCES} ${NV_ENC_CUDA_UTILS} ${NV_ENC_HDRS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncQual/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncQual/CMakeLists.txt
+index 1ccede7..241db8c 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncQual/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppEncode/AppEncQual/CMakeLists.txt
+@@ -82,7 +82,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_ENC_SOURCES} ${NV_ENC_CUDA_UTILS} ${NV_ENC_HDRS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppTranscode/AppTrans/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppTranscode/AppTrans/CMakeLists.txt
+index 07d5b82..4f86e85 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppTranscode/AppTrans/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppTranscode/AppTrans/CMakeLists.txt
+@@ -84,7 +84,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_ENC_SOURCES} ${NV_ENC_CUDA_UTILS} ${NV_ENC_HDRS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
+diff --git a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppTranscode/AppTransOneToN/CMakeLists.txt b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppTranscode/AppTransOneToN/CMakeLists.txt
+index 8fc04a9..ae4368d 100644
+--- a/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppTranscode/AppTransOneToN/CMakeLists.txt
++++ b/opt/nvidia/video-codec-sdk/13.0.37/Samples/AppTranscode/AppTransOneToN/CMakeLists.txt
+@@ -84,7 +84,9 @@ if(CUDAToolkit_FOUND AND CUDAToolkit_NVCC_EXECUTABLE)
+     enable_language(CUDA)
+     add_executable(${PROJECT_NAME} ${APP_SOURCES} ${NV_ENC_SOURCES} ${NV_ENC_CUDA_UTILS} ${NV_ENC_HDRS})
+     set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_STANDARD 11)
+-    if(NVCODEC_CUDA_VERSION_13_OR_GREATER)
++    if(DEFINED CMAKE_CUDA_ARCHITECTURES)
++        # Use the architectures selected by the build configuration
++    elseif(NVCODEC_CUDA_VERSION_13_OR_GREATER)
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "75")
+     else()
+         set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES "50")
