@@ -1,8 +1,17 @@
 [Unit]
 Description=nvsciipc initialization
-After=sysinit.target
+BindsTo=dev-nvsciipc.device
+After=sysinit.target dev-nvsciipc.device
 Before=multi-user.target
 
 [Service]
+ExecStartPre=-+/bin/sh -c 'id -u nvsciipc > /sys/devices/platform/nvsciipc/nvsciipc_uid'
 ExecStart=/usr/bin/nvsciipc_init
+User=nvsciipc
+Group=nvsciipc
+CapabilityBoundingSet=CAP_SYS_RESOURCE CAP_CHOWN CAP_FOWNER CAP_BPF CAP_SYS_ADMIN
+AmbientCapabilities=CAP_SYS_RESOURCE CAP_CHOWN CAP_FOWNER CAP_BPF CAP_SYS_ADMIN
 Type=oneshot
+
+[Install]
+WantedBy=dev-nvsciipc.device
