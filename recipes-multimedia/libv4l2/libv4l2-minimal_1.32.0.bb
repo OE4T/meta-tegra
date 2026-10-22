@@ -1,6 +1,6 @@
 SUMMARY = "libv4l2 from v4l-utils, minimally built"
 LICENSE = "LGPL-2.1-only"
-LIC_FILES_CHKSUM = "file://COPYING.libv4l;md5=d749e86a105281d7a44c2328acebc4b0"
+LIC_FILES_CHKSUM = "file://COPYING.libv4l;md5=88b8889c2c4329d4cf18ce5895e64c16"
 PROVIDES = "libv4l v4l-utils"
 COMPATIBLE_MACHINE = "(tegra)"
 
@@ -11,13 +11,11 @@ LDFLAGS:append = " -pthread"
 # Needs further investigation
 GLIBC_64BIT_TIME_FLAGS = ""
 
-SRC_URI = "git://git.linuxtv.org/v4l-utils.git;protocol=https;branch=stable-1.26 \
+SRC_URI = "git://git.linuxtv.org/v4l-utils.git;protocol=https;branch=master;tag=v4l-utils-${PV} \
           file://0001-Make-plugin-directory-relative-to-ORIGIN.patch \
           file://0003-Update-conversion-defaults-to-match-NVIDIA-sources.patch \
 "
-SRCREV = "4aee01a027923cab1e40969f56f8ba58d3e6c0d1"
-
-PV .= "+git"
+SRCREV = "5a666c7ce89c00d66aa8e53c8f098a0c6c401f91"
 
 inherit meson gettext pkgconfig features_check
 
@@ -26,13 +24,6 @@ REQUIRED_DISTRO_FEATURES = "opengl"
 EXTRA_OEMESON = "-Dlibdvbv5=disabled -Dv4l-utils=false -Dqv4l2=disabled -Dqvidcap=disabled -Dgconv=disabled -Djpeg=disabled \
                  -Dudevdir=${base_libdir}/udev -Dv4l2-compliance-32=false -Dv4l2-ctl-32=false"
 CFLAGS:append:libc-glibc = " -DHAVE_RTLD_DI_ORIGIN"
-
-# XXX - Top-level meson.build file uses a variable that
-# doesn't get defined if v4l-utils false
-do_patch[postfuncs] += "workaround_missing_variable"
-workaround_missing_variable() {
-    sed -i -e'/ir_bpf_enabled/d' ${S}/meson.build
-}
 
 do_install:append() {
     rm -rf ${D}${libdir}/libv4l/plugins
