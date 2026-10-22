@@ -45,6 +45,7 @@ do_compile() {
     sed -r -e's,^(kernel\.sysrq =).*,\1 ${TEGRA_SYSRQ_ENABLE},' ${S}/etc/sysctl.d/90-tegra-settings.conf > ${B}/90-tegra-settings.conf
     sed -e's,@VARIANT@,${GPU_VARIANT},g' ${UNPACKDIR}/nv-load-display-modules.sh.in > ${B}/nv-load-display-modules.sh
     sed -e's,@LIBEXECDIR@,${libexecdir},g' ${UNPACKDIR}/nv-load-display-modules.conf.in > ${B}/nv-load-display-modules.conf
+    sed -e's,@L4T_LIB_VERSION@,${L4T_LIB_VERSION},g' ${UNPACKDIR}/drivers.csv > ${B}/drivers.csv
 }
 
 do_install() {
@@ -55,7 +56,7 @@ do_install() {
 
     install -m 0644 -D -t ${D}${sysconfdir}/sysctl.d ${B}/90-tegra-settings.conf
 
-    install -m 0644 -D -t ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d ${UNPACKDIR}/drivers.csv ${UNPACKDIR}/devices.csv
+    install -m 0644 -D -t ${D}${sysconfdir}/nvidia-container-runtime/host-files-for-container.d ${B}/drivers.csv ${UNPACKDIR}/devices.csv
 
     install -m 0644 -D ${S}/opt/nvidia/nv-disp-module-configs/nv-modprobe-${GPU_VARIANT}-display.conf ${D}${sysconfdir}/modprobe.d/nv-display.conf
     install -m 0644 -D ${S}/opt/nvidia/nv-disp-module-configs/nv-depmod-${GPU_VARIANT}-display.conf ${D}${sysconfdir}/depmod.d/nv-display.conf
