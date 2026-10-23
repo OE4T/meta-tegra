@@ -2,7 +2,7 @@
 
 require conf/machine/include/tegra234.inc
 
-KERNEL_ARGS ?= "mminit_loglevel=4 console=tty0 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 video=efifb:off console=tty0 efi=runtime nvme.use_threaded_interrupts=1 pci=pcie_bus_perf"
+KERNEL_ARGS ?= "mminit_loglevel=4 console=ttyTCU0,115200 console=ttyAMA0,115200 firmware_class.path=/etc/firmware fbcon=map:0 video=efifb:off console=tty0 efi_pstore.pstore_disable=1 pstore.backend=ramoops efi=runtime nvme.use_threaded_interrupts=1 swiotlb=2048 pci=pcie_bus_perf"
 
 EMMC_DEVSECT_SIZE ?= "512"
 ROOTFSPART_SIZE_DEFAULT ?= "30064771072"
