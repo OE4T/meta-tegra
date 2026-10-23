@@ -58,3 +58,4 @@ TEGRA_BOOT_FIRMWARE_FILES = "\
 TEGRA_EDK2_PLATFORM = "t23x"
 IMAGE_TEGRAFLASH_FS_TYPE = "ext4"
 MACHINE_EXTRA_RDEPENDS += "nvidia-kernel-oot-compute-nvgpu"
+MACHINE_EXTRA_RRECOMMENDS += "kernel-module-ramoops"
