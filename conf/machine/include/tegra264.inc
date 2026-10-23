@@ -13,7 +13,7 @@ require conf/machine/include/arm/arch-armv9a.inc
 SERIAL_CONSOLES ?= "115200;ttyUTC0"
 
 KERNEL_MODULE_AUTOLOAD ?= "nvmap pwm-fan ina3221"
-KERNEL_ARGS ?= "mminit_loglevel=4 earlycon=tegra_utc,mmio32,0xc5a0000 console=ttyUTC0,115200 firmware_class.path=/etc/firmware fbcon=map:0 efi=runtime audit=1 audit_backlog_limit=8192 swiotlb=2048 nvme.poll_queues=4 video=efifb:off"
+KERNEL_ARGS ?= "mminit_loglevel=4 earlycon=tegra_utc,mmio32,0xc5a0000 console=ttyUTC0,115200 firmware_class.path=/etc/firmware fbcon=map:0 efi=runtime swiotlb=2048 nvme.poll_queues=4 video=efifb:off"
 
 NVIDIA_CHIP = "0x26"
 
