@@ -23,7 +23,7 @@ IMAGE_FSTYPES:forcevariable = "esp"
 SSTATE_SKIP_CREATION:task-image-complete = "0"
 SSTATE_SKIP_CREATION:task-image-qa = "0"
 do_image_complete[vardepsexclude] += "rm_work_rootfs"
-IMAGE_PREPROCESS_COMMAND = "remove_unused_stuff;"
+IMAGE_PREPROCESS_COMMAND = "remove_unused_stuff"
 inherit nopackages
 
 remove_unused_stuff() {
