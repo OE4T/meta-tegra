@@ -1,0 +1,44 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Johannes Schrimpf <johannes.schrimpf@blueye.no>
+Date: Wed, 28 Oct 2026 10:00:00 +0100
+Subject: [PATCH] PCI: tegra194: Set the core clock for the actual link speed
+
+tegra_pcie_icc_set() sets the core clock to pcie_gen_freq[speed - 1], but since
+mainline commit 205b3d02d57c ("PCI: tegra194: Fix possible array out of bounds
+access") the table has a placeholder at index 0.
+
+Commit 91cedff9cb44 ("NVIDIA: SAUCE: PCI: tegra194: Add core monitor clock
+support"), authored before commit 205b3d02d57c but applied after it, changed
+the mainline pcie_gen_freq[speed] back to speed - 1, so the clock is one PCIe
+generation too low: 125 MHz instead of 250 MHz on Gen3, 250 MHz instead of
+500 MHz on Gen4.
+
+Use pcie_gen_freq[speed] as mainline does.
+
+Fixes: 91cedff9cb44 ("NVIDIA: SAUCE: PCI: tegra194: Add core monitor clock support")
+Upstream-Status: Pending
+Assisted-by: LLM
+Signed-off-by: Johannes Schrimpf <johannes.schrimpf@blueye.no>
+---
+The bug was found with Claude Opus 5.5 in Claude Code, which also wrote
+this fix.
+
+Tested on an Orin NX with a Gen3 x4 NVMe: the core clock is 250 MHz with
+the fix, 125 MHz without.
+
+ drivers/pci/controller/dwc/pcie-tegra194.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/pci/controller/dwc/pcie-tegra194.c b/drivers/pci/controller/dwc/pcie-tegra194.c
+index 4070105..03b6e69 100644
+--- a/drivers/pci/controller/dwc/pcie-tegra194.c
++++ b/drivers/pci/controller/dwc/pcie-tegra194.c
+@@ -473,7 +473,7 @@ static void tegra_pcie_icc_set(struct tegra_pcie_dw *pcie)
+ 		speed = 0;
+ 
+ 	if ((speed > 0) && (speed <= 4) && !pcie->is_safety_platform)
+-		clk_set_rate(pcie->core_clk, pcie_gen_freq[speed - 1]);
++		clk_set_rate(pcie->core_clk, pcie_gen_freq[speed]);
+ }
+ 
+ static void apply_bad_link_workaround(struct dw_pcie_rp *pp)

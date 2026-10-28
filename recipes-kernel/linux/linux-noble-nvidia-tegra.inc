@@ -27,6 +27,7 @@ KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
     file://0001-libbpf-Fix-Wdiscarded-qualifiers-under-C23.patch \
     file://0002-Revert-perf-python-Avoid-duplicated-code-in-get-trac.patch \
+    file://0003-PCI-tegra194-Set-the-core-clock-for-the-actual-link-speed.patch \
     ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
     file://disable-module-signing.cfg \
