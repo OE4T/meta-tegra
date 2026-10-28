@@ -24,6 +24,7 @@ TEGRA_LIBRARIES_TO_INSTALL = "\
 do_install() {
     install_libraries
     install -m 0755 -D -t ${D}${libexecdir} ${B}/etc/systemd/nvpower.sh
+    sed -i -e 's,/etc/systemd/nvpmodel\.sh,${libexecdir}/nvpmodel.sh,g' ${D}${libexecdir}/nvpower.sh
     install -d ${D}${sysconfdir}/nvpower/libjetsonpower
     install -m 0644 ${B}/etc/nvpower/libjetsonpower/${NVPOWER}.conf ${D}${sysconfdir}/nvpower/libjetsonpower/
     install -d ${D}${sysconfdir}/init.d

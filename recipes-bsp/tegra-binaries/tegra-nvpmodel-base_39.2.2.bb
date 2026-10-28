@@ -18,6 +18,7 @@ do_install() {
     install -d ${D}${sbindir}
     install -d ${D}${sysconfdir}/nvpmodel
     install -m 0755 ${B}/usr/sbin/nvpmodel ${D}${sbindir}/
+    install -D -m 0755 ${B}/etc/systemd/nvpmodel.sh ${D}${libexecdir}/nvpmodel.sh
     install -m 0644 ${B}/etc/nvpmodel/${NVPMODEL}.conf ${D}${sysconfdir}/nvpmodel.conf
     if [ -n "${NVPMODEL_CONFIG_DEFAULT}" ]; then
         sed -i -e "s/PM_CONFIG DEFAULT=[0-9]\+/PM_CONFIG DEFAULT=${NVPMODEL_CONFIG_DEFAULT}/" ${D}${sysconfdir}/nvpmodel.conf
@@ -30,7 +31,8 @@ do_install:append:tegra264() {
         ${D}${localstatedir}/lib/l4t-gpu-static-pg/gpu_pg_mask
 }
 
-FILES:${PN} = "${sbindir}/nvpmodel ${sysconfdir}"
+FILES:${PN} = "${sbindir}/nvpmodel ${libexecdir}/nvpmodel.sh ${sysconfdir}"
+RDEPENDS:${PN} = "bash"
 FILES:${PN}:append:tegra264 = " ${localstatedir}/lib/l4t-gpu-static-pg"
 # nvpmodel rewrites the mask for each power mode; keep that across upgrades.
 CONFFILES:${PN}:append:tegra264 = " ${localstatedir}/lib/l4t-gpu-static-pg/gpu_pg_mask"
