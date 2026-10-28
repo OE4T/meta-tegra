@@ -9,6 +9,7 @@ LIC_FILES_CHKSUM = "file://../../../share/doc/jetson_sipl_api/Tegra_Software_Lic
 SRC_URI = "\
     ${L4T_URI_BASE}/Jetson_SIPL_API_R${L4T_VERSION}_aarch64.tbz2 \
     file://0001-Updates-for-OE-cross-builds.patch \
+    file://0002-uddf-restore-std-cout-format-after-driver-log-messages.patch \
 "
 SRC_URI[sha256sum] = "f9a625e7b32fc9dbba635d5068c11dc62502f3d7d656a4e8624a392d69f3ffee"
 
