@@ -24,6 +24,9 @@ do_install() {
 
 DEPENDS += "tensorrt-headers"
 
+# TensorRT loads the DLA runtime and compiler dynamically.
+RDEPENDS:${PN}:append:tegra234 = " libcudla tensorrt-dla-compiler"
+
 # NVIDIA's deb bundles one builder resource per GPU arch (sm75..sm120 +
 # PTX, ~2GB). Split each into its own package and pull in only the target SoC's
 # arch via RDEPENDS, instead of installing all of them.
