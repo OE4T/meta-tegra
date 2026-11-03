@@ -1,0 +1,38 @@
+From 6159b32529073f0e85a277ef9b7cb33f64088b38 Mon Sep 17 00:00:00 2001
+From: Michael D Kinney <michael.d.kinney@intel.com>
+Date: Wed, 14 Oct 2026 12:34:35 -0700
+Subject: [PATCH 3/3] NetworkPkg/UefiPxeBcDxe: Clear ICMP error buffer before
+ copying
+
+Zero the ICMP error buffer before copying fragments so short packets do not
+leave stale bytes from a previous error.
+
+Upstream-Status: Backport [https://github.com/tianocore/edk2/pull/13302]
+Signed-off-by: Michael D Kinney <michael.d.kinney@intel.com>
+---
+ NetworkPkg/UefiPxeBcDxe/PxeBcSupport.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/NetworkPkg/UefiPxeBcDxe/PxeBcSupport.c b/NetworkPkg/UefiPxeBcDxe/PxeBcSupport.c
+index 9e97ba4904..7795e4f187 100644
+--- a/NetworkPkg/UefiPxeBcDxe/PxeBcSupport.c
++++ b/NetworkPkg/UefiPxeBcDxe/PxeBcSupport.c
+@@ -321,6 +321,7 @@ PxeBcIcmpErrorDpcHandle (
+   // Copy ICMP error fragments into Mode->IcmpError in order. The maximum
+   // buffer size is sizeof (EFI_PXE_BASE_CODE_ICMP_ERROR); truncate any excess.
+   //
++  ZeroMem (&Mode->IcmpError, sizeof (EFI_PXE_BASE_CODE_ICMP_ERROR));
+   for (Index = 0, IcmpError = (UINT8 *)&Mode->IcmpError, CopiedLen = 0;
+        (Index < RxData->FragmentCount) &&
+        (CopiedLen < sizeof (EFI_PXE_BASE_CODE_ICMP_ERROR));
+@@ -445,6 +446,7 @@ PxeBcIcmp6ErrorDpcHandle (
+   // Copy ICMP error fragments into Mode->IcmpError in order. The maximum
+   // buffer size is sizeof (EFI_PXE_BASE_CODE_ICMP_ERROR); truncate any excess.
+   //
++  ZeroMem (&Mode->IcmpError, sizeof (EFI_PXE_BASE_CODE_ICMP_ERROR));
+   for (Index = 0, Icmp6Error = (UINT8 *)&Mode->IcmpError, CopiedLen = 0;
+        (Index < RxData->FragmentCount) &&
+        (CopiedLen < sizeof (EFI_PXE_BASE_CODE_ICMP_ERROR));
+-- 
+2.53.0
+

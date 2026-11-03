@@ -42,6 +42,9 @@ SRC_URI += "\
     file://0007-MdeModulePkg-DisplayEngineDxe-fix-gcc-16-warning.patch \
     file://0008-MdeModulePkg-VarCheckHiiLib-fix-gcc-16-warning.patch \
     file://0009-MdeModulePkg-CapsuleOnDiskLoadPei-fix-gcc-16-warning.patch \
+    file://0010-NetworkPkg-Add-PXE-ICMP-fragment-copy-tests.patch \
+    file://0011-NetworkPkg-UefiPxeBcDxe-Fix-ICMP-buffer-overflow-in-.patch \
+    file://0012-NetworkPkg-UefiPxeBcDxe-Clear-ICMP-error-buffer-befo.patch \
 "
 
 TEGRA_UEFI_VERBOSE_LOGGING ??= "0"
