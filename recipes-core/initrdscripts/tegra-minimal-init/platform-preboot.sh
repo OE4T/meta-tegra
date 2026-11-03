@@ -22,7 +22,7 @@ if [ "$foundslotsfx" != "yes" ]; then
 
     message="Waiting for APP$slotsfx partition..."
     for count in $(seq 1 10); do
-        blkid --probe 2>/dev/null
+        blkid --probe "$bootdrive" 2>/dev/null
         rootdev=`blkid -t PARTLABEL=APP$slotsfx | grep "^$bootdrive" | cut -d: -f1`
         if [ -n "$rootdev" ]; then
             echo "[OK: $rootdev]"
