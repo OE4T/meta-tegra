@@ -409,8 +409,8 @@ get_board_info() {
     cd rcmdump_blob
     rm -f chipinfo.bin cvm.bin rcm_state
     if bash rcmdumpcmd.txt; then
-        if ./tegrarcm_v2 --chip $CHIPID 0 --oem platformdetails chip chipinfo.bin && \
-                ./tegrarcm_v2 --chip $CHIPID 0 --oem platformdetails eeprom cvm cvm.bin && \
+        if ./tegrarcm_v2 --chip $CHIPID 0 ${inst_args} --oem platformdetails chip chipinfo.bin && \
+                ./tegrarcm_v2 --chip $CHIPID 0 ${inst_args} --oem platformdetails eeprom cvm cvm.bin && \
                 [ -f cvm.bin -a -f chipinfo.bin ]; then
             board_info[CHIP_SKU]=$(./chkbdinfo -C chipinfo.bin | tr -d '[:space:]')
             board_ramcode=$(./chkbdinfo -R chipinfo.bin | tr -d '[:space:]')
@@ -436,7 +436,7 @@ get_board_info() {
             echo "ERR: failed to retrieve chip and module info" >&2
             have_boardinfo=
         fi
-        ./tegrarcm_v2 --chip $CHIPID 0 --reboot recovery
+        ./tegrarcm_v2 --chip $CHIPID 0 ${inst_args} --reboot recovery
         sleep 1
     fi
     cd "$oldwd"
@@ -1039,8 +1039,8 @@ tar -xf rcmdump_blob.tar
 cd rcmdump_blob
 rm -f chipinfo.bin
 if bash rcmdumpcmd.txt; then
-    ./tegrarcm_v2 --chip $CHIPID 0 --oem platformdetails chipinfo.bin
-    ./tegrarcm_v2 --chip $CHIPID 0 --reboot recovery
+    ./tegrarcm_v2 --chip $CHIPID 0 ${inst_args} --oem platformdetails chipinfo.bin
+    ./tegrarcm_v2 --chip $CHIPID 0 ${inst_args} --reboot recovery
     sleep 1
 fi
 board_ramcode=\$(./chkbdinfo -R chipinfo.bin)
