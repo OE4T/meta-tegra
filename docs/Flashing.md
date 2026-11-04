@@ -185,6 +185,51 @@ trap - EXIT INT TERM
 ```
 
 The rootfs block-device path is machine- and partition-layout-specific; adapt `ROOTFS_DEVICE` for the target. `flashpkg-extra/` is a transient production-data transport mechanism, not secure secret storage by itself.
+## Optional structured progress reporting
+
+To expose progress to an external tool, set `TEGRA_FLASH_PROGRESS=1` when running the script:
+
+```sh
+TEGRA_FLASH_PROGRESS=1 ./initrd-flash
+```
+
+Normal logs remain present, with additional lines beginning with `TEGRA_FLASH_PROGRESS:` followed by a compact JSON object.
+When the variable is unset, empty, or not `1`, output and flashing behavior are unchanged, and no additional progress processes run.
+Progress reporting adds no runtime dependencies.
+
+For example, an Orin flash may emit these events at different points in its normal output:
+
+```text
+TEGRA_FLASH_PROGRESS:{"type":"step","step":1,"name":"PREPARING_BINARIES"}
+TEGRA_FLASH_PROGRESS:{"type":"step","step":4,"name":"WRITING_PARTITIONS_ON_EXTERNAL_STORAGE_DEVICE"}
+TEGRA_FLASH_PROGRESS:{"type":"copy","item":"rootfs.ext4","percent":0,"bytes_written":0,"bytes_total":8589934592}
+TEGRA_FLASH_PROGRESS:{"type":"copy","item":"rootfs.ext4","percent":42,"bytes_written":3607772528,"bytes_total":8589934592}
+TEGRA_FLASH_PROGRESS:{"type":"copy","item":"rootfs.ext4","percent":100,"bytes_written":8589934592,"bytes_total":8589934592}
+TEGRA_FLASH_PROGRESS:{"type":"step","step":5,"name":"WAITING_FOR_FINAL_STATUS_FROM_DEVICE"}
+TEGRA_FLASH_PROGRESS:{"type":"result","status":"COMPLETED"}
+```
+
+* `step` events accompany the existing human-readable step banners. Their numbers follow the actual execution sequence;
+  names are the banner text converted to uppercase with spaces replaced by underscores. Steps vary by module family and options.
+* `copy` events identify the image by its basename and report progress for that image only. Byte fields are `null` if the image size
+  cannot be read. No overall flash percentage is calculated.
+* `result` events report `COMPLETED` or `FAILED` at the existing final-status paths. On Orin, the result reflects the device's status;
+  on Thor, it reflects the unified flash pipeline's success or failure. Early errors may exit before a result event is emitted.
+
+For Orin partition copies, `make-sdcard` uses bmaptool's `--psplash-pipe` interface when available (introduced in bmaptool 3.6).
+A temporary FIFO and background reader are managed internally and cleaned up after the copy succeeds or fails. bmaptool writes
+percentage updates without blocking; unavailable progress handling does not prevent copying. `bytes_total` is the image file size,
+and `bytes_written` is calculated as `bytes_total * percent / 100`. Because bmaptool's percentage measures mapped blocks, this is
+an estimate relative to the full image size, not a count of physical bytes written to storage.
+
+With older bmaptool versions, or if the FIFO cannot be created, only start/end events are emitted. The `dd` fallback, including
+when `--no-bmap` is used, also emits only 0% before copying and 100% after successful completion. Thor's unified flasher does not
+use this copy path, so it reports steps and a result without per-image copy events.
+
+Consumers should read the script's output as lines, select those starting with `TEGRA_FLASH_PROGRESS:`, remove that prefix, and
+parse the remainder as JSON. Capture the process output rather than relying on the host log file to contain every event.
+Continue to check process termination and retain normal logs: reporting preserves existing exit codes, including paths that can
+report a flash failure while exiting with status 0. A missing result event does not indicate completion.
 
 # SDcard/External drive writing (Orin only)
 
