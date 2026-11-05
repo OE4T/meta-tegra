@@ -38,6 +38,25 @@ do_compile() {
     # partition contents
     tegraflash_populate_package ${IMAGE_TEGRAFLASH_KERNEL} boot.img ${@tegra_bootcontrol_overlay_list(d, bup=True)}
     tegraflash_create_flash_config flash.xml.in boot.img ${STAGING_DATADIR}/tegraflash/bupgen-internal-flash.xml
+
+    # Reproducible partition GUIDs
+    python3 - <<EOF
+import xml.etree.ElementTree as ET
+tree = ET.parse("flash.xml.in")
+i = 1
+for dev in tree.iter("device"):
+    for part in list(dev.findall("partition")):
+        if "gpt" in part.get("name", ""):
+            dev.remove(part)
+        elif part.find("unique_guid") is None:
+            part.insert(0, ET.fromstring(f"<unique_guid>00000000-0000-0000-0000-{i:012x}</unique_guid>"))
+            i += 1
+tree.write("flash.xml.in")
+EOF
+    # Freeze time for reproducable capsules generation
+    export FAKETIME=$(date -u -d @${SOURCE_DATE_EPOCH} +"%Y-%m-%d %H:%M:%S")
+    export LD_PRELOAD="${STAGING_LIBDIR_NATIVE}/faketime/libfaketime.so.1"
+
     . ./flashvars
     tegraflash_custom_sign_bup
     for bup in ${B}/bup-payload/${BUP_PAYLOAD_DIR}/*; do
@@ -142,3 +161,4 @@ do_compile[depends] += "tegra-bootfiles:do_populate_sysroot"
 do_compile[depends] += "coreutils-native:do_populate_sysroot virtual/secure-os:do_deploy"
 do_compile[depends] += "virtual/bootloader:do_deploy"
 do_compile[depends] += "${TEGRA_SIGNING_EXTRA_DEPS} ${DTB_EXTRA_DEPS} ${TEGRA_RCM_EDK2_DEPENDS}"
+do_compile[depends] += "libfaketime-native:do_populate_sysroot"
