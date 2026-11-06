@@ -41,6 +41,7 @@ SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
     file://0013-perf-python-Stop-using-deprecated-PyUnicode_AsString.patch \
     file://0014-perf-units-Fix-insufficient-array-space.patch \
     file://0015-libbpf-Fix-Wdiscarded-qualifiers-under-C23.patch \
+    file://0016-ipv4-free-inet_opt-and-ireq_opt-after-an-RCU-grace-p.patch \
     ${@'file://localversion_auto.cfg' if d.getVar('SCMVERSION') == 'y' else ''} \
     ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \

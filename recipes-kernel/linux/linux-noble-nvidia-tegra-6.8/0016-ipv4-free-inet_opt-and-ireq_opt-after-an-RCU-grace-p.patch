@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Christian Prather <christian@agencytool.company>
+Date: Thu, 30 Oct 2026 00:00:00 +0000
+Subject: [PATCH] ipv4: free inet_opt and ireq_opt after an RCU grace period
+
+Backport of CVE-2026-98432 fix (upstream e3f33b0a1d89 / stable 95a8c8fa) for
+the L4T R38 / linux-noble-nvidia-tegra 6.8 kernel. Use kfree_rcu() at both IPv4
+option free sites so a concurrent SYNACK reader cannot hit a use-after-free.
+
+Fixes: 079096f103fa ("tcp/dccp: install syn_recv requests into ehash table")
+Link: https://ubuntu.com/security/CVE-2026-98432
+Signed-off-by: Christian Prather <christian@agencytool.company>
+CVE: CVE-2026-98432
+Upstream-Status: Backport [https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=e3f33b0a1d89d738e2b913dab519226eaf76e15b]
+---
+--- a/net/ipv4/af_inet.c
++++ b/net/ipv4/af_inet.c
+@@ -154,7 +154,7 @@
+ 	WARN_ON_ONCE(sk->sk_wmem_queued);
+ 	WARN_ON_ONCE(sk_forward_alloc_get(sk));
+ 
+-	kfree(rcu_dereference_protected(inet->inet_opt, 1));
++	kfree_rcu(rcu_dereference_protected(inet->inet_opt, 1), rcu);
+ 	dst_release(rcu_dereference_protected(sk->sk_dst_cache, 1));
+ 	dst_release(rcu_dereference_protected(sk->sk_rx_dst, 1));
+ }
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -1218,7 +1218,7 @@
+  */
+ static void tcp_v4_reqsk_destructor(struct request_sock *req)
+ {
+-	kfree(rcu_dereference_protected(inet_rsk(req)->ireq_opt, 1));
++	kfree_rcu(rcu_dereference_protected(inet_rsk(req)->ireq_opt, 1), rcu);
+ }
+ 
+ #ifdef CONFIG_TCP_MD5SIG
+-- 
+2.43.0
