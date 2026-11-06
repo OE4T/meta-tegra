@@ -32,6 +32,7 @@ SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
            ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
 	   file://spiflash.cfg \
 	   file://disable-module-signing.cfg \
+	   file://0001-ipv4-free-inet_opt-and-ireq_opt-after-an-RCU-grace-p.patch \
 "
 
 PATH:prepend = "${STAGING_BINDIR_NATIVE}/kern-tools-tegra:"
