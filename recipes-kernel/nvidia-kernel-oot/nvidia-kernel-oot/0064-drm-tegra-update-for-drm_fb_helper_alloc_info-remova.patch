@@ -1,0 +1,103 @@
+From 250099e07ba8025efef3ba657eadf2c351d9aba1 Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 8 Nov 2026 07:39:38 -0800
+Subject: [PATCH] drm/tegra: update for drm_fb_helper_alloc_info removal
+
+Upstream-Status: Backport [from l4t/l4t-r39.2]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ nvidia-oot/drivers/gpu/drm/tegra/fbdev.c | 13 +++++++++++--
+ nvidia-oot/scripts/conftest/Makefile     |  1 +
+ nvidia-oot/scripts/conftest/conftest.sh  | 22 ++++++++++++++++++++++
+ 3 files changed, 34 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/tegra/fbdev.c b/drivers/gpu/drm/tegra/fbdev.c
+index f7865dd..ec347c8 100644
+--- a/drivers/gpu/drm/tegra/fbdev.c
++++ b/drivers/gpu/drm/tegra/fbdev.c
+@@ -102,7 +102,11 @@ static int tegra_fbdev_probe(struct drm_fb_helper *helper,
+ 	unsigned int bytes_per_pixel;
+ 	struct drm_framebuffer *fb;
+ 	unsigned long offset;
++#if defined(NV_DRM_FB_HELPER_ALLOC_INFO_PRESENT) || defined(NV_DRM_FB_HELPER_ALLOC_FBI_PRESENT)
+ 	struct fb_info *info;
++#else
++	struct fb_info *info = helper->info;
++#endif
+ 	struct tegra_bo *bo;
+ 	size_t size;
+ 	int err;
+@@ -125,14 +129,19 @@ static int tegra_fbdev_probe(struct drm_fb_helper *helper,
+ 
+ #if defined(NV_DRM_FB_HELPER_ALLOC_INFO_PRESENT) /* Linux v6.2 */
+ 	info = drm_fb_helper_alloc_info(helper);
+-#else
++	if (IS_ERR(info)) {
++		dev_err(drm->dev, "failed to allocate framebuffer info\n");
++		drm_gem_object_put(&bo->gem);
++		return PTR_ERR(info);
++	}
++#elif defined(NV_DRM_FB_HELPER_ALLOC_FBI_PRESENT)
+ 	info = drm_fb_helper_alloc_fbi(helper);
+-#endif
+ 	if (IS_ERR(info)) {
+ 		dev_err(drm->dev, "failed to allocate framebuffer info\n");
+ 		drm_gem_object_put(&bo->gem);
+ 		return PTR_ERR(info);
+ 	}
++#endif
+ 
+ 	fb = tegra_fb_alloc(drm,
+ #if defined(NV_DRM_HELPER_MODE_FILL_FB_STRUCT_HAS_INFO_ARG) /* Linux v6.17 */
+diff --git a/scripts/conftest/Makefile b/scripts/conftest/Makefile
+index f573dd2..6e5842a 100644
+--- a/scripts/conftest/Makefile
++++ b/scripts/conftest/Makefile
+@@ -132,6 +132,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_has_fbdev_probe
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_date
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_driver_struct_has_irq_enabled_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_edid_connector_add_modes
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_alloc_fbi
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_alloc_info
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_prepare_has_preferred_bpp_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += drm_fb_helper_unregister_info
+diff --git a/scripts/conftest/conftest.sh b/scripts/conftest/conftest.sh
+index a3de933..b5ef47c 100755
+--- a/scripts/conftest/conftest.sh
++++ b/scripts/conftest/conftest.sh
+@@ -7303,6 +7303,25 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_DRM_EDID_CONNECTOR_ADD_MODES_PRESENT" "" "functions"
+         ;;
+ 
++        drm_fb_helper_alloc_fbi)
++            #
++            # Determine if the function 'drm_fb_helper_alloc_fbi' is present.
++            #
++            # Commit 7fd50bc39d12 ("drm/fb-helper: Rename drm_fb_helper_alloc_fbi()
++            # to use _info postfix") renamed the function drm_fb_helper_alloc_fbi to
++            # drm_fb_helper_alloc_info in Linux v6.2.
++            #
++            CODE="
++            #undef CONFIG_ACPI
++            #include <drm/drm_fb_helper.h>
++            void conftest_drm_fb_helper_alloc_fbi(void)
++            {
++                    drm_fb_helper_alloc_fbi();
++            }"
++
++            compile_check_conftest "$CODE" "NV_DRM_FB_HELPER_ALLOC_FBI_PRESENT" "" "functions"
++        ;;
++
+         drm_fb_helper_alloc_info)
+             #
+             # Determine if the function 'drm_fb_helper_alloc_info' is present.
+@@ -7310,6 +7329,9 @@ compile_test() {
+             # Commit 7fd50bc39d12 ("drm/fb-helper: Rename drm_fb_helper_alloc_fbi()
+             # to use _info postfix") renamed the function drm_fb_helper_alloc_fbi to
+             # drm_fb_helper_alloc_info in Linux v6.2.
++            # Commit 63c971af4036 ("rm/fb-helper: Allocate and release fb_info in
++            # single place") refactored the allocation out of the individual drivers
++            # in Linux v6.19; the change has been back-ported to earlier versions
+             #
+             CODE="
+             #undef CONFIG_ACPI

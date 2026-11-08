@@ -1,0 +1,73 @@
+From bf22b8c9c07d7c2872db245c24caf3ba10d0df8a Mon Sep 17 00:00:00 2001
+From: Matt Madison <matt@madison.systems>
+Date: Sun, 8 Nov 2026 07:49:43 -0800
+Subject: [PATCH] nvdisplay: update for pci_resize_resource API change
+
+Upstream-Status: Backport [from l4t/l4t-r39.2]
+Signed-off-by: Matt Madison <matt@madison.systems>
+---
+ nvdisplay/kernel-open/conftest.sh          | 21 +++++++++++++++++++++
+ nvdisplay/kernel-open/nvidia/nv-pci.c      |  4 ++++
+ nvdisplay/kernel-open/nvidia/nvidia.Kbuild |  1 +
+ 3 files changed, 26 insertions(+)
+
+diff --git a/kernel-open/conftest.sh b/kernel-open/conftest.sh
+index 26a737e..3aaf96e 100644
+--- a/kernel-open/conftest.sh
++++ b/kernel-open/conftest.sh
+@@ -6192,6 +6192,27 @@ compile_test() {
+             compile_check_conftest "$CODE" "NV_PCI_REBAR_GET_POSSIBLE_SIZES_PRESENT" "" "functions"
+         ;;
+ 
++        pci_resize_resource_has_exclude_bars_arg)
++            #
++            # Determine if pci_resize_resource() has exclude_bars argument.
++            #
++            # exclude_bars argument was added to pci_resize_resource by commit
++            # 337b1b566db0 (11/14/2025) ("PCI: Fix restoring BARs on BAR resize rollback path")
++            # in linux-next.
++            #
++            CODE="
++            #include <linux/pci.h>
++
++            typeof(pci_resize_resource) conftest_pci_resize_resource_has_exclude_bars_arg;
++            int __must_check conftest_pci_resize_resource_has_exclude_bars_arg(struct pci_dev *dev,
++                                                                               int i, int size,
++                                                                               int exclude_bars) {
++                return 0;
++            }"
++
++            compile_check_conftest "$CODE" "NV_PCI_RESIZE_RESOURCE_HAS_EXCLUDE_BARS_ARG" "" "types"
++        ;;
++
+         wait_for_random_bytes)
+             #
+             # Determine if the wait_for_random_bytes() function is present.
+diff --git a/kernel-open/nvidia/nv-pci.c b/kernel-open/nvidia/nv-pci.c
+index ad2bfee..3ce4888 100644
+--- a/kernel-open/nvidia/nv-pci.c
++++ b/kernel-open/nvidia/nv-pci.c
+@@ -216,7 +216,11 @@ static int nv_resize_pcie_bars(struct pci_dev *pci_dev) {
+ 
+ resize:
+     /* Attempt to resize BAR1 to the largest supported size */
++#if defined(NV_PCI_RESIZE_RESOURCE_HAS_EXCLUDE_BARS_ARG)
++    r = pci_resize_resource(pci_dev, NV_GPU_BAR1, requested_size, 0);
++#else
+     r = pci_resize_resource(pci_dev, NV_GPU_BAR1, requested_size);
++#endif
+ 
+     if (r) {
+         if (r == -ENOSPC)
+diff --git a/kernel-open/nvidia/nvidia.Kbuild b/kernel-open/nvidia/nvidia.Kbuild
+index 5d33def..84ca2e6 100644
+--- a/kernel-open/nvidia/nvidia.Kbuild
++++ b/kernel-open/nvidia/nvidia.Kbuild
+@@ -139,6 +139,7 @@ NV_CONFTEST_FUNCTION_COMPILE_TESTS += of_get_ibm_chip_id
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_bus_address
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_stop_and_remove_bus_device
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_rebar_get_possible_sizes
++NV_CONFTEST_FUNCTION_COMPILE_TESTS += pci_resize_resource_has_exclude_bars_arg
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += wait_for_random_bytes
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += register_cpu_notifier
+ NV_CONFTEST_FUNCTION_COMPILE_TESTS += cpuhp_setup_state
