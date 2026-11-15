@@ -45,5 +45,7 @@ do_install() {
 FILES_SOLIBSDEV = ""
 SOLIBS = ".so*"
 FILES:${PN} += "${libdir}/libv4l"
-RDEPENDS:${PN}:append:tegra264 = "tegra-libraries-video-codec"
+EXTRA_RDEPS = ""
+EXTRA_RDEPS:tegra264 = "tegra-libraries-video-codec"
+RDEPENDS:${PN} = "${EXTRA_RDEPS}"
 PACKAGE_ARCH = "${SOC_FAMILY_PKGARCH}"
