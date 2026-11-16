@@ -44,8 +44,11 @@ do_install() {
 do_deploy() {
     :
 }
+SPDX_DEPLOY_ALLOW_EMPTY:task-deploy = "1"
+
 do_deploy:tegra264() {
     install -D -m 0644 -t ${DEPLOYDIR} ${B}/images/${EDK2_BIN_NAME}
 }
+SPDX_DEPLOY_ALLOW_EMPTY:task-deploy:tegra264 = "0"
 
 FILES:${PN} = "${datadir}/edk2-nvidia"
