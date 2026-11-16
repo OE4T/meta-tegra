@@ -8,7 +8,7 @@ DEPENDS = "dtc-native"
 SRC_URI = "file://L4TConfiguration-RootfsRedundancyLevelABEnable.dtsi"
 S = "${UNPACKDIR}"
 
-inherit deploy
+inherit deploy nopackages
 
 do_configure() {
     :
@@ -27,3 +27,5 @@ do_deploy() {
 }
 
 addtask deploy before do_build after do_install
+
+PACKAGE_ARCH = "${MACHINE_ARCH}"
