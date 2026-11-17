@@ -279,8 +279,6 @@ TEGRA_OOT_BASE_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-bpmp \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-cactmon-mc-all \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-mce \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se-nvrng \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-wmark \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-thermal-trip-event \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tsecriscv \
@@ -333,7 +331,9 @@ TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-wch \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-aocluster \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-cpuidle-cg-disable-t264 \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se-kds \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se-nvrng \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-host1x-emu \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-i2c-tegra-slave-byte \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-capture-isp \
