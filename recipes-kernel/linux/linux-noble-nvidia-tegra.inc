@@ -29,6 +29,7 @@ SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
     file://0002-Revert-perf-python-Avoid-duplicated-code-in-get-trac.patch \
     ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
+    file://0003-tee-optee-ffa-fix-build-without-Tegra264-support.patch \
     file://disable-module-signing.cfg \
     file://fbcon.cfg \
     file://tegra-ip-nf.cfg \
