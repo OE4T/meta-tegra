@@ -1,4 +1,4 @@
-From 2e442a7609580dd83d755c226e4b3323f5a28715 Mon Sep 17 00:00:00 2001
+From 8305bc67a1a45d324e9adb9570ff903aa8e1e104 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
 Date: Wed, 8 Apr 2026 11:32:04 -0700
 Subject: [PATCH] Add support for 'alternate' roots for tegra CSV handling
@@ -10,10 +10,12 @@ the main rootfs of the host OS.
 Upstream-Status: Inappropriate [OE-specific]
 Signed-off-by: Matt Madison <matt@madison.systems>
 Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+Signed-off-by: Jesse Van Gavere <jesseevg@amazon.com>
 ---
  api/config/v1/runtime.go                    |  3 +-
  api/config/v1/toml_test.go                  |  2 +
  cmd/nvidia-ctk/cdi/generate/generate.go     |  8 +++
+ internal/modifier/cdi.go                    |  1 +
  internal/platform-support/tegra/csv.go      | 64 ++++++++++++++++-----
  internal/platform-support/tegra/options.go  | 13 ++++-
  internal/platform-support/tegra/symlinks.go | 43 ++++++++------
@@ -21,7 +23,7 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  pkg/nvcdi/lib-csv.go                        |  1 +
  pkg/nvcdi/lib.go                            |  2 +
  pkg/nvcdi/options.go                        |  9 +++
- 10 files changed, 120 insertions(+), 36 deletions(-)
+ 11 files changed, 121 insertions(+), 36 deletions(-)
 
 diff --git a/api/config/v1/runtime.go b/api/config/v1/runtime.go
 index 946f75a2..47e8bd4c 100644
@@ -90,6 +92,18 @@ index 2fff6eac..89ec5fbf 100644
  		nvcdi.WithCSVFiles(opts.csv.files),
  		nvcdi.WithCSVIgnorePatterns(opts.csv.ignorePatterns),
  		nvcdi.WithCSVCompatContainerRoot(opts.csv.CompatContainerRoot),
+diff --git a/internal/modifier/cdi.go b/internal/modifier/cdi.go
+index 005c42f4..415e3f86 100644
+--- a/internal/modifier/cdi.go
++++ b/internal/modifier/cdi.go
+@@ -199,6 +199,7 @@ func (f *Factory) newAutomaticCDISpecModifier(devices []string) (oci.SpecModifie
+ 			nvcdi.WithFeatureFlags(f.cfg.NVIDIAContainerRuntimeConfig.Modes.JitCDI.NVCDIFeatureFlags...),
+ 			nvcdi.WithCSVCompatContainerRoot(f.cfg.NVIDIAContainerRuntimeConfig.Modes.CSV.CompatContainerRoot),
+ 			nvcdi.WithCSVFiles(csvFiles),
++			nvcdi.WithAltRoots(f.cfg.NVIDIAContainerRuntimeConfig.Modes.CSV.AltRoots),
+ 		)
+ 		if err != nil {
+ 			return nil, fmt.Errorf("failed to construct CDI library for mode %q: %w", mode, err)
 diff --git a/internal/platform-support/tegra/csv.go b/internal/platform-support/tegra/csv.go
 index 01b1298f..1a4a3998 100644
 --- a/internal/platform-support/tegra/csv.go
