@@ -10,6 +10,8 @@ SRC_URI = "\
     ${L4T_URI_BASE}/Jetson_SIPL_API_R${L4T_VERSION}_aarch64.tbz2 \
     file://0001-Updates-for-OE-cross-builds.patch \
     file://0002-uddf-restore-std-cout-format-after-driver-log-messages.patch \
+    file://0003-samples-camera-fix-frame-drops-with-k-profiling.patch \
+    file://0004-samples-camera-fix-the-k-profiling-CSV-contents.patch \
 "
 SRC_URI[sha256sum] = "f9a625e7b32fc9dbba635d5068c11dc62502f3d7d656a4e8624a392d69f3ffee"
 
