@@ -60,3 +60,4 @@ CVE_STATUS_EDK2_FIXED_UPSTREAM[status] = "fixed-version: CNA record bounds this 
 CVE_STATUS_EDK2_FIXED_INTREE[status] = "fixed-version: fix verified present in this source; neither NVD nor the CNA record carries a usable range"
 CVE_STATUS_EDK2_DATE_BOUND[status] = "fixed-version: NVD bounds these with a release date, 2017-11-07 and 2020-10-21, which no comparison can apply to the 202511 tag"
 CVE_STATUS_EDK2_X86[status] = "not-applicable-platform: x86-only UefiCpuPkg SMM code, which AArch64 Tegra does not build"
+CVE_STATUS[CVE-2026-111497] = "not-applicable-config: Brotli decoder defect; Tegra firmware decompresses with LzmaCustomDecompressLib and does not build BrotliCustomDecompressLib"
