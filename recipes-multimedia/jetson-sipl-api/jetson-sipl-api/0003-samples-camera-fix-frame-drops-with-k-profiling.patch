@@ -1,0 +1,196 @@
+From ab0abc42cbdf75301e08a02800dbaf400917a125 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 20 Nov 2026 08:05:12 -0800
+Subject: [PATCH] samples/camera: fix frame drops with -k profiling
+
+With -k, each output's CProfiler waiter thread returned on any error
+without releasing the buffer it held, so the capture buffer pool
+drained and every later frame was dropped.
+
+In sensor group (stereo) mode this happened within a few frames:
+OnEvent() recorded every capture-done event, including the secondary
+sensor's, on the primary sensor's profilers, which then logged
+"Timestamps don't match" (14 captured / 220 dropped on SNSA0VB1940).
+On longer runs a single ISP frame failing with "TaskStatus was not a
+success" did the same.
+
+Record each capture-done event on the profilers of the sensor that
+produced it, skip entries of frames that never reached the output,
+and release the buffer and continue on a failed frame.
+
+Upstream-Status: Pending
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ samples/camera/CProfiler.hpp               | 40 +++++++++++++++++++---
+ samples/camera/CSensorGroupSyncMonitor.hpp |  5 +++
+ samples/camera/main.cpp                    | 26 +++++++++++---
+ 3 files changed, 63 insertions(+), 8 deletions(-)
+
+diff --git a/samples/camera/CProfiler.hpp b/samples/camera/CProfiler.hpp
+index ab1e6cd..19962cb 100644
+--- a/samples/camera/CProfiler.hpp
++++ b/samples/camera/CProfiler.hpp
+@@ -233,6 +233,12 @@ class CProfiler
+             }
+         }
+ 
++        // Drop entries of older frames that never reached this output
++        // (dropped by ISP), so one lost frame does not desynchronize the queue.
++        while ((m_oTimePairQueue.size() > 1U) &&
++               (m_oTimePairQueue.front().first < frameCaptureTSC)) {
++            m_oTimePairQueue.pop();
++        }
+         timePair = m_oTimePairQueue.front();
+         m_oTimePairQueue.pop();
+         lock.unlock();
+@@ -274,13 +280,26 @@ class CProfiler
+             if (m_outputType != INvSIPLClient::ConsumerDesc::OutputType::ICP) {
+                 auto status = WaitForPostFence(pNvMBuffer);
+                 if (status != NVSIPL_STATUS_OK) {
+-                    return;
++                    // A single failed frame (fence timeout or ISP task error)
++                    // must not end the thread: returning here leaked the
++                    // buffer and stopped capture once the pool drained.
++                    (void)pNvMBuffer->Release();
++                    if (m_bQuit) {
++                        return;
++                    }
++                    continue;
+                 }
+ 
+                 std::pair<uint64_t, std::vector <uint64_t>> timePair;
+                 status = GetCaptureDoneEventTimePair(md.frameCaptureTSC, timePair);
+                 if (status != NVSIPL_STATUS_OK) {
+-                    return;
++                    // Release the reference taken in ProfileFrame(); returning
++                    // here would leak it and starve the capture buffer pool.
++                    (void)pNvMBuffer->Release();
++                    if (m_bQuit) {
++                        return;
++                    }
++                    continue;
+                 }
+                 uCaptureDoneTimeUs = timePair.second[0];
+             }
+@@ -292,13 +311,26 @@ class CProfiler
+             if (m_outputType != INvSIPLClient::ConsumerDesc::OutputType::ICP) {
+                 auto status = WaitForPostFence(pNvMBuffer);
+                 if (status != NVSIPL_STATUS_OK) {
+-                    return;
++                    // A single failed frame (fence timeout or ISP task error)
++                    // must not end the thread: returning here leaked the
++                    // buffer and stopped capture once the pool drained.
++                    (void)pNvMBuffer->Release();
++                    if (m_bQuit) {
++                        return;
++                    }
++                    continue;
+                 }
+ 
+                 std::pair<uint64_t, std::vector <uint64_t>> timePair;
+                 status = GetCaptureDoneEventTimePair(md.frameCaptureTSC, timePair);
+                 if (status != NVSIPL_STATUS_OK) {
+-                    return;
++                    // Release the reference taken in ProfileFrame(); returning
++                    // here would leak it and starve the capture buffer pool.
++                    (void)pNvMBuffer->Release();
++                    if (m_bQuit) {
++                        return;
++                    }
++                    continue;
+                 }
+                 uCaptureDoneTimeUs = timePair.second[0];
+             }
+diff --git a/samples/camera/CSensorGroupSyncMonitor.hpp b/samples/camera/CSensorGroupSyncMonitor.hpp
+index b5b4881..b00df57 100644
+--- a/samples/camera/CSensorGroupSyncMonitor.hpp
++++ b/samples/camera/CSensorGroupSyncMonitor.hpp
+@@ -26,6 +26,7 @@
+ #include "CUtils.hpp"
+ 
+ class CNvSIPLConsumer;
++class CProfiler;
+ 
+ #if defined(NV_EMBEDDED_L4T)
+ 
+@@ -55,6 +56,10 @@ struct SensorGroupModuleData {
+      *  handler setup and merged into the primary sensor's frame handler. */
+     std::vector<std::pair<INvSIPLFrameCompletionQueue * /* non-owning */,
+                           CNvSIPLConsumer * /* non-owning */>> secondaryQueueConsumerPairs;
++    /** Non-owning ISP profilers of the secondary sensor. The primary's
++     *  notification handler also drains the secondary's notification queue,
++     *  so it needs these to route the secondary's capture-done events. */
++    std::vector<CProfiler * /* non-owning */> secondaryProfilerISP;
+ };
+ 
+ /** @brief Thread-safe stereo frame synchronization monitor.
+diff --git a/samples/camera/main.cpp b/samples/camera/main.cpp
+index 0de9dbf..d323418 100644
+--- a/samples/camera/main.cpp
++++ b/samples/camera/main.cpp
+@@ -720,9 +720,11 @@ public:
+     }
+ 
+ #if defined(NV_EMBEDDED_L4T)
+-    void SetSecondarySensorQueue(uint32_t secondarySensorId, INvSIPLNotificationQueue *secondaryQueue)
++    void SetSecondarySensorQueue(uint32_t secondarySensorId, INvSIPLNotificationQueue *secondaryQueue,
++                                 std::vector<CProfiler*> vpSecondaryProfilerISP)
+     {
+         m_uSecondarySensor = secondarySensorId;
++        m_vpSecondaryProfilerISP = vpSecondaryProfilerISP;
+         m_pRightNotificationQueue.store(secondaryQueue, std::memory_order_release);
+     }
+ #endif // NV_EMBEDDED_L4T
+@@ -820,8 +822,19 @@ private:
+ 
+ #endif // NVMEDIA_QNX
+ 
+-            for (auto &pProfilerISP : m_vpProfilerISP) {
+-                pProfilerISP->RecordCaptureDoneEventTime(oNotificationData.frameCaptureTSC, uCaptureDoneTimeUs);
++            {
++                // In sensor group mode this handler also drains the secondary
++                // sensor's queue; record each event on the profilers of the
++                // sensor that produced it.
++                std::vector<CProfiler*> *pvpProfilerISP = &m_vpProfilerISP;
++#if defined(NV_EMBEDDED_L4T)
++                if (oNotificationData.uIndex == m_uSecondarySensor) {
++                    pvpProfilerISP = &m_vpSecondaryProfilerISP;
++                }
++#endif // NV_EMBEDDED_L4T
++                for (auto &pProfilerISP : *pvpProfilerISP) {
++                    pProfilerISP->RecordCaptureDoneEventTime(oNotificationData.frameCaptureTSC, uCaptureDoneTimeUs);
++                }
+             }
+             LOG_INFO("Pipeline: %u, NOTIF_INFO_ICP_PROCESSING_DONE\n", oNotificationData.uIndex);
+ 
+@@ -1141,6 +1154,9 @@ private:
+     std::atomic<bool> m_bPipelineFrameCaptured[MAX_NUM_SENSORS] {};
+ #endif // NV_EMBEDDED_L4T
+     std::vector<CProfiler*> m_vpProfilerISP;
++#if defined(NV_EMBEDDED_L4T)
++    std::vector<CProfiler*> m_vpSecondaryProfilerISP;
++#endif // NV_EMBEDDED_L4T
+     std::atomic<bool> m_bQuit {false};
+ };
+ 
+@@ -2939,6 +2955,7 @@ int main(int argc, char *argv[])
+                     // so primary sensor is always processed before secondary.
+                     isSecondarySensor = true;
+                     sm.secondaryQueueConsumerPairs = vQueueConsumerPair;
++                    sm.secondaryProfilerISP = vpProfilerISP;
+                     LOG_INFO("Sensor group: saved %zu queue-consumer pairs for secondary sensor %u (will merge into primary handler)\n",
+                              vQueueConsumerPair.size(), uSensor);
+                 } else if (uSensor == sm.primarySensorId) {
+@@ -3033,7 +3050,8 @@ int main(int argc, char *argv[])
+             auto const notifIt = sensorToNotifHandlerIdx.find(sm.primarySensorId);
+             if (notifIt != sensorToNotifHandlerIdx.end() && sm.secondaryQueues.notificationQueue != nullptr) {
+                 vupNotificationHandler[notifIt->second]->SetSecondarySensorQueue(
+-                    sm.secondarySensorId, sm.secondaryQueues.notificationQueue);
++                    sm.secondarySensorId, sm.secondaryQueues.notificationQueue,
++                    sm.secondaryProfilerISP);
+                 LOG_INFO("Sensor group: wired secondary notification queue (sensor %u) into primary handler (sensor %u)\n",
+                          sm.secondarySensorId, sm.primarySensorId);
+             } else if (notifIt != sensorToNotifHandlerIdx.end()) {
+-- 
+2.43.0
+

@@ -1,0 +1,100 @@
+From 7bf64fcd9e48d32a3b84de3e04b1af0625ae03ca Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Fri, 20 Nov 2026 08:05:12 -0800
+Subject: [PATCH] samples/camera: fix the -k profiling CSV contents
+
+- End the header and each row with a newline instead of a comma.
+- Read the capture-done time from the NVSIPL_TIME_BASE_CLOCK_MONOTONIC
+  slot that OnEvent() writes on Linux; slot 0 (PTP) is never set, so
+  the column was always 0.
+- Convert capture TSCs to microseconds with the counter rate from
+  CNTFRQ_EL0 instead of a fixed 32 ns per tick (T234). The T264
+  counter runs at 1 GHz, so the column was 32 times too large on Thor.
+
+Upstream-Status: Pending
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ samples/camera/CProfiler.hpp | 33 +++++++++++++++++++++++++++------
+ 1 file changed, 27 insertions(+), 6 deletions(-)
+
+diff --git a/samples/camera/CProfiler.hpp b/samples/camera/CProfiler.hpp
+index 19962cb..0242dfd 100644
+--- a/samples/camera/CProfiler.hpp
++++ b/samples/camera/CProfiler.hpp
+@@ -39,6 +39,27 @@
+ #define NVMEDIA_IMAGE_STATUS_TIMEOUT_MS (100U)
+ static constexpr uint32_t TSC_TO_NS_MULTIPLIER {32U};
+ 
++#if !defined(NVMEDIA_QNX) && !NV_IS_SAFETY
++// The capture TSC counts in the Arm generic timer domain, whose rate is
++// SoC specific: 31.25 MHz (32 ns/tick) on T234 but 1 GHz on T264. Read it
++// from CNTFRQ_EL0 instead of assuming the T234 rate.
++static inline uint64_t TscToUs(uint64_t uTsc)
++{
++    static const uint64_t uTscHz = []() -> uint64_t {
++        uint64_t uHz = 0U;
++#if defined(__aarch64__)
++        __asm__ volatile("mrs %0, cntfrq_el0" : "=r"(uHz));
++#endif
++        return uHz;
++    }();
++
++    if (uTscHz == 0U) {
++        return (uTsc * TSC_TO_NS_MULTIPLIER) / 1000UL;
++    }
++    return (uint64_t)(((unsigned __int128)uTsc * 1000000U) / uTscHz);
++}
++#endif // !NVMEDIA_QNX && !NV_IS_SAFETY
++
+ using namespace nvsipl;
+ 
+ 
+@@ -91,11 +112,11 @@ class CProfiler
+             }
+ 
+             if (m_outputType == INvSIPLClient::ConsumerDesc::OutputType::ICP) {
+-                m_profileFile << "Capture Timestamp (us),";
++                m_profileFile << "Capture Timestamp (us)\n";
+             }
+             else {
+                 m_profileFile << "Capture Timestamp (us),";
+-                m_profileFile << "Capture Done Event Timestamp (us),";
++                m_profileFile << "Capture Done Event Timestamp (us)\n";
+             }
+         }
+ 
+@@ -306,7 +327,7 @@ class CProfiler
+ #elif !NV_IS_SAFETY
+             const INvSIPLClient::ImageMetaData &md = pNvMBuffer->GetImageData();
+ 
+-            uFrameTimeUs = (md.frameCaptureTSC * TSC_TO_NS_MULTIPLIER) / 1000UL;
++            uFrameTimeUs = TscToUs(md.frameCaptureTSC);
+ 
+             if (m_outputType != INvSIPLClient::ConsumerDesc::OutputType::ICP) {
+                 auto status = WaitForPostFence(pNvMBuffer);
+@@ -332,7 +353,7 @@ class CProfiler
+                     }
+                     continue;
+                 }
+-                uCaptureDoneTimeUs = timePair.second[0];
++                uCaptureDoneTimeUs = timePair.second[NVSIPL_TIME_BASE_CLOCK_MONOTONIC];
+             }
+ #endif // !NV_IS_SAFETY
+ 
+@@ -348,11 +369,11 @@ class CProfiler
+ 
+             if (m_profileFile.is_open()) {
+                 if (m_outputType == INvSIPLClient::ConsumerDesc::OutputType::ICP) {
+-                    m_profileFile << uFrameTimeUs << ",";
++                    m_profileFile << uFrameTimeUs << "\n";
+                 }
+                 else {
+                     m_profileFile << uFrameTimeUs << ",";
+-                    m_profileFile << uCaptureDoneTimeUs << ",";
++                    m_profileFile << uCaptureDoneTimeUs << "\n";
+                 }
+             }
+         }
+-- 
+2.43.0
+
