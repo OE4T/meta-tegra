@@ -163,20 +163,70 @@ create_filesystems() {
     return 0
 }
 
+# Uses the image name and size local to copy_to_device().
+report_flash_progress() {
+    [ "$TEGRA_FLASH_PROGRESS" = "1" ] || return 0
+    local written=null
+    [ -z "$bytes_total" ] || written=$((bytes_total * $1 / 100))
+    printf 'TEGRA_FLASH_PROGRESS:{"type":"copy","item":"%s","percent":%s,"bytes_written":%s,"bytes_total":%s}\n' \
+	"$item" "$1" "$written" "${bytes_total:-null}" 2>/dev/null || :
+}
+
 copy_to_device() {
     local src="$1"
     local dst="$2"
+    local item bytes_total
+    if [ "$TEGRA_FLASH_PROGRESS" = "1" ]; then
+	item="${src##*/}"
+	item="${item//\\/\\\\}"
+	item="${item//\"/\\\"}"
+	local i char escaped
+	for ((i=1; i<32; i++)); do
+	    printf -v escaped '\\u%04x' "$i"
+	    printf -v char '%b' "$escaped"
+	    item="${item//"$char"/"$escaped"}"
+	done
+	bytes_total=$(stat -c '%s' -- "$src" 2>/dev/null) || bytes_total=
+	report_flash_progress 0
+    fi
     if [ -z "$HAVEBMAPTOOL" -o -n "$ignore_bmap" ]; then
 	dd if="$src" of="$dst" bs=1M conv=fsync status=none >/dev/null 2>&1 || return 1
+	report_flash_progress 100
 	return 0
     fi
     local bmap=$(mktemp)
     local rc=0
     bmaptool create -o "$bmap" "$src" >/dev/null 2>&1 || rc=1
     if [ $rc -eq 0 ]; then
-	$SUDO bmaptool copy --bmap "$bmap" "$src" "$dst" >/dev/null 2>&1 || rc=1
+	local progress_dir reader
+	local -a progress_args=()
+	if [ "$TEGRA_FLASH_PROGRESS" = "1" ] &&
+	   bmaptool copy --help 2>/dev/null | grep -q -- '--psplash-pipe'; then
+	    progress_dir=$(mktemp -d 2>/dev/null) || progress_dir=
+	    if [ -n "$progress_dir" ] && mkfifo "$progress_dir/pipe" 2>/dev/null; then
+		# Keep the FIFO open across bmaptool's nonblocking writes.
+		# A missing or stalled reader does not affect bmaptool's copy.
+		(
+		    while read -r command percent; do
+			[ "$command" = "PROGRESS" ] || continue
+			case "$percent" in
+			    [1-9]|[1-9][0-9]) report_flash_progress "$percent" ;;
+			esac
+		    done <>"$progress_dir/pipe"
+		) &
+		reader=$!
+		progress_args=(--psplash-pipe "$progress_dir/pipe")
+	    fi
+	fi
+	$SUDO bmaptool copy "${progress_args[@]}" --bmap "$bmap" "$src" "$dst" >/dev/null 2>&1 || rc=1
+	if [ -n "$reader" ]; then
+	    kill "$reader" 2>/dev/null || :
+	    wait "$reader" 2>/dev/null || :
+	fi
+	[ -z "$progress_dir" ] || rm -rf "$progress_dir" 2>/dev/null || :
     fi
     rm "$bmap"
+    [ $rc -ne 0 ] || report_flash_progress 100
     return $rc
 }
 
