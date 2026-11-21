@@ -1,4 +1,6 @@
 #! /bin/sh
 test -c /dev/nvsciipc || exit 0
+chmod 0666 /dev/nvsciipc
+{ id -u nvsciipc > /sys/devices/platform/nvsciipc/nvsciipc_uid; } 2>/dev/null
 /usr/bin/nvsciipc_init
 exit 0

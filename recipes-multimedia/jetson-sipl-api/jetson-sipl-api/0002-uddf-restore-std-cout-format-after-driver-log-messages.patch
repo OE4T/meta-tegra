@@ -1,0 +1,62 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Ilies CHERGUI <ichergui@nvidia.com>
+Date: Wed, 28 Oct 2026 15:43:15 -0700
+Subject: [PATCH] uddf: restore std::cout format after driver log messages
+
+The VB1940 and HSB drivers' log() helpers write to std::cout, and
+several callers pass std::hex to print register and FSM state values
+without switching back. The stream stays in hex, so the next decimal
+output of the application is wrong: nvsipl_camera --validateCrc
+prints its CRC summary after the VB1940 StopStreaming message and
+reports "CRC validated: 38  Mismatches: 2d" for 56 validated frames
+and 45 mismatches.
+
+Save the stream flags on entry to log() and restore them after the
+message, so no caller can leave std::cout in hex.
+
+Upstream-Status: Pending
+Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
+---
+ uddf/drivers/hsb/HsbTransportDriver.cpp | 4 ++++
+ uddf/drivers/vb1940/VB1940Module.cpp    | 4 ++++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/uddf/drivers/hsb/HsbTransportDriver.cpp b/uddf/drivers/hsb/HsbTransportDriver.cpp
+index e2a001b..90c9362 100644
+--- a/uddf/drivers/hsb/HsbTransportDriver.cpp
++++ b/uddf/drivers/hsb/HsbTransportDriver.cpp
+@@ -84,9 +84,13 @@ namespace {
+ 
+ template<typename... Args>
+ void log(Args... args) {
++    // Callers pass std::hex; restore the stream format so it does not leak
++    // into later std::cout output.
++    const std::ios_base::fmtflags flags = std::cout.flags();
+     std::cout << "    [HSB] ";
+     (std::cout << ... << args);
+     std::cout << std::endl;
++    std::cout.flags(flags);
+ }
+ 
+ #define EXTRA_DEBUG 0
+diff --git a/uddf/drivers/vb1940/VB1940Module.cpp b/uddf/drivers/vb1940/VB1940Module.cpp
+index 2f76d40..8b63c2a 100644
+--- a/uddf/drivers/vb1940/VB1940Module.cpp
++++ b/uddf/drivers/vb1940/VB1940Module.cpp
+@@ -34,9 +34,13 @@ static constexpr uint8_t SYSTEM_FSM_STATE_STREAMING {0x04U};
+ 
+ template<typename... Args>
+ void log(Args... args) {
++    // Callers pass std::hex; restore the stream format so it does not leak
++    // into later std::cout output.
++    const std::ios_base::fmtflags flags = std::cout.flags();
+     std::cout << "    [Eagle module] ";
+     (std::cout << ... << args);
+     std::cout << std::endl;
++    std::cout.flags(flags);
+ }
+ 
+ } // Anonymous namespace
+-- 
+2.43.0
+

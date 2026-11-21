@@ -3,8 +3,8 @@ TEGRA_SRC_SUBARCHIVE_OPTS = "--strip-components=1 optee/optee_os"
 
 LICENSE = "BSD-2-Clause AND LicenseRef-Proprietary"
 LIC_FILES_CHKSUM = " \
-    file://LICENSE;md5=2f6a2cb48b5cc5cd0bd3f87a836cb407 \
-    file://LICENSE.NVIDIA;md5=ba16bc74328d76e24af960ba01c937dc \
+    file://LICENSE;md5=21712c598e942c57c6afd1e8148d2459 \
+    file://LICENSE.NVIDIA;md5=5c5fdb4106f8f874e7f96eed38030b85 \
 "
 
 SRC_URI:append = " file://0001-core-Fix-GCC-15-build-errors.patch;striplevel=2"

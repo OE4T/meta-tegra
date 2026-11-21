@@ -1,0 +1,27 @@
+From: Kurt Kiefer <kkiefer@nvidia.com>
+Subject: [PATCH] argus: allow an explicit CUDA driver library path
+
+OE stages the selected CUDA driver in the target sysroot's standard
+library directory. Allow callers to provide that directory directly
+instead of probing the build host or requiring the native L4T layout.
+
+Upstream-Status: Pending
+Signed-off-by: Kurt Kiefer <kkiefer@nvidia.com>
+
+--- a/argus/cmake/ArgusCudaDriverLibs.cmake
++++ b/argus/cmake/ArgusCudaDriverLibs.cmake
+@@ -24,6 +24,14 @@
+ # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ #
++
++# Cross builds may stage the selected driver in a standard sysroot libdir.
++if(ARGUS_CUDA_DRV_LIB_PATH)
++    link_directories("${ARGUS_CUDA_DRV_LIB_PATH}")
++    set(CMAKE_EXE_LINKER_FLAGS
++        "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath-link=${ARGUS_CUDA_DRV_LIB_PATH}")
++    return()
++endif()
+ 
+ # Locate libcuda.so for L4T GPU driver variants.
+ set(ARGUS_CUDA_DRV_LIBS_ROOT "/opt/nvidia/l4t-gpu-libs" CACHE PATH

@@ -30,6 +30,7 @@
 
 # Release Notes
 - [Release Notes](Release-Notes.md)
+  - [JetPack-7.2.2-L4T-R39.2.2-Notes](release-notes/JetPack-7.2.2-L4T-R39.2.2-Notes.md)
   - [JetPack-7.2.1-L4T-R39.2.1-Notes](release-notes/JetPack-7.2.1-L4T-R39.2.1-Notes.md)
   - [JetPack-7.2-L4T-R39.2.0-Notes](release-notes/JetPack-7.2-L4T-R39.2.0-Notes.md)
   - [JetPack-7.1-L4T-R38.4.x-Notes](release-notes/JetPack-7.1-L4T-R38.4.x-Notes.md)

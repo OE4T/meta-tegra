@@ -1,0 +1,298 @@
+From 73da6c9b1f361dd6ce52e561e944345e561f98aa Mon Sep 17 00:00:00 2001
+From: Kurt Kiefer <kkiefer@nvidia.com>
+Date: Mon, 19 Oct 2026 13:34:33 -0700
+Subject: [PATCH] video_dec_drm: register VT ownership for restart recovery
+
+The sample leaves the active VT in KD_GRAPHICS and VT_AUTO when killed.
+Linux refuses switches away from that combination, so a subsequent run
+blocks in VT_WAITACTIVE.
+
+Register VT_PROCESS ownership before entering graphics mode so Linux can
+recover the console after its owner dies. Keep SIGINT and SIGTERM's
+existing termination behavior, including recovery after SIGKILL.
+
+Own the VT in main until all rendering threads have joined. Process VT
+release/acquisition notifications in the existing rendering loops and
+restore the saved VT mode before switching back on normal exit.
+
+Change-Id: I7b77e84c3bd8e1acada8cbad91b45a0f7c491cd1
+Upstream-Status: Submitted [NVIDIA internal review]
+Signed-off-by: Kurt Kiefer <kkiefer@nvidia.com>
+---
+ samples/08_video_dec_drm/video_dec_drm.cpp | 102 +++++++++++++++++----
+ 1 file changed, 86 insertions(+), 16 deletions(-)
+
+diff --git a/samples/08_video_dec_drm/video_dec_drm.cpp b/samples/08_video_dec_drm/video_dec_drm.cpp
+index 3f43002..fa931ea 100644
+--- a/samples/08_video_dec_drm/video_dec_drm.cpp
++++ b/samples/08_video_dec_drm/video_dec_drm.cpp
+@@ -46,6 +46,8 @@
+ #include <fcntl.h>
+ #include <xf86drmMode.h>
+ #include <dirent.h>
++#include <atomic>
++#include <signal.h>
+
+ 
+ #include "NvUtils.h"
+@@ -79,6 +81,30 @@ extern char image_pixels_array[];
+
+ unordered_map <int, int> fd_map;
+
++static struct vt_mode saved_vt_mode;
++static bool vt_owned = false;
++static std::atomic<bool> vt_release(false), vt_acquire(false);
++static_assert(ATOMIC_BOOL_LOCK_FREE == 2, "VT signal flags must be lock-free");
++
++static void vt_signal(int sig)
++{
++    if (sig == SIGUSR1)
++        vt_release.store(true);
++    else if (sig == SIGUSR2)
++        vt_acquire.store(true);
++}
++
++static void handle_vt_signals(context_t *ctx)
++{
++    if (ctx->id || ctx->console_fd < 0)
++        return;
++    /* Keep the console while rendering; acknowledge acquisition. */
++    if (vt_release.exchange(false))
++        ioctl(ctx->console_fd, VT_RELDISP, 0);
++    if (vt_acquire.exchange(false))
++        ioctl(ctx->console_fd, VT_RELDISP, VT_ACKACQ);
++}
++
+ struct thread_data {
+     context_t *ctx;
+     uint32_t iteration;
+@@ -88,6 +114,9 @@ static void leave_vt(context_t * ctx)
+ {
+     int ret;
+
++    if (ctx->console_fd < 0)
++        return;
++
+     /* Determine if gpu is enabled or not */
+     int result = -1;
+     result = system("lsmod | grep 'nvgpu' > /dev/null");
+@@ -97,6 +126,16 @@ static void leave_vt(context_t * ctx)
+     ret = ioctl(ctx->console_fd, KDSETMODE, KD_TEXT);
+     if (ret < 0) {
+         printf("KDSETMODE failed, err=%s\n", strerror(errno));
++        goto close_console;
++    }
++
++    /* Enable automatic switching only after leaving graphics mode. */
++    if (vt_owned) {
++        if (ioctl(ctx->console_fd, VT_SETMODE, &saved_vt_mode) < 0) {
++            printf("VT_SETMODE restore failed, err=%s\n", strerror(errno));
++            goto close_console;
++        }
++        vt_owned = false;
+     }
+
+     if (ctx->active_vt >= 0) {
+@@ -111,15 +150,17 @@ static void leave_vt(context_t * ctx)
+         }
+     }
+
++close_console:
+     close(ctx->console_fd);
+     ctx->console_fd = -1;
+     ctx->active_vt = -1;
+ }
+
+-static void enter_vt(context_t * ctx)
++static int enter_vt(context_t * ctx)
+ {
+     int i, ret, fd, vtno;
+     struct vt_stat vts;
++    struct vt_mode mode = {};
+     const char *vcs[] = { "/dev/vc/%d", "/dev/tty%d", NULL };
+     static char vtname[11];
+
+@@ -127,25 +168,25 @@ static void enter_vt(context_t * ctx)
+     int result = -1;
+     result = system("lsmod | grep 'nvgpu' > /dev/null");
+     if (result != 0)
+-        return;
++        return 0;
+
+     fd = open("/dev/tty0", O_WRONLY, 0);
+     if (fd < 0) {
+         printf("can't open /dev/tty0 err=%s\n", strerror(errno));
+-        return;
++        return -1;
+     }
+
+     ret = ioctl(fd, VT_OPENQRY, &vtno);
+     if (ret < 0) {
+         printf("VT_OPENQRY failed, err=%s\n", strerror(errno));
+         close(fd);
+-        return;
++        return -1;
+     }
+
+     if (vtno == -1) {
+         printf("can't find free VT\n");
+         close(fd);
+-        return;
++        return -1;
+     }
+
+     printf("Using VT number %d\n", vtno);
+@@ -163,11 +204,13 @@ static void enter_vt(context_t * ctx)
+
+     if (ctx->console_fd < 0) {
+         printf("can't open virtual console %d\n", vtno);
++        return -1;
+     }
+
+     ret = ioctl(ctx->console_fd, VT_GETSTATE, &vts);
+     if (ret < 0) {
+         printf("VT_GETSTATE failed, err=%s\n", strerror(errno));
++        return -1;
+     } else {
+         ctx->active_vt = vts.v_active;
+     }
+@@ -175,21 +218,35 @@ static void enter_vt(context_t * ctx)
+     ret = ioctl(ctx->console_fd, VT_ACTIVATE, vtno);
+     if (ret < 0) {
+         printf("VT_ACTIVATE failed, err=%s\n", strerror(errno));
+-        return;
++        return -1;
+     }
+
+     ret = ioctl(ctx->console_fd, VT_WAITACTIVE, vtno);
+     if (ret < 0) {
+         printf("VT_WAITACTIVE failed, err=%s\n", strerror(errno));
+-        return;
++        return -1;
+     }
+
++    if (ioctl(ctx->console_fd, VT_GETMODE, &saved_vt_mode) < 0) {
++        printf("VT_GETMODE failed, err=%s\n", strerror(errno));
++        return -1;
++    }
++    mode.mode = VT_PROCESS;
++    mode.relsig = SIGUSR1;
++    mode.acqsig = SIGUSR2;
++    if (ioctl(ctx->console_fd, VT_SETMODE, &mode) < 0) {
++        printf("VT_SETMODE failed, err=%s\n", strerror(errno));
++        return -1;
++    }
++    vt_owned = true;
++
+     ret = ioctl(ctx->console_fd, KDSETMODE, KD_GRAPHICS);
+     if (ret < 0) {
+         printf("KDSETMODE KD_GRAPHICS failed, err=%s\n", strerror(errno));
++        return -1;
+     }
+
+-    return;
++    return 0;
+ }
+
+ static int
+@@ -212,8 +269,6 @@ abort(context_t *ctx)
+ {
+     ctx->got_error = true;
+     ctx->dec->abort();
+-    if (!ctx->id)
+-        leave_vt(ctx);
+ }
+
+ static void *
+@@ -300,6 +355,8 @@ ui_render_loop_fcn(void *arg)
+     do {
+         struct timeval begin, end;
+
++        handle_vt_signals(ctx);
++
+         gettimeofday(&begin, NULL);
+
+         for (uint32_t y = 0; y < ui_height; ++y)
+@@ -696,6 +753,7 @@ dec_capture_loop_fcn(void *arg)
+
+         while (1)
+         {
++            handle_vt_signals(ctx);
+             struct v4l2_buffer v4l2_buf;
+             struct v4l2_plane planes[MAX_PLANES];
+
+@@ -872,9 +930,6 @@ drm_rendering(void *arg)
+     bool eos = false;
+     char thread_name[16];
+
+-    if (!ctx.id)
+-        enter_vt(&ctx);
+-
+     snprintf(thread_name, sizeof(thread_name), "OutputPlane-%d", ctx.id);
+     pthread_setname_np(pthread_self(), thread_name);
+
+@@ -1147,9 +1202,6 @@ cleanup:
+         error = 1;
+     }
+
+-    if (!ctx.id)
+-        leave_vt(&ctx);
+-
+     /**
+      * The decoder destructor does all the cleanup i.e set streamoff on output and capture planes,
+      * unmap buffers, tell decoder to deallocate buffer (reqbufs ioctl with counnt = 0),
+@@ -1283,12 +1335,19 @@ main(int argc, char *argv[])
+     struct thread_data *thread_arg = NULL;
+     uint32_t connected[MAX_BUFFERS];
+     int num_monitors = 0;
++    struct sigaction action = {};
+
+     int skip = 0;
+     int num_context = get_num_context(argc, argv, &skip);
+     if (num_context <= 0)
+         return -1;
+
++    action.sa_handler = vt_signal;
++    sigemptyset(&action.sa_mask);
++    if (sigaction(SIGUSR1, &action, NULL) < 0 ||
++        sigaction(SIGUSR2, &action, NULL) < 0)
++        return -1;
++
+     drm_fd = open_drm_device_fd();
+
+     if (drm_fd >= 0)
+@@ -1338,6 +1397,12 @@ main(int argc, char *argv[])
+         }
+
+         NvApplicationProfiler &profiler = NvApplicationProfiler::getProfilerInstance();
++        /* Keep the registered owner alive until all renderers have stopped. */
++        if (enter_vt(&ctx[0]) < 0)
++        {
++            ret = -1;
++            goto cleanup;
++        }
+         if (ctx[0].stats)
+             profiler.start(NvApplicationProfiler::DefaultSamplingInterval);
+
+@@ -1356,6 +1421,8 @@ main(int argc, char *argv[])
+             ret |= (intptr_t) thread_ret;
+         }
+
++        leave_vt(&ctx[0]);
++
+         if (ctx[0].stats)
+         {
+             profiler.stop();
+@@ -1373,6 +1440,9 @@ cleanup:
+     if (drm_fd >= 0)
+         close(drm_fd);
+
++    if (ctx)
++        leave_vt(&ctx[0]);
++
+     delete[] thread_arg;
+     delete[] render_thread;
+     delete[] ctx;
+-- 
+2.43.0
+
