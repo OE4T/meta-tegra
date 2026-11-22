@@ -27,9 +27,10 @@ KERNEL_REPO = "${SRC_REPO}"
 SRC_URI = "git://${KERNEL_REPO};name=machine;branch=${KBRANCH} \
     file://0001-libbpf-Fix-Wdiscarded-qualifiers-under-C23.patch \
     file://0002-Revert-perf-python-Avoid-duplicated-code-in-get-trac.patch \
+    file://0003-tee-optee-ffa-fix-build-without-Tegra264-support.patch \
+    file://0004-ipv4-free-inet_opt-and-ireq_opt-after-an-RCU-grace-p.patch \
     ${@'file://disable-fw-user-helper.cfg' if d.getVar('KERNEL_DISABLE_FW_USER_HELPER') == 'y' else ''} \
     ${@bb.utils.contains('DISTRO_FEATURES', 'systemd', 'file://systemd.cfg', '', d)} \
-    file://0003-tee-optee-ffa-fix-build-without-Tegra264-support.patch \
     file://disable-module-signing.cfg \
     file://fbcon.cfg \
     file://tegra-ip-nf.cfg \
