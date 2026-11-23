@@ -13,15 +13,15 @@ inherit python3native
 
 DEPENDS += "dtc-native python3-kconfiglib-native"
 
-SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r39.2.1-updates"
-SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r39.2.1-updates"
-SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r39.2.1-updates"
-SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r39.2.1-updates"
+SRC_URI_EDK2_PLATFORMS = "git://github.com/NVIDIA/edk2-platforms.git;protocol=https;branch=r39.2.2-updates"
+SRC_URI_EDK2_NVIDIA = "git://github.com/NVIDIA/edk2-nvidia.git;protocol=https;branch=r39.2.2-updates"
+SRC_URI_EDK2_NONOSI = "git://github.com/NVIDIA/edk2-non-osi.git;protocol=https;branch=r39.2.2-updates"
+SRC_URI_EDK2_NVIDIA_NONOSI = "git://github.com/NVIDIA/edk2-nvidia-non-osi.git;protocol=https;branch=r39.2.2-updates"
 
-SRCREV_edk2-non-osi = "c07d24e45c87d175ad1dc5d74b2c7feed9356503"
-SRCREV_edk2-nvidia = "7e9f9ec4de8d979807683a7b4605a15ec3299b89"
-SRCREV_edk2-nvidia-non-osi = "a7f635e781e067613b5080da22bd563072718cb6"
-SRCREV_edk2-platforms = "30c062833913616d54e2101c9d3157e955de1054"
+SRCREV_edk2-non-osi = "7ac12d81e02b323bffdf1ef3c188ea33c2185c91"
+SRCREV_edk2-nvidia = "c21fc392524ab71b36227e9c57dddbb9dcfebdf5"
+SRCREV_edk2-nvidia-non-osi = "ac71a44fff1a17f126ec94c06195046c17152158"
+SRCREV_edk2-platforms = "bd18c2f13469d21748623e8b5b40490dd9b03cb3"
 
 SRC_URI += "\
     ${SRC_URI_EDK2_PLATFORMS};name=edk2-platforms;destsuffix=edk2-tegra/edk2-platforms \
@@ -43,8 +43,7 @@ SRC_URI += "\
     file://0008-MdeModulePkg-VarCheckHiiLib-fix-gcc-16-warning.patch \
     file://0009-MdeModulePkg-CapsuleOnDiskLoadPei-fix-gcc-16-warning.patch \
     file://0010-NetworkPkg-Add-PXE-ICMP-fragment-copy-tests.patch \
-    file://0011-NetworkPkg-UefiPxeBcDxe-Fix-ICMP-buffer-overflow-in-.patch \
-    file://0012-NetworkPkg-UefiPxeBcDxe-Clear-ICMP-error-buffer-befo.patch \
+    file://0011-NetworkPkg-UefiPxeBcDxe-Clear-ICMP-error-buffer-befo.patch \
 "
 
 TEGRA_UEFI_VERBOSE_LOGGING ??= "0"

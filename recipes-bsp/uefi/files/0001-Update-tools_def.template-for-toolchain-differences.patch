@@ -1,10 +1,13 @@
-From 4e27ba4c896537682619f1ef6e3fcdc84caab2ce Mon Sep 17 00:00:00 2001
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: Ilies CHERGUI <ichergui@nvidia.com>
-Date: Wed, 18 Mar 2026 07:09:05 -0700
+Date: Wed, 16 Sep 2026 10:20:00 -0700
 Subject: [PATCH] Update tools_def.template for toolchain differences
 
 * Add support for passing SOURCE_DATE_EPOCH and DEBUG_PREFIX_MAP from environment
 * Add linker flags that are built into the toolchain NVIDIA uses for ther builds
+
+Rebased onto edk2-stable202511, where tools_def.template rev 3.03 dropped ARM32
+support and folded GCC_ARM_AARCH64_DLINK_COMMON into GCC_AARCH64_DLINK_FLAGS.
 
 Upstream-Status: Pending
 
@@ -14,37 +17,34 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  BaseTools/Conf/tools_def.template | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/BaseTools/Conf/tools_def.template b/BaseTools/Conf/tools_def.template
-index 6a25dc1f35..6cc0759ed9 100755
 --- a/BaseTools/Conf/tools_def.template
 +++ b/BaseTools/Conf/tools_def.template
-@@ -920,7 +920,7 @@ NOOPT_*_*_OBJCOPY_ADDDEBUGFLAG     = --add-gnu-debuglink="$(DEBUG_DIR)/$(MODULE_
+@@ -833,7 +833,7 @@
  *_*_*_DTC_PATH                     = DEF(DTC_BIN)
  
  # All supported GCC archs except LOONGARCH64 support -mstack-protector-guard=global, so set that on everything except LOONGARCH64
 -DEFINE GCC_ALL_CC_FLAGS            = -g -Os -fshort-wchar -fno-builtin -fno-strict-aliasing -Wall -Werror -Wno-array-bounds -include AutoGen.h -fno-common -fstack-protector
 +DEFINE GCC_ALL_CC_FLAGS            = -g -Os -fshort-wchar -fno-builtin -fno-strict-aliasing -Wall -Werror -Wno-array-bounds -include AutoGen.h -fno-common -fstack-protector ENV(DEBUG_PREFIX_MAP) ENV(SOURCE_DATE_EPOCH_FLAG)
  DEFINE GCC_IA32_X64_CC_FLAGS       = -mstack-protector-guard=global
- DEFINE GCC_ARM_CC_FLAGS            = DEF(GCC_ALL_CC_FLAGS) -mlittle-endian -mabi=aapcs -fno-short-enums -funsigned-char -ffunction-sections -fdata-sections -fomit-frame-pointer -Wno-address -mthumb -fno-pic -fno-pie -mstack-protector-guard=global
  DEFINE GCC_LOONGARCH64_CC_FLAGS    = DEF(GCC_ALL_CC_FLAGS) -mabi=lp64d -fno-asynchronous-unwind-tables -Wno-address -fno-short-enums -fsigned-char -ffunction-sections -fdata-sections
-@@ -930,7 +930,7 @@ DEFINE GCC_AARCH64_CC_XIPFLAGS     = -mstrict-align -mgeneral-regs-only
+ DEFINE GCC_AARCH64_CC_FLAGS        = DEF(GCC_ALL_CC_FLAGS) -mlittle-endian -fno-short-enums -fverbose-asm -funsigned-char  -ffunction-sections -fdata-sections -Wno-address -fno-asynchronous-unwind-tables -fno-unwind-tables -fno-pic -fno-pie -ffixed-x18 -mstack-protector-guard=global
+@@ -841,7 +841,7 @@
  DEFINE GCC_RISCV64_CC_XIPFLAGS     = -mstrict-align -mgeneral-regs-only
  DEFINE GCC_DLINK2_FLAGS_COMMON     = -Wl,--script=$(EDK_TOOLS_PATH)/Scripts/GccBase.lds
- DEFINE GCC_IA32_X64_DLINK_COMMON   = -nostdlib --pie --fatal-warnings -z,noexecstack --gc-sections
--DEFINE GCC_ARM_AARCH64_DLINK_COMMON= -Wl,--emit-relocs -nostdlib -Wl,--gc-sections -u $(IMAGE_ENTRY_POINT) -Wl,-e,$(IMAGE_ENTRY_POINT),-Map,$(DEST_DIR_DEBUG)/$(BASE_NAME).map -Wl,--fatal-warnings -Wl,-z,noexecstack
-+DEFINE GCC_ARM_AARCH64_DLINK_COMMON= -Wl,--emit-relocs -nostdlib -Wl,--gc-sections -u $(IMAGE_ENTRY_POINT) -Wl,-e,$(IMAGE_ENTRY_POINT),-Map,$(DEST_DIR_DEBUG)/$(BASE_NAME).map -Wl,--fatal-warnings -Wl,-z,noexecstack -Wl,-z,relro,-z,now,--as-needed,--hash-style=gnu ENV(DEBUG_PREFIX_MAP)
  DEFINE GCC_LOONGARCH64_DLINK_COMMON= -Wl,--emit-relocs -nostdlib -Wl,--gc-sections -u $(IMAGE_ENTRY_POINT) -Wl,-e,$(IMAGE_ENTRY_POINT),-Map,$(DEST_DIR_DEBUG)/$(BASE_NAME).map
- DEFINE GCC_ARM_DLINK_FLAGS         = DEF(GCC_ARM_AARCH64_DLINK_COMMON) -z common-page-size=0x20 -Wl,--pic-veneer
- DEFINE GCC_AARCH64_DLINK_FLAGS     = DEF(GCC_ARM_AARCH64_DLINK_COMMON) -z common-page-size=0x20
-@@ -970,7 +970,7 @@ DEFINE GCC48_X64_DLINK_FLAGS         = DEF(GCC48_IA32_X64_DLINK_FLAGS) -Wl,-melf
+-DEFINE GCC_AARCH64_DLINK_FLAGS     = -Wl,--emit-relocs -nostdlib -Wl,--gc-sections -u $(IMAGE_ENTRY_POINT) -Wl,-e,$(IMAGE_ENTRY_POINT),-Map,$(DEST_DIR_DEBUG)/$(BASE_NAME).map -z common-page-size=0x20
++DEFINE GCC_AARCH64_DLINK_FLAGS     = -Wl,--emit-relocs -nostdlib -Wl,--gc-sections -u $(IMAGE_ENTRY_POINT) -Wl,-e,$(IMAGE_ENTRY_POINT),-Map,$(DEST_DIR_DEBUG)/$(BASE_NAME).map -z common-page-size=0x20 -Wl,-z,relro,-z,now,--as-needed,--hash-style=gnu ENV(DEBUG_PREFIX_MAP)
+ DEFINE GCC_LOONGARCH64_DLINK_FLAGS = DEF(GCC_LOONGARCH64_DLINK_COMMON) -z common-page-size=0x20
+ DEFINE GCC_AARCH64_ASLDLINK_FLAGS  = DEF(GCC_AARCH64_DLINK_FLAGS) -Wl,--entry,ReferenceAcpiTable -u $(IMAGE_ENTRY_POINT) -Wl,--defsym=PECOFF_HEADER_SIZE=0 DEF(GCC_DLINK2_FLAGS_COMMON) -z common-page-size=0x20
+ DEFINE GCC_LOONGARCH64_ASLDLINK_FLAGS = DEF(GCC_LOONGARCH64_DLINK_FLAGS) -Wl,--entry,ReferenceAcpiTable -u $(IMAGE_ENTRY_POINT)
+@@ -872,7 +872,7 @@
+ DEFINE GCC48_X64_DLINK_FLAGS         = DEF(GCC48_IA32_X64_DLINK_FLAGS) -Wl,-melf_x86_64,--oformat=elf64-x86-64,-pie
  DEFINE GCC48_X64_DLINK2_FLAGS        = -Wl,--defsym=PECOFF_HEADER_SIZE=0x228 DEF(GCC_DLINK2_FLAGS_COMMON)
  DEFINE GCC48_ASM_FLAGS               = DEF(GCC_ASM_FLAGS)
- DEFINE GCC48_ARM_ASM_FLAGS           = $(PLATFORM_FLAGS) DEF(GCC_ASM_FLAGS) -mlittle-endian
 -DEFINE GCC48_AARCH64_ASM_FLAGS       = $(PLATFORM_FLAGS) DEF(GCC_ASM_FLAGS) -mlittle-endian
 +DEFINE GCC48_AARCH64_ASM_FLAGS       = $(PLATFORM_FLAGS) DEF(GCC_ASM_FLAGS) -mlittle-endian ENV(DEBUG_PREFIX_MAP)
- DEFINE GCC48_ARM_CC_FLAGS            = $(PLATFORM_FLAGS) DEF(GCC_ARM_CC_FLAGS) -mword-relocations
- DEFINE GCC48_ARM_CC_XIPFLAGS         = DEF(GCC_ARM_CC_XIPFLAGS)
  DEFINE GCC48_AARCH64_CC_FLAGS        = $(PLATFORM_FLAGS) -mcmodel=large DEF(GCC_AARCH64_CC_FLAGS)
+ DEFINE GCC48_AARCH64_CC_XIPFLAGS     = DEF(GCC_AARCH64_CC_XIPFLAGS)
+ DEFINE GCC48_AARCH64_DLINK_FLAGS     = DEF(GCC_AARCH64_DLINK_FLAGS)
 -- 
 2.43.0
-
