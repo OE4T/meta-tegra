@@ -16,6 +16,8 @@ CUDA_COMPONENTS = " \
     libnvjpeg \
 "
 
+CUDA_COMPONENTS:append:class-target = " libcudla"
+
 DEPENDS = "${CUDA_COMPONENTS}"
 
 do_fetch[noexec] = "1"

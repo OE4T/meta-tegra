@@ -12,64 +12,64 @@ Signed-off-by: Ilies CHERGUI <ichergui@nvidia.com>
  1 file changed, 17 insertions(+), 14 deletions(-)
 
 diff --git a/Makefile b/Makefile
-index b44e205..0f21d0f 100644
+index baaca99..677e9dd 100644
 --- a/Makefile
 +++ b/Makefile
-@@ -25,24 +25,26 @@
+@@ -26,23 +26,26 @@
  # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- 
+
 -SO_NAME := libgstnvcompositor.so
 -
 -CC := gcc
 +prefix ?= /usr
 +exec_prefix ?= $(prefix)
 +libdir ?= $(exec_prefix)/lib
- 
+
 -GST_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/gstreamer-1.0/
 -LIB_INSTALL_DIR?=/usr/lib/aarch64-linux-gnu/tegra/
 -CFLAGS:=
 +SO_NAME := libgstnvcompositor.so
- 
+
  SRCS := $(wildcard *.c)
- 
--INCLUDES += -I./
+
+-INCLUDES += -I/usr/src/jetson_multimedia_api/include -I/usr/local/cuda/include
 +CUDA_VER?=
 +ifeq ($(CUDA_VER),)
 +  $(error "CUDA_VER is not set")
 +endif
- 
+
  PKGS := gstreamer-1.0 \
  	gstreamer-base-1.0 \
--	gstreamer-bad-video-1.0 \
  	gstreamer-video-1.0 \
  	gstreamer-allocators-1.0 \
 -	glib-2.0
 +	glib-2.0 \
 +	cudart-$(CUDA_VER) \
 +	cuda-$(CUDA_VER)
- 
+
  OBJS := $(SRCS:.c=.o)
- 
-@@ -51,22 +53,23 @@ CFLAGS += -fPIC \
- 
+
+@@ -51,23 +54,23 @@ CFLAGS += -fPIC \
+
  CFLAGS += `pkg-config --cflags $(PKGS)`
- 
+
 -LDFLAGS = -Wl,--no-undefined -L$(LIB_INSTALL_DIR) -Wl,-rpath,$(LIB_INSTALL_DIR)
+-LDFLAGS += -lnvbufsurface -lnvbufsurftransform -L/usr/local/cuda/lib64 -lcudart
 +LDFLAGS += -Wl,--no-undefined
- 
+
 -LIBS += `pkg-config --libs $(PKGS)`
 +LIBS := -lnvbufsurftransform -lnvbufsurface `pkg-config --libs $(PKGS)`
- 
+
  all: $(SO_NAME)
- 
+
  %.o: %.c
 -	$(CC) -c $< $(CFLAGS) $(INCLUDES) -o $@
 +	$(CC) -c $< $(CFLAGS) -o $@
- 
+
  $(SO_NAME): $(OBJS)
  	$(CC) -shared -o $(SO_NAME) $(OBJS) $(LIBS) $(LDFLAGS)
- 
+
  .PHONY: install
 -DEST_DIR?= $(GST_INSTALL_DIR)
 +
@@ -77,9 +77,8 @@ index b44e205..0f21d0f 100644
 -	cp -vp $(SO_NAME) $(DEST_DIR)
 +	install -d $(DESTDIR)$(libdir)/gstreamer-1.0
 +	install -m 0644 $(SO_NAME) $(DESTDIR)$(libdir)/gstreamer-1.0/
- 
+
  .PHONY: clean
  clean:
--- 
+--
 2.34.1
-

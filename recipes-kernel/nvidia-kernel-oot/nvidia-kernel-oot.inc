@@ -15,11 +15,9 @@ B = "${S}"
 
 COMMON_PATCHES = "\
     file://0001-conftest-work-around-stringify-issue-with-__assign_s.patch;patchdir=nvidia-oot \
-    file://0002-bluetooth-fix-build-issues-with-Linux-v6.18.patch;patchdir=nvidia-oot \
     file://0003-Fix-unifiedgpudisp-modules-builds.patch;patchdir=unifiedgpudisp \
     file://0004-Fix-unifiedgpudisp-conftest-gcc-14-compatibility-iss.patch;patchdir=unifiedgpudisp \
     file://0005-nvdisplay-nvidia-drm-trigger-connector-detect-on-hot.patch;patchdir=nvdisplay \
-    file://0006-drm-tegra-Migrate-to-PMC-contextual-power-APIs.patch;patchdir=nvidia-oot \
 "
 
 EXTRA_PATCHES ??= ""
@@ -185,7 +183,7 @@ TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_CAMERA_DRIVERS}"
 TEGRA_OOT_EXTRA_BLUETOOTH_DRIVERS ??= ""
 TEGRA_OOT_BLUETOOTH_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-bluedroid-pm \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-rtk-btusb \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-btrtlusb \
     ${TEGRA_OOT_EXTRA_BLUETOOTH_DRIVERS} \
 "
 TEGRA_OOT_ALL_DRIVER_PACKAGES += "${TEGRA_OOT_BLUETOOTH_DRIVERS}"
@@ -281,8 +279,6 @@ TEGRA_OOT_BASE_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-bpmp \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-cactmon-mc-all \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-mce \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se \
-    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se-nvrng \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-wmark \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-thermal-trip-event \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tsecriscv \
@@ -335,7 +331,9 @@ TEGRA_OOT_OTHER_DRIVERS ?= "\
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-wch \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-aocluster \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-cpuidle-cg-disable-t264 \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se-kds \
+    ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-se-nvrng \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-host1x-emu \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-i2c-tegra-slave-byte \
     ${KERNEL_MODULE_PACKAGE_PREFIX}kernel-module-tegra-capture-isp \

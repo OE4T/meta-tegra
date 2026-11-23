@@ -25,7 +25,7 @@ Signed-off-by: Matt Madison <matt@madison.systems>
  5 files changed, 67 insertions(+), 12 deletions(-)
 
 diff --git a/Silicon/NVIDIA/Include/Library/PlatformBootOrderLib.h b/Silicon/NVIDIA/Include/Library/PlatformBootOrderLib.h
-index b6587c33..98a1b3fa 100644
+index b6587c3..98a1b3f 100644
 --- a/Silicon/NVIDIA/Include/Library/PlatformBootOrderLib.h
 +++ b/Silicon/NVIDIA/Include/Library/PlatformBootOrderLib.h
 @@ -15,6 +15,12 @@ SetBootOrder (
@@ -42,10 +42,10 @@ index b6587c33..98a1b3fa 100644
  PrintCurrentBootOrder (
    IN CONST UINTN  DebugPrintLevel
 diff --git a/Silicon/NVIDIA/Library/PlatformBootManagerLib/PlatformBm.c b/Silicon/NVIDIA/Library/PlatformBootManagerLib/PlatformBm.c
-index 895ae854..5e86c5e5 100644
+index 404c4ed..458e459 100644
 --- a/Silicon/NVIDIA/Library/PlatformBootManagerLib/PlatformBm.c
 +++ b/Silicon/NVIDIA/Library/PlatformBootManagerLib/PlatformBm.c
-@@ -2196,6 +2196,10 @@ PlatformBootManagerBeforeConsole (
+@@ -2502,6 +2502,10 @@ PlatformBootManagerBeforeConsole (
      if (!EFI_ERROR (Status)) {
        mRscHandler->Register (SingleBootStatusCodeCallback, TPL_CALLBACK);
      }
@@ -57,7 +57,7 @@ index 895ae854..5e86c5e5 100644
  
    //
 diff --git a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
-index a1a6876f..649f3788 100644
+index fc63010..866836e 100644
 --- a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
 +++ b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.c
 @@ -13,6 +13,7 @@
@@ -75,10 +75,10 @@ index a1a6876f..649f3788 100644
 +STATIC NVIDIA_BOOT_ORDER_PRIORITY mBootAppTemplate =
 +{ "bootapp",    0, MAX_UINT8,             MAX_UINT8,             MAX_UINT8,                MAX_UINTN, MAX_UINTN, MAX_UINTN, MAX_UINTN };
 +
- STATIC
- EFI_PCI_IO_PROTOCOL *
- GetBootOptPciIoProtocol (
-@@ -335,6 +339,16 @@ GetBootClassOfOption (
+ /**
+   Test whether an option resolves to an AndroidBootDxe handle by looking
+   for gNVIDIALoadfileKernelArgsProtocol on its device path. AndroidBootDxe
+@@ -372,6 +376,16 @@ GetBootClassOfOption (
    Bus      = MAX_UINTN;
    Device   = MAX_UINTN;
    Function = MAX_UINTN;
@@ -95,7 +95,7 @@ index a1a6876f..649f3788 100644
    if (StrCmp (Option->Description, L"UEFI Shell") == 0) {
      for (BootPriorityIndex = 0; BootPriorityIndex < Count; BootPriorityIndex++) {
        if (AsciiStrCmp (Table[BootPriorityIndex].OrderName, "shell") == 0) {
-@@ -645,17 +659,11 @@ STATIC
+@@ -697,17 +711,11 @@ STATIC
  INTN
  EFIAPI
  BootOrderSortCompare (
@@ -116,7 +116,7 @@ index a1a6876f..649f3788 100644
  }
  
  STATIC
-@@ -681,7 +689,29 @@ ParseDefaultBootPriority (
+@@ -733,7 +741,29 @@ ParseDefaultBootPriority (
    UINTN                       BootPrioritySbdfLen;
    UINTN                       BootClassIndex;
  
@@ -146,7 +146,7 @@ index a1a6876f..649f3788 100644
    // Process the priority order
    Status = GetVariable2 (
               L"DefaultBootPriority",
-@@ -792,6 +822,19 @@ ParseDefaultBootPriority (
+@@ -844,6 +874,19 @@ ParseDefaultBootPriority (
    return;
  }
  
@@ -166,7 +166,7 @@ index a1a6876f..649f3788 100644
  VOID
  EFIAPI
  SetBootOrder (
-@@ -818,9 +861,7 @@ SetBootOrder (
+@@ -870,9 +913,7 @@ SetBootOrder (
      }
    }
  
@@ -178,10 +178,10 @@ index a1a6876f..649f3788 100644
    VariableData = TRUE;
    gRT->SetVariable (
 diff --git a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
-index 7fd6ec56..65b08f8f 100644
+index e851325..76db091 100644
 --- a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
 +++ b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLib.inf
-@@ -44,6 +44,7 @@
+@@ -47,6 +47,7 @@
  [Pcd]
    gNVIDIATokenSpaceGuid.PcdIpmiNetworkBootMode
    gNVIDIATokenSpaceGuid.PcdLockAllVariables
@@ -190,12 +190,12 @@ index 7fd6ec56..65b08f8f 100644
  [Guids]
    gEfiGlobalVariableGuid
 diff --git a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLibNoIpmi.inf b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLibNoIpmi.inf
-index e2ea7d68..d3fd0405 100644
+index b3a4a70..53c55ae 100644
 --- a/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLibNoIpmi.inf
 +++ b/Silicon/NVIDIA/Library/PlatformBootOrderLib/PlatformBootOrderLibNoIpmi.inf
-@@ -39,6 +39,9 @@
- [Protocols]
-   gEfiPciIoProtocolGuid          ## CONSUMES
+@@ -42,6 +42,9 @@
+   gEfiPciIoProtocolGuid                                 ## CONSUMES
+   gNVIDIALoadfileKernelArgsProtocol                     ## CONSUMES
  
 +[Pcd]
 +  gNVIDIATokenSpaceGuid.PcdSingleBootSupport

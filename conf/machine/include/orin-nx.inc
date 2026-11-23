@@ -18,7 +18,7 @@ TEGRA_BUPGEN_SPECS ?= "fab=000;boardsku=0000;boardrev=;chipsku=00:00:00:D3;bup_t
                        fab=000;boardsku=0000;boardrev=;bup_type=kernel"
 
 KERNEL_DEVICETREE ?= "tegra234-p3768-0000+p3767-0000-nv-super.dtb"
-KERNEL_ARGS ?= "mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 video=efifb:off console=tty0 efi=runtime nvme.use_threaded_interrupts=1 pci=pcie_bus_perf"
+KERNEL_ARGS ?= "mminit_loglevel=4 console=ttyTCU0,115200 firmware_class.path=/etc/firmware fbcon=map:0 video=efifb:off console=tty0 efi_pstore.pstore_disable=1 pstore.backend=ramoops efi=runtime pci=pcie_bus_perf nvme.use_threaded_interrupts=1 swiotlb=2048"
 
 # 55GiB default rootfs size
 ROOTFSPART_SIZE_DEFAULT ?= "59055800320"

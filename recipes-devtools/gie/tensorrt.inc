@@ -8,10 +8,10 @@ HOMEPAGE = "http://developer.nvidia.com/tensorrt"
 L4T_DEB_GROUP = "tensorrt"
 
 SRC_COMMON_DEBS = "\
-    libnvinfer-headers-dev_${PV}+cuda13.2_arm64.deb;downloadfilename=libnvinfer-headers-dev_${PV}+cuda13.2_arm64.deb;name=hdev;subdir=tensorrt \
+    libnvinfer-headers-dev_${PV}+cuda13.4_arm64.deb;downloadfilename=libnvinfer-headers-dev_${PV}+cuda13.4_arm64.deb;name=hdev;subdir=tensorrt \
 "
 
-SRC_URI[hdev.sha256sum] = "6208dbba5dc7fd04ca1bca71a3dcaed6642cb08765edbfcc10996b52844b2ec9"
+SRC_URI[hdev.sha256sum] = "5c203314e4bb4cc1ef19025dede71de251437ca77f8852fa77d2663fd45f7f3b"
 
 COMPATIBLE_MACHINE = "(tegra)"
 

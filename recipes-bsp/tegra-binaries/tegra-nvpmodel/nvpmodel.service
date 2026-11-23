@@ -7,7 +7,7 @@ Before=graphical.target display-manager.service weston.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/sbin/nvpmodel -f /etc/nvpmodel.conf
+ExecStart=/usr/libexec/nvpmodel.sh
 
 [Install]
 WantedBy=multi-user.target
