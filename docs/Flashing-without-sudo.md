@@ -5,6 +5,24 @@ and, for Thor-family modules, the NVIDIA unified flashing script) under `sudo` f
 
 This page has suggestions for configuring your system to help with keeping `sudo` use to a minimum.
 
+## Optional progress reporting
+
+Enable [structured flash progress](Flashing.md#optional-structured-progress-reporting) when invoking the script normally:
+
+```sh
+TEGRA_FLASH_PROGRESS=1 ./initrd-flash
+```
+
+The script passes the environment setting to `make-sdcard`. Its progress reader runs as the invoking user, and the FIFO path is
+passed explicitly to bmaptool when it runs under `sudo`. No additional sudo environment configuration is needed for this path.
+Progress reporting does not change the permissions required for flashing.
+
+If you run the entire script under `sudo`, set the variable inside that invocation so it is not removed by sudo's environment filtering:
+
+```sh
+sudo env TEGRA_FLASH_PROGRESS=1 ./initrd-flash
+```
+
 ## Add yourself to some useful groups
 
 Disk devices are usually set up such that the `disk` group has full access to them. Adding yourself
